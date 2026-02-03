@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 
 DEFAULT_PORT = 8765
+DEFAULT_HOST = "127.0.0.1"
 
 
 def run_gh(args):
@@ -162,9 +163,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    host = os.environ.get("LOCAL_UI_HOST", DEFAULT_HOST)
     port = int(os.environ.get("LOCAL_UI_PORT", DEFAULT_PORT))
-    server = HTTPServer(("127.0.0.1", port), Handler)
-    print(f"Local UI running at http://127.0.0.1:{port}")
+    server = HTTPServer((host, port), Handler)
+    print(f"Local UI running at http://{host}:{port}")
     print("Press Ctrl+C to stop.")
     try:
         server.serve_forever()
