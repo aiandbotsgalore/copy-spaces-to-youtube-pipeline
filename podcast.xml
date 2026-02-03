@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" 
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
+     xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0"
+     xmlns:podcast="https://podcastindex.org/namespace/1.0"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>My Spaces Archive</title>
+    <link>https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/</link>
+    <description>An automated archive of Twitter Spaces.</description>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 03 Feb 2026 12:01:28 GMT</lastBuildDate>
+    <atom:link href="https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/podcast.xml" rel="self" type="application/rss+xml" />
+    <itunes:author>Logan Black</itunes:author>
+    <itunes:owner>
+      <itunes:name>Logan Black</itunes:name>
+      <itunes:email>loganblack0@gmail.com</itunes:email>
+    </itunes:owner>
+    <itunes:image href="https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/artwork.jpg"/>
+    <image>
+      <url>https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/artwork.jpg</url>
+      <title>My Spaces Archive</title>
+      <link>https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/</link>
+    </image>
+    <itunes:category text="Technology"/>
+    <itunes:explicit>no</itunes:explicit>
+    
+    <item>
+      <title>Placeholder Episode</title>
+      <description>Placeholder Episode - Twitter Space Replay</description>
+      <pubDate>Tue, 03 Feb 2026 11:58:49 GMT</pubDate>
+      <enclosure url="https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/test-placeholder-20260203-035848/placeholder.mp3" length="8339" type="audio/mpeg"/>
+      <guid isPermaLink="false">350004448</guid>
+      <itunes:duration>00:00:02</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+    <item>
+      <title>xW_.</title>
+      <description>xW_. - Twitter Space Replay</description>
+      <pubDate>Tue, 03 Feb 2026 11:15:09 GMT</pubDate>
+      <enclosure url="https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770117309/20260202_1ypJdqpaLEYxW_.mp3" length="373505" type="audio/mpeg"/>
+      <guid isPermaLink="false">349989458</guid>
+      <itunes:duration>00:00:27</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+    <item>
+      <title>xW_.</title>
+      <description>xW_. - Twitter Space Replay</description>
+      <pubDate>Tue, 03 Feb 2026 05:37:50 GMT</pubDate>
+      <enclosure url="https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770097070/20260202_1ypJdqpaLEYxW_.mp3" length="373505" type="audio/mpeg"/>
+      <guid isPermaLink="false">349872407</guid>
+      <itunes:duration>00:00:27</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+    <item>
+      <title>xW_.</title>
+      <description>xW_. - Twitter Space Replay</description>
+      <pubDate>Tue, 03 Feb 2026 02:58:13 GMT</pubDate>
+      <enclosure url="https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770087492/20260202_1ypJdqpaLEYxW_.mp3" length="373505" type="audio/mpeg"/>
+      <guid isPermaLink="false">349809018</guid>
+      <itunes:duration>00:00:00</itunes:duration>
+      <itunes:explicit>no</itunes:explicit>
+    </item>
+  </channel>
+</rss>

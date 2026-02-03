@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Twitter Space Ingest Pipeline",
+  "description": "A dashboard to generate and manage the configuration for a Twitter Space to Podcast automation pipeline.",
+  "requestFramePermissions": []
+}
