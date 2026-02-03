@@ -50,8 +50,8 @@ jobs:
       - name: Run Ingest Script
         id: process
         env:
-          MANUAL_URL: ${{ inputs.space_url }}
-        run: ./scripts/ingest.sh
+          MANUAL_URL: \${{ inputs.space_url }}
+        run: bash ./scripts/ingest.sh
 
       - name: Extract MP3 Duration
         id: duration

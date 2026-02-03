@@ -49,7 +49,7 @@ jobs:
         id: process
         env:
           MANUAL_URL: ${{ inputs.space_url }}
-        run: ./scripts/ingest.sh
+        run: bash ./scripts/ingest.sh
 
       - name: Extract MP3 Duration
         id: duration
