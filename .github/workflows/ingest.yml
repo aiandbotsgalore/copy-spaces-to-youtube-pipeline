@@ -18,6 +18,8 @@ concurrency:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   ingest:
@@ -214,8 +216,7 @@ jobs:
               <itunes:explicit>no</itunes:explicit>
               {''.join(rss_items)}
             </channel>
-          </rss>
-          """
+          </rss>"""
 
           with open('podcast.xml', 'w') as f:
               f.write(rss_content)
@@ -226,11 +227,11 @@ jobs:
 
       - name: Validate RSS
         run: |
-          if ! grep -q '<rss version="2.0"' podcast.xml; then
+          if ! grep -q '<rss version="2.0"' podcast.xml;
             echo "❌ Invalid RSS structure"
             exit 1
           fi
-          if ! grep -q 'METADATA::DURATION' podcast.xml && grep -q '00:00:00' podcast.xml; then
+          if ! grep -q 'METADATA::DURATION' podcast.xml && grep -q '00:00:00' podcast.xml;
              echo "⚠️ Warning: Duration might be default"
           fi
           echo "✅ RSS validation passed"
