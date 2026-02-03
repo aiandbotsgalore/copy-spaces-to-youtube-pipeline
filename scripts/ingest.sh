@@ -18,13 +18,16 @@ else
         echo "::error::Queue file $QUEUE_FILE not found!"
         exit 1
     fi
-    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | head -n 1 | tr -d '[:space:]')
+    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | head -n 1 | tr -d '[:space:]' || true)
 fi
 
 # 2. Validate URL
 if [[ -z "$TARGET_URL" ]]; then
-    echo "::error::No URL found in input or queue file!"
-    exit 1
+    echo "Queue is empty. Nothing to process."
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+        echo "skipped=true" >> "$GITHUB_OUTPUT"
+    fi
+    exit 0
 fi
 
 echo "Processing URL: $TARGET_URL"
