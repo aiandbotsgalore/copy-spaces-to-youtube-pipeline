@@ -124,9 +124,16 @@ jobs:
           desc = os.environ.get('PODCAST_DESC', 'Archive of Twitter Spaces')
           author = os.environ.get('PODCAST_AUTHOR', 'Archivist')
           email = os.environ.get('PODCAST_EMAIL', 'archive@example.com')
-          image = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
+          image_fallback = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
+          
           github_pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
           rss_url = f"{github_pages_url}podcast.xml"
+
+          # Artwork Logic: Use local artwork.jpg if exists, else fallback
+          if os.path.exists('artwork.jpg'):
+              image = f"{github_pages_url}artwork.jpg"
+          else:
+              image = image_fallback
 
           print(f"Fetching releases for {repo}...")
 
@@ -185,6 +192,7 @@ jobs:
           <rss version="2.0" 
                xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
                xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0"
+               xmlns:podcast="https://podcastindex.org/namespace/1.0"
                xmlns:atom="http://www.w3.org/2005/Atom">
             <channel>
               <title>{escape(title)}</title>
@@ -208,7 +216,8 @@ jobs:
               <itunes:explicit>no</itunes:explicit>
               {''.join(rss_items)}
             </channel>
-          </rss>"""
+          </rss>
+          """
 
           with open('podcast.xml', 'w') as f:
               f.write(rss_content)
@@ -219,11 +228,13 @@ jobs:
 
       - name: Validate RSS
         run: |
-          if ! grep -q '<rss version="2.0"' podcast.xml; then
+          if ! grep -q '<rss version="2.0"' podcast.xml;
+ then
             echo "❌ Invalid RSS structure"
             exit 1
           fi
-          if ! grep -q 'METADATA::DURATION' podcast.xml && grep -q '00:00:00' podcast.xml; then
+          if ! grep -q 'METADATA::DURATION' podcast.xml && grep -q '00:00:00' podcast.xml;
+ then
              echo "⚠️ Warning: Duration might be default"
           fi
           echo "✅ RSS validation passed"
