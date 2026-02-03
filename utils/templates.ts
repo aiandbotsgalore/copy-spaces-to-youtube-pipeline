@@ -39,7 +39,7 @@ jobs:
           cache: 'pip'
 
       - name: Install yt-dlp
-        run: python3 -m pip install -U yt-dlp
+        run: python3 -m pip install -r requirements.txt
 
       - name: Run Ingest Script
         id: process
@@ -88,66 +88,66 @@ jobs:
           PODCAST_IMAGE: "${config.imageUrl}"
           BASE_URL: "https://github.com/${{ github.repository }}/releases/download"
         run: |
-          cat <<EOF > generate_rss.py
-import os
-import json
-import urllib.request
-from datetime import datetime
-from xml.sax.saxutils import escape
+          cat <<'EOF' > generate_rss.py
+          import os
+          import json
+          import urllib.request
+          from datetime import datetime
+          from xml.sax.saxutils import escape
 
-# Configuration
-repo = os.environ['REPO']
-token = os.environ['GH_TOKEN']
-title = os.environ.get('PODCAST_TITLE', 'Twitter Spaces Archive')
-desc = os.environ.get('PODCAST_DESC', 'Archive of Twitter Spaces')
-author = os.environ.get('PODCAST_AUTHOR', 'Archivist')
-email = os.environ.get('PODCAST_EMAIL', 'archive@example.com')
-image = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
-github_pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
+          # Configuration
+          repo = os.environ['REPO']
+          token = os.environ['GH_TOKEN']
+          title = os.environ.get('PODCAST_TITLE', 'Twitter Spaces Archive')
+          desc = os.environ.get('PODCAST_DESC', 'Archive of Twitter Spaces')
+          author = os.environ.get('PODCAST_AUTHOR', 'Archivist')
+          email = os.environ.get('PODCAST_EMAIL', 'archive@example.com')
+          image = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
+          github_pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
 
-print(f"Fetching releases for {repo}...")
+          print(f"Fetching releases for {repo}...")
 
-req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases")
-req.add_header('Authorization', f'token {token}')
-req.add_header('Accept', 'application/vnd.github.v3+json')
+          req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases")
+          req.add_header('Authorization', f'token {token}')
+          req.add_header('Accept', 'application/vnd.github.v3+json')
 
-try:
-    with urllib.request.urlopen(req) as response:
-        releases = json.loads(response.read())
-except Exception as e:
-    print(f"Failed to fetch releases: {e}")
-    exit(1)
+          try:
+              with urllib.request.urlopen(req) as response:
+                  releases = json.loads(response.read())
+          except Exception as e:
+              print(f"Failed to fetch releases: {e}")
+              exit(1)
 
-rss_items = []
+          rss_items = []
 
-for release in releases:
-    if release.get('draft') or release.get('prerelease'):
-        continue
-    
-    pub_date = release.get('published_at') # ISO 8601
-    # Convert to RFC 822 for RSS (e.g., Wed, 02 Oct 2002 13:00:00 GMT)
-    dt = datetime.strptime(pub_date, "%Y-%m-%dT%H:%M:%SZ")
-    rfc822_date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
-    
-    for asset in release.get('assets', []):
-        if asset['name'].endswith('.mp3'):
-            file_url = asset['browser_download_url']
-            file_size = asset['size']
-            guid = str(asset['id'])
-            item_title = escape(release.get('name', 'Untitled Space'))
-            
-            rss_items.append(f"""
-    <item>
-      <title>{item_title}</title>
-      <description>{item_title} - Twitter Space Replay</description>
-      <pubDate>{rfc822_date}</pubDate>
-      <enclosure url="{file_url}" length="{file_size}" type="audio/mpeg"/>
-      <guid isPermaLink="false">{guid}</guid>
-      <itunes:duration>0</itunes:duration>
-      <itunes:explicit>no</itunes:explicit>
-    </item>")
+          for release in releases:
+              if release.get('draft') or release.get('prerelease'):
+                  continue
+              
+              pub_date = release.get('published_at') # ISO 8601
+              # Convert to RFC 822 for RSS (e.g., Wed, 02 Oct 2002 13:00:00 GMT)
+              dt = datetime.strptime(pub_date, "%Y-%m-%dT%H:%M:%SZ")
+              rfc822_date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+              
+              for asset in release.get('assets', []):
+                  if asset['name'].endswith('.mp3'):
+                      file_url = asset['browser_download_url']
+                      file_size = asset['size']
+                      guid = str(asset['id'])
+                      item_title = escape(release.get('name', 'Untitled Space'))
+                      
+                      rss_items.append(f"""
+              <item>
+                <title>{item_title}</title>
+                <description>{item_title} - Twitter Space Replay</description>
+                <pubDate>{rfc822_date}</pubDate>
+                <enclosure url="{file_url}" length="{file_size}" type="audio/mpeg"/>
+                <guid isPermaLink="false">{guid}</guid>
+                <itunes:duration>0</itunes:duration>
+                <itunes:explicit>no</itunes:explicit>
+              </item>")
 
-rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+          rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" 
      xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" 
      xmlns:googleplay="http://www.google.com/schemas/play-podcasts/1.0">
@@ -169,12 +169,14 @@ rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 </rss>
 """
 
-with open('podcast.xml', 'w') as f:
-    f.write(rss_content)
-    
-print("Successfully generated podcast.xml")
-EOF
+          with open('podcast.xml', 'w') as f:
+              f.write(rss_content)
+              
+          print("Successfully generated podcast.xml")
+          EOF
           python3 generate_rss.py
+
+
 
       - name: Deploy RSS to GitHub Pages
         uses: peaceiris/actions-gh-pages@4f9cc665646396ad65a5885c0094776106369065 # v3.9.2
