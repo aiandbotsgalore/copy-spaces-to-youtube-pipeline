@@ -11,12 +11,12 @@ import {
 } from './utils/templates';
 
 const DEFAULT_CONFIG: PipelineConfig = {
-  repoName: 'my-spaces-archive',
-  ownerName: 'username',
+  repoName: 'copy-spaces-to-youtube-pipeline',
+  ownerName: 'aiandbotsgalore',
   podcastTitle: 'My Spaces Archive',
   podcastDescription: 'An automated archive of Twitter Spaces.',
-  authorName: 'Space Host',
-  email: 'host@example.com',
+  authorName: 'Logan Black',
+  email: 'loganblack0@gmail.com',
   imageUrl: 'https://picsum.photos/1400/1400'
 };
 

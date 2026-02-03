@@ -122,8 +122,8 @@ jobs:
           token = os.environ['GH_TOKEN']
           title = os.environ.get('PODCAST_TITLE', 'Twitter Spaces Archive')
           desc = os.environ.get('PODCAST_DESC', 'Archive of Twitter Spaces')
-          author = os.environ.get('PODCAST_AUTHOR', 'Archivist')
-          email = os.environ.get('PODCAST_EMAIL', 'archive@example.com')
+          author = os.environ.get('PODCAST_AUTHOR', 'Logan Black')
+          email = os.environ.get('PODCAST_EMAIL', 'loganblack0@gmail.com')
           image_fallback = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
           
           github_pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"

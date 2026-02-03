@@ -102,8 +102,8 @@ jobs:
           REPO: ${{ github.repository }}
           PODCAST_TITLE: "My Spaces Archive"
           PODCAST_DESC: "An automated archive of Twitter Spaces."
-          PODCAST_AUTHOR: "Space Host"
-          PODCAST_EMAIL: "host@example.com"
+          PODCAST_AUTHOR: "Logan Black"
+          PODCAST_EMAIL: "loganblack0@gmail.com"
           PODCAST_IMAGE: "https://picsum.photos/1400/1400"
           BASE_URL: "https://github.com/${{ github.repository }}/releases/download"
         run: |
@@ -120,8 +120,8 @@ jobs:
           token = os.environ['GH_TOKEN']
           title = os.environ.get('PODCAST_TITLE', 'Twitter Spaces Archive')
           desc = os.environ.get('PODCAST_DESC', 'Archive of Twitter Spaces')
-          author = os.environ.get('PODCAST_AUTHOR', 'Archivist')
-          email = os.environ.get('PODCAST_EMAIL', 'archive@example.com')
+          author = os.environ.get('PODCAST_AUTHOR', 'Logan Black')
+          email = os.environ.get('PODCAST_EMAIL', 'loganblack0@gmail.com')
           image_fallback = os.environ.get('PODCAST_IMAGE', 'https://picsum.photos/1400/1400')
           
           github_pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
