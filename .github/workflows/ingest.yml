@@ -99,8 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.ingest.outputs.skipped != 'true' || inputs.force_rss == true
     permissions:
-      contents: write
       pages: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -243,13 +243,18 @@ jobs:
           fi
           echo "✅ RSS validation passed"
 
-      - name: Deploy RSS to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Stage Pages Content
+        run: |
+          mkdir -p site
+          cp podcast.xml site/
+          if [ -f artwork.jpg ]; then
+            cp artwork.jpg site/
+          fi
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: gh-pages
-          keep_files: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          exclude_assets: '.github,scripts,space_queue.txt,generate_rss.py,README.md'
+          path: site
+
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v4
