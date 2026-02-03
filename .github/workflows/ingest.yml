@@ -97,7 +97,7 @@ jobs:
   rss:
     needs: ingest
     runs-on: ubuntu-latest
-    if: needs.ingest.outputs.skipped != 'true' || inputs.force_rss == 'true'
+    if: needs.ingest.outputs.skipped != 'true' || inputs.force_rss == true
     permissions:
       contents: write
       pages: write
