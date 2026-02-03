@@ -236,7 +236,7 @@ jobs:
           echo "✅ RSS validation passed"
 
       - name: Deploy RSS to GitHub Pages
-        uses: peaceiris/actions-gh-pages@4f9cc665646396ad65a5885c0094776106369065 # v3.9.2
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
