@@ -83,10 +83,16 @@ jobs:
             TITLE=$(python3 -c "import json; print(json.load(open('$JSON_FILE')).get('title','Unknown'))" 2>/dev/null || echo "Unknown")
             UPLOADER=$(python3 -c "import json; print(json.load(open('$JSON_FILE')).get('uploader','Unknown'))" 2>/dev/null || echo "Unknown")
             UPLOADER_ID=$(python3 -c "import json; print(json.load(open('$JSON_FILE')).get('uploader_id',''))" 2>/dev/null || echo "")
+            DESCRIPTION=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print((d.get('description') or '')[:500])" 2>/dev/null || echo "")
+            VIEW_COUNT=$(python3 -c "import json; print(json.load(open('$JSON_FILE')).get('view_count',0) or 0)" 2>/dev/null || echo "0")
+            RELEASE_DATE=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('release_date') or d.get('upload_date') or '')" 2>/dev/null || echo "")
           else
             TITLE="Space_$SPACE_ID"
             UPLOADER="Unknown"
             UPLOADER_ID=""
+            DESCRIPTION=""
+            VIEW_COUNT="0"
+            RELEASE_DATE=""
           fi
 
           # Clean title
@@ -96,6 +102,9 @@ jobs:
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "uploader=$UPLOADER" >> $GITHUB_OUTPUT
           echo "uploader_id=$UPLOADER_ID" >> $GITHUB_OUTPUT
+          echo "description=$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "view_count=$VIEW_COUNT" >> $GITHUB_OUTPUT
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "release_tag=${DATE}_${SPACE_ID}" >> $GITHUB_OUTPUT
 
       - name: Get Duration
@@ -116,10 +125,17 @@ jobs:
             **Title:** ${{ steps.download.outputs.title }}
             **Host:** ${{ steps.download.outputs.uploader }} (@${{ steps.download.outputs.uploader_id }})
             **Duration:** ${{ steps.duration.outputs.duration }}
+            **Listeners:** ${{ steps.download.outputs.view_count }}
+            **Recorded:** ${{ steps.download.outputs.release_date }}
             **Source:** ${{ steps.url.outputs.url }}
+            **Space ID:** ${{ steps.url.outputs.space_id }}
+
+            ${{ steps.download.outputs.description }}
 
             ---
             METADATA::DURATION::${{ steps.duration.outputs.duration }}
+            METADATA::LISTENERS::${{ steps.download.outputs.view_count }}
+            METADATA::DATE::${{ steps.download.outputs.release_date }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
