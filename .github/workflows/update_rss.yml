@@ -73,9 +73,21 @@ jobs:
 
               for asset in rel.get('assets', []):
                   if asset['name'].endswith('.mp3'):
+                      # Extract metadata from release body
+                      body = rel.get('body', '')
+                      host_match = re.search(r'\*\*Host:\*\*\s*(.+?)(?:\n|$)', body)
+                      source_match = re.search(r'\*\*Source:\*\*\s*(.+?)(?:\n|$)', body)
+                      host = host_match.group(1).strip() if host_match else 'Unknown'
+                      source = source_match.group(1).strip() if source_match else ''
+
+                      desc = f"{escape(rel['name'])}\n\nHost: {escape(host)}\nDuration: {duration}"
+                      if source:
+                          desc += f"\nOriginal: {escape(source)}"
+                      desc += "\n\nTwitter Space archived automatically."
+
                       items.append(f'''<item>
             <title>{escape(rel['name'])}</title>
-            <description>{escape(rel['name'])} - Twitter Space</description>
+            <description>{desc}</description>
             <pubDate>{date}</pubDate>
             <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
             <guid isPermaLink="false">{asset['id']}</guid>
