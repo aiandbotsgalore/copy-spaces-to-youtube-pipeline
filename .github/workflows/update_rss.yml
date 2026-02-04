@@ -36,6 +36,14 @@ jobs:
 
           pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
 
+          # Artwork - use local file if exists, else fallback
+          if os.path.exists('artwork.png'):
+              image_url = f"{pages_url}artwork.png"
+          elif os.path.exists('artwork.jpg'):
+              image_url = f"{pages_url}artwork.jpg"
+          else:
+              image_url = "https://picsum.photos/1400/1400"
+
           # Fetch all releases with pagination
           releases = []
           page = 1
@@ -80,7 +88,20 @@ jobs:
             <title>My Spaces Archive</title>
             <link>{pages_url}</link>
             <description>Archived Twitter Spaces</description>
+            <language>en-us</language>
             <itunes:author>Logan Black</itunes:author>
+            <itunes:owner>
+              <itunes:name>Logan Black</itunes:name>
+              <itunes:email>loganblack0@gmail.com</itunes:email>
+            </itunes:owner>
+            <itunes:image href="{image_url}"/>
+            <image>
+              <url>{image_url}</url>
+              <title>My Spaces Archive</title>
+              <link>{pages_url}</link>
+            </image>
+            <itunes:category text="Technology"/>
+            <itunes:explicit>no</itunes:explicit>
             {''.join(items)}
           </channel>
           </rss>'''
@@ -94,6 +115,7 @@ jobs:
         run: |
           mkdir -p site
           cp podcast.xml site/
+          [ -f artwork.png ] && cp artwork.png site/ || true
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
 
       - name: Upload Pages Artifact
