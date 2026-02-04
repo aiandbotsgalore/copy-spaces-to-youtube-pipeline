@@ -1,0 +1,105 @@
+name: Update RSS Feed
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: rss-update
+  cancel-in-progress: true
+
+jobs:
+  rss:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate RSS Feed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          cat <<'PYEOF' > gen_rss.py
+          import os, json, re, urllib.request
+          from datetime import datetime
+          from xml.sax.saxutils import escape
+
+          repo = os.environ['REPO']
+          token = os.environ['GH_TOKEN']
+
+          pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
+
+          # Fetch all releases with pagination
+          releases = []
+          page = 1
+          while True:
+              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
+              req.add_header('Authorization', f'token {token}')
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      data = json.loads(r.read())
+              except Exception as e:
+                  print(f"Error fetching releases: {e}")
+                  break
+              if not data: break
+              releases.extend(data)
+              page += 1
+
+          print(f"Found {len(releases)} releases")
+
+          items = []
+          for rel in releases:
+              if rel.get('draft') or rel.get('prerelease'): continue
+              dt = datetime.strptime(rel['published_at'], "%Y-%m-%dT%H:%M:%SZ")
+              date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+              body = rel.get('body', '')
+              dur_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
+              duration = dur_match.group(1) if dur_match else "00:00:00"
+
+              for asset in rel.get('assets', []):
+                  if asset['name'].endswith('.mp3'):
+                      items.append(f'''<item>
+            <title>{escape(rel['name'])}</title>
+            <description>{escape(rel['name'])} - Twitter Space</description>
+            <pubDate>{date}</pubDate>
+            <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
+            <guid isPermaLink="false">{asset['id']}</guid>
+            <itunes:duration>{duration}</itunes:duration>
+          </item>''')
+
+          rss = f'''<?xml version="1.0" encoding="UTF-8"?>
+          <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+          <channel>
+            <title>My Spaces Archive</title>
+            <link>{pages_url}</link>
+            <description>Archived Twitter Spaces</description>
+            <itunes:author>Logan Black</itunes:author>
+            {''.join(items)}
+          </channel>
+          </rss>'''
+
+          with open('podcast.xml', 'w') as f: f.write(rss)
+          print(f"Generated RSS with {len(items)} episodes")
+          PYEOF
+          python3 gen_rss.py
+
+      - name: Deploy to Pages
+        run: |
+          mkdir -p site
+          cp podcast.xml site/
+          [ -f artwork.jpg ] && cp artwork.jpg site/ || true
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v4

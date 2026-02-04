@@ -1,78 +1,29 @@
-name: Batch Ingest Spaces
+name: Ingest Space
 
 on:
-  push:
-    paths:
-      - 'batch_queue.txt'
+  repository_dispatch:
+    types: [ingest-space]
   workflow_dispatch:
     inputs:
-      parallel_jobs:
-        description: 'Number of parallel downloads (1-10)'
-        required: false
-        type: number
-        default: 10
+      url:
+        description: 'Twitter Space URL to download'
+        required: true
+        type: string
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
+  actions: write
+
+concurrency:
+  group: ingest-${{ github.event.client_payload.url || inputs.url }}
+  cancel-in-progress: false
 
 jobs:
-  # Read queue and set up matrix
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      urls: ${{ steps.read-queue.outputs.urls }}
-      count: ${{ steps.read-queue.outputs.count }}
-      has_more: ${{ steps.read-queue.outputs.has_more }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-      - name: Read Queue
-        id: read-queue
-        run: |
-          PARALLEL=${{ inputs.parallel_jobs || 10 }}
-
-          if [[ ! -f batch_queue.txt ]]; then
-            echo "No batch_queue.txt found"
-            echo "urls=[]" >> $GITHUB_OUTPUT
-            echo "count=0" >> $GITHUB_OUTPUT
-            echo "has_more=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Get first N non-empty lines
-          URLS=$(grep -v '^[[:space:]]*$' batch_queue.txt | head -n $PARALLEL | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          COUNT=$(echo "$URLS" | jq 'length')
-
-          # Check if there are more after these
-          TOTAL=$(grep -c -v '^[[:space:]]*$' batch_queue.txt || echo "0")
-          if [ "$TOTAL" -gt "$PARALLEL" ]; then
-            HAS_MORE="true"
-          else
-            HAS_MORE="false"
-          fi
-
-          echo "urls=$URLS" >> $GITHUB_OUTPUT
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
-          echo "has_more=$HAS_MORE" >> $GITHUB_OUTPUT
-
-          echo "Found $COUNT URLs to process ($TOTAL total in queue)"
-
-  # Process URLs in parallel
   ingest:
-    needs: prepare
-    if: needs.prepare.outputs.count != '0'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        url: ${{ fromJson(needs.prepare.outputs.urls) }}
-      fail-fast: false
-      max-parallel: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@v4
 
       - name: Install ffmpeg
         run: |
@@ -80,31 +31,31 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: Set up Python
-        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install yt-dlp
         run: pip install yt-dlp
 
-      - name: Extract Space ID
-        id: extract
+      - name: Get URL
+        id: url
         run: |
-          URL="${{ matrix.url }}"
+          URL="${{ github.event.client_payload.url || inputs.url }}"
+          echo "url=$URL" >> $GITHUB_OUTPUT
           SPACE_ID=$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')
           echo "space_id=$SPACE_ID" >> $GITHUB_OUTPUT
           echo "Processing: $SPACE_ID"
 
       - name: Download Space
         id: download
-        env:
-          MANUAL_URL: ${{ matrix.url }}
         run: |
           mkdir -p work
           DATE=$(date +%Y%m%d)
-          SPACE_ID="${{ steps.extract.outputs.space_id }}"
+          SPACE_ID="${{ steps.url.outputs.space_id }}"
+          URL="${{ steps.url.outputs.url }}"
 
-          echo "Downloading ${{ matrix.url }}..."
+          echo "Downloading $URL..."
 
           yt-dlp \
             --retries 3 \
@@ -117,7 +68,7 @@ jobs:
             --embed-metadata \
             --write-info-json \
             --output "work/${DATE}_${SPACE_ID}_%(title)s.%(ext)s" \
-            "${{ matrix.url }}"
+            "$URL"
 
           MP3_FILE=$(find work -name "*.mp3" | head -1)
           JSON_FILE=$(find work -name "*.info.json" | head -1)
@@ -156,7 +107,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.download.outputs.release_tag }}
           name: "${{ steps.download.outputs.title }}"
@@ -165,133 +116,48 @@ jobs:
             **Title:** ${{ steps.download.outputs.title }}
             **Host:** ${{ steps.download.outputs.uploader }} (@${{ steps.download.outputs.uploader_id }})
             **Duration:** ${{ steps.duration.outputs.duration }}
-            **Source:** ${{ matrix.url }}
+            **Source:** ${{ steps.url.outputs.url }}
 
             ---
             METADATA::DURATION::${{ steps.duration.outputs.duration }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Update queue and trigger next batch
-  cleanup:
-    needs: [prepare, ingest]
-    if: always() && needs.prepare.outputs.count != '0'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ github.ref }}
-          fetch-depth: 0
-
-      - name: Remove Processed URLs
-        run: |
-          PARALLEL=${{ inputs.parallel_jobs || 10 }}
-
-          # Remove first N lines that were processed
-          if [[ -f batch_queue.txt ]]; then
-            tail -n +$((PARALLEL + 1)) batch_queue.txt > batch_queue.tmp || true
-            mv batch_queue.tmp batch_queue.txt
-
-            REMAINING=$(grep -c -v '^[[:space:]]*$' batch_queue.txt || echo "0")
-            echo "Remaining URLs: $REMAINING"
-          fi
-
-      - name: Commit Updated Queue
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add batch_queue.txt
-          git commit -m "chore: processed batch, ${{ needs.prepare.outputs.count }} spaces done" || echo "No changes"
-          git push
-
-  # Generate RSS after all downloads
-  rss:
-    needs: [ingest, cleanup]
-    if: always() && needs.prepare.outputs.count != '0'
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-      - name: Generate RSS Feed
+      - name: Trigger Next URL
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
         run: |
-          cat <<'PYEOF' > gen_rss.py
-          import os, json, re, urllib.request
-          from datetime import datetime
-          from xml.sax.saxutils import escape
+          # Count currently running ingest workflows (excluding this one finishing)
+          RUNNING=$(gh run list --workflow=batch_ingest.yml --status=in_progress -L 100 --json databaseId | jq 'length')
+          echo "Currently running: $RUNNING"
 
-          repo = os.environ['REPO']
-          token = os.environ['GH_TOKEN']
+          # If under limit (10), check if there are more URLs to process
+          if [[ "$RUNNING" -lt 10 ]]; then
+            # Get the queue file content
+            QUEUE_CONTENT=$(gh api repos/${{ github.repository }}/contents/batch_queue.txt \
+              --jq '.content' 2>/dev/null | base64 -d 2>/dev/null || echo "")
 
-          pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
+            if [[ -n "$QUEUE_CONTENT" ]]; then
+              # Get count of URLs in queue
+              QUEUE_COUNT=$(echo "$QUEUE_CONTENT" | grep -c -v '^[[:space:]]*$' || echo "0")
+              echo "URLs in queue: $QUEUE_COUNT"
 
-          # Fetch all releases with pagination
-          releases = []
-          page = 1
-          while True:
-              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
-              req.add_header('Authorization', f'token {token}')
-              with urllib.request.urlopen(req) as r:
-                  data = json.loads(r.read())
-              if not data: break
-              releases.extend(data)
-              page += 1
+              # Calculate how many more we can start
+              SLOTS=$((10 - RUNNING))
+              echo "Available slots: $SLOTS"
 
-          print(f"Found {len(releases)} releases")
-
-          items = []
-          for rel in releases:
-              if rel.get('draft') or rel.get('prerelease'): continue
-              dt = datetime.strptime(rel['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-              date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
-              body = rel.get('body', '')
-              dur_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
-              duration = dur_match.group(1) if dur_match else "00:00:00"
-
-              for asset in rel.get('assets', []):
-                  if asset['name'].endswith('.mp3'):
-                      items.append(f'''<item>
-            <title>{escape(rel['name'])}</title>
-            <description>{escape(rel['name'])} - Twitter Space</description>
-            <pubDate>{date}</pubDate>
-            <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
-            <guid isPermaLink="false">{asset['id']}</guid>
-            <itunes:duration>{duration}</itunes:duration>
-          </item>''')
-
-          rss = f'''<?xml version="1.0" encoding="UTF-8"?>
-          <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-          <channel>
-            <title>My Spaces Archive</title>
-            <link>{pages_url}</link>
-            <description>Archived Twitter Spaces</description>
-            <itunes:author>Logan Black</itunes:author>
-            {''.join(items)}
-          </channel>
-          </rss>'''
-
-          with open('podcast.xml', 'w') as f: f.write(rss)
-          print(f"Generated RSS with {len(items)} episodes")
-          PYEOF
-          python3 gen_rss.py
-
-      - name: Deploy to Pages
-        run: |
-          mkdir -p site
-          cp podcast.xml site/
-          [ -f artwork.jpg ] && cp artwork.jpg site/
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy Pages
-        uses: actions/deploy-pages@v4
+              # Trigger jobs for available slots
+              echo "$QUEUE_CONTENT" | grep -v '^[[:space:]]*$' | head -n $SLOTS | while read NEXT_URL; do
+                if [[ -n "$NEXT_URL" ]]; then
+                  echo "Triggering: $NEXT_URL"
+                  gh workflow run batch_ingest.yml -f url="$NEXT_URL" || true
+                  sleep 1
+                fi
+              done
+            else
+              echo "Queue is empty or not accessible"
+            fi
+          else
+            echo "Already at max concurrent jobs"
+          fi
