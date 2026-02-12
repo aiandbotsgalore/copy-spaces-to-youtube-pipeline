@@ -178,32 +178,27 @@ jobs:
           ACTIVE=$(gh run list --workflow=batch_ingest.yml -L 200 --json status | jq '[.[] | select(.status != "completed")] | length')
           echo "Currently active (queued/pending/running): $ACTIVE"
 
-          SLOTS=$((MAX - ACTIVE))
-          if [[ "$SLOTS" -le 0 ]]; then
+          if [[ "$ACTIVE" -ge "$MAX" ]]; then
             echo "Already at max active jobs"
             exit 0
           fi
 
-          echo "Available slots: $SLOTS"
-          for _ in $(seq 1 "$SLOTS"); do
-            set +e
-            NEXT_URL=$(python3 scripts/claim_queue_url.py --repo "$REPO" --queue-file batch_queue.txt --token "$GH_TOKEN" --branch "$BRANCH")
-            CLAIM_STATUS=$?
-            set -e
+          set +e
+          NEXT_URL=$(python3 scripts/claim_queue_url.py --repo "$REPO" --queue-file batch_queue.txt --token "$GH_TOKEN" --branch "$BRANCH")
+          CLAIM_STATUS=$?
+          set -e
 
-            if [[ "$CLAIM_STATUS" -eq 3 ]]; then
-              echo "Queue empty"
-              break
-            fi
+          if [[ "$CLAIM_STATUS" -eq 3 ]]; then
+            echo "Queue empty"
+            exit 0
+          fi
 
-            if [[ "$CLAIM_STATUS" -ne 0 ]]; then
-              echo "Failed to claim next URL (status $CLAIM_STATUS)"
-              break
-            fi
+          if [[ "$CLAIM_STATUS" -ne 0 ]]; then
+            echo "Failed to claim next URL (status $CLAIM_STATUS)"
+            exit 0
+          fi
 
-            if [[ -n "$NEXT_URL" ]]; then
-              echo "Triggering: $NEXT_URL"
-              gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
-              sleep 1
-            fi
-          done
+          if [[ -n "$NEXT_URL" ]]; then
+            echo "Triggering: $NEXT_URL"
+            gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
+          fi
