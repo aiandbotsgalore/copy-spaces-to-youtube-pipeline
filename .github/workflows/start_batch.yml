@@ -47,13 +47,13 @@ jobs:
           fi
 
           # Check how many are already running
-          RUNNING=$(gh run list --workflow=batch_ingest.yml --status=in_progress -L 100 --json databaseId 2>/dev/null | jq 'length' || echo "0")
-          echo "Currently running: $RUNNING"
+          ACTIVE=$(gh run list --workflow=batch_ingest.yml -L 200 --json status 2>/dev/null | jq '[.[] | select(.status != "completed")] | length' || echo "0")
+          echo "Currently active (queued/pending/running): $ACTIVE"
 
           # Calculate how many to start
-          SLOTS=$((MAX - RUNNING))
+          SLOTS=$((MAX - ACTIVE))
           if [[ "$SLOTS" -le 0 ]]; then
-            echo "Already at max concurrent ($RUNNING running)"
+            echo "Already at max active limit ($ACTIVE)"
             exit 0
           fi
 
