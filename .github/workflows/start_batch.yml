@@ -13,7 +13,7 @@ on:
         default: 10
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -26,7 +26,10 @@ jobs:
       - name: Start Initial Jobs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           MAX=${{ inputs.max_concurrent || 10 }}
 
           if [[ ! -f batch_queue.txt ]]; then
@@ -56,12 +59,26 @@ jobs:
 
           echo "Starting $SLOTS new jobs..."
 
-          # Read first N URLs and trigger each
-          head -n $SLOTS batch_queue.txt | grep -v '^[[:space:]]*$' | while read URL; do
+          for _ in $(seq 1 "$SLOTS"); do
+            set +e
+            URL=$(python3 scripts/claim_queue_url.py --repo "$REPO" --queue-file batch_queue.txt --token "$GH_TOKEN" --branch "$BRANCH")
+            CLAIM_STATUS=$?
+            set -e
+
+            if [[ "$CLAIM_STATUS" -eq 3 ]]; then
+              echo "Queue empty while claiming URLs"
+              break
+            fi
+
+            if [[ "$CLAIM_STATUS" -ne 0 ]]; then
+              echo "Queue claim failed with status $CLAIM_STATUS"
+              break
+            fi
+
             if [[ -n "$URL" ]]; then
               echo "Triggering: $URL"
-              gh workflow run batch_ingest.yml -f url="$URL" || echo "Failed to trigger: $URL"
-              sleep 2  # Avoid rate limits
+              gh workflow run batch_ingest.yml -f url="$URL" -f from_queue=true || echo "Failed to trigger: $URL"
+              sleep 1
             fi
           done
 

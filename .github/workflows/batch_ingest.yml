@@ -9,6 +9,11 @@ on:
         description: 'Twitter Space URL to download'
         required: true
         type: string
+      from_queue:
+        description: 'Internal flag indicating this run came from the queue dispatcher'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -42,13 +47,32 @@ jobs:
         id: url
         run: |
           URL="${{ github.event.client_payload.url || inputs.url }}"
+          FROM_QUEUE="${{ inputs.from_queue }}"
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            FROM_QUEUE="true"
+          fi
           echo "url=$URL" >> $GITHUB_OUTPUT
           SPACE_ID=$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')
           echo "space_id=$SPACE_ID" >> $GITHUB_OUTPUT
+          echo "from_queue=$FROM_QUEUE" >> $GITHUB_OUTPUT
           echo "Processing: $SPACE_ID"
+
+      - name: Check Existing Release
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SPACE_ID="${{ steps.url.outputs.space_id }}"
+          if gh release list --limit 1000 --json tagName --jq '.[].tagName' | grep -Eq "_${SPACE_ID}$"; then
+            echo "already_released=true" >> "$GITHUB_OUTPUT"
+            echo "Space $SPACE_ID already has a release; skipping download/release."
+          else
+            echo "already_released=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Download Space
         id: download
+        if: steps.existing.outputs.already_released != 'true'
         run: |
           mkdir -p work
           DATE=$(date +%Y%m%d)
@@ -109,6 +133,7 @@ jobs:
 
       - name: Get Duration
         id: duration
+        if: steps.existing.outputs.already_released != 'true'
         run: |
           DURATION=$(ffprobe -v error -show_entries format=duration \
             -of default=noprint_wrappers=1:nokey=1 "${{ steps.download.outputs.mp3_file }}" \
@@ -116,6 +141,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
       - name: Create Release
+        if: steps.existing.outputs.already_released != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.download.outputs.release_tag }}
@@ -140,40 +166,44 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger Next URL
-        if: always()
+        if: always() && steps.url.outputs.from_queue == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
         run: |
-          # Count currently running ingest workflows (excluding this one finishing)
+          set -euo pipefail
+          MAX=10
+
           RUNNING=$(gh run list --workflow=batch_ingest.yml --status=in_progress -L 100 --json databaseId | jq 'length')
           echo "Currently running: $RUNNING"
 
-          # If under limit (10), check if there are more URLs to process
-          if [[ "$RUNNING" -lt 10 ]]; then
-            # Get the queue file content
-            QUEUE_CONTENT=$(gh api repos/${{ github.repository }}/contents/batch_queue.txt \
-              --jq '.content' 2>/dev/null | base64 -d 2>/dev/null || echo "")
-
-            if [[ -n "$QUEUE_CONTENT" ]]; then
-              # Get count of URLs in queue
-              QUEUE_COUNT=$(echo "$QUEUE_CONTENT" | grep -c -v '^[[:space:]]*$' || echo "0")
-              echo "URLs in queue: $QUEUE_COUNT"
-
-              # Calculate how many more we can start
-              SLOTS=$((10 - RUNNING))
-              echo "Available slots: $SLOTS"
-
-              # Trigger jobs for available slots
-              echo "$QUEUE_CONTENT" | grep -v '^[[:space:]]*$' | head -n $SLOTS | while read NEXT_URL; do
-                if [[ -n "$NEXT_URL" ]]; then
-                  echo "Triggering: $NEXT_URL"
-                  gh workflow run batch_ingest.yml -f url="$NEXT_URL" || true
-                  sleep 1
-                fi
-              done
-            else
-              echo "Queue is empty or not accessible"
-            fi
-          else
+          SLOTS=$((MAX - RUNNING))
+          if [[ "$SLOTS" -le 0 ]]; then
             echo "Already at max concurrent jobs"
+            exit 0
           fi
+
+          echo "Available slots: $SLOTS"
+          for _ in $(seq 1 "$SLOTS"); do
+            set +e
+            NEXT_URL=$(python3 scripts/claim_queue_url.py --repo "$REPO" --queue-file batch_queue.txt --token "$GH_TOKEN" --branch "$BRANCH")
+            CLAIM_STATUS=$?
+            set -e
+
+            if [[ "$CLAIM_STATUS" -eq 3 ]]; then
+              echo "Queue empty"
+              break
+            fi
+
+            if [[ "$CLAIM_STATUS" -ne 0 ]]; then
+              echo "Failed to claim next URL (status $CLAIM_STATUS)"
+              break
+            fi
+
+            if [[ -n "$NEXT_URL" ]]; then
+              echo "Triggering: $NEXT_URL"
+              gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
+              sleep 1
+            fi
+          done
