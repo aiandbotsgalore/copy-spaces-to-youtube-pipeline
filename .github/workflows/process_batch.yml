@@ -1,0 +1,51 @@
+name: Process Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_id:
+        description: "Batch identifier"
+        required: true
+        type: string
+      max_concurrent:
+        description: "Max concurrent workers"
+        required: false
+        type: number
+        default: 3
+      state_branch:
+        description: "Branch storing batch state"
+        required: false
+        type: string
+        default: "pipeline-state"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: process-${{ inputs.batch_id }}
+  cancel-in-progress: false
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Process Loop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python scripts/process_batch.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --state-branch "${{ inputs.state_branch }}" \
+            --batch-id "${{ inputs.batch_id }}" \
+            --max-concurrent "${{ inputs.max_concurrent }}"

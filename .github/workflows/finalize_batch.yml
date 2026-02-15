@@ -1,0 +1,40 @@
+name: Finalize Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_id:
+        description: "Batch id"
+        required: true
+        type: string
+      state_branch:
+        description: "State branch"
+        required: false
+        type: string
+        default: "pipeline-state"
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Build Final Report
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          python scripts/batch_finalize.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --state-branch "${{ inputs.state_branch }}" \
+            --batch-id "${{ inputs.batch_id }}"

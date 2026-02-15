@@ -1,0 +1,77 @@
+name: Submit Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_file:
+        description: "Path to newline-delimited URL file"
+        required: false
+        type: string
+        default: "space_queue.txt"
+      batch_id:
+        description: "Optional explicit batch id"
+        required: false
+        type: string
+      max_concurrent:
+        description: "Max concurrent workers"
+        required: false
+        type: number
+        default: 3
+      state_branch:
+        description: "Branch for batch state files"
+        required: false
+        type: string
+        default: "pipeline-state"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install yt-dlp
+
+      - name: Initialize Batch
+        id: init
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          INPUT_FILE: ${{ inputs.input_file }}
+          BATCH_ID: ${{ inputs.batch_id }}
+          STATE_BRANCH: ${{ inputs.state_branch }}
+        run: |
+          set -euo pipefail
+          ARGS=(--repo "$REPO" --token "$GH_TOKEN" --state-branch "$STATE_BRANCH" --base-branch "${{ github.ref_name }}" --input-file "$INPUT_FILE" --strict-preflight)
+          if [[ -n "$BATCH_ID" ]]; then
+            ARGS+=(--batch-id "$BATCH_ID")
+          fi
+          OUT=$(python scripts/batch_init.py "${ARGS[@]}")
+          echo "$OUT"
+          BID=$(python - <<'PY'
+          import json,sys
+          print(json.loads(sys.stdin.read())["batch_id"])
+          PY
+          <<< "$OUT")
+          echo "batch_id=$BID" >> "$GITHUB_OUTPUT"
+
+      - name: Start Processor
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run process_batch.yml \
+            -f batch_id="${{ steps.init.outputs.batch_id }}" \
+            -f max_concurrent="${{ inputs.max_concurrent }}" \
+            -f state_branch="${{ inputs.state_branch }}"
