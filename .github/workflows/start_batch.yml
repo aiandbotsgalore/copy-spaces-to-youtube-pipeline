@@ -11,6 +11,10 @@ on:
         required: false
         type: number
         default: 10
+      batch_id:
+        description: "Optional batch id override"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -36,9 +40,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
+          INPUT_BATCH_ID: ${{ inputs.batch_id }}
         run: |
           set -euo pipefail
           MAX=${{ inputs.max_concurrent || 10 }}
+          if [[ -n "$INPUT_BATCH_ID" ]]; then
+            BATCH_ID="$INPUT_BATCH_ID"
+          else
+            BATCH_ID=$(date -u +%Y%m%dT%H%M%SZ)
+          fi
+          echo "Batch ID: $BATCH_ID"
+          python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action ensure_batch --batch-id "$BATCH_ID"
 
           if [[ ! -f batch_queue.txt ]]; then
             echo "No batch_queue.txt found"
@@ -100,11 +112,14 @@ jobs:
               if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then
                 FILTERED=$((FILTERED + 1))
                 echo "Filtered URL before dispatch: $URL ${PREFLIGHT:+($PREFLIGHT)}"
+                python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$URL" --status preflight_filtered >/dev/null || true
                 continue
               fi
 
+              SPACE_ID=$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')
+              python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$SPACE_ID" --url "$URL" --status queued >/dev/null || true
               echo "Triggering: $URL"
-              gh workflow run batch_ingest.yml -f url="$URL" -f from_queue=true || echo "Failed to trigger: $URL"
+              gh workflow run batch_ingest.yml -f url="$URL" -f from_queue=true -f batch_id="$BATCH_ID" || echo "Failed to trigger: $URL"
               TRIGGERED=$((TRIGGERED + 1))
               sleep 1
             fi
@@ -118,6 +133,7 @@ jobs:
             echo "- Filtered (strict preflight): $FILTERED"
             echo "- Claim errors: $CLAIM_ERRORS"
             echo "- Claim attempts: $CLAIMS"
+            echo "- Batch ID: $BATCH_ID"
           } >> "$GITHUB_STEP_SUMMARY"
 
           echo "Done dispatching jobs"

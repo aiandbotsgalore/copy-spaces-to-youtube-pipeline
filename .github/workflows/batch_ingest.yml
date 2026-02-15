@@ -14,6 +14,10 @@ on:
         required: false
         type: boolean
         default: false
+      batch_id:
+        description: "Tracking batch id for state/reporting"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -48,6 +52,7 @@ jobs:
         run: |
           URL="${{ github.event.client_payload.url || inputs.url }}"
           FROM_QUEUE="${{ inputs.from_queue }}"
+          BATCH_ID="${{ inputs.batch_id }}"
           if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
             FROM_QUEUE="true"
           fi
@@ -55,7 +60,24 @@ jobs:
           SPACE_ID=$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')
           echo "space_id=$SPACE_ID" >> $GITHUB_OUTPUT
           echo "from_queue=$FROM_QUEUE" >> $GITHUB_OUTPUT
+          echo "batch_id=$BATCH_ID" >> $GITHUB_OUTPUT
           echo "Processing: $SPACE_ID"
+
+      - name: Start Item Attempt
+        if: steps.url.outputs.batch_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/batch_state.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --action start_attempt \
+            --batch-id "${{ steps.url.outputs.batch_id }}" \
+            --space-id "${{ steps.url.outputs.space_id }}" \
+            --url "${{ steps.url.outputs.url }}" >/dev/null || true
 
       - name: Check Existing Release
         id: existing
@@ -69,6 +91,22 @@ jobs:
           else
             echo "already_released=false" >> "$GITHUB_OUTPUT"
           fi
+      
+      - name: Mark Existing Release In Batch State
+        if: steps.existing.outputs.already_released == 'true' && steps.url.outputs.batch_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/batch_state.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --action mark_release \
+            --batch-id "${{ steps.url.outputs.batch_id }}" \
+            --space-id "${{ steps.url.outputs.space_id }}" \
+            --release-tag "existing_${{ steps.url.outputs.space_id }}" >/dev/null || true
 
       - name: Download Space
         id: download
@@ -142,6 +180,7 @@ jobs:
 
       - name: Create Release
         if: steps.existing.outputs.already_released != 'true'
+        id: create_release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.download.outputs.release_tag }}
@@ -165,12 +204,65 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Mark Release Created In Batch State
+        if: success() && steps.existing.outputs.already_released != 'true' && steps.url.outputs.batch_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/batch_state.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --action mark_release \
+            --batch-id "${{ steps.url.outputs.batch_id }}" \
+            --space-id "${{ steps.url.outputs.space_id }}" \
+            --release-tag "${{ steps.download.outputs.release_tag }}" >/dev/null || true
+
+      - name: Mark Failure And Requeue If Needed
+        if: failure() && steps.url.outputs.batch_id != ''
+        id: failure_mark
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set +e
+          OUT=$(python3 scripts/batch_state.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --action mark_failure \
+            --batch-id "${{ steps.url.outputs.batch_id }}" \
+            --space-id "${{ steps.url.outputs.space_id }}" \
+            --reason "ingest_or_release_failed")
+          set -e
+          echo "$OUT"
+          SHOULD_RETRY=$(echo "$OUT" | python3 -c "import sys,json; print('true' if json.loads(sys.stdin.read()).get('should_retry') else 'false')" 2>/dev/null || echo "false")
+          echo "should_retry=$SHOULD_RETRY" >> "$GITHUB_OUTPUT"
+
+      - name: Requeue Failed URL
+        if: failure() && steps.url.outputs.batch_id != '' && steps.failure_mark.outputs.should_retry == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/append_queue_url.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --queue-file batch_queue.txt \
+            --url "${{ steps.url.outputs.url }}" || true
+
       - name: Trigger Next URL
         if: always() && steps.url.outputs.from_queue == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
+          BATCH_ID: ${{ steps.url.outputs.batch_id }}
         run: |
           set -euo pipefail
           MAX=10
@@ -206,9 +298,23 @@ jobs:
 
             if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then
               echo "Filtered claimed URL during refill: $NEXT_URL ${PREFLIGHT:+($PREFLIGHT)}"
+              if [[ -n "$BATCH_ID" ]]; then
+                python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$NEXT_URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$NEXT_URL" --status preflight_filtered >/dev/null || true
+              fi
               exit 0
             fi
 
+            if [[ -n "$BATCH_ID" ]]; then
+              python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$NEXT_URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$NEXT_URL" --status queued >/dev/null || true
+            fi
             echo "Triggering: $NEXT_URL"
-            gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
+            if [[ -n "$BATCH_ID" ]]; then
+              gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true -f batch_id="$BATCH_ID" || true
+            else
+              gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
+            fi
+          else
+            if [[ -n "$BATCH_ID" && "$ACTIVE" -le 1 ]]; then
+              python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action finalize_report --batch-id "$BATCH_ID" >/dev/null || true
+            fi
           fi
