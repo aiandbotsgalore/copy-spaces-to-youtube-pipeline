@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
     inputs:
       url:
-        description: 'Twitter Space URL to download'
+        description: "Twitter Space URL to download"
         required: true
         type: string
       from_queue:
-        description: 'Internal flag indicating this run came from the queue dispatcher'
+        description: "Internal flag indicating this run came from the queue dispatcher"
         required: false
         type: boolean
         default: false
@@ -38,7 +38,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install yt-dlp
         run: pip install yt-dlp
@@ -199,6 +199,16 @@ jobs:
           fi
 
           if [[ -n "$NEXT_URL" ]]; then
+            set +e
+            PREFLIGHT=$(python3 scripts/pre_flight.py --url "$NEXT_URL" --timeout 45 2>/dev/null)
+            PREFLIGHT_STATUS=$?
+            set -e
+
+            if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then
+              echo "Filtered claimed URL during refill: $NEXT_URL ${PREFLIGHT:+($PREFLIGHT)}"
+              exit 0
+            fi
+
             echo "Triggering: $NEXT_URL"
             gh workflow run batch_ingest.yml -f url="$NEXT_URL" -f from_queue=true || true
           fi
