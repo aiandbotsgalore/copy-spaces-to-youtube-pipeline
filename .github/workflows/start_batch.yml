@@ -81,6 +81,7 @@ jobs:
 
           TRIGGERED=0
           FILTERED=0
+          TRANSIENT_REQUEUED=0
           CLAIM_ERRORS=0
           MAX_CLAIMS=$((SLOTS * 5))
           CLAIMS=0
@@ -105,14 +106,21 @@ jobs:
 
             if [[ -n "$URL" ]]; then
               set +e
-              PREFLIGHT=$(python3 scripts/pre_flight.py --url "$URL" --timeout 45 2>/dev/null)
+              PREFLIGHT=$(python3 scripts/pre_flight.py --url "$URL" --timeout 45 --retries 3 --retry-delay 4)
               PREFLIGHT_STATUS=$?
               set -e
 
               if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then
-                FILTERED=$((FILTERED + 1))
-                echo "Filtered URL before dispatch: $URL ${PREFLIGHT:+($PREFLIGHT)}"
-                python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$URL" --status preflight_filtered >/dev/null || true
+                if [[ "$PREFLIGHT_STATUS" -eq 1 ]]; then
+                  FILTERED=$((FILTERED + 1))
+                  echo "Filtered URL before dispatch (permanent): $URL ${PREFLIGHT:+($PREFLIGHT)}"
+                  python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$URL" --status preflight_filtered >/dev/null || true
+                else
+                  TRANSIENT_REQUEUED=$((TRANSIENT_REQUEUED + 1))
+                  echo "Transient preflight failure; requeueing URL: $URL ${PREFLIGHT:+($PREFLIGHT)}"
+                  python3 scripts/append_queue_url.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --queue-file batch_queue.txt --url "$URL" >/dev/null || true
+                  python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$URL" --status preflight_transient_requeued >/dev/null || true
+                fi
                 continue
               fi
 
@@ -125,12 +133,13 @@ jobs:
             fi
           done
 
-          echo "Dispatch summary: triggered=$TRIGGERED filtered=$FILTERED claim_errors=$CLAIM_ERRORS attempted_claims=$CLAIMS slots=$SLOTS"
+          echo "Dispatch summary: triggered=$TRIGGERED filtered=$FILTERED transient_requeued=$TRANSIENT_REQUEUED claim_errors=$CLAIM_ERRORS attempted_claims=$CLAIMS slots=$SLOTS"
           {
             echo "### Batch Dispatch Summary"
             echo "- Slots requested: $SLOTS"
             echo "- Triggered: $TRIGGERED"
             echo "- Filtered (strict preflight): $FILTERED"
+            echo "- Transient preflight requeued: $TRANSIENT_REQUEUED"
             echo "- Claim errors: $CLAIM_ERRORS"
             echo "- Claim attempts: $CLAIMS"
             echo "- Batch ID: $BATCH_ID"

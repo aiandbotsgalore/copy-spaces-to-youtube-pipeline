@@ -292,14 +292,22 @@ jobs:
 
           if [[ -n "$NEXT_URL" ]]; then
             set +e
-            PREFLIGHT=$(python3 scripts/pre_flight.py --url "$NEXT_URL" --timeout 45 2>/dev/null)
+            PREFLIGHT=$(python3 scripts/pre_flight.py --url "$NEXT_URL" --timeout 45 --retries 3 --retry-delay 4)
             PREFLIGHT_STATUS=$?
             set -e
 
             if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then
-              echo "Filtered claimed URL during refill: $NEXT_URL ${PREFLIGHT:+($PREFLIGHT)}"
-              if [[ -n "$BATCH_ID" ]]; then
-                python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$NEXT_URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$NEXT_URL" --status preflight_filtered >/dev/null || true
+              if [[ "$PREFLIGHT_STATUS" -eq 1 ]]; then
+                echo "Filtered claimed URL during refill (permanent): $NEXT_URL ${PREFLIGHT:+($PREFLIGHT)}"
+                if [[ -n "$BATCH_ID" ]]; then
+                  python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$NEXT_URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$NEXT_URL" --status preflight_filtered >/dev/null || true
+                fi
+              else
+                echo "Transient preflight failure during refill; requeueing: $NEXT_URL ${PREFLIGHT:+($PREFLIGHT)}"
+                python3 scripts/append_queue_url.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --queue-file batch_queue.txt --url "$NEXT_URL" >/dev/null || true
+                if [[ -n "$BATCH_ID" ]]; then
+                  python3 scripts/batch_state.py --repo "$REPO" --token "$GH_TOKEN" --branch "$BRANCH" --action upsert_item --batch-id "$BATCH_ID" --space-id "$(echo "$NEXT_URL" | grep -oE '[a-zA-Z0-9]+$')" --url "$NEXT_URL" --status preflight_transient_requeued >/dev/null || true
+                fi
               fi
               exit 0
             fi
