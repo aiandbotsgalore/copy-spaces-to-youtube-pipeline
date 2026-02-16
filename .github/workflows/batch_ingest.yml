@@ -270,7 +270,9 @@ jobs:
           ACTIVE=$(gh run list --workflow=batch_ingest.yml -L 200 --json status | jq '[.[] | select(.status != "completed")] | length')
           echo "Currently active (queued/pending/running): $ACTIVE"
 
-          if [[ "$ACTIVE" -ge "$MAX" ]]; then
+          # ACTIVE includes this current run, which is about to end.
+          # Keep refill moving when ACTIVE == MAX so concurrency doesn't decay.
+          if [[ "$ACTIVE" -gt "$MAX" ]]; then
             echo "Already at max active jobs"
             exit 0
           fi
