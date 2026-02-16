@@ -1,6 +1,8 @@
 name: Start Batch Processing
 
 on:
+  schedule:
+    - cron: "*/5 * * * *"
   push:
     paths:
       - "batch_queue.txt"
@@ -22,6 +24,9 @@ permissions:
 
 jobs:
   dispatch:
+    concurrency:
+      group: start-batch-dispatch
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
