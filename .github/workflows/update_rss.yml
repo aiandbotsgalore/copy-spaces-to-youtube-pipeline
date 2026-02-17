@@ -3,6 +3,8 @@ name: Update RSS Feed
 on:
   release:
     types: [published]
+  schedule:
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:

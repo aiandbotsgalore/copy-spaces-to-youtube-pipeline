@@ -30,6 +30,7 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -111,6 +112,7 @@ jobs:
       - name: Download Space
         id: download
         if: steps.existing.outputs.already_released != 'true'
+        timeout-minutes: 90
         run: |
           mkdir -p work
           DATE=$(date +%Y%m%d)
@@ -219,6 +221,14 @@ jobs:
             --batch-id "${{ steps.url.outputs.batch_id }}" \
             --space-id "${{ steps.url.outputs.space_id }}" \
             --release-tag "${{ steps.download.outputs.release_tag }}" >/dev/null || true
+
+      - name: Trigger RSS Update
+        if: success() && steps.existing.outputs.already_released != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Dispatch the dedicated RSS workflow after a new release is published.
+          gh workflow run update_rss.yml --ref "${{ github.ref_name }}"
 
       - name: Mark Failure And Requeue If Needed
         if: failure() && steps.url.outputs.batch_id != ''
