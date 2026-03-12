@@ -1,4 +1,4 @@
-name: Ingest Space
+name: Batch Ingest Space
 
 on:
   repository_dispatch:
@@ -114,14 +114,16 @@ jobs:
         if: steps.existing.outputs.already_released != 'true'
         timeout-minutes: 90
         run: |
+          set -o pipefail
           mkdir -p work
           DATE=$(date +%Y%m%d)
           SPACE_ID="${{ steps.url.outputs.space_id }}"
           URL="${{ steps.url.outputs.url }}"
+          ERROR_LOG=$(mktemp)
 
           echo "Downloading $URL..."
 
-          yt-dlp \
+          if ! yt-dlp \
             --retries 3 \
             --fragment-retries 3 \
             --no-playlist \
@@ -132,7 +134,16 @@ jobs:
             --embed-metadata \
             --write-info-json \
             --output "work/${DATE}_${SPACE_ID}_%(title)s.%(ext)s" \
-            "$URL"
+            "$URL" 2> >(tee "$ERROR_LOG" >&2); then
+            FAILURE_CLASS=$(python3 -c "from pathlib import Path; from scripts.pre_flight import classify_failure; print(classify_failure(Path(r'$ERROR_LOG').read_text(encoding='utf-8', errors='replace')))")
+            echo "failure_class=$FAILURE_CLASS" >> "$GITHUB_OUTPUT"
+            if [[ "$FAILURE_CLASS" == "permanent" ]]; then
+              echo "::warning::Permanent yt-dlp failure detected for $URL"
+            fi
+            exit 1
+          fi
+
+          echo "failure_class=none" >> "$GITHUB_OUTPUT"
 
           MP3_FILE=$(find work -name "*.mp3" | head -1)
           JSON_FILE=$(find work -name "*.info.json" | head -1)
@@ -230,8 +241,24 @@ jobs:
           # Dispatch the dedicated RSS workflow after a new release is published.
           gh workflow run update_rss.yml --ref "${{ github.ref_name }}"
 
+      - name: Mark Permanent Download Failure In Batch State
+        if: failure() && steps.url.outputs.batch_id != '' && steps.download.outputs.failure_class == 'permanent'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          python3 scripts/batch_state.py \
+            --repo "$REPO" \
+            --token "$GH_TOKEN" \
+            --branch "$BRANCH" \
+            --action mark_filtered \
+            --batch-id "${{ steps.url.outputs.batch_id }}" \
+            --space-id "${{ steps.url.outputs.space_id }}" \
+            --reason "permanent_download_failure" >/dev/null || true
+
       - name: Mark Failure And Requeue If Needed
-        if: failure() && steps.url.outputs.batch_id != ''
+        if: failure() && steps.url.outputs.batch_id != '' && steps.download.outputs.failure_class != 'permanent'
         id: failure_mark
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

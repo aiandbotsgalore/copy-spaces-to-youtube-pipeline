@@ -16,6 +16,8 @@ PERMANENT_PATTERNS = (
     "video unavailable",
     "private video",
     "account is suspended",
+    "twitter space not found",
+    "space not found",
     "twitter space ended and replay is disabled",
     "replay is disabled",
     "space ended and replay is disabled",

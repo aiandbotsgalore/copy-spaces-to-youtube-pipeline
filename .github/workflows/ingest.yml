@@ -1,4 +1,4 @@
-name: Ingest Space
+name: Legacy Ingest Space
 
 on:
   push:
