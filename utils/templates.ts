@@ -145,7 +145,9 @@ jobs:
       mp3_path: \${{ steps.process.outputs.mp3_path }}
       release_tag: \${{ steps.process.outputs.release_tag }}
       space_title: \${{ steps.process.outputs.space_title }}
+      space_id: \${{ steps.process.outputs.space_id }}
       duration: \${{ steps.duration.outputs.duration }}
+      already_exists: \${{ steps.process.outputs.already_exists }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -168,11 +170,13 @@ jobs:
         id: process
         env:
           MANUAL_URL: \${{ inputs.space_url }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: \${{ github.repository }}
         run: bash ./scripts/ingest.sh
 
       - name: Extract MP3 Duration
         id: duration
-        if: success()
+        if: success() && steps.process.outputs.already_exists != 'true'
         run: |
           DURATION=$(ffprobe -v error -show_entries format=duration \\
             -of default=noprint_wrappers=1:nokey=1 "\${{ steps.process.outputs.mp3_path }}" \\
@@ -180,7 +184,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 ${whisperStep}
       - name: Clear Queue File
-        if: success() && inputs.space_url == ''
+        if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
         run: |
           echo "" > space_queue.txt
           git config --global user.name "github-actions[bot]"
@@ -189,7 +193,7 @@ ${whisperStep}
           git push
 
       - name: Create Release
-        if: success()
+        if: success() && steps.process.outputs.already_exists != 'true'
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: \${{ steps.process.outputs.release_tag }}
@@ -199,15 +203,18 @@ ${whisperStep}
             **Space Title:** \${{ steps.process.outputs.space_title }}
             **Duration:** \${{ steps.duration.outputs.duration }}
             **Processed:** \${{ steps.process.outputs.release_tag }}
-            
+            **Source ID:** \${{ steps.process.outputs.space_id }}
+
             ---
             METADATA::DURATION::\${{ steps.duration.outputs.duration }}
+            METADATA::SOURCE_ID::\${{ steps.process.outputs.space_id }}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 ${slackStep}${discordStep}
 
   rss:
     needs: ingest
+    if: needs.ingest.result == 'success' && needs.ingest.outputs.already_exists != 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -306,6 +313,7 @@ set -euo pipefail
 # SPACEPIPE INGEST SCRIPT
 # Supports: Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and more
 # Powered by yt-dlp
+# Includes: duplicate detection against existing GitHub Releases
 # ==============================================================================
 
 QUEUE_FILE="space_queue.txt"
@@ -345,10 +353,66 @@ else
     echo "Platform: Generic URL (yt-dlp will attempt download)"
 fi
 
-# 4. Prepare Work Directory
+# 4. Duplicate Detection
+# Extract the platform-specific source ID before downloading.
+# We look for METADATA::SOURCE_ID::<id> in existing release bodies via the
+# GitHub Releases API. If found, we skip gracefully without re-downloading.
+echo "--- Duplicate check ---"
+SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+
+if [[ -n "$SPACE_ID" ]]; then
+    echo "Source ID: $SPACE_ID"
+    if [[ -n "\${GITHUB_TOKEN:-}" && -n "\${GITHUB_REPOSITORY:-}" ]]; then
+        ALREADY_EXISTS=$(SPACE_ID="$SPACE_ID" GH_TOKEN="$GITHUB_TOKEN" REPO="$GITHUB_REPOSITORY" \\
+            python3 - <<'PYEOF'
+import os, urllib.request, json
+token = os.environ.get("GH_TOKEN", "")
+repo  = os.environ.get("REPO", "")
+sid   = os.environ.get("SPACE_ID", "")
+if not (token and repo and sid):
+    print("no"); exit()
+# Scan up to 3 pages (300 releases) for the source ID tag
+found = False
+for page in range(1, 4):
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+    )
+    req.add_header("Authorization", f"token {token}")
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    try:
+        with urllib.request.urlopen(req) as r:
+            releases = json.loads(r.read())
+    except Exception:
+        break
+    if not releases:
+        break
+    if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
+        found = True
+        break
+print("yes" if found else "no")
+PYEOF
+        )
+        if [[ "$ALREADY_EXISTS" == "yes" ]]; then
+            echo "::warning::Source $SPACE_ID is already in GitHub Releases — skipping to avoid duplicate."
+            if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
+                echo "already_exists=true" >> "$GITHUB_OUTPUT"
+                echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+        fi
+        echo "No duplicate found — proceeding with download."
+    else
+        echo "::notice::No GitHub context — skipping duplicate check."
+    fi
+else
+    echo "::notice::Could not extract source ID — skipping duplicate check."
+fi
+echo "--- End duplicate check ---"
+
+# 5. Prepare Work Directory
 mkdir -p "$WORK_DIR"
 
-# 5. Download and Convert
+# 6. Download and Convert
 echo "Starting download..."
 yt-dlp \\
     --retries 5 \\
@@ -363,7 +427,7 @@ yt-dlp \\
     --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \\
     "$TARGET_URL"
 
-# 6. Verify Output
+# 7. Verify Output
 MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" | head -n 1)
 if [[ -z "$MP3_FILE" ]]; then
     echo "::error::No MP3 file was generated."
@@ -371,17 +435,19 @@ if [[ -z "$MP3_FILE" ]]; then
 fi
 echo "Successfully created: $MP3_FILE"
 
-# 7. Extract Metadata
+# 8. Extract Metadata
 BASENAME=$(basename "$MP3_FILE" .mp3)
 RELEASE_TAG="\${BASENAME:0:8}_$(date +%s)"
 SPACE_TITLE="\${BASENAME:20}"
 if [[ -z "$SPACE_TITLE" ]]; then SPACE_TITLE="$BASENAME"; fi
 
-# 8. Set GitHub Output Variables
+# 9. Set GitHub Output Variables
 if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
     echo "mp3_path=$MP3_FILE" >> "$GITHUB_OUTPUT"
     echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
     echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
+    echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+    echo "already_exists=false" >> "$GITHUB_OUTPUT"
 fi
 
 echo "Done."
