@@ -371,9 +371,10 @@ repo  = os.environ.get("REPO", "")
 sid   = os.environ.get("SPACE_ID", "")
 if not (token and repo and sid):
     print("no"); exit()
-# Scan up to 3 pages (300 releases) for the source ID tag
+# Paginate through ALL releases until the API returns an empty page
 found = False
-for page in range(1, 4):
+page = 1
+while True:
     req = urllib.request.Request(
         f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
     )
@@ -385,10 +386,13 @@ for page in range(1, 4):
     except Exception:
         break
     if not releases:
-        break
+        break  # No more pages
     if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
         found = True
         break
+    if len(releases) < 100:
+        break  # Last page — no need to fetch another
+    page += 1
 print("yes" if found else "no")
 PYEOF
         )
