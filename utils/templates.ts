@@ -1,6 +1,13 @@
 import { PipelineConfig } from '../types';
 
-export const generateIngestYaml = (config: PipelineConfig) => `name: Ingest Space
+export const generateIngestYaml = (config: PipelineConfig) => {
+  const podcastTitle = config.podcastTitle;
+  const podcastDescription = config.podcastDescription;
+  const authorName = config.authorName;
+  const email = config.email;
+  const imageUrl = config.imageUrl;
+
+  return `name: Ingest Space
 
 on:
   push:
@@ -15,7 +22,7 @@ on:
 
 # Prevent race conditions during RSS deployment
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: \${{ github.workflow }}-\${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -27,10 +34,10 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     outputs:
-      mp3_path: ${{ steps.process.outputs.mp3_path }}
-      release_tag: ${{ steps.process.outputs.release_tag }}
-      space_title: ${{ steps.process.outputs.space_title }}
-      duration: ${{ steps.duration.outputs.duration }}
+      mp3_path: \${{ steps.process.outputs.mp3_path }}
+      release_tag: \${{ steps.process.outputs.release_tag }}
+      space_title: \${{ steps.process.outputs.space_title }}
+      duration: \${{ steps.duration.outputs.duration }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -52,15 +59,15 @@ jobs:
       - name: Run Ingest Script
         id: process
         env:
-          MANUAL_URL: ${{ inputs.space_url }}
+          MANUAL_URL: \${{ inputs.space_url }}
         run: bash ./scripts/ingest.sh
 
       - name: Extract MP3 Duration
         id: duration
         if: success()
         run: |
-          DURATION=$(ffprobe -v error -show_entries format=duration \
-            -of default=noprint_wrappers=1:nokey=1 "${{ steps.process.outputs.mp3_path }}" \
+          DURATION=$(ffprobe -v error -show_entries format=duration \\
+            -of default=noprint_wrappers=1:nokey=1 "\${{ steps.process.outputs.mp3_path }}" \\
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
       
@@ -77,18 +84,18 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
-          tag_name: ${{ steps.process.outputs.release_tag }}
-          name: "${{ steps.process.outputs.space_title }}"
-          files: ${{ steps.process.outputs.mp3_path }}
+          tag_name: \${{ steps.process.outputs.release_tag }}
+          name: "\${{ steps.process.outputs.space_title }}"
+          files: \${{ steps.process.outputs.mp3_path }}
           body: |
-            **Space Title:** ${{ steps.process.outputs.space_title }}
-            **Duration:** ${{ steps.duration.outputs.duration }}
-            **Processed:** ${{ steps.process.outputs.release_tag }}
+            **Space Title:** \${{ steps.process.outputs.space_title }}
+            **Duration:** \${{ steps.duration.outputs.duration }}
+            **Processed:** \${{ steps.process.outputs.release_tag }}
             
             ---
-            METADATA::DURATION::${{ steps.duration.outputs.duration }}
+            METADATA::DURATION::\${{ steps.duration.outputs.duration }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 
   rss:
     needs: ingest
@@ -99,14 +106,14 @@ jobs:
       
       - name: Generate RSS Feed
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PODCAST_TITLE: "${config.podcastTitle}"
-          PODCAST_DESC: "${config.podcastDescription}"
-          PODCAST_AUTHOR: "${config.authorName}"
-          PODCAST_EMAIL: "${config.email}"
-          PODCAST_IMAGE: "${config.imageUrl}"
-          BASE_URL: "https://github.com/${{ github.repository }}/releases/download"
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          REPO: \${{ github.repository }}
+          PODCAST_TITLE: "${podcastTitle}"
+          PODCAST_DESC: "${podcastDescription}"
+          PODCAST_AUTHOR: "${authorName}"
+          PODCAST_EMAIL: "${email}"
+          PODCAST_IMAGE: "${imageUrl}"
+          BASE_URL: "https://github.com/\${{ github.repository }}/releases/download"
         run: |
           cat <<'EOF' > generate_rss.py
           import os
@@ -159,7 +166,7 @@ jobs:
               
               # Extract duration from body metadata
               body = release.get('body', '')
-              duration_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
+              duration_match = re.search(r'METADATA::DURATION::(\\d{2}:\\d{2}:\\d{2})', body)
               duration = duration_match.group(1) if duration_match else "00:00:00"
 
               for asset in release.get('assets', []):
@@ -171,12 +178,12 @@ jobs:
                       
                       rss_items.append(f"""
               <item>
-                <title>{item_title}</title>
-                <description>{item_title} - Twitter Space Replay</description>
-                <pubDate>{rfc822_date}</pubDate>
-                <enclosure url="{file_url}" length="{file_size}" type="audio/mpeg"/>
-                <guid isPermaLink="false">{guid}</guid>
-                <itunes:duration>{duration}</itunes:duration>
+                <title>{'{item_title}'}</title>
+                <description>{'{item_title}'} - Twitter Space Replay</description>
+                <pubDate>{'{rfc822_date}'}</pubDate>
+                <enclosure url="{'{file_url}'}" length="{'{file_size}'}" type="audio/mpeg"/>
+                <guid isPermaLink="false">{'{guid}'}</guid>
+                <itunes:duration>{'{duration}'}</itunes:duration>
                 <itunes:explicit>no</itunes:explicit>
               </item>""")
 
@@ -190,26 +197,26 @@ jobs:
                xmlns:podcast="https://podcastindex.org/namespace/1.0"
                xmlns:atom="http://www.w3.org/2005/Atom">
             <channel>
-              <title>{escape(title)}</title>
-              <link>{github_pages_url}</link>
-              <description>{escape(desc)}</description>
+              <title>{'{escape(title)}'}</title>
+              <link>{'{github_pages_url}'}</link>
+              <description>{'{escape(desc)}'}</description>
               <language>en-us</language>
-              <lastBuildDate>{last_build_date}</lastBuildDate>
-              <atom:link href="{rss_url}" rel="self" type="application/rss+xml" />
-              <itunes:author>{escape(author)}</itunes:author>
+              <lastBuildDate>{'{last_build_date}'}</lastBuildDate>
+              <atom:link href="{'{rss_url}'}" rel="self" type="application/rss+xml" />
+              <itunes:author>{'{escape(author)}'}</itunes:author>
               <itunes:owner>
-                <itunes:name>{escape(author)}</itunes:name>
-                <itunes:email>{escape(email)}</itunes:email>
+                <itunes:name>{'{escape(author)}'}</itunes:name>
+                <itunes:email>{'{escape(email)}'}</itunes:email>
               </itunes:owner>
-              <itunes:image href="{image}"/>
+              <itunes:image href="{'{image}'}" />
               <image>
-                <url>{image}</url>
-                <title>{escape(title)}</title>
-                <link>{github_pages_url}</link>
+                <url>{'{image}'}</url>
+                <title>{'{escape(title)}'}</title>
+                <link>{'{github_pages_url}'}</link>
               </image>
               <itunes:category text="Technology"/>
               <itunes:explicit>no</itunes:explicit>
-              {''.join(rss_items)}
+              {"{''.join(rss_items)}"}
             </channel>
           </rss>"""
 
@@ -223,25 +230,21 @@ jobs:
       - name: Validate RSS
         run: |
           if ! grep -q '<rss version="2.0"' podcast.xml; then
-            echo "❌ Invalid RSS structure"
+            echo "Invalid RSS structure"
             exit 1
           fi
-          echo "✅ RSS validation passed"
+          echo "RSS validation passed"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-          # Only include necessary files for deployment
-          # This ensures tarball doesn't include source code junk
-          # Note: pattern matching doesn't work well here, so we rely on path: .
-          # and the fact that we've generated podcast.xml in root.
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 `;
-}
+};
 
 export const generateIngestScript = () => `#!/bin/bash
 set -euo pipefail
@@ -256,7 +259,7 @@ TARGET_URL=""
 
 # 1. Determine Input Source
 # Priority: Environment Variable (Manual Run) > Queue File
-if [[ -n "	MANUAL_URL:-" ]]; then
+if [[ -n "\${MANUAL_URL:-}" ]]; then
     echo "Using Manual URL from Workflow Input"
     TARGET_URL="$MANUAL_URL"
 else
@@ -282,17 +285,17 @@ mkdir -p "$WORK_DIR"
 # 4. Download and Convert
 echo "Starting download..."
 
-yt-dlp \
-    --retries 3 \
-    --fragment-retries 3 \
-    --no-playlist \
-    --restrict-filenames \
-    --extract-audio \
-    --audio-format mp3 \
-    --audio-quality 0 \
-    --embed-metadata \
-    --embed-thumbnail \
-    --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \
+yt-dlp \\
+    --retries 3 \\
+    --fragment-retries 3 \\
+    --no-playlist \\
+    --restrict-filenames \\
+    --extract-audio \\
+    --audio-format mp3 \\
+    --audio-quality 0 \\
+    --embed-metadata \\
+    --embed-thumbnail \\
+    --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \\
     "$TARGET_URL"
 
 # 5. Verify Output
@@ -308,13 +311,13 @@ echo "Successfully created: $MP3_FILE"
 # 6. Extract Metadata for GitHub Actions
 BASENAME=$(basename "$MP3_FILE" .mp3)
 # Format: YYYYMMDD_UNIXTIMESTAMP
-RELEASE_TAG="	${BASENAME:0:8}_	$(date +%s)"
+RELEASE_TAG="\${BASENAME:0:8}_$(date +%s)"
 # Clean title heuristic
-SPACE_TITLE="	${BASENAME:20}" 
+SPACE_TITLE="\${BASENAME:20}"
 if [[ -z "$SPACE_TITLE" ]]; then SPACE_TITLE="$BASENAME"; fi
 
 # 7. Set GitHub Output Variables
-if [[ -n "	GITHUB_OUTPUT:-" ]]; then
+if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
     echo "mp3_path=$MP3_FILE" >> "$GITHUB_OUTPUT"
     echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
     echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
@@ -336,34 +339,34 @@ Automated ingestion pipeline for Twitter Spaces.
 4. Paste the Twitter Space URL in the input box.
 
 ### Option B: Queue File
-1. Paste a URL into 	space_queue.txt	.
+1. Paste a URL into \`space_queue.txt\`.
 2. Commit and push the change.
 3. The pipeline will process it and clear the file automatically.
 
 ## RSS Feed
 
 Your podcast feed is available at:
-	https://${config.ownerName}.github.io/${config.repoName}/podcast.xml
+\`https://${config.ownerName}.github.io/${config.repoName}/podcast.xml\`
 
 Submit this URL to YouTube Podcast ingestion.
 
 ## Directory Structure
 
-	```
-	/
-	├─ .github/
-	│  └─ workflows/
-	│     ├─ ingest.yml      # Main pipeline logic
-	│     └─ test_audio.yml  # (Optional) Audio checks
-	├─ scripts/
-	│  └─ ingest.sh         # Download & Process script
-	├─ space_queue.txt      # Input queue
-	└─ README.md
-	```
+\`\`\`
+/
+├─ .github/
+│  └─ workflows/
+│     ├─ ingest.yml      # Main pipeline logic
+│     └─ test_audio.yml  # (Optional) Audio checks
+├─ scripts/
+│  └─ ingest.sh         # Download & Process script
+├─ space_queue.txt      # Input queue
+└─ README.md
+\`\`\`
 
 ## Configuration
 
-Update 	.github/workflows/ingest.yml	 environment variables to change podcast metadata (Title, Author, Image).
+Update \`.github/workflows/ingest.yml\` environment variables to change podcast metadata (Title, Author, Image).
 `;
 
 export const generateQueueFile = () => `https://twitter.com/i/spaces/1DXxyvjZpZQKM
