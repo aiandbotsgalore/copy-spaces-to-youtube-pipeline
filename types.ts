@@ -44,6 +44,7 @@ export interface WorkflowRun {
   created_at: string;
   updated_at: string;
   html_url: string;
+  path: string;
   head_commit: { message: string };
 }
 

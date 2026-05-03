@@ -122,12 +122,13 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
       // Step 4: Ingest script
       update('script', { status: 'running' });
       await pushFile(token, owner, repo, 'scripts/ingest.sh', generateIngestScript(config), 'chore: add ingest script');
-      await pushFile(token, owner, repo, 'requirements.txt', 'yt-dlp\n', 'chore: add requirements.txt');
+      const requirements = config.enableTranscription ? 'yt-dlp\nopenai-whisper\n' : 'yt-dlp\n';
+      await pushFile(token, owner, repo, 'requirements.txt', requirements, 'chore: add requirements.txt');
       update('script', { status: 'done' });
 
       // Step 5: Queue files
       update('queue', { status: 'running' });
-      await pushFile(token, owner, repo, 'space_queue.txt', '', 'chore: initialize space queue');
+      await pushFile(token, owner, repo, 'space_queue.txt', '# SpacePipe: paste a URL here and commit to trigger the pipeline\n', 'chore: initialize space queue [skip ci]');
       if (config.batchUrls?.filter(u => u.trim()).length > 0) {
         await pushFile(token, owner, repo, 'batch_queue.txt', generateQueueFile(config), 'chore: initialize batch queue with URLs');
       } else {

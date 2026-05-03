@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, ImageIcon, X, CheckCircle } from 'lucide-react';
+import { Upload, ImageIcon, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { EnhancedConfig } from '../types';
 
 interface Props {
@@ -7,18 +7,55 @@ interface Props {
   onChange: (updates: Partial<EnhancedConfig>) => void;
 }
 
+// Always converts the uploaded image to a JPEG data URL via canvas.
+// This ensures artwork.jpg in the repo always has the correct format
+// regardless of whether the user uploaded a PNG, WebP, HEIC, etc.
+function toJpegDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('File is not an image.'));
+      return;
+    }
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not available.')); return; }
+      // Fill white so transparent PNGs become opaque (JPEG has no alpha)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL('image/jpeg', 0.92));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not load image.'));
+    };
+    img.src = objectUrl;
+  });
+}
+
 const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const [convertError, setConvertError] = useState('');
 
-  const processFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const dataUrl = e.target?.result as string;
+  const processFile = async (file: File) => {
+    setConvertError('');
+    setConverting(true);
+    try {
+      const dataUrl = await toJpegDataUrl(file);
       onChange({ artworkDataUrl: dataUrl, imageUrl: '' });
-    };
-    reader.readAsDataURL(file);
+    } catch (e) {
+      setConvertError((e as Error).message);
+    } finally {
+      setConverting(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -35,6 +72,7 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
 
   const clearArtwork = () => {
     onChange({ artworkDataUrl: '' });
+    setConvertError('');
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -54,9 +92,11 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle size={14} className="text-emerald-400" />
-              <span className="text-sm font-medium text-emerald-400">Artwork uploaded</span>
+              <span className="text-sm font-medium text-emerald-400">Artwork ready</span>
             </div>
-            <p className="text-xs text-slate-500">Will be deployed as <code className="bg-slate-800 px-1 rounded">artwork.jpg</code> to your repo</p>
+            <p className="text-xs text-slate-500">
+              Converted to JPEG and will be deployed as <code className="bg-slate-800 px-1 rounded">artwork.jpg</code>
+            </p>
           </div>
           <button onClick={clearArtwork} className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
             <X size={16} />
@@ -67,22 +107,35 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => !converting && inputRef.current?.click()}
           className={`cursor-pointer flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl transition-colors ${
             dragging ? 'border-indigo-500 bg-indigo-500/10' : 'border-slate-800 bg-slate-900/50 hover:border-slate-600 hover:bg-slate-900'
-          }`}
+          } ${converting ? 'cursor-wait opacity-70' : ''}`}
         >
           <div className="p-3 bg-slate-800 rounded-xl">
-            <ImageIcon size={24} className="text-slate-500" />
+            <ImageIcon size={24} className={converting ? 'text-indigo-400 animate-pulse' : 'text-slate-500'} />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-slate-300">Drop artwork here or click to upload</p>
-            <p className="text-xs text-slate-600 mt-1">PNG, JPG, WebP · Recommended 1400×1400px minimum</p>
+            <p className="text-sm font-medium text-slate-300">
+              {converting ? 'Converting to JPEG…' : 'Drop artwork here or click to upload'}
+            </p>
+            <p className="text-xs text-slate-600 mt-1">
+              PNG, JPG, WebP — converted to JPEG automatically · Min 1400×1400px recommended
+            </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
-            <Upload size={13} className="text-slate-400" />
-            <span className="text-xs text-slate-400 font-medium">Choose file</span>
-          </div>
+          {!converting && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
+              <Upload size={13} className="text-slate-400" />
+              <span className="text-xs text-slate-400 font-medium">Choose file</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {convertError && (
+        <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <AlertCircle size={13} className="text-red-400 flex-shrink-0" />
+          <p className="text-xs text-red-400">{convertError}</p>
         </div>
       )}
 

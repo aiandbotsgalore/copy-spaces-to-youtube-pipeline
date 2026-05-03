@@ -14,13 +14,22 @@ const buildPythonRSSScript = () => [
   '          github_pages_url = f"https://{repo.split(chr(47))[0]}.github.io/{repo.split(chr(47))[1]}/"',
   '          rss_url = f"{github_pages_url}podcast.xml"',
   '          image = f"{github_pages_url}artwork.jpg" if os.path.exists("artwork.jpg") else image_fallback',
-  '          req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases")',
-  '          req.add_header("Authorization", f"token {token}")',
-  '          req.add_header("Accept", "application/vnd.github.v3+json")',
-  '          try:',
-  '            with urllib.request.urlopen(req) as r: releases = json.loads(r.read())',
-  '          except Exception as e:',
-  '            print(f"Failed: {e}"); exit(1)',
+  '          releases = []',
+  '          page = 1',
+  '          while True:',
+  '            req = urllib.request.Request(',
+  '              f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"',
+  '            )',
+  '            req.add_header("Authorization", f"token {token}")',
+  '            req.add_header("Accept", "application/vnd.github.v3+json")',
+  '            try:',
+  '              with urllib.request.urlopen(req) as r: batch = json.loads(r.read())',
+  '            except Exception as e:',
+  '              print(f"Failed fetching releases page {page}: {e}"); exit(1)',
+  '            if not batch: break',
+  '            releases.extend(batch)',
+  '            if len(batch) < 100: break',
+  '            page += 1',
   '          rss_items = []',
   '          for release in releases:',
   '            if release.get("draft") or release.get("prerelease"): continue',
@@ -72,7 +81,7 @@ const buildPythonRSSScript = () => [
 export const generateIngestYaml = (config: EnhancedConfig): string => {
   const whisperStep = config.enableTranscription ? `
       - name: Transcribe with Whisper AI
-        if: success()
+        if: success() && steps.process.outputs.already_exists != 'true'
         id: transcribe
         env:
           MP3_PATH: \${{ steps.process.outputs.mp3_path }}
@@ -186,10 +195,19 @@ ${whisperStep}
       - name: Clear Queue File
         if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
         run: |
-          echo "" > space_queue.txt
+          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear processed space from queue" || echo "No changes to commit"
+          git commit -am "chore: clear processed space from queue [skip ci]" || echo "No changes to commit"
+          git push
+
+      - name: Clear Queue File on Duplicate Detection
+        if: success() && steps.process.outputs.already_exists == 'true' && inputs.space_url == ''
+        run: |
+          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: clear duplicate URL from queue [skip ci]" || echo "No changes to commit"
           git push
 
       - name: Create Release
@@ -329,7 +347,7 @@ else
         echo "::error::Queue file $QUEUE_FILE not found!"
         exit 1
     fi
-    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | head -n 1 | tr -d '[:space:]')
+    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]')
 fi
 
 # 2. Validate URL
@@ -441,9 +459,20 @@ echo "Successfully created: $MP3_FILE"
 
 # 8. Extract Metadata
 BASENAME=$(basename "$MP3_FILE" .mp3)
-RELEASE_TAG="\${BASENAME:0:8}_$(date +%s)"
-SPACE_TITLE="\${BASENAME:20}"
-if [[ -z "$SPACE_TITLE" ]]; then SPACE_TITLE="$BASENAME"; fi
+if [[ -n "$SPACE_ID" ]]; then
+    # Deterministic, collision-free tag using the platform source ID
+    RELEASE_TAG="\${BASENAME:0:8}_$SPACE_ID"
+    # Strip the YYYYMMDD_<ID>_ prefix to extract the clean title
+    DATE_ID_PREFIX="\${BASENAME:0:9}\${SPACE_ID}_"
+    SPACE_TITLE="\${BASENAME#$DATE_ID_PREFIX}"
+else
+    # Fallback when source ID could not be extracted
+    RELEASE_TAG="\${BASENAME:0:8}_$(date +%s%N | cut -c1-13)"
+    SPACE_TITLE="\${BASENAME:9}"
+fi
+if [[ -z "$SPACE_TITLE" ]] || [[ "$SPACE_TITLE" == "$BASENAME" ]]; then
+    SPACE_TITLE="$BASENAME"
+fi
 
 # 9. Set GitHub Output Variables
 if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
@@ -532,7 +561,7 @@ export const generateQueueFile = (config: EnhancedConfig): string => {
   if (config.batchUrls && config.batchUrls.filter(u => u.trim()).length > 0) {
     return config.batchUrls.filter(u => u.trim()).join('\n') + '\n';
   }
-  return `https://twitter.com/i/spaces/1DXxyvjZpZQKM\n`;
+  return '';
 };
 
 export const generateTestAudioYaml = (_config: EnhancedConfig): string => `name: Test Audio Tools
