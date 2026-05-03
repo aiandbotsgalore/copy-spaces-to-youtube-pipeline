@@ -58,7 +58,20 @@ export function clearStoredToken(): void {
 export function loadConfig(): Partial<StorableConfig> {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
-    return raw ? (JSON.parse(raw) as Partial<StorableConfig>) : {};
+    if (!raw) return {};
+    const {
+      enableTranscription: _et,
+      enableSlackWebhook: _es,
+      enableDiscordWebhook: _ed,
+      enableScheduledMonitoring: _em,
+      ...rest
+    } = JSON.parse(raw) as Partial<StorableConfig> & {
+      enableTranscription?: boolean;
+      enableSlackWebhook?: boolean;
+      enableDiscordWebhook?: boolean;
+      enableScheduledMonitoring?: boolean;
+    };
+    return rest;
   } catch {
     return {};
   }
