@@ -38,7 +38,7 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ enabled, onToggle, icon, title, d
         onClick={onToggle}
         className={`relative flex-shrink-0 w-10 h-5 rounded-full transition-colors ${enabled ? 'bg-indigo-500' : 'bg-slate-700'}`}
       >
-        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
     </div>
     {enabled && children && <div className="mt-4 ml-11 space-y-3">{children}</div>}
