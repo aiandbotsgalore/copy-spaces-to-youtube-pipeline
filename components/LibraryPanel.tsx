@@ -15,6 +15,23 @@ interface DuplicateGroup {
   releases: Release[];
 }
 
+function parseEpisodeDate(body: string | null, tagName: string): Date {
+  if (body) {
+    const m = body.match(/METADATA::EPISODE_DATE::(\d{8})/);
+    if (m) {
+      const d = m[1];
+      return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`);
+    }
+  }
+  // Fallback: release tag starts with YYYYMMDD
+  const t = tagName.match(/^(\d{8})/);
+  if (t) {
+    const d = t[1];
+    return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`);
+  }
+  return new Date(0);
+}
+
 function parseDuration(body: string | null): string {
   if (!body) return '';
   const m = body.match(/METADATA::DURATION::(\d{2}:\d{2}:\d{2})/);
@@ -189,8 +206,8 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
   const filtered = releases
     .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (sort === 'date-desc') return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-      if (sort === 'date-asc')  return new Date(a.published_at).getTime() - new Date(b.published_at).getTime();
+      if (sort === 'date-desc') return parseEpisodeDate(b.body, b.tag_name).getTime() - parseEpisodeDate(a.body, a.tag_name).getTime();
+      if (sort === 'date-asc')  return parseEpisodeDate(a.body, a.tag_name).getTime() - parseEpisodeDate(b.body, b.tag_name).getTime();
       if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
       if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
       return 0;
@@ -447,6 +464,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
               const txt = release.assets.find(a => a.name.endsWith('.txt'));
               const duration = parseDuration(release.body);
               const sourceId = parseSourceId(release.body);
+              const episodeDate = parseEpisodeDate(release.body, release.tag_name);
 
               return (
                 <div key={release.id} className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
@@ -459,7 +477,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                            <span className="text-xs text-slate-500">{formatDate(release.published_at)}</span>
+                            <span className="text-xs text-slate-500">{episodeDate.getTime() > 0 ? formatDate(episodeDate.toISOString()) : formatDate(release.published_at)}</span>
                             {duration && <span className="text-xs text-slate-500">· {duration}</span>}
                             {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                             {txt && (

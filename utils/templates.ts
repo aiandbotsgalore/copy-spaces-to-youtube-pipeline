@@ -205,6 +205,7 @@ jobs:
       release_tag: \${{ steps.process.outputs.release_tag }}
       space_title: \${{ steps.process.outputs.space_title }}
       space_id: \${{ steps.process.outputs.space_id }}
+      episode_date: \${{ steps.process.outputs.episode_date }}
       duration: \${{ steps.duration.outputs.duration }}
       already_exists: \${{ steps.process.outputs.already_exists }}
     steps:
@@ -280,6 +281,7 @@ ${assemblyAiStep}
             ---
             METADATA::DURATION::\${{ steps.duration.outputs.duration }}
             METADATA::SOURCE_ID::\${{ steps.process.outputs.space_id }}
+            METADATA::EPISODE_DATE::\${{ steps.process.outputs.episode_date }}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 ${slackStep}${discordStep}
@@ -513,6 +515,7 @@ echo "Successfully created: $MP3_FILE"
 
 # 8. Extract Metadata
 BASENAME=$(basename "$MP3_FILE" .mp3)
+EPISODE_DATE="\${BASENAME:0:8}"
 if [[ -n "$SPACE_ID" ]]; then
     # Deterministic, collision-free tag using the platform source ID
     RELEASE_TAG="\${BASENAME:0:8}_$SPACE_ID"
@@ -534,6 +537,7 @@ if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
     echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
     echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
     echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+    echo "episode_date=$EPISODE_DATE" >> "$GITHUB_OUTPUT"
     echo "already_exists=false" >> "$GITHUB_OUTPUT"
 fi
 
