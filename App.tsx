@@ -178,7 +178,8 @@ export default function App() {
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    updateConfig({ [name]: value });
+    const trimmed = ['ownerName', 'repoName', 'email'].includes(name) ? value.trim() : value;
+    updateConfig({ [name]: trimmed });
   };
 
   const monitorFile: PipelineFile = {
