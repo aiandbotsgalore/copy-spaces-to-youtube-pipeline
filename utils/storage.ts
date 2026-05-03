@@ -8,7 +8,15 @@ type StorableConfig = Omit<EnhancedConfig, 'githubToken' | 'artworkDataUrl'>;
 
 export function saveConfig(config: EnhancedConfig): void {
   try {
-    const { githubToken: _t, artworkDataUrl: _a, ...rest } = config;
+    const {
+      githubToken: _t,
+      artworkDataUrl: _a,
+      enableTranscription: _et,
+      enableSlackWebhook: _es,
+      enableDiscordWebhook: _ed,
+      enableScheduledMonitoring: _em,
+      ...rest
+    } = config;
     localStorage.setItem(CONFIG_KEY, JSON.stringify(rest));
   } catch {
     // Storage may be unavailable (private browsing, quota, etc.)
