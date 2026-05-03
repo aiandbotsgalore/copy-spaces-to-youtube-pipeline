@@ -78,7 +78,7 @@ jobs:
         run: |
           pip install -q assemblyai
           python3 - <<'PYEOF'
-          import os, sys, json
+          import os, sys, json, time, urllib.request
           api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
           if not api_key:
               print("::error::ASSEMBLYAI_API_KEY secret is not set. Add it at: repo Settings -> Secrets and variables -> Actions -> New repository secret.")
