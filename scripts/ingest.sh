@@ -2,8 +2,10 @@
 set -euo pipefail
 
 # ==============================================================================
-# TWITTER SPACE INGEST SCRIPT
-# Downloads Twitter Space and extracts full metadata for YouTube upload
+# SPACEPIPE INGEST SCRIPT
+# Supports: Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and more
+# Powered by yt-dlp
+# Includes: duplicate detection against existing GitHub Releases
 # ==============================================================================
 
 QUEUE_FILE="space_queue.txt"
@@ -19,150 +21,142 @@ else
         echo "::error::Queue file $QUEUE_FILE not found!"
         exit 1
     fi
-    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | head -n 1 | tr -d '[:space:]' || true)
+    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]')
 fi
 
 # 2. Validate URL
 if [[ -z "$TARGET_URL" ]]; then
-    echo "Queue is empty. Nothing to process."
-    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-        echo "skipped=true" >> "$GITHUB_OUTPUT"
-    fi
-    exit 0
+    echo "::error::No URL found in input or queue file!"
+    exit 1
 fi
 
 echo "Processing URL: $TARGET_URL"
 
-# Extract Space ID from URL
-SPACE_ID=$(echo "$TARGET_URL" | grep -oE '[a-zA-Z0-9]+$' | head -1)
-echo "Space ID: $SPACE_ID"
+# 3. Detect Platform
+if echo "$TARGET_URL" | grep -qi "twitter.com\|x.com"; then
+    echo "Platform detected: Twitter/X Spaces"
+elif echo "$TARGET_URL" | grep -qi "youtube.com\|youtu.be"; then
+    echo "Platform detected: YouTube"
+elif echo "$TARGET_URL" | grep -qi "clubhouse.com"; then
+    echo "Platform detected: Clubhouse"
+elif echo "$TARGET_URL" | grep -qi "linkedin.com"; then
+    echo "Platform detected: LinkedIn Audio"
+else
+    echo "Platform: Generic URL (yt-dlp will attempt download)"
+fi
 
-# 3. Prepare Work Directory
+# 4. Duplicate Detection
+# Extract the platform-specific source ID before downloading.
+# We look for METADATA::SOURCE_ID::<id> in existing release bodies via the
+# GitHub Releases API. If found, we skip gracefully without re-downloading.
+echo "--- Duplicate check ---"
+SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+
+if [[ -n "$SPACE_ID" ]]; then
+    echo "Source ID: $SPACE_ID"
+    if [[ -n "${GITHUB_TOKEN:-}" && -n "${GITHUB_REPOSITORY:-}" ]]; then
+        ALREADY_EXISTS=$(SPACE_ID="$SPACE_ID" GH_TOKEN="$GITHUB_TOKEN" REPO="$GITHUB_REPOSITORY" \
+            python3 - <<'PYEOF'
+import os, urllib.request, json
+token = os.environ.get("GH_TOKEN", "")
+repo  = os.environ.get("REPO", "")
+sid   = os.environ.get("SPACE_ID", "")
+if not (token and repo and sid):
+    print("no"); exit()
+# Paginate through ALL releases until the API returns an empty page
+found = False
+page = 1
+while True:
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+    )
+    req.add_header("Authorization", f"token {token}")
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    try:
+        with urllib.request.urlopen(req) as r:
+            releases = json.loads(r.read())
+    except Exception:
+        break
+    if not releases:
+        break  # No more pages
+    if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
+        found = True
+        break
+    if len(releases) < 100:
+        break  # Last page — no need to fetch another
+    page += 1
+print("yes" if found else "no")
+PYEOF
+        )
+        if [[ "$ALREADY_EXISTS" == "yes" ]]; then
+            echo "::warning::Source $SPACE_ID is already in GitHub Releases — skipping to avoid duplicate."
+            if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+                echo "already_exists=true" >> "$GITHUB_OUTPUT"
+                echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+        fi
+        echo "No duplicate found — proceeding with download."
+    else
+        echo "::notice::No GitHub context — skipping duplicate check."
+    fi
+else
+    echo "::notice::Could not extract source ID — skipping duplicate check."
+fi
+echo "--- End duplicate check ---"
+
+# 5. Prepare Work Directory
 mkdir -p "$WORK_DIR"
 
-# 4. Download and Convert WITH full metadata JSON
-echo "Starting download with metadata extraction..."
-
-DATE=$(date +%Y%m%d)
-OUTPUT_BASE="$WORK_DIR/${DATE}_${SPACE_ID}"
-
+# 6. Download and Convert
+echo "Starting download..."
 yt-dlp \
-    --retries 3 \
-    --fragment-retries 3 \
+    --retries 5 \
+    --fragment-retries 5 \
     --no-playlist \
     --restrict-filenames \
     --extract-audio \
     --audio-format mp3 \
     --audio-quality 0 \
     --embed-metadata \
-    --write-info-json \
-    --output "${OUTPUT_BASE}_%(title)s.%(ext)s" \
+    --embed-thumbnail \
+    --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \
     "$TARGET_URL"
 
-# 5. Find output files
+# 7. Verify Output
 MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" | head -n 1)
-JSON_FILE=$(find "$WORK_DIR" -name "*.info.json" | head -n 1)
-
 if [[ -z "$MP3_FILE" ]]; then
     echo "::error::No MP3 file was generated."
     exit 1
 fi
+echo "Successfully created: $MP3_FILE"
 
-echo "MP3 File: $MP3_FILE"
-echo "Metadata JSON: ${JSON_FILE:-none}"
-
-# 6. Extract metadata from JSON (if available)
-if [[ -n "$JSON_FILE" && -f "$JSON_FILE" ]]; then
-    # Extract all the good metadata using jq or python
-    SPACE_TITLE=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('title', 'Unknown'))" 2>/dev/null || echo "Unknown")
-    UPLOADER=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('uploader', 'Unknown'))" 2>/dev/null || echo "Unknown")
-    UPLOADER_ID=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('uploader_id', ''))" 2>/dev/null || echo "")
-    DESCRIPTION=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('description', '')[:500])" 2>/dev/null || echo "")
-    DURATION=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(int(d.get('duration', 0)))" 2>/dev/null || echo "0")
-    VIEW_COUNT=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('view_count', 0) or 0)" 2>/dev/null || echo "0")
-    TIMESTAMP=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('timestamp', '') or '')" 2>/dev/null || echo "")
-    RELEASE_DATE=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(d.get('release_date', '') or d.get('upload_date', '') or '')" 2>/dev/null || echo "")
-    CATEGORIES=$(python3 -c "import json; d=json.load(open('$JSON_FILE')); print(','.join(d.get('categories', [])))" 2>/dev/null || echo "")
+# 8. Extract Metadata
+BASENAME=$(basename "$MP3_FILE" .mp3)
+EPISODE_DATE="${BASENAME:0:8}"
+if [[ -n "$SPACE_ID" ]]; then
+    # Deterministic, collision-free tag using the platform source ID
+    RELEASE_TAG="${BASENAME:0:8}_$SPACE_ID"
+    # Strip the YYYYMMDD_<ID>_ prefix to extract the clean title
+    DATE_ID_PREFIX="${BASENAME:0:9}${SPACE_ID}_"
+    SPACE_TITLE="${BASENAME#$DATE_ID_PREFIX}"
 else
-    # Fallback: extract title from filename
-    BASENAME=$(basename "$MP3_FILE" .mp3)
-    # Remove date and ID prefix: YYYYMMDD_SPACEID_Title -> Title
-    SPACE_TITLE=$(echo "$BASENAME" | sed "s/^${DATE}_${SPACE_ID}_//")
-    UPLOADER="Unknown"
-    UPLOADER_ID=""
-    DESCRIPTION=""
-    DURATION="0"
-    VIEW_COUNT="0"
-    TIMESTAMP=""
-    RELEASE_DATE=""
-    CATEGORIES=""
+    # Fallback when source ID could not be extracted
+    RELEASE_TAG="${BASENAME:0:8}_$(date +%s%N | cut -c1-13)"
+    SPACE_TITLE="${BASENAME:9}"
 fi
-
-# Clean up title (remove underscores, trim)
-SPACE_TITLE=$(echo "$SPACE_TITLE" | tr '_' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-if [[ -z "$SPACE_TITLE" ]]; then SPACE_TITLE="Twitter Space $SPACE_ID"; fi
-
-echo ""
-echo "=== EXTRACTED METADATA ==="
-echo "Title: $SPACE_TITLE"
-echo "Host: $UPLOADER (@$UPLOADER_ID)"
-echo "Duration: $DURATION seconds"
-echo "Listeners: $VIEW_COUNT"
-echo "Date: $RELEASE_DATE"
-echo "=========================="
-echo ""
-
-# Format duration as HH:MM:SS
-DURATION_FMT=$(printf '%02d:%02d:%02d' $((DURATION/3600)) $((DURATION%3600/60)) $((DURATION%60)))
-
-# 7. Create YouTube-ready description
-YOUTUBE_DESC="Originally recorded on Twitter/X Spaces
-
-Host: ${UPLOADER}${UPLOADER_ID:+ (@$UPLOADER_ID)}
-${RELEASE_DATE:+Date: $RELEASE_DATE}
-Duration: $DURATION_FMT
-${VIEW_COUNT:+Original Listeners: $VIEW_COUNT}
-
-${DESCRIPTION}
-
----
-Source: $TARGET_URL
-Space ID: $SPACE_ID"
-
-# Save YouTube metadata to file
-YOUTUBE_META_FILE="$WORK_DIR/${DATE}_${SPACE_ID}_youtube_metadata.txt"
-cat > "$YOUTUBE_META_FILE" << EOF
-TITLE=$SPACE_TITLE
-DESCRIPTION=$YOUTUBE_DESC
-TAGS=Twitter Space,X Space,${UPLOADER}${CATEGORIES:+,$CATEGORIES}
-ORIGINAL_URL=$TARGET_URL
-SPACE_ID=$SPACE_ID
-DURATION=$DURATION
-DURATION_FMT=$DURATION_FMT
-HOST=$UPLOADER
-HOST_HANDLE=$UPLOADER_ID
-LISTENERS=$VIEW_COUNT
-RELEASE_DATE=$RELEASE_DATE
-EOF
-
-echo "YouTube metadata saved to: $YOUTUBE_META_FILE"
-
-# 8. Create release tag
-RELEASE_TAG="${DATE}_${SPACE_ID}"
+if [[ -z "$SPACE_TITLE" ]] || [[ "$SPACE_TITLE" == "$BASENAME" ]]; then
+    SPACE_TITLE="$BASENAME"
+fi
 
 # 9. Set GitHub Output Variables
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "mp3_path=$MP3_FILE" >> "$GITHUB_OUTPUT"
-    echo "json_path=${JSON_FILE:-}" >> "$GITHUB_OUTPUT"
-    echo "youtube_meta_path=$YOUTUBE_META_FILE" >> "$GITHUB_OUTPUT"
     echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
     echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
     echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
-    echo "duration=$DURATION" >> "$GITHUB_OUTPUT"
-    echo "duration_fmt=$DURATION_FMT" >> "$GITHUB_OUTPUT"
-    echo "uploader=$UPLOADER" >> "$GITHUB_OUTPUT"
-    echo "uploader_id=$UPLOADER_ID" >> "$GITHUB_OUTPUT"
-    echo "view_count=$VIEW_COUNT" >> "$GITHUB_OUTPUT"
+    echo "episode_date=$EPISODE_DATE" >> "$GITHUB_OUTPUT"
+    echo "already_exists=false" >> "$GITHUB_OUTPUT"
 fi
 
 echo "Done."
