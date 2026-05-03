@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Library, RefreshCw, ExternalLink, Download, Play, AlertCircle,
   CheckCircle, Loader, Music, FileText, RotateCcw
@@ -48,7 +48,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
     setLoading(true);
     setError('');
     try {
-      const data = await getReleases(config.githubToken, config.ownerName, config.repoName);
+      const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
       setReleases(data);
       setLoaded(true);
     } catch (e) {
@@ -57,6 +57,13 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
       setLoading(false);
     }
   }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
+
+  // Auto-load when credentials become available
+  useEffect(() => {
+    if (hasCredentials && !loaded && !loading) {
+      fetchLibrary();
+    }
+  }, [hasCredentials, loaded, loading, fetchLibrary]);
 
   const handleRerun = async (release: Release) => {
     const mp3Asset = release.assets.find(a => a.name.endsWith('.mp3'));
