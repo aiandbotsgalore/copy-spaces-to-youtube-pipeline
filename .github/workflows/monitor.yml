@@ -1,0 +1,47 @@
+name: Monitor Batch Queue
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  process-batch-queue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check and Promote from Batch Queue
+        id: promote
+        run: |
+          if [[ ! -f batch_queue.txt ]] || [[ ! -s batch_queue.txt ]]; then
+            echo "Batch queue is empty. Nothing to process."
+            echo "promoted=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          NEXT_URL=$(grep -v '^[[:space:]]*$' batch_queue.txt | head -n 1 | tr -d '[:space:]')
+          if [[ -z "$NEXT_URL" ]]; then
+            echo "No valid URL in batch queue."
+            echo "promoted=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Promoting: $NEXT_URL"
+          echo "$NEXT_URL" > space_queue.txt
+
+          # Remove first non-empty line from batch queue
+          grep -v '^[[:space:]]*$' batch_queue.txt | tail -n +2 > batch_queue.tmp || true
+          mv batch_queue.tmp batch_queue.txt
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add space_queue.txt batch_queue.txt
+          git commit -m "chore: promote next URL from batch queue" || echo "No changes"
+          git push
+          echo "promoted=true" >> $GITHUB_OUTPUT
+          echo "URL promoted: $NEXT_URL"
