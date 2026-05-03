@@ -357,7 +357,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="text-xs text-slate-500">{formatDate(release.published_at)}</span>
+                          {(() => { const ed = parseEpisodeDate(release.body, release.tag_name); return ed.getTime() > 0 ? <span className="text-xs text-slate-500">{formatDate(ed.toISOString())}</span> : null; })()}
                           {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                         </div>
                       </div>
@@ -477,7 +477,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                            <span className="text-xs text-slate-500">{episodeDate.getTime() > 0 ? formatDate(episodeDate.toISOString()) : formatDate(release.published_at)}</span>
+                            {episodeDate.getTime() > 0 && <span className="text-xs text-slate-500">{formatDate(episodeDate.toISOString())}</span>}
                             {duration && <span className="text-xs text-slate-500">· {duration}</span>}
                             {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                             {txt && (
