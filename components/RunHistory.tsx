@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { RefreshCw, ExternalLink, CheckCircle, XCircle, Clock, Loader, AlertCircle, Play } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { RefreshCw, ExternalLink, CheckCircle, XCircle, Clock, Loader, AlertCircle, Play, Radio } from 'lucide-react';
 import { WorkflowRun, EnhancedConfig } from '../types';
 import { getWorkflowRuns } from '../utils/github';
 
@@ -7,11 +7,13 @@ interface Props {
   config: EnhancedConfig;
 }
 
+const POLL_INTERVAL_MS = 12000;
+
 const WORKFLOW_COLORS: Record<string, string> = {
-  'ingest': 'bg-indigo-500/15 text-indigo-400',
-  'monitor': 'bg-amber-500/15 text-amber-400',
-  'test': 'bg-slate-700 text-slate-400',
-  'rss': 'bg-emerald-500/15 text-emerald-400',
+  ingest: 'bg-indigo-500/15 text-indigo-400',
+  monitor: 'bg-amber-500/15 text-amber-400',
+  test: 'bg-slate-700 text-slate-400',
+  rss: 'bg-emerald-500/15 text-emerald-400',
 };
 
 function workflowBadgeColor(name: string): string {
@@ -32,6 +34,10 @@ function workflowShortName(name: string): string {
   return name.split(' ')[0];
 }
 
+function isActiveRun(run: WorkflowRun): boolean {
+  return run.status === 'in_progress' || run.status === 'queued' || run.status === 'waiting';
+}
+
 function StatusBadge({ status, conclusion }: { status: string; conclusion: string | null }) {
   if (status === 'in_progress' || status === 'queued' || status === 'waiting') {
     return (
@@ -44,24 +50,21 @@ function StatusBadge({ status, conclusion }: { status: string; conclusion: strin
   if (conclusion === 'success') {
     return (
       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/15 text-emerald-400 text-[10px] font-semibold rounded-full">
-        <CheckCircle size={10} />
-        Success
+        <CheckCircle size={10} /> Success
       </span>
     );
   }
   if (conclusion === 'failure') {
     return (
       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/15 text-red-400 text-[10px] font-semibold rounded-full">
-        <XCircle size={10} />
-        Failed
+        <XCircle size={10} /> Failed
       </span>
     );
   }
   if (conclusion === 'cancelled') {
     return (
       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-400 text-[10px] font-semibold rounded-full">
-        <XCircle size={10} />
-        Cancelled
+        <XCircle size={10} /> Cancelled
       </span>
     );
   }
@@ -74,8 +77,7 @@ function StatusBadge({ status, conclusion }: { status: string; conclusion: strin
   }
   return (
     <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 text-slate-500 text-[10px] font-semibold rounded-full">
-      <Clock size={10} />
-      {status}
+      <Clock size={10} /> {status}
     </span>
   );
 }
@@ -97,39 +99,84 @@ const RunHistory: React.FC<Props> = ({ config }) => {
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [filter, setFilter] = useState<string>('all');
+  const [isLive, setIsLive] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const hasCredentials = config.githubToken && config.ownerName && config.repoName;
 
-  const fetchRuns = useCallback(async () => {
+  const fetchRuns = useCallback(async (silent = false) => {
     if (!hasCredentials) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError('');
     try {
       const data = await getWorkflowRuns(config.githubToken, config.ownerName, config.repoName);
       setRuns(data);
       setLoaded(true);
+      return data;
     } catch (e) {
-      setError((e as Error).message);
+      if (!silent) setError((e as Error).message);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
+    return [];
   }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
 
+  // Auto-poll while any run is active
+  useEffect(() => {
+    if (!loaded) return;
+    const hasActive = runs.some(isActiveRun);
+
+    if (hasActive && !pollRef.current) {
+      setIsLive(true);
+      pollRef.current = setInterval(async () => {
+        const updated = await fetchRuns(true);
+        if (updated && !updated.some(isActiveRun)) {
+          // All runs settled — stop polling
+          clearInterval(pollRef.current!);
+          pollRef.current = null;
+          setIsLive(false);
+        }
+      }, POLL_INTERVAL_MS);
+    } else if (!hasActive && pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+      setIsLive(false);
+    }
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [loaded, runs, fetchRuns]);
+
   const repoUrl = `https://github.com/${config.ownerName}/${config.repoName}`;
-
-  // Derive unique workflow names for filter tabs
   const workflowNames = Array.from(new Set(runs.map(r => workflowShortName(r.name))));
-
   const filteredRuns = filter === 'all' ? runs : runs.filter(r => workflowShortName(r.name) === filter);
+  const activeCount = runs.filter(isActiveRun).length;
 
   return (
     <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Run History</h2>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-2xl font-bold text-white">Run History</h2>
+            {isLive && (
+              <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/15 text-red-400 text-[10px] font-bold rounded-full animate-pulse">
+                <Radio size={9} /> LIVE
+              </span>
+            )}
+            {activeCount > 0 && (
+              <span className="px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[10px] font-semibold rounded-full">
+                {activeCount} active
+              </span>
+            )}
+          </div>
           <p className="text-slate-400 text-sm">
-            GitHub Actions workflow runs for{' '}
+            GitHub Actions runs for{' '}
             <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
+            {isLive && <span className="ml-2 text-slate-600 text-xs">· auto-refreshing every {POLL_INTERVAL_MS / 1000}s</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -141,11 +188,11 @@ const RunHistory: React.FC<Props> = ({ config }) => {
               className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
             >
               <ExternalLink size={13} />
-              Open in GitHub
+              GitHub
             </a>
           )}
           <button
-            onClick={fetchRuns}
+            onClick={() => fetchRuns()}
             disabled={loading || !hasCredentials}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
           >
@@ -157,19 +204,15 @@ const RunHistory: React.FC<Props> = ({ config }) => {
 
       {!hasCredentials && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4">
-            <AlertCircle size={28} className="text-slate-500" />
-          </div>
+          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><AlertCircle size={28} className="text-slate-500" /></div>
           <p className="text-slate-400 text-sm font-medium">GitHub connection required</p>
-          <p className="text-slate-600 text-xs mt-1">Connect your GitHub account and configure your repo to view run history.</p>
+          <p className="text-slate-600 text-xs mt-1">Connect your account and configure your repo to view run history.</p>
         </div>
       )}
 
       {hasCredentials && !loaded && !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4">
-            <Play size={28} className="text-slate-500" />
-          </div>
+          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Play size={28} className="text-slate-500" /></div>
           <p className="text-slate-400 text-sm font-medium">Click "Load Runs" to fetch workflow history</p>
         </div>
       )}
@@ -183,11 +226,9 @@ const RunHistory: React.FC<Props> = ({ config }) => {
 
       {loaded && runs.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4">
-            <Clock size={28} className="text-slate-500" />
-          </div>
+          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Clock size={28} className="text-slate-500" /></div>
           <p className="text-slate-400 text-sm font-medium">No workflow runs found</p>
-          <p className="text-slate-600 text-xs mt-1">Runs will appear here after your first ingest.</p>
+          <p className="text-slate-600 text-xs mt-1">Runs appear here after your first ingest.</p>
         </div>
       )}
 
@@ -219,13 +260,17 @@ const RunHistory: React.FC<Props> = ({ config }) => {
                 href={run.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-4 p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all group"
+                className={`flex items-center gap-4 p-4 border rounded-xl transition-all group ${
+                  isActiveRun(run)
+                    ? 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40'
+                    : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                }`}
               >
                 <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
                   {run.conclusion === 'success' && <CheckCircle size={20} className="text-emerald-400" />}
                   {run.conclusion === 'failure' && <XCircle size={20} className="text-red-400" />}
-                  {(!run.conclusion || run.status === 'in_progress') && <Loader size={20} className="text-amber-400 animate-spin" />}
                   {(run.conclusion === 'cancelled' || run.conclusion === 'skipped') && <XCircle size={20} className="text-slate-500" />}
+                  {(!run.conclusion || isActiveRun(run)) && <Loader size={20} className="text-amber-400 animate-spin" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5 flex-wrap">

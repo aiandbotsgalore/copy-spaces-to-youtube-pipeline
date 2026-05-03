@@ -1,0 +1,52 @@
+Paste this into Replit Agent:
+
+```text
+Please implement the improvements you listed, except do not implement items 5, 7, or 9.
+
+Implement these items:
+
+1. Live pipeline status / real-time run monitoring
+2. Per-episode management UI
+3. One-click re-deploy / update pipeline
+4. Persistent config storage
+6. Actual RSS feed validation and preview pull
+8. Error recovery and partial re-deploy
+10. Transcript display and search
+
+Do not implement these items right now:
+
+5. Multi-repo / workspace support
+7. GitHub App / OAuth authentication
+9. Scheduled queue with calendar UI
+
+For the items being implemented, please make the smallest safe changes and avoid rewriting unrelated architecture.
+
+Implementation priorities:
+
+1. Add live run monitoring first.
+Run History should poll every 10 to 15 seconds while a run is active and show clear progress through the pipeline stages.
+
+2. Add a Library tab.
+It should list archived episodes from GitHub Releases with title, date, duration if available, release link, and MP3 link. Include basic actions where safe, such as re-run failed item or identify duplicates, but do not add destructive delete behavior unless it has a confirmation step.
+
+3. Add one-click sync changes.
+After initial deploy, allow config changes to be pushed without repeating the entire deploy wizard. Only push changed files where possible.
+
+4. Add persistent config storage.
+Save non-sensitive settings to localStorage. Do not store the GitHub token casually without a clear sensitive-data warning. If token persistence is added, make it optional and clearly labeled.
+
+5. Add live RSS validation.
+Instead of only rendering a client-side preview, fetch the deployed podcast.xml from GitHub Pages after deploy and preview the actual live RSS feed. Show validation errors clearly.
+
+6. Add error recovery and partial re-deploy.
+If deploy fails midway, retries should detect files that already exist and skip or update them safely instead of forcing the entire wizard to restart.
+
+7. Add transcript display and search.
+When transcripts exist on GitHub Releases, the app should fetch and display them in a Transcripts tab with basic keyword search.
+
+After implementation, give me:
+- files changed
+- features completed
+- tests or build checks run
+- anything that still needs manual verification
+```

@@ -48,6 +48,26 @@ export interface WorkflowRun {
   head_commit: { message: string };
 }
 
+export interface ReleaseAsset {
+  id: number;
+  name: string;
+  browser_download_url: string;
+  size: number;
+  content_type: string;
+}
+
+export interface Release {
+  id: number;
+  tag_name: string;
+  name: string;
+  body: string | null;
+  published_at: string;
+  html_url: string;
+  assets: ReleaseAsset[];
+  draft: boolean;
+  prerelease: boolean;
+}
+
 export interface DeployStep {
   id: string;
   label: string;

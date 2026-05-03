@@ -1,4 +1,4 @@
-import { GitHubUser, WorkflowRun } from '../types';
+import { GitHubUser, WorkflowRun, Release } from '../types';
 
 const BASE = 'https://api.github.com';
 
@@ -83,14 +83,12 @@ export async function pushFile(
 }
 
 export async function enablePages(token: string, owner: string, repo: string): Promise<void> {
-  // Actions-based Pages deployment requires build_type: 'workflow'
   const res = await ghFetch(token, `/repos/${owner}/${repo}/pages`, {
     method: 'POST',
     body: JSON.stringify({ build_type: 'workflow' }),
   });
   assertNotRateLimited(res);
   if (!res.ok && res.status !== 409) {
-    // If already exists (409) or needs updating, try PUT
     const res2 = await ghFetch(token, `/repos/${owner}/${repo}/pages`, {
       method: 'PUT',
       body: JSON.stringify({ build_type: 'workflow' }),
@@ -111,6 +109,59 @@ export async function getWorkflowRuns(token: string, owner: string, repo: string
   }
   const data = await res.json();
   return data.workflow_runs || [];
+}
+
+export async function getReleases(token: string, owner: string, repo: string): Promise<Release[]> {
+  const all: Release[] = [];
+  let page = 1;
+  while (true) {
+    const res = await ghFetch(token, `/repos/${owner}/${repo}/releases?per_page=100&page=${page}`);
+    assertNotRateLimited(res);
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error('Could not fetch releases.');
+    }
+    const batch: Release[] = await res.json();
+    if (!batch.length) break;
+    all.push(...batch);
+    if (batch.length < 100) break;
+    page++;
+  }
+  return all.filter(r => !r.draft && !r.prerelease);
+}
+
+export async function dispatchWorkflow(
+  token: string,
+  owner: string,
+  repo: string,
+  workflowFile: string,
+  inputs: Record<string, string> = {}
+): Promise<void> {
+  const res = await ghFetch(token, `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
+    method: 'POST',
+    body: JSON.stringify({ ref: 'main', inputs }),
+  });
+  assertNotRateLimited(res);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { message?: string }).message || 'Failed to dispatch workflow.');
+  }
+}
+
+export async function fetchRssXml(url: string): Promise<string> {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Feed returned HTTP ${res.status}. Has the repo been deployed to GitHub Pages?`);
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('xml') && !ct.includes('text')) {
+    throw new Error(`Unexpected content type: ${ct}`);
+  }
+  return res.text();
+}
+
+export async function fetchAssetText(url: string): Promise<string> {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Could not fetch asset (HTTP ${res.status}).`);
+  return res.text();
 }
 
 export async function dataUrlToBase64(dataUrl: string): Promise<string> {

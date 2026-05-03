@@ -216,7 +216,10 @@ ${whisperStep}
         with:
           tag_name: \${{ steps.process.outputs.release_tag }}
           name: "\${{ steps.process.outputs.space_title }}"
-          files: \${{ steps.process.outputs.mp3_path }}
+          files: |
+            \${{ steps.process.outputs.mp3_path }}
+            transcripts/*.txt
+          fail_on_unmatched_files: false
           body: |
             **Space Title:** \${{ steps.process.outputs.space_title }}
             **Duration:** \${{ steps.duration.outputs.duration }}

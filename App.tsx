@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight,
-  Mic2, BookOpen, FlaskConical, Clock
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch
 } from 'lucide-react';
 import FileViewer from './components/FileViewer';
 import GitHubConnect from './components/GitHubConnect';
@@ -12,7 +12,10 @@ import ArtworkUpload from './components/ArtworkUpload';
 import RSSPreview from './components/RSSPreview';
 import RunHistory from './components/RunHistory';
 import DeployWizard from './components/DeployWizard';
+import LibraryPanel from './components/LibraryPanel';
+import TranscriptPanel from './components/TranscriptPanel';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
+import { saveConfig, loadConfig, loadStoredToken } from './utils/storage';
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -42,6 +45,12 @@ const DEFAULT_CONFIG: EnhancedConfig = {
   enableScheduledMonitoring: false,
   scheduledCron: '0 */2 * * *',
 };
+
+function buildInitialConfig(): EnhancedConfig {
+  const stored = loadConfig();
+  const storedToken = loadStoredToken();
+  return { ...DEFAULT_CONFIG, ...stored, githubToken: storedToken, artworkDataUrl: '' };
+}
 
 const STATIC_FILES: PipelineFile[] = [
   {
@@ -89,6 +98,8 @@ type Panel =
   | 'rss-preview'
   | 'run-history'
   | 'deploy'
+  | 'library'
+  | 'transcripts'
   | `file:${string}`;
 
 interface NavItemProps {
@@ -125,9 +136,21 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
 );
 
 export default function App() {
-  const [config, setConfig] = useState<EnhancedConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<EnhancedConfig>(buildInitialConfig);
   const [activePanel, setActivePanel] = useState<Panel>('config');
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced config save to localStorage on every change
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveConfig(config);
+    }, 500);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [config]);
 
   const updateConfig = (updates: Partial<EnhancedConfig>) => {
     setConfig(prev => ({ ...prev, ...updates }));
@@ -160,6 +183,13 @@ export default function App() {
     if (name === 'Test Workflow') return <FlaskConical size={15} />;
     return <Terminal size={15} />;
   };
+
+  const featuresOn = [
+    config.enableTranscription,
+    config.enableSlackWebhook,
+    config.enableDiscordWebhook,
+    config.enableScheduledMonitoring,
+  ].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
@@ -209,9 +239,7 @@ export default function App() {
                 label="Features"
                 active={activePanel === 'features'}
                 onClick={() => setActivePanel('features')}
-                badge={[config.enableTranscription, config.enableSlackWebhook, config.enableDiscordWebhook, config.enableScheduledMonitoring].filter(Boolean).length > 0
-                  ? `${[config.enableTranscription, config.enableSlackWebhook, config.enableDiscordWebhook, config.enableScheduledMonitoring].filter(Boolean).length} on`
-                  : undefined}
+                badge={featuresOn > 0 ? `${featuresOn} on` : undefined}
                 badgeColor="bg-indigo-500/20 text-indigo-400"
               />
               <NavItem
@@ -252,18 +280,39 @@ export default function App() {
                 onClick={() => setActivePanel('rss-preview')}
               />
               <NavItem
-                icon={<History size={15} />}
-                label="Run History"
-                active={activePanel === 'run-history'}
-                onClick={() => setActivePanel('run-history')}
-              />
-              <NavItem
                 icon={<Rocket size={15} />}
                 label="Deploy to GitHub"
                 active={activePanel === 'deploy'}
                 onClick={() => setActivePanel('deploy')}
                 badge={githubUser ? 'Ready' : undefined}
                 badgeColor="bg-emerald-500/20 text-emerald-400"
+              />
+            </div>
+          </div>
+
+          {/* ARCHIVE */}
+          <div>
+            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Archive</p>
+            <div className="space-y-1">
+              <NavItem
+                icon={<Library size={15} />}
+                label="Episode Library"
+                active={activePanel === 'library'}
+                onClick={() => setActivePanel('library')}
+              />
+              <NavItem
+                icon={<FileSearch size={15} />}
+                label="Transcripts"
+                active={activePanel === 'transcripts'}
+                onClick={() => setActivePanel('transcripts')}
+                badge={config.enableTranscription ? 'on' : undefined}
+                badgeColor="bg-amber-500/20 text-amber-400"
+              />
+              <NavItem
+                icon={<History size={15} />}
+                label="Run History"
+                active={activePanel === 'run-history'}
+                onClick={() => setActivePanel('run-history')}
               />
             </div>
           </div>
@@ -277,7 +326,6 @@ export default function App() {
       {/* ── Main Content ── */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
 
-        {/* GitHub Connect */}
         {activePanel === 'github' && (
           <GitHubConnect
             token={config.githubToken}
@@ -290,7 +338,6 @@ export default function App() {
           />
         )}
 
-        {/* Configuration */}
         {activePanel === 'config' && (
           <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
             <div className="mb-8">
@@ -435,7 +482,7 @@ export default function App() {
                   Configure Features
                 </button>
                 <button
-                  onClick={() => setActivePanel(`file:.github/workflows/ingest.yml`)}
+                  onClick={() => setActivePanel('file:.github/workflows/ingest.yml')}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
                 >
                   <FolderGit2 size={15} />
@@ -446,17 +493,14 @@ export default function App() {
           </div>
         )}
 
-        {/* Features */}
         {activePanel === 'features' && (
           <FeaturePanel config={config} onChange={updateConfig} />
         )}
 
-        {/* Batch Queue */}
         {activePanel === 'batch' && (
           <BatchUrlEditor config={config} onChange={updateConfig} />
         )}
 
-        {/* File Viewer */}
         {activePanel.startsWith('file:') && activeFile && (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             <header className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
@@ -471,19 +515,24 @@ export default function App() {
           </div>
         )}
 
-        {/* RSS Preview */}
         {activePanel === 'rss-preview' && (
           <RSSPreview config={config} />
         )}
 
-        {/* Run History */}
         {activePanel === 'run-history' && (
           <RunHistory config={config} />
         )}
 
-        {/* Deploy */}
         {activePanel === 'deploy' && (
           <DeployWizard config={config} />
+        )}
+
+        {activePanel === 'library' && (
+          <LibraryPanel config={config} />
+        )}
+
+        {activePanel === 'transcripts' && (
+          <TranscriptPanel config={config} />
         )}
       </main>
     </div>
