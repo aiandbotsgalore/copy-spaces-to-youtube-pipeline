@@ -87,6 +87,11 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
   };
 
   const validateLiveFeed = async () => {
+    if (!config.ownerName || !config.repoName) {
+      setFetchError('Enter your GitHub username and repository name in Configuration first.');
+      setFetchState('error');
+      return;
+    }
     setFetchState('loading');
     setFetchError('');
     try {
@@ -99,7 +104,11 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
       setLiveTitle(title);
       setFetchState('ok');
     } catch (e) {
-      setFetchError((e as Error).message);
+      const msg = (e as Error).message;
+      const friendly = msg === 'Failed to fetch'
+        ? `Could not reach ${rssUrl} — the GitHub Pages site may not be deployed yet, or the repository name / username is incorrect.`
+        : msg;
+      setFetchError(friendly);
       setFetchState('error');
     }
   };
