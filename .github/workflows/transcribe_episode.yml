@@ -1,0 +1,135 @@
+name: Transcribe Episode
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag to transcribe (e.g. 20260503_1qGvvkOdEAzGB)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -q assemblyai
+
+      - name: Download MP3 from Release
+        id: download
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, json, urllib.request, sys
+          token = os.environ["GITHUB_TOKEN"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          tag = os.environ["RELEASE_TAG"]
+          req = urllib.request.Request(
+              f"https://api.github.com/repos/{repo}/releases/tags/{tag}",
+              headers={"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+          )
+          try:
+              with urllib.request.urlopen(req) as r:
+                  release = json.loads(r.read())
+          except Exception as e:
+              print(f"::error::Could not fetch release {tag}: {e}")
+              sys.exit(1)
+          mp3_asset = next((a for a in release.get("assets", []) if a["name"].endswith(".mp3")), None)
+          if not mp3_asset:
+              print(f"::error::No MP3 asset found in release {tag}")
+              sys.exit(1)
+          mp3_url = mp3_asset["browser_download_url"]
+          mp3_name = mp3_asset["name"]
+          os.makedirs("work", exist_ok=True)
+          out_path = f"work/{mp3_name}"
+          print(f"Downloading {mp3_name} ({mp3_asset['size'] // (1024*1024)} MB)...")
+          req2 = urllib.request.Request(mp3_url, headers={"Authorization": f"token {token}"})
+          with urllib.request.urlopen(req2) as r, open(out_path, "wb") as f:
+              f.write(r.read())
+          print(f"Downloaded to {out_path}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as gho:
+              gho.write(f"mp3_path={out_path}\n")
+          PYEOF
+
+      - name: Transcribe with AssemblyAI
+        id: transcribe
+        env:
+          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
+          MP3_PATH: ${{ steps.download.outputs.mp3_path }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          mkdir -p transcripts
+          python3 - <<'PYEOF'
+          import os, sys, json
+          api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
+          if not api_key:
+              print("::error::ASSEMBLYAI_API_KEY secret is not set.")
+              sys.exit(1)
+          mp3_path = os.environ.get("MP3_PATH", "")
+          release_tag = os.environ.get("RELEASE_TAG", "")
+          if not mp3_path or not os.path.exists(mp3_path):
+              print(f"::error::MP3 file not found: {mp3_path}")
+              sys.exit(1)
+          import assemblyai as aai
+          aai.settings.api_key = api_key
+          base_name = os.path.splitext(os.path.basename(mp3_path))[0]
+          txt_path = f"transcripts/{base_name}.txt"
+          json_path = f"transcripts/{base_name}.json"
+          def fmt(ms):
+              s = int(ms) // 1000
+              return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+          transcript = None
+          for model in ["universal-3-pro", "universal-2"]:
+              print(f"Attempting transcription with model: {model}")
+              try:
+                  cfg = aai.TranscriptionConfig(speaker_labels=True, speech_model=model)
+                  transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
+                  if transcript.status == aai.TranscriptStatus.error:
+                      print(f"Model {model} failed: {transcript.error}. Trying fallback...")
+                      transcript = None
+                      continue
+                  print(f"Transcription completed with model: {model}")
+                  break
+              except Exception as e:
+                  print(f"Model {model} raised exception: {e}. Trying fallback...")
+                  transcript = None
+          if not transcript or transcript.status != aai.TranscriptStatus.completed:
+              print("::error::AssemblyAI transcription failed with all available speech models.")
+              sys.exit(1)
+          lines, segments = [], []
+          for u in (transcript.utterances or []):
+              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
+              segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
+          with open(txt_path, "w") as f:
+              f.write("\n".join(lines))
+          with open(json_path, "w") as f:
+              json.dump({"release_tag": release_tag, "segments": segments}, f, indent=2)
+          print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
+          print(f"JSON data saved: {json_path}")
+          PYEOF
+
+      - name: Upload transcripts to Release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          files: |
+            transcripts/*.txt
+            transcripts/*.json
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
