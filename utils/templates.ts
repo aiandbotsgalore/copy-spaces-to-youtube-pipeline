@@ -79,17 +79,67 @@ const buildPythonRSSScript = () => [
 ].join('\n');
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
-  const whisperStep = config.enableTranscription ? `
-      - name: Transcribe with Whisper AI
+  const assemblyAiStep = config.enableTranscription ? `
+      - name: Transcribe with AssemblyAI
         if: success() && steps.process.outputs.already_exists != 'true'
         id: transcribe
         env:
+          ASSEMBLYAI_API_KEY: \${{ secrets.ASSEMBLYAI_API_KEY }}
           MP3_PATH: \${{ steps.process.outputs.mp3_path }}
+          EPISODE_ID: \${{ steps.process.outputs.space_id }}
+          SOURCE_URL: \${{ inputs.space_url }}
         run: |
-          pip install openai-whisper
-          mkdir -p transcripts
-          whisper "$MP3_PATH" --output_format txt --output_dir transcripts/
-          echo "Transcription complete. Files saved to transcripts/"
+          pip install -q assemblyai
+          python3 - <<'PYEOF'
+          import os, sys, json
+          api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
+          if not api_key:
+              print("::error::ASSEMBLYAI_API_KEY secret is not set. Add it at: repo Settings -> Secrets and variables -> Actions -> New repository secret.")
+              sys.exit(1)
+          mp3_path = os.environ.get("MP3_PATH", "")
+          episode_id = os.environ.get("EPISODE_ID", "")
+          source_url = os.environ.get("SOURCE_URL", "")
+          if not mp3_path or not os.path.exists(mp3_path):
+              print(f"::error::MP3 file not found: {mp3_path}")
+              sys.exit(1)
+          import assemblyai as aai
+          aai.settings.api_key = api_key
+          os.makedirs("transcripts", exist_ok=True)
+          base_name = os.path.splitext(os.path.basename(mp3_path))[0]
+          txt_path = f"transcripts/{base_name}.txt"
+          json_path = f"transcripts/{base_name}.json"
+          def fmt(ms):
+              s = int(ms) // 1000
+              return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+          transcript = None
+          for model in ["universal-3-pro", "universal-2"]:
+              print(f"Attempting transcription with model: {model}")
+              try:
+                  cfg = aai.TranscriptionConfig(speaker_labels=True, speech_model=model)
+                  transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
+                  if transcript.status == aai.TranscriptStatus.error:
+                      print(f"Model {model} failed: {transcript.error}. Trying fallback...")
+                      transcript = None
+                      continue
+                  print(f"Transcription completed with model: {model}")
+                  break
+              except Exception as e:
+                  print(f"Model {model} raised exception: {e}. Trying fallback...")
+                  transcript = None
+          if not transcript or transcript.status != aai.TranscriptStatus.completed:
+              print("::error::AssemblyAI transcription failed with all available speech models.")
+              sys.exit(1)
+          lines, segments = [], []
+          for u in (transcript.utterances or []):
+              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
+              segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
+          with open(txt_path, "w") as f:
+              f.write("\\n".join(lines))
+          with open(json_path, "w") as f:
+              json.dump({"episode_id": episode_id, "source_url": source_url, "segments": segments}, f, indent=2)
+          print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
+          print(f"JSON data saved: {json_path}")
+          PYEOF
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `
@@ -191,7 +241,7 @@ jobs:
             -of default=noprint_wrappers=1:nokey=1 "\${{ steps.process.outputs.mp3_path }}" \\
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
-${whisperStep}
+${assemblyAiStep}
       - name: Clear Queue File
         if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
         run: |
@@ -219,6 +269,7 @@ ${whisperStep}
           files: |
             \${{ steps.process.outputs.mp3_path }}
             transcripts/*.txt
+            transcripts/*.json
           fail_on_unmatched_files: false
           body: |
             **Space Title:** \${{ steps.process.outputs.space_title }}
@@ -552,6 +603,7 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 ### Optional Secrets
 | Secret | Purpose |
 |--------|---------|
+| \`ASSEMBLYAI_API_KEY\` | Diarized transcription with speaker labels (AssemblyAI) |
 | \`SLACK_WEBHOOK_URL\` | Slack notifications on publish |
 | \`DISCORD_WEBHOOK_URL\` | Discord notifications on publish |
 

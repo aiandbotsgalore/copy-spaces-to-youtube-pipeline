@@ -60,15 +60,30 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
           enabled={config.enableTranscription}
           onToggle={() => onChange({ enableTranscription: !config.enableTranscription })}
           icon={<Mic size={16} />}
-          title="Whisper AI Transcription"
-          badge="Adds ~5 min"
-          description="Automatically transcribe each episode using OpenAI Whisper (runs locally on the Actions runner — no API key needed). Transcripts are saved to transcripts/ in your repository."
+          title="AssemblyAI Diarized Transcription"
+          badge="API key required"
+          description="Transcribe each episode with speaker identification using AssemblyAI. Outputs a plain-text transcript with per-speaker timestamps and a JSON file with segment data. Requires an ASSEMBLYAI_API_KEY GitHub secret."
         >
-          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-            <Info size={13} className="text-amber-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-amber-300/80">
-              Whisper runs the base model on GitHub's free runners. Transcription adds approximately 5–10 minutes per episode. For production use, consider a paid runner.
-            </p>
+          <div className="space-y-3">
+            <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+              <Info size={13} className="text-amber-400 mt-0.5 flex-shrink-0" />
+              <div className="space-y-1.5">
+                <p className="text-xs text-amber-300/80 font-medium">Setup required — add your API key as a GitHub Secret</p>
+                <ol className="text-[10px] text-amber-300/60 space-y-1 list-none">
+                  <li>1. Get a free API key at <a href="https://www.assemblyai.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">assemblyai.com</a></li>
+                  <li>2. In your GitHub repo: Settings → Secrets and variables → Actions</li>
+                  <li>3. Add a secret named <code className="bg-amber-900/30 px-1 rounded">ASSEMBLYAI_API_KEY</code></li>
+                </ol>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 p-3 bg-slate-800/60 border border-slate-700 rounded-lg">
+              <Info size={13} className="text-slate-500 mt-0.5 flex-shrink-0" />
+              <div className="text-[10px] text-slate-500 space-y-0.5">
+                <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] SPEAKER_A: text here</code></p>
+                <p>Models tried in order: <code className="text-slate-400">universal-3-pro</code> → <code className="text-slate-400">universal-2</code></p>
+                <p>Both <code className="text-slate-400">.txt</code> and <code className="text-slate-400">.json</code> files are uploaded to each GitHub Release.</p>
+              </div>
+            </div>
           </div>
         </ToggleRow>
 

@@ -83,7 +83,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
     const freshSteps = buildStepList(config);
 
     // Restore 'done' status for skipped steps, keep others pending
-    const initialised = freshSteps.map(s =>
+    const initialised: DeployStep[] = freshSteps.map(s =>
       skipIds.has(s.id)
         ? { ...s, status: 'done' as const, message: 'Already completed' }
         : { ...s, status: 'pending' as const, message: undefined }
@@ -136,7 +136,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
       if (!skip('script')) {
         upd('script', { status: 'running' });
         await pushFile(token, owner, repo, 'scripts/ingest.sh', generateIngestScript(config), 'chore: update ingest script');
-        const requirements = config.enableTranscription ? 'yt-dlp\nopenai-whisper\n' : 'yt-dlp\n';
+        const requirements = config.enableTranscription ? 'yt-dlp\nassemblyai\n' : 'yt-dlp\n';
         await pushFile(token, owner, repo, 'requirements.txt', requirements, 'chore: update requirements.txt');
         upd('script', { status: 'done' });
       }
@@ -209,7 +209,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
   };
 
   const resume = () => {
-    const doneIds = new Set(steps.filter(s => s.status === 'done').map(s => s.id));
+    const doneIds = new Set<string>(steps.filter(s => s.status === 'done').map(s => s.id));
     deploy(doneIds);
   };
 
