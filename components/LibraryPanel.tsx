@@ -62,6 +62,8 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
   const [search, setSearch] = useState('');
   const [confirmRerun, setConfirmRerun] = useState<number | null>(null);
 
+  const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'dur-desc' | 'dur-asc'>('date-desc');
+
   const [dupMode, setDupMode] = useState(false);
   const [dupGroups, setDupGroups] = useState<DuplicateGroup[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -177,9 +179,22 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
     }
   };
 
-  const filtered = releases.filter(r =>
-    !search.trim() || r.name.toLowerCase().includes(search.toLowerCase())
-  );
+  function durationToSecs(body: string | null): number {
+    const dur = parseDuration(body);
+    if (!dur) return -1;
+    const [h, m, s] = dur.split(':').map(Number);
+    return h * 3600 + m * 60 + s;
+  }
+
+  const filtered = releases
+    .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sort === 'date-desc') return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+      if (sort === 'date-asc')  return new Date(a.published_at).getTime() - new Date(b.published_at).getTime();
+      if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
+      if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
+      return 0;
+    });
 
   const mp3Count = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
   const txtCount = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.txt')).length, 0);
@@ -394,13 +409,37 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
             ))}
           </div>
 
-          <input
-            type="text"
-            placeholder="Search episodes…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
-          />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Search episodes…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 flex-shrink-0">
+              {(
+                [
+                  { value: 'date-desc', label: 'Newest' },
+                  { value: 'date-asc',  label: 'Oldest' },
+                  { value: 'dur-desc',  label: 'Longest' },
+                  { value: 'dur-asc',   label: 'Shortest' },
+                ] as const
+              ).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSort(opt.value)}
+                  className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
+                    sort === opt.value
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-500 hover:text-slate-300'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="space-y-2">
             {filtered.map(release => {
