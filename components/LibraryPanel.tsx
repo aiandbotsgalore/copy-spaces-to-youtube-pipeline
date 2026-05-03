@@ -15,21 +15,38 @@ interface DuplicateGroup {
   releases: Release[];
 }
 
-function parseEpisodeDate(body: string | null, tagName: string): Date {
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function yyyymmddToDisplay(d: string): string {
+  const y = d.slice(0, 4);
+  const m = parseInt(d.slice(4, 6), 10) - 1;
+  const day = d.slice(6, 8).replace(/^0/, '');
+  return `${MONTHS[m] ?? '?'} ${day}, ${y}`;
+}
+
+function extractYYYYMMDD(body: string | null, tagName: string): string | null {
   if (body) {
     const m = body.match(/METADATA::EPISODE_DATE::(\d{8})/);
-    if (m) {
-      const d = m[1];
-      return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`);
-    }
+    if (m) return m[1];
   }
-  // Fallback: release tag starts with YYYYMMDD
   const t = tagName.match(/^(\d{8})/);
-  if (t) {
-    const d = t[1];
-    return new Date(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`);
-  }
-  return new Date(0);
+  if (t) return t[1];
+  return null;
+}
+
+function episodeDateDisplay(body: string | null, tagName: string): string | null {
+  const raw = extractYYYYMMDD(body, tagName);
+  return raw ? yyyymmddToDisplay(raw) : null;
+}
+
+function episodeDateMs(body: string | null, tagName: string): number {
+  const raw = extractYYYYMMDD(body, tagName);
+  if (!raw) return 0;
+  return Date.UTC(
+    parseInt(raw.slice(0, 4), 10),
+    parseInt(raw.slice(4, 6), 10) - 1,
+    parseInt(raw.slice(6, 8), 10)
+  );
 }
 
 function parseDuration(body: string | null): string {
@@ -206,8 +223,8 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
   const filtered = releases
     .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (sort === 'date-desc') return parseEpisodeDate(b.body, b.tag_name).getTime() - parseEpisodeDate(a.body, a.tag_name).getTime();
-      if (sort === 'date-asc')  return parseEpisodeDate(a.body, a.tag_name).getTime() - parseEpisodeDate(b.body, b.tag_name).getTime();
+      if (sort === 'date-desc') return episodeDateMs(b.body, b.tag_name) - episodeDateMs(a.body, a.tag_name);
+      if (sort === 'date-asc')  return episodeDateMs(a.body, a.tag_name) - episodeDateMs(b.body, b.tag_name);
       if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
       if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
       return 0;
@@ -357,7 +374,9 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          {(() => { const ed = parseEpisodeDate(release.body, release.tag_name); return ed.getTime() > 0 ? <span className="text-xs text-slate-500">{formatDate(ed.toISOString())}</span> : null; })()}
+                          {episodeDateDisplay(release.body, release.tag_name) && (
+                            <span className="text-xs text-slate-500">{episodeDateDisplay(release.body, release.tag_name)}</span>
+                          )}
                           {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                         </div>
                       </div>
@@ -464,7 +483,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
               const txt = release.assets.find(a => a.name.endsWith('.txt'));
               const duration = parseDuration(release.body);
               const sourceId = parseSourceId(release.body);
-              const episodeDate = parseEpisodeDate(release.body, release.tag_name);
+              const epDate = episodeDateDisplay(release.body, release.tag_name);
 
               return (
                 <div key={release.id} className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
@@ -477,7 +496,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                            {episodeDate.getTime() > 0 && <span className="text-xs text-slate-500">{formatDate(episodeDate.toISOString())}</span>}
+                            {epDate && <span className="text-xs text-slate-500">{epDate}</span>}
                             {duration && <span className="text-xs text-slate-500">· {duration}</span>}
                             {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                             {txt && (
