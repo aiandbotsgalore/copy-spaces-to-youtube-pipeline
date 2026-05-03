@@ -49,7 +49,16 @@ const DEFAULT_CONFIG: EnhancedConfig = {
 function buildInitialConfig(): EnhancedConfig {
   const stored = loadConfig();
   const storedToken = loadStoredToken();
-  return { ...DEFAULT_CONFIG, ...stored, githubToken: storedToken, artworkDataUrl: '' };
+  return {
+    ...DEFAULT_CONFIG,
+    ...stored,
+    githubToken: storedToken,
+    artworkDataUrl: '',
+    enableTranscription: false,
+    enableSlackWebhook: false,
+    enableDiscordWebhook: false,
+    enableScheduledMonitoring: false,
+  };
 }
 
 const STATIC_FILES: PipelineFile[] = [
@@ -140,6 +149,17 @@ export default function App() {
   const [activePanel, setActivePanel] = useState<Panel>('config');
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Always reset feature toggles to off on mount — never restore from localStorage
+  useEffect(() => {
+    setConfig(c => ({
+      ...c,
+      enableTranscription: false,
+      enableSlackWebhook: false,
+      enableDiscordWebhook: false,
+      enableScheduledMonitoring: false,
+    }));
+  }, []);
 
   // Debounced config save to localStorage on every change
   useEffect(() => {
