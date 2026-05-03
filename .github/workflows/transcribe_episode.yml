@@ -75,7 +75,7 @@ jobs:
         run: |
           mkdir -p transcripts
           python3 - <<'PYEOF'
-          import os, sys, json
+          import os, sys, json, time, urllib.request
           api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
           if not api_key:
               print("::error::ASSEMBLYAI_API_KEY secret is not set.")
@@ -85,36 +85,53 @@ jobs:
           if not mp3_path or not os.path.exists(mp3_path):
               print(f"::error::MP3 file not found: {mp3_path}")
               sys.exit(1)
-          import assemblyai as aai
-          aai.settings.api_key = api_key
           base_name = os.path.splitext(os.path.basename(mp3_path))[0]
           txt_path = f"transcripts/{base_name}.txt"
           json_path = f"transcripts/{base_name}.json"
           def fmt(ms):
               s = int(ms) // 1000
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+          audio_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{os.path.basename(mp3_path)}"
+          payload = json.dumps({
+              "audio_url": audio_url,
+              "speech_models": ["universal-3-pro", "universal-2"],
+              "speaker_labels": True,
+          }).encode("utf-8")
+          req = urllib.request.Request(
+              "https://api.assemblyai.com/v2/transcript",
+              data=payload,
+              headers={
+                  "Authorization": api_key,
+                  "Content-Type": "application/json",
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(req) as r:
+              transcript = json.loads(r.read())
+          transcript_id = transcript.get("id")
+          if not transcript_id:
+              print("::error::AssemblyAI did not return a transcript id.")
+              sys.exit(1)
+          poll_url = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
           transcript = None
-          for model in ["universal-3-pro", "universal-2"]:
-              print(f"Attempting transcription with model: {model}")
-              try:
-                  cfg = aai.TranscriptionConfig(speaker_labels=True, speech_model=model)
-                  transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
-                  if transcript.status == aai.TranscriptStatus.error:
-                      print(f"Model {model} failed: {transcript.error}. Trying fallback...")
-                      transcript = None
-                      continue
-                  print(f"Transcription completed with model: {model}")
+          for _ in range(180):
+              poll_req = urllib.request.Request(poll_url, headers={"Authorization": api_key})
+              with urllib.request.urlopen(poll_req) as r:
+                  transcript = json.loads(r.read())
+              status = transcript.get("status")
+              if status == "completed":
                   break
-              except Exception as e:
-                  print(f"Model {model} raised exception: {e}. Trying fallback...")
-                  transcript = None
-          if not transcript or transcript.status != aai.TranscriptStatus.completed:
-              print("::error::AssemblyAI transcription failed with all available speech models.")
+              if status == "error":
+                  print(f"::error::AssemblyAI transcription failed: {transcript.get('error')}")
+                  sys.exit(1)
+              time.sleep(10)
+          if not transcript or transcript.get("status") != "completed":
+              print("::error::AssemblyAI transcription timed out.")
               sys.exit(1)
           lines, segments = [], []
-          for u in (transcript.utterances or []):
-              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
-              segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
+          for u in (transcript.get("utterances") or []):
+              lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {u['speaker']}: {u['text'].strip()}")
+              segments.append({"start": u["start"], "end": u["end"], "speaker": u["speaker"], "text": u["text"].strip()})
           with open(txt_path, "w") as f:
               f.write("\n".join(lines))
           with open(json_path, "w") as f:
