@@ -148,6 +148,15 @@ export async function dispatchWorkflow(
   }
 }
 
+export async function deleteRelease(token: string, owner: string, repo: string, releaseId: number): Promise<void> {
+  const res = await ghFetch(token, `/repos/${owner}/${repo}/releases/${releaseId}`, { method: 'DELETE' });
+  assertNotRateLimited(res);
+  if (!res.ok && res.status !== 404) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { message?: string }).message || `Failed to delete release ${releaseId}.`);
+  }
+}
+
 export async function fetchRssXml(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Feed returned HTTP ${res.status}. Has the repo been deployed to GitHub Pages?`);

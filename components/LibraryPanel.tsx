@@ -1,13 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   Library, RefreshCw, ExternalLink, Download, Play, AlertCircle,
-  CheckCircle, Loader, Music, FileText, RotateCcw
+  CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, dispatchWorkflow } from '../utils/github';
+import { getReleases, dispatchWorkflow, deleteRelease } from '../utils/github';
 
 interface Props {
   config: EnhancedConfig;
+}
+
+interface DuplicateGroup {
+  key: string;
+  releases: Release[];
 }
 
 function parseDuration(body: string | null): string {
@@ -31,6 +36,22 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function findDuplicates(releases: Release[]): DuplicateGroup[] {
+  const groups = new Map<string, Release[]>();
+  for (const r of releases) {
+    const sourceId = parseSourceId(r.body);
+    const key = sourceId || r.name || r.tag_name;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(r);
+  }
+  return Array.from(groups.entries())
+    .filter(([, g]) => g.length > 1)
+    .map(([key, g]) => ({
+      key,
+      releases: [...g].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()),
+    }));
+}
+
 const LibraryPanel: React.FC<Props> = ({ config }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,7 +62,14 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
   const [search, setSearch] = useState('');
   const [confirmRerun, setConfirmRerun] = useState<number | null>(null);
 
-  const hasCredentials = config.githubToken && config.ownerName && config.repoName;
+  const [dupMode, setDupMode] = useState(false);
+  const [dupGroups, setDupGroups] = useState<DuplicateGroup[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [deleting, setDeleting] = useState(false);
+  const [deleteProgress, setDeleteProgress] = useState({ done: 0, total: 0 });
+  const [deleteError, setDeleteError] = useState('');
+
+  const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
 
   const fetchLibrary = useCallback(async () => {
     if (!hasCredentials) return;
@@ -51,6 +79,8 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
       const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
       setReleases(data);
       setLoaded(true);
+      setDupMode(false);
+      setSelected(new Set());
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -58,12 +88,69 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
     }
   }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
 
-  // Auto-load when credentials become available
   useEffect(() => {
     if (hasCredentials && !loaded && !loading) {
       fetchLibrary();
     }
   }, [hasCredentials, loaded, loading, fetchLibrary]);
+
+  const enterDupMode = () => {
+    const groups = findDuplicates(releases);
+    setDupGroups(groups);
+    const preSelected = new Set<number>();
+    for (const g of groups) {
+      g.releases.slice(1).forEach(r => preSelected.add(r.id));
+    }
+    setSelected(preSelected);
+    setDupMode(true);
+    setDeleteError('');
+  };
+
+  const exitDupMode = () => {
+    setDupMode(false);
+    setSelected(new Set());
+    setDeleteError('');
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllInGroup = (group: DuplicateGroup) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      group.releases.slice(1).forEach(r => next.add(r.id));
+      return next;
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selected.size === 0) return;
+    setDeleting(true);
+    setDeleteError('');
+    setDeleteProgress({ done: 0, total: selected.size });
+    const ids = [...selected];
+    let done = 0;
+    const errors: string[] = [];
+    for (const id of ids) {
+      try {
+        await deleteRelease(config.githubToken, config.ownerName.trim(), config.repoName.trim(), id);
+        done++;
+        setDeleteProgress({ done, total: ids.length });
+      } catch (e) {
+        errors.push((e as Error).message);
+      }
+    }
+    setDeleting(false);
+    if (errors.length) {
+      setDeleteError(`${errors.length} deletion(s) failed: ${errors[0]}`);
+    }
+    await fetchLibrary();
+  };
 
   const handleRerun = async (release: Release) => {
     const mp3Asset = release.assets.find(a => a.name.endsWith('.mp3'));
@@ -96,6 +183,7 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
 
   const mp3Count = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
   const txtCount = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.txt')).length, 0);
+  const dupCount = findDuplicates(releases).length;
 
   return (
     <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
@@ -107,14 +195,34 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
             <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
           </p>
         </div>
-        <button
-          onClick={fetchLibrary}
-          disabled={loading || !hasCredentials}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex-shrink-0"
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Loading…' : loaded ? 'Refresh' : 'Load Library'}
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {loaded && dupCount > 0 && !dupMode && (
+            <button
+              onClick={enterDupMode}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-colors"
+            >
+              <Copy size={14} />
+              {dupCount} Duplicate{dupCount !== 1 ? 's' : ''}
+            </button>
+          )}
+          {dupMode && (
+            <button
+              onClick={exitDupMode}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+            >
+              <X size={14} />
+              Exit
+            </button>
+          )}
+          <button
+            onClick={fetchLibrary}
+            disabled={loading || !hasCredentials || deleting}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Loading…' : loaded ? 'Refresh' : 'Load Library'}
+          </button>
+        </div>
       </div>
 
       {!hasCredentials && (
@@ -122,6 +230,13 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
           <div className="p-4 bg-slate-800 rounded-2xl mb-4"><AlertCircle size={28} className="text-slate-500" /></div>
           <p className="text-slate-400 text-sm font-medium">GitHub connection required</p>
           <p className="text-slate-600 text-xs mt-1">Connect your account and configure the repo to browse your library.</p>
+        </div>
+      )}
+
+      {hasCredentials && !loaded && loading && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <Loader size={28} className="text-slate-500 animate-spin mb-4" />
+          <p className="text-slate-400 text-sm">Fetching releases…</p>
         </div>
       )}
 
@@ -147,9 +262,125 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
         </div>
       )}
 
-      {loaded && releases.length > 0 && (
+      {/* ── Duplicate mode ──────────────────────────────────────────────── */}
+      {dupMode && (
+        <div className="space-y-5">
+          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <p className="text-sm text-amber-300 font-medium mb-1">
+              Found {dupGroups.length} duplicate group{dupGroups.length !== 1 ? 's' : ''} ({dupGroups.reduce((n, g) => n + g.releases.length - 1, 0)} extra releases)
+            </p>
+            <p className="text-xs text-amber-400/70">
+              The newest release in each group is pre-selected to keep. Tick any release to mark it for deletion.
+            </p>
+          </div>
+
+          {deleteError && (
+            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+              <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-400">{deleteError}</p>
+            </div>
+          )}
+
+          {dupGroups.map(group => (
+            <div key={group.key} className="border border-amber-500/20 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-amber-500/10">
+                <p className="text-xs font-medium text-amber-300 truncate max-w-xs" title={group.key}>
+                  {group.key}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-amber-400/60">{group.releases.length} copies</span>
+                  <button
+                    onClick={() => selectAllInGroup(group)}
+                    className="text-[10px] text-amber-400/80 hover:text-amber-300 underline"
+                  >
+                    select all older
+                  </button>
+                </div>
+              </div>
+              <div className="divide-y divide-slate-800">
+                {group.releases.map((release, idx) => {
+                  const isNewest = idx === 0;
+                  const isChecked = selected.has(release.id);
+                  const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
+                  return (
+                    <div
+                      key={release.id}
+                      className={`flex items-center gap-3 px-4 py-3 transition-colors ${isChecked ? 'bg-red-500/5' : 'bg-slate-900'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleSelect(release.id)}
+                        disabled={deleting}
+                        className="w-4 h-4 rounded accent-red-500 cursor-pointer flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-white truncate">{release.name || release.tag_name}</span>
+                          {isNewest && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-medium">newest · keep</span>
+                          )}
+                          {isChecked && (
+                            <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded font-medium">marked for deletion</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-xs text-slate-500">{formatDate(release.published_at)}</span>
+                          {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
+                        </div>
+                      </div>
+                      <a
+                        href={release.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 text-slate-600 hover:text-slate-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Delete bar */}
+          <div className="sticky bottom-0 bg-slate-950/95 backdrop-blur border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
+            {deleting ? (
+              <div className="flex items-center gap-3 flex-1">
+                <Loader size={16} className="text-red-400 animate-spin flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-red-400 font-medium">Deleting… {deleteProgress.done}/{deleteProgress.total}</p>
+                  <div className="mt-1.5 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-red-500 rounded-full transition-all"
+                      style={{ width: `${deleteProgress.total ? (deleteProgress.done / deleteProgress.total) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-slate-400">
+                  <span className="text-white font-semibold">{selected.size}</span> release{selected.size !== 1 ? 's' : ''} selected for deletion
+                </p>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selected.size === 0}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                >
+                  <Trash2 size={14} />
+                  Delete {selected.size > 0 ? selected.size : ''} Release{selected.size !== 1 ? 's' : ''}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Normal library view ─────────────────────────────────────────── */}
+      {!dupMode && loaded && releases.length > 0 && (
         <div className="space-y-4">
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-3">
             {[
               { label: 'Episodes', value: releases.length, color: 'text-indigo-400' },
@@ -163,7 +394,6 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
             ))}
           </div>
 
-          {/* Search */}
           <input
             type="text"
             placeholder="Search episodes…"
@@ -172,7 +402,6 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
             className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
           />
 
-          {/* Episode list */}
           <div className="space-y-2">
             {filtered.map(release => {
               const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
@@ -226,7 +455,6 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                         </div>
                       </div>
 
-                      {/* Re-run row */}
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
                         {confirmRerun === release.id ? (
                           <>
