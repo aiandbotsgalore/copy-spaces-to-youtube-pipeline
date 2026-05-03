@@ -1,6 +1,6 @@
 import { EnhancedConfig } from '../types';
 
-const CONFIG_KEY = 'spacepipe_config_v1';
+const CONFIG_KEY = 'spacepipe_config_v2';
 const TOKEN_KEY = 'spacepipe_token_v1';
 const DEPLOYED_KEY = 'spacepipe_deployed_v1';
 
