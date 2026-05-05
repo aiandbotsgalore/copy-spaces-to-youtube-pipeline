@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from typing import Any
 
 from state_store import GitHubStore, utc_now
@@ -43,6 +44,39 @@ def load_json(store: GitHubStore, path: str, branch: str) -> tuple[dict[str, Any
 
 def save_json(store: GitHubStore, path: str, branch: str, data: dict[str, Any], sha: str | None, msg: str) -> None:
     store.write_text(path, json.dumps(data, indent=2) + "\n", branch, msg, sha=sha)
+
+
+def repo_batch_state_enabled() -> bool:
+    return os.environ.get("ENABLE_REPO_BATCH_STATE") == "1"
+
+
+def disabled_response(args: argparse.Namespace) -> int:
+    if args.action == "mark_failure":
+        print(json.dumps({
+            "should_retry": False,
+            "attempt_count": 0,
+            "max_attempts": args.max_attempts,
+            "status": "batch_state_disabled",
+        }))
+        return 0
+    if args.action == "get_item":
+        print(json.dumps({
+            "batch_id": args.batch_id,
+            "space_id": args.space_id or "",
+            "url": args.url or "",
+            "status": "batch_state_disabled",
+            "attempt_count": 0,
+            "max_attempts": args.max_attempts,
+            "release_tag": "",
+            "last_error": "",
+        }))
+        return 0
+    print(json.dumps({
+        "batch_id": args.batch_id,
+        "space_id": args.space_id or "",
+        "status": "batch_state_disabled",
+    }))
+    return 0
 
 
 def ensure_batch(store: GitHubStore, args: argparse.Namespace) -> None:
@@ -102,6 +136,9 @@ def ensure_item(store: GitHubStore, args: argparse.Namespace) -> tuple[dict[str,
 
 def main() -> int:
     args = parse_args()
+    if not repo_batch_state_enabled():
+        return disabled_response(args)
+
     store = GitHubStore(args.repo, args.token)
 
     if args.action == "ensure_batch":
