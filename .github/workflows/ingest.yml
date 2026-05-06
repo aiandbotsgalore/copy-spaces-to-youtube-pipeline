@@ -78,7 +78,7 @@ jobs:
         run: |
           pip install -q assemblyai
           python3 - <<'PYEOF'
-          import os, sys, json, time, urllib.request
+          import os, sys, json
           api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
           if not api_key:
               print("::error::ASSEMBLYAI_API_KEY secret is not set. Add it at: repo Settings -> Secrets and variables -> Actions -> New repository secret.")
@@ -186,88 +186,130 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PODCAST_TITLE: "My Spaces Archive"
-          PODCAST_DESC: "An automated archive of audio spaces."
+          PODCAST_TITLE: "Logan Black X Spaces"
+          PODCAST_DESC: "An automated audio archive of my Twitter X Spaces"
           PODCAST_AUTHOR: "Logan Black"
           PODCAST_EMAIL: "loganblack0@gmail.com"
           PODCAST_IMAGE: ""
         run: |
           cat <<'PYEOF' > generate_rss.py
-          import os, json, re, urllib.request
-          from datetime import datetime
-          from xml.sax.saxutils import escape
-          repo = os.environ["REPO"]
-          token = os.environ["GH_TOKEN"]
-          title = os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive")
-          desc = os.environ.get("PODCAST_DESC", "Archive of Twitter Spaces")
-          author = os.environ.get("PODCAST_AUTHOR", "Podcast Author")
-          email = os.environ.get("PODCAST_EMAIL", "author@example.com")
-          image_fallback = os.environ.get("PODCAST_IMAGE", "https://picsum.photos/1400/1400")
-          github_pages_url = f"https://{repo.split(chr(47))[0]}.github.io/{repo.split(chr(47))[1]}/"
-          rss_url = f"{github_pages_url}podcast.xml"
-          image = f"{github_pages_url}artwork.jpg" if os.path.exists("artwork.jpg") else image_fallback
-          releases = []
-          page = 1
-          while True:
-            req = urllib.request.Request(
-              f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
-            )
-            req.add_header("Authorization", f"token {token}")
-            req.add_header("Accept", "application/vnd.github.v3+json")
-            try:
-              with urllib.request.urlopen(req) as r: batch = json.loads(r.read())
-            except Exception as e:
-              print(f"Failed fetching releases page {page}: {e}"); exit(1)
-            if not batch: break
-            releases.extend(batch)
-            if len(batch) < 100: break
-            page += 1
-          rss_items = []
-          for release in releases:
-            if release.get("draft") or release.get("prerelease"): continue
-            pub = release.get("published_at", "")
-            dt = datetime.strptime(pub, "%Y-%m-%dT%H:%M:%SZ")
-            rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
-            body = release.get("body", "")
-            m = re.search(r"METADATA::DURATION::(\d{2}:\d{2}:\d{2})", body)
-            duration = m.group(1) if m else "00:00:00"
-            for asset in release.get("assets", []):
-              if asset["name"].endswith(".mp3"):
-                url = asset["browser_download_url"]
-                size = asset["size"]
-                guid = str(asset["id"])
-                t = escape(release.get("name", "Untitled Space"))
-                rss_items.append(f'''
-              <item>
-                <title>{t}</title>
-                <description>{t} - Space Replay</description>
-                <pubDate>{rfc822}</pubDate>
-                <enclosure url="{url}" length="{size}" type="audio/mpeg"/>
-                <guid isPermaLink="false">{guid}</guid>
-                <itunes:duration>{duration}</itunes:duration>
-                <itunes:explicit>no</itunes:explicit>
-              </item>''')
-          lbd = datetime.now().strftime("%a, %d %b %Y %H:%M:%S GMT")
-          rss = f'''<?xml version="1.0" encoding="UTF-8"?>
-          <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
-            <channel>
-              <title>{escape(title)}</title>
-              <link>{github_pages_url}</link>
-              <description>{escape(desc)}</description>
-              <language>en-us</language>
-              <lastBuildDate>{lbd}</lastBuildDate>
-              <atom:link href="{rss_url}" rel="self" type="application/rss+xml"/>
-              <itunes:author>{escape(author)}</itunes:author>
-              <itunes:owner><itunes:name>{escape(author)}</itunes:name><itunes:email>{escape(email)}</itunes:email></itunes:owner>
-              <itunes:image href="{image}"/>
-              <image><url>{image}</url><title>{escape(title)}</title><link>{github_pages_url}</link></image>
-              <itunes:category text="Technology"/>
-              <itunes:explicit>no</itunes:explicit>
-              {"".join(rss_items)}
-            </channel>
-          </rss>'''
-          with open("podcast.xml", "w") as f: f.write(rss)
-          print("Successfully generated podcast.xml")
+import os, json, re, urllib.request
+from datetime import datetime, timezone
+from xml.sax.saxutils import escape
+
+repo = os.environ["REPO"]
+token = os.environ["GH_TOKEN"]
+title = os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive")
+desc = os.environ.get("PODCAST_DESC", "Archive of Twitter Spaces")
+author = os.environ.get("PODCAST_AUTHOR", "Podcast Author")
+email = os.environ.get("PODCAST_EMAIL", "author@example.com")
+image_fallback = os.environ.get("PODCAST_IMAGE", "https://picsum.photos/1400/1400")
+
+owner, repo_name = repo.split("/", 1)
+github_pages_url = f"https://{owner}.github.io/{repo_name}/"
+rss_url = f"{github_pages_url}podcast.xml"
+image = f"{github_pages_url}artwork.jpg" if os.path.exists("artwork.jpg") else image_fallback
+
+# Fetch all releases (newest first)
+releases = []
+page = 1
+while True:
+    req = urllib.request.Request(
+        f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+    )
+    req.add_header("Authorization", f"token {token}")
+    req.add_header("Accept", "application/vnd.github.v3+json")
+    try:
+        with urllib.request.urlopen(req) as r:
+            batch = json.loads(r.read())
+    except Exception as e:
+        print(f"Failed fetching releases page {page}: {e}")
+        exit(1)
+    if not batch:
+        break
+    releases.extend(batch)
+    if len(batch) < 100:
+        break
+    page += 1
+
+published = [r for r in releases if not r.get("draft") and not r.get("prerelease")]
+total_eps = len(published)
+
+rss_items = []
+for idx, release in enumerate(published):
+    pub = release.get("published_at", "")
+    dt = datetime.strptime(pub, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
+    body = release.get("body", "")
+    m = re.search(r"METADATA::DURATION::(\d{2}:\d{2}:\d{2})", body)
+    duration = m.group(1) if m else "00:00:00"
+    ep_num = total_eps - idx
+    for asset in release.get("assets", []):
+        if asset["name"].endswith(".mp3"):
+            url = asset["browser_download_url"]
+            size = asset["size"]
+            guid = f"spacepipe-{asset['id']}"
+            t = escape(release.get("name", "Untitled Space"))
+            d = escape(desc)
+            lines = [
+                "  <item>",
+                f"    <title>{t}</title>",
+                f"    <description>{t}</description>",
+                f"    <itunes:summary>{t}</itunes:summary>",
+                f"    <itunes:subtitle>{t}</itunes:subtitle>",
+                f"    <link>{url}</link>",
+                f"    <pubDate>{rfc822}</pubDate>",
+                f'    <enclosure url="{url}" length="{size}" type="audio/mpeg"/>',
+                f'    <guid isPermaLink="false">{guid}</guid>',
+                f"    <itunes:duration>{duration}</itunes:duration>",
+                f"    <itunes:explicit>no</itunes:explicit>",
+                f"    <itunes:episode>{ep_num}</itunes:episode>",
+                "    <itunes:episodeType>full</itunes:episodeType>",
+                "  </item>",
+            ]
+            rss_items.append("\n".join(lines))
+
+lbd = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
+year = datetime.now(timezone.utc).year
+items_xml = "\n".join(rss_items)
+
+channel_lines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0"',
+    '  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"',
+    '  xmlns:atom="http://www.w3.org/2005/Atom"',
+    '  xmlns:content="http://purl.org/rss/1.0/modules/content/">',
+    '  <channel>',
+    f'    <title>{escape(title)}</title>',
+    f'    <link>{github_pages_url}</link>',
+    f'    <description>{escape(desc)}</description>',
+    f'    <language>en-us</language>',
+    f'    <copyright>&#169; {year} {escape(author)}</copyright>',
+    f'    <managingEditor>{escape(email)} ({escape(author)})</managingEditor>',
+    f'    <lastBuildDate>{lbd}</lastBuildDate>',
+    f'    <atom:link href="{rss_url}" rel="self" type="application/rss+xml"/>',
+    f'    <itunes:author>{escape(author)}</itunes:author>',
+    f'    <itunes:summary>{escape(desc)}</itunes:summary>',
+    f'    <itunes:subtitle>{escape(desc)}</itunes:subtitle>',
+    '    <itunes:owner>',
+    f'      <itunes:name>{escape(author)}</itunes:name>',
+    f'      <itunes:email>{escape(email)}</itunes:email>',
+    '    </itunes:owner>',
+    f'    <itunes:image href="{image}"/>',
+    f'    <image><url>{image}</url><title>{escape(title)}</title><link>{github_pages_url}</link></image>',
+    '    <itunes:category text="Technology"/>',
+    '    <itunes:explicit>no</itunes:explicit>',
+    '    <itunes:type>episodic</itunes:type>',
+    items_xml,
+    '  </channel>',
+    '</rss>',
+]
+
+rss = "\n".join(channel_lines)
+with open("podcast.xml", "w", encoding="utf-8") as f:
+    f.write(rss)
+print(f"Generated podcast.xml with {len(rss_items)} episode(s)")
+
           PYEOF
           python3 generate_rss.py
 
