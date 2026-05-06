@@ -30,13 +30,6 @@ if [[ -z "$TARGET_URL" ]]; then
     exit 1
 fi
 
-# Strip tracking query parameters from Twitter/X Spaces URLs (e.g. ?s=20)
-# These confuse Space ID extraction — keep only the path.
-if echo "$TARGET_URL" | grep -qi "twitter\.com\|x\.com"; then
-    TARGET_URL=$(echo "$TARGET_URL" | sed 's/?.*//')
-    echo "Cleaned URL (stripped query params): $TARGET_URL"
-fi
-
 echo "Processing URL: $TARGET_URL"
 
 # 3. Detect Platform
