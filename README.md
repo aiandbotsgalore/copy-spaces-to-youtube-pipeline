@@ -1,4 +1,4 @@
-# My Spaces Archive — SpacePipe
+# Logan Black X Spaces — SpacePipe
 
 Automated audio ingestion pipeline powered by GitHub Actions. Supports Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and any platform supported by yt-dlp.
 
