@@ -233,6 +233,15 @@ jobs:
             --space-id "${{ steps.url.outputs.space_id }}" \
             --release-tag "${{ steps.download.outputs.release_tag }}" >/dev/null || true
 
+      - name: Trigger Transcript Generation
+        if: success() && steps.existing.outputs.already_released != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run transcribe_episode.yml \
+            --ref "${{ github.ref_name }}" \
+            -f release_tag="${{ steps.download.outputs.release_tag }}"
+
       - name: Trigger RSS Update
         if: success() && steps.existing.outputs.already_released != 'true'
         env:
