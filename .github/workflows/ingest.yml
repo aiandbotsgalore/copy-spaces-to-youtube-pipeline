@@ -11,26 +11,21 @@ on:
         required: false
         type: string
 
-# Prevent race conditions during RSS deployment
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
+  actions: write
 
 jobs:
   ingest:
     runs-on: ubuntu-latest
     outputs:
-      mp3_path: ${{ steps.process.outputs.mp3_path }}
       release_tag: ${{ steps.process.outputs.release_tag }}
       space_title: ${{ steps.process.outputs.space_title }}
       space_id: ${{ steps.process.outputs.space_id }}
-      episode_date: ${{ steps.process.outputs.episode_date }}
-      duration: ${{ steps.duration.outputs.duration }}
       already_exists: ${{ steps.process.outputs.already_exists }}
     steps:
       - name: Checkout
@@ -47,106 +42,27 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install yt-dlp
+      - name: Install Python dependencies
         run: python3 -m pip install -r requirements.txt
 
-      - name: Run Ingest Script
+      - name: Run ingest script
         id: process
         env:
-          MANUAL_URL: ${{ inputs.space_url }}
+          MANUAL_URL: ${{ github.event.inputs.space_url || '' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: bash ./scripts/ingest.sh
 
-      - name: Extract MP3 Duration
+      - name: Extract MP3 duration
         id: duration
         if: success() && steps.process.outputs.already_exists != 'true'
         run: |
           DURATION=$(ffprobe -v error -show_entries format=duration \
             -of default=noprint_wrappers=1:nokey=1 "${{ steps.process.outputs.mp3_path }}" \
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
-          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> "$GITHUB_OUTPUT"
 
-      - name: Transcribe with AssemblyAI
-        if: success() && steps.process.outputs.already_exists != 'true'
-        id: transcribe
-        env:
-          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
-          MP3_PATH: ${{ steps.process.outputs.mp3_path }}
-          EPISODE_ID: ${{ steps.process.outputs.space_id }}
-          SOURCE_URL: ${{ inputs.space_url }}
-        run: |
-          pip install -q assemblyai
-          python3 - <<'PYEOF'
-          import os, sys, json
-          api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
-          if not api_key:
-              print("::error::ASSEMBLYAI_API_KEY secret is not set. Add it at: repo Settings -> Secrets and variables -> Actions -> New repository secret.")
-              sys.exit(1)
-          mp3_path = os.environ.get("MP3_PATH", "")
-          episode_id = os.environ.get("EPISODE_ID", "")
-          source_url = os.environ.get("SOURCE_URL", "")
-          if not mp3_path or not os.path.exists(mp3_path):
-              print(f"::error::MP3 file not found: {mp3_path}")
-              sys.exit(1)
-          import assemblyai as aai
-          aai.settings.api_key = api_key
-          os.makedirs("transcripts", exist_ok=True)
-          base_name = os.path.splitext(os.path.basename(mp3_path))[0]
-          txt_path = f"transcripts/{base_name}.txt"
-          json_path = f"transcripts/{base_name}.json"
-          def fmt(ms):
-              s = int(ms) // 1000
-              return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
-          transcript = None
-          for model in ["universal-3-pro", "universal-2"]:
-              print(f"Attempting transcription with model: {model}")
-              try:
-                  cfg = aai.TranscriptionConfig(speaker_labels=True, speech_model=model)
-                  transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
-                  if transcript.status == aai.TranscriptStatus.error:
-                      print(f"Model {model} failed: {transcript.error}. Trying fallback...")
-                      transcript = None
-                      continue
-                  print(f"Transcription completed with model: {model}")
-                  break
-              except Exception as e:
-                  print(f"Model {model} raised exception: {e}. Trying fallback...")
-                  transcript = None
-          if not transcript or transcript.status != aai.TranscriptStatus.completed:
-              print("::error::AssemblyAI transcription failed with all available speech models.")
-              sys.exit(1)
-          lines, segments = [], []
-          for u in (transcript.utterances or []):
-              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
-              segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
-          with open(txt_path, "w") as f:
-              f.write("\n".join(lines))
-          with open(json_path, "w") as f:
-              json.dump({"episode_id": episode_id, "source_url": source_url, "segments": segments}, f, indent=2)
-          print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
-          print(f"JSON data saved: {json_path}")
-          PYEOF
-
-      - name: Clear Queue File
-        if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
-        run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear processed space from queue [skip ci]" || echo "No changes to commit"
-          git push
-
-      - name: Clear Queue File on Duplicate Detection
-        if: success() && steps.process.outputs.already_exists == 'true' && inputs.space_url == ''
-        run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear duplicate URL from queue [skip ci]" || echo "No changes to commit"
-          git push
-
-      - name: Create Release
+      - name: Create release
         if: success() && steps.process.outputs.already_exists != 'true'
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
@@ -154,178 +70,61 @@ jobs:
           name: "${{ steps.process.outputs.space_title }}"
           files: |
             ${{ steps.process.outputs.mp3_path }}
-            transcripts/*.txt
-            transcripts/*.json
-          fail_on_unmatched_files: false
+            work/*.info.json
+          fail_on_unmatched_files: true
           body: |
-            **Space Title:** ${{ steps.process.outputs.space_title }}
+            **Title:** ${{ steps.process.outputs.space_title }}
+            **Host:** ${{ steps.process.outputs.host }} (@${{ steps.process.outputs.host_id }})
             **Duration:** ${{ steps.duration.outputs.duration }}
-            **Processed:** ${{ steps.process.outputs.release_tag }}
-            **Source ID:** ${{ steps.process.outputs.space_id }}
+            **Listeners:** ${{ steps.process.outputs.listeners }}
+            **Recorded:** ${{ steps.process.outputs.recorded }}
+            **Source:** ${{ steps.process.outputs.source_url }}
+            **Space ID:** ${{ steps.process.outputs.space_id }}
+
+            ${{ steps.process.outputs.description }}
 
             ---
             METADATA::DURATION::${{ steps.duration.outputs.duration }}
             METADATA::SOURCE_ID::${{ steps.process.outputs.space_id }}
             METADATA::EPISODE_DATE::${{ steps.process.outputs.episode_date }}
+            METADATA::BYTES::${{ steps.process.outputs.file_size }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Clear queue file after successful release
+        if: success() && steps.process.outputs.already_exists != 'true' && github.event_name == 'push'
+        run: |
+          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: clear processed space from queue [skip ci]" || echo "No changes to commit"
+          git push
 
-  rss:
-    needs: ingest
-    if: needs.ingest.result == 'success' && needs.ingest.outputs.already_exists != 'true'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Clear queue file after duplicate detection
+        if: success() && steps.process.outputs.already_exists == 'true' && github.event_name == 'push'
+        run: |
+          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: clear duplicate URL from queue [skip ci]" || echo "No changes to commit"
+          git push
 
-      - name: Generate RSS Feed
+      - name: Trigger transcript generation
+        if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PODCAST_TITLE: "Logan Black X Spaces"
-          PODCAST_DESC: "An automated audio archive of my Twitter X Spaces"
-          PODCAST_AUTHOR: "Logan Black"
-          PODCAST_EMAIL: "loganblack0@gmail.com"
-          PODCAST_IMAGE: ""
+          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
         run: |
-          cat <<'PYEOF' > generate_rss.py
-import os, json, re, urllib.request
-from datetime import datetime, timezone
-from xml.sax.saxutils import escape
-
-repo = os.environ["REPO"]
-token = os.environ["GH_TOKEN"]
-title = os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive")
-desc = os.environ.get("PODCAST_DESC", "Archive of Twitter Spaces")
-author = os.environ.get("PODCAST_AUTHOR", "Podcast Author")
-email = os.environ.get("PODCAST_EMAIL", "author@example.com")
-image_fallback = os.environ.get("PODCAST_IMAGE", "https://picsum.photos/1400/1400")
-
-owner, repo_name = repo.split("/", 1)
-github_pages_url = f"https://{owner}.github.io/{repo_name}/"
-rss_url = f"{github_pages_url}podcast.xml"
-image = f"{github_pages_url}artwork.jpg" if os.path.exists("artwork.jpg") else image_fallback
-
-# Fetch all releases (newest first)
-releases = []
-page = 1
-while True:
-    req = urllib.request.Request(
-        f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
-    )
-    req.add_header("Authorization", f"token {token}")
-    req.add_header("Accept", "application/vnd.github.v3+json")
-    try:
-        with urllib.request.urlopen(req) as r:
-            batch = json.loads(r.read())
-    except Exception as e:
-        print(f"Failed fetching releases page {page}: {e}")
-        exit(1)
-    if not batch:
-        break
-    releases.extend(batch)
-    if len(batch) < 100:
-        break
-    page += 1
-
-published = [r for r in releases if not r.get("draft") and not r.get("prerelease")]
-total_eps = len(published)
-
-rss_items = []
-for idx, release in enumerate(published):
-    pub = release.get("published_at", "")
-    dt = datetime.strptime(pub, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
-    body = release.get("body", "")
-    m = re.search(r"METADATA::DURATION::(\d{2}:\d{2}:\d{2})", body)
-    duration = m.group(1) if m else "00:00:00"
-    ep_num = total_eps - idx
-    for asset in release.get("assets", []):
-        if asset["name"].endswith(".mp3"):
-            url = asset["browser_download_url"]
-            size = asset["size"]
-            guid = f"spacepipe-{asset['id']}"
-            t = escape(release.get("name", "Untitled Space"))
-            d = escape(desc)
-            lines = [
-                "  <item>",
-                f"    <title>{t}</title>",
-                f"    <description>{t}</description>",
-                f"    <itunes:summary>{t}</itunes:summary>",
-                f"    <itunes:subtitle>{t}</itunes:subtitle>",
-                f"    <link>{url}</link>",
-                f"    <pubDate>{rfc822}</pubDate>",
-                f'    <enclosure url="{url}" length="{size}" type="audio/mpeg"/>',
-                f'    <guid isPermaLink="false">{guid}</guid>',
-                f"    <itunes:duration>{duration}</itunes:duration>",
-                f"    <itunes:explicit>no</itunes:explicit>",
-                f"    <itunes:episode>{ep_num}</itunes:episode>",
-                "    <itunes:episodeType>full</itunes:episodeType>",
-                "  </item>",
-            ]
-            rss_items.append("\n".join(lines))
-
-lbd = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
-year = datetime.now(timezone.utc).year
-items_xml = "\n".join(rss_items)
-
-channel_lines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<rss version="2.0"',
-    '  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"',
-    '  xmlns:atom="http://www.w3.org/2005/Atom"',
-    '  xmlns:content="http://purl.org/rss/1.0/modules/content/">',
-    '  <channel>',
-    f'    <title>{escape(title)}</title>',
-    f'    <link>{github_pages_url}</link>',
-    f'    <description>{escape(desc)}</description>',
-    f'    <language>en-us</language>',
-    f'    <copyright>&#169; {year} {escape(author)}</copyright>',
-    f'    <managingEditor>{escape(email)} ({escape(author)})</managingEditor>',
-    f'    <lastBuildDate>{lbd}</lastBuildDate>',
-    f'    <atom:link href="{rss_url}" rel="self" type="application/rss+xml"/>',
-    f'    <itunes:author>{escape(author)}</itunes:author>',
-    f'    <itunes:summary>{escape(desc)}</itunes:summary>',
-    f'    <itunes:subtitle>{escape(desc)}</itunes:subtitle>',
-    '    <itunes:owner>',
-    f'      <itunes:name>{escape(author)}</itunes:name>',
-    f'      <itunes:email>{escape(email)}</itunes:email>',
-    '    </itunes:owner>',
-    f'    <itunes:image href="{image}"/>',
-    f'    <image><url>{image}</url><title>{escape(title)}</title><link>{github_pages_url}</link></image>',
-    '    <itunes:category text="Technology"/>',
-    '    <itunes:explicit>no</itunes:explicit>',
-    '    <itunes:type>episodic</itunes:type>',
-    items_xml,
-    '  </channel>',
-    '</rss>',
-]
-
-rss = "\n".join(channel_lines)
-with open("podcast.xml", "w", encoding="utf-8") as f:
-    f.write(rss)
-print(f"Generated podcast.xml with {len(rss_items)} episode(s)")
-
-          PYEOF
-          python3 generate_rss.py
-
-      - name: Validate RSS
-        run: |
-          if ! grep -q '<rss version="2.0"' podcast.xml; then
-            echo "Invalid RSS structure"
-            exit 1
+          if [[ -z "${ASSEMBLYAI_API_KEY:-}" ]]; then
+            echo "::notice::ASSEMBLYAI_API_KEY is not set; skipping transcript generation."
+            exit 0
           fi
-          echo "RSS validation passed"
+          gh workflow run transcribe_episode.yml \
+            --ref "${{ github.ref_name }}" \
+            -f release_tag="${{ steps.process.outputs.release_tag }}"
 
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Trigger RSS update
+        if: success() && steps.process.outputs.already_exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run update_rss.yml --ref "${{ github.ref_name }}"
