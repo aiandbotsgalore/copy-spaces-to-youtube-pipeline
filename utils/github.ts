@@ -139,7 +139,7 @@ export async function dispatchWorkflow(
 ): Promise<void> {
   const res = await ghFetch(token, `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
     method: 'POST',
-    body: JSON.stringify({ ref: 'main', inputs }),
+    body: JSON.stringify({ ref: 'master', inputs }),
   });
   assertNotRateLimited(res);
   if (!res.ok) {
