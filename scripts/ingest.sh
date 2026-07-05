@@ -11,6 +11,7 @@ set -euo pipefail
 QUEUE_FILE="space_queue.txt"
 WORK_DIR="work"
 TARGET_URL=""
+MAX_RELEASE_BYTES=2147483648
 
 # 1. Determine Input Source
 if [[ -n "${MANUAL_URL:-}" ]]; then
@@ -50,7 +51,7 @@ fi
 # We look for METADATA::SOURCE_ID::<id> in existing release bodies via the
 # GitHub Releases API. If found, we skip gracefully without re-downloading.
 echo "--- Duplicate check ---"
-SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || true)
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
@@ -58,12 +59,14 @@ if [[ -n "$SPACE_ID" ]]; then
         ALREADY_EXISTS=$(SPACE_ID="$SPACE_ID" GH_TOKEN="$GITHUB_TOKEN" REPO="$GITHUB_REPOSITORY" \
             python3 - <<'PYEOF'
 import os, urllib.request, json
+
 token = os.environ.get("GH_TOKEN", "")
 repo  = os.environ.get("REPO", "")
 sid   = os.environ.get("SPACE_ID", "")
 if not (token and repo and sid):
-    print("no"); exit()
-# Paginate through ALL releases until the API returns an empty page
+    print("no")
+    raise SystemExit
+
 found = False
 page = 1
 while True:
@@ -78,12 +81,17 @@ while True:
     except Exception:
         break
     if not releases:
-        break  # No more pages
-    if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
+        break
+    if any(
+        f"SOURCE_ID::{sid}" in (rel.get("body") or "")
+        or f"Space ID:** {sid}" in (rel.get("body") or "")
+        or (rel.get("tag_name") or "").endswith(f"_{sid}")
+        for rel in releases
+    ):
         found = True
         break
     if len(releases) < 100:
-        break  # Last page — no need to fetch another
+        break
     page += 1
 print("yes" if found else "no")
 PYEOF
@@ -106,6 +114,7 @@ fi
 echo "--- End duplicate check ---"
 
 # 5. Prepare Work Directory
+rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR"
 
 # 6. Download and Convert
@@ -120,6 +129,7 @@ yt-dlp \
     --audio-quality 0 \
     --embed-metadata \
     --embed-thumbnail \
+    --write-info-json \
     --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \
     "$TARGET_URL"
 
@@ -129,19 +139,26 @@ if [[ -z "$MP3_FILE" ]]; then
     echo "::error::No MP3 file was generated."
     exit 1
 fi
+
+FILE_SIZE=$(stat -c%s "$MP3_FILE")
+if [[ "$FILE_SIZE" -ge "$MAX_RELEASE_BYTES" ]]; then
+    echo "::error::MP3 is too large for GitHub Releases: $FILE_SIZE bytes. Limit is under $MAX_RELEASE_BYTES bytes."
+    exit 1
+fi
+
 echo "Successfully created: $MP3_FILE"
+echo "File size: $FILE_SIZE bytes"
+
+INFO_JSON=$(find "$WORK_DIR" -name "*.info.json" | head -n 1 || true)
 
 # 8. Extract Metadata
 BASENAME=$(basename "$MP3_FILE" .mp3)
 EPISODE_DATE="${BASENAME:0:8}"
 if [[ -n "$SPACE_ID" ]]; then
-    # Deterministic, collision-free tag using the platform source ID
     RELEASE_TAG="${BASENAME:0:8}_$SPACE_ID"
-    # Strip the YYYYMMDD_<ID>_ prefix to extract the clean title
     DATE_ID_PREFIX="${BASENAME:0:9}${SPACE_ID}_"
     SPACE_TITLE="${BASENAME#$DATE_ID_PREFIX}"
 else
-    # Fallback when source ID could not be extracted
     RELEASE_TAG="${BASENAME:0:8}_$(date +%s%N | cut -c1-13)"
     SPACE_TITLE="${BASENAME:9}"
 fi
@@ -151,12 +168,47 @@ fi
 
 # 9. Set GitHub Output Variables
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-    echo "mp3_path=$MP3_FILE" >> "$GITHUB_OUTPUT"
-    echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-    echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
-    echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
-    echo "episode_date=$EPISODE_DATE" >> "$GITHUB_OUTPUT"
-    echo "already_exists=false" >> "$GITHUB_OUTPUT"
+    export MP3_FILE FILE_SIZE INFO_JSON TARGET_URL SPACE_ID RELEASE_TAG SPACE_TITLE EPISODE_DATE GITHUB_OUTPUT
+    python3 - <<'PYEOF'
+import json
+import os
+from pathlib import Path
+
+info_path = os.environ.get("INFO_JSON", "")
+info = {}
+if info_path and Path(info_path).exists():
+    try:
+        info = json.loads(Path(info_path).read_text(encoding="utf-8"))
+    except Exception:
+        info = {}
+
+host = info.get("uploader") or info.get("channel") or info.get("creator") or "Unknown"
+host_id = info.get("uploader_id") or info.get("channel_id") or ""
+listeners = str(info.get("view_count") or info.get("live_status") or "0")
+recorded = info.get("release_date") or info.get("upload_date") or os.environ.get("EPISODE_DATE", "")
+description = (info.get("description") or "").strip()[:1000]
+
+def write_line(out, key, value):
+    value = "" if value is None else str(value)
+    out.write(f"{key}={value}\n")
+
+with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+    write_line(out, "mp3_path", os.environ["MP3_FILE"])
+    write_line(out, "file_size", os.environ["FILE_SIZE"])
+    write_line(out, "release_tag", os.environ["RELEASE_TAG"])
+    write_line(out, "space_title", os.environ["SPACE_TITLE"])
+    write_line(out, "space_id", os.environ.get("SPACE_ID", ""))
+    write_line(out, "episode_date", os.environ["EPISODE_DATE"])
+    write_line(out, "source_url", os.environ["TARGET_URL"])
+    write_line(out, "host", host)
+    write_line(out, "host_id", host_id)
+    write_line(out, "listeners", listeners)
+    write_line(out, "recorded", recorded)
+    write_line(out, "already_exists", "false")
+    out.write("description<<SPACEPIPE_DESCRIPTION\n")
+    out.write(description + "\n")
+    out.write("SPACEPIPE_DESCRIPTION\n")
+PYEOF
 fi
 
 echo "Done."
