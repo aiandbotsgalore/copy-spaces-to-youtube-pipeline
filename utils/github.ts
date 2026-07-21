@@ -2,6 +2,21 @@ import { GitHubUser, WorkflowRun, Release } from '../types';
 
 const BASE = 'https://api.github.com';
 
+export class GitHubApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'GitHubApiError';
+    this.status = status;
+  }
+}
+
+export interface RepositoryTextFile {
+  content: string;
+  sha: string;
+}
+
 async function ghFetch(token: string, path: string, options: RequestInit = {}) {
   const res = await fetch(`${BASE}${path}`, {
     ...options,
@@ -26,6 +41,28 @@ function assertNotRateLimited(res: Response) {
   }
 }
 
+async function githubError(res: Response, fallback: string): Promise<GitHubApiError> {
+  const data = await res.json().catch(() => ({})) as { message?: string };
+  return new GitHubApiError(data.message || fallback, res.status);
+}
+
+function encodeRepositoryPath(path: string): string {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
+function encodeText(content: string): string {
+  const bytes = new TextEncoder().encode(content);
+  let binary = '';
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return btoa(binary);
+}
+
+function decodeText(content: string): string {
+  const binary = atob(content.replace(/\s/g, ''));
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
 export async function validateToken(token: string): Promise<GitHubUser> {
   const res = await ghFetch(token, '/user');
   assertNotRateLimited(res);
@@ -37,6 +74,99 @@ export async function repoExists(token: string, owner: string, repo: string): Pr
   const res = await ghFetch(token, `/repos/${owner}/${repo}`);
   assertNotRateLimited(res);
   return res.ok;
+}
+
+export async function getRepositoryDefaultBranch(
+  token: string,
+  owner: string,
+  repo: string
+): Promise<string> {
+  const res = await ghFetch(token, `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`);
+  assertNotRateLimited(res);
+  if (!res.ok) throw await githubError(res, 'Could not read the repository settings.');
+  const data = await res.json() as { default_branch?: string };
+  if (!data.default_branch) throw new Error('The repository does not have a default branch yet.');
+  return data.default_branch;
+}
+
+export async function readRepositoryTextFile(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  branch: string
+): Promise<RepositoryTextFile | null> {
+  const encodedPath = encodeRepositoryPath(path);
+  const res = await ghFetch(
+    token,
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`
+  );
+  assertNotRateLimited(res);
+  if (res.status === 404) return null;
+  if (!res.ok) throw await githubError(res, `Could not read ${path}.`);
+  const data = await res.json() as { content?: string; encoding?: string; sha?: string; type?: string };
+  if (data.type !== 'file' || data.encoding !== 'base64' || !data.sha || data.content === undefined) {
+    throw new Error(`${path} is not a readable text file.`);
+  }
+  return { content: decodeText(data.content), sha: data.sha };
+}
+
+export async function writeRepositoryTextFile(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  content: string,
+  message: string,
+  branch: string,
+  sha?: string
+): Promise<void> {
+  const encodedPath = encodeRepositoryPath(path);
+  const body: Record<string, string> = {
+    message,
+    content: encodeText(content),
+    branch,
+  };
+  if (sha) body.sha = sha;
+
+  const res = await ghFetch(
+    token,
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}`,
+    { method: 'PUT', body: JSON.stringify(body) }
+  );
+  assertNotRateLimited(res);
+  if (!res.ok) throw await githubError(res, `Could not update ${path}.`);
+}
+
+export async function appendLineToRepositoryTextFile(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  line: string,
+  message: string,
+  maxAttempts = 3
+): Promise<void> {
+  const branch = await getRepositoryDefaultBranch(token, owner, repo);
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const current = await readRepositoryTextFile(token, owner, repo, path, branch);
+    const existing = current?.content.replace(/(?:\r?\n)+$/, '') || '';
+    const updated = existing ? `${existing}\n${line}\n` : `${line}\n`;
+
+    try {
+      await writeRepositoryTextFile(token, owner, repo, path, updated, message, branch, current?.sha);
+      return;
+    } catch (error) {
+      const isConflict = error instanceof GitHubApiError && (error.status === 409 || error.status === 422);
+      if (!isConflict || attempt === maxAttempts) {
+        if (isConflict) {
+          throw new Error(`Queue update conflict after ${maxAttempts} attempts. Reload and try again.`);
+        }
+        throw error;
+      }
+    }
+  }
 }
 
 export async function createRepo(token: string, name: string, description: string): Promise<void> {
@@ -135,16 +265,17 @@ export async function dispatchWorkflow(
   owner: string,
   repo: string,
   workflowFile: string,
-  inputs: Record<string, string> = {}
+  inputs: Record<string, string> = {},
+  ref?: string
 ): Promise<void> {
+  const branch = ref || await getRepositoryDefaultBranch(token, owner, repo);
   const res = await ghFetch(token, `/repos/${owner}/${repo}/actions/workflows/${workflowFile}/dispatches`, {
     method: 'POST',
-    body: JSON.stringify({ ref: 'main', inputs }),
+    body: JSON.stringify({ ref: branch, inputs }),
   });
   assertNotRateLimited(res);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { message?: string }).message || 'Failed to dispatch workflow.');
+    throw await githubError(res, 'Failed to dispatch workflow.');
   }
 }
 
