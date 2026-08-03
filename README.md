@@ -2,6 +2,10 @@
 
 Automated audio ingestion pipeline powered by GitHub Actions. Supports Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and any platform supported by yt-dlp.
 
+## Stabilization status
+
+This branch hardens the pipeline without changing the core mission.
+
 ## Quick Start
 
 ### Option A: Single URL (Recommended)
@@ -35,7 +39,7 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 | YouTube | ✅ Full support |
 | Clubhouse | ✅ Full support |
 | LinkedIn Audio | ✅ Full support |
-| SoundCloud | ✅ Full support |
+| SoundCloud | ✅ Supported |
 | Any yt-dlp source | ✅ Supported |
 
 ## Directory Structure
@@ -44,10 +48,10 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 /
 ├─ .github/workflows/
 │  ├─ ingest.yml          # Main ingest pipeline
-│  ├─ monitor.yml         # Batch queue monitor (scheduled)
+│  ├─ monitor.yml         # Batch queue monitor
 │  └─ test_audio.yml      # Environment verification
 ├─ scripts/
-│  └─ ingest.sh           # Download & process script
+│  └─ ingest.sh           # Download and process script
 ├─ space_queue.txt        # Single URL trigger
 ├─ batch_queue.txt        # Multi-URL queue
 └─ artwork.jpg            # Podcast cover art
@@ -55,16 +59,12 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 
 ## Configuration
 
-### Required Secrets (auto-configured if using SpacePipe Gen deploy)
-- `GITHUB_TOKEN` — Built-in, no setup needed
+### Required Secrets
+- Built-in GitHub Actions repository token; no manual setup needed.
 
 ### Optional Secrets
 | Secret | Purpose |
 |--------|---------|
-| `ASSEMBLYAI_API_KEY` | Diarized transcription with speaker labels (AssemblyAI) |
+| `ASSEMBLYAI_API_KEY` | Diarized transcription with speaker labels |
 | `SLACK_WEBHOOK_URL` | Slack notifications on publish |
 | `DISCORD_WEBHOOK_URL` | Discord notifications on publish |
-
-## Author
-
-Logan Black · loganblack0@gmail.com

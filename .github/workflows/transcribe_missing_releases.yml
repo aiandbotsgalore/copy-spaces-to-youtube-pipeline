@@ -1,0 +1,88 @@
+name: Transcribe Missing Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_releases:
+        description: "Maximum releases to dispatch in one run"
+        required: false
+        type: number
+        default: 5
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Find releases missing transcripts
+        id: scan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          MAX_RELEASES: ${{ github.event.inputs.max_releases || 5 }}
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import urllib.request
+
+          repo = os.environ["REPO"]
+          token = os.environ["GH_TOKEN"]
+          limit = int(os.environ.get("MAX_RELEASES") or "5")
+          releases = []
+          page = 1
+          while True:
+              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
+              req.add_header("Authorization", f"token {token}")
+              req.add_header("Accept", "application/vnd.github+json")
+              with urllib.request.urlopen(req) as r:
+                  batch = json.loads(r.read())
+              if not batch:
+                  break
+              releases.extend(batch)
+              if len(batch) < 100:
+                  break
+              page += 1
+
+          selected = []
+          for release in releases:
+              if release.get("draft") or release.get("prerelease"):
+                  continue
+              assets = release.get("assets", [])
+              has_mp3 = any(a.get("name", "").lower().endswith(".mp3") for a in assets)
+              has_transcript = any(a.get("name", "").lower().endswith((".txt", ".json")) and "transcript" in a.get("name", "").lower() for a in assets)
+              if has_mp3 and not has_transcript:
+                  selected.append(release["tag_name"])
+              if len(selected) >= limit:
+                  break
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("tags<<SPACEPIPE_TAGS\n")
+              out.write("\n".join(selected) + "\n")
+              out.write("SPACEPIPE_TAGS\n")
+          print(f"Found {len(selected)} release(s) missing transcripts")
+          for tag in selected:
+              print(f"- {tag}")
+          PYEOF
+
+      - name: Dispatch transcript workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAGS: ${{ steps.scan.outputs.tags }}
+        run: |
+          if [[ -z "${TAGS:-}" ]]; then
+            echo "No missing transcripts found."
+            exit 0
+          fi
+          while IFS= read -r tag; do
+            [[ -z "$tag" ]] && continue
+            echo "Dispatching transcript workflow for $tag"
+            gh workflow run transcribe_episode.yml --ref "${{ github.ref_name }}" -f release_tag="$tag"
+            sleep 2
+          done <<< "$TAGS"

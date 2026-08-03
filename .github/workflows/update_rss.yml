@@ -19,155 +19,203 @@ concurrency:
 jobs:
   rss:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Generate RSS Feed
+      - name: Generate RSS feed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          PODCAST_TITLE: "Logan Black X Spaces"
+          PODCAST_DESC: "An automated audio archive of Logan Black Twitter/X Spaces."
+          PODCAST_AUTHOR: "Logan Black"
+          PODCAST_EMAIL: "loganblack0@gmail.com"
+          MAX_YOUTUBE_SECONDS: "43200"
         run: |
-          cat <<'PYEOF' > gen_rss.py
-          import os, json, re, urllib.request
-          from datetime import datetime
-          from xml.sax.saxutils import escape
+          cat > gen_rss.py <<'PYEOF'
+import json
+import os
+import re
+import urllib.request
+from datetime import datetime, timezone
+from xml.sax.saxutils import escape
 
-          repo = os.environ['REPO']
-          token = os.environ['GH_TOKEN']
+repo = os.environ["REPO"]
+token = os.environ["GH_TOKEN"]
+max_youtube_seconds = int(os.environ.get("MAX_YOUTUBE_SECONDS", "43200"))
+owner, repo_name = repo.split("/", 1)
+pages_url = f"https://{owner}.github.io/{repo_name}/"
+rss_url = f"{pages_url}podcast.xml"
+image_url = f"{pages_url}artwork.png" if os.path.exists("artwork.png") else f"{pages_url}artwork.jpg"
 
-          pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
+def duration_to_seconds(value):
+    m = re.match(r"^(\d{2,}):(\d{2}):(\d{2})$", value or "")
+    if not m:
+        return 0
+    h, m_, s = map(int, m.groups())
+    return h * 3600 + m_ * 60 + s
 
-          # Artwork - use local file if exists, else fallback
-          if os.path.exists('artwork.png'):
-              image_url = f"{pages_url}artwork.png"
-          elif os.path.exists('artwork.jpg'):
-              image_url = f"{pages_url}artwork.jpg"
-          else:
-              image_url = "https://picsum.photos/1400/1400"
+def field(body, label, default=""):
+    m = re.search(rf"\*\*{re.escape(label)}:\*\*\s*(.+?)(?:\n|$)", body or "")
+    return m.group(1).strip() if m else default
 
-          # Fetch all releases with pagination
-          releases = []
-          page = 1
-          while True:
-              req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
-              req.add_header('Authorization', f'token {token}')
-              try:
-                  with urllib.request.urlopen(req) as r:
-                      data = json.loads(r.read())
-              except Exception as e:
-                  print(f"Error fetching releases: {e}")
-                  break
-              if not data: break
-              releases.extend(data)
-              page += 1
+def metadata(body, key, default=""):
+    m = re.search(rf"METADATA::{re.escape(key)}::([^\n]+)", body or "")
+    return m.group(1).strip() if m else default
 
-          print(f"Found {len(releases)} releases")
+def fetch_releases():
+    releases = []
+    page = 1
+    while True:
+        req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
+        req.add_header("Authorization", f"token {token}")
+        req.add_header("Accept", "application/vnd.github+json")
+        with urllib.request.urlopen(req) as r:
+            batch = json.loads(r.read())
+        if not batch:
+            break
+        releases.extend(batch)
+        if len(batch) < 100:
+            break
+        page += 1
+    return releases
 
-          items = []
-          for rel in releases:
-              if rel.get('draft') or rel.get('prerelease'): continue
-              dt = datetime.strptime(rel['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-              date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
-              body = rel.get('body', '')
-              dur_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
-              duration = dur_match.group(1) if dur_match else "00:00:00"
+items = []
+skipped_long = []
+skipped_empty = []
+releases = [r for r in fetch_releases() if not r.get("draft") and not r.get("prerelease")]
+print(f"Found {len(releases)} published releases")
 
-              for asset in rel.get('assets', []):
-                  if asset['name'].endswith('.mp3'):
-                      # Extract all metadata from release body
-                      body = rel.get('body', '')
+episode_number = len(releases)
+for release in releases:
+    body = release.get("body") or ""
+    duration = metadata(body, "DURATION", field(body, "Duration", "00:00:00"))
+    seconds = duration_to_seconds(duration)
+    if seconds > max_youtube_seconds:
+        skipped_long.append(f"{release.get('tag_name')}: {duration}")
+        continue
 
-                      title_match = re.search(r'\*\*Title:\*\*\s*(.+?)(?:\n|$)', body)
-                      host_match = re.search(r'\*\*Host:\*\*\s*(.+?)(?:\n|$)', body)
-                      listeners_match = re.search(r'\*\*Listeners:\*\*\s*(.+?)(?:\n|$)', body)
-                      recorded_match = re.search(r'\*\*Recorded:\*\*\s*(.+?)(?:\n|$)', body)
-                      source_match = re.search(r'\*\*Source:\*\*\s*(.+?)(?:\n|$)', body)
-                      spaceid_match = re.search(r'\*\*Space ID:\*\*\s*(.+?)(?:\n|$)', body)
+    mp3_assets = [a for a in release.get("assets", []) if a.get("name", "").lower().endswith(".mp3")]
+    if not mp3_assets:
+        skipped_empty.append(release.get("tag_name", release.get("name", "unknown")))
+        continue
 
-                      # Get description (text after metadata block, before ---)
-                      desc_match = re.search(r'\*\*Space ID:\*\*[^\n]*\n\n(.+?)\n\n---', body, re.DOTALL)
+    published_at = release.get("published_at") or release.get("created_at")
+    dt = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    pub_date = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
-                      title = title_match.group(1).strip() if title_match else rel.get('name', 'Unknown')
-                      host = host_match.group(1).strip() if host_match else 'Unknown'
-                      listeners = listeners_match.group(1).strip() if listeners_match else '0'
-                      recorded = recorded_match.group(1).strip() if recorded_match else ''
-                      source = source_match.group(1).strip() if source_match else ''
-                      space_id = spaceid_match.group(1).strip() if spaceid_match else ''
-                      orig_desc = desc_match.group(1).strip() if desc_match else ''
+    title = field(body, "Title", field(body, "Space Title", release.get("name") or "Untitled Space"))
+    host = field(body, "Host", "Unknown")
+    listeners = field(body, "Listeners", "0")
+    recorded = field(body, "Recorded", metadata(body, "EPISODE_DATE", ""))
+    source = field(body, "Source", "")
+    source_id = field(body, "Space ID", field(body, "Source ID", metadata(body, "SOURCE_ID", "")))
 
-                      # Build rich description
-                      desc_parts = [escape(title)]
-                      desc_parts.append(f"\n\nHost: {escape(host)}")
-                      desc_parts.append(f"\nDuration: {duration}")
-                      if listeners and listeners != '0':
-                          desc_parts.append(f"\nOriginal Listeners: {escape(listeners)}")
-                      if recorded:
-                          desc_parts.append(f"\nRecorded: {escape(recorded)}")
-                      if orig_desc:
-                          desc_parts.append(f"\n\n{escape(orig_desc)}")
-                      desc_parts.append("\n\n---")
-                      if source:
-                          desc_parts.append(f"\nSource: {escape(source)}")
-                      if space_id:
-                          desc_parts.append(f"\nSpace ID: {escape(space_id)}")
+    desc_parts = [escape(title)]
+    desc_parts.append(f"\n\nHost: {escape(host)}")
+    desc_parts.append(f"\nDuration: {escape(duration)}")
+    if listeners and listeners != "0":
+        desc_parts.append(f"\nOriginal Listeners: {escape(listeners)}")
+    if recorded:
+        desc_parts.append(f"\nRecorded: {escape(recorded)}")
+    desc_parts.append("\n\n---")
+    if source:
+        desc_parts.append(f"\nSource: {escape(source)}")
+    if source_id:
+        desc_parts.append(f"\nSource ID: {escape(source_id)}")
+    full_desc = "".join(desc_parts)
 
-                      full_desc = ''.join(desc_parts)
+    for asset in mp3_assets:
+        url = asset["browser_download_url"]
+        size = asset.get("size", 0)
+        guid = f"spacepipe-{asset['id']}"
+        items.append("\n".join([
+            "  <item>",
+            f"    <title>{escape(title)}</title>",
+            f"    <description>{full_desc}</description>",
+            f"    <itunes:summary>{full_desc}</itunes:summary>",
+            f"    <itunes:subtitle>{escape(title)}</itunes:subtitle>",
+            f"    <link>{escape(source or url)}</link>",
+            f"    <pubDate>{pub_date}</pubDate>",
+            f"    <enclosure url=\"{escape(url)}\" length=\"{size}\" type=\"audio/mpeg\"/>",
+            f"    <guid isPermaLink=\"false\">{guid}</guid>",
+            f"    <itunes:duration>{escape(duration)}</itunes:duration>",
+            "    <itunes:explicit>no</itunes:explicit>",
+            f"    <itunes:episode>{episode_number}</itunes:episode>",
+            "    <itunes:episodeType>full</itunes:episodeType>",
+            "  </item>",
+        ]))
+        episode_number -= 1
 
-                      # Generate tags for discovery
-                      host_name = host.split('(')[0].strip() if '(' in host else host
-                      tags = f"Twitter Space,X Space,{escape(host_name)},podcast,audio,live recording"
+now = datetime.now(timezone.utc)
+year = now.year
+rss = "\n".join([
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<rss version="2.0"',
+    '  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"',
+    '  xmlns:atom="http://www.w3.org/2005/Atom">',
+    '<channel>',
+    f'  <title>{escape(os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive"))}</title>',
+    f'  <link>{pages_url}</link>',
+    f'  <description>{escape(os.environ.get("PODCAST_DESC", "Archived Twitter Spaces"))}</description>',
+    '  <language>en-us</language>',
+    f'  <copyright>&#169; {year} {escape(os.environ.get("PODCAST_AUTHOR", "Logan Black"))}</copyright>',
+    f'  <lastBuildDate>{now.strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>',
+    f'  <atom:link href="{rss_url}" rel="self" type="application/rss+xml"/>',
+    f'  <itunes:author>{escape(os.environ.get("PODCAST_AUTHOR", "Logan Black"))}</itunes:author>',
+    f'  <itunes:summary>{escape(os.environ.get("PODCAST_DESC", "Archived Twitter Spaces"))}</itunes:summary>',
+    '  <itunes:owner>',
+    f'    <itunes:name>{escape(os.environ.get("PODCAST_AUTHOR", "Logan Black"))}</itunes:name>',
+    f'    <itunes:email>{escape(os.environ.get("PODCAST_EMAIL", ""))}</itunes:email>',
+    '  </itunes:owner>',
+    f'  <itunes:image href="{image_url}"/>',
+    f'  <image><url>{image_url}</url><title>{escape(os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive"))}</title><link>{pages_url}</link></image>',
+    '  <itunes:category text="Technology"/>',
+    '  <itunes:explicit>no</itunes:explicit>',
+    '  <itunes:type>episodic</itunes:type>',
+    "\n".join(items),
+    '</channel>',
+    '</rss>',
+])
 
-                      items.append(f'''<item>
-            <title>{escape(rel['name'])}</title>
-            <description>{full_desc}</description>
-            <pubDate>{date}</pubDate>
-            <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
-            <guid isPermaLink="false">{asset['id']}</guid>
-            <itunes:duration>{duration}</itunes:duration>
-            <itunes:keywords>{tags}</itunes:keywords>
-          </item>''')
+with open("podcast.xml", "w", encoding="utf-8") as f:
+    f.write(rss + "\n")
 
-          rss = f'''<?xml version="1.0" encoding="UTF-8"?>
-          <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
-          <channel>
-            <title>My Spaces Archive</title>
-            <link>{pages_url}</link>
-            <description>Archived Twitter Spaces</description>
-            <language>en-us</language>
-            <itunes:author>Logan Black</itunes:author>
-            <itunes:owner>
-              <itunes:name>Logan Black</itunes:name>
-              <itunes:email>loganblack0@gmail.com</itunes:email>
-            </itunes:owner>
-            <itunes:image href="{image_url}"/>
-            <image>
-              <url>{image_url}</url>
-              <title>My Spaces Archive</title>
-              <link>{pages_url}</link>
-            </image>
-            <itunes:category text="Technology"/>
-            <itunes:explicit>no</itunes:explicit>
-            {''.join(items)}
-          </channel>
-          </rss>'''
-
-          with open('podcast.xml', 'w') as f: f.write(rss)
-          print(f"Generated RSS with {len(items)} episodes")
-          PYEOF
+print(f"Generated podcast.xml with {len(items)} YouTube-eligible episode(s)")
+if skipped_long:
+    print("Skipped releases over 12 hours:")
+    for item in skipped_long:
+        print(f"- {item}")
+if skipped_empty:
+    print("Skipped releases without MP3 assets:")
+    for item in skipped_empty:
+        print(f"- {item}")
+PYEOF
           python3 gen_rss.py
 
-      - name: Deploy to Pages
+      - name: Validate RSS
+        run: |
+          test -s podcast.xml
+          grep -q '<rss version="2.0"' podcast.xml
+          grep -q '<channel>' podcast.xml
+          echo "RSS validation passed"
+
+      - name: Build Pages artifact
         run: |
           mkdir -p site
           cp podcast.xml site/
           [ -f artwork.png ] && cp artwork.png site/ || true
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
 
-      - name: Upload Pages Artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
-      - name: Deploy Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
