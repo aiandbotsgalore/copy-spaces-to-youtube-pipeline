@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight,
-  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle
 } from 'lucide-react';
 import FileViewer from './components/FileViewer';
 import GitHubConnect from './components/GitHubConnect';
@@ -14,6 +14,7 @@ import RunHistory from './components/RunHistory';
 import DeployWizard from './components/DeployWizard';
 import LibraryPanel from './components/LibraryPanel';
 import TranscriptPanel from './components/TranscriptPanel';
+import SubmitSpacePanel from './components/SubmitSpacePanel';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { saveConfig, loadConfig, loadStoredToken } from './utils/storage';
 import {
@@ -104,6 +105,7 @@ type Panel =
   | 'config'
   | 'features'
   | 'batch'
+  | 'submit-space'
   | 'rss-preview'
   | 'run-history'
   | 'deploy'
@@ -294,6 +296,12 @@ export default function App() {
           <div>
             <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Actions</p>
             <div className="space-y-1">
+              <NavItem
+                icon={<PlusCircle size={15} />}
+                label="Submit New Space"
+                active={activePanel === 'submit-space'}
+                onClick={() => setActivePanel('submit-space')}
+              />
               <NavItem
                 icon={<Eye size={15} />}
                 label="RSS Preview"
@@ -542,6 +550,13 @@ export default function App() {
 
         {activePanel === 'run-history' && (
           <RunHistory config={config} />
+        )}
+
+        {activePanel === 'submit-space' && (
+          <SubmitSpacePanel
+            config={config}
+            onViewRunHistory={() => setActivePanel('run-history')}
+          />
         )}
 
         {activePanel === 'deploy' && (
