@@ -43,10 +43,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install yt-dlp
-        run: pip install yt-dlp
+        run: pip install -U yt-dlp
 
       - name: Get URL
         id: url
@@ -138,19 +138,23 @@ jobs:
             FAILURE_CLASS=$(python3 -c "from pathlib import Path; from scripts.pre_flight import classify_failure; print(classify_failure(Path(r'$ERROR_LOG').read_text(encoding='utf-8', errors='replace')))")
             echo "failure_class=$FAILURE_CLASS" >> "$GITHUB_OUTPUT"
             if [[ "$FAILURE_CLASS" == "permanent" ]]; then
-              echo "::warning::Permanent yt-dlp failure detected for $URL"
+              echo "::warning::Permanent yt-dlp failure detected for $URL (Space replay unavailable or expired on X). Gracefully skipping."
+              echo "skipped=true" >> "$GITHUB_OUTPUT"
+              exit 0
             fi
             exit 1
           fi
 
           echo "failure_class=none" >> "$GITHUB_OUTPUT"
+          echo "skipped=false" >> "$GITHUB_OUTPUT"
 
           MP3_FILE=$(find work -name "*.mp3" | head -1)
           JSON_FILE=$(find work -name "*.info.json" | head -1)
 
           if [[ -z "$MP3_FILE" ]]; then
-            echo "::error::No MP3 produced"
-            exit 1
+            echo "::warning::No MP3 produced; skipping."
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
           # Extract metadata
@@ -184,7 +188,7 @@ jobs:
 
       - name: Get Duration
         id: duration
-        if: steps.existing.outputs.already_released != 'true'
+        if: steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true' && steps.download.outputs.mp3_file != ''
         run: |
           DURATION=$(ffprobe -v error -show_entries format=duration \
             -of default=noprint_wrappers=1:nokey=1 "${{ steps.download.outputs.mp3_file }}" \
@@ -192,7 +196,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        if: steps.existing.outputs.already_released != 'true'
+        if: steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true' && steps.download.outputs.mp3_file != ''
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
@@ -222,7 +226,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Mark Release Created In Batch State
-        if: success() && steps.existing.outputs.already_released != 'true' && steps.url.outputs.batch_id != ''
+        if: success() && steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true' && steps.url.outputs.batch_id != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -238,7 +242,7 @@ jobs:
             --release-tag "${{ steps.download.outputs.release_tag }}" >/dev/null || true
 
       - name: Trigger Transcript Generation
-        if: success() && steps.existing.outputs.already_released != 'true'
+        if: success() && steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -247,7 +251,7 @@ jobs:
             -f release_tag="${{ steps.download.outputs.release_tag }}"
 
       - name: Trigger RSS Update
-        if: success() && steps.existing.outputs.already_released != 'true'
+        if: success() && steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

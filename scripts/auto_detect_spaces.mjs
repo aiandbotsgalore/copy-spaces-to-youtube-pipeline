@@ -110,27 +110,44 @@ async function run() {
     process.exit(0);
   }
 
-  // 3. Dispatch batch_ingest.yml for each new space
+  // 3. Pre-flight check and dispatch batch_ingest.yml for each downloadable new space
   const dispatched = [];
+  const unavailableSpaces = [];
+
   for (const space of newSpaces) {
-    console.log(`🚀 Dispatching batch_ingest.yml for ${space.url}...`);
+    console.log(`🔎 Checking availability of ${space.url}...`);
+    let isAvailable = true;
     try {
-      execSync(`gh workflow run batch_ingest.yml -f url="${space.url}"`, {
-        encoding: 'utf-8',
-        env: { ...process.env, GITHUB_TOKEN }
+      execSync(`yt-dlp --simulate --quiet --no-warnings "${space.url}"`, {
+        stdio: 'pipe',
+        timeout: 25000
       });
-      dispatched.push(space);
-      console.log(`✅ Successfully dispatched batch_ingest for ${space.spaceId}`);
-    } catch (dispatchErr) {
-      console.error(`❌ Failed to dispatch batch_ingest for ${space.spaceId}: ${dispatchErr.message}`);
+    } catch (checkErr) {
+      isAvailable = false;
+      unavailableSpaces.push(space);
+      console.log(`⚠️ Space ${space.spaceId} replay is unavailable or expired on X. Skipping.`);
+    }
+
+    if (isAvailable) {
+      console.log(`🚀 Dispatching batch_ingest.yml for ${space.url}...`);
+      try {
+        execSync(`gh workflow run batch_ingest.yml -f url="${space.url}"`, {
+          encoding: 'utf-8',
+          env: { ...process.env, GITHUB_TOKEN }
+        });
+        dispatched.push(space);
+        console.log(`✅ Successfully dispatched batch_ingest for ${space.spaceId}`);
+      } catch (dispatchErr) {
+        console.error(`❌ Failed to dispatch batch_ingest for ${space.spaceId}: ${dispatchErr.message}`);
+      }
     }
   }
 
-  recordStepSummary(HANDLE, newSpaces, alreadyArchivedSpaces, dispatched);
+  recordStepSummary(HANDLE, newSpaces, alreadyArchivedSpaces, dispatched, unavailableSpaces);
   console.log(`✨ Done. Dispatched ${dispatched.length} new Space(s).`);
 }
 
-function recordStepSummary(handle, newSpaces, archivedSpaces, dispatched = []) {
+function recordStepSummary(handle, newSpaces, archivedSpaces, dispatched = [], unavailableSpaces = []) {
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryFile) return;
 
@@ -140,6 +157,7 @@ function recordStepSummary(handle, newSpaces, archivedSpaces, dispatched = []) {
     `- **Timestamp:** ${new Date().toISOString()}`,
     `- **New Spaces Dispatched:** ${dispatched.length}`,
     `- **Already Archived:** ${archivedSpaces.length}`,
+    `- **Expired / Unavailable:** ${unavailableSpaces.length}`,
     ''
   ];
 
@@ -147,6 +165,14 @@ function recordStepSummary(handle, newSpaces, archivedSpaces, dispatched = []) {
     lines.push('## 🚀 Dispatched for Ingestion');
     for (const s of dispatched) {
       lines.push(`- **[${s.spaceId}](${s.url})** — ${s.tweetText ? s.tweetText.slice(0, 80) + '…' : 'No description'}`);
+    }
+    lines.push('');
+  }
+
+  if (unavailableSpaces.length > 0) {
+    lines.push('## ⚠️ Unavailable on X (Replay Disabled or Expired)');
+    for (const s of unavailableSpaces) {
+      lines.push(`- \`${s.spaceId}\` (${s.url}) — Replay unavailable`);
     }
     lines.push('');
   }
