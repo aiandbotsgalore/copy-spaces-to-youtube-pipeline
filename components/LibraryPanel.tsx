@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, dispatchWorkflow, deleteRelease } from '../utils/github';
+import { usePlayer } from '../contexts/PlayerContext';
 
 interface Props {
   config: EnhancedConfig;
@@ -104,6 +105,8 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
   const [deleting, setDeleting] = useState(false);
   const [deleteProgress, setDeleteProgress] = useState({ done: 0, total: 0 });
   const [deleteError, setDeleteError] = useState('');
+
+  const { play, current, isPlaying } = usePlayer();
 
   const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
 
@@ -485,12 +488,20 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
               const sourceId = parseSourceId(release.body);
               const epDate = episodeDateDisplay(release.body, release.tag_name);
 
+              const isCurrent = current?.id === release.id;
               return (
                 <div key={release.id} className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-indigo-500/10 rounded-full mt-0.5">
-                      <Play size={14} className="text-indigo-400 translate-x-0.5" />
-                    </div>
+                    <button
+                      onClick={() => mp3 && play({ id: release.id, title: release.name || release.tag_name, audioUrl: mp3.browser_download_url })}
+                      disabled={!mp3}
+                      className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-indigo-500/10 hover:bg-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed rounded-full mt-0.5 transition-colors"
+                      title={mp3 ? 'Play episode' : 'No audio file on this release'}
+                    >
+                      {isCurrent && isPlaying
+                        ? <Music size={14} className="text-indigo-400 animate-pulse" />
+                        : <Play size={14} className="text-indigo-400 translate-x-0.5" />}
+                    </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">

@@ -1,13 +1,11 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { RefreshCw, ExternalLink, CheckCircle, XCircle, Clock, Loader, AlertCircle, Play, Radio } from 'lucide-react';
 import { WorkflowRun, EnhancedConfig } from '../types';
-import { getWorkflowRuns } from '../utils/github';
+import { useWorkflowRuns, isActiveRun, RUN_POLL_INTERVAL_MS } from '../hooks/useWorkflowRuns';
 
 interface Props {
   config: EnhancedConfig;
 }
-
-const POLL_INTERVAL_MS = 12000;
 
 const WORKFLOW_COLORS: Record<string, string> = {
   ingest: 'bg-indigo-500/15 text-indigo-400',
@@ -32,10 +30,6 @@ function workflowShortName(name: string): string {
   if (lower.includes('test')) return 'Test';
   if (lower.includes('rss')) return 'RSS';
   return name.split(' ')[0];
-}
-
-function isActiveRun(run: WorkflowRun): boolean {
-  return run.status === 'in_progress' || run.status === 'queued' || run.status === 'waiting';
 }
 
 function StatusBadge({ status, conclusion }: { status: string; conclusion: string | null }) {
@@ -94,62 +88,10 @@ function timeAgo(dateStr: string): string {
 }
 
 const RunHistory: React.FC<Props> = ({ config }) => {
-  const [runs, setRuns] = useState<WorkflowRun[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
   const [filter, setFilter] = useState<string>('all');
-  const [isLive, setIsLive] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { runs, loading, error, loaded, isLive, refresh: fetchRuns } = useWorkflowRuns(config, false);
 
   const hasCredentials = config.githubToken && config.ownerName && config.repoName;
-
-  const fetchRuns = useCallback(async (silent = false) => {
-    if (!hasCredentials) return;
-    if (!silent) setLoading(true);
-    setError('');
-    try {
-      const data = await getWorkflowRuns(config.githubToken, config.ownerName, config.repoName);
-      setRuns(data);
-      setLoaded(true);
-      return data;
-    } catch (e) {
-      if (!silent) setError((e as Error).message);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-    return [];
-  }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
-
-  // Auto-poll while any run is active
-  useEffect(() => {
-    if (!loaded) return;
-    const hasActive = runs.some(isActiveRun);
-
-    if (hasActive && !pollRef.current) {
-      setIsLive(true);
-      pollRef.current = setInterval(async () => {
-        const updated = await fetchRuns(true);
-        if (updated && !updated.some(isActiveRun)) {
-          // All runs settled — stop polling
-          clearInterval(pollRef.current!);
-          pollRef.current = null;
-          setIsLive(false);
-        }
-      }, POLL_INTERVAL_MS);
-    } else if (!hasActive && pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-      setIsLive(false);
-    }
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-    };
-  }, [loaded, runs, fetchRuns]);
 
   const repoUrl = `https://github.com/${config.ownerName}/${config.repoName}`;
   const workflowNames = Array.from(new Set(runs.map(r => workflowShortName(r.name))));
@@ -176,7 +118,7 @@ const RunHistory: React.FC<Props> = ({ config }) => {
           <p className="text-slate-400 text-sm">
             GitHub Actions runs for{' '}
             <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
-            {isLive && <span className="ml-2 text-slate-600 text-xs">· auto-refreshing every {POLL_INTERVAL_MS / 1000}s</span>}
+            {isLive && <span className="ml-2 text-slate-600 text-xs">· auto-refreshing every {RUN_POLL_INTERVAL_MS / 1000}s</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">

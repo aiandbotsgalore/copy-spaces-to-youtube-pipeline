@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
-  Github, Eye, History, Rocket, List, ChevronRight,
-  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle
+  Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard
 } from 'lucide-react';
 import FileViewer from './components/FileViewer';
 import GitHubConnect from './components/GitHubConnect';
@@ -15,6 +15,10 @@ import DeployWizard from './components/DeployWizard';
 import LibraryPanel from './components/LibraryPanel';
 import TranscriptPanel from './components/TranscriptPanel';
 import SubmitSpacePanel from './components/SubmitSpacePanel';
+import DashboardOverview from './components/DashboardOverview';
+import LiveQueuePanel from './components/LiveQueuePanel';
+import PlayerBar from './components/PlayerBar';
+import { PlayerProvider } from './contexts/PlayerContext';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { saveConfig, loadConfig, loadStoredToken } from './utils/storage';
 import {
@@ -101,6 +105,7 @@ const STATIC_FILES: PipelineFile[] = [
 ];
 
 type Panel =
+  | 'dashboard'
   | 'github'
   | 'config'
   | 'features'
@@ -108,6 +113,7 @@ type Panel =
   | 'submit-space'
   | 'rss-preview'
   | 'run-history'
+  | 'live-queue'
   | 'deploy'
   | 'library'
   | 'transcripts'
@@ -148,8 +154,9 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
 
 export default function App() {
   const [config, setConfig] = useState<EnhancedConfig>(buildInitialConfig);
-  const [activePanel, setActivePanel] = useState<Panel>('config');
+  const [activePanel, setActivePanel] = useState<Panel>('dashboard');
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Always reset feature toggles to off on mount — never restore from localStorage
@@ -215,6 +222,7 @@ export default function App() {
   ].filter(Boolean).length;
 
   return (
+    <PlayerProvider>
     <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-64 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0">
@@ -234,95 +242,22 @@ export default function App() {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
 
-          {/* ACCOUNT */}
+          {/* TIER 1 — STUDIO / DAILY OPERATIONS */}
           <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Account</p>
-            <NavItem
-              icon={<Github size={15} />}
-              label="GitHub"
-              active={activePanel === 'github'}
-              onClick={() => setActivePanel('github')}
-              badge={githubUser ? githubUser.login.slice(0, 10) : 'Connect'}
-              badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}
-            />
-          </div>
-
-          {/* SETUP */}
-          <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Setup</p>
+            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">🎙️ Studio</p>
             <div className="space-y-1">
               <NavItem
-                icon={<Settings size={15} />}
-                label="Configuration"
-                active={activePanel === 'config'}
-                onClick={() => setActivePanel('config')}
+                icon={<LayoutDashboard size={15} />}
+                label="Command Center"
+                active={activePanel === 'dashboard'}
+                onClick={() => setActivePanel('dashboard')}
               />
-              <NavItem
-                icon={<Zap size={15} />}
-                label="Features"
-                active={activePanel === 'features'}
-                onClick={() => setActivePanel('features')}
-                badge={featuresOn > 0 ? `${featuresOn} on` : undefined}
-                badgeColor="bg-indigo-500/20 text-indigo-400"
-              />
-              <NavItem
-                icon={<List size={15} />}
-                label="Batch Queue"
-                active={activePanel === 'batch'}
-                onClick={() => setActivePanel('batch')}
-                badge={config.batchUrls.filter(u => u.trim()).length > 0 ? String(config.batchUrls.filter(u => u.trim()).length) : undefined}
-                badgeColor="bg-sky-500/20 text-sky-400"
-              />
-            </div>
-          </div>
-
-          {/* PIPELINE FILES */}
-          <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Pipeline Files</p>
-            <div className="space-y-1">
-              {allFiles.map(file => (
-                <NavItem
-                  key={file.path}
-                  icon={fileIcon(file.name)}
-                  label={file.name}
-                  active={activePanel === `file:${file.path}`}
-                  onClick={() => setActivePanel(`file:${file.path}`)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* ACTIONS */}
-          <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Actions</p>
-            <div className="space-y-1">
               <NavItem
                 icon={<PlusCircle size={15} />}
                 label="Submit New Space"
                 active={activePanel === 'submit-space'}
                 onClick={() => setActivePanel('submit-space')}
               />
-              <NavItem
-                icon={<Eye size={15} />}
-                label="RSS Preview"
-                active={activePanel === 'rss-preview'}
-                onClick={() => setActivePanel('rss-preview')}
-              />
-              <NavItem
-                icon={<Rocket size={15} />}
-                label="Deploy to GitHub"
-                active={activePanel === 'deploy'}
-                onClick={() => setActivePanel('deploy')}
-                badge={githubUser ? 'Ready' : undefined}
-                badgeColor="bg-emerald-500/20 text-emerald-400"
-              />
-            </div>
-          </div>
-
-          {/* ARCHIVE */}
-          <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">Archive</p>
-            <div className="space-y-1">
               <NavItem
                 icon={<Library size={15} />}
                 label="Episode Library"
@@ -343,7 +278,75 @@ export default function App() {
                 active={activePanel === 'run-history'}
                 onClick={() => setActivePanel('run-history')}
               />
+              <NavItem
+                icon={<Eye size={15} />}
+                label="RSS Feed Preview"
+                active={activePanel === 'rss-preview'}
+                onClick={() => setActivePanel('rss-preview')}
+              />
+              <NavItem
+                icon={<List size={15} />}
+                label="Batch Queue"
+                active={activePanel === 'live-queue'}
+                onClick={() => setActivePanel('live-queue')}
+              />
             </div>
+          </div>
+
+          {/* TIER 2 — SETTINGS & PIPELINE (collapsed by default) */}
+          <div>
+            <button
+              onClick={() => setSettingsExpanded(e => !e)}
+              className="w-full flex items-center justify-between px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-400 transition-colors"
+            >
+              <span>⚙️ Settings &amp; Pipeline</span>
+              <ChevronDown size={12} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            {settingsExpanded && (
+              <div className="space-y-1">
+                <NavItem
+                  icon={<Settings size={15} />}
+                  label="Configuration"
+                  active={activePanel === 'config'}
+                  onClick={() => setActivePanel('config')}
+                />
+                <NavItem
+                  icon={<Zap size={15} />}
+                  label="Feature Toggles"
+                  active={activePanel === 'features'}
+                  onClick={() => setActivePanel('features')}
+                  badge={featuresOn > 0 ? `${featuresOn} on` : undefined}
+                  badgeColor="bg-indigo-500/20 text-indigo-400"
+                />
+                <NavItem
+                  icon={<Rocket size={15} />}
+                  label="Deploy to GitHub"
+                  active={activePanel === 'deploy'}
+                  onClick={() => setActivePanel('deploy')}
+                  badge={githubUser ? 'Ready' : undefined}
+                  badgeColor="bg-emerald-500/20 text-emerald-400"
+                />
+                <NavItem
+                  icon={<Github size={15} />}
+                  label="GitHub Connection"
+                  active={activePanel === 'github'}
+                  onClick={() => setActivePanel('github')}
+                  badge={githubUser ? githubUser.login.slice(0, 10) : 'Connect'}
+                  badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}
+                />
+
+                <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-700">Generated Code Files</p>
+                {allFiles.map(file => (
+                  <NavItem
+                    key={file.path}
+                    icon={fileIcon(file.name)}
+                    label={file.name}
+                    active={activePanel === `file:${file.path}`}
+                    onClick={() => setActivePanel(`file:${file.path}`)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </nav>
 
@@ -354,6 +357,17 @@ export default function App() {
 
       {/* ── Main Content ── */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+
+        {activePanel === 'dashboard' && (
+          <DashboardOverview
+            config={config}
+            onNavigate={panel => setActivePanel(panel)}
+          />
+        )}
+
+        {activePanel === 'live-queue' && (
+          <LiveQueuePanel config={config} />
+        )}
 
         {activePanel === 'github' && (
           <GitHubConnect
@@ -571,6 +585,8 @@ export default function App() {
           <TranscriptPanel config={config} />
         )}
       </main>
+      <PlayerBar />
     </div>
+    </PlayerProvider>
   );
 }

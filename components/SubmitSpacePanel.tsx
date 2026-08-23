@@ -9,50 +9,19 @@ import {
   Radio,
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
-import {
-  appendLineToRepositoryTextFile,
-  dispatchWorkflow,
-  GitHubApiError,
-} from '../utils/github';
+import { appendLineToRepositoryTextFile, dispatchWorkflow } from '../utils/github';
+import { validateSubmission, friendlyGitHubError, SubmitAction } from '../utils/submitSpace';
 
 interface Props {
   config: EnhancedConfig;
   onViewRunHistory: () => void;
+  onDispatched?: (url: string) => void;
 }
 
-type Action = 'run' | 'queue';
+type Action = SubmitAction;
 type Notice = { kind: 'success' | 'error'; message: string; action?: Action } | null;
 
-function validateSubmission(url: string, config: EnhancedConfig): string | null {
-  if (!url.trim()) return 'Enter a Space or audio URL first.';
-  if (!config.githubToken) return 'Connect GitHub before submitting a URL.';
-  if (!config.ownerName || !config.repoName) {
-    return 'Add the GitHub owner and repository name in Configuration before submitting.';
-  }
-  return null;
-}
-
-function friendlyGitHubError(error: unknown, action: Action): string {
-  if (error instanceof GitHubApiError) {
-    if (error.status === 401) return 'GitHub rejected the connection. Reconnect with a valid token and try again.';
-    if (error.status === 403) return 'GitHub denied this action. Check that the token has repository and workflow permissions.';
-    if (error.status === 404) {
-      return action === 'run'
-        ? 'The repository or ingest workflow was not found. Check the owner/repo and confirm that .github/workflows/ingest.yml exists.'
-        : 'The repository or its default branch was not found. Check the owner and repository settings.';
-    }
-    if (error.status === 422) {
-      return action === 'run'
-        ? 'GitHub could not start the workflow. Check its workflow_dispatch input and default branch.'
-        : 'GitHub could not update the queue on the configured branch. Reload and try again.';
-    }
-    return `GitHub could not complete the request. ${error.message}`;
-  }
-  if (error instanceof Error) return error.message;
-  return 'GitHub could not complete the request. Try again.';
-}
-
-const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory }) => {
+const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatched }) => {
   const [url, setUrl] = useState('');
   const [activeAction, setActiveAction] = useState<Action | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
@@ -76,6 +45,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory }) => {
           'ingest.yml',
           { space_url: trimmedUrl }
         );
+        onDispatched?.(trimmedUrl);
         setNotice({ kind: 'success', message: 'Workflow started successfully.', action });
       } else {
         await appendLineToRepositoryTextFile(
