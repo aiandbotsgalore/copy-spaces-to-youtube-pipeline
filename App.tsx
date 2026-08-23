@@ -158,6 +158,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
 export default function App() {
   const [config, setConfig] = useState<EnhancedConfig>(buildInitialConfig);
   const [activePanel, setActivePanel] = useState<Panel>('dashboard');
+  const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | null>(null);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -601,11 +602,20 @@ export default function App() {
         )}
 
         {activePanel === 'library' && (
-          <LibraryPanel config={config} />
+          <LibraryPanel
+            config={config}
+            onOpenTranscript={(id) => {
+              setSelectedTranscriptId(id);
+              setActivePanel('transcripts');
+            }}
+          />
         )}
 
         {activePanel === 'transcripts' && (
-          <TranscriptPanel config={config} />
+          <TranscriptPanel
+            config={config}
+            initialReleaseId={selectedTranscriptId}
+          />
         )}
       </main>
       <PlayerBar />

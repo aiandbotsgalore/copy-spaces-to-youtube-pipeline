@@ -9,6 +9,7 @@ import { usePlayer } from '../contexts/PlayerContext';
 
 interface Props {
   config: EnhancedConfig;
+  onOpenTranscript?: (releaseId: number) => void;
 }
 
 interface DuplicateGroup {
@@ -87,7 +88,7 @@ function findDuplicates(releases: Release[]): DuplicateGroup[] {
     }));
 }
 
-const LibraryPanel: React.FC<Props> = ({ config }) => {
+const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -511,9 +512,13 @@ const LibraryPanel: React.FC<Props> = ({ config }) => {
                             {duration && <span className="text-xs text-slate-500">· {duration}</span>}
                             {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                             {txt && (
-                              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 rounded font-medium">
-                                <FileText size={9} /> Transcript
-                              </span>
+                              <button
+                                onClick={() => onOpenTranscript?.(release.id)}
+                                className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 rounded font-medium transition-colors cursor-pointer"
+                                title="Open interactive transcript and sync audio"
+                              >
+                                <FileText size={10} /> View Transcript
+                              </button>
                             )}
                           </div>
                           {sourceId && (
