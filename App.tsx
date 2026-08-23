@@ -20,7 +20,8 @@ import LiveQueuePanel from './components/LiveQueuePanel';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
-import { saveConfig, loadConfig, loadStoredToken } from './utils/storage';
+import { saveConfig, loadConfig, loadStoredToken, saveToken } from './utils/storage';
+import { validateToken } from './utils/github';
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -170,6 +171,23 @@ export default function App() {
       enableDiscordWebhook: false,
       enableScheduledMonitoring: false,
     }));
+
+    // Auto-restore and validate stored GitHub token permanently
+    const storedToken = loadStoredToken();
+    if (storedToken) {
+      validateToken(storedToken)
+        .then(u => {
+          setGithubUser(u);
+          setConfig(c => ({
+            ...c,
+            githubToken: storedToken,
+            ownerName: c.ownerName || u.login,
+          }));
+        })
+        .catch(err => {
+          console.warn('Stored GitHub token could not be verified on mount:', err);
+        });
+    }
   }, []);
 
   // Debounced config save to localStorage on every change
@@ -375,7 +393,10 @@ export default function App() {
           <GitHubConnect
             token={config.githubToken}
             user={githubUser}
-            onTokenChange={token => updateConfig({ githubToken: token })}
+            onTokenChange={token => {
+              saveToken(token);
+              updateConfig({ githubToken: token });
+            }}
             onUserChange={user => {
               setGithubUser(user);
               if (user) updateConfig({ ownerName: user.login });

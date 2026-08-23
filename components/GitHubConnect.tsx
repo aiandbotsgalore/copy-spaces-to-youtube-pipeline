@@ -15,7 +15,6 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
   const [input, setInput] = useState(token);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [rememberToken, setRememberToken] = useState(hasStoredToken());
 
   useEffect(() => {
     setInput(token);
@@ -29,11 +28,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
       const u = await validateToken(input.trim());
       onTokenChange(input.trim());
       onUserChange(u);
-      if (rememberToken) {
-        saveToken(input.trim());
-      } else {
-        clearStoredToken();
-      }
+      saveToken(input.trim());
     } catch (e) {
       setError((e as Error).message);
       onUserChange(null);
@@ -48,7 +43,6 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
     onUserChange(null);
     setError('');
     clearStoredToken();
-    setRememberToken(false);
   };
 
   const storedTokenExists = hasStoredToken();
@@ -126,26 +120,12 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
               )}
             </div>
 
-            {/* Remember token opt-in */}
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={rememberToken}
-                  onChange={e => setRememberToken(e.target.checked)}
-                  className="sr-only"
-                />
-                <div className={`w-4 h-4 rounded border transition-colors ${rememberToken ? 'bg-amber-500 border-amber-500' : 'bg-slate-800 border-slate-600 group-hover:border-slate-500'}`}>
-                  {rememberToken && <svg viewBox="0 0 12 12" className="w-full h-full text-white p-0.5"><path fill="none" stroke="currentColor" strokeWidth="2" d="M2 6l3 3 5-5"/></svg>}
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-300">Remember token in this browser</p>
-                <p className="text-[10px] text-amber-400/70 mt-0.5">
-                  ⚠ Saves your PAT to localStorage. Only enable this on a trusted private device.
-                </p>
-              </div>
-            </label>
+            <div className="flex items-center gap-2 p-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+              <KeyRound size={13} className="text-indigo-400 flex-shrink-0" />
+              <p className="text-xs text-indigo-300">
+                Tokens are saved permanently in this browser so you never have to re-enter them.
+              </p>
+            </div>
 
             <button
               onClick={handleConnect}
