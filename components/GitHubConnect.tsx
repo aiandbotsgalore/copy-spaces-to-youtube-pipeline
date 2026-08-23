@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Github, CheckCircle, AlertCircle, Loader, ExternalLink, X, KeyRound } from 'lucide-react';
 import { GitHubUser } from '../types';
 import { validateToken } from '../utils/github';
-import { saveToken, loadStoredToken, clearStoredToken, hasStoredToken } from '../utils/storage';
+import { saveToken, loadStoredToken, hasStoredToken } from '../utils/storage';
 
 interface Props {
   token: string;
@@ -38,11 +38,9 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
   };
 
   const handleDisconnect = () => {
-    setInput('');
-    onTokenChange('');
     onUserChange(null);
     setError('');
-    clearStoredToken();
+    setInput(loadStoredToken());
   };
 
   const storedTokenExists = hasStoredToken();
@@ -78,10 +76,10 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
           </div>
 
           {storedTokenExists && (
-            <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <KeyRound size={13} className="text-amber-400 flex-shrink-0" />
-              <p className="text-xs text-amber-400/80">
-                Your token is saved in this browser. Clear it by disconnecting.
+            <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <KeyRound size={13} className="text-emerald-400 flex-shrink-0" />
+              <p className="text-xs text-emerald-300">
+                Your token is permanently saved in this browser.
               </p>
             </div>
           )}
