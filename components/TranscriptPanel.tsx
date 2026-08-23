@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
-  SlidersHorizontal, ArrowDownCircle, Sparkles
+  SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow } from '../utils/github';
@@ -20,6 +20,7 @@ export interface ParsedUtterance {
   startLabel: string;
   endLabel: string;
   speaker: string;
+  rawSpeaker: string;
   text: string;
   raw: string;
 }
@@ -60,9 +61,9 @@ const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string
   'F': { bg: 'bg-cyan-500/10', text: 'text-cyan-300', border: 'border-cyan-500/30', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', dot: 'bg-cyan-400' },
 };
 
-function getSpeakerTheme(speaker: string) {
-  const match = speaker.match(/([A-Z0-9])/i);
-  const key = (match ? match[1].toUpperCase() : speaker.slice(-1).toUpperCase()) || 'A';
+function getSpeakerTheme(rawSpeaker: string) {
+  const match = rawSpeaker.match(/([A-Z0-9])/i);
+  const key = (match ? match[1].toUpperCase() : rawSpeaker.slice(-1).toUpperCase()) || 'A';
   return SPEAKER_PALETTE[key] || {
     bg: 'bg-indigo-500/10',
     text: 'text-indigo-300',
@@ -101,6 +102,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
           startLabel: formatSeconds(startSec),
           endLabel: endSec ? formatSeconds(endSec) : '',
           speaker: formattedSpeaker,
+          rawSpeaker: formattedSpeaker,
           text: (seg.text || '').trim(),
           raw: `[${formatSeconds(startSec)}] ${formattedSpeaker}: ${seg.text}`,
         };
@@ -141,6 +143,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
         startLabel: formatSeconds(startSec),
         endLabel: endSec ? formatSeconds(endSec) : '',
         speaker: formattedSpeaker,
+        rawSpeaker: formattedSpeaker,
         text,
         raw: trimmed,
       };
@@ -155,6 +158,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
         startLabel: formatSeconds(index * 10),
         endLabel: '',
         speaker: 'Transcript',
+        rawSpeaker: 'Transcript',
         text: trimmed,
         raw: trimmed,
       });
@@ -184,11 +188,61 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [transcribing, setTranscribing] = useState(false);
   const [transcribeSuccess, setTranscribeSuccess] = useState('');
 
+  // Speaker Renaming States
+  const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
+  const [editingSpeakerKey, setEditingSpeakerKey] = useState<string | null>(null);
+  const [editingSpeakerVal, setEditingSpeakerVal] = useState('');
+  const [showRenameModal, setShowRenameModal] = useState(false);
+
   const currentLoadedIdRef = useRef<number | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
 
   const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
+
+  // Restore saved speaker names for selected release
+  useEffect(() => {
+    if (selectedId) {
+      try {
+        const saved = localStorage.getItem(`spk_names_${selectedId}`);
+        if (saved) {
+          setSpeakerMap(JSON.parse(saved));
+        } else {
+          setSpeakerMap({});
+        }
+      } catch {
+        setSpeakerMap({});
+      }
+    }
+  }, [selectedId]);
+
+  const saveSpeakerRename = (rawSpeaker: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!selectedId) return;
+
+    setSpeakerMap(prev => {
+      const next = { ...prev };
+      if (trimmed && trimmed !== rawSpeaker) {
+        next[rawSpeaker] = trimmed;
+      } else {
+        delete next[rawSpeaker];
+      }
+      try {
+        localStorage.setItem(`spk_names_${selectedId}`, JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+
+    setEditingSpeakerKey(null);
+  };
+
+  const resetAllSpeakerNames = () => {
+    if (!selectedId) return;
+    setSpeakerMap({});
+    try {
+      localStorage.removeItem(`spk_names_${selectedId}`);
+    } catch {}
+  };
 
   const fetchReleases = useCallback(async () => {
     if (!hasCredentials) return;
@@ -221,6 +275,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setSearch('');
     setSpeakerFilter('ALL');
     setTranscribeSuccess('');
+    setEditingSpeakerKey(null);
 
     if (!asset) {
       setTranscriptRaw('');
@@ -292,11 +347,30 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const mp3Asset = selectedRelease?.assets.find(a => a.name.endsWith('.mp3'));
   const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && isPlaying;
 
+  // Compute utterances with custom speaker mapping applied
   const utterances = useMemo(() => {
-    return parseTranscriptData(transcriptRaw);
-  }, [transcriptRaw]);
+    const rawUtterances = parseTranscriptData(transcriptRaw);
+    return rawUtterances.map(u => ({
+      ...u,
+      speaker: speakerMap[u.rawSpeaker] || u.rawSpeaker,
+    }));
+  }, [transcriptRaw, speakerMap]);
 
-  const uniqueSpeakers = useMemo(() => {
+  // Extract distinct raw speakers and counts
+  const speakerStats = useMemo(() => {
+    const counts = new Map<string, number>();
+    const rawUtterances = parseTranscriptData(transcriptRaw);
+    rawUtterances.forEach(u => {
+      counts.set(u.rawSpeaker, (counts.get(u.rawSpeaker) || 0) + 1);
+    });
+    return Array.from(counts.entries()).map(([rawSpeaker, count]) => ({
+      rawSpeaker,
+      displayName: speakerMap[rawSpeaker] || rawSpeaker,
+      count,
+    }));
+  }, [transcriptRaw, speakerMap]);
+
+  const uniqueDisplaySpeakers = useMemo(() => {
     const s = new Set<string>();
     utterances.forEach(u => s.add(u.speaker));
     return Array.from(s);
@@ -400,6 +474,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           start: u.startSec,
           end: u.endSec,
           speaker: u.speaker,
+          raw_speaker: u.rawSpeaker,
           text: u.text,
         })),
       };
@@ -429,18 +504,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold text-white tracking-tight">Interactive Transcripts</h2>
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-              <Sparkles size={11} /> Diarized
+              <Sparkles size={11} /> Diarized & Editable
             </span>
           </div>
           <p className="text-slate-400 text-xs mt-1">
-            Click any timestamp or speaker quote to jump audio playback instantly.
+            Click any speaker label to rename them across the whole episode. Click quotes to jump audio playback instantly.
           </p>
         </div>
 
         <button
           onClick={fetchReleases}
           disabled={loading || !hasCredentials}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700"
+          className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700 cursor-pointer"
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
           {loading ? 'Refreshing…' : 'Refresh'}
@@ -493,7 +568,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 <button
                   key={release.id}
                   onClick={() => loadTranscript(release)}
-                  className={`w-full text-left p-3.5 transition-all flex items-start gap-3 group relative ${
+                  className={`w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${
                     isSelected
                       ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white'
                       : 'hover:bg-slate-900/80 text-slate-300'
@@ -544,7 +619,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     {mp3Asset && (
                       <button
                         onClick={handlePlayEpisodeToggle}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium shadow-md transition-all ${
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium shadow-md transition-all cursor-pointer ${
                           isCurrentEpisodePlaying
                             ? 'bg-indigo-500 text-white shadow-indigo-500/30'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 shadow-indigo-600/20'
@@ -564,13 +639,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         {utterances.length > 0 && (
                           <>
                             <span>•</span>
-                            <span className="text-indigo-400 font-medium">{utterances.length} speaker turns</span>
+                            <span className="text-indigo-400 font-medium">{utterances.length} turns</span>
                           </>
                         )}
-                        {uniqueSpeakers.length > 0 && (
+                        {speakerStats.length > 0 && (
                           <>
                             <span>•</span>
-                            <span className="text-emerald-400">{uniqueSpeakers.length} speaker{uniqueSpeakers.length > 1 ? 's' : ''} identified</span>
+                            <span className="text-emerald-400">{speakerStats.length} speaker{speakerStats.length > 1 ? 's' : ''}</span>
                           </>
                         )}
                       </p>
@@ -578,22 +653,34 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* Rename Speakers Button */}
+                    {speakerStats.length > 0 && (
+                      <button
+                        onClick={() => setShowRenameModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold rounded-lg transition-colors border border-indigo-500/40 cursor-pointer"
+                        title="Rename speaker labels for this episode"
+                      >
+                        <Users size={12} />
+                        Rename Speakers
+                      </button>
+                    )}
+
                     {/* Copy button */}
                     <button
                       onClick={handleCopyTranscript}
                       disabled={!utterances.length}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer"
                       title="Copy formatted transcript to clipboard"
                     >
                       {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
                       {copied ? 'Copied!' : 'Copy'}
                     </button>
 
-                    {/* Download button */}
+                    {/* Download buttons */}
                     <button
                       onClick={() => handleDownloadTranscript('txt')}
                       disabled={!utterances.length}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer"
                       title="Download transcript (.txt)"
                     >
                       <Download size={12} />
@@ -603,7 +690,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <button
                       onClick={() => handleDownloadTranscript('json')}
                       disabled={!utterances.length}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer"
                       title="Download structured data (.json)"
                     >
                       <Download size={12} />
@@ -645,16 +732,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   <div className="flex items-center gap-3">
                     {/* Speaker filter */}
-                    {uniqueSpeakers.length > 1 && (
+                    {uniqueDisplaySpeakers.length > 1 && (
                       <div className="flex items-center gap-1.5">
                         <SlidersHorizontal size={12} className="text-slate-500" />
                         <select
                           value={speakerFilter}
                           onChange={e => setSpeakerFilter(e.target.value)}
-                          className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                          className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
                         >
                           <option value="ALL">All Speakers ({utterances.length})</option>
-                          {uniqueSpeakers.map(spk => (
+                          {uniqueDisplaySpeakers.map(spk => (
                             <option key={spk} value={spk}>{spk}</option>
                           ))}
                         </select>
@@ -664,7 +751,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     {/* Auto-scroll toggle */}
                     <button
                       onClick={() => setAutoScroll(!autoScroll)}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${
                         autoScroll
                           ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium'
                           : 'bg-slate-900 text-slate-500 border-slate-800'
@@ -712,7 +799,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <button
                           onClick={handleGenerateTranscript}
                           disabled={transcribing}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:scale-105"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:scale-105 cursor-pointer"
                         >
                           {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
                           {transcribing ? 'Dispatching GitHub Action…' : '⚡ Transcribe with AssemblyAI Now'}
@@ -730,7 +817,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   {!transcriptLoading && !transcriptError && filteredUtterances.map((utterance, idx) => {
                     const isPlayingThisUtterance = activeUtteranceIndex === idx;
-                    const theme = getSpeakerTheme(utterance.speaker);
+                    const theme = getSpeakerTheme(utterance.rawSpeaker);
+                    const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
 
                     return (
                       <div
@@ -745,11 +833,48 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       >
                         <div className="flex items-center justify-between gap-3 mb-2">
                           <div className="flex items-center gap-2">
-                            {/* Speaker Tag */}
-                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-bold ${theme.badge}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
-                              {utterance.speaker}
-                            </span>
+                            {/* Inline Editable Speaker Tag */}
+                            {isEditingThisSpeaker ? (
+                              <div
+                                className="flex items-center gap-1.5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  value={editingSpeakerVal}
+                                  onChange={(e) => setEditingSpeakerVal(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal);
+                                    if (e.key === 'Escape') setEditingSpeakerKey(null);
+                                  }}
+                                  onBlur={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
+                                  placeholder={utterance.rawSpeaker}
+                                  className="px-2.5 py-0.5 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-36 shadow-lg shadow-indigo-500/20"
+                                />
+                                <button
+                                  onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
+                                  className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px]"
+                                  title="Save name"
+                                >
+                                  <Check size={11} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingSpeakerKey(utterance.rawSpeaker);
+                                  setEditingSpeakerVal(utterance.speaker);
+                                }}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-[11px] font-bold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}
+                                title="Click to rename this speaker across all turns"
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                                <span>{utterance.speaker}</span>
+                                <Pencil size={9} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-1 text-slate-300" />
+                              </button>
+                            )}
 
                             {/* Timestamp Seek Button */}
                             <button
@@ -789,6 +914,73 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Rename Speakers Modal ── */}
+      {showRenameModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <Users size={16} />
+                </div>
+                <h3 className="text-base font-bold text-white">Rename Episode Speakers</h3>
+              </div>
+              <button
+                onClick={() => setShowRenameModal(false)}
+                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Type the real names of each speaker below. All speaker turns, audio highlights, filters, and downloads will update instantly.
+            </p>
+
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+              {speakerStats.map(({ rawSpeaker, displayName, count }) => {
+                const theme = getSpeakerTheme(rawSpeaker);
+                return (
+                  <div key={rawSpeaker} className="flex items-center justify-between gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-bold ${theme.badge}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                        {rawSpeaker}
+                      </span>
+                      <span className="text-[10px] text-slate-500">({count} turns)</span>
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder={rawSpeaker}
+                      value={speakerMap[rawSpeaker] || ''}
+                      onChange={(e) => saveSpeakerRename(rawSpeaker, e.target.value)}
+                      className="px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg text-white placeholder-slate-600 focus:outline-none w-44"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <button
+                onClick={resetAllSpeakerNames}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
+              >
+                <RotateCcw size={12} /> Reset to Defaults
+              </button>
+
+              <button
+                onClick={() => setShowRenameModal(false)}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-600/20"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
