@@ -304,6 +304,34 @@ export async function fetchAssetText(url: string): Promise<string> {
   return res.text();
 }
 
+export async function fetchReleaseAssetText(
+  token: string,
+  asset: { id?: number; url?: string; browser_download_url: string },
+  owner?: string,
+  repo?: string
+): Promise<string> {
+  const assetApiUrl = asset.url || (asset.id && owner && repo ? `https://api.github.com/repos/${owner}/${repo}/releases/assets/${asset.id}` : null);
+
+  if (assetApiUrl && token) {
+    try {
+      const res = await ghFetch(token, assetApiUrl, {
+        headers: {
+          Accept: 'application/octet-stream',
+        },
+      });
+      if (res.ok) {
+        return await res.text();
+      }
+    } catch (e) {
+      console.warn('API asset fetch failed, falling back to direct URL:', e);
+    }
+  }
+
+  const res = await fetch(asset.browser_download_url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Could not fetch asset (HTTP ${res.status}).`);
+  return res.text();
+}
+
 export async function dataUrlToBase64(dataUrl: string): Promise<string> {
   const commaIdx = dataUrl.indexOf(',');
   if (commaIdx === -1) throw new Error('Invalid image data: expected a base64 data URL.');

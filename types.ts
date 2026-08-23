@@ -51,6 +51,7 @@ export interface WorkflowRun {
 export interface ReleaseAsset {
   id: number;
   name: string;
+  url?: string;
   browser_download_url: string;
   size: number;
   content_type: string;

@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, fetchAssetText, dispatchWorkflow } from '../utils/github';
+import { getReleases, fetchReleaseAssetText, dispatchWorkflow } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 
 interface Props {
@@ -90,8 +90,8 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
     const json = JSON.parse(rawContent);
     if (json && Array.isArray(json.segments) && json.segments.length > 0) {
       return json.segments.map((seg: any, idx: number) => {
-        const startSec = typeof seg.start === 'number' ? (seg.start > 10000 ? seg.start / 1000 : seg.start) : 0;
-        const endSec = typeof seg.end === 'number' ? (seg.end > 10000 ? seg.end / 1000 : seg.end) : null;
+        const startSec = typeof seg.start === 'number' ? (seg.start > 1000 ? seg.start / 1000 : seg.start) : 0;
+        const endSec = typeof seg.end === 'number' ? (seg.end > 1000 ? seg.end / 1000 : seg.end) : null;
         const spk = seg.speaker || 'Speaker A';
         const formattedSpeaker = spk.startsWith('Speaker') ? spk : `Speaker ${spk}`;
         return {
@@ -184,6 +184,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [transcribing, setTranscribing] = useState(false);
   const [transcribeSuccess, setTranscribeSuccess] = useState('');
 
+  const currentLoadedIdRef = useRef<number | null>(null);
+
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
 
   const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
@@ -231,14 +233,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setTranscriptRaw('');
 
     try {
-      const text = await fetchAssetText(asset.browser_download_url);
+      const text = await fetchReleaseAssetText(
+        config.githubToken,
+        asset,
+        config.ownerName.trim(),
+        config.repoName.trim()
+      );
       setTranscriptRaw(text);
     } catch (e) {
       setTranscriptError((e as Error).message);
     } finally {
       setTranscriptLoading(false);
     }
-  }, []);
+  }, [config.githubToken, config.ownerName, config.repoName]);
 
   const handleGenerateTranscript = async () => {
     if (!selectedRelease || !hasCredentials) return;
@@ -263,19 +270,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   useEffect(() => {
     if (releases.length > 0 && selectedId) {
-      const rel = releases.find(r => r.id === selectedId);
-      if (rel && !transcriptRaw && !transcriptLoading) {
-        loadTranscript(rel);
+      if (currentLoadedIdRef.current !== selectedId) {
+        const rel = releases.find(r => r.id === selectedId);
+        if (rel) {
+          currentLoadedIdRef.current = selectedId;
+          loadTranscript(rel);
+        }
       }
     } else if (releases.length > 0 && !selectedId) {
       const firstWithTranscript = releases.find(r =>
         r.assets.some(a => a.name.endsWith('.txt') || a.name.endsWith('.json'))
       ) || releases[0];
-      if (firstWithTranscript) {
+      if (firstWithTranscript && currentLoadedIdRef.current !== firstWithTranscript.id) {
+        currentLoadedIdRef.current = firstWithTranscript.id;
         loadTranscript(firstWithTranscript);
       }
     }
-  }, [releases, selectedId, transcriptRaw, transcriptLoading, loadTranscript]);
+  }, [releases, selectedId, loadTranscript]);
 
   const selectedRelease = releases.find(r => r.id === selectedId);
   const mp3Asset = selectedRelease?.assets.find(a => a.name.endsWith('.mp3'));
