@@ -18,15 +18,19 @@ export interface RepositoryTextFile {
 }
 
 async function ghFetch(token: string, path: string, options: RequestInit = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+  const url = path.startsWith('http') ? path : `${BASE}${path}`;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    ...(options.headers as Record<string, string> || {}),
+  };
+  if (options.body && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  const res = await fetch(url, {
     ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
   });
   return res;
 }
