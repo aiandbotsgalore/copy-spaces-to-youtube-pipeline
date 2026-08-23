@@ -2,10 +2,11 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
-  SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw
+  SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
+  Save, CloudCheck, CheckCircle2
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, fetchReleaseAssetText, dispatchWorkflow } from '../utils/github';
+import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 
 interface Props {
@@ -102,7 +103,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
           startLabel: formatSeconds(startSec),
           endLabel: endSec ? formatSeconds(endSec) : '',
           speaker: formattedSpeaker,
-          rawSpeaker: formattedSpeaker,
+          rawSpeaker: seg.raw_speaker || formattedSpeaker,
           text: (seg.text || '').trim(),
           raw: `[${formatSeconds(startSec)}] ${formattedSpeaker}: ${seg.text}`,
         };
@@ -194,6 +195,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [editingSpeakerVal, setEditingSpeakerVal] = useState('');
   const [showRenameModal, setShowRenameModal] = useState(false);
 
+  // GitHub Release Permanent Save States
+  const [savingGitHub, setSavingGitHub] = useState(false);
+  const [saveGitHubSuccess, setSaveGitHubSuccess] = useState('');
+  const [saveGitHubError, setSaveGitHubError] = useState('');
+
   const currentLoadedIdRef = useRef<number | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
@@ -276,6 +282,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setSpeakerFilter('ALL');
     setTranscribeSuccess('');
     setEditingSpeakerKey(null);
+    setSaveGitHubSuccess('');
+    setSaveGitHubError('');
 
     if (!asset) {
       setTranscriptRaw('');
@@ -496,6 +504,48 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     URL.revokeObjectURL(url);
   };
 
+  const handleSaveToGitHub = async () => {
+    if (!selectedRelease || !hasCredentials || !utterances.length) return;
+    setSavingGitHub(true);
+    setSaveGitHubSuccess('');
+    setSaveGitHubError('');
+
+    try {
+      const text = utterances
+        .map(u => `[${u.startLabel}${u.endLabel ? ` - ${u.endLabel}` : ''}] ${u.speaker}: ${u.text}`)
+        .join('\n\n');
+
+      const jsonData = JSON.stringify({
+        episode: selectedRelease.name || selectedRelease.tag_name,
+        tag: selectedRelease.tag_name,
+        published_at: selectedRelease.published_at,
+        segments: utterances.map(u => ({
+          start: u.startSec,
+          end: u.endSec,
+          speaker: u.speaker,
+          raw_speaker: u.rawSpeaker,
+          text: u.text,
+        })),
+      }, null, 2);
+
+      await updateReleaseTranscriptAssets(
+        config.githubToken,
+        config.ownerName.trim(),
+        config.repoName.trim(),
+        selectedRelease,
+        text,
+        jsonData
+      );
+
+      setSaveGitHubSuccess('Saved permanently to GitHub Release assets! All devices, downloads, and apps will now see these speaker names.');
+      setTimeout(() => setSaveGitHubSuccess(''), 6000);
+    } catch (e) {
+      setSaveGitHubError(`Failed to save to GitHub: ${(e as Error).message}`);
+    } finally {
+      setSavingGitHub(false);
+    }
+  };
+
   return (
     <div className="h-full overflow-hidden flex flex-col bg-slate-950">
       {/* ── Top Header ── */}
@@ -665,6 +715,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </button>
                     )}
 
+                    {/* Permanent Save to GitHub Button */}
+                    {speakerStats.length > 0 && (
+                      <button
+                        onClick={handleSaveToGitHub}
+                        disabled={savingGitHub || !Object.keys(speakerMap).length}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/40 cursor-pointer shadow-sm"
+                        title="Permanently overwrite GitHub Release .txt and .json files with updated speaker names"
+                      >
+                        {savingGitHub ? <Loader size={12} className="animate-spin text-emerald-400" /> : <Save size={12} />}
+                        {savingGitHub ? 'Saving to GitHub…' : 'Save to GitHub'}
+                      </button>
+                    )}
+
                     {/* Copy button */}
                     <button
                       onClick={handleCopyTranscript}
@@ -708,6 +771,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </a>
                   </div>
                 </div>
+
+                {/* Save Success / Error Toast Notifications */}
+                {saveGitHubSuccess && (
+                  <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs animate-in fade-in slide-in-from-top-2">
+                    <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" />
+                    <span>{saveGitHubSuccess}</span>
+                  </div>
+                )}
+
+                {saveGitHubError && (
+                  <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs animate-in fade-in slide-in-from-top-2">
+                    <AlertCircle size={15} className="text-red-400 flex-shrink-0" />
+                    <span>{saveGitHubError}</span>
+                  </div>
+                )}
 
                 {/* ── Filter & Search Toolbar ── */}
                 <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
@@ -931,7 +1009,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               </div>
               <button
                 onClick={() => setShowRenameModal(false)}
-                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -966,20 +1044,31 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               })}
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800 gap-2">
               <button
                 onClick={resetAllSpeakerNames}
                 className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
               >
-                <RotateCcw size={12} /> Reset to Defaults
+                <RotateCcw size={12} /> Reset
               </button>
 
-              <button
-                onClick={() => setShowRenameModal(false)}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-600/20"
-              >
-                Done
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSaveToGitHub}
+                  disabled={savingGitHub || !Object.keys(speakerMap).length}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-emerald-600/20"
+                >
+                  {savingGitHub ? <Loader size={12} className="animate-spin" /> : <Save size={12} />}
+                  {savingGitHub ? 'Saving…' : 'Save to GitHub'}
+                </button>
+
+                <button
+                  onClick={() => setShowRenameModal(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>

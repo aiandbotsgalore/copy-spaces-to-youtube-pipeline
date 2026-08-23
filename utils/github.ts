@@ -292,6 +292,66 @@ export async function deleteRelease(token: string, owner: string, repo: string, 
   }
 }
 
+export async function uploadReleaseAsset(
+  token: string,
+  owner: string,
+  repo: string,
+  releaseId: number,
+  assetName: string,
+  content: string,
+  contentType: string = 'text/plain; charset=utf-8'
+): Promise<void> {
+  const uploadUrl = `https://uploads.github.com/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(assetName)}`;
+  const res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': contentType,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    body: content,
+  });
+  assertNotRateLimited(res);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { message?: string }).message || `Failed to upload ${assetName} to release.`);
+  }
+}
+
+export async function updateReleaseTranscriptAssets(
+  token: string,
+  owner: string,
+  repo: string,
+  release: Release,
+  updatedTxtContent: string,
+  updatedJsonContent?: string
+): Promise<void> {
+  // Delete existing txt and json assets to prevent stale duplicates
+  for (const asset of release.assets) {
+    if (asset.name.endsWith('.txt') || (updatedJsonContent && asset.name.endsWith('.json'))) {
+      try {
+        await ghFetch(token, `/repos/${owner}/${repo}/releases/assets/${asset.id}`, {
+          method: 'DELETE',
+        });
+      } catch (delErr) {
+        console.warn(`Could not delete old asset ${asset.name}:`, delErr);
+      }
+    }
+  }
+
+  // Upload updated txt asset
+  const baseName = (release.name || release.tag_name || 'transcript').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const txtName = `${baseName}_transcript.txt`;
+  await uploadReleaseAsset(token, owner, repo, release.id, txtName, updatedTxtContent, 'text/plain; charset=utf-8');
+
+  // Upload updated json asset if provided
+  if (updatedJsonContent) {
+    const jsonName = `${baseName}_transcript.json`;
+    await uploadReleaseAsset(token, owner, repo, release.id, jsonName, updatedJsonContent, 'application/json');
+  }
+}
+
 export async function fetchRssXml(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Feed returned HTTP ${res.status}. Has the repo been deployed to GitHub Pages?`);
