@@ -314,8 +314,27 @@ export async function fetchReleaseAssetText(
   owner?: string,
   repo?: string
 ): Promise<string> {
-  const assetApiUrl = asset.url || (asset.id && owner && repo ? `https://api.github.com/repos/${owner}/${repo}/releases/assets/${asset.id}` : null);
+  const isLocal = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('10.') ||
+    window.location.hostname.startsWith('192.168.')
+  );
 
+  // 1. If running on local Vite server, use the asset proxy
+  if (isLocal && asset.browser_download_url) {
+    try {
+      const proxyRes = await fetch(`/api/fetch-asset?url=${encodeURIComponent(asset.browser_download_url)}`);
+      if (proxyRes.ok) {
+        return await proxyRes.text();
+      }
+    } catch (e) {
+      console.warn('Proxy asset fetch failed, falling back:', e);
+    }
+  }
+
+  // 2. Try GitHub API
+  const assetApiUrl = asset.url || (asset.id && owner && repo ? `https://api.github.com/repos/${owner}/${repo}/releases/assets/${asset.id}` : null);
   if (assetApiUrl && token) {
     try {
       const res = await ghFetch(token, assetApiUrl, {
@@ -331,6 +350,7 @@ export async function fetchReleaseAssetText(
     }
   }
 
+  // 3. Direct browser download fallback
   const res = await fetch(asset.browser_download_url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Could not fetch asset (HTTP ${res.status}).`);
   return res.text();
