@@ -1,0 +1,45 @@
+name: Auto-Detect & Ingest Spaces
+
+on:
+  schedule:
+    # Runs every 30 minutes 24/7
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      x_handle:
+        description: 'X (Twitter) handle to scan without the @'
+        required: false
+        default: 'LoganBlack'
+        type: string
+      limit:
+        description: 'Number of recent tweets to scan'
+        required: false
+        default: '15'
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  detect-and-ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '20'
+
+      - name: Auto-Detect & Trigger Ingestion
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          X_HANDLE: ${{ inputs.x_handle || 'LoganBlack' }}
+          TWEET_LIMIT: ${{ inputs.limit || '15' }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node scripts/auto_detect_spaces.mjs

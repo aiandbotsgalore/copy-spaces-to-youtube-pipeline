@@ -34,6 +34,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   const [releasesLoading, setReleasesLoading] = useState(false);
   const [releasesError, setReleasesError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [scanning, setScanning] = useState(false);
 
   const { play } = usePlayer();
   const { operations, trackDispatch, dismissOperation } = useActiveOperations(config);
@@ -104,10 +105,31 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     }
   };
 
-  const handlePlay = (release: Release) => {
-    const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
-    if (!mp3) return;
-    play({ id: release.id, title: release.name || release.tag_name, audioUrl: mp3.browser_download_url });
+  const handleScanXSpaces = async () => {
+    if (!hasCredentials) return;
+    setScanning(true);
+    setNotice(null);
+    const targetHandle = config.authorName?.replace(/^@/, '').trim() || 'LoganBlack';
+    try {
+      await dispatchWorkflow(
+        config.githubToken,
+        config.ownerName.trim(),
+        config.repoName.trim(),
+        'auto_detect_spaces.yml',
+        { x_handle: targetHandle }
+      );
+      setNotice({
+        kind: 'success',
+        message: `🛰️ Auto-detection scan triggered for @${targetHandle}! Checking recent tweets for new Spaces in GitHub Actions...`,
+      });
+    } catch (err) {
+      setNotice({
+        kind: 'error',
+        message: friendlyGitHubError(err, 'dispatching auto-detect scan'),
+      });
+    } finally {
+      setScanning(false);
+    }
   };
 
   return (
@@ -197,12 +219,32 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
           </div>
         )}
 
-        <button
-          onClick={() => onNavigate('live-queue')}
-          className="mt-4 flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-        >
-          View live queue <ChevronRight size={12} />
-        </button>
+        <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-xs text-slate-400">
+              Auto-Detect active (scans @{config.authorName?.replace(/^@/, '').trim() || 'LoganBlack'} every 30m)
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onNavigate('live-queue')}
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-0.5"
+            >
+              View queue <ChevronRight size={11} />
+            </button>
+            <button
+              onClick={handleScanXSpaces}
+              disabled={!hasCredentials || scanning}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition-colors"
+              title="Scan X timeline for new Space broadcasts right now"
+            >
+              {scanning ? <Loader size={12} className="animate-spin text-indigo-400" /> : <Radio size={12} className="text-indigo-400" />}
+              {scanning ? 'Scanning…' : 'Scan X Now'}
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* Active Operations Tracker */}
