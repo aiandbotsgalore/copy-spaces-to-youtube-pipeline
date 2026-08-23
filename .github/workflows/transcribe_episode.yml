@@ -94,7 +94,8 @@ jobs:
           audio_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{os.path.basename(mp3_path)}"
           payload = json.dumps({
               "audio_url": audio_url,
-              "speech_models": ["universal-3-pro", "universal-2"],
+              "speech_models": ["universal-3-5-pro", "universal-2"],
+              "language_detection": True,
               "speaker_labels": True,
           }).encode("utf-8")
           req = urllib.request.Request(

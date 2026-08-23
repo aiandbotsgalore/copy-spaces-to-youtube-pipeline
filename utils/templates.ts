@@ -112,33 +112,34 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
               s = int(ms) // 1000
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
           transcript = None
-          for model in ["universal-3-pro", "universal-2"]:
-              print(f"Attempting transcription with model: {model}")
-              try:
-                  cfg = aai.TranscriptionConfig(speaker_labels=True, speech_model=model)
-                  transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
-                  if transcript.status == aai.TranscriptStatus.error:
-                      print(f"Model {model} failed: {transcript.error}. Trying fallback...")
-                      transcript = None
-                      continue
-                  print(f"Transcription completed with model: {model}")
-                  break
-              except Exception as e:
-                  print(f"Model {model} raised exception: {e}. Trying fallback...")
+          print("Requesting transcription with universal-3-5-pro / universal-2 fallback...")
+          try:
+              cfg = aai.TranscriptionConfig(
+                  speaker_labels=True,
+                  speech_models=["universal-3-5-pro", "universal-2"],
+                  language_detection=True
+              )
+              transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
+              if transcript.status == aai.TranscriptStatus.error:
+                  print(f"::warning::AssemblyAI transcription error: {transcript.error}")
                   transcript = None
-          if not transcript or transcript.status != aai.TranscriptStatus.completed:
-              print("::error::AssemblyAI transcription failed with all available speech models.")
-              sys.exit(1)
-          lines, segments = [], []
-          for u in (transcript.utterances or []):
-              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
-              segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
-          with open(txt_path, "w") as f:
-              f.write("\\n".join(lines))
-          with open(json_path, "w") as f:
-              json.dump({"episode_id": episode_id, "source_url": source_url, "segments": segments}, f, indent=2)
-          print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
-          print(f"JSON data saved: {json_path}")
+          except Exception as e:
+              print(f"::warning::AssemblyAI exception: {e}")
+              transcript = None
+
+          if transcript and transcript.status == aai.TranscriptStatus.completed:
+              lines, segments = [], []
+              for u in (transcript.utterances or []):
+                  lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
+                  segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
+              with open(txt_path, "w") as f:
+                  f.write("\\n".join(lines))
+              with open(json_path, "w") as f:
+                  json.dump({"episode_id": episode_id, "source_url": source_url, "segments": segments}, f, indent=2)
+              print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
+              print(f"JSON data saved: {json_path}")
+          else:
+              print("::notice::Transcription not generated, but audio ingest will continue successfully.")
           PYEOF
 ` : '';
 
