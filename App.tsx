@@ -57,6 +57,8 @@ function buildInitialConfig(): EnhancedConfig {
   return {
     ...DEFAULT_CONFIG,
     ...stored,
+    repoName: (stored.repoName && stored.repoName !== 'my-spaces-archive') ? stored.repoName : DEFAULT_CONFIG.repoName,
+    ownerName: stored.ownerName ? stored.ownerName : DEFAULT_CONFIG.ownerName,
     githubToken: storedToken,
     artworkDataUrl: '',
     enableTranscription: false,
