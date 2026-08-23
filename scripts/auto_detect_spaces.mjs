@@ -5,11 +5,10 @@
  */
 
 import { execSync } from 'child_process';
-import { existsSync, writeFileSync } from 'fs';
+import { writeFileSync, appendFileSync, readFileSync, existsSync } from 'fs';
 
 const HANDLE = process.env.X_HANDLE || process.env.INPUT_X_HANDLE || 'LoganBlack';
 const TWEET_LIMIT = parseInt(process.env.TWEET_LIMIT || process.env.INPUT_LIMIT || '15', 10);
-const REPO = process.env.GITHUB_REPOSITORY || 'aiandbotsgalore/copy-spaces-to-youtube-pipeline';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 console.log(`🔍 Checking @${HANDLE} for new Twitter/X Spaces (scanning last ${TWEET_LIMIT} tweets)...`);
@@ -105,24 +104,46 @@ async function run() {
     }
   }
 
-  // 3. Dispatch ingestion for new spaces
+  if (newSpaces.length === 0) {
+    console.log('All discovered Spaces are already archived.');
+    recordStepSummary(HANDLE, [], alreadyArchivedSpaces, []);
+    process.exit(0);
+  }
+
+  // 3. Trigger ingestion for new spaces via space_queue.txt commit
+  // If multiple new spaces are found, enqueue the latest into space_queue.txt and rest into batch_queue.txt
+  const primarySpace = newSpaces[0];
+  const additionalSpaces = newSpaces.slice(1);
   const dispatched = [];
-  for (const space of newSpaces) {
-    console.log(`🚀 Dispatching ingest.yml for ${space.url}...`);
-    try {
-      execSync(`gh workflow run ingest.yml -f space_url="${space.url}"`, {
-        encoding: 'utf-8',
-        env: { ...process.env, GITHUB_TOKEN }
-      });
-      dispatched.push(space);
-      console.log(`✅ Successfully dispatched ingest for ${space.spaceId}`);
-    } catch (dispatchErr) {
-      console.error(`❌ Failed to dispatch workflow for ${space.spaceId}: ${dispatchErr.message}`);
+
+  try {
+    // Write primary space to space_queue.txt to trigger ingest.yml
+    writeFileSync('space_queue.txt', `${primarySpace.url}\n`, 'utf-8');
+    dispatched.push(primarySpace);
+    console.log(`🚀 Queued primary Space into space_queue.txt: ${primarySpace.url}`);
+
+    // If there are additional new spaces, append to batch_queue.txt
+    if (additionalSpaces.length > 0) {
+      for (const extra of additionalSpaces) {
+        appendFileSync('batch_queue.txt', `${extra.url}\n`, 'utf-8');
+        dispatched.push(extra);
+        console.log(`📥 Queued additional Space into batch_queue.txt: ${extra.url}`);
+      }
     }
+
+    execSync('git config user.name "github-actions[bot]"', { stdio: 'inherit' });
+    execSync('git config user.email "github-actions[bot]@users.noreply.github.com"', { stdio: 'inherit' });
+    execSync('git add space_queue.txt batch_queue.txt', { stdio: 'inherit' });
+    execSync(`git commit -m "chore(auto-detect): enqueue Space ${primarySpace.spaceId} for ingestion"`, { stdio: 'inherit' });
+    execSync('git push origin master', { stdio: 'inherit' });
+
+    console.log(`✅ Successfully pushed queue update to trigger ingest pipeline!`);
+  } catch (queueErr) {
+    console.error(`❌ Failed to commit space queue update: ${queueErr.message}`);
   }
 
   recordStepSummary(HANDLE, newSpaces, alreadyArchivedSpaces, dispatched);
-  console.log(`✨ Done. Dispatched ${dispatched.length} new Space(s).`);
+  console.log(`✨ Done. Queued ${dispatched.length} new Space(s).`);
 }
 
 function recordStepSummary(handle, newSpaces, archivedSpaces, dispatched = []) {
