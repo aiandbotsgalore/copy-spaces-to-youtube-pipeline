@@ -130,12 +130,21 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
           if transcript and transcript.status == aai.TranscriptStatus.completed:
               lines, segments = [], []
               for u in (transcript.utterances or []):
-                  lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {u.speaker}: {u.text.strip()}")
-                  segments.append({"start": u.start, "end": u.end, "speaker": u.speaker, "text": u.text.strip()})
-              with open(txt_path, "w") as f:
-                  f.write("\\n".join(lines))
-              with open(json_path, "w") as f:
-                  json.dump({"episode_id": episode_id, "source_url": source_url, "segments": segments}, f, indent=2)
+                  spk = f"Speaker {u.speaker}" if not str(u.speaker).startswith("Speaker") else str(u.speaker)
+                  lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {spk}: {u.text.strip()}")
+                  segments.append({"start": u.start, "end": u.end, "speaker": spk, "text": u.text.strip()})
+              if not lines and transcript.text:
+                  lines.append(transcript.text.strip())
+              with open(txt_path, "w", encoding="utf-8") as f:
+                  f.write("\\n\\n".join(lines))
+              with open(json_path, "w", encoding="utf-8") as f:
+                  json.dump({
+                      "episode_id": episode_id,
+                      "source_url": source_url,
+                      "model_used": getattr(transcript, "speech_model_used", "universal-3-5-pro"),
+                      "segments": segments,
+                      "text": transcript.text or ""
+                  }, f, indent=2)
               print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
               print(f"JSON data saved: {json_path}")
           else:

@@ -131,12 +131,20 @@ jobs:
               sys.exit(1)
           lines, segments = [], []
           for u in (transcript.get("utterances") or []):
-              lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {u['speaker']}: {u['text'].strip()}")
-              segments.append({"start": u["start"], "end": u["end"], "speaker": u["speaker"], "text": u["text"].strip()})
-          with open(txt_path, "w") as f:
-              f.write("\n".join(lines))
-          with open(json_path, "w") as f:
-              json.dump({"release_tag": release_tag, "segments": segments}, f, indent=2)
+              spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
+              lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {spk}: {u['text'].strip()}")
+              segments.append({"start": u["start"], "end": u["end"], "speaker": spk, "text": u["text"].strip()})
+          if not lines and transcript.get("text"):
+              lines.append(transcript.get("text", "").strip())
+          with open(txt_path, "w", encoding="utf-8") as f:
+              f.write("\n\n".join(lines))
+          with open(json_path, "w", encoding="utf-8") as f:
+              json.dump({
+                  "release_tag": release_tag,
+                  "model_used": transcript.get("speech_model_used", "universal-3-5-pro"),
+                  "segments": segments,
+                  "text": transcript.get("text", "")
+              }, f, indent=2)
           print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
           print(f"JSON data saved: {json_path}")
           PYEOF

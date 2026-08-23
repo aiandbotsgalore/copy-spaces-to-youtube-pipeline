@@ -140,6 +140,8 @@ def request_transcript(api_key: str, audio_url: str) -> str:
     }
     payload = {
         "audio_url": audio_url,
+        "speech_models": ["universal-3-5-pro", "universal-2"],
+        "language_detection": True,
         "speaker_labels": True,
     }
 
@@ -324,18 +326,30 @@ def main() -> int:
                 print(f"Polling transcript {transcript_id}", flush=True)
                 transcript = poll_transcript(args.assemblyai_api_key, transcript_id)
                 chunk_text = transcript.get("text", "")
+                chunk_utterances = transcript.get("utterances") or []
                 chunk_results.append(
                     {
                         "chunk_index": index,
                         "file": chunk_path.name,
                         "transcript_id": transcript.get("id"),
+                        "model_used": transcript.get("speech_model_used", "universal-3-5-pro"),
                         "text": chunk_text,
-                        "utterances": transcript.get("utterances", []),
+                        "utterances": chunk_utterances,
                     }
                 )
-                texts.append(chunk_text)
+                chunk_lines = []
+                for u in chunk_utterances:
+                    spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
+                    s_sec = int(u.get("start", 0)) // 1000
+                    e_sec = int(u.get("end", 0)) // 1000
+                    s_fmt = f"{s_sec // 3600:02d}:{(s_sec % 3600) // 60:02d}:{s_sec % 60:02d}"
+                    e_fmt = f"{e_sec // 3600:02d}:{(e_sec % 3600) // 60:02d}:{e_sec % 60:02d}"
+                    chunk_lines.append(f"[{s_fmt} - {e_fmt}] {spk}: {u.get('text', '').strip()}")
+                if not chunk_lines and chunk_text:
+                    chunk_lines.append(chunk_text.strip())
+                texts.append("\n\n".join(chunk_lines))
 
-            transcript_text = "\n\n".join(text.strip() for text in texts if text.strip())
+            transcript_text = "\n\n---\n\n".join(text.strip() for text in texts if text.strip())
             save_outputs(output_dir, item, release, transcript_text, chunk_results)
             successes.append(
                 {
