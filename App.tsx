@@ -27,12 +27,12 @@ import {
 } from './utils/templates';
 
 const DEFAULT_CONFIG: EnhancedConfig = {
-  repoName: 'my-spaces-archive',
-  ownerName: '',
-  podcastTitle: 'My Spaces Archive',
-  podcastDescription: 'An automated archive of audio spaces.',
-  authorName: '',
-  email: '',
+  repoName: 'copy-spaces-to-youtube-pipeline',
+  ownerName: 'aiandbotsgalore',
+  podcastTitle: 'Logan Black X Spaces',
+  podcastDescription: 'Automated audio ingestion pipeline powered by GitHub Actions. Supports Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and any platform supported by yt-dlp.',
+  authorName: 'Logan Black',
+  email: 'loganblack0@gmail.com',
   imageUrl: '',
   githubToken: '',
   artworkDataUrl: '',

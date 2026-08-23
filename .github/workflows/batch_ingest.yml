@@ -199,14 +199,18 @@ jobs:
           tag_name: ${{ steps.download.outputs.release_tag }}
           name: "${{ steps.download.outputs.title }}"
           files: ${{ steps.download.outputs.mp3_file }}
+          draft: false
+          prerelease: false
+          make_latest: true
+          target_commitish: ${{ github.sha }}
           body: |
-            **Title:** ${{ steps.download.outputs.title }}
-            **Host:** ${{ steps.download.outputs.uploader }} (@${{ steps.download.outputs.uploader_id }})
-            **Duration:** ${{ steps.duration.outputs.duration }}
-            **Listeners:** ${{ steps.download.outputs.view_count }}
-            **Recorded:** ${{ steps.download.outputs.release_date }}
-            **Source:** ${{ steps.url.outputs.url }}
-            **Space ID:** ${{ steps.url.outputs.space_id }}
+            - **Title:** ${{ steps.download.outputs.title }}
+            - **Host:** ${{ steps.download.outputs.uploader }} (@${{ steps.download.outputs.uploader_id }})
+            - **Duration:** ${{ steps.duration.outputs.duration }}
+            - **Listeners:** ${{ steps.download.outputs.view_count }}
+            - **Recorded:** ${{ steps.download.outputs.release_date }}
+            - **Source:** ${{ steps.url.outputs.url }}
+            - **Space ID:** ${{ steps.url.outputs.space_id }}
 
             ${{ steps.download.outputs.description }}
 
