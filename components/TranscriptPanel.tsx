@@ -5,7 +5,7 @@ import {
   SlidersHorizontal, ArrowDownCircle, Sparkles
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, fetchAssetText } from '../utils/github';
+import { getReleases, fetchAssetText, dispatchWorkflow } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 
 interface Props {
@@ -181,6 +181,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [speakerFilter, setSpeakerFilter] = useState('ALL');
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcribeSuccess, setTranscribeSuccess] = useState('');
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
 
@@ -216,10 +218,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setSelectedId(release.id);
     setSearch('');
     setSpeakerFilter('ALL');
+    setTranscribeSuccess('');
 
     if (!asset) {
       setTranscriptRaw('');
-      setTranscriptError('No transcript asset found for this release.');
+      setTranscriptError('');
       return;
     }
 
@@ -236,6 +239,27 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       setTranscriptLoading(false);
     }
   }, []);
+
+  const handleGenerateTranscript = async () => {
+    if (!selectedRelease || !hasCredentials) return;
+    setTranscribing(true);
+    setTranscribeSuccess('');
+    setTranscriptError('');
+    try {
+      await dispatchWorkflow(
+        config.githubToken,
+        config.ownerName.trim(),
+        config.repoName.trim(),
+        'transcribe_episode.yml',
+        { release_tag: selectedRelease.tag_name }
+      );
+      setTranscribeSuccess(`Workflow dispatched for ${selectedRelease.tag_name}! AssemblyAI is processing the audio in GitHub Actions. Click 'Refresh' once the job finishes.`);
+    } catch (e) {
+      setTranscriptError(`Failed to trigger transcription: ${(e as Error).message}`);
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   useEffect(() => {
     if (releases.length > 0 && selectedId) {
@@ -658,7 +682,35 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
-                  {!transcriptLoading && !transcriptError && filteredUtterances.length === 0 && (
+                  {!transcriptLoading && !transcriptError && !transcriptRaw && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-16">
+                      <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400">
+                        <Sparkles size={26} />
+                      </div>
+                      <h4 className="text-base font-bold text-white mb-1">No Transcript Generated Yet</h4>
+                      <p className="text-slate-400 text-xs mb-6">
+                        This episode has audio published, but has not been transcribed with AssemblyAI speaker diarization yet.
+                      </p>
+
+                      {transcribeSuccess ? (
+                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs mb-4 text-left w-full">
+                          <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
+                          <p className="mt-1 opacity-90">{transcribeSuccess}</p>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleGenerateTranscript}
+                          disabled={transcribing}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:scale-105"
+                        >
+                          {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                          {transcribing ? 'Dispatching GitHub Action…' : '⚡ Transcribe with AssemblyAI Now'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {!transcriptLoading && !transcriptError && transcriptRaw && filteredUtterances.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
                       <Search size={28} className="mb-2 text-slate-600" />
                       <p className="text-xs font-medium">No speaker turns match your current search/filter.</p>
