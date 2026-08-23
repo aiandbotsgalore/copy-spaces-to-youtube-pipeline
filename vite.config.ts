@@ -40,6 +40,50 @@ export default defineConfig(({ mode }) => {
               res.end(err.message || 'Error proxying asset');
             }
           });
+
+          server.middlewares.use('/api/upload-asset', async (req, res) => {
+            const parsedUrl = new URL(req.url || '', 'http://localhost:5000');
+            const owner = parsedUrl.searchParams.get('owner');
+            const repo = parsedUrl.searchParams.get('repo');
+            const releaseId = parsedUrl.searchParams.get('releaseId');
+            const name = parsedUrl.searchParams.get('name');
+            if (!owner || !repo || !releaseId || !name) {
+              res.statusCode = 400;
+              res.end('Missing required parameters');
+              return;
+            }
+            try {
+              let body = '';
+              req.on('data', chunk => { body += chunk; });
+              req.on('end', async () => {
+                try {
+                  const uploadUrl = `https://uploads.github.com/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(name)}`;
+                  const headers: Record<string, string> = {
+                    'User-Agent': 'SpacePipe-Asset-Proxy',
+                    'Content-Type': req.headers['content-type'] || 'text/plain; charset=utf-8',
+                    Accept: 'application/vnd.github+json',
+                    'X-GitHub-Api-Version': '2022-11-28',
+                  };
+                  if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
+                  const upstreamRes = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers,
+                    body,
+                  });
+                  res.statusCode = upstreamRes.status;
+                  const respText = await upstreamRes.text();
+                  res.setHeader('Content-Type', 'application/json');
+                  res.end(respText);
+                } catch (e: any) {
+                  res.statusCode = 500;
+                  res.end(e.message || 'Error proxying upload');
+                }
+              });
+            } catch (err: any) {
+              res.statusCode = 500;
+              res.end(err.message || 'Error uploading asset');
+            }
+          });
         }
       }
     ],

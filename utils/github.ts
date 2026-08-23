@@ -301,6 +301,29 @@ export async function uploadReleaseAsset(
   content: string,
   contentType: string = 'text/plain; charset=utf-8'
 ): Promise<void> {
+  const isLocal = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('10.') ||
+    window.location.hostname.startsWith('192.168.')
+  );
+
+  if (isLocal) {
+    try {
+      const res = await fetch(`/api/upload-asset?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&releaseId=${releaseId}&name=${encodeURIComponent(assetName)}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': contentType,
+        },
+        body: content,
+      });
+      if (res.ok) return;
+    } catch (e) {
+      console.warn('Local proxy upload error, falling back:', e);
+    }
+  }
+
   const uploadUrl = `https://uploads.github.com/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(assetName)}`;
   const res = await fetch(uploadUrl, {
     method: 'POST',
@@ -327,7 +350,44 @@ export async function updateReleaseTranscriptAssets(
   updatedTxtContent: string,
   updatedJsonContent?: string
 ): Promise<void> {
-  // Delete existing txt and json assets to prevent stale duplicates
+  const baseTag = release.tag_name || `episode_${release.id}`;
+  const baseName = (release.name || release.tag_name || 'transcript').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const txtPath = `transcripts/${baseTag}.txt`;
+  const jsonPath = `transcripts/${baseTag}.json`;
+
+  // 1. Commit to git repository (100% CORS-supported official GitHub API)
+  try {
+    const branch = await getRepositoryDefaultBranch(token, owner, repo).catch(() => 'master');
+    const existingTxt = await readRepositoryTextFile(token, owner, repo, txtPath, branch).catch(() => null);
+    await writeRepositoryTextFile(
+      token,
+      owner,
+      repo,
+      txtPath,
+      updatedTxtContent,
+      `chore(transcripts): update speaker names for ${release.tag_name} [skip ci]`,
+      branch,
+      existingTxt?.sha
+    );
+
+    if (updatedJsonContent) {
+      const existingJson = await readRepositoryTextFile(token, owner, repo, jsonPath, branch).catch(() => null);
+      await writeRepositoryTextFile(
+        token,
+        owner,
+        repo,
+        jsonPath,
+        updatedJsonContent,
+        `chore(transcripts): update speaker json for ${release.tag_name} [skip ci]`,
+        branch,
+        existingJson?.sha
+      );
+    }
+  } catch (gitErr) {
+    console.warn('Repository file commit warning:', gitErr);
+  }
+
+  // 2. Delete existing txt and json release assets before uploading replacements
   for (const asset of release.assets) {
     if (asset.name.endsWith('.txt') || (updatedJsonContent && asset.name.endsWith('.json'))) {
       try {
@@ -340,15 +400,17 @@ export async function updateReleaseTranscriptAssets(
     }
   }
 
-  // Upload updated txt asset
-  const baseName = (release.name || release.tag_name || 'transcript').replace(/[^a-zA-Z0-9_-]/g, '_');
-  const txtName = `${baseName}_transcript.txt`;
-  await uploadReleaseAsset(token, owner, repo, release.id, txtName, updatedTxtContent, 'text/plain; charset=utf-8');
+  // 3. Upload updated txt and json release assets
+  const txtName = `${baseName}.txt`;
+  await uploadReleaseAsset(token, owner, repo, release.id, txtName, updatedTxtContent, 'text/plain; charset=utf-8').catch(err => {
+    console.warn('Release asset txt upload warning:', err);
+  });
 
-  // Upload updated json asset if provided
   if (updatedJsonContent) {
-    const jsonName = `${baseName}_transcript.json`;
-    await uploadReleaseAsset(token, owner, repo, release.id, jsonName, updatedJsonContent, 'application/json');
+    const jsonName = `${baseName}.json`;
+    await uploadReleaseAsset(token, owner, repo, release.id, jsonName, updatedJsonContent, 'application/json').catch(err => {
+      console.warn('Release asset json upload warning:', err);
+    });
   }
 }
 
