@@ -88,53 +88,85 @@ jobs:
           if not mp3_path or not os.path.exists(mp3_path):
               print(f"::error::MP3 file not found: {mp3_path}")
               sys.exit(1)
+          
+          file_size_mb = os.path.getsize(mp3_path) / (1024 * 1024)
+          print(f"🎵 Audio file: {mp3_path} ({file_size_mb:.2f} MB)")
+
           import assemblyai as aai
           aai.settings.api_key = api_key
           os.makedirs("transcripts", exist_ok=True)
           base_name = os.path.splitext(os.path.basename(mp3_path))[0]
           txt_path = f"transcripts/{base_name}.txt"
           json_path = f"transcripts/{base_name}.json"
+
           def fmt(ms):
               s = int(ms) // 1000
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
-          transcript = None
-          print("Requesting transcription with universal-3-5-pro / universal-2 fallback...")
+
+          print("🚀 Requesting AssemblyAI transcription with default SpeechModel.best (no backup models)...")
           try:
               cfg = aai.TranscriptionConfig(
                   speaker_labels=True,
-                  speech_models=["universal-3-5-pro", "universal-2"],
-                  language_detection=True
+                  speech_model=aai.SpeechModel.best,
+                  language_code="en",
+                  punctuate=True,
+                  format_text=True
               )
               transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
-              if transcript.status == aai.TranscriptStatus.error:
-                  print(f"::warning::AssemblyAI transcription error: {transcript.error}")
-                  transcript = None
           except Exception as e:
-              print(f"::warning::AssemblyAI exception: {e}")
-              transcript = None
+              print(f"::error::AssemblyAI exception occurred during transcription request: {e}")
+              sys.exit(1)
 
-          if transcript and transcript.status == aai.TranscriptStatus.completed:
-              lines, segments = [], []
-              for u in (transcript.utterances or []):
-                  spk = f"Speaker {u.speaker}" if not str(u.speaker).startswith("Speaker") else str(u.speaker)
-                  lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {spk}: {u.text.strip()}")
-                  segments.append({"start": u.start, "end": u.end, "speaker": spk, "text": u.text.strip()})
-              if not lines and transcript.text:
-                  lines.append(transcript.text.strip())
-              with open(txt_path, "w", encoding="utf-8") as f:
-                  f.write("\n\n".join(lines))
-              with open(json_path, "w", encoding="utf-8") as f:
-                  json.dump({
-                      "episode_id": episode_id,
-                      "source_url": source_url,
-                      "model_used": getattr(transcript, "speech_model_used", "universal-3-5-pro"),
-                      "segments": segments,
-                      "text": transcript.text or ""
-                  }, f, indent=2)
-              print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
-              print(f"JSON data saved: {json_path}")
-          else:
-              print("::notice::Transcription not generated, but audio ingest will continue successfully.")
+          if transcript.status == aai.TranscriptStatus.error:
+              print(f"::error::AssemblyAI transcription failed with status 'error'!")
+              print(f"  Transcript ID: {transcript.id}")
+              print(f"  Error message: {transcript.error}")
+              sys.exit(1)
+
+          print(f"✅ Transcription completed successfully!")
+          print(f"  Transcript ID: {transcript.id}")
+          print(f"  Confidence: {getattr(transcript, 'confidence', 'N/A')}")
+          print(f"  Audio Duration: {getattr(transcript, 'audio_duration', 'N/A')}s")
+
+          utterances = transcript.utterances or []
+          distinct_speakers = sorted(list(set(str(u.speaker) for u in utterances)))
+          print(f"  Speakers detected ({len(distinct_speakers)}): {', '.join(distinct_speakers)}")
+          print(f"  Total utterances: {len(utterances)}")
+
+          lines, segments = [], []
+          for u in utterances:
+              spk = f"Speaker {u.speaker}" if not str(u.speaker).startswith("Speaker") else str(u.speaker)
+              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {spk}: {u.text.strip()}")
+              segments.append({
+                  "start": u.start,
+                  "end": u.end,
+                  "speaker": spk,
+                  "text": u.text.strip(),
+                  "confidence": getattr(u, "confidence", None)
+              })
+
+          if not lines and transcript.text:
+              lines.append(transcript.text.strip())
+
+          with open(txt_path, "w", encoding="utf-8") as f:
+              f.write("\n\n".join(lines))
+
+          with open(json_path, "w", encoding="utf-8") as f:
+              json.dump({
+                  "episode_id": episode_id,
+                  "source_url": source_url,
+                  "transcript_id": transcript.id,
+                  "model_used": "best",
+                  "confidence": getattr(transcript, "confidence", None),
+                  "audio_duration": getattr(transcript, "audio_duration", None),
+                  "speakers_count": len(distinct_speakers),
+                  "speakers": distinct_speakers,
+                  "segments": segments,
+                  "text": transcript.text or ""
+              }, f, indent=2)
+
+          print(f"📄 Transcript text saved: {txt_path} ({len(lines)} speaker turns)")
+          print(f"📊 JSON data saved: {json_path}")
           PYEOF
 
       - name: Clear Queue File

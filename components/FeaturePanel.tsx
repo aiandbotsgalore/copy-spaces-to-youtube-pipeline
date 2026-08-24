@@ -79,8 +79,8 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
             <div className="flex items-start gap-2 p-3 bg-slate-800/60 border border-slate-700 rounded-lg">
               <Info size={13} className="text-slate-500 mt-0.5 flex-shrink-0" />
               <div className="text-[10px] text-slate-500 space-y-0.5">
-                <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] SPEAKER_A: text here</code></p>
-                <p>Models tried in order: <code className="text-slate-400">universal-3-pro</code> → <code className="text-slate-400">universal-2</code></p>
+                <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] Speaker A: text here</code></p>
+                <p>Acoustic model: <code className="text-slate-400">AssemblyAI Best (Universal) with speaker diarization</code></p>
                 <p>Both <code className="text-slate-400">.txt</code> and <code className="text-slate-400">.json</code> files are uploaded to each GitHub Release.</p>
               </div>
             </div>

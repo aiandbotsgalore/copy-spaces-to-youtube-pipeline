@@ -92,10 +92,13 @@ jobs:
               s = int(ms) // 1000
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
           audio_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{os.path.basename(mp3_path)}"
+          print(f"🚀 Requesting AssemblyAI transcription for {audio_url} (model: best, no backup)...")
           payload = json.dumps({
               "audio_url": audio_url,
-              "speech_models": ["universal-3-5-pro", "universal-2"],
-              "language_detection": True,
+              "speech_model": "best",
+              "language_code": "en",
+              "punctuate": True,
+              "format_text": True,
               "speaker_labels": True,
           }).encode("utf-8")
           req = urllib.request.Request(
@@ -107,33 +110,70 @@ jobs:
               },
               method="POST",
           )
-          with urllib.request.urlopen(req) as r:
-              transcript = json.loads(r.read())
+          try:
+              with urllib.request.urlopen(req) as r:
+                  transcript = json.loads(r.read())
+          except urllib.error.HTTPError as he:
+              print(f"::error::AssemblyAI HTTP error on request: {he.code} - {he.read().decode('utf-8', errors='replace')}")
+              sys.exit(1)
+          except Exception as e:
+              print(f"::error::AssemblyAI request exception: {e}")
+              sys.exit(1)
+
           transcript_id = transcript.get("id")
           if not transcript_id:
-              print("::error::AssemblyAI did not return a transcript id.")
+              print(f"::error::AssemblyAI did not return a transcript id. Response: {transcript}")
               sys.exit(1)
+          print(f"⏳ Transcript queued with ID: {transcript_id}. Polling for completion...")
+
           poll_url = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
           transcript = None
-          for _ in range(180):
+          for attempt in range(180):
               poll_req = urllib.request.Request(poll_url, headers={"Authorization": api_key})
-              with urllib.request.urlopen(poll_req) as r:
-                  transcript = json.loads(r.read())
+              try:
+                  with urllib.request.urlopen(poll_req) as r:
+                      transcript = json.loads(r.read())
+              except Exception as pe:
+                  print(f"  Warning: poll request error: {pe}, retrying...")
+                  time.sleep(10)
+                  continue
+
               status = transcript.get("status")
               if status == "completed":
                   break
               if status == "error":
-                  print(f"::error::AssemblyAI transcription failed: {transcript.get('error')}")
+                  print(f"::error::AssemblyAI transcription failed with status 'error'!")
+                  print(f"  Transcript ID: {transcript_id}")
+                  print(f"  Error message: {transcript.get('error')}")
                   sys.exit(1)
+              if attempt % 6 == 0:
+                  print(f"  [{attempt * 10}s] Status: {status}...")
               time.sleep(10)
+
           if not transcript or transcript.get("status") != "completed":
-              print("::error::AssemblyAI transcription timed out.")
+              print(f"::error::AssemblyAI transcription timed out after 30 minutes. Last state: {transcript}")
               sys.exit(1)
+
+          utterances = transcript.get("utterances") or []
+          distinct_speakers = sorted(list(set(str(u.get('speaker')) for u in utterances)))
+          print(f"✅ Transcription completed successfully!")
+          print(f"  Transcript ID: {transcript.get('id')}")
+          print(f"  Confidence: {transcript.get('confidence')}")
+          print(f"  Audio Duration: {transcript.get('audio_duration')}s")
+          print(f"  Speakers detected ({len(distinct_speakers)}): {', '.join(distinct_speakers)}")
+          print(f"  Total utterances: {len(utterances)}")
+
           lines, segments = [], []
-          for u in (transcript.get("utterances") or []):
+          for u in utterances:
               spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
               lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {spk}: {u['text'].strip()}")
-              segments.append({"start": u["start"], "end": u["end"], "speaker": spk, "text": u["text"].strip()})
+              segments.append({
+                  "start": u["start"],
+                  "end": u["end"],
+                  "speaker": spk,
+                  "text": u["text"].strip(),
+                  "confidence": u.get("confidence")
+              })
           if not lines and transcript.get("text"):
               lines.append(transcript.get("text", "").strip())
           with open(txt_path, "w", encoding="utf-8") as f:
@@ -141,12 +181,17 @@ jobs:
           with open(json_path, "w", encoding="utf-8") as f:
               json.dump({
                   "release_tag": release_tag,
-                  "model_used": transcript.get("speech_model_used", "universal-3-5-pro"),
+                  "transcript_id": transcript.get("id"),
+                  "model_used": "best",
+                  "confidence": transcript.get("confidence"),
+                  "audio_duration": transcript.get("audio_duration"),
+                  "speakers_count": len(distinct_speakers),
+                  "speakers": distinct_speakers,
                   "segments": segments,
                   "text": transcript.get("text", "")
               }, f, indent=2)
-          print(f"Transcript saved: {txt_path} ({len(lines)} speaker turns)")
-          print(f"JSON data saved: {json_path}")
+          print(f"📄 Transcript saved: {txt_path} ({len(lines)} speaker turns)")
+          print(f"📊 JSON data saved: {json_path}")
           PYEOF
 
       - name: Upload transcripts to Release

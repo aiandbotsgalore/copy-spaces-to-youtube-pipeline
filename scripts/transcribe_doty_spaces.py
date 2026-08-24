@@ -140,8 +140,10 @@ def request_transcript(api_key: str, audio_url: str) -> str:
     }
     payload = {
         "audio_url": audio_url,
-        "speech_models": ["universal-3-5-pro", "universal-2"],
-        "language_detection": True,
+        "speech_model": "best",
+        "language_code": "en",
+        "punctuate": True,
+        "format_text": True,
         "speaker_labels": True,
     }
 
