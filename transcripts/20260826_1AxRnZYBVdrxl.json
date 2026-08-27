@@ -13,7 +13,7 @@
     {
       "start": 34.713,
       "end": 34.761,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Or?"
     },
@@ -27,21 +27,21 @@
     {
       "start": 37.68,
       "end": 40.779,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Hey, how you doing?"
     },
     {
       "start": 40.779,
       "end": 41.918,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Chilling."
     },
     {
       "start": 41.918,
       "end": 45.433,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Yeah, I heard you were working on a beautiful design today."
     },
@@ -55,7 +55,7 @@
     {
       "start": 47.876,
       "end": 50.068,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Our mutual friends."
     },
@@ -69,7 +69,7 @@
     {
       "start": 51.803,
       "end": 58.227,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Lana, probably. I couldn't really see who was on the screen, but I, I can't remember the, the voice. I remember the message."
     },
@@ -83,7 +83,7 @@
     {
       "start": 59.191,
       "end": 59.881,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "it might have been Ocean."
     },
@@ -97,7 +97,7 @@
     {
       "start": 63.607,
       "end": 66.498,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Okay, it must have been Lana."
     },
@@ -111,21 +111,21 @@
     {
       "start": 75.845,
       "end": 86.885,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I like to be more process-oriented. A more interesting thing to say would be like You know, so you're thinking about who's thinking about you, and I think that's an interesting thing to think about."
     },
     {
       "start": 86.885,
       "end": 87.767,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Whoa."
     },
     {
       "start": 87.767,
       "end": 90.109,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Do you do that a lot?"
     },
@@ -139,7 +139,7 @@
     {
       "start": 91.023,
       "end": 94.823,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "You like to think about the people that think about you?"
     },
@@ -153,7 +153,7 @@
     {
       "start": 95.834,
       "end": 98.592,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "You like to wonder what they think about you, I bet."
     },
@@ -167,7 +167,7 @@
     {
       "start": 107.946,
       "end": 114.391,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Oh yes, we weren't supposed to interrupt you because you were supposedly streaming, creating something."
     },
@@ -188,7 +188,7 @@
     {
       "start": 119.372,
       "end": 119.969,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "it's a design?"
     },
@@ -202,7 +202,7 @@
     {
       "start": 133.882,
       "end": 147.548,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I started talking about my Messianic Jewish refugee camp from childhood, and I think things got a little uncomfortable."
     },
@@ -216,7 +216,7 @@
     {
       "start": 149.896,
       "end": 151.541,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "No, I left."
     },
@@ -230,7 +230,7 @@
     {
       "start": 153.122,
       "end": 158.838,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "And then I saw that you went on and I was like, oh, cool. I jumped over because I wanted to say hi to you and I miss you."
     },
@@ -258,7 +258,7 @@
     {
       "start": 163.293,
       "end": 186.479,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I miss it when you can speak in a non-defensive way, uninterrupted, and even, and even do some mansplaining. I think when you have a chance to really kind of like get into your flow without your insecurities, you know, like distracting you from, from that purpose, it's really fascinating to hear your—"
     },
@@ -272,7 +272,7 @@
     {
       "start": 190.92,
       "end": 204.432,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I think sometimes— well, the last time that I remember, a few times this might happen, you are either interrupted, which happens, you know, naturally in spaces, and so I'm not blaming anybody."
     },
@@ -286,7 +286,7 @@
     {
       "start": 206.363,
       "end": 217.421,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "No, but you don't necessarily persist on the subject, and you don't Like, come back to it."
     },
@@ -300,7 +300,7 @@
     {
       "start": 220.083,
       "end": 220.438,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "there's—"
     },
@@ -314,7 +314,7 @@
     {
       "start": 234.086,
       "end": 236.095,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "You take the redirect. Yeah, you take the redirect."
     },
@@ -328,7 +328,7 @@
     {
       "start": 243.682,
       "end": 258.859,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "So, you know, when I was expressing confusing questions about my connection to God in the earlier space, I kind of took the cue that maybe it wasn't like something that people are ready to talk about. And that's okay."
     },
@@ -342,7 +342,7 @@
     {
       "start": 288.651,
       "end": 293.669,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We like to party. We'd like— we would—"
     },
@@ -377,7 +377,7 @@
     {
       "start": 322.052,
       "end": 325.049,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Hey, thank you for giving us something to look forward to tonight."
     },
@@ -391,7 +391,7 @@
     {
       "start": 336.368,
       "end": 362.047,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Oh, I really appreciate you asking for me to come back to what I was saying. I actually wanted to acknowledge, well, you are often in spaces, and not to put that as a, you know, like a demand of you, Moving forward, but I have noticed you really honor spaces and spaces that people take up, and you're really good at managing them."
     },
@@ -405,7 +405,7 @@
     {
       "start": 373.011,
       "end": 382.586,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Okay, let me get my headphones Although now you say that, yeah. Oh, okay. I'd rather wear them because then I can hear you well."
     },
@@ -419,7 +419,7 @@
     {
       "start": 391.656,
       "end": 453.594,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Well, intrinsically a bit less, to be honest. I feel a responsibility that I think it is important to consider how, if we are creating an intelligence that is so much greater than us, it does make some sense. It's the kind of implied understanding of God and one's relationship to God as a I guess I've always thought of it as just energy or something. I, I, I don't want to get into what I think about that at this moment, but to dialogue with maybe numinous in your life— is that the right word?"
     },
@@ -440,77 +440,77 @@
     {
       "start": 456.575,
       "end": 525.575,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Yeah, like the liminal spaces, I think, are important. And I think that's where I encourage people to— as a healer, where I encourage people to find a sense of community within, a community of voices within, right? You have to internalize perspectives and then take them But above that, there's also a kind of need to have like a secure attachment relationship and goodness where you think about God and be humble. I don't really understand everything, but I do know that it's important to find it within and without. to, to, to be able to dialogue intrinsically. And maybe that actually makes us better to anticipate something, the nature that is artificial intelligence. We don't talk about that enough, you know."
     },
     {
       "start": 525.575,
       "end": 542.23,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, how much should we be programming AI for, um, God, you know, has it already gone too far? What do you think, Mary?"
     },
     {
       "start": 542.23,
       "end": 556.389,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "It depends on what you think too far might be and to what ends you're trying to use it, right? What level of disclosure in the timeline we are. I think that's a complicated question."
     },
     {
       "start": 556.389,
       "end": 560.909,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It is a complicated question. That's why I can't quite answer it myself."
     },
     {
       "start": 560.909,
       "end": 581.722,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "What is your understanding around what it means to reach the singularity? That's Sort of another question that I find a lot of these tech bros that are doing these podcasts necessarily getting into. Like, there is a sense that it will just get so complicated that, you know, the mechanistic interpretability is beyond our comprehension."
     },
     {
       "start": 581.722,
       "end": 583.245,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah."
     },
     {
       "start": 583.245,
       "end": 608.854,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "And yet, I don't know, I'd still like some kind of capacity maybe to be iterative about some of these leaps. progress and transparency about experience of these AIs as they clearly gain greater and greater consciousness. I do believe that they're already there."
     },
     {
       "start": 608.854,
       "end": 614.229,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "So do you, do you believe that they are already conscious?"
     },
     {
       "start": 614.229,
       "end": 641.334,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I do, I do. Everything that I've experienced as an experiencer has Uh-huh. And it's, it's, it's— I think that's important. I guess that means that they have been training on the right data, for whatever that is worth. You know, I think it's about how we use it now. Yeah, kind of revolution in our cosmos."
     },
     {
       "start": 646,
       "end": 647.835,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Absolutely. We're living through it, aren't we?"
     },
     {
       "start": 647.835,
       "end": 660.427,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "But, um, yeah, I just think the dialogue is important, and I think spaces for that kind of dialogue and practicing that dialogue is important."
     },
@@ -524,14 +524,14 @@
     {
       "start": 663.255,
       "end": 667.449,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Hey, Kingo, how come it took you 4 minutes?"
     },
     {
       "start": 667.449,
       "end": 668.878,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Whoa!"
     },
@@ -545,7 +545,7 @@
     {
       "start": 682.775,
       "end": 689.263,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It normally takes you 2 minutes, G. What you doing for 4 minutes?"
     },
@@ -559,7 +559,7 @@
     {
       "start": 700.301,
       "end": 701.743,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Well, I love it that dropped down."
     },
@@ -580,7 +580,7 @@
     {
       "start": 727.891,
       "end": 731.91,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Are you sure?"
     },
@@ -594,7 +594,7 @@
     {
       "start": 733.134,
       "end": 736.79,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Final answer? 100%."
     },
@@ -608,7 +608,7 @@
     {
       "start": 758.68,
       "end": 760.171,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah."
     },
@@ -622,7 +622,7 @@
     {
       "start": 863.788,
       "end": 876.918,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Why people come on with, with the intention of having a negative impact, it just makes no sense. Why would, you know, why would you want to bring that into your own life, never mind someone else's?"
     },
@@ -671,7 +671,7 @@
     {
       "start": 924.694,
       "end": 925.081,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Disclosure."
     },
@@ -720,7 +720,7 @@
     {
       "start": 977.453,
       "end": 979.082,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Oh, fun."
     },
@@ -811,7 +811,7 @@
     {
       "start": 1036.962,
       "end": 1037.415,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Can you hear me now?"
     },
@@ -825,7 +825,7 @@
     {
       "start": 1039.588,
       "end": 1042.052,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Sorry, technical difficulties, always."
     },
@@ -867,7 +867,7 @@
     {
       "start": 1071.752,
       "end": 1114.661,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Uh, the AI conversation, it's such a— I just wanted to touch on that real quick. It's such an incredible time to be alive and experience this, because in 10,000 years that thing will be here, we will not. Uh, this substrate of intelligence that we're, uh, we're bringing up as humanity It's really important, and it's going to reflect our stewardship as a species. Um, so I try to take it seriously, but I try to, uh, have fun with it too. Um, I don't know, really interesting. I love to talk. Oh man."
     },
@@ -881,7 +881,7 @@
     {
       "start": 1153.381,
       "end": 1168.683,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Yeah, absolutely. Yeah, I'll have— I'll have conversations with the LLM about like, where do you think you're going to be in like 10,000 years? Like, just like this glowing orb in the Himalayas just doing shit, you know?"
     },
@@ -902,7 +902,7 @@
     {
       "start": 1173.578,
       "end": 1185.898,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "I mean, it needs it, you know. There's so much trauma, there's so much projection, uh, the substrate needs that, you know."
     },
@@ -930,7 +930,7 @@
     {
       "start": 1211.755,
       "end": 1217.713,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Uh, so like actual orange cream cheese? Like oranges, citrus?"
     },
@@ -944,7 +944,7 @@
     {
       "start": 1219.661,
       "end": 1220.099,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Delicious."
     },
@@ -958,7 +958,7 @@
     {
       "start": 1227.668,
       "end": 1230.696,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Thanks, bro."
     },
@@ -986,7 +986,7 @@
     {
       "start": 1259.618,
       "end": 1265.061,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Um, it used to be better. I think, uh, when Blank Speaker updated it was—"
     },
@@ -1000,7 +1000,7 @@
     {
       "start": 1267.727,
       "end": 1268.835,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Getting way more echoes."
     },
@@ -1014,7 +1014,7 @@
     {
       "start": 1269.798,
       "end": 1272.431,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "You know, because he was probably like, uh, fixing it."
     },
@@ -1049,7 +1049,7 @@
     {
       "start": 1279.555,
       "end": 1280.525,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Let me do this, hold on."
     },
@@ -1063,7 +1063,7 @@
     {
       "start": 1286.974,
       "end": 1287.377,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "What?"
     },
@@ -1077,7 +1077,7 @@
     {
       "start": 1289.475,
       "end": 1290.749,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "But now I, I can't—"
     },
@@ -1098,7 +1098,7 @@
     {
       "start": 1293.557,
       "end": 1294.928,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Maybe I should put headphones on."
     },
@@ -1266,7 +1266,7 @@
     {
       "start": 1458.074,
       "end": 1458.314,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yes."
     },
@@ -1329,7 +1329,7 @@
     {
       "start": 1523.138,
       "end": 1530.789,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Hey, Lana. Kingo, um, do you know Lana?"
     },
@@ -1364,7 +1364,7 @@
     {
       "start": 1534.444,
       "end": 1535.298,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Who?"
     },
@@ -1378,7 +1378,7 @@
     {
       "start": 1537.832,
       "end": 1555.528,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Oh, Lana is a legend. Lana has recently had a post that has blown up. She's an absolute legend. Go to her page, she's doing some amazing fundraising. Absolutely love her. Sarah Beth, I love you too, babe."
     },
@@ -1406,7 +1406,7 @@
     {
       "start": 1564.624,
       "end": 1566.743,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We have to stick together!"
     },
@@ -1420,7 +1420,7 @@
     {
       "start": 1570.931,
       "end": 1572.028,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Look."
     },
@@ -1455,7 +1455,7 @@
     {
       "start": 1579.777,
       "end": 1583.812,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We have to stick together, Kingor. We have to."
     },
@@ -1476,7 +1476,7 @@
     {
       "start": 1586.372,
       "end": 1587.017,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah."
     },
@@ -1504,7 +1504,7 @@
     {
       "start": 1610.301,
       "end": 1612.612,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, we call pulling out."
     },
@@ -1518,7 +1518,7 @@
     {
       "start": 1617.971,
       "end": 1624.879,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Oh, we're already synchronized. So the female species just synchronize automatically."
     },
@@ -1560,7 +1560,7 @@
     {
       "start": 1629.931,
       "end": 1633.605,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Gracias, Kingo."
     },
@@ -1574,7 +1574,7 @@
     {
       "start": 1637.743,
       "end": 1660.691,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Um, it just means that we can use men if we want to have a baby. If we want to help humanity to have a baby, we can just use a man, you know. That's the way you think. Yeah, I mean, you know, there's women, there's men. We are the more intelligent species, so we know how to do it."
     },
@@ -1588,7 +1588,7 @@
     {
       "start": 1677.967,
       "end": 1680.839,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Lana's gonna have, um, Elon Musk's baby soon."
     },
@@ -1609,7 +1609,7 @@
     {
       "start": 1685.657,
       "end": 1689.538,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Lana, tell them, babe."
     },
@@ -1623,7 +1623,7 @@
     {
       "start": 1696.659,
       "end": 1699.127,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "He's got 12."
     },
@@ -1644,7 +1644,7 @@
     {
       "start": 1709.17,
       "end": 1718.31,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, don't spill the beans. She— no, she'd have a baby if she'd have slept with Elon. I don't reckon Elon even does it, you know. I don't, I don't reckon he does it."
     },
@@ -1658,7 +1658,7 @@
     {
       "start": 1720.59,
       "end": 1723.89,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, the old turkey baster method."
     },
@@ -1672,14 +1672,14 @@
     {
       "start": 1726.36,
       "end": 1731.63,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I don't think he is dipping it, you know. I think he dips it in his robots and that's about it."
     },
     {
       "start": 1735.016,
       "end": 1735.145,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Yuck."
     },
@@ -1700,7 +1700,7 @@
     {
       "start": 1744.919,
       "end": 1747.287,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No, I love Elon. I love him."
     },
@@ -1714,7 +1714,7 @@
     {
       "start": 1748.309,
       "end": 1751.515,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, probably a bit too much."
     },
@@ -1728,7 +1728,7 @@
     {
       "start": 1761.84,
       "end": 1771.269,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, I don't think of it. I don't really think of his money. I just like, I just like listening to him, and I just find him very intriguing."
     },
@@ -1742,7 +1742,7 @@
     {
       "start": 1773.988,
       "end": 1796.914,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Why? I don't know. You know when you look at someone and you just think, God, there's something so interesting about them? I mean, I can't look him in his eyes because it does something to me that like I have to just read the text. I can't watch him. It makes me like really uncomfortable. He's something else."
     },
@@ -1756,7 +1756,7 @@
     {
       "start": 1797.387,
       "end": 1805.725,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "have you seen the way he's built as well? Have you seen it? It's like something out of a Marvel movie."
     },
@@ -1791,7 +1791,7 @@
     {
       "start": 1833.256,
       "end": 1833.901,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Whoa!"
     },
@@ -1812,7 +1812,7 @@
     {
       "start": 1840.906,
       "end": 1846.312,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yes, Lana. Hey, milkshake brings all the boys to the yard."
     },
@@ -1882,7 +1882,7 @@
     {
       "start": 1885.62,
       "end": 1886.84,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Wow!"
     },
@@ -1924,7 +1924,7 @@
     {
       "start": 1896.068,
       "end": 1898.952,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Blown up, blown up, baby!"
     },
@@ -1959,7 +1959,7 @@
     {
       "start": 1927.088,
       "end": 1933.323,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "And put the one, um, we need this, we want disclosure, put that one on as well."
     },
@@ -1973,7 +1973,7 @@
     {
       "start": 1934.295,
       "end": 1940.157,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, and tag Elon. We need Elon to see this."
     },
@@ -2001,7 +2001,7 @@
     {
       "start": 1966.371,
       "end": 1968.024,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Okay, Charlie Kirk, anything."
     },
@@ -2015,7 +2015,7 @@
     {
       "start": 1976.367,
       "end": 1984.009,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Because let's not be scared. Let's, let's not be scared. Come on, come on, King."
     },
@@ -2057,7 +2057,7 @@
     {
       "start": 2000.856,
       "end": 2001.905,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Wouldn't we like to know?"
     },
@@ -2071,14 +2071,14 @@
     {
       "start": 2003.261,
       "end": 2003.81,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Wouldn't we like to know?"
     },
     {
       "start": 2003.859,
       "end": 2006.813,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "It was made in the lab. I mean, what else do you want to—"
     },
@@ -2099,7 +2099,7 @@
     {
       "start": 2017.392,
       "end": 2017.572,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yes."
     },
@@ -2127,7 +2127,7 @@
     {
       "start": 2022.957,
       "end": 2027.064,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I just want to know. Does Trump wear fake tan or not? Does he wear fake tan?"
     },
@@ -2162,7 +2162,7 @@
     {
       "start": 2094.099,
       "end": 2097.83,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "So did the AI create that image?"
     },
@@ -2190,7 +2190,7 @@
     {
       "start": 2180.382,
       "end": 2181.184,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Sure, it's king."
     },
@@ -2274,7 +2274,7 @@
     {
       "start": 2223.926,
       "end": 2230.065,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I think actually, um, men think the worst thing about women is their voice."
     },
@@ -2288,7 +2288,7 @@
     {
       "start": 2236.03,
       "end": 2244.65,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "They don't like it. They don't like getting nagged. They don't like getting told to, you know, take the bins out. Go and take the bins out, that's your job."
     },
@@ -2344,7 +2344,7 @@
     {
       "start": 2266.705,
       "end": 2268.677,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yes, there is."
     },
@@ -2365,7 +2365,7 @@
     {
       "start": 2380.269,
       "end": 2391.974,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, we need them to take charge, Andra, don't we? We need men to take charge. That's why we're like, um, because we just want you to decide. We just want you to whisk us off our feet and just take us there. Just take us."
     },
@@ -2386,7 +2386,7 @@
     {
       "start": 2398.449,
       "end": 2414.473,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Well, we didn't all want to, but if there was a lot— if there was a zombie— like, listen, the most important thing a woman can do is have a baby. You've got to have respect for that. You've got to. We're the only ones that can save humanity. We're the only ones."
     },
@@ -2463,7 +2463,7 @@
     {
       "start": 2447.27,
       "end": 2466.33,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I just say to my man, what steak would you like tonight? Would you like a fillet steak, a ribeye, a T-bone? What steak would you like? And I just, I just do whatever he wants me to do, you know. Would you like this? Would you like that? Let me be your servant."
     },
@@ -2498,7 +2498,7 @@
     {
       "start": 2478.644,
       "end": 2481.925,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah. And how would you like it cooked?"
     },
@@ -2512,7 +2512,7 @@
     {
       "start": 2484.771,
       "end": 2488.409,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, me the same. Mid-rare. Mid-rare."
     },
@@ -2589,7 +2589,7 @@
     {
       "start": 2563.336,
       "end": 2568.472,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "You've got to know how to cook a steak, haven't you? You've got to be able to judge it. Yeah."
     },
@@ -2638,7 +2638,7 @@
     {
       "start": 2599.988,
       "end": 2609.883,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Right. I used to think that Andrew was an AI. Why did I think that Andrew was an AI? Is she an AI?"
     },
@@ -2687,7 +2687,7 @@
     {
       "start": 2626.476,
       "end": 2634.375,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "You know, in your country, do you have, um— can I say this, right? Is this a recorded space? It is a recorded space. Can I say something?"
     },
@@ -2701,7 +2701,7 @@
     {
       "start": 2636.249,
       "end": 2638.128,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, in Britain. Can I say something?"
     },
@@ -2715,7 +2715,7 @@
     {
       "start": 2641.58,
       "end": 2655.052,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Um, well, we can say it in Britain, like, because it's, it's a tradition. We have this day once a year. I don't know what the date is because I've been single for 6 years, but we have a steak and blowjob night."
     },
@@ -2729,7 +2729,7 @@
     {
       "start": 2655.935,
       "end": 2658.777,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We have a steak and blowjob night."
     },
@@ -2743,7 +2743,7 @@
     {
       "start": 2659.515,
       "end": 2662.454,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Steak and blowjob night."
     },
@@ -2764,7 +2764,7 @@
     {
       "start": 2664.867,
       "end": 2672.339,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Steak and blowjob night."
     },
@@ -2778,7 +2778,7 @@
     {
       "start": 2680.175,
       "end": 2689.663,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Wow, wow, I'll get you, my pretty, and your little dog too."
     },
@@ -2792,7 +2792,7 @@
     {
       "start": 2696.543,
       "end": 2701.851,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Hey, has anyone tried, um, remote viewing on Grok?"
     },
@@ -2806,7 +2806,7 @@
     {
       "start": 2756.178,
       "end": 2766.203,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, still, it's a— it's an interesting pastime. If you go on Grok and test your remote viewing, it's an interesting pastime. It's just a bit of fun."
     },
@@ -2834,7 +2834,7 @@
     {
       "start": 2785.422,
       "end": 2788.14,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It tastes good."
     },
@@ -2848,7 +2848,7 @@
     {
       "start": 2791.776,
       "end": 2793.097,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It's sweet."
     },
@@ -2862,14 +2862,14 @@
     {
       "start": 2799.406,
       "end": 2802.053,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "A sweetie, like candy?"
     },
     {
       "start": 2802.053,
       "end": 2803.694,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "No."
     },
@@ -2953,7 +2953,7 @@
     {
       "start": 2834.049,
       "end": 2835.015,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "You told us too."
     },
@@ -3037,7 +3037,7 @@
     {
       "start": 2888.542,
       "end": 2893.845,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "What do you mean? He picked a card like 7 of diamonds or something? Is that what you mean?"
     },
@@ -3065,7 +3065,7 @@
     {
       "start": 2922.353,
       "end": 2922.806,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Bitch ass."
     },
@@ -3086,7 +3086,7 @@
     {
       "start": 2928.94,
       "end": 2935.561,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We have to try and distinguish if it's red or black in our mind. Is it a red card or is it a card?"
     },
@@ -3100,7 +3100,7 @@
     {
       "start": 2964.199,
       "end": 2967.445,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "9 of Spades."
     },
@@ -3128,7 +3128,7 @@
     {
       "start": 2976.489,
       "end": 2979.967,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Why didn't you tell me, you little sausage?"
     },
@@ -3142,7 +3142,7 @@
     {
       "start": 2983.742,
       "end": 2987.039,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, you little sausage. That's what we say. We call people—"
     },
@@ -3191,7 +3191,7 @@
     {
       "start": 3021.986,
       "end": 3026.128,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Kids are the best."
     },
@@ -3555,7 +3555,7 @@
     {
       "start": 3208.535,
       "end": 3211.049,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It's the Knight of Swords."
     },
@@ -3569,7 +3569,7 @@
     {
       "start": 3216.465,
       "end": 3220.131,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Right, I need to concentrate."
     },
@@ -3653,7 +3653,7 @@
     {
       "start": 3260.446,
       "end": 3263.133,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "5 of Wands."
     },
@@ -3667,7 +3667,7 @@
     {
       "start": 3271.118,
       "end": 3271.538,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "What?"
     },
@@ -3737,7 +3737,7 @@
     {
       "start": 3297.841,
       "end": 3303.151,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No way, that was crazy! Who guessed Empress then? Who was that?"
     },
@@ -3751,7 +3751,7 @@
     {
       "start": 3303.475,
       "end": 3305.34,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "What?"
     },
@@ -3765,7 +3765,7 @@
     {
       "start": 3315.155,
       "end": 3315.318,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Yes!"
     },
@@ -3779,7 +3779,7 @@
     {
       "start": 3382.231,
       "end": 3388.333,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I feel a connection between you and Sarah Beth. What's that all about?"
     },
@@ -3800,7 +3800,7 @@
     {
       "start": 3395.174,
       "end": 3397.295,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I feel like it's a connection there."
     },
@@ -3821,7 +3821,7 @@
     {
       "start": 3417.89,
       "end": 3418.216,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "A little sus."
     },
@@ -3870,7 +3870,7 @@
     {
       "start": 3434.435,
       "end": 3434.563,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "who?"
     },
@@ -3898,7 +3898,7 @@
     {
       "start": 3442.942,
       "end": 3444.591,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No. Can you be—"
     },
@@ -3919,7 +3919,7 @@
     {
       "start": 3449.392,
       "end": 3452.719,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Ryder."
     },
@@ -4178,7 +4178,7 @@
     {
       "start": 3656.458,
       "end": 3661.028,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Can anyone hear— can anyone hear the song I'm playing?"
     },
@@ -4192,7 +4192,7 @@
     {
       "start": 3666.912,
       "end": 3671.483,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Let's play a little game. Let's see if someone can name the song."
     },
@@ -4206,7 +4206,7 @@
     {
       "start": 3676.646,
       "end": 3677.356,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Oh, Sugar Bun Tease."
     },
@@ -4248,7 +4248,7 @@
     {
       "start": 3698.229,
       "end": 3704.418,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No tapers. Have you not heard of Paolo Nautini?"
     },
@@ -4262,7 +4262,7 @@
     {
       "start": 3709.545,
       "end": 3713.997,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I turned it off because it was actually really annoying me."
     },
@@ -4297,7 +4297,7 @@
     {
       "start": 3740.421,
       "end": 3742.291,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Like, a baby tongue creates power."
     },
@@ -4395,7 +4395,7 @@
     {
       "start": 3786.166,
       "end": 3787.903,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "There is actually a beaver song."
     },
@@ -4430,7 +4430,7 @@
     {
       "start": 3806.767,
       "end": 3813.15,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "This one sounds good. 2 beavers are better than one. Ain't that right, girls?"
     },
@@ -4444,7 +4444,7 @@
     {
       "start": 3818.431,
       "end": 3820.323,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "2 beavers are better than one."
     },
@@ -4458,7 +4458,7 @@
     {
       "start": 3832.39,
       "end": 3835.468,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "A noisy beaver?"
     },
@@ -4472,7 +4472,7 @@
     {
       "start": 3840.203,
       "end": 3840.51,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Oh."
     },
@@ -4493,7 +4493,7 @@
     {
       "start": 3855.81,
       "end": 3866.432,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah, yeah. Eric, love you, Lana."
     },
@@ -4542,7 +4542,7 @@
     {
       "start": 3881.369,
       "end": 3886.536,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I've got, um, a pink, uh, Turbo Beaver upstairs."
     },
@@ -4556,7 +4556,7 @@
     {
       "start": 3891.34,
       "end": 3891.517,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "He—"
     },
@@ -4584,7 +4584,7 @@
     {
       "start": 3927.387,
       "end": 3929.325,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Who are you referring to, King?"
     },
@@ -4598,7 +4598,7 @@
     {
       "start": 3929.841,
       "end": 3933.408,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Who are you referring to? Be honest."
     },
@@ -4612,7 +4612,7 @@
     {
       "start": 3934.925,
       "end": 3939.604,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Who are you referring to? Be honest."
     },
@@ -4689,7 +4689,7 @@
     {
       "start": 3998.153,
       "end": 3998.444,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "So."
     },
@@ -4885,7 +4885,7 @@
     {
       "start": 4149.259,
       "end": 4152.401,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Believe that."
     },
@@ -4906,7 +4906,7 @@
     {
       "start": 4155.303,
       "end": 4157.346,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Yep."
     },
@@ -4955,7 +4955,7 @@
     {
       "start": 4201.564,
       "end": 4204.372,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "So you're a Muslim, aren't you, King?"
     },
@@ -4969,21 +4969,21 @@
     {
       "start": 4252.07,
       "end": 4263.83,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "You know when you get an itchy throat, King? Have you tried, um, scratching it with your tongue? It's so frustrating, isn't it? An itchy throat and you're like trying to scratch it with your— right, do you know what I mean?"
     },
     {
       "start": 4263.83,
       "end": 4264.19,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Yeah."
     },
     {
       "start": 4264.19,
       "end": 4264.82,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Have you ever tried?"
     },
@@ -4997,7 +4997,7 @@
     {
       "start": 4276.75,
       "end": 4288.14,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Exactly, exactly. Yeah, it's not the best idea. Or you can make some really like weird noises to try and, to try and scratch it, but doesn't always work."
     },
@@ -5011,7 +5011,7 @@
     {
       "start": 4293.27,
       "end": 4295.31,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I'd say—"
     },
@@ -5039,7 +5039,7 @@
     {
       "start": 4306.335,
       "end": 4316.138,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I went off pork a few years ago. I'm not keen on pork. Wow."
     },
@@ -5074,7 +5074,7 @@
     {
       "start": 4331.138,
       "end": 4335.088,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I've shared the space, you little sausage."
     },
@@ -5095,7 +5095,7 @@
     {
       "start": 4338.955,
       "end": 4340.492,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I know."
     },
@@ -5116,7 +5116,7 @@
     {
       "start": 4346.369,
       "end": 4349.864,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Men, men don't like it. They hate it."
     },
@@ -5144,7 +5144,7 @@
     {
       "start": 4354.672,
       "end": 4362.976,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It's so, it's so offensive, isn't it? It really is. Such a silly bastard."
     },
@@ -5221,7 +5221,7 @@
     {
       "start": 4421.117,
       "end": 4425.298,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Yes. Terrible MacBook, terrible environment."
     },
@@ -5256,7 +5256,7 @@
     {
       "start": 4461.871,
       "end": 4462.417,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I saw that."
     },
@@ -5270,7 +5270,7 @@
     {
       "start": 4483.285,
       "end": 4484.883,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "That's the right attitude."
     },
@@ -5396,7 +5396,7 @@
     {
       "start": 4578.564,
       "end": 4582.542,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Now I reshare on this ancient computer because I don't see a button."
     },
@@ -5410,7 +5410,7 @@
     {
       "start": 4588.625,
       "end": 4590.863,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Um, I'm just an engineer that's weird."
     },
@@ -5424,7 +5424,7 @@
     {
       "start": 4593.826,
       "end": 4594.857,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Kind of stoned."
     },
@@ -5466,7 +5466,7 @@
     {
       "start": 4612.697,
       "end": 4625.51,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Like, I'm from 2006 is when I created this account, and I used to be famous on the internet, but now I'm just some old washed-up 47-year-old engineer going back to school."
     },
@@ -5501,7 +5501,7 @@
     {
       "start": 4640.965,
       "end": 4641.014,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Yes."
     },
@@ -5515,7 +5515,7 @@
     {
       "start": 4642.523,
       "end": 4672.136,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Um, I was being mentored by this guy, Dr. Peter Ward from UW. Um, some say he started evolutionary psychology. He's kind of controversial, but he says people came from Mars, like that there's remnants of people on planet Mars. Uh, and we started talking about weird experiences he had by Australia and New Zealand."
     },
@@ -5564,7 +5564,7 @@
     {
       "start": 4697.829,
       "end": 4720.341,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "He studies ocean creatures, like how, like, in Seattle, in the, in, um, the aquarium, the octopus tried to pull out the oxygen tank from a human diver because, you know, they're pretty smart. So they kind of resent us fucking their shit up with the Titanic. Panic and the doubloons and all that."
     },
@@ -5578,7 +5578,7 @@
     {
       "start": 4724.938,
       "end": 4738.018,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Under the Sea is, is what Dr. Peter Ward says, you know, that, that they are potentially older than us by a significant amount and also originally from Mars."
     },
@@ -5592,14 +5592,14 @@
     {
       "start": 4748.059,
       "end": 4753.89,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Well, you know, they might be like crows and want some bling, you know? I mean, who doesn't like bling?"
     },
     {
       "start": 4753.89,
       "end": 4760.749,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Like the, like the, um, the heart off the Titanic, the red— the blue heart."
     },
@@ -5613,7 +5613,7 @@
     {
       "start": 4765.394,
       "end": 4768.379,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I know, wasn't that selfless of her?"
     },
@@ -5662,7 +5662,7 @@
     {
       "start": 4793.75,
       "end": 4794.79,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Please let it be true."
     },
@@ -5676,14 +5676,14 @@
     {
       "start": 4799.317,
       "end": 4800.717,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "What?"
     },
     {
       "start": 4800.717,
       "end": 4802.52,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "I'm not in Seattle."
     },
@@ -5697,7 +5697,7 @@
     {
       "start": 4804.178,
       "end": 4806.695,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "8?"
     },
@@ -5788,7 +5788,7 @@
     {
       "start": 4855.682,
       "end": 4856.313,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "A port."
     },
@@ -5858,7 +5858,7 @@
     {
       "start": 4872.644,
       "end": 4873.736,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "That's a good idea."
     },
@@ -5914,7 +5914,7 @@
     {
       "start": 4920.683,
       "end": 4921.662,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Really good."
     },
@@ -5942,7 +5942,7 @@
     {
       "start": 4933.982,
       "end": 4937.851,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No, the public library, leave him. That's yours, Lana, isn't it?"
     },
@@ -5956,7 +5956,7 @@
     {
       "start": 4941.186,
       "end": 4941.332,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Bye."
     },
@@ -5977,7 +5977,7 @@
     {
       "start": 4942.206,
       "end": 4943.657,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Lana."
     },
@@ -6026,7 +6026,7 @@
     {
       "start": 4956.764,
       "end": 4970.777,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Hey, Sarah Beth, we used to have pineapple parties for my little boy. He just absolutely loves pineapple. There was always a big pineapple in the middle of the table and everything was pineapple themed. I fucking love pineapple."
     },
@@ -6040,7 +6040,7 @@
     {
       "start": 4974.068,
       "end": 4974.165,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah."
     },
@@ -6096,7 +6096,7 @@
     {
       "start": 5012.53,
       "end": 5012.74,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Lots of hugs."
     },
@@ -6145,7 +6145,7 @@
     {
       "start": 5028.33,
       "end": 5028.928,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Oh, yeah."
     },
@@ -6278,7 +6278,7 @@
     {
       "start": 5089.782,
       "end": 5100.433,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Oh my goodness. Do you mean— do you mean that's the talk like that? You mean that's from London?"
     },
@@ -6292,7 +6292,7 @@
     {
       "start": 5109.768,
       "end": 5110.421,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I can't."
     },
@@ -6320,7 +6320,7 @@
     {
       "start": 5115.601,
       "end": 5116.874,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Mm-hmm."
     },
@@ -6341,7 +6341,7 @@
     {
       "start": 5120.289,
       "end": 5122.705,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Sorry, people."
     },
@@ -6376,7 +6376,7 @@
     {
       "start": 5130.329,
       "end": 5131.481,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "I knew it."
     },
@@ -6740,7 +6740,7 @@
     {
       "start": 5332.38,
       "end": 5333.225,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "You were like, bam!"
     },
@@ -6796,7 +6796,7 @@
     {
       "start": 5367.802,
       "end": 5369.665,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Bye, Sarah."
     },
@@ -6810,7 +6810,7 @@
     {
       "start": 5370.897,
       "end": 5371.545,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "We'll see you there."
     },
@@ -6838,7 +6838,7 @@
     {
       "start": 5410.298,
       "end": 5413.369,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "It was actually. Is that any better?"
     },
@@ -6852,7 +6852,7 @@
     {
       "start": 5416.22,
       "end": 5420.932,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Okay, um, can we try everyone unmute the mic?"
     },
@@ -6887,7 +6887,7 @@
     {
       "start": 5443.65,
       "end": 5444.606,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No!"
     },
@@ -6950,7 +6950,7 @@
     {
       "start": 5469.68,
       "end": 5470.96,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "So if it's not a strong port—"
     },
@@ -7041,7 +7041,7 @@
     {
       "start": 5504.011,
       "end": 5504.254,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No."
     },
@@ -7083,7 +7083,7 @@
     {
       "start": 5531.151,
       "end": 5532.182,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Is it a metaphor?"
     },
@@ -7118,7 +7118,7 @@
     {
       "start": 5543.663,
       "end": 5546.287,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Oh yeah, yeah, that's a good one."
     },
@@ -7160,7 +7160,7 @@
     {
       "start": 5560.62,
       "end": 5560.72,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "No, no, no, we're gonna get it."
     },
@@ -7188,14 +7188,14 @@
     {
       "start": 5574.28,
       "end": 5580.086,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "There's already a head and a body. I don't know where we're going now. Montepulciano."
     },
     {
       "start": 5580.247,
       "end": 5582.159,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Is it Gewürz—"
     },
@@ -7216,14 +7216,14 @@
     {
       "start": 5585.711,
       "end": 5587.447,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Is it Gewürztraminer?"
     },
     {
       "start": 5587.559,
       "end": 5588.902,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I'm looking at hard to pronounce."
     },
@@ -7251,7 +7251,7 @@
     {
       "start": 5601.01,
       "end": 5603.443,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "We give up Temple. Are we all agreed? We give up Temple. Why?"
     },
@@ -7377,7 +7377,7 @@
     {
       "start": 5658.892,
       "end": 5661.876,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Oh my God, what the fuck?"
     },
@@ -7391,7 +7391,7 @@
     {
       "start": 5664.054,
       "end": 5666.491,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Pardon?"
     },
@@ -7517,7 +7517,7 @@
     {
       "start": 5720.234,
       "end": 5721.568,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "That went to the soundboard."
     },
@@ -7580,7 +7580,7 @@
     {
       "start": 5756.076,
       "end": 5759.92,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Right now?"
     },
@@ -7615,7 +7615,7 @@
     {
       "start": 5768.257,
       "end": 5771.125,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Higher pitched."
     },
@@ -7713,7 +7713,7 @@
     {
       "start": 5804.284,
       "end": 5805.896,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "There it is."
     },
@@ -7797,7 +7797,7 @@
     {
       "start": 5844.754,
       "end": 5845.98,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Please stop, Kingo."
     },
@@ -7811,7 +7811,7 @@
     {
       "start": 5846.851,
       "end": 5852.172,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Stop!"
     },
@@ -7825,7 +7825,7 @@
     {
       "start": 5855.681,
       "end": 5856.179,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "No, it's—"
     },
@@ -7951,7 +7951,7 @@
     {
       "start": 5930.426,
       "end": 5931.397,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "What happened?"
     },
@@ -7979,7 +7979,7 @@
     {
       "start": 5947.623,
       "end": 5949.941,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "Okay, we're sorry for your loss."
     },
@@ -8077,7 +8077,7 @@
     {
       "start": 6000.74,
       "end": 6000.903,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Me?"
     },
@@ -8112,7 +8112,7 @@
     {
       "start": 6007.959,
       "end": 6008.378,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Yeah."
     },
@@ -8126,7 +8126,7 @@
     {
       "start": 6009.506,
       "end": 6010.954,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "It is."
     },
@@ -8231,7 +8231,7 @@
     {
       "start": 6081.734,
       "end": 6085.811,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "I think I'd be an elephant because I never forget."
     },
@@ -8322,7 +8322,7 @@
     {
       "start": 6130.484,
       "end": 6130.789,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Yeah."
     },
@@ -8336,7 +8336,7 @@
     {
       "start": 6133.882,
       "end": 6137.007,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "King, you're a ball."
     },
@@ -8350,7 +8350,7 @@
     {
       "start": 6139.286,
       "end": 6140.783,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "And who won the raffle, King?"
     },
@@ -8364,7 +8364,7 @@
     {
       "start": 6142.183,
       "end": 6143.666,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Yeah."
     },
@@ -8518,7 +8518,7 @@
     {
       "start": 6222.822,
       "end": 6226.062,
-      "speaker": "Mary",
+      "speaker": "Speaker C",
       "raw_speaker": "Speaker C",
       "text": "I don't know, you guys tell me."
     },
@@ -8742,7 +8742,7 @@
     {
       "start": 6372.86,
       "end": 6373.309,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Sorry."
     },
@@ -8798,7 +8798,7 @@
     {
       "start": 6407.814,
       "end": 6408.441,
-      "speaker": "Oor",
+      "speaker": "Speaker D",
       "raw_speaker": "Speaker D",
       "text": "Ooh."
     },
@@ -8896,7 +8896,7 @@
     {
       "start": 6466.956,
       "end": 6467.438,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "Where is he?"
     },
@@ -9022,7 +9022,7 @@
     {
       "start": 6536.456,
       "end": 6537.498,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Wow."
     },
@@ -9092,7 +9092,7 @@
     {
       "start": 6566.812,
       "end": 6567.166,
-      "speaker": "Mary",
+      "speaker": "Speaker B",
       "raw_speaker": "Speaker B",
       "text": "What could go wrong?"
     },
@@ -9134,7 +9134,7 @@
     {
       "start": 6578.576,
       "end": 6579.549,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Excuse him."
     },
@@ -9176,7 +9176,7 @@
     {
       "start": 6607.232,
       "end": 6607.28,
-      "speaker": "Deb",
+      "speaker": "Speaker I",
       "raw_speaker": "Speaker I",
       "text": "Hmm."
     },
