@@ -818,7 +818,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           onChange={e => setSpeakerFilter(e.target.value)}
                           className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
                         >
-                          <option value="ALL">All Speakers ({utterances.length})</option>
+                          <option value="ALL">All Speakers ({uniqueDisplaySpeakers.length})</option>
                           {uniqueDisplaySpeakers.map(spk => (
                             <option key={spk} value={spk}>{spk}</option>
                           ))}
