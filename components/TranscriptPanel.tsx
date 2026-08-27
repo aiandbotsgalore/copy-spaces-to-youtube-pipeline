@@ -3,7 +3,7 @@ import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
-  Save, CloudCheck, CheckCircle2
+  Save, CloudCheck, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets } from '../utils/github';
@@ -24,6 +24,14 @@ export interface ParsedUtterance {
   rawSpeaker: string;
   text: string;
   raw: string;
+}
+
+export interface SavedSpeaker {
+  id: string;
+  name: string;
+  avatarEmoji?: string;
+  color?: string;
+  role?: string;
 }
 
 function formatDate(iso: string): string {
@@ -53,6 +61,28 @@ function formatSeconds(sec: number): string {
   return `${m.toString().padStart(2, '0')}:${rem.toString().padStart(2, '0')}`;
 }
 
+export const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
+  indigo: { bg: 'bg-indigo-500/10', text: 'text-indigo-300', border: 'border-indigo-500/30', badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40', dot: 'bg-indigo-400', avatar: 'bg-indigo-600 text-white' },
+  purple: { bg: 'bg-purple-500/10', text: 'text-purple-300', border: 'border-purple-500/30', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40', dot: 'bg-purple-400', avatar: 'bg-purple-600 text-white' },
+  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
+  sky: { bg: 'bg-sky-500/10', text: 'text-sky-300', border: 'border-sky-500/30', badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400', avatar: 'bg-sky-600 text-white' },
+  amber: { bg: 'bg-amber-500/10', text: 'text-amber-300', border: 'border-amber-500/30', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400', avatar: 'bg-amber-600 text-white' },
+  rose: { bg: 'bg-rose-500/10', text: 'text-rose-300', border: 'border-rose-500/30', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40', dot: 'bg-rose-400', avatar: 'bg-rose-600 text-white' },
+  cyan: { bg: 'bg-cyan-500/10', text: 'text-cyan-300', border: 'border-cyan-500/30', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', dot: 'bg-cyan-400', avatar: 'bg-cyan-600 text-white' },
+  fuchsia: { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-300', border: 'border-fuchsia-500/30', badge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', dot: 'bg-fuchsia-400', avatar: 'bg-fuchsia-600 text-white' },
+  teal: { bg: 'bg-teal-500/10', text: 'text-teal-300', border: 'border-teal-500/30', badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40', dot: 'bg-teal-400', avatar: 'bg-teal-600 text-white' },
+  orange: { bg: 'bg-orange-500/10', text: 'text-orange-300', border: 'border-orange-500/30', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40', dot: 'bg-orange-400', avatar: 'bg-orange-600 text-white' },
+};
+
+const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
+  { id: 'logan', name: 'Logan', avatarEmoji: '🎙️', color: 'indigo', role: 'Host' },
+  { id: 'mary', name: 'Mary', avatarEmoji: '👩‍🎨', color: 'purple', role: 'Co-Host' },
+  { id: 'oor', name: 'Oor', avatarEmoji: '⚡', color: 'sky', role: 'Speaker' },
+  { id: 'rick-doty', name: 'Rick Doty', avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
+  { id: 'shane', name: 'Shane', avatarEmoji: '🎧', color: 'amber', role: 'Co-Host' },
+  { id: 'lana', name: 'Lana', avatarEmoji: '🌸', color: 'rose', role: 'Speaker' },
+];
+
 const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
   'A': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
   'B': { bg: 'bg-sky-500/10', text: 'text-sky-300', border: 'border-sky-500/30', badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400', avatar: 'bg-sky-600 text-white' },
@@ -72,17 +102,25 @@ const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string
   'P': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
 };
 
-function getSpeakerTheme(rawSpeaker: string) {
-  // Use first character or hash for consistent vibrant theme
-  const clean = rawSpeaker.replace(/^Speaker\s+/i, '').trim();
+function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
+  // Check if speaker matches a SavedSpeaker profile
+  const match = savedSpeakers.find(s => s.name.toLowerCase() === displayName.toLowerCase());
+  if (match && match.color && SPEAKER_COLOR_MAP[match.color]) {
+    return {
+      ...SPEAKER_COLOR_MAP[match.color],
+      emoji: match.avatarEmoji,
+      role: match.role,
+    };
+  }
+
+  const clean = displayName.replace(/^Speaker\s+/i, '').trim();
   const char = (clean.charAt(0) || 'A').toUpperCase();
-  if (SPEAKER_PALETTE[char]) return SPEAKER_PALETTE[char];
+  if (SPEAKER_PALETTE[char]) return { ...SPEAKER_PALETTE[char], emoji: undefined, role: undefined };
   
-  // Fallback hash
   let hash = 0;
-  for (let i = 0; i < rawSpeaker.length; i++) hash = (hash * 31 + rawSpeaker.charCodeAt(i)) % 16;
+  for (let i = 0; i < displayName.length; i++) hash = (hash * 31 + displayName.charCodeAt(i)) % 16;
   const keys = Object.keys(SPEAKER_PALETTE);
-  return SPEAKER_PALETTE[keys[hash % keys.length]];
+  return { ...SPEAKER_PALETTE[keys[hash % keys.length]], emoji: undefined, role: undefined };
 }
 
 function highlightMatch(text: string, query: string): React.ReactNode {
@@ -205,6 +243,59 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [editingSpeakerKey, setEditingSpeakerKey] = useState<string | null>(null);
   const [editingSpeakerVal, setEditingSpeakerVal] = useState('');
   const [showRenameModal, setShowRenameModal] = useState(false);
+
+  // Permanent Saved Speakers Directory
+  const [savedSpeakers, setSavedSpeakers] = useState<SavedSpeaker[]>(() => {
+    try {
+      const stored = localStorage.getItem('spacepipe_saved_speakers');
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return DEFAULT_SAVED_SPEAKERS;
+  });
+  const [showSavedSpeakersModal, setShowSavedSpeakersModal] = useState(false);
+  const [newSpeakerName, setNewSpeakerName] = useState('');
+  const [newSpeakerEmoji, setNewSpeakerEmoji] = useState('🎙️');
+  const [newSpeakerColor, setNewSpeakerColor] = useState('indigo');
+  const [newSpeakerRole, setNewSpeakerRole] = useState('Co-Host');
+
+  const addOrUpdatePermanentSpeaker = (speaker: SavedSpeaker) => {
+    setSavedSpeakers(prev => {
+      const existing = prev.findIndex(s => s.name.toLowerCase() === speaker.name.toLowerCase());
+      let updated: SavedSpeaker[];
+      if (existing >= 0) {
+        updated = [...prev];
+        updated[existing] = speaker;
+      } else {
+        updated = [...prev, speaker];
+      }
+      try {
+        localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const deletePermanentSpeaker = (idOrName: string) => {
+    setSavedSpeakers(prev => {
+      const updated = prev.filter(s => s.id !== idOrName && s.name.toLowerCase() !== idOrName.toLowerCase());
+      try {
+        localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const quickSaveToPermanent = (name: string, emoji = '🎙️', color = 'indigo') => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    addOrUpdatePermanentSpeaker({
+      id: trimmed.toLowerCase().replace(/\s+/g, '-'),
+      name: trimmed,
+      avatarEmoji: emoji,
+      color: color,
+      role: 'Speaker'
+    });
+  };
 
   // GitHub Release Permanent Save States
   const [savingGitHub, setSavingGitHub] = useState(false);
@@ -714,6 +805,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* Saved Speakers Directory Button */}
+                    <button
+                      onClick={() => setShowSavedSpeakersModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-lg transition-colors border border-amber-500/30 cursor-pointer shadow-sm"
+                      title="Manage permanent speaker avatars, emojis, and roster"
+                    >
+                      <Star size={12} className="text-amber-400 fill-amber-400/30" />
+                      Saved Speakers ({savedSpeakers.length})
+                    </button>
+
                     {/* Rename Speakers Button */}
                     {speakerStats.length > 0 && (
                       <button
@@ -918,7 +1019,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
                       {filteredUtterances.map((utterance, idx) => {
                         const isPlayingThisUtterance = activeUtteranceIndex === idx;
-                        const theme = getSpeakerTheme(utterance.rawSpeaker);
+                        const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
                         const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
                         const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
@@ -943,17 +1044,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer`}
                               title={`Click to rename ${utterance.speaker}`}
                             >
-                              {initialChar}
+                              {theme.emoji ? (
+                                <span className="text-base select-none">{theme.emoji}</span>
+                              ) : (
+                                <span>{initialChar}</span>
+                              )}
                             </div>
 
                             {/* Utterance Body */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 relative">
                                   {/* Inline Editable Speaker Tag */}
                                   {isEditingThisSpeaker ? (
                                     <div
-                                      className="flex items-center gap-1.5"
+                                      className="relative flex items-center gap-1.5"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <input
@@ -965,9 +1070,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                           if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal);
                                           if (e.key === 'Escape') setEditingSpeakerKey(null);
                                         }}
-                                        onBlur={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
                                         placeholder={utterance.rawSpeaker}
-                                        className="px-2.5 py-0.5 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-36 shadow-lg shadow-indigo-500/20"
+                                        className="px-2.5 py-1 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-44 shadow-lg shadow-indigo-500/20"
                                       />
                                       <button
                                         onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
@@ -976,6 +1080,64 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       >
                                         <Check size={11} />
                                       </button>
+                                      <button
+                                        onClick={() => setEditingSpeakerKey(null)}
+                                        className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md text-[10px]"
+                                        title="Cancel"
+                                      >
+                                        <X size={11} />
+                                      </button>
+
+                                      {/* Quick-Pick Popover for Saved Permanent Speakers */}
+                                      <div className="absolute left-0 top-full mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-40 p-2 space-y-1 animate-in fade-in slide-in-from-top-1">
+                                        <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                                          <span className="flex items-center gap-1">
+                                            <Star size={10} className="text-amber-400 fill-amber-400" />
+                                            Saved Speakers
+                                          </span>
+                                          <button
+                                            onClick={() => setShowSavedSpeakersModal(true)}
+                                            className="text-indigo-400 hover:text-indigo-300 font-normal lowercase cursor-pointer"
+                                          >
+                                            manage
+                                          </button>
+                                        </div>
+
+                                        <div className="max-h-48 overflow-y-auto space-y-0.5 pt-1">
+                                          {savedSpeakers
+                                            .filter(s => !editingSpeakerVal.trim() || s.name.toLowerCase().includes(editingSpeakerVal.toLowerCase()))
+                                            .map(s => (
+                                              <button
+                                                key={s.id || s.name}
+                                                onClick={() => saveSpeakerRename(utterance.rawSpeaker, s.name)}
+                                                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left text-xs transition-colors group cursor-pointer"
+                                              >
+                                                <div className="flex items-center gap-2">
+                                                  <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
+                                                  <span className="font-semibold text-slate-200 group-hover:text-white">{s.name}</span>
+                                                </div>
+                                                {s.role && (
+                                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 group-hover:bg-slate-700">
+                                                    {s.role}
+                                                  </span>
+                                                )}
+                                              </button>
+                                            ))}
+                                        </div>
+
+                                        {editingSpeakerVal.trim() && !savedSpeakers.some(s => s.name.toLowerCase() === editingSpeakerVal.trim().toLowerCase()) && (
+                                          <button
+                                            onClick={() => {
+                                              quickSaveToPermanent(editingSpeakerVal);
+                                              saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal);
+                                            }}
+                                            className="w-full mt-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-semibold transition-colors border border-indigo-500/30 cursor-pointer"
+                                          >
+                                            <Plus size={12} />
+                                            <span>Save "{editingSpeakerVal}" as Permanent</span>
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
                                   ) : (
                                     <button
@@ -987,7 +1149,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}
                                       title="Click to rename this speaker across all turns"
                                     >
-                                      <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                                      {theme.emoji ? (
+                                        <span className="text-xs">{theme.emoji}</span>
+                                      ) : (
+                                        <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                                      )}
                                       <span>{utterance.speaker}</span>
                                       <Pencil size={10} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-300" />
                                     </button>
@@ -1038,16 +1204,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         </div>
       )}
 
-      {/* ── Rename Speakers Modal ── */}
+      {/* ── Rename Speakers Modal with Quick-Select Chips ── */}
       {showRenameModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                   <Users size={16} />
                 </div>
-                <h3 className="text-base font-bold text-white">Rename Episode Speakers</h3>
+                <div>
+                  <h3 className="text-base font-bold text-white">Rename Episode Speakers</h3>
+                  <p className="text-[11px] text-slate-400">Click a saved speaker chip or type a custom name</p>
+                </div>
               </div>
               <button
                 onClick={() => setShowRenameModal(false)}
@@ -1057,30 +1226,66 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Type the real names of each speaker below. All speaker turns, audio highlights, filters, and downloads will update instantly.
-            </p>
+            {/* Quick-select chips from permanent roster */}
+            {savedSpeakers.length > 0 && (
+              <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <Star size={10} className="text-amber-400 fill-amber-400" />
+                  Quick-Pick Saved Speakers:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {savedSpeakers.map(s => (
+                    <button
+                      key={s.id || s.name}
+                      onClick={() => {
+                        // find first unassigned speaker
+                        const unassigned = speakerStats.find(st => !speakerMap[st.rawSpeaker] && st.displayName !== s.name);
+                        if (unassigned) {
+                          saveSpeakerRename(unassigned.rawSpeaker, s.name);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-xs text-slate-200 hover:text-white transition-colors cursor-pointer"
+                      title={`Assign ${s.name} (${s.role || 'Speaker'})`}
+                    >
+                      <span>{s.avatarEmoji || '🎙️'}</span>
+                      <span className="font-semibold">{s.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
               {speakerStats.map(({ rawSpeaker, displayName, count }) => {
-                const theme = getSpeakerTheme(rawSpeaker);
+                const theme = getSpeakerTheme(displayName, savedSpeakers);
                 return (
                   <div key={rawSpeaker} className="flex items-center justify-between gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
                     <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-bold ${theme.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge}`}>
+                        {theme.emoji ? <span>{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
                         {rawSpeaker}
                       </span>
                       <span className="text-[10px] text-slate-500">({count} turns)</span>
                     </div>
 
-                    <input
-                      type="text"
-                      placeholder={rawSpeaker}
-                      value={speakerMap[rawSpeaker] || ''}
-                      onChange={(e) => saveSpeakerRename(rawSpeaker, e.target.value)}
-                      className="px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg text-white placeholder-slate-600 focus:outline-none w-44"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        placeholder={rawSpeaker}
+                        value={speakerMap[rawSpeaker] || ''}
+                        onChange={(e) => saveSpeakerRename(rawSpeaker, e.target.value)}
+                        className="px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg text-white placeholder-slate-600 focus:outline-none w-44"
+                      />
+                      {speakerMap[rawSpeaker] && (
+                        <button
+                          onClick={() => quickSaveToPermanent(speakerMap[rawSpeaker])}
+                          className="p-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 rounded-lg transition-colors border border-amber-500/20"
+                          title={`Save "${speakerMap[rawSpeaker]}" to Permanent Speakers`}
+                        >
+                          <Star size={12} className="fill-amber-400/40" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -1098,7 +1303,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 <button
                   onClick={handleSaveToGitHub}
                   disabled={savingGitHub || !Object.keys(speakerMap).length}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-emerald-600/20"
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-emerald-600/20"
                 >
                   {savingGitHub ? <Loader size={12} className="animate-spin" /> : <Save size={12} />}
                   {savingGitHub ? 'Saving…' : 'Save to GitHub'}
@@ -1111,6 +1316,158 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   Done
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Permanent Saved Speakers Directory Modal ── */}
+      {showSavedSpeakersModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <Star size={18} className="fill-amber-400/40" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Permanent Saved Speakers</h3>
+                  <p className="text-xs text-slate-400">These profiles appear as quick-pick options on every space</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSavedSpeakersModal(false)}
+                className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Existing Saved Speakers Roster */}
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {savedSpeakers.map(s => {
+                const theme = getSpeakerTheme(s.name, savedSpeakers);
+                return (
+                  <div key={s.id || s.name} className="flex items-center justify-between p-3 bg-slate-950 border border-slate-800 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shadow-sm ${theme.avatar}`}>
+                        {s.avatarEmoji || '🎙️'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white">{s.name}</span>
+                          {s.role && (
+                            <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-800 text-slate-300 font-medium border border-slate-700">
+                              {s.role}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-500 capitalize">{s.color || 'indigo'} theme</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => deletePermanentSpeaker(s.id || s.name)}
+                      className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                      title={`Remove ${s.name}`}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add New Speaker Form */}
+            <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-3">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <UserPlus size={13} className="text-indigo-400" />
+                Add New Permanent Speaker
+              </span>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Speaker Name (e.g. Rick)"
+                  value={newSpeakerName}
+                  onChange={(e) => setNewSpeakerName(e.target.value)}
+                  className="col-span-2 px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+
+                <select
+                  value={newSpeakerRole}
+                  onChange={(e) => setNewSpeakerRole(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="Host">Host</option>
+                  <option value="Co-Host">Co-Host</option>
+                  <option value="Special Guest">Special Guest</option>
+                  <option value="Speaker">Speaker</option>
+                </select>
+
+                <select
+                  value={newSpeakerColor}
+                  onChange={(e) => setNewSpeakerColor(e.target.value)}
+                  className="px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="indigo">Indigo</option>
+                  <option value="purple">Purple</option>
+                  <option value="emerald">Emerald</option>
+                  <option value="sky">Sky Blue</option>
+                  <option value="amber">Amber</option>
+                  <option value="rose">Rose</option>
+                  <option value="cyan">Cyan</option>
+                  <option value="teal">Teal</option>
+                  <option value="orange">Orange</option>
+                  <option value="fuchsia">Fuchsia</option>
+                </select>
+              </div>
+
+              {/* Emoji quick selector */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <span className="text-[10px] text-slate-500 font-medium">Emoji:</span>
+                {['🎙️', '👩‍🎨', '⚡', '🛸', '🎧', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️'].map(emoji => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setNewSpeakerEmoji(emoji)}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
+                      newSpeakerEmoji === emoji ? 'bg-indigo-600 text-white scale-110 shadow' : 'bg-slate-900 hover:bg-slate-800'
+                    }`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (newSpeakerName.trim()) {
+                    addOrUpdatePermanentSpeaker({
+                      id: newSpeakerName.trim().toLowerCase().replace(/\s+/g, '-'),
+                      name: newSpeakerName.trim(),
+                      avatarEmoji: newSpeakerEmoji,
+                      color: newSpeakerColor,
+                      role: newSpeakerRole,
+                    });
+                    setNewSpeakerName('');
+                  }
+                }}
+                disabled={!newSpeakerName.trim()}
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
+              >
+                <Plus size={13} />
+                Add to Permanent Directory
+              </button>
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowSavedSpeakersModal(false)}
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
