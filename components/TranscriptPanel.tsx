@@ -53,25 +53,36 @@ function formatSeconds(sec: number): string {
   return `${m.toString().padStart(2, '0')}:${rem.toString().padStart(2, '0')}`;
 }
 
-const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string }> = {
-  'A': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400' },
-  'B': { bg: 'bg-sky-500/10', text: 'text-sky-300', border: 'border-sky-500/30', badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400' },
-  'C': { bg: 'bg-purple-500/10', text: 'text-purple-300', border: 'border-purple-500/30', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40', dot: 'bg-purple-400' },
-  'D': { bg: 'bg-amber-500/10', text: 'text-amber-300', border: 'border-amber-500/30', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400' },
-  'E': { bg: 'bg-rose-500/10', text: 'text-rose-300', border: 'border-rose-500/30', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40', dot: 'bg-rose-400' },
-  'F': { bg: 'bg-cyan-500/10', text: 'text-cyan-300', border: 'border-cyan-500/30', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', dot: 'bg-cyan-400' },
+const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
+  'A': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
+  'B': { bg: 'bg-sky-500/10', text: 'text-sky-300', border: 'border-sky-500/30', badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400', avatar: 'bg-sky-600 text-white' },
+  'C': { bg: 'bg-purple-500/10', text: 'text-purple-300', border: 'border-purple-500/30', badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40', dot: 'bg-purple-400', avatar: 'bg-purple-600 text-white' },
+  'D': { bg: 'bg-amber-500/10', text: 'text-amber-300', border: 'border-amber-500/30', badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400', avatar: 'bg-amber-600 text-white' },
+  'E': { bg: 'bg-rose-500/10', text: 'text-rose-300', border: 'border-rose-500/30', badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40', dot: 'bg-rose-400', avatar: 'bg-rose-600 text-white' },
+  'F': { bg: 'bg-cyan-500/10', text: 'text-cyan-300', border: 'border-cyan-500/30', badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', dot: 'bg-cyan-400', avatar: 'bg-cyan-600 text-white' },
+  'G': { bg: 'bg-violet-500/10', text: 'text-violet-300', border: 'border-violet-500/30', badge: 'bg-violet-500/20 text-violet-300 border-violet-500/40', dot: 'bg-violet-400', avatar: 'bg-violet-600 text-white' },
+  'H': { bg: 'bg-teal-500/10', text: 'text-teal-300', border: 'border-teal-500/30', badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40', dot: 'bg-teal-400', avatar: 'bg-teal-600 text-white' },
+  'I': { bg: 'bg-indigo-500/10', text: 'text-indigo-300', border: 'border-indigo-500/30', badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40', dot: 'bg-indigo-400', avatar: 'bg-indigo-600 text-white' },
+  'J': { bg: 'bg-orange-500/10', text: 'text-orange-300', border: 'border-orange-500/30', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40', dot: 'bg-orange-400', avatar: 'bg-orange-600 text-white' },
+  'K': { bg: 'bg-pink-500/10', text: 'text-pink-300', border: 'border-pink-500/30', badge: 'bg-pink-500/20 text-pink-300 border-pink-500/40', dot: 'bg-pink-400', avatar: 'bg-pink-600 text-white' },
+  'L': { bg: 'bg-lime-500/10', text: 'text-lime-300', border: 'border-lime-500/30', badge: 'bg-lime-500/20 text-lime-300 border-lime-500/40', dot: 'bg-lime-400', avatar: 'bg-lime-600 text-white' },
+  'M': { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-300', border: 'border-fuchsia-500/30', badge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', dot: 'bg-fuchsia-400', avatar: 'bg-fuchsia-600 text-white' },
+  'N': { bg: 'bg-yellow-500/10', text: 'text-yellow-300', border: 'border-yellow-500/30', badge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40', dot: 'bg-yellow-400', avatar: 'bg-yellow-600 text-white' },
+  'O': { bg: 'bg-blue-500/10', text: 'text-blue-300', border: 'border-blue-500/30', badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-400', avatar: 'bg-blue-600 text-white' },
+  'P': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
 };
 
 function getSpeakerTheme(rawSpeaker: string) {
-  const match = rawSpeaker.match(/([A-Z0-9])/i);
-  const key = (match ? match[1].toUpperCase() : rawSpeaker.slice(-1).toUpperCase()) || 'A';
-  return SPEAKER_PALETTE[key] || {
-    bg: 'bg-indigo-500/10',
-    text: 'text-indigo-300',
-    border: 'border-indigo-500/30',
-    badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-    dot: 'bg-indigo-400',
-  };
+  // Use first character or hash for consistent vibrant theme
+  const clean = rawSpeaker.replace(/^Speaker\s+/i, '').trim();
+  const char = (clean.charAt(0) || 'A').toUpperCase();
+  if (SPEAKER_PALETTE[char]) return SPEAKER_PALETTE[char];
+  
+  // Fallback hash
+  let hash = 0;
+  for (let i = 0; i < rawSpeaker.length; i++) hash = (hash * 31 + rawSpeaker.charCodeAt(i)) % 16;
+  const keys = Object.keys(SPEAKER_PALETTE);
+  return SPEAKER_PALETTE[keys[hash % keys.length]];
 }
 
 function highlightMatch(text: string, query: string): React.ReactNode {
@@ -843,33 +854,36 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </div>
 
                 {/* ── Transcript Content / Utterance Feed ── */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
                   {transcriptLoading && (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
-                      <Loader size={24} className="animate-spin text-indigo-400" />
-                      <span className="text-xs font-medium">Loading diarized transcript…</span>
+                    <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
+                      <Loader size={26} className="animate-spin text-indigo-400" />
+                      <span className="text-xs font-medium tracking-wide">Loading diarized transcript…</span>
                     </div>
                   )}
 
                   {transcriptError && (
-                    <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs">
-                      <p className="font-semibold">Could not load transcript</p>
-                      <p className="mt-1 opacity-80">{transcriptError}</p>
+                    <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
+                      <p className="font-semibold flex items-center gap-2">
+                        <AlertCircle size={15} className="text-red-400" />
+                        Could not load transcript
+                      </p>
+                      <p className="mt-1 opacity-90 pl-6">{transcriptError}</p>
                     </div>
                   )}
 
                   {!transcriptLoading && !transcriptError && !transcriptRaw && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-16">
-                      <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400">
-                        <Sparkles size={26} />
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-20">
+                      <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl shadow-indigo-500/5">
+                        <Sparkles size={28} />
                       </div>
-                      <h4 className="text-base font-bold text-white mb-1">No Transcript Generated Yet</h4>
-                      <p className="text-slate-400 text-xs mb-6">
+                      <h4 className="text-base font-bold text-white mb-1.5">No Transcript Generated Yet</h4>
+                      <p className="text-slate-400 text-xs mb-6 leading-relaxed">
                         This episode has audio published, but has not been transcribed with AssemblyAI speaker diarization yet.
                       </p>
 
                       {transcribeSuccess ? (
-                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs mb-4 text-left w-full">
+                        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
                           <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
                           <p className="mt-1 opacity-90">{transcribeSuccess}</p>
                         </div>
@@ -877,7 +891,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <button
                           onClick={handleGenerateTranscript}
                           disabled={transcribing}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all hover:scale-105 cursor-pointer"
+                          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer"
                         >
                           {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
                           {transcribing ? 'Dispatching GitHub Action…' : '⚡ Transcribe with AssemblyAI Now'}
@@ -887,108 +901,136 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   )}
 
                   {!transcriptLoading && !transcriptError && transcriptRaw && filteredUtterances.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center text-slate-500">
-                      <Search size={28} className="mb-2 text-slate-600" />
-                      <p className="text-xs font-medium">No speaker turns match your current search/filter.</p>
+                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500">
+                      <Search size={32} className="mb-3 text-slate-600" />
+                      <p className="text-sm font-medium">No speaker turns match your search/filter.</p>
+                      <button
+                        onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
+                        className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                      >
+                        Reset filters
+                      </button>
                     </div>
                   )}
 
-                  {!transcriptLoading && !transcriptError && filteredUtterances.map((utterance, idx) => {
-                    const isPlayingThisUtterance = activeUtteranceIndex === idx;
-                    const theme = getSpeakerTheme(utterance.rawSpeaker);
-                    const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
+                  {/* ── Centered Reading Flow Container ── */}
+                  {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
+                    <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
+                      {filteredUtterances.map((utterance, idx) => {
+                        const isPlayingThisUtterance = activeUtteranceIndex === idx;
+                        const theme = getSpeakerTheme(utterance.rawSpeaker);
+                        const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
+                        const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
-                    return (
-                      <div
-                        id={`utterance-card-${idx}`}
-                        key={utterance.id}
-                        onClick={() => handlePlayUtterance(utterance.startSec)}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer group relative ${
-                          isPlayingThisUtterance
-                            ? 'bg-indigo-950/40 border-indigo-500/70 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/30'
-                            : 'bg-slate-900/60 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2">
-                            {/* Inline Editable Speaker Tag */}
-                            {isEditingThisSpeaker ? (
-                              <div
-                                className="flex items-center gap-1.5"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <input
-                                  type="text"
-                                  autoFocus
-                                  value={editingSpeakerVal}
-                                  onChange={(e) => setEditingSpeakerVal(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal);
-                                    if (e.key === 'Escape') setEditingSpeakerKey(null);
-                                  }}
-                                  onBlur={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
-                                  placeholder={utterance.rawSpeaker}
-                                  className="px-2.5 py-0.5 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-36 shadow-lg shadow-indigo-500/20"
-                                />
-                                <button
-                                  onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
-                                  className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px]"
-                                  title="Save name"
-                                >
-                                  <Check size={11} />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingSpeakerKey(utterance.rawSpeaker);
-                                  setEditingSpeakerVal(utterance.speaker);
-                                }}
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-[11px] font-bold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}
-                                title="Click to rename this speaker across all turns"
-                              >
-                                <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
-                                <span>{utterance.speaker}</span>
-                                <Pencil size={9} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-1 text-slate-300" />
-                              </button>
-                            )}
-
-                            {/* Timestamp Seek Button */}
-                            <button
+                        return (
+                          <div
+                            id={`utterance-card-${idx}`}
+                            key={utterance.id}
+                            onClick={() => handlePlayUtterance(utterance.startSec)}
+                            className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer relative ${
+                              isPlayingThisUtterance
+                                ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
+                            }`}
+                          >
+                            {/* Speaker Avatar Badge */}
+                            <div
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handlePlayUtterance(utterance.startSec);
+                                setEditingSpeakerKey(utterance.rawSpeaker);
+                                setEditingSpeakerVal(utterance.speaker);
                               }}
-                              className="flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 group-hover:text-indigo-300 group-hover:bg-indigo-500/20 transition-colors"
-                              title="Click to seek playback to this moment"
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer`}
+                              title={`Click to rename ${utterance.speaker}`}
                             >
-                              <Play size={9} className="text-indigo-400 translate-x-0.2" />
-                              <span>{utterance.startLabel}</span>
-                              {utterance.endLabel && (
-                                <span className="text-slate-500 group-hover:text-indigo-400/60 font-normal">
-                                  - {utterance.endLabel}
-                                </span>
-                              )}
-                            </button>
+                              {initialChar}
+                            </div>
+
+                            {/* Utterance Body */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  {/* Inline Editable Speaker Tag */}
+                                  {isEditingThisSpeaker ? (
+                                    <div
+                                      className="flex items-center gap-1.5"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <input
+                                        type="text"
+                                        autoFocus
+                                        value={editingSpeakerVal}
+                                        onChange={(e) => setEditingSpeakerVal(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal);
+                                          if (e.key === 'Escape') setEditingSpeakerKey(null);
+                                        }}
+                                        onBlur={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
+                                        placeholder={utterance.rawSpeaker}
+                                        className="px-2.5 py-0.5 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 w-36 shadow-lg shadow-indigo-500/20"
+                                      />
+                                      <button
+                                        onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)}
+                                        className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-[10px]"
+                                        title="Save name"
+                                      >
+                                        <Check size={11} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingSpeakerKey(utterance.rawSpeaker);
+                                        setEditingSpeakerVal(utterance.speaker);
+                                      }}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}
+                                      title="Click to rename this speaker across all turns"
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />
+                                      <span>{utterance.speaker}</span>
+                                      <Pencil size={10} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-300" />
+                                    </button>
+                                  )}
+
+                                  {/* Timestamp Seek Button */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handlePlayUtterance(utterance.startSec);
+                                    }}
+                                    className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors"
+                                    title="Click to seek playback to this moment"
+                                  >
+                                    <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
+                                    <span>{utterance.startLabel}</span>
+                                    {utterance.endLabel && (
+                                      <span className="text-slate-500 font-normal">
+                                        - {utterance.endLabel}
+                                      </span>
+                                    )}
+                                  </button>
+                                </div>
+
+                                {isPlayingThisUtterance && (
+                                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
+                                    <Volume2 size={11} /> Speaking Now
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Spoken Text with Comfortable Reading Typography */}
+                              <p className={`text-[15px] leading-relaxed transition-colors select-text ${
+                                isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'
+                              }`}>
+                                {highlightMatch(utterance.text, search)}
+                              </p>
+                            </div>
                           </div>
-
-                          {isPlayingThisUtterance && (
-                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
-                              <Volume2 size={11} /> Speaking Now
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Spoken Text */}
-                        <p className={`text-sm leading-relaxed transition-colors ${
-                          isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-300'
-                        }`}>
-                          {highlightMatch(utterance.text, search)}
-                        </p>
-                      </div>
-                    );
-                  })}
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </>
             )}
