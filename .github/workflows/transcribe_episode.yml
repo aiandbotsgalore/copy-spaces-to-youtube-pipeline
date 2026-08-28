@@ -62,8 +62,10 @@ jobs:
           with urllib.request.urlopen(req2) as r, open(out_path, "wb") as f:
               f.write(r.read())
           print(f"Downloaded to {out_path}")
+          release_name = release.get("name") or release.get("tag_name") or tag
           with open(os.environ["GITHUB_OUTPUT"], "a") as gho:
               gho.write(f"mp3_path={out_path}\n")
+              gho.write(f"release_name={release_name}\n")
           PYEOF
 
       - name: Transcribe with AssemblyAI
@@ -72,35 +74,57 @@ jobs:
           ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           MP3_PATH: ${{ steps.download.outputs.mp3_path }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          RELEASE_NAME: ${{ steps.download.outputs.release_name }}
         run: |
           mkdir -p transcripts
           python3 - <<'PYEOF'
-          import os, sys, json, time, urllib.request
+          import os, sys, json, time, urllib.request, re
+
           api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
           if not api_key:
               print("::error::ASSEMBLYAI_API_KEY secret is not set.")
               sys.exit(1)
+
           mp3_path = os.environ.get("MP3_PATH", "")
           release_tag = os.environ.get("RELEASE_TAG", "")
+          release_name = os.environ.get("RELEASE_NAME", "") or release_tag
           if not mp3_path or not os.path.exists(mp3_path):
               print(f"::error::MP3 file not found: {mp3_path}")
               sys.exit(1)
+
           base_name = os.path.splitext(os.path.basename(mp3_path))[0]
           txt_path = f"transcripts/{base_name}.txt"
           json_path = f"transcripts/{base_name}.json"
-          def fmt(ms):
-              s = int(ms) // 1000
+
+          def fmt(sec):
+              s = int(sec)
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+
           audio_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{os.path.basename(mp3_path)}"
-          print(f"🚀 Requesting AssemblyAI transcription for {audio_url} (model: best, no backup)...")
+          print(f"🚀 Requesting AssemblyAI Universal-3.5 Pro transcription for {audio_url}...")
+
+          base_keyterms = [
+              "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",
+              "Lana", "Pants Down", "UAP", "UFO", "UFOs", "PeruAliens", "David Grusch",
+              "disclosure", "extraterrestrial", "NHI", "A.I."
+          ]
+          if release_name:
+              title_words = [w for w in re.split(r'[^a-zA-Z0-9]', release_name) if len(w) > 2]
+              keyterms = list(dict.fromkeys(base_keyterms + title_words[:15]))
+          else:
+              keyterms = base_keyterms
+
           payload = json.dumps({
               "audio_url": audio_url,
-              "speech_model": "best",
+              "speech_models": ["universal-3-5-pro", "universal-2"],
               "language_code": "en",
               "punctuate": True,
               "format_text": True,
               "speaker_labels": True,
+              "prompt": "Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
+              "keyterms_prompt": keyterms,
           }).encode("utf-8")
+
           req = urllib.request.Request(
               "https://api.assemblyai.com/v2/transcript",
               data=payload,
@@ -156,8 +180,10 @@ jobs:
 
           utterances = transcript.get("utterances") or []
           distinct_speakers = sorted(list(set(str(u.get('speaker')) for u in utterances)))
+          model_used = transcript.get("speech_model_used") or "universal-3-5-pro"
           print(f"✅ Transcription completed successfully!")
           print(f"  Transcript ID: {transcript.get('id')}")
+          print(f"  Model used: {model_used}")
           print(f"  Confidence: {transcript.get('confidence')}")
           print(f"  Audio Duration: {transcript.get('audio_duration')}s")
           print(f"  Speakers detected ({len(distinct_speakers)}): {', '.join(distinct_speakers)}")
@@ -166,23 +192,30 @@ jobs:
           lines, segments = [], []
           for u in utterances:
               spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
-              lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {spk}: {u['text'].strip()}")
+              start_sec = round(float(u.get("start", 0)) / 1000.0, 3)
+              end_sec = round(float(u.get("end", 0)) / 1000.0, 3)
+              lines.append(f"[{fmt(start_sec)} - {fmt(end_sec)}] {spk}: {u['text'].strip()}")
               segments.append({
-                  "start": u["start"],
-                  "end": u["end"],
+                  "start": start_sec,
+                  "end": end_sec,
+                  "start_ms": u.get("start"),
+                  "end_ms": u.get("end"),
                   "speaker": spk,
                   "text": u["text"].strip(),
                   "confidence": u.get("confidence")
               })
+
           if not lines and transcript.get("text"):
               lines.append(transcript.get("text", "").strip())
+
           with open(txt_path, "w", encoding="utf-8") as f:
               f.write("\n\n".join(lines))
+
           with open(json_path, "w", encoding="utf-8") as f:
               json.dump({
                   "release_tag": release_tag,
                   "transcript_id": transcript.get("id"),
-                  "model_used": "best",
+                  "model_used": model_used,
                   "confidence": transcript.get("confidence"),
                   "audio_duration": transcript.get("audio_duration"),
                   "speakers_count": len(distinct_speakers),
@@ -190,6 +223,7 @@ jobs:
                   "segments": segments,
                   "text": transcript.get("text", "")
               }, f, indent=2)
+
           print(f"📄 Transcript saved: {txt_path} ({len(lines)} speaker turns)")
           print(f"📊 JSON data saved: {json_path}")
           PYEOF

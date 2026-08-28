@@ -133,18 +133,31 @@ def upload_to_assemblyai(api_key: str, audio_path: Path) -> str:
     return with_retries(f"upload {audio_path.name}", do_upload)
 
 
-def request_transcript(api_key: str, audio_url: str) -> str:
+def request_transcript(api_key: str, audio_url: str, title: str = "") -> str:
     headers = {
         "authorization": api_key,
         "content-type": "application/json",
     }
+    base_keyterms = [
+        "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",
+        "Lana", "Pants Down", "UAP", "UFO", "UFOs", "PeruAliens", "David Grusch",
+        "disclosure", "extraterrestrial", "NHI", "A.I."
+    ]
+    if title:
+        title_words = [w for w in re.split(r'[^a-zA-Z0-9]', title) if len(w) > 2]
+        keyterms = list(dict.fromkeys(base_keyterms + title_words[:15]))
+    else:
+        keyterms = base_keyterms
+
     payload = {
         "audio_url": audio_url,
-        "speech_model": "best",
+        "speech_models": ["universal-3-5-pro", "universal-2"],
         "language_code": "en",
         "punctuate": True,
         "format_text": True,
         "speaker_labels": True,
+        "prompt": "Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
+        "keyterms_prompt": keyterms,
     }
 
     def do_request() -> str:
@@ -324,17 +337,18 @@ def main() -> int:
                 print(f"Uploading chunk {index}/{len(chunk_paths)}: {chunk_path.name}", flush=True)
                 upload_url = upload_to_assemblyai(args.assemblyai_api_key, chunk_path)
                 print(f"Requesting transcript for chunk {index}/{len(chunk_paths)}", flush=True)
-                transcript_id = request_transcript(args.assemblyai_api_key, upload_url)
+                transcript_id = request_transcript(args.assemblyai_api_key, upload_url, title=item.get("title", ""))
                 print(f"Polling transcript {transcript_id}", flush=True)
                 transcript = poll_transcript(args.assemblyai_api_key, transcript_id)
                 chunk_text = transcript.get("text", "")
                 chunk_utterances = transcript.get("utterances") or []
+                model_used = transcript.get("speech_model_used") or "universal-3-5-pro"
                 chunk_results.append(
                     {
                         "chunk_index": index,
                         "file": chunk_path.name,
                         "transcript_id": transcript.get("id"),
-                        "model_used": transcript.get("speech_model_used", "universal-3-5-pro"),
+                        "model_used": model_used,
                         "text": chunk_text,
                         "utterances": chunk_utterances,
                     }
@@ -343,10 +357,10 @@ def main() -> int:
                 time_offset_sec = (index - 1) * MAX_TRANSCRIPT_SECONDS
                 for u in chunk_utterances:
                     spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
-                    s_sec = (int(u.get("start", 0)) // 1000) + time_offset_sec
-                    e_sec = (int(u.get("end", 0)) // 1000) + time_offset_sec
-                    s_fmt = f"{s_sec // 3600:02d}:{(s_sec % 3600) // 60:02d}:{s_sec % 60:02d}"
-                    e_fmt = f"{e_sec // 3600:02d}:{(e_sec % 3600) // 60:02d}:{e_sec % 60:02d}"
+                    s_sec = round(float(u.get("start", 0)) / 1000.0 + time_offset_sec, 3)
+                    e_sec = round(float(u.get("end", 0)) / 1000.0 + time_offset_sec, 3)
+                    s_fmt = f"{int(s_sec) // 3600:02d}:{(int(s_sec) % 3600) // 60:02d}:{int(s_sec) % 60:02d}"
+                    e_fmt = f"{int(e_sec) // 3600:02d}:{(int(e_sec) % 3600) // 60:02d}:{int(e_sec) % 60:02d}"
                     chunk_lines.append(f"[{s_fmt} - {e_fmt}] {spk}: {u.get('text', '').strip()}")
                 if not chunk_lines and chunk_text:
                     chunk_lines.append(chunk_text.strip())

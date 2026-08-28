@@ -113,18 +113,25 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
           txt_path = f"transcripts/{base_name}.txt"
           json_path = f"transcripts/{base_name}.json"
 
-          def fmt(ms):
-              s = int(ms) // 1000
+          def fmt(sec):
+              s = int(sec)
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
 
-          print("🚀 Requesting AssemblyAI transcription with default SpeechModel.best (no backup models)...")
+          print("🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
+          base_keyterms = [
+              "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",
+              "Lana", "Pants Down", "UAP", "UFO", "UFOs", "PeruAliens", "David Grusch",
+              "disclosure", "extraterrestrial", "NHI", "A.I."
+          ]
           try:
               cfg = aai.TranscriptionConfig(
                   speaker_labels=True,
-                  speech_model=aai.SpeechModel.best,
+                  speech_models=["universal-3-5-pro", "universal-2"],
                   language_code="en",
                   punctuate=True,
-                  format_text=True
+                  format_text=True,
+                  prompt="Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
+                  keyterms_prompt=base_keyterms
               )
               transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
           except Exception as e:
@@ -137,8 +144,10 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
               print(f"  Error message: {transcript.error}")
               sys.exit(1)
 
+          model_used = getattr(transcript, "speech_model_used", "universal-3-5-pro")
           print(f"✅ Transcription completed successfully!")
           print(f"  Transcript ID: {transcript.id}")
+          print(f"  Model used: {model_used}")
           print(f"  Confidence: {getattr(transcript, 'confidence', 'N/A')}")
           print(f"  Audio Duration: {getattr(transcript, 'audio_duration', 'N/A')}s")
 
@@ -150,10 +159,14 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
           lines, segments = [], []
           for u in utterances:
               spk = f"Speaker {u.speaker}" if not str(u.speaker).startswith("Speaker") else str(u.speaker)
-              lines.append(f"[{fmt(u.start)} - {fmt(u.end)}] {spk}: {u.text.strip()}")
+              start_sec = round(float(getattr(u, "start", 0)) / 1000.0, 3)
+              end_sec = round(float(getattr(u, "end", 0)) / 1000.0, 3)
+              lines.append(f"[{fmt(start_sec)} - {fmt(end_sec)}] {spk}: {u.text.strip()}")
               segments.append({
-                  "start": u.start,
-                  "end": u.end,
+                  "start": start_sec,
+                  "end": end_sec,
+                  "start_ms": getattr(u, "start", None),
+                  "end_ms": getattr(u, "end", None),
                   "speaker": spk,
                   "text": u.text.strip(),
                   "confidence": getattr(u, "confidence", None)
@@ -170,7 +183,7 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
                   "episode_id": episode_id,
                   "source_url": source_url,
                   "transcript_id": transcript.id,
-                  "model_used": "best",
+                  "model_used": model_used,
                   "confidence": getattr(transcript, "confidence", None),
                   "audio_duration": getattr(transcript, "audio_duration", None),
                   "speakers_count": len(distinct_speakers),
