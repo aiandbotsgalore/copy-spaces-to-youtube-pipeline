@@ -2,19 +2,23 @@ name: Auto-Detect & Ingest Spaces
 
 on:
   schedule:
-    # Runs every 30 minutes 24/7
-    - cron: '*/30 * * * *'
+    # Runs twice per hour at :13 and :43 (offset from congested :00/:30 slots)
+    - cron: '13,43 * * * *'
   workflow_dispatch:
     inputs:
-      x_handle:
-        description: 'X (Twitter) handle to scan without the @'
+      x_handles:
+        description: 'Comma-separated X handles to scan (no @) e.g. LoganBlack,ShaneB_Official'
         required: false
         default: 'LoganBlack'
         type: string
-      limit:
-        description: 'Number of recent tweets to scan'
+      x_handle:
+        description: 'Single handle (legacy fallback)'
         required: false
-        default: '15'
+        type: string
+      limit:
+        description: 'Number of recent tweets to scan per handle'
+        required: false
+        default: '20'
         type: string
 
 permissions:
@@ -38,8 +42,9 @@ jobs:
       - name: Auto-Detect & Trigger Ingestion
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          X_HANDLE: ${{ inputs.x_handle || 'LoganBlack' }}
-          TWEET_LIMIT: ${{ inputs.limit || '15' }}
+          # Supports either input parameter or defaults to LoganBlack
+          X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || 'LoganBlack' }}
+          TWEET_LIMIT: ${{ inputs.limit || '20' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           node scripts/auto_detect_spaces.mjs

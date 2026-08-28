@@ -2,7 +2,8 @@ name: Monitor Batch Queue
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    # Runs at :18 and :48 past each hour (offset from :00/:30)
+    - cron: '18,48 * * * *'
   workflow_dispatch:
 
 permissions:

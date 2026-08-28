@@ -12,7 +12,7 @@ interface PlayerContextValue {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
-  play: (episode: NowPlayingEpisode) => void;
+  play: (episode: NowPlayingEpisode, startTime?: number) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
   close: () => void;
@@ -26,32 +26,70 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingSeekRef = useRef<number | null>(null);
 
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
+
+    const applyPendingSeek = () => {
+      if (pendingSeekRef.current !== null && audio.duration) {
+        const target = Math.min(pendingSeekRef.current, audio.duration);
+        audio.currentTime = target;
+        setCurrentTime(target);
+        pendingSeekRef.current = null;
+      }
+    };
+
     const onTime = () => setCurrentTime(audio.currentTime);
-    const onLoaded = () => setDuration(audio.duration || 0);
+    const onLoaded = () => {
+      setDuration(audio.duration || 0);
+      applyPendingSeek();
+    };
+    const onCanPlay = () => {
+      applyPendingSeek();
+    };
     const onEnded = () => setIsPlaying(false);
+
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onLoaded);
+    audio.addEventListener('canplay', onCanPlay);
     audio.addEventListener('ended', onEnded);
+
     return () => {
       audio.removeEventListener('timeupdate', onTime);
       audio.removeEventListener('loadedmetadata', onLoaded);
+      audio.removeEventListener('canplay', onCanPlay);
       audio.removeEventListener('ended', onEnded);
       audio.pause();
     };
   }, []);
 
-  const play = useCallback((episode: NowPlayingEpisode) => {
+  const play = useCallback((episode: NowPlayingEpisode, startTime?: number) => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    if (startTime !== undefined && startTime !== null) {
+      pendingSeekRef.current = startTime;
+    }
+
     if (current?.id !== episode.id) {
       audio.src = episode.audioUrl;
       setCurrent(episode);
-      setCurrentTime(0);
+      setCurrentTime(startTime || 0);
+      if (startTime !== undefined && startTime !== null && audio.readyState >= 1) {
+        audio.currentTime = startTime;
+      }
+    } else if (startTime !== undefined && startTime !== null) {
+      if (audio.readyState >= 1) {
+        audio.currentTime = startTime;
+        setCurrentTime(startTime);
+        pendingSeekRef.current = null;
+      } else {
+        pendingSeekRef.current = startTime;
+      }
     }
+
     audio.play().catch(() => setIsPlaying(false));
     setIsPlaying(true);
   }, [current]);
@@ -71,8 +109,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.currentTime = time;
-    setCurrentTime(time);
+    if (audio.readyState >= 1) {
+      audio.currentTime = time;
+      setCurrentTime(time);
+      pendingSeekRef.current = null;
+    } else {
+      pendingSeekRef.current = time;
+      setCurrentTime(time);
+    }
   }, []);
 
   const close = useCallback(() => {
@@ -82,6 +126,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setCurrent(null);
     setCurrentTime(0);
     setDuration(0);
+    pendingSeekRef.current = null;
   }, []);
 
   return (

@@ -37,4 +37,11 @@ transcripts/
 
 # Generated batch run artifacts
 batches/
+work/
+diagnostics/
+repomix-output.xml
+*.mp3
+*.m4a
+*.wav
+*.tmp
 

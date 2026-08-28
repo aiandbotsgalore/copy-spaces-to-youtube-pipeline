@@ -4,8 +4,12 @@ import { usePlayer } from '../contexts/PlayerContext';
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
-  const m = Math.floor(seconds / 60);
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
+  if (h > 0) {
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
@@ -31,7 +35,7 @@ const PlayerBar: React.FC = () => {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-white truncate">{current.title}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[10px] text-slate-500 w-8 flex-shrink-0">{formatTime(currentTime)}</span>
+          <span className="text-[10px] text-slate-500 w-14 flex-shrink-0 tabular-nums">{formatTime(currentTime)}</span>
           <input
             type="range"
             min={0}
@@ -40,7 +44,7 @@ const PlayerBar: React.FC = () => {
             onChange={e => seek(Number(e.target.value))}
             className="flex-1 h-1 accent-indigo-500 cursor-pointer"
           />
-          <span className="text-[10px] text-slate-500 w-8 flex-shrink-0">{formatTime(duration)}</span>
+          <span className="text-[10px] text-slate-500 w-14 flex-shrink-0 tabular-nums text-right">{formatTime(duration)}</span>
         </div>
       </div>
 

@@ -340,10 +340,11 @@ def main() -> int:
                     }
                 )
                 chunk_lines = []
+                time_offset_sec = (index - 1) * MAX_TRANSCRIPT_SECONDS
                 for u in chunk_utterances:
                     spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
-                    s_sec = int(u.get("start", 0)) // 1000
-                    e_sec = int(u.get("end", 0)) // 1000
+                    s_sec = (int(u.get("start", 0)) // 1000) + time_offset_sec
+                    e_sec = (int(u.get("end", 0)) // 1000) + time_offset_sec
                     s_fmt = f"{s_sec // 3600:02d}:{(s_sec % 3600) // 60:02d}:{s_sec % 60:02d}"
                     e_fmt = f"{e_sec // 3600:02d}:{(e_sec % 3600) // 60:02d}:{e_sec % 60:02d}"
                     chunk_lines.append(f"[{s_fmt} - {e_fmt}] {spk}: {u.get('text', '').strip()}")
