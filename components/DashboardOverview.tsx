@@ -3,11 +3,12 @@ import {
   Zap, Play, ListPlus, Loader, CheckCircle, XCircle, AlertCircle,
   Copy, Check, Github, ExternalLink, Library, FileText, ChevronRight, Radio,
 } from 'lucide-react';
-import { EnhancedConfig, Release } from '../types';
-import { dispatchWorkflow, appendLineToRepositoryTextFile, getReleases } from '../utils/github';
+import { Release, EnhancedConfig } from '../types';
+import { getReleases, dispatchWorkflow, appendLineToRepositoryTextFile } from '../utils/github';
 import { validateSubmission, friendlyGitHubError } from '../utils/submitSpace';
 import { useActiveOperations } from '../hooks/useActiveOperations';
 import { usePlayer } from '../contexts/PlayerContext';
+import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 
 interface Props {
   config: EnhancedConfig;
@@ -58,9 +59,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
 
   useEffect(() => { loadReleases(); }, [loadReleases]);
 
-  const recent = [...releases]
-    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
-    .slice(0, 4);
+  const recent = sortReleasesByRecordedDate(releases).slice(0, 4);
 
   const handleCopyRss = () => {
     navigator.clipboard.writeText(rssUrl).then(() => {
@@ -368,7 +367,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                      <span className="text-xs text-slate-500">{formatDate(release.published_at)}</span>
+                      <span className="text-xs text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
                       {duration && <span className="text-xs text-slate-500">· {duration}</span>}
                       {txt && (
                         <button

@@ -8,6 +8,7 @@ import {
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
+import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 
 interface Props {
   config: EnhancedConfig;
@@ -450,7 +451,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     currentLoadedIdRef.current = null;
     try {
       const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
-      setReleases(data);
+      setReleases(sortReleasesByRecordedDate(data));
       setLoaded(true);
     } catch (e) {
       setError((e as Error).message);
@@ -803,7 +804,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-[10px] text-slate-500">{formatDate(release.published_at)}</span>
+                      <span className="text-[10px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
                       {hasTxt
                         ? <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[9px] font-medium">Transcript Ready</span>
                         : <span className="px-1.5 py-0.5 bg-slate-800 text-slate-500 rounded text-[9px]">Audio Only</span>}
@@ -838,7 +839,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   <div className="min-w-0">
                     <h3 className="text-sm font-bold text-white truncate max-w-md">{selectedRelease.name || selectedRelease.tag_name}</h3>
                     <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span>{formatDate(selectedRelease.published_at)}</span>
+                      <span className="text-slate-300 font-medium">{getEpisodeRecordedDate(selectedRelease).displayDate}</span>
                       {utterances.length > 0 && <><span>•</span><span className="text-indigo-400 font-medium">{utterances.length} turns</span></>}
                       {speakerStats.length > 0 && <><span>•</span><span className="text-emerald-400">{speakerStats.length} speaker{speakerStats.length > 1 ? 's' : ''}</span></>}
                       {transcriptMetadata.model && <><span>•</span><span className="text-cyan-400" title="Speech-to-text model">{transcriptMetadata.model}</span></>}

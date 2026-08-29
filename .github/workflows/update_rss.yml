@@ -64,11 +64,55 @@ jobs:
 
           print(f"Found {len(releases)} releases")
 
+          def extract_recorded_datetime(rel):
+              body = rel.get("body", "") or ""
+              tag = rel.get("tag_name", "") or ""
+              name = rel.get("name", "") or ""
+              pub = rel.get("published_at", "") or ""
+
+              m = re.search(r"METADATA::EPISODE_DATE::(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
+              if m:
+                  try:
+                      return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), 12, 0, 0, tzinfo=timezone.utc)
+                  except Exception:
+                      pass
+
+              rec = re.search(r"\*\*Recorded:\*\*\s*(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
+              if rec:
+                  try:
+                      return datetime(int(rec.group(1)), int(rec.group(2)), int(rec.group(3)), 12, 0, 0, tzinfo=timezone.utc)
+                  except Exception:
+                      pass
+
+              t = re.search(r"^(?:v)?(\d{4})[-_]?(\d{2})[-_]?(\d{2})", tag)
+              if t:
+                  try:
+                      return datetime(int(t.group(1)), int(t.group(2)), int(t.group(3)), 12, 0, 0, tzinfo=timezone.utc)
+                  except Exception:
+                      pass
+
+              n = re.search(r"\b(\d{4})[-/](\d{2})[-/](\d{2})\b", name)
+              if n:
+                  try:
+                      return datetime(int(n.group(1)), int(n.group(2)), int(n.group(3)), 12, 0, 0, tzinfo=timezone.utc)
+                  except Exception:
+                      pass
+
+              if pub:
+                  try:
+                      return datetime.strptime(pub, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                  except Exception:
+                      pass
+
+              return datetime.now(timezone.utc)
+
+          valid_releases = [r for r in releases if not r.get('draft') and not r.get('prerelease')]
+          sorted_releases = sorted(valid_releases, key=extract_recorded_datetime, reverse=True)
+
           items = []
-          for rel in releases:
-              if rel.get('draft') or rel.get('prerelease'): continue
-              dt = datetime.strptime(rel['published_at'], "%Y-%m-%dT%H:%M:%SZ")
-              date = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
+          for rel in sorted_releases:
+              dt = extract_recorded_datetime(rel)
+              date = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
               body = rel.get('body', '')
               dur_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
               duration = dur_match.group(1) if dur_match else "00:00:00"

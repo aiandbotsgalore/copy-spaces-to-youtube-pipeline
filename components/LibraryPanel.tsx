@@ -6,6 +6,7 @@ import {
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, dispatchWorkflow, deleteRelease } from '../utils/github';
 import { usePlayer } from '../contexts/PlayerContext';
+import { getEpisodeRecordedDate } from '../utils/dates';
 
 interface Props {
   config: EnhancedConfig;
@@ -17,38 +18,12 @@ interface DuplicateGroup {
   releases: Release[];
 }
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function yyyymmddToDisplay(d: string): string {
-  const y = d.slice(0, 4);
-  const m = parseInt(d.slice(4, 6), 10) - 1;
-  const day = d.slice(6, 8).replace(/^0/, '');
-  return `${MONTHS[m] ?? '?'} ${day}, ${y}`;
-}
-
-function extractYYYYMMDD(body: string | null, tagName: string): string | null {
-  if (body) {
-    const m = body.match(/METADATA::EPISODE_DATE::(\d{8})/);
-    if (m) return m[1];
-  }
-  const t = tagName.match(/^(\d{8})/);
-  if (t) return t[1];
-  return null;
-}
-
-function episodeDateDisplay(body: string | null, tagName: string): string | null {
-  const raw = extractYYYYMMDD(body, tagName);
-  return raw ? yyyymmddToDisplay(raw) : null;
+function episodeDateDisplay(body: string | null, tagName: string): string {
+  return getEpisodeRecordedDate({ body, tag_name: tagName }).displayDate;
 }
 
 function episodeDateMs(body: string | null, tagName: string): number {
-  const raw = extractYYYYMMDD(body, tagName);
-  if (!raw) return 0;
-  return Date.UTC(
-    parseInt(raw.slice(0, 4), 10),
-    parseInt(raw.slice(4, 6), 10) - 1,
-    parseInt(raw.slice(6, 8), 10)
-  );
+  return getEpisodeRecordedDate({ body, tag_name: tagName }).timestampMs;
 }
 
 function parseDuration(body: string | null): string {
