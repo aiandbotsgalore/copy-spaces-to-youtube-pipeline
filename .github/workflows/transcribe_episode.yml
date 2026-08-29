@@ -174,22 +174,34 @@ jobs:
           else:
               print(f"⚠️ Warning: ffmpeg enhancement failed ({res.stderr}), using original audio.")
 
-          print(f"📤 Uploading speech-conditioned audio to AssemblyAI...")
-          upload_req = urllib.request.Request(
-              "https://api.assemblyai.com/v2/upload",
-              data=open(upload_target, "rb").read(),
-              headers={"Authorization": api_key},
-              method="POST"
-          )
+          # Check duration with ffprobe to handle marathon Spaces (>6 hours)
+          duration_sec = 0.0
           try:
-              upload_res = request_with_retry(upload_req, max_retries=5, initial_delay=5)
-              audio_url = upload_res["upload_url"]
-          except Exception as ue:
-              print(f"::error::Failed uploading audio to AssemblyAI: {ue}")
-              sys.exit(1)
-          print(f"✅ Uploaded to AssemblyAI (audio URL ready)")
+              probe_res = subprocess.run(
+                  ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", upload_target],
+                  capture_output=True, text=True, check=True
+              )
+              duration_sec = float(probe_res.stdout.strip())
+          except Exception as pe:
+              print(f"  Warning: ffprobe duration check: {pe}")
 
-          print(f"🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
+          MAX_CHUNK_SEC = 21600 # 6 hours max per AssemblyAI request
+          chunks = []
+          if duration_sec > MAX_CHUNK_SEC:
+              print(f"✂️ Marathon Space detected ({duration_sec / 3600:.1f} hours). Splitting into {MAX_CHUNK_SEC // 3600}-hour chunks for AssemblyAI compatibility...")
+              chunk_pattern = f"work/{base_name}_part_%03d.mp3"
+              subprocess.run([
+                  "ffmpeg", "-y", "-i", upload_target,
+                  "-f", "segment", "-segment_time", str(MAX_CHUNK_SEC),
+                  "-reset_timestamps", "1", "-c", "copy",
+                  chunk_pattern
+              ], check=True, capture_output=True)
+              import glob
+              chunks = sorted(glob.glob(f"work/{base_name}_part_*.mp3"))
+
+          if not chunks:
+              chunks = [upload_target]
+
           base_keyterms = [
               "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",
               "Lana", "Pants Down", "UAP", "UFO", "UFOs", "PeruAliens", "David Grusch",
@@ -201,99 +213,136 @@ jobs:
           else:
               keyterms = base_keyterms
 
-          payload = json.dumps({
-              "audio_url": audio_url,
-              "speech_models": ["universal-3-5-pro", "universal-2"],
-              "language_code": "en",
-              "punctuate": True,
-              "format_text": True,
-              "speaker_labels": True,
-              "prompt": "Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
-              "keyterms_prompt": keyterms,
-          }).encode("utf-8")
+          all_utterances = []
+          all_texts = []
+          distinct_speakers_set = set()
+          model_used = "universal-3-5-pro"
+          total_conf_sum = 0.0
+          conf_count = 0
 
-          create_req = urllib.request.Request(
-              "https://api.assemblyai.com/v2/transcript",
-              data=payload,
-              headers={
-                  "Authorization": api_key,
-                  "Content-Type": "application/json",
-              },
-              method="POST",
-          )
-          try:
-              transcript = request_with_retry(create_req, max_retries=5, initial_delay=4)
-          except Exception as ce:
-              print(f"::error::AssemblyAI request failed: {ce}")
-              sys.exit(1)
+          for chunk_idx, chunk_file in enumerate(chunks, 1):
+              time_offset_sec = (chunk_idx - 1) * MAX_CHUNK_SEC
+              if len(chunks) > 1:
+                  print(f"\n--- Transcribing Chunk {chunk_idx}/{len(chunks)} ({os.path.basename(chunk_file)}, offset +{time_offset_sec/3600:.1f}h) ---")
 
-          transcript_id = transcript.get("id")
-          if not transcript_id:
-              print(f"::error::AssemblyAI did not return a transcript id. Response: {transcript}")
-              sys.exit(1)
-          print(f"⏳ Transcript queued with ID: {transcript_id}. Polling for completion...")
-
-          poll_url = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
-          transcript = None
-          poll_start = time.time()
-          max_poll_seconds = 7200  # Up to 2 hours for long Spaces
-
-          while (time.time() - poll_start) < max_poll_seconds:
-              poll_req = urllib.request.Request(poll_url, headers={"Authorization": api_key})
+              print(f"📤 Uploading audio chunk to AssemblyAI...")
+              upload_req = urllib.request.Request(
+                  "https://api.assemblyai.com/v2/upload",
+                  data=open(chunk_file, "rb").read(),
+                  headers={"Authorization": api_key},
+                  method="POST"
+              )
               try:
-                  transcript = request_with_retry(poll_req, max_retries=4, initial_delay=4)
-              except Exception as pe:
-                  print(f"  ⚠️ Poll request hiccup ({pe}), continuing polling loop...")
-                  time.sleep(10)
-                  continue
+                  upload_res = request_with_retry(upload_req, max_retries=5, initial_delay=5)
+                  audio_url = upload_res["upload_url"]
+              except Exception as ue:
+                  print(f"::error::Failed uploading audio to AssemblyAI: {ue}")
+                  sys.exit(1)
+              print(f"✅ Uploaded chunk {chunk_idx} to AssemblyAI (audio URL ready)")
 
-              status = transcript.get("status")
-              if status == "completed":
-                  break
-              if status == "error":
-                  print(f"::error::AssemblyAI transcription failed with status 'error'!")
-                  print(f"  Transcript ID: {transcript_id}")
-                  print(f"  Error message: {transcript.get('error')}")
+              print(f"🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
+              payload = json.dumps({
+                  "audio_url": audio_url,
+                  "speech_models": ["universal-3-5-pro", "universal-2"],
+                  "language_code": "en",
+                  "punctuate": True,
+                  "format_text": True,
+                  "speaker_labels": True,
+                  "prompt": "Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
+                  "keyterms_prompt": keyterms,
+              }).encode("utf-8")
+
+              create_req = urllib.request.Request(
+                  "https://api.assemblyai.com/v2/transcript",
+                  data=payload,
+                  headers={
+                      "Authorization": api_key,
+                      "Content-Type": "application/json",
+                  },
+                  method="POST",
+              )
+              try:
+                  transcript = request_with_retry(create_req, max_retries=5, initial_delay=4)
+              except Exception as ce:
+                  print(f"::error::AssemblyAI request failed: {ce}")
                   sys.exit(1)
 
-              elapsed = int(time.time() - poll_start)
-              if elapsed % 60 < 15:
-                  print(f"  [{elapsed // 60}m {elapsed % 60}s elapsed] Status: {status}...")
-              time.sleep(12)
+              transcript_id = transcript.get("id")
+              if not transcript_id:
+                  print(f"::error::AssemblyAI did not return a transcript id. Response: {transcript}")
+                  sys.exit(1)
+              print(f"⏳ Transcript queued with ID: {transcript_id}. Polling for completion...")
 
-          if not transcript or transcript.get("status") != "completed":
-              print(f"::error::AssemblyAI transcription timed out after {max_poll_seconds // 60} minutes.")
-              sys.exit(1)
+              poll_url = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
+              poll_start = time.time()
+              max_poll_seconds = 7200  # Up to 2 hours for long audio
 
-          utterances = transcript.get("utterances") or []
-          distinct_speakers = sorted(list(set(str(u.get('speaker')) for u in utterances)))
-          model_used = transcript.get("speech_model_used") or "universal-3-5-pro"
-          print(f"✅ Transcription completed successfully!")
-          print(f"  Transcript ID: {transcript.get('id')}")
+              while (time.time() - poll_start) < max_poll_seconds:
+                  poll_req = urllib.request.Request(poll_url, headers={"Authorization": api_key})
+                  try:
+                      transcript = request_with_retry(poll_req, max_retries=4, initial_delay=4)
+                  except Exception as pe:
+                      print(f"  ⚠️ Poll request hiccup ({pe}), continuing polling loop...")
+                      time.sleep(10)
+                      continue
+
+                  status = transcript.get("status")
+                  if status == "completed":
+                      break
+                  if status == "error":
+                      print(f"::error::AssemblyAI transcription failed with status 'error'!")
+                      print(f"  Transcript ID: {transcript_id}")
+                      print(f"  Error message: {transcript.get('error')}")
+                      sys.exit(1)
+
+                  elapsed = int(time.time() - poll_start)
+                  if elapsed % 60 < 15:
+                      print(f"  [{elapsed // 60}m {elapsed % 60}s elapsed] Status: {status}...")
+                  time.sleep(12)
+
+              if not transcript or transcript.get("status") != "completed":
+                  print(f"::error::AssemblyAI transcription timed out after {max_poll_seconds // 60} minutes.")
+                  sys.exit(1)
+
+              model_used = transcript.get("speech_model_used") or model_used
+              if transcript.get("confidence"):
+                  total_conf_sum += transcript.get("confidence")
+                  conf_count += 1
+              if transcript.get("text"):
+                  all_texts.append(transcript.get("text").strip())
+
+              chunk_utts = transcript.get("utterances") or []
+              for u in chunk_utts:
+                  spk = f"Speaker {u.get('speaker')}" if not str(u.get('speaker')).startswith("Speaker") else str(u.get('speaker'))
+                  distinct_speakers_set.add(spk)
+                  raw_start_sec = round(float(u.get("start", 0)) / 1000.0, 3)
+                  raw_end_sec = round(float(u.get("end", 0)) / 1000.0, 3)
+                  abs_start_sec = round(raw_start_sec + time_offset_sec, 3)
+                  abs_end_sec = round(raw_end_sec + time_offset_sec, 3)
+                  all_utterances.append({
+                      "start": abs_start_sec,
+                      "end": abs_end_sec,
+                      "start_ms": int(abs_start_sec * 1000),
+                      "end_ms": int(abs_end_sec * 1000),
+                      "speaker": spk,
+                      "text": u.get("text", "").strip(),
+                      "confidence": u.get("confidence")
+                  })
+
+          distinct_speakers = sorted(list(distinct_speakers_set))
+          avg_confidence = round(total_conf_sum / conf_count, 4) if conf_count else None
+          print(f"\n✅ All chunks transcribed successfully!")
           print(f"  Model used: {model_used}")
-          print(f"  Confidence: {transcript.get('confidence')}")
-          print(f"  Audio Duration: {transcript.get('audio_duration')}s")
+          print(f"  Average confidence: {avg_confidence}")
           print(f"  Speakers detected ({len(distinct_speakers)}): {', '.join(distinct_speakers)}")
-          print(f"  Total utterances: {len(utterances)}")
+          print(f"  Total utterances: {len(all_utterances)}")
 
-          lines, segments = [], []
-          for u in utterances:
-              spk = f"Speaker {u['speaker']}" if not str(u['speaker']).startswith("Speaker") else str(u['speaker'])
-              start_sec = round(float(u.get("start", 0)) / 1000.0, 3)
-              end_sec = round(float(u.get("end", 0)) / 1000.0, 3)
-              lines.append(f"[{fmt(start_sec)} - {fmt(end_sec)}] {spk}: {u['text'].strip()}")
-              segments.append({
-                  "start": start_sec,
-                  "end": end_sec,
-                  "start_ms": u.get("start"),
-                  "end_ms": u.get("end"),
-                  "speaker": spk,
-                  "text": u["text"].strip(),
-                  "confidence": u.get("confidence")
-              })
+          lines = []
+          for u in all_utterances:
+              lines.append(f"[{fmt(u['start'])} - {fmt(u['end'])}] {u['speaker']}: {u['text']}")
 
-          if not lines and transcript.get("text"):
-              lines.append(transcript.get("text", "").strip())
+          if not lines and all_texts:
+              lines.append("\n\n".join(all_texts))
 
           with open(txt_path, "w", encoding="utf-8") as f:
               f.write("\n\n".join(lines))
@@ -301,14 +350,13 @@ jobs:
           with open(json_path, "w", encoding="utf-8") as f:
               json.dump({
                   "release_tag": release_tag,
-                  "transcript_id": transcript.get("id"),
                   "model_used": model_used,
-                  "confidence": transcript.get("confidence"),
-                  "audio_duration": transcript.get("audio_duration"),
+                  "confidence": avg_confidence,
+                  "audio_duration": duration_sec or None,
                   "speakers_count": len(distinct_speakers),
                   "speakers": distinct_speakers,
-                  "segments": segments,
-                  "text": transcript.get("text", "")
+                  "segments": all_utterances,
+                  "text": "\n\n".join(all_texts)
               }, f, indent=2)
 
           print(f"📄 Transcript saved: {txt_path} ({len(lines)} speaker turns)")
