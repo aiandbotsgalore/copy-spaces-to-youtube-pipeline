@@ -109,26 +109,31 @@ function normalizeSpeakerLabel(value: unknown): string {
 
 function isLikelyTranscriptAsset(asset: ReleaseAssetLike): boolean {
   const name = asset.name.toLowerCase();
-  return /\.(json|txt)$/.test(name) && /(transcript|diari[sz]|utterance|speaker)/.test(name);
+  if (name.endsWith('.mp3') || name.endsWith('.m4a') || name.endsWith('.wav') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg')) {
+    return false;
+  }
+  return /\.(json|txt)$/i.test(name);
 }
 
-function transcriptAssetScore(asset: ReleaseAssetLike): number {
+function transcriptAssetScore(asset: ReleaseAssetLike, releaseTag?: string): number {
   const name = asset.name.toLowerCase();
   let score = 0;
-  if (/transcript/.test(name)) score += 100;
-  if (/diari[sz]/.test(name)) score += 60;
-  if (/utterance|speaker/.test(name)) score += 30;
-  if (/\.json$/.test(name)) score += 20;
-  if (/\.txt$/.test(name)) score += 10;
+  // JSON format is prioritized because it contains structured utterances and confidence scores
+  if (/\.json$/i.test(name)) score += 50;
+  if (/\.txt$/i.test(name)) score += 20;
+
+  // Bonus for matching release tag or containing transcript keywords
+  if (releaseTag && name.includes(releaseTag.toLowerCase())) score += 40;
+  if (/transcript/.test(name)) score += 20;
+  if (/diari[sz]/.test(name)) score += 20;
+  if (/utterance|speaker/.test(name)) score += 10;
   return score;
 }
 
 function pickTranscriptAsset(release: Release): Release['assets'][number] | undefined {
-  const textAssets = release.assets.filter(a => /\.(json|txt)$/i.test(a.name));
+  const textAssets = release.assets.filter(a => isLikelyTranscriptAsset(a));
   if (!textAssets.length) return undefined;
-  const likely = textAssets.filter(a => isLikelyTranscriptAsset(a));
-  const pool = likely.length ? likely : textAssets.length === 1 ? textAssets : [];
-  return [...pool].sort((a, b) => transcriptAssetScore(b) - transcriptAssetScore(a))[0];
+  return [...textAssets].sort((a, b) => transcriptAssetScore(b, release.tag_name) - transcriptAssetScore(a, release.tag_name))[0];
 }
 
 function parseTranscriptMetadata(rawContent: string): TranscriptMetadata {

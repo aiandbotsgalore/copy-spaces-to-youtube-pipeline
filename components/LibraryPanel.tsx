@@ -210,7 +210,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     });
 
   const mp3Count = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
-  const txtCount = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.txt')).length, 0);
+  const txtCount = releases.reduce((n, r) => n + (r.assets.some(a => a.name.endsWith('.txt') || a.name.endsWith('.json')) ? 1 : 0), 0);
   const dupCount = findDuplicates(releases).length;
 
   return (
@@ -459,7 +459,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           <div className="space-y-2">
             {filtered.map(release => {
               const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
-              const txt = release.assets.find(a => a.name.endsWith('.txt'));
+              const txt = release.assets.find(a => a.name.endsWith('.txt') || a.name.endsWith('.json'));
               const duration = parseDuration(release.body);
               const sourceId = parseSourceId(release.body);
               const epDate = episodeDateDisplay(release.body, release.tag_name);

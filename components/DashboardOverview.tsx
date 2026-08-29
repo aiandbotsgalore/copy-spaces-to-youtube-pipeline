@@ -353,7 +353,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
           <div className="space-y-2">
             {recent.map(release => {
               const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
-              const txt = release.assets.find(a => a.name.endsWith('.txt'));
+              const txt = release.assets.find(a => a.name.endsWith('.txt') || a.name.endsWith('.json'));
               const duration = parseDuration(release.body);
               return (
                 <div key={release.id} className="flex items-center gap-3 p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
