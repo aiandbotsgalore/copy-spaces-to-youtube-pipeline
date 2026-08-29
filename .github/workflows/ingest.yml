@@ -263,8 +263,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PODCAST_TITLE: "Logan Black X Spaces"
-          PODCAST_DESC: "An automated audio archive of my Twitter X Spaces"
+          PODCAST_TITLE: "Logan Black's X-Space"
+          PODCAST_DESC: "Logan Black's X-Space Podcast Archive"
           PODCAST_AUTHOR: "Logan Black"
           PODCAST_EMAIL: "loganblack0@gmail.com"
           PODCAST_IMAGE: ""
@@ -276,10 +276,10 @@ jobs:
 
           repo = os.environ["REPO"]
           token = os.environ["GH_TOKEN"]
-          title = os.environ.get("PODCAST_TITLE", "Twitter Spaces Archive")
-          desc = os.environ.get("PODCAST_DESC", "Archive of Twitter Spaces")
-          author = os.environ.get("PODCAST_AUTHOR", "Podcast Author")
-          email = os.environ.get("PODCAST_EMAIL", "author@example.com")
+          title = os.environ.get("PODCAST_TITLE", "Logan Black's X-Space")
+          desc = os.environ.get("PODCAST_DESC", "Logan Black's X-Space Podcast Archive")
+          author = os.environ.get("PODCAST_AUTHOR", "Logan Black")
+          email = os.environ.get("PODCAST_EMAIL", "loganblack0@gmail.com")
           image_fallback = os.environ.get("PODCAST_IMAGE", "https://picsum.photos/1400/1400")
 
           owner, repo_name = repo.split("/", 1)
