@@ -213,6 +213,38 @@ def probe_duration_seconds(audio_path: Path) -> float:
     return float(result.stdout.strip())
 
 
+def enhance_audio_for_speech(audio_path: Path, output_path: Path) -> Path:
+    print(f"Conditioning {audio_path.name} for speech (bandpass 75Hz-8.5kHz, loudnorm leveling, 24kHz mono)...", flush=True)
+    res = subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(audio_path),
+            "-af",
+            "highpass=f=75,lowpass=f=8500,loudnorm=I=-16:LRA=11:TP=-1.5",
+            "-ar",
+            "24000",
+            "-ac",
+            "1",
+            "-c:a",
+            "libmp3lame",
+            "-b:a",
+            "64k",
+            str(output_path),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode == 0 and output_path.exists():
+        orig_mb = audio_path.stat().st_size / (1024 * 1024)
+        opt_mb = output_path.stat().st_size / (1024 * 1024)
+        print(f"Speech optimized: {orig_mb:.1f} MB -> {opt_mb:.1f} MB ({(1 - opt_mb/orig_mb)*100:.0f}% reduction)", flush=True)
+        return output_path
+    print(f"Warning: ffmpeg speech enhancement failed ({res.stderr}), using original audio", flush=True)
+    return audio_path
+
+
 def split_audio_if_needed(audio_path: Path, chunks_dir: Path) -> list[Path]:
     duration = probe_duration_seconds(audio_path)
     if duration <= MAX_TRANSCRIPT_SECONDS:
@@ -330,7 +362,11 @@ def main() -> int:
                 print(f"Downloading {asset['browser_download_url']}", flush=True)
                 download_file(asset["browser_download_url"], audio_path)
 
-            chunk_paths = split_audio_if_needed(audio_path, chunks_root / item["space_id"])
+            opt_name = f"{audio_path.stem}_speech_opt.mp3"
+            opt_path = downloads_dir / opt_name
+            speech_audio_path = enhance_audio_for_speech(audio_path, opt_path) if not opt_path.exists() else opt_path
+
+            chunk_paths = split_audio_if_needed(speech_audio_path, chunks_root / item["space_id"])
             chunk_results: list[dict] = []
             texts: list[str] = []
             for index, chunk_path in enumerate(chunk_paths, start=1):

@@ -25,7 +25,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -q assemblyai
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          pip install -q assemblyai
 
       - name: Download MP3 from Release
         id: download
@@ -78,7 +81,7 @@ jobs:
         run: |
           mkdir -p transcripts
           python3 - <<'PYEOF'
-          import os, sys, json, time, urllib.request, re
+          import os, sys, json, time, urllib.request, re, subprocess
 
           api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
           if not api_key:
@@ -100,8 +103,38 @@ jobs:
               s = int(sec)
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
 
-          audio_url = f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{release_tag}/{os.path.basename(mp3_path)}"
-          print(f"🚀 Requesting AssemblyAI Universal-3.5 Pro transcription for {audio_url}...")
+          # Plan A: Speech-band filter & loudnorm leveling pass
+          opt_path = f"work/{base_name}_speech_opt.mp3"
+          print(f"🎛️ Condition audio for speech: bandpass (75Hz-8.5kHz), loudnorm leveling, 24kHz mono...")
+          ffmpeg_cmd = [
+              "ffmpeg", "-y", "-i", mp3_path,
+              "-af", "highpass=f=75,lowpass=f=8500,loudnorm=I=-16:LRA=11:TP=-1.5",
+              "-ar", "24000", "-ac", "1",
+              "-c:a", "libmp3lame", "-b:a", "64k",
+              opt_path
+          ]
+          res = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+          upload_target = opt_path if res.returncode == 0 and os.path.exists(opt_path) else mp3_path
+          if upload_target == opt_path:
+              orig_mb = os.path.getsize(mp3_path) / (1024 * 1024)
+              opt_mb = os.path.getsize(opt_path) / (1024 * 1024)
+              print(f"✨ Speech optimized: {orig_mb:.1f} MB -> {opt_mb:.1f} MB ({(1 - opt_mb/orig_mb)*100:.0f}% reduction)")
+          else:
+              print(f"⚠️ Warning: ffmpeg enhancement failed ({res.stderr}), using original audio.")
+
+          print(f"📤 Uploading speech-conditioned audio to AssemblyAI...")
+          upload_req = urllib.request.Request(
+              "https://api.assemblyai.com/v2/upload",
+              data=open(upload_target, "rb").read(),
+              headers={"Authorization": api_key},
+              method="POST"
+          )
+          with urllib.request.urlopen(upload_req, timeout=3600) as r:
+              upload_res = json.loads(r.read())
+              audio_url = upload_res["upload_url"]
+          print(f"✅ Uploaded to AssemblyAI (audio URL ready)")
+
+          print(f"🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
 
           base_keyterms = [
               "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",

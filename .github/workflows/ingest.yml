@@ -92,7 +92,7 @@ jobs:
           file_size_mb = os.path.getsize(mp3_path) / (1024 * 1024)
           print(f"🎵 Audio file: {mp3_path} ({file_size_mb:.2f} MB)")
 
-          import assemblyai as aai
+          import assemblyai as aai, subprocess
           aai.settings.api_key = api_key
           os.makedirs("transcripts", exist_ok=True)
           base_name = os.path.splitext(os.path.basename(mp3_path))[0]
@@ -102,6 +102,25 @@ jobs:
           def fmt(sec):
               s = int(sec)
               return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
+
+          # Plan A: Speech-band filter & loudnorm leveling pass
+          opt_path = f"work/{base_name}_speech_opt.mp3"
+          print(f"🎛️ Condition audio for speech: bandpass (75Hz-8.5kHz), loudnorm leveling, 24kHz mono...")
+          ffmpeg_cmd = [
+              "ffmpeg", "-y", "-i", mp3_path,
+              "-af", "highpass=f=75,lowpass=f=8500,loudnorm=I=-16:LRA=11:TP=-1.5",
+              "-ar", "24000", "-ac", "1",
+              "-c:a", "libmp3lame", "-b:a", "64k",
+              opt_path
+          ]
+          res = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+          transcribe_input = opt_path if res.returncode == 0 and os.path.exists(opt_path) else mp3_path
+          if transcribe_input == opt_path:
+              orig_mb = os.path.getsize(mp3_path) / (1024 * 1024)
+              opt_mb = os.path.getsize(opt_path) / (1024 * 1024)
+              print(f"✨ Speech optimized: {orig_mb:.1f} MB -> {opt_mb:.1f} MB ({(1 - opt_mb/orig_mb)*100:.0f}% reduction)")
+          else:
+              print(f"⚠️ Warning: ffmpeg enhancement failed ({res.stderr}), using original audio.")
 
           print("🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
           base_keyterms = [
@@ -119,7 +138,7 @@ jobs:
                   prompt="Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
                   keyterms_prompt=base_keyterms
               )
-              transcript = aai.Transcriber().transcribe(mp3_path, config=cfg)
+              transcript = aai.Transcriber().transcribe(transcribe_input, config=cfg)
           except Exception as e:
               print(f"::error::AssemblyAI exception occurred during transcription request: {e}")
               sys.exit(1)
