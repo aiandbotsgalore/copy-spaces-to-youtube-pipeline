@@ -318,6 +318,97 @@ print(json.dumps(out_payload))
 
 
 # ---------------------------------------------------------------------------
+# AI Contextual Speaker Resolution (Gemini 2.5 Flash)
+# ---------------------------------------------------------------------------
+def resolve_speakers_with_gemini(
+    segments: List[Dict[str, Any]],
+    profiles_path: str,
+    api_key: Optional[str] = None
+) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """Uses Gemini 2.5 Flash to deduce speaker real names and roles from conversational context."""
+    resolved_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not resolved_key:
+        return segments, {}
+
+    try:
+        from google import genai
+        from pydantic import BaseModel, Field
+
+        class SpeakerIdentification(BaseModel):
+            speaker_id: str = Field(description="The generic speaker label, e.g. Speaker 1")
+            identified_name: str = Field(description="Real name or specific conversational title, e.g. Parr, Mr. Ebo, Sarah, Host (Anchorage)")
+            confidence: float = Field(description="Confidence between 0.0 and 1.0")
+            reasoning: str = Field(description="Quote or reason from transcript")
+
+        class DiarizationResolution(BaseModel):
+            speaker_mappings: List[SpeakerIdentification]
+
+        client = genai.Client(api_key=resolved_key)
+
+        profiles = {}
+        if os.path.exists(profiles_path):
+            try:
+                with open(profiles_path, "r", encoding="utf-8") as f:
+                    profiles = json.load(f).get("profiles", {})
+            except Exception:
+                profiles = {}
+
+        known_speakers = list(profiles.keys())
+        known_str = ", ".join(known_speakers) if known_speakers else "None"
+
+        # Build transcript sample (up to 180 segments for rich conversational context)
+        sample_lines = []
+        for s in segments[:180]:
+            sample_lines.append(f"[{s['start']:.1f}s] {s['speaker']}: {s['text']}")
+        transcript_sample = "\n".join(sample_lines)
+
+        prompt = f"""
+You are an expert audio diarization analyst. Analyze this Twitter Space transcript and identify the real names or specific roles of the generic speakers (e.g. Speaker 1, Speaker 2, etc.) based on:
+1. Direct self-introductions (e.g. "I am [Name]")
+2. How others address them in conversation (e.g. "Good morning there, Parr", "Mr. Ebo", "Hey Sarah")
+3. Self-descriptions, location, and topic context.
+
+Known enrolled speakers: {known_str}
+
+Transcript sample:
+{transcript_sample}
+"""
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config={
+                "response_mime_type": "application/json",
+                "response_json_schema": DiarizationResolution.model_json_schema()
+            }
+        )
+
+        res = DiarizationResolution.model_validate_json(response.text)
+        mapping = {}
+        generic_tokens = ("participant", "unknown", "listener", "guest", "someone", "unidentified", "audience", "none")
+        for m in res.speaker_mappings:
+            name_clean = m.identified_name.strip()
+            is_generic = any(token in name_clean.lower() for token in generic_tokens)
+            if m.confidence >= 0.70 and not is_generic and len(name_clean) > 1 and not name_clean.lower().startswith("speaker"):
+                mapping[m.speaker_id] = name_clean
+
+        if mapping:
+            print(f"\n[AI Contextual Speaker Discovery (Gemini 2.5 Flash)]")
+            for raw_spk, new_spk in mapping.items():
+                print(f"  • {raw_spk} -> {new_spk}")
+
+            for s in segments:
+                if s["speaker"] in mapping:
+                    s["speaker"] = mapping[s["speaker"]]
+
+        return segments, mapping
+
+    except Exception as e:
+        print(f"[!] Gemini contextual speaker resolution skipped: {e}")
+        return segments, {}
+
+
+# ---------------------------------------------------------------------------
 # Batch Audio Transcriber Pipeline
 # ---------------------------------------------------------------------------
 class BatchAudioTranscriber:
@@ -329,7 +420,8 @@ class BatchAudioTranscriber:
         profiles_file: str = DEFAULT_PROFILES_FILE,
         similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD,
         output_dir: str = DEFAULT_OUTPUT_DIR,
-        interactive: bool = True
+        interactive: bool = True,
+        use_ai_identification: bool = True
     ):
         self.model_size = model_size
         self.device = device
@@ -339,6 +431,7 @@ class BatchAudioTranscriber:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.interactive = interactive
+        self.use_ai_identification = use_ai_identification
 
     def format_timestamp(self, seconds: float, srt: bool = False) -> str:
         hours = int(seconds // 3600)
@@ -385,7 +478,7 @@ class BatchAudioTranscriber:
             speed_ratio = (duration_sec / asr_duration) if asr_duration > 0 else 0
             print(f"[✓] ASR Complete: {len(raw_segments)} segments in {asr_duration:.2f}s ({speed_ratio:.1f}x real-time speed)")
 
-            # Step 3 & 4: GPU SpeechBrain Neural Diarization
+            # Step 3: GPU SpeechBrain Neural Diarization
             print(f"[3/4] Running Neural Speaker Diarization on GPU (192-dim ECAPA-TDNN)...")
             t_diar = time.time()
             merged_segments, cluster_to_speaker, speaker_talk_time = run_diarization_worker(
@@ -397,7 +490,20 @@ class BatchAudioTranscriber:
             )
             print(f"[✓] Neural Diarization Complete in {time.time() - t_diar:.2f}s")
 
-            print(f"[4/4] Speaker Breakdown:")
+            # Step 4: AI Contextual Speaker Resolution (Gemini 2.5 Flash)
+            if self.use_ai_identification:
+                merged_segments, ai_mappings = resolve_speakers_with_gemini(
+                    segments=merged_segments,
+                    profiles_path=self.profiles_file
+                )
+                if ai_mappings:
+                    # Update talk times with resolved names
+                    speaker_talk_time = {}
+                    for s in merged_segments:
+                        spk = s["speaker"]
+                        speaker_talk_time[spk] = speaker_talk_time.get(spk, 0.0) + (s["end"] - s["start"])
+
+            print(f"[4/4] Final Speaker Breakdown:")
             for spk_name, tt in sorted(speaker_talk_time.items(), key=lambda x: x[1], reverse=True):
                 print(f"  • {spk_name}: {self.format_timestamp(tt)} ({tt/60:.1f} min)")
 
@@ -589,6 +695,7 @@ def main():
     parser.add_argument("--output-dir", type=str, default=DEFAULT_OUTPUT_DIR, help="Directory to save generated transcripts")
     parser.add_argument("--github-token", type=str, default=os.environ.get("GITHUB_TOKEN"), help="GitHub Personal Access Token (for private repos / high rate limits)")
     parser.add_argument("--non-interactive", action="store_true", help="Run without prompting for unrecognized speakers")
+    parser.add_argument("--no-ai", action="store_true", help="Disable Gemini conversational speaker name discovery")
     parser.add_argument("--enroll-speaker", type=str, help="Name of speaker to enroll into voice_profiles.json")
     parser.add_argument("--enroll-audio", type=str, help="Audio file containing clean voice sample of speaker to enroll")
     parser.add_argument("--enroll-dir", type=str, help="Directory containing speaker sample files (e.g. Logan.wav, Randy.mp3) to batch-enroll")
@@ -657,7 +764,8 @@ def main():
         profiles_file=args.profiles,
         similarity_threshold=args.threshold,
         output_dir=args.output_dir,
-        interactive=not args.non_interactive
+        interactive=not args.non_interactive,
+        use_ai_identification=not args.no_ai
     )
 
     # Process all files
