@@ -30,7 +30,7 @@ jobs:
         run: |
           cat <<'PYEOF' > gen_rss.py
           import os, json, re, urllib.request
-          from datetime import datetime
+          from datetime import datetime, timezone
           from xml.sax.saxutils import escape
 
           repo = os.environ['REPO']
