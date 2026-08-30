@@ -156,16 +156,16 @@ classifier = EncoderClassifier.from_hparams(
     run_opts={{'device': 'cuda:0'}}
 )
 
-# 4. Extract 192-dim neural embeddings for each segment
+# 4. Extract 192-dim neural embeddings for each segment with context padding
 segment_embeddings = []
-min_samples = int(sr * 0.35)
-
 for seg in raw_segments:
-    start_sample = max(0, int(seg['start'] * sr))
-    end_sample = min(len(audio_data), int(seg['end'] * sr))
+    dur = seg['end'] - seg['start']
+    pad = max(0.0, (1.8 - dur) / 2.0)
+    start_sample = max(0, int((seg['start'] - pad) * sr))
+    end_sample = min(len(audio_data), int((seg['end'] + pad) * sr))
     seg_audio = audio_data[start_sample:end_sample]
 
-    if len(seg_audio) >= min_samples:
+    if len(seg_audio) > sr * 0.35:
         max_val = np.max(np.abs(seg_audio))
         if max_val > 1e-6:
             seg_audio = seg_audio / max_val
@@ -180,13 +180,12 @@ for seg in raw_segments:
     segment_embeddings.append(emb)
 
 # 5. Cluster speakers using Cosine Distance
-valid_indices = [i for i, emb in enumerate(segment_embeddings) if np.linalg.norm(emb) > 1e-3]
-cluster_labels = []
+valid_indices = [i for i, emb in enumerate(segment_embeddings) if np.linalg.norm(emb) > 0.5]
 if len(valid_indices) >= 2:
     feat_matrix = np.array([segment_embeddings[i] for i in valid_indices])
     clustering = AgglomerativeClustering(
         n_clusters=None,
-        distance_threshold=0.50,
+        distance_threshold=0.70,
         metric='cosine',
         linkage='average'
     )
@@ -197,23 +196,36 @@ else:
     for idx in valid_indices:
         raw_segments[idx]['cluster_id'] = 0
 
-# 6. Speaker Identification against voice_profiles.json
-unique_clusters = sorted(list(set(r.get('cluster_id', 0) for r in raw_segments if 'cluster_id' in r)))
-cluster_to_speaker = {{}}
+# 6. Dominant cluster consolidation (merge micro-clusters)
 cluster_talk_time = {{}}
-
 for r in raw_segments:
     cid = r.get('cluster_id', 0)
     cluster_talk_time[cid] = cluster_talk_time.get(cid, 0.0) + (r['end'] - r['start'])
 
-for cid in unique_clusters:
-    c_embs = [segment_embeddings[i] for i, r in enumerate(raw_segments) if r.get('cluster_id') == cid and np.linalg.norm(segment_embeddings[i]) > 1e-3]
+cluster_centroids = {{}}
+for cid in set(r.get('cluster_id', 0) for r in raw_segments if 'cluster_id' in r):
+    c_embs = [segment_embeddings[i] for i, r in enumerate(raw_segments) if r.get('cluster_id') == cid and np.linalg.norm(segment_embeddings[i]) > 0.5]
     if c_embs:
         mean_emb = np.mean(c_embs, axis=0)
-        mean_emb = mean_emb / (np.linalg.norm(mean_emb) + 1e-10)
-    else:
-        mean_emb = np.zeros(192, dtype=np.float32)
+        cluster_centroids[cid] = mean_emb / (np.linalg.norm(mean_emb) + 1e-10)
 
+dominant_clusters = [cid for cid, t in cluster_talk_time.items() if t >= 5.0]
+if not dominant_clusters:
+    dominant_clusters = list(cluster_centroids.keys())
+
+for r in raw_segments:
+    cid = r.get('cluster_id', 0)
+    if cid not in dominant_clusters and dominant_clusters and cid in cluster_centroids:
+        c_emb = cluster_centroids[cid]
+        best_dom = max(dominant_clusters, key=lambda d: cosine_similarity(c_emb, cluster_centroids[d]))
+        r['cluster_id'] = best_dom
+
+# 7. Speaker Identification against voice_profiles.json
+cluster_to_speaker = {{}}
+matched_profiles = set()
+
+for cid in dominant_clusters:
+    mean_emb = cluster_centroids[cid]
     best_name = None
     best_sim = -1.0
     for pname, pdata in profiles.items():
@@ -224,8 +236,9 @@ for cid in unique_clusters:
                 best_sim = s
                 best_name = pname
 
-    if best_name and best_sim >= threshold:
+    if best_name and best_sim >= threshold and best_name not in matched_profiles:
         cluster_to_speaker[cid] = best_name
+        matched_profiles.add(best_name)
         # Update profile with EMA
         existing = np.array(profiles[best_name]['embedding'], dtype=np.float32)
         cnt = profiles[best_name].get('sample_count', 1)
@@ -234,9 +247,14 @@ for cid in unique_clusters:
         profiles[best_name]['embedding'] = upd.tolist()
         profiles[best_name]['sample_count'] = cnt + 1
         profiles[best_name]['last_updated'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-    else:
-        default_name = f'Speaker {{cid + 1}}'
-        cluster_to_speaker[cid] = default_name
+
+# 8. Chronological Sequential Numbering (Speaker 1, Speaker 2, Speaker 3...)
+speaker_counter = 1
+for r in raw_segments:
+    cid = r.get('cluster_id', 0)
+    if cid not in cluster_to_speaker:
+        cluster_to_speaker[cid] = f'Speaker {{speaker_counter}}'
+        speaker_counter += 1
 
 # Save updated profiles
 with open(profiles_path, 'w', encoding='utf-8') as f:
@@ -251,7 +269,13 @@ with open(profiles_path, 'w', encoding='utf-8') as f:
 # Assign names to segments
 for r in raw_segments:
     cid = r.get('cluster_id', 0)
-    r['speaker'] = cluster_to_speaker.get(cid, f'Speaker {{cid + 1}}')
+    r['speaker'] = cluster_to_speaker.get(cid, 'Speaker 1')
+
+# Re-calculate clean talk time per named speaker
+speaker_talk_time = {{}}
+for r in raw_segments:
+    spk = r['speaker']
+    speaker_talk_time[spk] = speaker_talk_time.get(spk, 0.0) + (r['end'] - r['start'])
 
 # Merge consecutive segments from same speaker
 merged = []
@@ -272,7 +296,7 @@ for r in raw_segments:
 out_payload = {{
     'merged_segments': merged,
     'cluster_to_speaker': {{str(k): v for k, v in cluster_to_speaker.items()}},
-    'cluster_talk_time': {{str(k): round(v, 2) for k, v in cluster_talk_time.items()}}
+    'speaker_talk_time': {{k: round(v, 2) for k, v in speaker_talk_time.items()}}
 }}
 
 print('__SPACEPIPE_JSON_START__')
@@ -290,7 +314,7 @@ print(json.dumps(out_payload))
 
     json_str = res.stdout.split("__SPACEPIPE_JSON_START__")[1].strip()
     data = json.loads(json_str)
-    return data["merged_segments"], data["cluster_to_speaker"], data["cluster_talk_time"]
+    return data["merged_segments"], data["cluster_to_speaker"], data["speaker_talk_time"]
 
 
 # ---------------------------------------------------------------------------
@@ -364,7 +388,7 @@ class BatchAudioTranscriber:
             # Step 3 & 4: GPU SpeechBrain Neural Diarization
             print(f"[3/4] Running Neural Speaker Diarization on GPU (192-dim ECAPA-TDNN)...")
             t_diar = time.time()
-            merged_segments, cluster_to_speaker, cluster_talk_time = run_diarization_worker(
+            merged_segments, cluster_to_speaker, speaker_talk_time = run_diarization_worker(
                 wav_path=wav_path,
                 segments=raw_segments,
                 profiles_path=self.profiles_file,
@@ -374,8 +398,7 @@ class BatchAudioTranscriber:
             print(f"[✓] Neural Diarization Complete in {time.time() - t_diar:.2f}s")
 
             print(f"[4/4] Speaker Breakdown:")
-            for cid_str, spk_name in cluster_to_speaker.items():
-                tt = cluster_talk_time.get(cid_str, 0.0)
+            for spk_name, tt in sorted(speaker_talk_time.items(), key=lambda x: x[1], reverse=True):
                 print(f"  • {spk_name}: {self.format_timestamp(tt)} ({tt/60:.1f} min)")
 
             # Step 5: Export Transcripts (.txt, .srt, .json)
@@ -408,8 +431,8 @@ class BatchAudioTranscriber:
                 "duration_seconds": duration_sec,
                 "duration_formatted": self.format_timestamp(duration_sec),
                 "model": self.model_size,
-                "speakers_detected": list(set(cluster_to_speaker.values())),
-                "speaker_talk_time": {spk: round(cluster_talk_time.get(cid, 0.0), 2) for cid, spk in cluster_to_speaker.items()},
+                "speakers_detected": list(speaker_talk_time.keys()),
+                "speaker_talk_time": speaker_talk_time,
                 "segments": merged_segments
             }
             with open(json_path, "w", encoding="utf-8") as f:
