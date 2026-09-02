@@ -2,8 +2,8 @@ name: Auto-Detect & Ingest Spaces
 
 on:
   schedule:
-    # Runs twice per hour at :13 and :43 (offset from congested :00/:30 slots)
-    - cron: '13,43 * * * *'
+    # Runs every 2 hours at :13 (offset from congested :00 slots)
+    - cron: '13 */2 * * *'
   workflow_dispatch:
     inputs:
       x_handles:
