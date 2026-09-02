@@ -12,12 +12,32 @@
  */
 
 import { execSync } from 'child_process';
-import { writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import os from 'os';
+import path from 'path';
 
 const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || 'LoganBlack';
 const HANDLES = RAW_HANDLES.split(',').map(h => h.trim()).filter(Boolean);
 const TWEET_LIMIT = parseInt(process.env.TWEET_LIMIT || process.env.INPUT_LIMIT || '20', 10);
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+// Configure authenticated session if secrets/tokens are provided
+const authToken = process.env.X_AUTH_TOKEN || process.env.TWITTER_AUTH_TOKEN;
+const csrfToken = process.env.X_CT0 || process.env.X_CSRF_TOKEN || process.env.TWITTER_CT0;
+
+if (authToken) {
+  try {
+    const configDir = path.join(os.homedir(), '.xactions');
+    if (!existsSync(configDir)) mkdirSync(configDir, { recursive: true });
+    writeFileSync(
+      path.join(configDir, 'config.json'),
+      JSON.stringify({ authToken, ...(csrfToken ? { csrfToken } : {}) }, null, 2)
+    );
+    console.log('🔑 Authenticated session configured for xactions.');
+  } catch (authErr) {
+    console.warn(`⚠️  Could not write xactions config: ${authErr.message}`);
+  }
+}
 
 console.log(`🔍 Monitoring ${HANDLES.length} handle(s): ${HANDLES.map(h => '@' + h).join(', ')}`);
 console.log(`   Scanning last ${TWEET_LIMIT} tweets per handle...`);
@@ -25,6 +45,7 @@ console.log(`   Scanning last ${TWEET_LIMIT} tweets per handle...`);
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fetchTweetsForHandle(handle) {
+  let tweets = [];
   try {
     const rawOutput = execSync(
       `npx -y xactions tweets ${handle} --limit ${TWEET_LIMIT} --json`,
@@ -35,20 +56,38 @@ function fetchTweetsForHandle(handle) {
       }
     );
     const jsonStart = rawOutput.indexOf('[');
-    if (jsonStart === -1) {
-      console.warn(`⚠️  @${handle}: xactions returned no JSON array. Raw output: ${rawOutput.slice(0, 200)}`);
-      return [];
+    if (jsonStart !== -1) {
+      tweets = JSON.parse(rawOutput.slice(jsonStart));
+      console.log(`   @${handle}: fetched ${tweets.length} tweets from user timeline`);
     }
-    const tweets = JSON.parse(rawOutput.slice(jsonStart));
-    console.log(`   @${handle}: fetched ${tweets.length} tweets`);
-    return tweets;
   } catch (err) {
-    // Surface the error clearly — don't silently pass
-    console.error(`❌ @${handle}: xactions failed — ${err.message}`);
-    console.error(`   This may mean xactions is broken for this handle, or X rate-limited the request.`);
-    console.error(`   The workflow will continue but this handle was NOT checked.`);
-    return null; // null = fetch failed (distinguish from empty array = no tweets)
+    console.warn(`⚠️  @${handle}: xactions tweets timeline fetch failed — ${err.message}`);
   }
+
+  // If authenticated and no recent tweets found, try search as fallback
+  if (authToken && (!tweets || tweets.length === 0)) {
+    try {
+      console.log(`   @${handle}: attempting authenticated search fallback...`);
+      const searchOutput = execSync(
+        `npx -y xactions search "from:${handle} (spaces OR space OR t.co)" --filter latest --limit ${TWEET_LIMIT} --json`,
+        {
+          encoding: 'utf-8',
+          timeout: 60000,
+          env: { ...process.env, CI: '1' }
+        }
+      );
+      const sStart = searchOutput.indexOf('[');
+      if (sStart !== -1) {
+        const searchTweets = JSON.parse(searchOutput.slice(sStart));
+        console.log(`   @${handle}: fetched ${searchTweets.length} tweets via search`);
+        return searchTweets;
+      }
+    } catch (sErr) {
+      console.warn(`⚠️  @${handle}: xactions search fallback failed — ${sErr.message}`);
+    }
+  }
+
+  return tweets;
 }
 
 function extractSpaceIds(tweets, handle) {

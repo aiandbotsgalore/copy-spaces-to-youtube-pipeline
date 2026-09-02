@@ -48,6 +48,8 @@ jobs:
       - name: Auto-Detect & Trigger Ingestion
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
+          X_CT0: ${{ secrets.X_CT0 }}
           # Supports either input parameter or defaults to LoganBlack
           X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || 'LoganBlack' }}
           TWEET_LIMIT: ${{ inputs.limit || '20' }}
