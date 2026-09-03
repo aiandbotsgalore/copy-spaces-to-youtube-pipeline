@@ -27,11 +27,15 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-try:
-    import imageio_ffmpeg
-    FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
-except ImportError:
-    FFMPEG_EXE = "ffmpeg"
+import shutil
+
+FFMPEG_EXE = shutil.which("ffmpeg") or "ffmpeg"
+if not shutil.which("ffmpeg"):
+    try:
+        import imageio_ffmpeg
+        FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        FFMPEG_EXE = "ffmpeg"
 
 
 def sanitize_filename(name: str) -> str:
@@ -135,15 +139,18 @@ Transcript:
 
 
 def slice_audio_clip(audio_path: str, start: float, end: float, out_path: str) -> bool:
-    """Slices a segment from source audio using FFmpeg as high-bitrate MP3."""
+    """Slices a segment from source audio using FFmpeg as high-bitrate MP3 with broadcast-level fade in/out."""
     duration = max(0.5, end - start)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    fade_len = min(0.5, duration / 4.0)
+    af_filter = f"afade=t=in:ss=0:d={fade_len:.2f},afade=t=out:st={max(0, duration - fade_len):.2f}:d={fade_len:.2f}"
     cmd = [
         FFMPEG_EXE,
         "-y",
         "-ss", str(start),
         "-t", str(duration),
         "-i", audio_path,
+        "-af", af_filter,
         "-c:a", "libmp3lame",
         "-b:a", "192k",
         out_path
@@ -317,6 +324,21 @@ def main():
 
     catalog_md = os.path.join(args.output_dir, "CLIPS_CATALOG.md")
     update_markdown_catalog(catalog_md, all_extracted_clips)
+
+    # Sync to public/clips so web player has instant access
+    public_clips = os.path.join("public", "clips")
+    if os.path.exists("public"):
+        os.makedirs(public_clips, exist_ok=True)
+        for item in os.listdir(args.output_dir):
+            s = os.path.join(args.output_dir, item)
+            d = os.path.join(public_clips, item)
+            if os.path.isdir(s):
+                if os.path.exists(d):
+                    shutil.rmtree(d)
+                shutil.copytree(s, d)
+            else:
+                shutil.copy2(s, d)
+        print(f"    Synchronized to web UI: {os.path.abspath(public_clips)}")
 
     print(f"\n[✓] All clips processed successfully!")
     print(f"    Saved clips directory: {os.path.abspath(args.output_dir)}")
