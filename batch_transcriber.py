@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import math
 import argparse
 import tempfile
 import subprocess
@@ -58,8 +59,8 @@ def extract_audio_to_wav(source: str, output_wav: str, github_token: Optional[st
 # ---------------------------------------------------------------------------
 # Stage 1 Worker: GPU ASR (Faster-Whisper)
 # ---------------------------------------------------------------------------
-def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: str) -> List[Dict[str, Any]]:
-    """Runs Faster-Whisper ASR on GPU in an isolated subprocess to prevent DLL collisions."""
+def _transcribe_single_wav(wav_path: str, model_size: str, device: str, compute_type: str, time_offset: float = 0.0) -> List[Dict[str, Any]]:
+    """Transcribes a single WAV file on GPU with Faster-Whisper."""
     code = f"""
 import sys, json
 from faster_whisper import WhisperModel
@@ -78,8 +79,9 @@ segments, info = model.transcribe(
 )
 
 results = []
+offset = {time_offset}
 for s in segments:
-    results.append({{'start': s.start, 'end': s.end, 'text': s.text.strip()}})
+    results.append({{'start': round(s.start + offset, 3), 'end': round(s.end + offset, 3), 'text': s.text.strip()}})
 
 print('__SPACEPIPE_JSON_START__')
 print(json.dumps(results))
@@ -90,6 +92,38 @@ print(json.dumps(results))
     
     json_str = res.stdout.split("__SPACEPIPE_JSON_START__")[1].strip()
     return json.loads(json_str)
+
+
+def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: str) -> List[Dict[str, Any]]:
+    """Runs Faster-Whisper ASR on GPU with intelligent chunking to support multi-hour audio files without RAM limits."""
+    with sf.SoundFile(wav_path) as f:
+        duration_sec = len(f) / f.samplerate
+
+    CHUNK_SEC = 3600.0  # 1 hour per chunk to prevent excessive NumPy RAM allocation
+    if duration_sec <= CHUNK_SEC:
+        return _transcribe_single_wav(wav_path, model_size, device, compute_type, time_offset=0.0)
+
+    num_chunks = math.ceil(duration_sec / CHUNK_SEC)
+    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 1-hour chunks for GPU ASR...")
+    
+    all_segments = []
+    for i in range(num_chunks):
+        start_sec = i * CHUNK_SEC
+        chunk_wav = f"{wav_path}_chunk_{i}.wav"
+        try:
+            print(f"  [{i + 1}/{num_chunks}] Transcribing chunk {i + 1} (Offset +{int(start_sec // 60)}m)...")
+            cmd = [FFMPEG_EXE, "-y", "-ss", str(start_sec), "-t", str(CHUNK_SEC), "-i", wav_path, "-acodec", "copy", chunk_wav]
+            subprocess.run(cmd, capture_output=True, check=True)
+            chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
+            all_segments.extend(chunk_segs)
+        finally:
+            if os.path.exists(chunk_wav):
+                try:
+                    os.remove(chunk_wav)
+                except Exception:
+                    pass
+
+    return all_segments
 
 
 # ---------------------------------------------------------------------------
@@ -134,11 +168,10 @@ profiles_path = payload['profiles_path']
 threshold = payload['threshold']
 interactive = payload['interactive']
 
-# 1. Load Audio
-audio_data, sr = sf.read(wav_path)
-if audio_data.ndim > 1:
-    audio_data = np.mean(audio_data, axis=1)
-audio_data = audio_data.astype(np.float32)
+# 1. Open Audio File (streamed on-demand to support 10+ hour recordings with zero RAM pressure)
+sfile = sf.SoundFile(wav_path)
+sr = sfile.samplerate
+total_samples = len(sfile)
 
 # 2. Load Profiles
 profiles = {{}}
@@ -162,8 +195,15 @@ for seg in raw_segments:
     dur = seg['end'] - seg['start']
     pad = max(0.0, (1.8 - dur) / 2.0)
     start_sample = max(0, int((seg['start'] - pad) * sr))
-    end_sample = min(len(audio_data), int((seg['end'] + pad) * sr))
-    seg_audio = audio_data[start_sample:end_sample]
+    end_sample = min(total_samples, int((seg['end'] + pad) * sr))
+    count = end_sample - start_sample
+
+    seg_audio = np.zeros(0, dtype=np.float32)
+    if count > 0:
+        sfile.seek(start_sample)
+        seg_audio = sfile.read(count, dtype='float32')
+        if seg_audio.ndim > 1:
+            seg_audio = np.mean(seg_audio, axis=1)
 
     if len(seg_audio) > sr * 0.35:
         max_val = np.max(np.abs(seg_audio))
@@ -178,6 +218,8 @@ for seg in raw_segments:
     else:
         emb = np.zeros(192, dtype=np.float32)
     segment_embeddings.append(emb)
+
+sfile.close()
 
 # 5. Cluster speakers using Cosine Distance
 valid_indices = [i for i, emb in enumerate(segment_embeddings) if np.linalg.norm(emb) > 0.5]
