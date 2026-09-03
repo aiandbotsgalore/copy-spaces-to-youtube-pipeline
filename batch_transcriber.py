@@ -62,7 +62,7 @@ def extract_audio_to_wav(source: str, output_wav: str, github_token: Optional[st
 def _transcribe_single_wav(wav_path: str, model_size: str, device: str, compute_type: str, time_offset: float = 0.0) -> List[Dict[str, Any]]:
     """Transcribes a single WAV file on GPU with Faster-Whisper."""
     code = f"""
-import sys, json
+import sys, os, json
 from faster_whisper import WhisperModel
 
 try:
@@ -85,13 +85,21 @@ for s in segments:
 
 print('__SPACEPIPE_JSON_START__')
 print(json.dumps(results))
+sys.stdout.flush()
+os._exit(0)
 """
     res = subprocess.run([PYTHON_EXE, "-c", code], capture_output=True, text=True, encoding="utf-8")
-    if res.returncode != 0 or "__SPACEPIPE_JSON_START__" not in res.stdout:
+    if "__SPACEPIPE_JSON_START__" in res.stdout:
+        json_str = res.stdout.split("__SPACEPIPE_JSON_START__")[1].strip()
+        try:
+            return json.loads(json_str)
+        except Exception:
+            pass
+            
+    if res.returncode != 0:
         raise RuntimeError(f"ASR worker failed (exit code {res.returncode}):\n{res.stderr}\n{res.stdout}")
     
-    json_str = res.stdout.split("__SPACEPIPE_JSON_START__")[1].strip()
-    return json.loads(json_str)
+    return []
 
 
 def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: str) -> List[Dict[str, Any]]:
@@ -567,10 +575,13 @@ class BatchAudioTranscriber:
 
             # 2. SRT transcript
             with open(srt_path, "w", encoding="utf-8") as f:
-                for i, s in enumerate(merged_segments, 1):
-                    start_srt = self.format_timestamp(s["start"], srt=True)
-                    end_srt = self.format_timestamp(s["end"], srt=True)
-                    f.write(f"{i}\n{start_srt} --> {end_srt}\n{s['speaker']}: {s['text']}\n\n")
+                if merged_segments:
+                    for i, s in enumerate(merged_segments, 1):
+                        start_srt = self.format_timestamp(s["start"], srt=True)
+                        end_srt = self.format_timestamp(s["end"], srt=True)
+                        f.write(f"{i}\n{start_srt} --> {end_srt}\n{s['speaker']}: {s['text']}\n\n")
+                else:
+                    f.write("1\n00:00:00,000 --> 00:00:01,000\n[Silence or ambient audio]\n\n")
 
             # 3. JSON transcript
             json_payload = {

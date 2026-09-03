@@ -104,141 +104,14 @@ const buildPythonRSSScript = () => [
 ].join('\n');
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
-  const assemblyAiStep = config.enableTranscription ? `
-      - name: Transcribe with AssemblyAI
+  const transcriptionStep = config.enableTranscription ? `
+      - name: Trigger GPU Transcription on Local Runner
         if: success() && steps.process.outputs.already_exists != 'true'
-        id: transcribe
         env:
-          ASSEMBLYAI_API_KEY: \${{ secrets.ASSEMBLYAI_API_KEY }}
-          MP3_PATH: \${{ steps.process.outputs.mp3_path }}
-          EPISODE_ID: \${{ steps.process.outputs.space_id }}
-          SOURCE_URL: \${{ inputs.space_url }}
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install -q assemblyai
-          python3 - <<'PYEOF'
-          import os, sys, json
-          api_key = os.environ.get("ASSEMBLYAI_API_KEY", "")
-          if not api_key:
-              print("::error::ASSEMBLYAI_API_KEY secret is not set. Add it at: repo Settings -> Secrets and variables -> Actions -> New repository secret.")
-              sys.exit(1)
-          mp3_path = os.environ.get("MP3_PATH", "")
-          episode_id = os.environ.get("EPISODE_ID", "")
-          source_url = os.environ.get("SOURCE_URL", "")
-          if not mp3_path or not os.path.exists(mp3_path):
-              print(f"::error::MP3 file not found: {mp3_path}")
-              sys.exit(1)
-
-          file_size_mb = os.path.getsize(mp3_path) / (1024 * 1024)
-          print(f"🎵 Audio file: {mp3_path} ({file_size_mb:.2f} MB)")
-
-          import assemblyai as aai, subprocess
-          aai.settings.api_key = api_key
-          os.makedirs("transcripts", exist_ok=True)
-          base_name = os.path.splitext(os.path.basename(mp3_path))[0]
-          txt_path = f"transcripts/{base_name}.txt"
-          json_path = f"transcripts/{base_name}.json"
-
-          def fmt(sec):
-              s = int(sec)
-              return f"{s // 3600:02d}:{(s % 3600) // 60:02d}:{s % 60:02d}"
-
-          # Plan A: Speech-band filter & loudnorm leveling pass
-          opt_path = f"work/{base_name}_speech_opt.mp3"
-          print(f"🎛️ Condition audio for speech: bandpass (75Hz-8.5kHz), loudnorm leveling, 24kHz mono...")
-          ffmpeg_cmd = [
-              "ffmpeg", "-y", "-i", mp3_path,
-              "-af", "highpass=f=75,lowpass=f=8500,loudnorm=I=-16:LRA=11:TP=-1.5",
-              "-ar", "24000", "-ac", "1",
-              "-c:a", "libmp3lame", "-b:a", "64k",
-              opt_path
-          ]
-          res = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
-          transcribe_input = opt_path if res.returncode == 0 and os.path.exists(opt_path) else mp3_path
-          if transcribe_input == opt_path:
-              orig_mb = os.path.getsize(mp3_path) / (1024 * 1024)
-              opt_mb = os.path.getsize(opt_path) / (1024 * 1024)
-              print(f"✨ Speech optimized: {orig_mb:.1f} MB -> {opt_mb:.1f} MB ({(1 - opt_mb/orig_mb)*100:.0f}% reduction)")
-          else:
-              print(f"⚠️ Warning: ffmpeg enhancement failed ({res.stderr}), using original audio.")
-
-          print("🚀 Requesting AssemblyAI Universal-3.5 Pro transcription...")
-          base_keyterms = [
-              "LoganBlack", "Logan Black", "Rick Doty", "Richard Doty", "Shane", "Oor",
-              "Lana", "Pants Down", "UAP", "UFO", "UFOs", "PeruAliens", "David Grusch",
-              "disclosure", "extraterrestrial", "NHI", "A.I."
-          ]
-          try:
-              cfg = aai.TranscriptionConfig(
-                  speaker_labels=True,
-                  speech_models=["universal-3-5-pro", "universal-2"],
-                  language_code="en",
-                  punctuate=True,
-                  format_text=True,
-                  prompt="Live X Space discussion covering UAP, UFOs, paranormal topics, science, technology, government, disclosure, and related current events.",
-                  keyterms_prompt=base_keyterms
-              )
-              transcript = aai.Transcriber().transcribe(transcribe_input, config=cfg)
-          except Exception as e:
-              print(f"::error::AssemblyAI exception occurred during transcription request: {e}")
-              sys.exit(1)
-
-          if transcript.status == aai.TranscriptStatus.error:
-              print(f"::error::AssemblyAI transcription failed with status 'error'!")
-              print(f"  Transcript ID: {transcript.id}")
-              print(f"  Error message: {transcript.error}")
-              sys.exit(1)
-
-          model_used = getattr(transcript, "speech_model_used", "universal-3-5-pro")
-          print(f"✅ Transcription completed successfully!")
-          print(f"  Transcript ID: {transcript.id}")
-          print(f"  Model used: {model_used}")
-          print(f"  Confidence: {getattr(transcript, 'confidence', 'N/A')}")
-          print(f"  Audio Duration: {getattr(transcript, 'audio_duration', 'N/A')}s")
-
-          utterances = transcript.utterances or []
-          distinct_speakers = sorted(list(set(str(u.speaker) for u in utterances)))
-          print(f"  Speakers detected ({len(distinct_speakers)}): {', '.join(distinct_speakers)}")
-          print(f"  Total utterances: {len(utterances)}")
-
-          lines, segments = [], []
-          for u in utterances:
-              spk = f"Speaker {u.speaker}" if not str(u.speaker).startswith("Speaker") else str(u.speaker)
-              start_sec = round(float(getattr(u, "start", 0)) / 1000.0, 3)
-              end_sec = round(float(getattr(u, "end", 0)) / 1000.0, 3)
-              lines.append(f"[{fmt(start_sec)} - {fmt(end_sec)}] {spk}: {u.text.strip()}")
-              segments.append({
-                  "start": start_sec,
-                  "end": end_sec,
-                  "start_ms": getattr(u, "start", None),
-                  "end_ms": getattr(u, "end", None),
-                  "speaker": spk,
-                  "text": u.text.strip(),
-                  "confidence": getattr(u, "confidence", None)
-              })
-
-          if not lines and transcript.text:
-              lines.append(transcript.text.strip())
-
-          with open(txt_path, "w", encoding="utf-8") as f:
-              f.write("\\n\\n".join(lines))
-
-          with open(json_path, "w", encoding="utf-8") as f:
-              json.dump({
-                  "episode_id": episode_id,
-                  "source_url": source_url,
-                  "transcript_id": transcript.id,
-                  "model_used": model_used,
-                  "confidence": getattr(transcript, "confidence", None),
-                  "audio_duration": getattr(transcript, "audio_duration", None),
-                  "speakers_count": len(distinct_speakers),
-                  "speakers": distinct_speakers,
-                  "segments": segments,
-                  "text": transcript.text or ""
-              }, f, indent=2)
-
-          print(f"📄 Transcript text saved: {txt_path} ({len(lines)} speaker turns)")
-          print(f"📊 JSON data saved: {json_path}")
-          PYEOF
+          echo "Dispatching transcribe_episode.yml for release: \${{ steps.process.outputs.release_tag }}"
+          gh workflow run transcribe_episode.yml -f release_tag="\${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed or runner offline"
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `
@@ -341,7 +214,7 @@ jobs:
             -of default=noprint_wrappers=1:nokey=1 "\${{ steps.process.outputs.mp3_path }}" \\
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
-${assemblyAiStep}
+
       - name: Clear Queue File
         if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
         run: |
@@ -368,8 +241,6 @@ ${assemblyAiStep}
           name: "\${{ steps.process.outputs.space_title }}"
           files: |
             \${{ steps.process.outputs.mp3_path }}
-            transcripts/*.txt
-            transcripts/*.json
           fail_on_unmatched_files: false
           draft: false
           prerelease: false
@@ -387,6 +258,7 @@ ${assemblyAiStep}
             METADATA::EPISODE_DATE::\${{ steps.process.outputs.episode_date }}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+${transcriptionStep}
 ${slackStep}${discordStep}
 
   rss:
@@ -710,7 +582,6 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 ### Optional Secrets
 | Secret | Purpose |
 |--------|---------|
-| \`ASSEMBLYAI_API_KEY\` | Diarized transcription with speaker labels (AssemblyAI) |
 | \`SLACK_WEBHOOK_URL\` | Slack notifications on publish |
 | \`DISCORD_WEBHOOK_URL\` | Discord notifications on publish |
 

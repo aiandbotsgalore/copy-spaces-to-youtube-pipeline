@@ -66,9 +66,25 @@ jobs:
           $txt = "output_transcripts\$stem.txt"
           $srt = "output_transcripts\$stem.srt"
           $json = "output_transcripts\$stem.json"
-          Write-Host "[*] Uploading transcripts to release $env:RELEASE_TAG..."
-          gh release upload "$env:RELEASE_TAG" $txt $srt $json --clobber
-          Write-Host "[✓] Transcripts successfully uploaded to GitHub Release."
+          Write-Host "[*] Checking files for upload to release $env:RELEASE_TAG..."
+          $toUpload = @()
+          foreach ($f in @($txt, $srt, $json)) {
+            if (Test-Path $f) {
+              $size = (Get-Item $f).Length
+              if ($size -gt 0) {
+                $toUpload += $f
+                Write-Host "  [+] Queued: $f ($size bytes)"
+              } else {
+                Write-Warning "Skipping 0-byte file: $f"
+              }
+            }
+          }
+          if ($toUpload.Count -gt 0) {
+            gh release upload "$env:RELEASE_TAG" $toUpload --clobber
+            Write-Host "[✓] Transcripts successfully uploaded to GitHub Release."
+          } else {
+            Write-Warning "No non-empty transcripts found to upload."
+          }
 
       - name: Trigger RSS Update
         shell: pwsh

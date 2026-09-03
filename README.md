@@ -61,7 +61,6 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 ### Optional Secrets
 | Secret | Purpose |
 |--------|---------|
-| `ASSEMBLYAI_API_KEY` | Diarized transcription with speaker labels (AssemblyAI) |
 | `SLACK_WEBHOOK_URL` | Slack notifications on publish |
 | `DISCORD_WEBHOOK_URL` | Discord notifications on publish |
 

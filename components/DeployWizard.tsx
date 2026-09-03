@@ -136,7 +136,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
       if (!skip('script')) {
         upd('script', { status: 'running' });
         await pushFile(token, owner, repo, 'scripts/ingest.sh', generateIngestScript(config), 'chore: update ingest script');
-        const requirements = config.enableTranscription ? 'yt-dlp\nassemblyai\n' : 'yt-dlp\n';
+        const requirements = 'yt-dlp\n';
         await pushFile(token, owner, repo, 'requirements.txt', requirements, 'chore: update requirements.txt');
         upd('script', { status: 'done' });
       }
