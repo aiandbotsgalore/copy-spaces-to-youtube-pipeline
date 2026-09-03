@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional, Tuple
 import soundfile as sf
 import imageio_ffmpeg
 import requests
+import shutil
 
 # ---------------------------------------------------------------------------
 # Constants & Defaults
@@ -24,7 +25,7 @@ SAMPLE_RATE = 16000
 EMBEDDING_DIM = 192
 
 PYTHON_EXE = sys.executable
-FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
+FFMPEG_EXE = shutil.which("ffmpeg") or imageio_ffmpeg.get_ffmpeg_exe()
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +62,12 @@ def extract_audio_to_wav(source: str, output_wav: str, github_token: Optional[st
 # ---------------------------------------------------------------------------
 def _transcribe_single_wav(wav_path: str, model_size: str, device: str, compute_type: str, time_offset: float = 0.0) -> List[Dict[str, Any]]:
     """Transcribes a single WAV file on GPU with Faster-Whisper."""
+    abs_wav = os.path.abspath(wav_path)
+    json_out_path = os.path.abspath(f"{abs_wav}.tmp_segs.json")
+
+    wav_json = json.dumps(abs_wav)
+    json_out_json = json.dumps(json_out_path)
+
     code = f"""
 import sys, os, json
 from faster_whisper import WhisperModel
@@ -71,7 +78,7 @@ except Exception as e:
     model = WhisperModel('{model_size}', device='{device}', compute_type='int8_float16' if '{device}' == 'cuda' else 'int8')
 
 segments, info = model.transcribe(
-    r'{wav_path}',
+    {wav_json},
     beam_size=5,
     vad_filter=True,
     vad_parameters=dict(min_silence_duration_ms=500),
@@ -83,19 +90,26 @@ offset = {time_offset}
 for s in segments:
     results.append({{'start': round(s.start + offset, 3), 'end': round(s.end + offset, 3), 'text': s.text.strip()}})
 
-print('__SPACEPIPE_JSON_START__')
-print(json.dumps(results))
+with open({json_out_json}, 'w', encoding='utf-8') as f:
+    json.dump(results, f)
+    f.flush()
+    os.fsync(f.fileno())
+
 sys.stdout.flush()
 os._exit(0)
 """
     res = subprocess.run([PYTHON_EXE, "-c", code], capture_output=True, text=True, encoding="utf-8")
-    if "__SPACEPIPE_JSON_START__" in res.stdout:
-        json_str = res.stdout.split("__SPACEPIPE_JSON_START__")[1].strip()
+
+    if os.path.exists(json_out_path):
         try:
-            return json.loads(json_str)
-        except Exception:
-            pass
-            
+            with open(json_out_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        finally:
+            try:
+                os.remove(json_out_path)
+            except Exception:
+                pass
+
     if res.returncode != 0:
         raise RuntimeError(f"ASR worker failed (exit code {res.returncode}):\n{res.stderr}\n{res.stdout}")
     
@@ -114,14 +128,19 @@ def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: st
     num_chunks = math.ceil(duration_sec / CHUNK_SEC)
     print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 1-hour chunks for GPU ASR...")
     
+    base_name = os.path.splitext(wav_path)[0]
     all_segments = []
     for i in range(num_chunks):
         start_sec = i * CHUNK_SEC
-        chunk_wav = f"{wav_path}_chunk_{i}.wav"
+        chunk_wav = f"{base_name}_chunk_{i}.wav"
         try:
             print(f"  [{i + 1}/{num_chunks}] Transcribing chunk {i + 1} (Offset +{int(start_sec // 60)}m)...")
-            cmd = [FFMPEG_EXE, "-y", "-ss", str(start_sec), "-t", str(CHUNK_SEC), "-i", wav_path, "-acodec", "copy", chunk_wav]
+            cmd = [FFMPEG_EXE, "-y", "-ss", str(start_sec), "-t", str(CHUNK_SEC), "-i", wav_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", chunk_wav]
             subprocess.run(cmd, capture_output=True, check=True)
+            chunk_info = sf.info(chunk_wav)
+            if chunk_info.duration < 0.1:
+                print(f"  [!] Warning: Chunk {i + 1} duration is {chunk_info.duration}s, skipping.")
+                continue
             chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
             all_segments.extend(chunk_segs)
         finally:
