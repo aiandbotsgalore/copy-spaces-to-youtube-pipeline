@@ -14,6 +14,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   transcribe:
@@ -74,4 +75,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh workflow run update_rss.yml --ref master
+          try {
+            gh workflow run update_rss.yml --ref master
+          } catch {
+            Write-Host "[!] Note: Could not trigger update_rss.yml: $_"
+          }
