@@ -37,6 +37,8 @@ transcripts/
 output_transcripts/
 speaker_samples/
 best_saved_clips/
+public/clips/
+social_shorts/
 
 # Generated batch run artifacts
 batches/

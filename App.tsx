@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
-  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame
 } from 'lucide-react';
 import FileViewer from './components/FileViewer';
 import GitHubConnect from './components/GitHubConnect';
@@ -14,6 +14,7 @@ import RunHistory from './components/RunHistory';
 import DeployWizard from './components/DeployWizard';
 import LibraryPanel from './components/LibraryPanel';
 import TranscriptPanel from './components/TranscriptPanel';
+import { ClipsPanel } from './components/ClipsPanel';
 import SubmitSpacePanel from './components/SubmitSpacePanel';
 import DashboardOverview from './components/DashboardOverview';
 import LiveQueuePanel from './components/LiveQueuePanel';
@@ -124,6 +125,7 @@ type Panel =
   | 'deploy'
   | 'library'
   | 'transcripts'
+  | 'clips'
   | `file:${string}`;
 
 interface NavItemProps {
@@ -295,6 +297,14 @@ export default function App() {
                 active={activePanel === 'transcripts'}
                 onClick={() => setActivePanel('transcripts')}
                 badge={config.enableTranscription ? 'on' : undefined}
+                badgeColor="bg-amber-500/20 text-amber-400"
+              />
+              <NavItem
+                icon={<Flame size={15} />}
+                label="Best Clips"
+                active={activePanel === 'clips'}
+                onClick={() => setActivePanel('clips')}
+                badge="AI"
                 badgeColor="bg-amber-500/20 text-amber-400"
               />
               <NavItem
@@ -620,6 +630,10 @@ export default function App() {
             config={config}
             initialReleaseId={selectedTranscriptId}
           />
+        )}
+
+        {activePanel === 'clips' && (
+          <ClipsPanel />
         )}
       </main>
       <PlayerBar />
