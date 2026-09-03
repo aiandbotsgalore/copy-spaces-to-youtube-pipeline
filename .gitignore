@@ -36,6 +36,7 @@ scripts/__pycache__/
 transcripts/
 output_transcripts/
 speaker_samples/
+best_saved_clips/
 
 # Generated batch run artifacts
 batches/
