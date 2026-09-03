@@ -34,6 +34,7 @@ scripts/__pycache__/
 
 # Local transcript outputs
 transcripts/
+output_transcripts/
 
 # Generated batch run artifacts
 batches/
