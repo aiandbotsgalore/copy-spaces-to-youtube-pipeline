@@ -28,6 +28,24 @@ PYTHON_EXE = sys.executable
 FFMPEG_EXE = shutil.which("ffmpeg") or imageio_ffmpeg.get_ffmpeg_exe()
 
 
+def get_best_temp_dir() -> Optional[str]:
+    """Selects a directory on a drive with ample free disk space (>10GB) to prevent disk exhaustion on marathon recordings."""
+    candidates = [r"G:\temp_pipeline", r"D:\temp_pipeline", os.environ.get("TEMP", "")]
+    for c in candidates:
+        if not c:
+            continue
+        try:
+            drive = os.path.splitdrive(c)[0] + "\\"
+            if os.path.exists(drive):
+                _, _, free = shutil.disk_usage(drive)
+                if free > 10 * (1024 ** 3):
+                    os.makedirs(c, exist_ok=True)
+                    return c
+        except Exception:
+            pass
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Audio Processing Utilities
 # ---------------------------------------------------------------------------
@@ -525,7 +543,8 @@ class BatchAudioTranscriber:
 
         start_time = time.time()
 
-        with tempfile.TemporaryDirectory() as tmp_dir:
+        temp_root = get_best_temp_dir()
+        with tempfile.TemporaryDirectory(dir=temp_root) as tmp_dir:
             wav_path = os.path.join(tmp_dir, "audio_16k.wav")
             print(f"[1/4] Ingesting & streaming audio via FFmpeg...")
             t0 = time.time()
