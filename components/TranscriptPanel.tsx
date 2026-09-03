@@ -554,7 +554,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setTranscriptError('');
     try {
       await dispatchWorkflow(config.githubToken, config.ownerName.trim(), config.repoName.trim(), 'transcribe_episode.yml', { release_tag: selectedRelease.tag_name });
-      setTranscribeSuccess(`Workflow dispatched for ${selectedRelease.tag_name}. AssemblyAI is processing the audio in GitHub Actions; this page will check automatically for completion.`);
+      setTranscribeSuccess(`Workflow dispatched for ${selectedRelease.tag_name}. Your local RTX 4060 Ti runner is transcribing and diarizing the audio; this page will check automatically for completion.`);
       startTranscriptPolling(selectedRelease.id);
     } catch (e) {
       setTranscriptError(`Failed to trigger transcription: ${(e as Error).message}`);
@@ -990,7 +990,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <button onClick={handleGenerateTranscript} disabled={transcribing}
                         className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer">
                         {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                        {transcribing ? 'Dispatching GitHub Action…' : '⚡ Transcribe Space with AssemblyAI'}
+                        {transcribing ? 'Dispatching to RTX 4060 Ti…' : '⚡ Transcribe Space with RTX 4060 Ti'}
                       </button>
                     )}
                   </div>

@@ -60,28 +60,24 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
           enabled={config.enableTranscription}
           onToggle={() => onChange({ enableTranscription: !config.enableTranscription })}
           icon={<Mic size={16} />}
-          title="AssemblyAI Diarized Transcription"
-          badge="API key required"
-          description="Transcribe each episode with speaker identification using AssemblyAI. Outputs a plain-text transcript with per-speaker timestamps and a JSON file with segment data. Requires an ASSEMBLYAI_API_KEY GitHub secret."
+          title="RTX 4060 Ti GPU Neural Transcription"
+          badge="Local Runner Active"
+          description="Transcribe each episode with speaker identification using your local NVIDIA GeForce RTX 4060 Ti GPU runner. Combines Faster-Whisper ASR, SpeechBrain ECAPA-TDNN biometric voiceprints, and Gemini contextual name discovery."
         >
           <div className="space-y-3">
-            <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <Info size={13} className="text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+              <Info size={13} className="text-indigo-400 mt-0.5 flex-shrink-0" />
               <div className="space-y-1.5">
-                <p className="text-xs text-amber-300/80 font-medium">Setup required — add your API key as a GitHub Secret</p>
-                <ol className="text-[10px] text-amber-300/60 space-y-1 list-none">
-                  <li>1. Get a free API key at <a href="https://www.assemblyai.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">assemblyai.com</a></li>
-                  <li>2. In your GitHub repo: Settings → Secrets and variables → Actions</li>
-                  <li>3. Add a secret named <code className="bg-amber-900/30 px-1 rounded">ASSEMBLYAI_API_KEY</code></li>
-                </ol>
+                <p className="text-xs text-indigo-300 font-medium">Local GPU Runner Active: Logan-RTX4060Ti</p>
+                <p className="text-[10px] text-slate-400">Audio is processed locally with Faster-Whisper (large-v3-turbo) at 22x–28x real-time speed with zero API costs.</p>
               </div>
             </div>
             <div className="flex items-start gap-2 p-3 bg-slate-800/60 border border-slate-700 rounded-lg">
               <Info size={13} className="text-slate-500 mt-0.5 flex-shrink-0" />
               <div className="text-[10px] text-slate-500 space-y-0.5">
-                <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] Speaker A: text here</code></p>
-                <p>Acoustic model: <code className="text-slate-400">AssemblyAI Best (Universal) with speaker diarization</code></p>
-                <p>Both <code className="text-slate-400">.txt</code> and <code className="text-slate-400">.json</code> files are uploaded to each GitHub Release.</p>
+                <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] Speaker: text here</code></p>
+                <p>Biometric matching: <code className="text-slate-400">ECAPA-TDNN (Logan, Oor enrolled)</code></p>
+                <p>Output assets: <code className="text-slate-400">.txt</code>, <code className="text-slate-400">.srt</code>, and <code className="text-slate-400">.json</code> attached to each GitHub Release.</p>
               </div>
             </div>
           </div>
