@@ -90,6 +90,15 @@ def _transcribe_single_wav(wav_path: str, model_size: str, device: str, compute_
 import sys, os, json
 from faster_whisper import WhisperModel
 
+import os
+try:
+    import nvidia.cublas.lib, nvidia.cudnn.lib
+    cp = os.path.dirname(nvidia.cublas.lib.__file__)
+    dp = os.path.dirname(nvidia.cudnn.lib.__file__)
+    os.environ["LD_LIBRARY_PATH"] = cp + ":" + dp + ":" + os.environ.get("LD_LIBRARY_PATH", "")
+except Exception:
+    pass
+
 try:
     model = WhisperModel('{model_size}', device='{device}', compute_type='{compute_type}')
 except Exception as e:
@@ -105,7 +114,7 @@ try:
     )
 except Exception as cuda_err:
     if '{device}' == 'cuda':
-        sys.stderr.write(f"CUDA transcription notice: {cuda_err}. Falling back to CPU.\\n")
+        sys.stderr.write("CUDA transcription notice: " + str(cuda_err) + ". Falling back to CPU.\\n")
         model = WhisperModel('{model_size}', device='cpu', compute_type='int8')
         segments, info = model.transcribe(
             {wav_json},
