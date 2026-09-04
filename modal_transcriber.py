@@ -132,6 +132,12 @@ def run_cloud_transcription(release_tag: str):
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / f"{stem}.json"
     existing_json_asset = next((a for a in assets if a["name"] == f"{stem}.json" and a.get("size", 0) > 1000), None)
+    if not existing_json_asset:
+        for a in assets:
+            aname = a.get("name", "")
+            if aname.endswith(".json") and not aname.endswith("_clips.json") and aname != "clips_catalog.json" and a.get("size", 0) > 1000:
+                existing_json_asset = a
+                break
 
     py_exe = sys.executable
     sub_env = os.environ.copy()

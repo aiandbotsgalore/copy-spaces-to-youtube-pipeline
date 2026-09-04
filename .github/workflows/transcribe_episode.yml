@@ -1,4 +1,5 @@
 name: Transcribe Episode
+run-name: Transcribe ${{ inputs.release_tag }}
 
 on:
   workflow_dispatch:

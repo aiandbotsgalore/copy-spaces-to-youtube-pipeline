@@ -18,12 +18,27 @@ CACHE_DIR = Path(".cache/transcripts")
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 def main():
-    print("[*] Fetching releases from GitHub API to build global transcript search index...")
+    print("[*] Fetching all releases from GitHub API with pagination...")
     res = subprocess.run(
-        ['gh', 'api', 'repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=100'],
+        ['gh', 'api', 'repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=100', '--paginate'],
         capture_output=True, text=True, check=True
     )
-    releases = json.loads(res.stdout)
+    releases = []
+    decoder = json.JSONDecoder()
+    pos = 0
+    raw = res.stdout
+    while pos < len(raw.strip()):
+        while pos < len(raw) and raw[pos].isspace():
+            pos += 1
+        if pos >= len(raw):
+            break
+        obj, idx = decoder.raw_decode(raw[pos:])
+        pos += idx
+        if isinstance(obj, list):
+            releases.extend(obj)
+        elif isinstance(obj, dict):
+            releases.append(obj)
+    print(f"[*] Found {len(releases)} total releases across repository.")
 
     index = []
     total_segments = 0
