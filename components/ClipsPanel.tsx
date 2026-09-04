@@ -31,7 +31,7 @@ interface ClipItem {
   file_path?: string;
 }
 
-export const formatEpisodeTitle = (ep?: string) => {
+const formatEpisodeTitle = (ep?: string) => {
   if (!ep) return 'Unknown Space';
   let clean = ep.replace(/^20\d{6}_[a-zA-Z0-9]+_/, '');
   clean = clean.replace(/_/g, ' ').replace(/-/g, ' ').trim();
