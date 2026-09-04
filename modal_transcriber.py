@@ -31,9 +31,11 @@ modal_image = (
     modal.Image.debian_slim(python_version="3.11")
     .apt_install("ffmpeg", "git", "curl", "build-essential")
     .pip_install(
-        "faster-whisper",
         "torch==2.5.1",
         "torchaudio==2.5.1",
+        "nvidia-cublas-cu12",
+        "nvidia-cudnn-cu12",
+        "faster-whisper",
         "speechbrain",
         "soundfile",
         "scikit-learn",
@@ -43,6 +45,9 @@ modal_image = (
         "google-genai",
         "pydantic",
     )
+    .env({
+        "LD_LIBRARY_PATH": "/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib"
+    })
     .add_local_dir(
         ".",
         remote_path="/root/workspace",
@@ -68,6 +73,17 @@ def run_cloud_transcription(release_tag: str):
     gh_token = os.environ.get("GH_TOKEN", "")
     gemini_key = os.environ.get("GEMINI_API_KEY", "")
 
+    # Set up CUDA LD_LIBRARY_PATH dynamically for CTranslate2
+    try:
+        import nvidia.cublas.lib
+        import nvidia.cudnn.lib
+        cublas_dir = os.path.dirname(nvidia.cublas.lib.__file__)
+        cudnn_dir = os.path.dirname(nvidia.cudnn.lib.__file__)
+        curr_ld = os.environ.get("LD_LIBRARY_PATH", "")
+        os.environ["LD_LIBRARY_PATH"] = f"{cublas_dir}:{cudnn_dir}:{curr_ld}"
+    except Exception as e:
+        print(f"[!] Notice loading CUDA library paths: {e}")
+
     print(f"[*] Starting Modal Cloud GPU Transcription for Release Tag: {release_tag}")
     
     # 1. Fetch Release Info from GitHub API
@@ -84,6 +100,7 @@ def run_cloud_transcription(release_tag: str):
         raise RuntimeError(f"Failed to fetch release info for {release_tag}: {resp.status_code} - {resp.text}")
     
     release_data = resp.json()
+    release_id = release_data.get("id")
     assets = release_data.get("assets", [])
     mp3_asset = next((a for a in assets if a["name"].endswith(".mp3")), None)
     
@@ -121,8 +138,11 @@ def run_cloud_transcription(release_tag: str):
         "--non-interactive"
     ]
     
+    # Pass current env with updated LD_LIBRARY_PATH
+    sub_env = os.environ.copy()
+    
     print(f"[*] Running batch_transcriber on cloud NVIDIA A10G GPU...")
-    res = subprocess.run(cmd_transcribe, capture_output=True, text=True)
+    res = subprocess.run(cmd_transcribe, env=sub_env, capture_output=True, text=True)
     print(res.stdout)
     if res.returncode != 0:
         print("STDERR:", res.stderr)
@@ -142,7 +162,7 @@ def run_cloud_transcription(release_tag: str):
             "--audio", str(local_mp3),
             "--limit", "5"
         ]
-        res_clips = subprocess.run(cmd_clips, capture_output=True, text=True)
+        res_clips = subprocess.run(cmd_clips, env=sub_env, capture_output=True, text=True)
         print(res_clips.stdout)
         if res_clips.returncode != 0:
             print("Clip Extractor Notice:", res_clips.stderr)

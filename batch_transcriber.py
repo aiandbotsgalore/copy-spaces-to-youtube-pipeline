@@ -95,13 +95,27 @@ try:
 except Exception as e:
     model = WhisperModel('{model_size}', device='{device}', compute_type='int8_float16' if '{device}' == 'cuda' else 'int8')
 
-segments, info = model.transcribe(
-    {wav_json},
-    beam_size=5,
-    vad_filter=True,
-    vad_parameters=dict(min_silence_duration_ms=500),
-    word_timestamps=False
-)
+try:
+    segments, info = model.transcribe(
+        {wav_json},
+        beam_size=5,
+        vad_filter=True,
+        vad_parameters=dict(min_silence_duration_ms=500),
+        word_timestamps=False
+    )
+except Exception as cuda_err:
+    if '{device}' == 'cuda':
+        sys.stderr.write(f"CUDA transcription notice: {cuda_err}. Falling back to CPU.\\n")
+        model = WhisperModel('{model_size}', device='cpu', compute_type='int8')
+        segments, info = model.transcribe(
+            {wav_json},
+            beam_size=1,
+            vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=500),
+            word_timestamps=False
+        )
+    else:
+        raise
 
 results = []
 offset = {time_offset}
