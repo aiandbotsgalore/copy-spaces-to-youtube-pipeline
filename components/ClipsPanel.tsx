@@ -14,7 +14,10 @@ import {
   ExternalLink,
   RefreshCw,
   Radio,
-  ArrowUpDown
+  ArrowUpDown,
+  RotateCcw,
+  RotateCw,
+  Gauge
 } from 'lucide-react';
 
 interface ClipItem {
@@ -48,6 +51,7 @@ export const ClipsPanel: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [clipSpeed, setClipSpeed] = useState(1);
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -143,8 +147,28 @@ export const ClipsPanel: React.FC = () => {
     const url = getAudioUrl(clip);
     if (audioRef.current) {
       audioRef.current.src = url;
+      audioRef.current.playbackRate = clipSpeed;
       audioRef.current.play();
       setIsPlaying(true);
+    }
+  };
+
+  const handleSkipClip = (deltaSeconds: number) => {
+    if (audioRef.current) {
+      const maxDur = audioRef.current.duration || duration || Infinity;
+      const target = Math.max(0, Math.min(audioRef.current.currentTime + deltaSeconds, maxDur));
+      audioRef.current.currentTime = target;
+      setCurrentTime(target);
+    }
+  };
+
+  const handleCycleClipSpeed = () => {
+    const speeds = [1.0, 1.25, 1.5, 2.0];
+    const nextIdx = (speeds.indexOf(clipSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+    setClipSpeed(nextSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextSpeed;
     }
   };
 
@@ -257,14 +281,52 @@ export const ClipsPanel: React.FC = () => {
       {/* Persistent Now Playing Bar if active */}
       {activeClipIndex !== null && filteredClips[activeClipIndex] && (
         <div className="p-4 bg-indigo-950/40 border border-indigo-500/30 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur">
-          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+          <div className="flex items-center gap-2.5 min-w-0 w-full sm:w-auto">
+            {/* Skip back 15s */}
+            <button
+              onClick={() => handleSkipClip(-15)}
+              className="group relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-full transition-all cursor-pointer flex-shrink-0"
+              title="Skip back 15s"
+              aria-label="Skip back 15 seconds"
+            >
+              <RotateCcw size={15} />
+              <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-slate-400 group-hover:text-indigo-300">
+                15
+              </span>
+            </button>
+
+            {/* Play/Pause */}
             <button
               onClick={() => handlePlayClip(activeClipIndex)}
               className="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-600/30 cursor-pointer transition-all hover:scale-105"
             >
               {isPlaying ? <Pause size={18} /> : <Play size={18} className="translate-x-0.5" />}
             </button>
-            <div className="min-w-0">
+
+            {/* Skip forward 15s */}
+            <button
+              onClick={() => handleSkipClip(15)}
+              className="group relative p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-full transition-all cursor-pointer flex-shrink-0"
+              title="Skip ahead 15s"
+              aria-label="Skip ahead 15 seconds"
+            >
+              <RotateCw size={15} />
+              <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-slate-400 group-hover:text-indigo-300">
+                15
+              </span>
+            </button>
+
+            {/* Speed toggle */}
+            <button
+              onClick={handleCycleClipSpeed}
+              className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-slate-800 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors flex-shrink-0 cursor-pointer"
+              title="Change Playback Speed"
+            >
+              <Gauge size={11} />
+              <span>{clipSpeed}x</span>
+            </button>
+
+            <div className="min-w-0 ml-1">
               <p className="text-xs font-semibold text-white truncate">
                 {filteredClips[activeClipIndex].title}
               </p>

@@ -12,9 +12,16 @@ interface PlayerContextValue {
   isPlaying: boolean;
   currentTime: number;
   duration: number;
+  playbackRate: number;
+  volume: number;
+  isMuted: boolean;
   play: (episode: NowPlayingEpisode, startTime?: number) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
+  skip: (seconds: number) => void;
+  setPlaybackRate: (rate: number) => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
   close: () => void;
 }
 
@@ -25,12 +32,20 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRateState] = useState(1);
+  const [volume, setVolumeState] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const prevVolumeRef = useRef(1);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
 
   useEffect(() => {
     const audio = new Audio();
     audioRef.current = audio;
+    audio.playbackRate = playbackRate;
+    audio.volume = volume;
+    audio.muted = isMuted;
 
     const applyPendingSeek = () => {
       if (pendingSeekRef.current !== null && audio.duration) {
@@ -65,6 +80,49 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
+  const setPlaybackRate = useCallback((rate: number) => {
+    setPlaybackRateState(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
+    }
+  }, []);
+
+  const setVolume = useCallback((vol: number) => {
+    const clamped = Math.max(0, Math.min(1, vol));
+    setVolumeState(clamped);
+    if (audioRef.current) {
+      audioRef.current.volume = clamped;
+      if (clamped > 0 && isMuted) {
+        audioRef.current.muted = false;
+        setIsMuted(false);
+      }
+    }
+  }, [isMuted]);
+
+  const toggleMute = useCallback(() => {
+    if (!audioRef.current) return;
+    if (isMuted) {
+      audioRef.current.muted = false;
+      setIsMuted(false);
+      if (volume === 0) {
+        setVolume(prevVolumeRef.current || 0.8);
+      }
+    } else {
+      prevVolumeRef.current = volume;
+      audioRef.current.muted = true;
+      setIsMuted(true);
+    }
+  }, [isMuted, volume, setVolume]);
+
+  const skip = useCallback((deltaSeconds: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const maxDuration = audio.duration || duration || Infinity;
+    const target = Math.max(0, Math.min(audio.currentTime + deltaSeconds, maxDuration));
+    audio.currentTime = target;
+    setCurrentTime(target);
+  }, [duration]);
+
   const play = useCallback((episode: NowPlayingEpisode, startTime?: number) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -75,6 +133,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     if (current?.id !== episode.id) {
       audio.src = episode.audioUrl;
+      audio.playbackRate = playbackRate;
+      audio.volume = volume;
+      audio.muted = isMuted;
       setCurrent(episode);
       setCurrentTime(startTime || 0);
       if (startTime !== undefined && startTime !== null && audio.readyState >= 1) {
@@ -92,7 +153,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     audio.play().catch(() => setIsPlaying(false));
     setIsPlaying(true);
-  }, [current]);
+  }, [current, playbackRate, volume, isMuted]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -129,8 +190,54 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     pendingSeekRef.current = null;
   }, []);
 
+  // Global Keyboard Shortcuts for audio controls (Space, ArrowLeft, ArrowRight, M)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept when user is typing in form fields
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
+      if (e.code === 'Space' && current) {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === 'ArrowLeft' && current) {
+        e.preventDefault();
+        skip(-15);
+      } else if (e.code === 'ArrowRight' && current) {
+        e.preventDefault();
+        skip(15);
+      } else if ((e.key === 'm' || e.key === 'M') && current) {
+        e.preventDefault();
+        toggleMute();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [current, togglePlay, skip, toggleMute]);
+
   return (
-    <PlayerContext.Provider value={{ current, isPlaying, currentTime, duration, play, togglePlay, seek, close }}>
+    <PlayerContext.Provider
+      value={{
+        current,
+        isPlaying,
+        currentTime,
+        duration,
+        playbackRate,
+        volume,
+        isMuted,
+        play,
+        togglePlay,
+        seek,
+        skip,
+        setPlaybackRate,
+        setVolume,
+        toggleMute,
+        close
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   );
