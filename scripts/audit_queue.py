@@ -4,10 +4,25 @@ import subprocess
 from pathlib import Path
 
 def main():
-    print("[*] Fetching all releases and assets via GitHub API in a single query...")
-    cmd = ["gh", "api", "repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=100"]
+    print("[*] Fetching all releases and assets via GitHub API with pagination...")
+    cmd = ["gh", "api", "repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=100", "--paginate"]
     res = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    releases = json.loads(res.stdout)
+    
+    releases = []
+    decoder = json.JSONDecoder()
+    pos = 0
+    raw = res.stdout
+    while pos < len(raw.strip()):
+        while pos < len(raw) and raw[pos].isspace():
+            pos += 1
+        if pos >= len(raw):
+            break
+        obj, idx = decoder.raw_decode(raw[pos:])
+        pos += idx
+        if isinstance(obj, list):
+            releases.extend(obj)
+        elif isinstance(obj, dict):
+            releases.append(obj)
     
     # Sort strictly most recent to oldest (by published_at or created_at)
     releases.sort(key=lambda r: r.get("published_at") or r.get("created_at") or "", reverse=True)
