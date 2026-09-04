@@ -59,13 +59,70 @@ export const ClipsPanel: React.FC = () => {
   const loadClips = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/clips/clips_catalog.json');
-      if (res.ok) {
-        const data = await res.json();
-        setClips(Array.isArray(data) ? data : []);
-      } else {
-        setClips([]);
+      let combinedClips: ClipItem[] = [];
+
+      // 1. Fetch static local catalog
+      try {
+        const res = await fetch('/clips/clips_catalog.json');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) combinedClips = [...data];
+        }
+      } catch (e) {
+        console.warn('Local clips catalog not found, checking remote releases...', e);
       }
+
+      // 2. Fetch live clips directly from GitHub Releases API
+      try {
+        const ghRes = await fetch('https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=50');
+        if (ghRes.ok) {
+          const releases = await ghRes.json();
+          const seenFiles = new Set(
+            combinedClips.map(c => (c.file_path ? c.file_path.split('/').pop()?.toLowerCase() : ''))
+          );
+
+          for (const r of releases) {
+            const relTitle = r.name || r.tag_name || 'Space Episode';
+            for (const a of (r.assets || [])) {
+              const fname: string = a.name || '';
+              if (fname.endsWith('.mp3') && fname.includes('m') && fname.includes('s')) {
+                const baseName = fname.toLowerCase();
+                if (!seenFiles.has(baseName)) {
+                  seenFiles.add(baseName);
+                  const stem = fname.replace(/\.mp3$/, '');
+                  const match = stem.match(/^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$/);
+                  let startSec = 0;
+                  let title = stem;
+                  if (match) {
+                    const h = parseInt(match[1] || '0', 10);
+                    const m = parseInt(match[2] || '0', 10);
+                    const s = parseInt(match[3] || '0', 10);
+                    startSec = h * 3600 + m * 60 + s;
+                    title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
+                  }
+                  combinedClips.push({
+                    title: title,
+                    category: 'Highlights',
+                    start_seconds: startSec,
+                    end_seconds: startSec + 60,
+                    duration: 60,
+                    speakers: ['Speaker'],
+                    viral_score: 9,
+                    reason: `AI selected highlight moment from ${relTitle}.`,
+                    transcript_snippet: `Highlight moment from ${relTitle}`,
+                    episode: relTitle,
+                    file_path: a.browser_download_url,
+                  });
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch live GitHub release clips:', err);
+      }
+
+      setClips(combinedClips);
     } catch {
       setClips([]);
     } finally {
@@ -118,6 +175,9 @@ export const ClipsPanel: React.FC = () => {
 
   const getAudioUrl = (clip: ClipItem): string => {
     if (!clip.file_path) return '';
+    if (clip.file_path.startsWith('http://') || clip.file_path.startsWith('https://')) {
+      return clip.file_path;
+    }
     // Normalize path to web-accessible /clips/... URL
     const rel = clip.file_path.replace(/\\/g, '/');
     const part = rel.includes('best_saved_clips/')
