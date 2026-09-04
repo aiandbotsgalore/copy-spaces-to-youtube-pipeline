@@ -134,8 +134,18 @@ Transcript:
                 return [c.model_dump() for c in parsed.clips]
             except Exception as e:
                 last_err = e
+                err_str = str(e)
                 print(f"[!] {model_name} attempt {attempt + 1} notice: {e}", flush=True)
-                time.sleep(2 * (attempt + 1))
+                delay = 2 * (attempt + 1)
+                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                    import re
+                    m = re.search(r"retryDelay':\s*'(\d+)s'", err_str)
+                    if m:
+                        delay = int(m.group(1)) + 2
+                    else:
+                        delay = 35
+                print(f"[*] Backing off for {delay}s before retry...", flush=True)
+                time.sleep(delay)
 
     raise RuntimeError(f"All Gemini models failed highlight extraction: {last_err}")
 

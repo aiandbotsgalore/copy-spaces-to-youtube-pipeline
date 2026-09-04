@@ -89,39 +89,40 @@ def main():
                     import urllib.request
                     with urllib.request.urlopen(clips_json_asset["browser_download_url"], timeout=15) as resp:
                         remote_meta = json.loads(resp.read().decode("utf-8"))
-                    if isinstance(remote_meta, list):
-                        for rc in remote_meta:
-                            # Match MP3 asset
-                            rc_start = round(rc.get("start_seconds", 0))
-                            matched_asset = next(
-                                (a for a in assets if a.get("name", "").endswith(".mp3") and (
-                                    a.get("name", "").lower() == Path(rc.get("file_path", "")).name.lower() or
-                                    abs(parse_clip_info(a.get("name", ""), rel_name, "")["start_seconds"] - rc_start) <= 5
-                                )),
-                                None
-                            )
-                            if matched_asset:
-                                rc["file_path"] = matched_asset.get("browser_download_url")
-                                rc["download_url"] = matched_asset.get("browser_download_url")
-                                seen_files.add(matched_asset.get("name", "").lower())
-                            rc["episode"] = rc.get("episode") or rel_name
 
-                            # Replace existing placeholder if present, else append
-                            ex_idx = next(
-                                (idx for idx, c in enumerate(existing_clips) if (
-                                    c.get("episode") == rc["episode"] and (
-                                        c.get("title", "").lower() == rc.get("title", "").lower() or
-                                        abs(c.get("start_seconds", 0) - rc["start_seconds"]) <= 5
-                                    )
-                                )),
-                                None
-                            )
-                            if ex_idx is not None:
-                                existing_clips[ex_idx] = rc
-                            else:
-                                existing_clips.append(rc)
-                                new_clips_added += 1
-                                print(f"  [+] Added rich cloud clip: \"{rc.get('title')}\" ({rel_name})")
+                if isinstance(remote_meta, list):
+                    for rc in remote_meta:
+                        # Match MP3 asset
+                        rc_start = round(rc.get("start_seconds", 0))
+                        matched_asset = next(
+                            (a for a in assets if a.get("name", "").endswith(".mp3") and (
+                                a.get("name", "").lower() == Path(rc.get("file_path", "")).name.lower() or
+                                abs(parse_clip_info(a.get("name", ""), rel_name, "")["start_seconds"] - rc_start) <= 5
+                            )),
+                            None
+                        )
+                        if matched_asset:
+                            rc["file_path"] = matched_asset.get("browser_download_url")
+                            rc["download_url"] = matched_asset.get("browser_download_url")
+                            seen_files.add(matched_asset.get("name", "").lower())
+                        rc["episode"] = rc.get("episode") or rel_name
+
+                        # Replace existing placeholder if present, else append
+                        ex_idx = next(
+                            (idx for idx, c in enumerate(existing_clips) if (
+                                c.get("episode") == rc["episode"] and (
+                                    c.get("title", "").lower() == rc.get("title", "").lower() or
+                                    abs(c.get("start_seconds", 0) - rc["start_seconds"]) <= 5
+                                )
+                            )),
+                            None
+                        )
+                        if ex_idx is not None:
+                            existing_clips[ex_idx] = rc
+                        else:
+                            existing_clips.append(rc)
+                            new_clips_added += 1
+                            print(f"  [+] Added rich cloud clip: \"{rc.get('title')}\" ({rel_name})")
             except Exception as e:
                 print(f"  [!] Failed fetching clips JSON for {rel_name}: {e}")
 
@@ -138,12 +139,35 @@ def main():
                     new_clips_added += 1
                     print(f"  [+] Added fallback clip: {fname} ({rel_name})")
 
+    # Deduplicate and prioritize rich metadata over generic fallback entries
+    entries_by_file = {}
+    other_entries = []
+    for c in existing_clips:
+        fp = c.get("file_path") or ""
+        fname = Path(fp).name.lower()
+        is_placeholder = "AI selected highlight moment from" in c.get("reason", "")
+        if fname and fname.endswith(".mp3"):
+            if fname not in entries_by_file:
+                entries_by_file[fname] = c
+            else:
+                curr = entries_by_file[fname]
+                curr_is_placeholder = "AI selected highlight moment from" in curr.get("reason", "")
+                if curr_is_placeholder and not is_placeholder:
+                    entries_by_file[fname] = c
+                elif not curr_is_placeholder and not is_placeholder:
+                    if len(c.get("reason", "")) > len(curr.get("reason", "")):
+                        entries_by_file[fname] = c
+        else:
+            other_entries.append(c)
+
+    final_clips = list(entries_by_file.values()) + other_entries
+
     # Save merged catalog
     PUBLIC_CATALOG.parent.mkdir(parents=True, exist_ok=True)
     with open(PUBLIC_CATALOG, "w", encoding="utf-8") as f:
-        json.dump(existing_clips, f, indent=2)
+        json.dump(final_clips, f, indent=2)
 
-    print(f"\n[✓] Successfully updated {PUBLIC_CATALOG}: {len(existing_clips)} total clips ({new_clips_added} new cloud clips added).")
+    print(f"\n[✓] Successfully updated {PUBLIC_CATALOG}: {len(final_clips)} total clips ({new_clips_added} new cloud clips added).")
 
 if __name__ == "__main__":
     main()
