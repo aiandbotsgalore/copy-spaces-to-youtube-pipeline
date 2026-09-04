@@ -43,16 +43,18 @@ modal_image = (
         "google-genai",
         "pydantic",
     )
+    .add_local_dir(
+        ".",
+        remote_path="/root/workspace",
+        ignore=[".git", "node_modules", "dist", ".gemini", "work", "*.mp3", "*.wav"]
+    )
 )
-
-repo_mount = modal.Mount.from_local_dir(".", remote_path="/root/workspace")
 
 
 @app.function(
     image=modal_image,
     gpu="A10G",
     timeout=3600,
-    mounts=[repo_mount],
     secrets=[
         modal.Secret.from_dict({
             "GH_TOKEN": os.environ.get("GH_TOKEN", os.environ.get("GITHUB_TOKEN", "")),
@@ -82,7 +84,6 @@ def run_cloud_transcription(release_tag: str):
         raise RuntimeError(f"Failed to fetch release info for {release_tag}: {resp.status_code} - {resp.text}")
     
     release_data = resp.json()
-    release_id = release_data.get("id")
     assets = release_data.get("assets", [])
     mp3_asset = next((a for a in assets if a["name"].endswith(".mp3")), None)
     
