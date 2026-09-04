@@ -78,14 +78,80 @@ export const ClipsPanel: React.FC = () => {
         if (ghRes.ok) {
           const releases = await ghRes.json();
           const seenFiles = new Set(
-            combinedClips.map(c => (c.file_path ? c.file_path.split('/').pop()?.toLowerCase() : ''))
+            combinedClips.map(c => (c.file_path ? c.file_path.split(/[\\/]/).pop()?.toLowerCase() : ''))
           );
 
           for (const r of releases) {
             const relTitle = r.name || r.tag_name || 'Space Episode';
-            for (const a of (r.assets || [])) {
+            const assets: any[] = r.assets || [];
+
+            // A. Check if release contains rich clips metadata JSON (e.g. *_clips.json or clips_catalog.json)
+            const clipsJsonAsset = assets.find((a: any) =>
+              a.name && (a.name.endsWith('_clips.json') || a.name === 'clips_catalog.json')
+            );
+
+            if (clipsJsonAsset) {
+              try {
+                const jRes = await fetch(clipsJsonAsset.browser_download_url);
+                if (jRes.ok) {
+                  const metaClips = await jRes.json();
+                  if (Array.isArray(metaClips)) {
+                    for (const mc of metaClips) {
+                      const mcStart = Math.round(mc.start_seconds || 0);
+                      // Match MP3 asset in this release
+                      const matchingMp3 = assets.find((a: any) => {
+                        const aname = (a.name || '').toLowerCase();
+                        if (!aname.includes('m') || !aname.includes('s')) return false;
+                        const cBase = (mc.file_path || '').split(/[\\/]/).pop()?.toLowerCase() || '';
+                        if (cBase && aname === cBase) return true;
+                        const m = aname.match(/^(?:(\d+)h)?(\d+)m(\d+)s/);
+                        if (m) {
+                          const h = parseInt(m[1] || '0', 10);
+                          const mi = parseInt(m[2] || '0', 10);
+                          const s = parseInt(m[3] || '0', 10);
+                          const aStart = h * 3600 + mi * 60 + s;
+                          return Math.abs(aStart - mcStart) <= 5;
+                        }
+                        return false;
+                      });
+
+                      const audioUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
+
+                      // Check if already in combinedClips to replace placeholder or update URL
+                      const existingIdx = combinedClips.findIndex(ec => {
+                        const ecName = (ec.file_path || '').split(/[\\/]/).pop()?.toLowerCase();
+                        return (matchingMp3 && ecName === matchingMp3.name.toLowerCase()) ||
+                               (ec.title.toLowerCase() === mc.title.toLowerCase() && Math.abs((ec.start_seconds || 0) - mcStart) <= 5);
+                      });
+
+                      if (existingIdx >= 0) {
+                        combinedClips[existingIdx] = {
+                          ...combinedClips[existingIdx],
+                          ...mc,
+                          episode: mc.episode || relTitle,
+                          file_path: audioUrl || combinedClips[existingIdx].file_path
+                        };
+                      } else {
+                        combinedClips.push({
+                          ...mc,
+                          episode: mc.episode || relTitle,
+                          file_path: audioUrl
+                        });
+                      }
+
+                      if (matchingMp3) seenFiles.add(matchingMp3.name.toLowerCase());
+                    }
+                  }
+                }
+              } catch (jErr) {
+                console.warn('Could not parse release clips metadata JSON:', jErr);
+              }
+            }
+
+            // B. Also scan any standalone clip MP3 assets in this release
+            for (const a of assets) {
               const fname: string = a.name || '';
-              if (fname.endsWith('.mp3') && fname.includes('m') && fname.includes('s')) {
+              if ((fname.endsWith('.mp3') || (!fname.includes('.') && fname.includes('m') && fname.includes('s'))) && fname.includes('m') && fname.includes('s')) {
                 const baseName = fname.toLowerCase();
                 if (!seenFiles.has(baseName)) {
                   seenFiles.add(baseName);

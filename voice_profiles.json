@@ -1,6 +1,6 @@
 {
   "version": "2.0-neural",
-  "updated_at": "2026-08-30T22:23:41Z",
+  "updated_at": "2026-09-03T22:03:45Z",
   "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
   "embedding_dim": 192,
   "profiles": {

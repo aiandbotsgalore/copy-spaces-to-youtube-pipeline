@@ -40,10 +40,11 @@ if not shutil.which("ffmpeg"):
 
 
 def sanitize_filename(name: str) -> str:
-    """Sanitizes strings for Windows filesystem safety."""
-    clean = re.sub(r'[\\/*?:"<>|]', "", name)
+    """Sanitizes strings for Windows/URL filesystem safety."""
+    clean = name.replace("&", "and").replace("'", "").replace('"', "")
+    clean = re.sub(r'[\\/*?:"<>|!,.;#%`]', "", clean)
     clean = re.sub(r'\s+', "_", clean).strip(" ._")
-    return clean[:60] if clean else "clip"
+    return clean[:50] if clean else "clip"
 
 
 def format_seconds_to_timestamp(sec: float) -> str:
@@ -115,7 +116,7 @@ Transcript:
 {transcript_text}
 """
 
-    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
     last_err = None
     for model_name in models_to_try:
         for attempt in range(3):
@@ -318,6 +319,13 @@ def main():
     if args.json and args.audio:
         clips = process_single_episode(args.json, args.audio, args.output_dir, args.limit, args.category)
         all_extracted_clips.extend(clips)
+        
+        # Save episode-specific clips json for easy cloud release upload
+        ep_stem = Path(args.json).stem
+        ep_clips_file = os.path.join(args.output_dir, f"{ep_stem}_clips.json")
+        with open(ep_clips_file, "w", encoding="utf-8") as f:
+            json.dump(clips, f, indent=2)
+        print(f"    Saved episode clips metadata: {os.path.abspath(ep_clips_file)}")
 
     elif args.all:
         transcript_dir = "output_transcripts"

@@ -18,6 +18,7 @@ import time
 import math
 import subprocess
 import requests
+import urllib.parse
 from pathlib import Path
 
 import modal
@@ -181,17 +182,26 @@ def run_cloud_transcription(release_tag: str):
     
     to_upload = [p for p in [txt_path, srt_path, json_path] if p.exists() and p.stat().st_size > 0]
     
-    # Also collect any highlight clips created
+    # Also collect any highlight clips created and their rich metadata JSON
     if clips_dir.exists():
         for clip_file in clips_dir.glob("**/*.mp3"):
             if clip_file.stat().st_size > 0 and clip_file not in to_upload:
                 to_upload.append(clip_file)
                 
-    catalog_file = Path("CLIPS_CATALOG.md")
-    if catalog_file.exists() and catalog_file.stat().st_size > 0:
-        to_upload.append(catalog_file)
+        # Episode-specific clips JSON and catalog JSON
+        for json_clip_file in clips_dir.glob("*.json"):
+            if json_clip_file.stat().st_size > 0 and json_clip_file not in to_upload:
+                to_upload.append(json_clip_file)
 
-    # 6. Upload Assets Back to GitHub Release (with clobber support)
+        catalog_file = clips_dir / "CLIPS_CATALOG.md"
+        if catalog_file.exists() and catalog_file.stat().st_size > 0 and catalog_file not in to_upload:
+            to_upload.append(catalog_file)
+
+    root_catalog_file = Path("CLIPS_CATALOG.md")
+    if root_catalog_file.exists() and root_catalog_file.stat().st_size > 0 and root_catalog_file not in to_upload:
+        to_upload.append(root_catalog_file)
+
+    # 6. Upload Assets Back to GitHub Release (with clobber support & safe URL encoding)
     upload_url_template = release_data.get("upload_url", "").split("{")[0]
     existing_asset_map = {a["name"]: a["id"] for a in assets}
     
@@ -212,8 +222,9 @@ def run_cloud_transcription(release_tag: str):
         if gh_token:
             u_headers["Authorization"] = f"token {gh_token}"
             
+        safe_fname = urllib.parse.quote(fname)
         with open(file_path, "rb") as f:
-            up_resp = requests.post(f"{upload_url_template}?name={fname}", headers=u_headers, data=f)
+            up_resp = requests.post(f"{upload_url_template}?name={safe_fname}", headers=u_headers, data=f)
             if up_resp.status_code in [200, 201]:
                 print(f"  [✓] Successfully uploaded {fname}")
             else:
