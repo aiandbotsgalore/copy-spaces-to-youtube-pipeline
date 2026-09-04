@@ -139,12 +139,12 @@ def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: st
     with sf.SoundFile(wav_path) as f:
         duration_sec = len(f) / f.samplerate
 
-    CHUNK_SEC = 3600.0  # 1 hour per chunk to prevent excessive NumPy RAM allocation
+    CHUNK_SEC = 1800.0  # 30 minutes per chunk to prevent excessive NumPy RAM allocation
     if duration_sec <= CHUNK_SEC:
         return _transcribe_single_wav(wav_path, model_size, device, compute_type, time_offset=0.0)
 
     num_chunks = math.ceil(duration_sec / CHUNK_SEC)
-    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 1-hour chunks for GPU ASR...")
+    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 30-minute chunks for GPU ASR...")
     
     base_name = os.path.splitext(wav_path)[0]
     all_segments = []
@@ -159,8 +159,28 @@ def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: st
             if chunk_info.duration < 0.1:
                 print(f"  [!] Warning: Chunk {i + 1} duration is {chunk_info.duration}s, skipping.")
                 continue
-            chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
-            all_segments.extend(chunk_segs)
+            try:
+                chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
+                all_segments.extend(chunk_segs)
+            except Exception as chunk_err:
+                print(f"  [!] Chunk {i + 1} notice ({chunk_err}). Retrying in 15-minute sub-chunks...")
+                half_sec = CHUNK_SEC / 2.0
+                for sub_i in range(2):
+                    sub_start = start_sec + (sub_i * half_sec)
+                    sub_wav = f"{base_name}_chunk_{i}_sub_{sub_i}.wav"
+                    try:
+                        cmd_sub = [FFMPEG_EXE, "-y", "-ss", str(sub_start), "-t", str(half_sec), "-i", wav_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", sub_wav]
+                        subprocess.run(cmd_sub, capture_output=True, check=True)
+                        sub_info = sf.info(sub_wav)
+                        if sub_info.duration >= 0.1:
+                            sub_segs = _transcribe_single_wav(sub_wav, model_size, device, compute_type, time_offset=sub_start)
+                            all_segments.extend(sub_segs)
+                    finally:
+                        if os.path.exists(sub_wav):
+                            try:
+                                os.remove(sub_wav)
+                            except Exception:
+                                pass
         finally:
             if os.path.exists(chunk_wav):
                 try:
