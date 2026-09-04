@@ -80,9 +80,15 @@ def main():
 
         if clips_json_asset:
             try:
-                import urllib.request
-                with urllib.request.urlopen(clips_json_asset["browser_download_url"], timeout=15) as resp:
-                    remote_meta = json.loads(resp.read().decode("utf-8"))
+                asset_id = clips_json_asset.get("id")
+                api_cmd = ["gh", "api", f"repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/assets/{asset_id}", "-H", "Accept: application/octet-stream"]
+                api_res = subprocess.run(api_cmd, capture_output=True, text=True)
+                if api_res.returncode == 0:
+                    remote_meta = json.loads(api_res.stdout)
+                else:
+                    import urllib.request
+                    with urllib.request.urlopen(clips_json_asset["browser_download_url"], timeout=15) as resp:
+                        remote_meta = json.loads(resp.read().decode("utf-8"))
                     if isinstance(remote_meta, list):
                         for rc in remote_meta:
                             # Match MP3 asset

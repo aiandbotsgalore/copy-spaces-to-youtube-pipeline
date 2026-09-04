@@ -86,7 +86,7 @@ Extract structured metadata for this highlight moment:
 5. transcript_snippet: The exact punchline or key dialogue lines from this clip.
 6. speakers: List of speaker names who spoke in this moment.
 """
-    models = ["gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
+    models = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
     for m in models:
         for attempt in range(3):
             try:
