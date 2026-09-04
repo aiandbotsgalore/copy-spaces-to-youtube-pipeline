@@ -139,12 +139,12 @@ def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: st
     with sf.SoundFile(wav_path) as f:
         duration_sec = len(f) / f.samplerate
 
-    CHUNK_SEC = 1800.0  # 30 minutes per chunk to prevent excessive NumPy RAM allocation
+    CHUNK_SEC = 600.0  # 10 minutes per chunk to guarantee safe <100MB NumPy RAM allocation
     if duration_sec <= CHUNK_SEC:
         return _transcribe_single_wav(wav_path, model_size, device, compute_type, time_offset=0.0)
 
     num_chunks = math.ceil(duration_sec / CHUNK_SEC)
-    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 30-minute chunks for GPU ASR...")
+    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 10-minute chunks for GPU ASR...")
     
     base_name = os.path.splitext(wav_path)[0]
     all_segments = []
@@ -163,7 +163,7 @@ def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: st
                 chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
                 all_segments.extend(chunk_segs)
             except Exception as chunk_err:
-                print(f"  [!] Chunk {i + 1} notice ({chunk_err}). Retrying in 15-minute sub-chunks...")
+                print(f"  [!] Chunk {i + 1} notice ({chunk_err}). Retrying in 5-minute sub-chunks...")
                 half_sec = CHUNK_SEC / 2.0
                 for sub_i in range(2):
                     sub_start = start_sec + (sub_i * half_sec)

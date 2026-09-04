@@ -12,7 +12,9 @@ import {
   Clock,
   User,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Radio,
+  ArrowUpDown
 } from 'lucide-react';
 
 interface ClipItem {
@@ -29,11 +31,19 @@ interface ClipItem {
   file_path?: string;
 }
 
+export const formatEpisodeTitle = (ep?: string) => {
+  if (!ep) return 'Unknown Space';
+  let clean = ep.replace(/^20\d{6}_[a-zA-Z0-9]+_/, '');
+  clean = clean.replace(/_/g, ' ').replace(/-/g, ' ').trim();
+  return clean || ep;
+};
+
 export const ClipsPanel: React.FC = () => {
   const [clips, setClips] = useState<ClipItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<'episode' | 'viral' | 'duration-desc' | 'duration-asc'>('episode');
   const [activeClipIndex, setActiveClipIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -65,20 +75,42 @@ export const ClipsPanel: React.FC = () => {
 
   const categories = ['ALL', ...Array.from(new Set(clips.map(c => c.category || 'Highlights')))];
 
-  const filteredClips = clips.filter(c => {
-    const matchesCategory = selectedCategory === 'ALL' || c.category === selectedCategory;
-    const query = search.toLowerCase().trim();
-    if (!query) return matchesCategory;
+  const filteredClips = clips
+    .filter(c => {
+      const matchesCategory = selectedCategory === 'ALL' || c.category === selectedCategory;
+      const query = search.toLowerCase().trim();
+      if (!query) return matchesCategory;
 
-    const matchesSearch =
-      c.title.toLowerCase().includes(query) ||
-      c.reason.toLowerCase().includes(query) ||
-      c.transcript_snippet.toLowerCase().includes(query) ||
-      (c.speakers && c.speakers.some(s => s.toLowerCase().includes(query))) ||
-      (c.episode && c.episode.toLowerCase().includes(query));
+      const epTitle = formatEpisodeTitle(c.episode).toLowerCase();
+      const matchesSearch =
+        c.title.toLowerCase().includes(query) ||
+        c.reason.toLowerCase().includes(query) ||
+        c.transcript_snippet.toLowerCase().includes(query) ||
+        (c.speakers && c.speakers.some(s => s.toLowerCase().includes(query))) ||
+        (c.episode && c.episode.toLowerCase().includes(query)) ||
+        epTitle.includes(query);
 
-    return matchesCategory && matchesSearch;
-  });
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'episode') {
+        const epA = formatEpisodeTitle(a.episode).toLowerCase();
+        const epB = formatEpisodeTitle(b.episode).toLowerCase();
+        const epCmp = epA.localeCompare(epB, undefined, { numeric: true });
+        if (epCmp !== 0) return epCmp;
+        return (a.start_seconds || 0) - (b.start_seconds || 0);
+      }
+      if (sortBy === 'viral') {
+        return (b.viral_score || 0) - (a.viral_score || 0);
+      }
+      if (sortBy === 'duration-desc') {
+        return (b.duration || 0) - (a.duration || 0);
+      }
+      if (sortBy === 'duration-asc') {
+        return (a.duration || 0) - (b.duration || 0);
+      }
+      return 0;
+    });
 
   const getAudioUrl = (clip: ClipItem): string => {
     if (!clip.file_path) return '';
@@ -129,7 +161,7 @@ export const ClipsPanel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6 md:p-10 pb-36 max-w-6xl mx-auto w-full space-y-6">
       {/* Audio element */}
       <audio
         ref={audioRef}
@@ -171,17 +203,37 @@ export const ClipsPanel: React.FC = () => {
         </button>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search moments by topic, punchline, or speaker..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-          />
+      {/* Filters & Search & Sort */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+            <input
+              type="text"
+              placeholder="Search moments by topic, punchline, episode, or speaker..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
+
+          {/* Sort By Dropdown */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-400">
+              <ArrowUpDown size={13} className="text-indigo-400" />
+              <span className="text-[11px] text-slate-500 hidden sm:inline">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as any)}
+                className="bg-transparent text-white font-medium focus:outline-none cursor-pointer text-xs pr-1"
+              >
+                <option value="episode" className="bg-slate-900 text-white">Space Episode Name (Default)</option>
+                <option value="viral" className="bg-slate-900 text-white">Viral Score (Highest)</option>
+                <option value="duration-desc" className="bg-slate-900 text-white">Duration (Longest)</option>
+                <option value="duration-asc" className="bg-slate-900 text-white">Duration (Shortest)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Category Pills */}
@@ -300,6 +352,16 @@ export const ClipsPanel: React.FC = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Space Episode Banner */}
+                {clip.episode && (
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-sky-400 bg-sky-950/40 border border-sky-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-fit max-w-full">
+                    <Radio size={12} className="flex-shrink-0 text-sky-400" />
+                    <span className="truncate" title={formatEpisodeTitle(clip.episode)}>
+                      {formatEpisodeTitle(clip.episode)}
+                    </span>
+                  </div>
+                )}
 
                 {/* Title */}
                 <h3 className="text-sm font-bold text-white mb-1.5 leading-snug">
