@@ -114,7 +114,7 @@ Transcript:
 {transcript_text}
 """
 
-    models_to_try = ["gemini-2.5-flash", "gemini-1.5-flash"]
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
     last_err = None
     for model_name in models_to_try:
         for attempt in range(3):
@@ -228,16 +228,45 @@ def process_single_episode(
 
     ep_title = data.get("title") or Path(json_path).stem
 
-    # Build formatted dialogue text for Gemini
-    dialogue_lines = []
-    for s in segments:
-        spk = s.get("speaker", "Speaker")
-        dialogue_lines.append(f"[{s['start']:.1f}s - {s['end']:.1f}s] {spk}: {s['text']}")
-    full_transcript = "\n".join(dialogue_lines)
+    # Handle long transcripts by windowing to prevent Gemini free-tier token exhaustion
+    WINDOW_SIZE = 150
+    OVERLAP = 25
+    highlights = []
+    
+    if len(segments) <= WINDOW_SIZE:
+        dialogue_lines = [f"[{s['start']:.1f}s - {s['end']:.1f}s] {s.get('speaker', 'Speaker')}: {s['text']}" for s in segments]
+        print(f"[*] Sending {len(segments)} dialogue turns to Gemini for highlight discovery...")
+        highlights = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=limit, category_filter=category)
+    else:
+        print(f"[*] Transcript has {len(segments)} turns. Analyzing in windowed chunks to avoid rate limits...")
+        all_candidates = []
+        num_windows = max(1, math.ceil(len(segments) / (WINDOW_SIZE - OVERLAP)))
+        for w_idx in range(num_windows):
+            start_i = w_idx * (WINDOW_SIZE - OVERLAP)
+            end_i = min(len(segments), start_i + WINDOW_SIZE)
+            sub_segs = segments[start_i:end_i]
+            if not sub_segs:
+                break
+            dialogue_lines = [f"[{s['start']:.1f}s - {s['end']:.1f}s] {s.get('speaker', 'Speaker')}: {s['text']}" for s in sub_segs]
+            print(f"  [Window {w_idx + 1}/{num_windows}] Analyzing turns {start_i}-{end_i}...")
+            try:
+                cand = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=max(2, limit // 2), category_filter=category)
+                all_candidates.extend(cand)
+            except Exception as w_err:
+                print(f"  [!] Window {w_idx + 1} notice: {w_err}")
+            time.sleep(1.0)
+            
+        # Deduplicate candidates within 15 seconds of each other, preferring higher viral score
+        all_candidates.sort(key=lambda x: x.get("viral_score", 5), reverse=True)
+        filtered = []
+        for c in all_candidates:
+            c_start = c["start_seconds"]
+            if not any(abs(c_start - f["start_seconds"]) < 15.0 for f in filtered):
+                filtered.append(c)
+            if len(filtered) >= limit:
+                break
+        highlights = filtered
 
-    # If transcript is enormous (>200,000 chars), take dense sections or feed full
-    print(f"[*] Sending {len(segments)} dialogue turns to Gemini 2.5 Flash for highlight discovery...")
-    highlights = call_gemini_highlight_discovery(full_transcript, limit=limit, category_filter=category)
     print(f"[✓] Gemini identified {len(highlights)} top moments!")
 
     saved_clips = []

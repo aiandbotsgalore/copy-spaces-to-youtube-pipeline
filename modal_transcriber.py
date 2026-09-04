@@ -126,29 +126,36 @@ def run_cloud_transcription(release_tag: str):
             
     print(f"[✓] Cloud MP3 Download Complete: {local_mp3.stat().st_size / (1024*1024):.1f} MB")
 
-    # 3. Execute Neural Transcriber on NVIDIA A10G GPU
+    # 3. Check if transcripts already exist in release or need transcribing
     output_dir = Path("/tmp/output_transcripts")
     output_dir.mkdir(parents=True, exist_ok=True)
-    
-    py_exe = sys.executable
-    cmd_transcribe = [
-        py_exe, "batch_transcriber.py",
-        "--file", str(local_mp3),
-        "--output-dir", str(output_dir),
-        "--non-interactive"
-    ]
-    
-    # Pass current env with updated LD_LIBRARY_PATH
-    sub_env = os.environ.copy()
-    
-    print(f"[*] Running batch_transcriber on cloud NVIDIA A10G GPU...")
-    res = subprocess.run(cmd_transcribe, env=sub_env, capture_output=True, text=True)
-    print(res.stdout)
-    if res.returncode != 0:
-        print("STDERR:", res.stderr)
-        raise RuntimeError(f"batch_transcriber failed with exit code {res.returncode}")
-        
-    print(f"[✓] GPU Transcription & Diarization Complete!")
+    json_path = output_dir / f"{stem}.json"
+    existing_json_asset = next((a for a in assets if a["name"] == f"{stem}.json" and a.get("size", 0) > 1000), None)
+
+    if existing_json_asset and not os.environ.get("FORCE_RETRANSCRIBE"):
+        print(f"[✓] Found existing transcript in release: {existing_json_asset['name']} ({existing_json_asset['size']} bytes). Downloading for clipping...")
+        j_resp = requests.get(existing_json_asset["browser_download_url"], headers=headers)
+        if j_resp.status_code == 200:
+            with open(json_path, "wb") as f:
+                f.write(j_resp.content)
+            print(f"[✓] Successfully loaded existing transcript. Skipping ASR re-transcription step.")
+
+    if not json_path.exists() or json_path.stat().st_size == 0:
+        py_exe = sys.executable
+        cmd_transcribe = [
+            py_exe, "batch_transcriber.py",
+            "--file", str(local_mp3),
+            "--output-dir", str(output_dir),
+            "--non-interactive"
+        ]
+        sub_env = os.environ.copy()
+        print(f"[*] Running batch_transcriber on cloud NVIDIA A10G GPU...")
+        res = subprocess.run(cmd_transcribe, env=sub_env, capture_output=True, text=True)
+        print(res.stdout)
+        if res.returncode != 0:
+            print("STDERR:", res.stderr)
+            raise RuntimeError(f"batch_transcriber failed with exit code {res.returncode}")
+        print(f"[✓] GPU Transcription & Diarization Complete!")
 
     # 4. Extract Best & Funniest Highlights using Gemini 2.5 Flash
     json_path = output_dir / f"{stem}.json"

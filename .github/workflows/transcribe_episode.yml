@@ -50,8 +50,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          try {
-            gh workflow run update_rss.yml --ref master
-          } catch {
-            echo "[!] Note: Could not trigger update_rss.yml: $_"
-          }
+          gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
