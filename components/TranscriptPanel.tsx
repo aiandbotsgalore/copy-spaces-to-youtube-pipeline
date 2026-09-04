@@ -3,7 +3,8 @@ import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
-  Save, CloudCheck, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock
+  Save, CloudCheck, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
+  Globe, Radio, Layers, ArrowRight
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets } from '../utils/github';
@@ -51,6 +52,33 @@ export interface SavedSpeaker {
   avatarEmoji?: string;
   color?: string;
   role?: string;
+}
+
+export interface SearchIndexSegment {
+  start: number;
+  end: number | null;
+  speaker: string;
+  text: string;
+}
+
+export interface SearchIndexEpisode {
+  release_id: number;
+  release_tag: string;
+  title: string;
+  published_at: string;
+  audio_url: string;
+  segment_count: number;
+  segments: SearchIndexSegment[];
+}
+
+export interface GlobalSearchResult {
+  release_id: number;
+  release_tag: string;
+  title: string;
+  published_at: string;
+  audio_url: string;
+  segment: SearchIndexSegment;
+  segmentIndex: number;
 }
 
 function formatDate(iso: string): string {
@@ -166,7 +194,7 @@ function formatSeconds(sec: number): string {
   return `${m.toString().padStart(2, '0')}:${rem.toString().padStart(2, '0')}`;
 }
 
-export const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
+const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
   indigo:  { bg: 'bg-indigo-500/10',  text: 'text-indigo-300',  border: 'border-indigo-500/30',  badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',  dot: 'bg-indigo-400',  avatar: 'bg-indigo-600 text-white'  },
   purple:  { bg: 'bg-purple-500/10',  text: 'text-purple-300',  border: 'border-purple-500/30',  badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',  dot: 'bg-purple-400',  avatar: 'bg-purple-600 text-white'  },
   emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
@@ -220,6 +248,12 @@ function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []
   const keys = Object.keys(SPEAKER_PALETTE);
   return { ...SPEAKER_PALETTE[keys[hash % keys.length]], emoji: undefined, role: undefined };
 }
+
+const POPULAR_SEARCH_TOPICS = [
+  'aliens', 'Windex', 'bidet', 'Casper', 'psyop', 'Logan',
+  'queen', 'conscious culprit', 'James Blunt', 'red panda',
+  'masturbation', 'Spanish', 'crucible', 'Tunica'
+];
 
 function highlightMatch(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
@@ -356,6 +390,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [transcribeSuccess, setTranscribeSuccess] = useState('');
   const [timeOffsetSec, setTimeOffsetSec] = useState<number>(0);
 
+  const [searchScope, setSearchScope] = useState<'current' | 'all'>('current');
+  const [globalIndex, setGlobalIndex] = useState<SearchIndexEpisode[] | null>(null);
+  const [globalIndexLoading, setGlobalIndexLoading] = useState(false);
+  const [globalIndexError, setGlobalIndexError] = useState('');
+  const [selectedGlobalTag, setSelectedGlobalTag] = useState<string>('ALL');
+  const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
+
   const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
   const [editingSpeakerKey, setEditingSpeakerKey] = useState<string | null>(null);
   const [editingSpeakerVal, setEditingSpeakerVal] = useState('');
@@ -408,6 +449,26 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     if (!trimmed) return;
     addOrUpdatePermanentSpeaker({ id: trimmed.toLowerCase().replace(/\s+/g, '-'), name: trimmed, avatarEmoji: emoji, color, role: 'Speaker' });
   };
+
+  const loadGlobalIndex = useCallback(async () => {
+    if (globalIndex || globalIndexLoading) return;
+    setGlobalIndexLoading(true);
+    setGlobalIndexError('');
+    try {
+      const res = await fetch('/transcripts/transcripts_search_index.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load search index`);
+      const data: SearchIndexEpisode[] = await res.json();
+      setGlobalIndex(data);
+    } catch (e) {
+      setGlobalIndexError((e as Error).message);
+    } finally {
+      setGlobalIndexLoading(false);
+    }
+  }, [globalIndex, globalIndexLoading]);
+
+  useEffect(() => {
+    loadGlobalIndex();
+  }, [loadGlobalIndex]);
 
   useEffect(() => {
     if (selectedId) {
@@ -627,6 +688,97 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return utterances.filter(u => u.text.toLowerCase().includes(q) || u.speaker.toLowerCase().includes(q)).length;
   }, [search, utterances]);
 
+  const totalGlobalSegments = useMemo(() => {
+    if (!globalIndex) return 0;
+    return globalIndex.reduce((acc, ep) => acc + (ep.segment_count || ep.segments.length), 0);
+  }, [globalIndex]);
+
+  const globalSearchResults = useMemo((): GlobalSearchResult[] => {
+    if (!globalIndex || !search.trim()) return [];
+    const q = search.trim().toLowerCase();
+    const results: GlobalSearchResult[] = [];
+
+    for (const ep of globalIndex) {
+      if (selectedGlobalTag !== 'ALL' && ep.release_tag !== selectedGlobalTag) continue;
+      for (let i = 0; i < ep.segments.length; i++) {
+        const seg = ep.segments[i];
+        if (selectedGlobalSpeaker !== 'ALL' && seg.speaker !== selectedGlobalSpeaker) continue;
+        if (seg.text.toLowerCase().includes(q) || seg.speaker.toLowerCase().includes(q)) {
+          results.push({
+            release_id: ep.release_id,
+            release_tag: ep.release_tag,
+            title: ep.title,
+            published_at: ep.published_at,
+            audio_url: ep.audio_url,
+            segment: seg,
+            segmentIndex: i,
+          });
+          if (results.length >= 300) break;
+        }
+      }
+      if (results.length >= 300) break;
+    }
+    return results;
+  }, [globalIndex, search, selectedGlobalTag, selectedGlobalSpeaker]);
+
+  const globalResultEpisodeCounts = useMemo(() => {
+    const counts = new Map<string, { tag: string; title: string; count: number }>();
+    globalSearchResults.forEach(r => {
+      const existing = counts.get(r.release_tag);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        counts.set(r.release_tag, { tag: r.release_tag, title: r.title, count: 1 });
+      }
+    });
+    return Array.from(counts.values());
+  }, [globalSearchResults]);
+
+  const globalResultSpeakers = useMemo(() => {
+    const set = new Set<string>();
+    globalSearchResults.forEach(r => {
+      if (r.segment.speaker) set.add(r.segment.speaker);
+    });
+    return Array.from(set).sort();
+  }, [globalSearchResults]);
+
+  const handlePlayGlobalResult = (res: GlobalSearchResult) => {
+    if (!res.audio_url) return;
+    const nowPlaying: NowPlayingEpisode = {
+      id: res.release_id,
+      title: res.title,
+      audioUrl: res.audio_url,
+    };
+    if (current?.id !== res.release_id) {
+      play(nowPlaying, res.segment.start);
+    } else {
+      seek(res.segment.start);
+      if (!isPlaying) togglePlay();
+    }
+  };
+
+  const handleOpenInFullTranscript = (res: GlobalSearchResult) => {
+    const rel = releases.find(r => r.id === res.release_id || r.tag_name === res.release_tag);
+    if (rel) {
+      setSelectedId(rel.id);
+      loadTranscript(rel);
+    }
+    setSearchScope('current');
+    if (res.audio_url) {
+      const nowPlaying: NowPlayingEpisode = {
+        id: res.release_id,
+        title: res.title,
+        audioUrl: res.audio_url,
+      };
+      if (current?.id !== res.release_id) {
+        play(nowPlaying, res.segment.start);
+      } else {
+        seek(res.segment.start);
+        if (!isPlaying) togglePlay();
+      }
+    }
+  };
+
   // Binary search — O(log n) active utterance lookup
   const activeUtteranceIndex = useMemo(() => {
     if (current?.id !== selectedRelease?.id || !utterances.length) return -1;
@@ -793,15 +945,47 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
           {/* ── Sidebar ── */}
           <div className="w-72 md:w-80 flex-shrink-0 border-r border-slate-800 overflow-y-auto bg-slate-950/70 divide-y divide-slate-900">
-            <div className="p-3 bg-slate-900/50 border-b border-slate-800">
+            {/* Global Search shortcut button */}
+            <div className="p-2.5 bg-slate-900/60 border-b border-slate-800">
+              <button
+                onClick={() => {
+                  setSearchScope('all');
+                  loadGlobalIndex();
+                }}
+                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
+                  searchScope === 'all'
+                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg shadow-indigo-600/15 text-white ring-1 ring-indigo-500/40'
+                    : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                  }`}>
+                    <Globe size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold truncate">Search All Transcripts</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 truncate">
+                      {globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '28 episodes • 33,900+ turns'}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-600'} />
+              </button>
+            </div>
+
+            <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({releases.length})</span>
             </div>
             {releases.map(release => {
               const hasTxt = !!pickTranscriptAsset(release);
-              const isSelected = selectedId === release.id;
+              const isSelected = searchScope === 'current' && selectedId === release.id;
               const isPlayingThis = current?.id === release.id && isPlaying;
               return (
-                <button key={release.id} onClick={() => loadTranscript(release)}
+                <button key={release.id} onClick={() => { setSearchScope('current'); loadTranscript(release); }}
                   className={`w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
                   <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500 group-hover:text-slate-300'}`}>
                     {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
@@ -822,308 +1006,706 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
           {/* ── Main View ── */}
           <div className="flex-1 flex flex-col min-w-0 bg-slate-950">
-            {!selectedRelease && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                <ChevronDown size={28} className="text-slate-700 mb-3 rotate-90" />
-                <p className="text-slate-500 text-sm">Select an episode from the sidebar to view its transcript</p>
-              </div>
-            )}
+            {searchScope === 'all' ? (
+              <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
+                {/* Global Search Header / Filter Bar */}
+                <div className="p-4 md:px-8 bg-slate-900/90 border-b border-slate-800/80 space-y-3.5 flex-shrink-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {/* Scope Selector */}
+                      <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
+                        <button
+                          onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                        >
+                          <Globe size={13} />
+                          <span>All Transcripts</span>
+                          <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px] font-semibold ml-0.5">
+                            {globalIndex ? globalIndex.length : 28}
+                          </span>
+                        </button>
+                        {selectedRelease && (
+                          <button
+                            onClick={() => setSearchScope('current')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer"
+                          >
+                            <FileText size={13} />
+                            <span className="truncate max-w-[150px]">{selectedRelease.name || selectedRelease.tag_name}</span>
+                          </button>
+                        )}
+                      </div>
 
-            {selectedRelease && (<>
-
-              {/* Episode Player Header */}
-              <div className="p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  {mp3Asset && (
-                    <button onClick={handlePlayEpisodeToggle}
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white shadow-indigo-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 shadow-indigo-600/20'}`}
-                      title={isCurrentEpisodePlaying ? 'Pause Audio' : 'Play Episode Audio'}>
-                      {isCurrentEpisodePlaying ? <Pause size={16} /> : <Play size={16} className="translate-x-0.5" />}
-                    </button>
-                  )}
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-white truncate max-w-md">{selectedRelease.name || selectedRelease.tag_name}</h3>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-slate-300 font-medium">{getEpisodeRecordedDate(selectedRelease).displayDate}</span>
-                      {utterances.length > 0 && <><span>•</span><span className="text-indigo-400 font-medium">{utterances.length} turns</span></>}
-                      {speakerStats.length > 0 && <><span>•</span><span className="text-emerald-400">{speakerStats.length} speaker{speakerStats.length > 1 ? 's' : ''}</span></>}
-                      {transcriptMetadata.model && <><span>•</span><span className="text-cyan-400" title="Speech-to-text model">{transcriptMetadata.model}</span></>}
-                      {transcriptMetadata.language && <><span>•</span><span className="text-slate-400 uppercase">{transcriptMetadata.language}</span></>}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button onClick={() => setShowSavedSpeakersModal(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-lg transition-colors border border-amber-500/30 cursor-pointer shadow-sm">
-                    <Star size={12} className="text-amber-400 fill-amber-400/30" /> Saved Speakers ({savedSpeakers.length})
-                  </button>
-                  {speakerStats.length > 0 && (
-                    <button onClick={() => setShowRenameModal(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold rounded-lg transition-colors border border-indigo-500/40 cursor-pointer">
-                      <Users size={12} /> Rename Speakers
-                    </button>
-                  )}
-                  {speakerStats.length > 0 && (
-                    <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && timeOffsetSec === 0)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/40 cursor-pointer shadow-sm">
-                      {savingGitHub ? <Loader size={12} className="animate-spin text-emerald-400" /> : <Save size={12} />}
-                      {savingGitHub ? 'Saving…' : 'Save to GitHub'}
-                    </button>
-                  )}
-                  <button onClick={handleCopyTranscript} disabled={!utterances.length}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                    {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                    {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                  <button onClick={() => handleDownloadTranscript('txt')} disabled={!utterances.length}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                    <Download size={12} /> .txt
-                  </button>
-                  <button onClick={() => handleDownloadTranscript('json')} disabled={!utterances.length}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                    <Download size={12} /> .json
-                  </button>
-                  <a href={selectedRelease.html_url} target="_blank" rel="noopener noreferrer"
-                    className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
-                    <ExternalLink size={13} />
-                  </a>
-                </div>
-              </div>
-
-              {saveGitHubSuccess && (
-                <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs">
-                  <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" /><span>{saveGitHubSuccess}</span>
-                </div>
-              )}
-              {saveGitHubError && (
-                <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs">
-                  <AlertCircle size={15} className="text-red-400 flex-shrink-0" /><span>{saveGitHubError}</span>
-                </div>
-              )}
-
-              {/* Filter & Sync Toolbar */}
-              <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3 flex-1 min-w-[240px]">
-                  <div className="relative flex-1 max-w-sm">
-                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                    <input type="text" placeholder="Search transcript text or speaker…" value={search} onChange={e => setSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors" />
-                  </div>
-                  {search && <span className="text-xs text-amber-400 font-medium">{matchCount} match{matchCount !== 1 ? 'es' : ''}</span>}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {uniqueDisplaySpeakers.length > 1 && (
-                    <div className="flex items-center gap-1.5">
-                      <SlidersHorizontal size={12} className="text-slate-500" />
-                      <select value={speakerFilter} onChange={e => setSpeakerFilter(e.target.value)}
-                        className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
-                        <option value="ALL">All Speakers ({uniqueDisplaySpeakers.length})</option>
-                        {uniqueDisplaySpeakers.map(spk => <option key={spk} value={spk}>{spk}</option>)}
-                      </select>
+                      <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 pl-1">
+                        <Layers size={13} className="text-indigo-400" />
+                        <span className="font-semibold text-slate-200">
+                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '33,900+'}
+                        </span>
+                        <span>indexed turns</span>
+                      </div>
                     </div>
-                  )}
 
-                  {/* Sync Offset Control */}
-                  <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">
-                    <Clock size={12} className={timeOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
-                    <span className="text-[11px] text-slate-400 font-medium">Sync:</span>
-                    <input type="number" value={timeOffsetSec} step="0.1"
-                      onChange={e => { const n = Number.parseFloat(e.target.value); setAndSaveTimeOffset(Number.isFinite(n) ? n : 0); }}
-                      className="w-16 px-1 py-0.5 text-center text-xs font-mono font-bold bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-indigo-500"
-                      title="Offset in seconds (decimals supported, e.g. -21.35)" />
-                    <span className="text-[11px] text-slate-400 font-mono">s</span>
-                    <div className="flex items-center gap-0.5 ml-1">
-                      {/* Labels and handlers intentionally ordered: -1s, -0.1s, +0.1s, +1s */}
-                      <button onClick={() => setAndSaveTimeOffset(p => Number((p - 1).toFixed(3)))}
-                        className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s earlier">-1s</button>
-                      <button onClick={() => setAndSaveTimeOffset(p => Number((p - 0.1).toFixed(3)))}
-                        className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s earlier">-0.1s</button>
-                      <button onClick={() => setAndSaveTimeOffset(p => Number((p + 0.1).toFixed(3)))}
-                        className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s later">+0.1s</button>
-                      <button onClick={() => setAndSaveTimeOffset(p => Number((p + 1).toFixed(3)))}
-                        className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s later">+1s</button>
-                      {timeOffsetSec !== 0 && (
-                        <button onClick={() => setAndSaveTimeOffset(0)}
-                          className="px-1.5 py-0.5 text-[10px] font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded transition-colors cursor-pointer ml-0.5">Reset</button>
+                    {/* Right status */}
+                    <div className="flex items-center gap-2">
+                      {globalIndexLoading && (
+                        <span className="flex items-center gap-1.5 text-xs text-indigo-400 animate-pulse font-medium">
+                          <Loader size={12} className="animate-spin" /> Loading transcript database…
+                        </span>
+                      )}
+                      {search && !globalIndexLoading && (
+                        <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm">
+                          {globalSearchResults.length}{globalSearchResults.length >= 300 ? '+' : ''} match{globalSearchResults.length !== 1 ? 'es' : ''}
+                          {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  <button onClick={() => setAutoScroll(!autoScroll)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-500 border-slate-800'}`}>
-                    <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Transcript Feed */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
-                {transcriptLoading && (
-                  <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
-                    <Loader size={26} className="animate-spin text-indigo-400" />
-                    <span className="text-xs font-medium tracking-wide">Loading diarized transcript…</span>
-                  </div>
-                )}
-
-                {transcriptError && (
-                  <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
-                    <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load transcript</p>
-                    <p className="mt-1 opacity-90 pl-6">{transcriptError}</p>
-                  </div>
-                )}
-
-                {!transcriptLoading && !transcriptError && !transcriptRaw && (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-20">
-                    <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl shadow-indigo-500/5">
-                      <Sparkles size={28} />
+                  {/* Global Search Bar and Filter Dropdowns */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 min-w-[280px]">
+                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-400" />
+                      <input
+                        type="text"
+                        autoFocus
+                        placeholder="Search across all 28 transcripts (e.g. aliens, bidet, conscious culprit, Windex)…"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
+                      />
+                      {search && (
+                        <button
+                          onClick={() => setSearch('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
+                          title="Clear search"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
-                    <h4 className="text-base font-bold text-white mb-1.5">No Transcript Generated Yet</h4>
-                    <p className="text-slate-400 text-xs mb-6 leading-relaxed">This Space has audio published, but no diarized transcript asset is available yet.</p>
-                    {transcribeSuccess ? (
-                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
-                        <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
-                        <p className="mt-1 opacity-90">{transcribeSuccess}</p>
+
+                    {/* Episode filter */}
+                    {globalIndex && globalIndex.length > 0 && (
+                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                        <Radio size={12} className="text-indigo-400" />
+                        <select
+                          value={selectedGlobalTag}
+                          onChange={e => setSelectedGlobalTag(e.target.value)}
+                          className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
+                        >
+                          <option value="ALL" className="bg-slate-900 text-white">All Episodes ({globalIndex.length})</option>
+                          {globalIndex.map(ep => (
+                            <option key={ep.release_tag} value={ep.release_tag} className="bg-slate-900 text-white">
+                              {ep.title || ep.release_tag}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                    ) : (
-                      <button onClick={handleGenerateTranscript} disabled={transcribing}
-                        className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer">
-                        {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                        {transcribing ? 'Dispatching to RTX 4060 Ti…' : '⚡ Transcribe Space with RTX 4060 Ti'}
-                      </button>
+                    )}
+
+                    {/* Speaker filter */}
+                    {globalResultSpeakers.length > 1 && (
+                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                        <Users size={12} className="text-emerald-400" />
+                        <select
+                          value={selectedGlobalSpeaker}
+                          onChange={e => setSelectedGlobalSpeaker(e.target.value)}
+                          className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[150px] truncate"
+                        >
+                          <option value="ALL" className="bg-slate-900 text-white">All Speakers ({globalResultSpeakers.length})</option>
+                          {globalResultSpeakers.map(spk => (
+                            <option key={spk} value={spk} className="bg-slate-900 text-white">
+                              {spk}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     )}
                   </div>
-                )}
 
-                {!transcriptLoading && !transcriptError && transcriptRaw && filteredUtterances.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500">
-                    <Search size={32} className="mb-3 text-slate-600" />
-                    <p className="text-sm font-medium">No speaker turns match your search/filter.</p>
-                    <button onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
-                      className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 underline cursor-pointer">Reset filters</button>
-                  </div>
-                )}
-
-                {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
-                  <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
-                    {filteredUtterances.map((utterance) => {
-                      const isPlayingThisUtterance = activeUtteranceId === utterance.id;
-                      const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
-                      const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
-                      const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
-
-                      return (
-                        <div
-                          id={`utterance-card-${utterance.id}`}
-                          key={utterance.id}
-                          onClick={() => handlePlayUtterance(utterance.startSec)}
-                          style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
-                          className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer relative ${
-                            isPlayingThisUtterance
-                              ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
-                              : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
+                  {/* Episode Match Pills (if multiple episodes have results) */}
+                  {search.trim() && globalResultEpisodeCounts.length > 1 && (
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 text-xs">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
+                        Episodes:
+                      </span>
+                      <button
+                        onClick={() => setSelectedGlobalTag('ALL')}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex-shrink-0 transition-colors cursor-pointer ${
+                          selectedGlobalTag === 'ALL'
+                            ? 'bg-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-800 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        All ({globalSearchResults.length})
+                      </button>
+                      {globalResultEpisodeCounts.map(ep => (
+                        <button
+                          key={ep.tag}
+                          onClick={() => setSelectedGlobalTag(ep.tag)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium flex-shrink-0 transition-colors cursor-pointer border ${
+                            selectedGlobalTag === ep.tag
+                              ? 'bg-indigo-600/30 border-indigo-500/60 text-white shadow-sm'
+                              : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                           }`}
                         >
-                          {/* Avatar */}
-                          <div onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer`}
-                            title={`Click to rename ${utterance.speaker}`}>
-                            {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
-                          </div>
+                          <span className="font-semibold">{ep.title}</span>
+                          <span className="ml-1 text-slate-400 opacity-80">({ep.count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                          {/* Body */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-                              <div className="flex items-center gap-2 relative">
+                {/* Global Feed Content */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
+                  {globalIndexError && (
+                    <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
+                      <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load search index</p>
+                      <p className="mt-1 opacity-90 pl-6">{globalIndexError}</p>
+                    </div>
+                  )}
 
-                                {/* Speaker tag / inline editor */}
-                                {isEditingThisSpeaker ? (
-                                  <div className="relative flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                                    <input type="text" autoFocus value={editingSpeakerVal}
-                                      onChange={e => setEditingSpeakerVal(e.target.value)}
-                                      onKeyDown={e => { if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); if (e.key === 'Escape') setEditingSpeakerKey(null); }}
-                                      placeholder={utterance.rawSpeaker}
-                                      className="px-2.5 py-1 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none w-44 shadow-lg shadow-indigo-500/20" />
-                                    <button onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)} className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md"><Check size={11} /></button>
-                                    <button onClick={() => setEditingSpeakerKey(null)} className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md"><X size={11} /></button>
-                                    {/* Quick-Pick Popover */}
-                                    <div className="absolute left-0 top-full mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-40 p-2 space-y-1">
-                                      <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                                        <span className="flex items-center gap-1"><Star size={10} className="text-amber-400 fill-amber-400" /> Saved Speakers</span>
-                                        <button onClick={() => setShowSavedSpeakersModal(true)} className="text-indigo-400 hover:text-indigo-300 font-normal lowercase cursor-pointer">manage</button>
-                                      </div>
-                                      <div className="max-h-48 overflow-y-auto space-y-0.5 pt-1">
-                                        {savedSpeakers.filter(s => !editingSpeakerVal.trim() || s.name.toLowerCase().includes(editingSpeakerVal.toLowerCase())).map(s => (
-                                          <button key={s.id || s.name} onClick={() => saveSpeakerRename(utterance.rawSpeaker, s.name)}
-                                            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left text-xs transition-colors cursor-pointer">
-                                            <div className="flex items-center gap-2">
-                                              <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
-                                              <span className="font-semibold text-slate-200 group-hover:text-white">{s.name}</span>
-                                            </div>
-                                            {s.role && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">{s.role}</span>}
-                                          </button>
-                                        ))}
-                                      </div>
-                                      {editingSpeakerVal.trim() && !savedSpeakers.some(s => s.name.toLowerCase() === editingSpeakerVal.trim().toLowerCase()) && (
-                                        <button onClick={() => { quickSaveToPermanent(editingSpeakerVal); saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); }}
-                                          className="w-full mt-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-semibold border border-indigo-500/30 cursor-pointer">
-                                          <Plus size={12} /> Save "{editingSpeakerVal}" as Permanent
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <button onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}>
-                                    {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
-                                    <span>{utterance.speaker}</span>
-                                    <Pencil size={10} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-300" />
-                                  </button>
-                                )}
+                  {/* Empty Search State: Discovery & Topics */}
+                  {!search.trim() && (
+                    <div className="max-w-4xl mx-auto space-y-8 py-6">
+                      <div className="text-center space-y-3">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 shadow-xl shadow-indigo-500/5">
+                          <Globe size={26} />
+                        </div>
+                        <h3 className="text-xl font-bold text-white tracking-tight">Global Transcript Search</h3>
+                        <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
+                          Search across all 28 recorded Twitter Spaces with over 33,900+ transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
+                        </p>
+                      </div>
 
-                                {/* Timestamp seek button */}
-                                <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
-                                  className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
-                                  <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
-                                  <span>{utterance.startLabel}</span>
-                                  {utterance.endLabel && <span className="text-slate-500 font-normal"> – {utterance.endLabel}</span>}
-                                </button>
+                      {/* Popular topics */}
+                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
+                          <Sparkles size={13} className="text-amber-400" />
+                          <span>Suggested Searches & Highlights</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {POPULAR_SEARCH_TOPICS.map(topic => (
+                            <button
+                              key={topic}
+                              onClick={() => setSearch(topic)}
+                              className="px-3 py-1.5 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 hover:border-indigo-500/40 rounded-xl text-xs text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105"
+                            >
+                              🔍 {topic}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                                {/* 1-click sync calibration */}
-                                {isPlaying && (
-                                  <button onClick={e => { e.stopPropagation(); setAndSaveTimeOffset(Number((currentTime - utterance.rawStartSec).toFixed(3))); }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 cursor-pointer"
-                                    title={`Align transcript to audio time ${formatSeconds(currentTime)}`}>
-                                    <Clock size={10} className="text-indigo-400" /> Sync here ({formatSeconds(currentTime)})
-                                  </button>
-                                )}
+                      {/* Episode Directory Overview */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            Indexed Space Library ({globalIndex?.length || 28} Episodes)
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            {totalGlobalSegments.toLocaleString()} total spoken turns
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {(globalIndex || []).map(ep => (
+                            <div
+                              key={ep.release_tag}
+                              onClick={() => {
+                                const rel = releases.find(r => r.id === ep.release_id || r.tag_name === ep.release_tag);
+                                if (rel) {
+                                  setSelectedId(rel.id);
+                                  loadTranscript(rel);
+                                  setSearchScope('current');
+                                }
+                              }}
+                              className="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 hover:bg-slate-900 hover:border-indigo-500/40 transition-all cursor-pointer group shadow-sm flex items-start justify-between gap-3"
+                            >
+                              <div className="min-w-0">
+                                <h4 className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
+                                  {ep.title || ep.release_tag}
+                                </h4>
+                                <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
+                                  <span>{formatDate(ep.published_at)}</span>
+                                  <span>•</span>
+                                  <span className="text-indigo-400 font-medium">{ep.segment_count.toLocaleString()} turns</span>
+                                </p>
                               </div>
+                              <ArrowRight size={13} className="text-slate-600 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-1" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                              <div className="flex items-center gap-2">
-                                {typeof utterance.confidence === 'number' && (
-                                  <span className={`text-[10px] font-mono ${utterance.confidence >= 0.9 ? 'text-emerald-500' : utterance.confidence >= 0.75 ? 'text-amber-500' : 'text-rose-400'}`}
-                                    title="Confidence score">{(utterance.confidence * 100).toFixed(0)}%</span>
-                                )}
-                                {isPlayingThisUtterance && (
-                                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
-                                    <Volume2 size={11} /> Speaking Now
-                                  </span>
-                                )}
-                              </div>
+                  {/* Active Search: 0 matches */}
+                  {search.trim() && globalSearchResults.length === 0 && !globalIndexLoading && (
+                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
+                      <Search size={36} className="mb-3 text-slate-600" />
+                      <p className="text-sm font-semibold text-slate-300">
+                        No turns match "{search}" across all {globalIndex?.length || 28} transcripts.
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1.5">
+                        Try checking spelling or searching for a different keyword.
+                      </p>
+                      <button
+                        onClick={() => setSearch('')}
+                        className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                      >
+                        Clear Search
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Active Search: Results List */}
+                  {search.trim() && globalSearchResults.length > 0 && (
+                    <div className="max-w-4xl mx-auto space-y-3.5 pb-24">
+                      {globalSearchResults.length >= 300 && (
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-center justify-between">
+                          <span>Showing top 300 matches. Select an episode filter above to narrow down results.</span>
+                        </div>
+                      )}
+
+                      {globalSearchResults.map((res, idx) => {
+                        const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
+                        const isPlayingThis = current?.id === res.release_id && isPlaying && Math.abs(currentTime - res.segment.start) < 20;
+                        const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
+
+                        return (
+                          <div
+                            key={`${res.release_tag}-${res.segmentIndex}-${idx}`}
+                            style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
+                            className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all relative ${
+                              isPlayingThis
+                                ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
+                            }`}
+                          >
+                            {/* Speaker Avatar */}
+                            <div
+                              className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 ${theme.avatar}`}
+                              title={res.segment.speaker}
+                            >
+                              {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
                             </div>
 
-                            <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
-                              {highlightMatch(utterance.text, search)}
-                            </p>
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  {/* Episode badge */}
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-800/90 text-slate-300 text-[11px] font-semibold border border-slate-700/60 max-w-xs truncate">
+                                    <Radio size={10} className="text-indigo-400 flex-shrink-0" />
+                                    <span className="truncate">{res.title}</span>
+                                  </span>
+
+                                  {/* Speaker pill */}
+                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge}`}>
+                                    {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
+                                    <span>{res.segment.speaker}</span>
+                                  </span>
+
+                                  {/* Timestamp seek button */}
+                                  <button
+                                    onClick={() => handlePlayGlobalResult(res)}
+                                    className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer"
+                                    title="Seek to timestamp"
+                                  >
+                                    <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
+                                    <span>{formatSeconds(res.segment.start)}</span>
+                                    {res.segment.end !== null && <span className="text-slate-500 font-normal"> – {formatSeconds(res.segment.end)}</span>}
+                                  </button>
+                                </div>
+
+                                {/* Action buttons */}
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => handlePlayGlobalResult(res)}
+                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                                      isPlayingThis
+                                        ? 'bg-indigo-500 text-white shadow'
+                                        : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30'
+                                    }`}
+                                    title="Listen to this moment"
+                                  >
+                                    {isPlayingThis ? <Pause size={11} /> : <Play size={11} className="translate-x-0.5" />}
+                                    <span>{isPlayingThis ? 'Pause' : 'Play'}</span>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleOpenInFullTranscript(res)}
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-slate-700 cursor-pointer"
+                                    title="Open this episode's full transcript at this moment"
+                                  >
+                                    <FileText size={11} />
+                                    <span>Open Transcript</span>
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Highlighted text */}
+                              <p className="text-[14px] leading-relaxed text-slate-100 select-text">
+                                {highlightMatch(res.segment.text, search)}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-            </>)}
+            ) : (
+              !selectedRelease ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                  <ChevronDown size={28} className="text-slate-700 mb-3 rotate-90" />
+                  <p className="text-slate-500 text-sm mb-3">Select an episode from the sidebar to view its transcript</p>
+                  <button
+                    onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer transition-all hover:scale-105"
+                  >
+                    <Globe size={13} /> Or Search All Transcripts
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Episode Player Header */}
+                  <div className="p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {mp3Asset && (
+                        <button onClick={handlePlayEpisodeToggle}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white shadow-indigo-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 shadow-indigo-600/20'}`}
+                          title={isCurrentEpisodePlaying ? 'Pause Audio' : 'Play Episode Audio'}>
+                          {isCurrentEpisodePlaying ? <Pause size={16} /> : <Play size={16} className="translate-x-0.5" />}
+                        </button>
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-white truncate max-w-md">{selectedRelease.name || selectedRelease.tag_name}</h3>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-slate-300 font-medium">{getEpisodeRecordedDate(selectedRelease).displayDate}</span>
+                          {utterances.length > 0 && <><span>•</span><span className="text-indigo-400 font-medium">{utterances.length} turns</span></>}
+                          {speakerStats.length > 0 && <><span>•</span><span className="text-emerald-400">{speakerStats.length} speaker{speakerStats.length > 1 ? 's' : ''}</span></>}
+                          {transcriptMetadata.model && <><span>•</span><span className="text-cyan-400" title="Speech-to-text model">{transcriptMetadata.model}</span></>}
+                          {transcriptMetadata.language && <><span>•</span><span className="text-slate-400 uppercase">{transcriptMetadata.language}</span></>}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button onClick={() => setShowSavedSpeakersModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-lg transition-colors border border-amber-500/30 cursor-pointer shadow-sm">
+                        <Star size={12} className="text-amber-400 fill-amber-400/30" /> Saved Speakers ({savedSpeakers.length})
+                      </button>
+                      {speakerStats.length > 0 && (
+                        <button onClick={() => setShowRenameModal(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold rounded-lg transition-colors border border-indigo-500/40 cursor-pointer">
+                          <Users size={12} /> Rename Speakers
+                        </button>
+                      )}
+                      {speakerStats.length > 0 && (
+                        <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && timeOffsetSec === 0)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/40 cursor-pointer shadow-sm">
+                          {savingGitHub ? <Loader size={12} className="animate-spin text-emerald-400" /> : <Save size={12} />}
+                          {savingGitHub ? 'Saving…' : 'Save to GitHub'}
+                        </button>
+                      )}
+                      <button onClick={handleCopyTranscript} disabled={!utterances.length}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
+                        {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                        {copied ? 'Copied!' : 'Copy'}
+                      </button>
+                      <button onClick={() => handleDownloadTranscript('txt')} disabled={!utterances.length}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
+                        <Download size={12} /> .txt
+                      </button>
+                      <button onClick={() => handleDownloadTranscript('json')} disabled={!utterances.length}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
+                        <Download size={12} /> .json
+                      </button>
+                      <a href={selectedRelease.html_url} target="_blank" rel="noopener noreferrer"
+                        className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
+                        <ExternalLink size={13} />
+                      </a>
+                    </div>
+                  </div>
+
+                  {saveGitHubSuccess && (
+                    <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs">
+                      <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" /><span>{saveGitHubSuccess}</span>
+                    </div>
+                  )}
+                  {saveGitHubError && (
+                    <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs">
+                      <AlertCircle size={15} className="text-red-400 flex-shrink-0" /><span>{saveGitHubError}</span>
+                    </div>
+                  )}
+
+                  {/* Filter & Sync Toolbar */}
+                  <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-[280px]">
+                      {/* Scope Toggle */}
+                      <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+                        <button
+                          onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white cursor-pointer transition-colors"
+                          title="Search all episodes"
+                        >
+                          <Globe size={12} className="text-indigo-400" /> All Transcripts ({globalIndex?.length || 28})
+                        </button>
+                        <button
+                          onClick={() => setSearchScope('current')}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-indigo-600 text-white shadow cursor-pointer transition-colors"
+                        >
+                          <FileText size={12} /> This Episode
+                        </button>
+                      </div>
+
+                      <div className="relative flex-1 max-w-sm">
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input type="text" placeholder="Search this episode text or speaker…" value={search} onChange={e => setSearch(e.target.value)}
+                          className="w-full pl-8 pr-7 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors" />
+                        {search && (
+                          <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-0.5 cursor-pointer">
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
+                      {search && <span className="text-xs text-amber-400 font-medium">{matchCount} match{matchCount !== 1 ? 'es' : ''}</span>}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {uniqueDisplaySpeakers.length > 1 && (
+                        <div className="flex items-center gap-1.5">
+                          <SlidersHorizontal size={12} className="text-slate-500" />
+                          <select value={speakerFilter} onChange={e => setSpeakerFilter(e.target.value)}
+                            className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
+                            <option value="ALL">All Speakers ({uniqueDisplaySpeakers.length})</option>
+                            {uniqueDisplaySpeakers.map(spk => <option key={spk} value={spk}>{spk}</option>)}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Sync Offset Control */}
+                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">
+                        <Clock size={12} className={timeOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
+                        <span className="text-[11px] text-slate-400 font-medium">Sync:</span>
+                        <input type="number" value={timeOffsetSec} step="0.1"
+                          onChange={e => { const n = Number.parseFloat(e.target.value); setAndSaveTimeOffset(Number.isFinite(n) ? n : 0); }}
+                          className="w-16 px-1 py-0.5 text-center text-xs font-mono font-bold bg-slate-900 border border-slate-700 rounded text-white focus:outline-none focus:border-indigo-500"
+                          title="Offset in seconds (decimals supported, e.g. -21.35)" />
+                        <span className="text-[11px] text-slate-400 font-mono">s</span>
+                        <div className="flex items-center gap-0.5 ml-1">
+                          <button onClick={() => setAndSaveTimeOffset(p => Number((p - 1).toFixed(3)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s earlier">-1s</button>
+                          <button onClick={() => setAndSaveTimeOffset(p => Number((p - 0.1).toFixed(3)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s earlier">-0.1s</button>
+                          <button onClick={() => setAndSaveTimeOffset(p => Number((p + 0.1).toFixed(3)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s later">+0.1s</button>
+                          <button onClick={() => setAndSaveTimeOffset(p => Number((p + 1).toFixed(3)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s later">+1s</button>
+                          {timeOffsetSec !== 0 && (
+                            <button onClick={() => setAndSaveTimeOffset(0)}
+                              className="px-1.5 py-0.5 text-[10px] font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded transition-colors cursor-pointer ml-0.5">Reset</button>
+                          )}
+                        </div>
+                      </div>
+
+                      <button onClick={() => setAutoScroll(!autoScroll)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-500 border-slate-800'}`}>
+                        <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Transcript Feed */}
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
+                    {transcriptLoading && (
+                      <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
+                        <Loader size={26} className="animate-spin text-indigo-400" />
+                        <span className="text-xs font-medium tracking-wide">Loading diarized transcript…</span>
+                      </div>
+                    )}
+
+                    {transcriptError && (
+                      <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
+                        <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load transcript</p>
+                        <p className="mt-1 opacity-90 pl-6">{transcriptError}</p>
+                      </div>
+                    )}
+
+                    {!transcriptLoading && !transcriptError && !transcriptRaw && (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-20">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl shadow-indigo-500/5">
+                          <Sparkles size={28} />
+                        </div>
+                        <h4 className="text-base font-bold text-white mb-1.5">No Transcript Generated Yet</h4>
+                        <p className="text-slate-400 text-xs mb-6 leading-relaxed">This Space has audio published, but no diarized transcript asset is available yet.</p>
+                        {transcribeSuccess ? (
+                          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
+                            <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
+                            <p className="mt-1 opacity-90">{transcribeSuccess}</p>
+                          </div>
+                        ) : (
+                          <button onClick={handleGenerateTranscript} disabled={transcribing}
+                            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer">
+                            {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                            {transcribing ? 'Dispatching to RTX 4060 Ti…' : '⚡ Transcribe Space with RTX 4060 Ti'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {!transcriptLoading && !transcriptError && transcriptRaw && filteredUtterances.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
+                        <Search size={32} className="mb-3 text-slate-600" />
+                        <p className="text-sm font-medium text-slate-300">
+                          {search ? `No speaker turns match "${search}" in this episode.` : 'No speaker turns match your filters.'}
+                        </p>
+                        {search ? (
+                          <div className="flex items-center gap-3 mt-4">
+                            <button
+                              onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
+                              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer transition-all hover:scale-105"
+                            >
+                              <Globe size={13} /> Search All {globalIndex?.length || 28} Transcripts for "{search}"
+                            </button>
+                            <button onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
+                              className="text-xs text-slate-500 hover:text-slate-300 underline cursor-pointer">
+                              Clear search
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
+                            className="mt-3 text-xs text-indigo-400 hover:text-indigo-300 underline cursor-pointer">
+                            Reset filters
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
+                      <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
+                        {filteredUtterances.map((utterance) => {
+                          const isPlayingThisUtterance = activeUtteranceId === utterance.id;
+                          const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
+                          const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
+                          const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
+
+                          return (
+                            <div
+                              id={`utterance-card-${utterance.id}`}
+                              key={utterance.id}
+                              onClick={() => handlePlayUtterance(utterance.startSec)}
+                              style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
+                              className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer relative ${
+                                isPlayingThisUtterance
+                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                  : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
+                              }`}
+                            >
+                              {/* Avatar */}
+                              <div onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer`}
+                                title={`Click to rename ${utterance.speaker}`}>
+                                {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
+                              </div>
+
+                              {/* Body */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                                  <div className="flex items-center gap-2 relative">
+
+                                    {/* Speaker tag / inline editor */}
+                                    {isEditingThisSpeaker ? (
+                                      <div className="relative flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                        <input type="text" autoFocus value={editingSpeakerVal}
+                                          onChange={e => setEditingSpeakerVal(e.target.value)}
+                                          onKeyDown={e => { if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); if (e.key === 'Escape') setEditingSpeakerKey(null); }}
+                                          placeholder={utterance.rawSpeaker}
+                                          className="px-2.5 py-1 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none w-44 shadow-lg shadow-indigo-500/20" />
+                                        <button onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)} className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md"><Check size={11} /></button>
+                                        <button onClick={() => setEditingSpeakerKey(null)} className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md"><X size={11} /></button>
+                                        {/* Quick-Pick Popover */}
+                                        <div className="absolute left-0 top-full mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-40 p-2 space-y-1">
+                                          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                                            <span className="flex items-center gap-1"><Star size={10} className="text-amber-400 fill-amber-400" /> Saved Speakers</span>
+                                            <button onClick={() => setShowSavedSpeakersModal(true)} className="text-indigo-400 hover:text-indigo-300 font-normal lowercase cursor-pointer">manage</button>
+                                          </div>
+                                          <div className="max-h-48 overflow-y-auto space-y-0.5 pt-1">
+                                            {savedSpeakers.filter(s => !editingSpeakerVal.trim() || s.name.toLowerCase().includes(editingSpeakerVal.toLowerCase())).map(s => (
+                                              <button key={s.id || s.name} onClick={() => saveSpeakerRename(utterance.rawSpeaker, s.name)}
+                                                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left text-xs transition-colors cursor-pointer">
+                                                <div className="flex items-center gap-2">
+                                                  <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
+                                                  <span className="font-semibold text-slate-200 group-hover:text-white">{s.name}</span>
+                                                </div>
+                                                {s.role && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">{s.role}</span>}
+                                              </button>
+                                            ))}
+                                          </div>
+                                          {editingSpeakerVal.trim() && !savedSpeakers.some(s => s.name.toLowerCase() === editingSpeakerVal.trim().toLowerCase()) && (
+                                            <button onClick={() => { quickSaveToPermanent(editingSpeakerVal); saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); }}
+                                              className="w-full mt-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-semibold border border-indigo-500/30 cursor-pointer">
+                                              <Plus size={12} /> Save "{editingSpeakerVal}" as Permanent
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}>
+                                        {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
+                                        <span>{utterance.speaker}</span>
+                                        <Pencil size={10} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-300" />
+                                      </button>
+                                    )}
+
+                                    {/* Timestamp seek button */}
+                                    <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
+                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
+                                      <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
+                                      <span>{utterance.startLabel}</span>
+                                      {utterance.endLabel && <span className="text-slate-500 font-normal"> – {utterance.endLabel}</span>}
+                                    </button>
+
+                                    {/* 1-click sync calibration */}
+                                    {isPlaying && (
+                                      <button onClick={e => { e.stopPropagation(); setAndSaveTimeOffset(Number((currentTime - utterance.rawStartSec).toFixed(3))); }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 cursor-pointer"
+                                        title={`Align transcript to audio time ${formatSeconds(currentTime)}`}>
+                                        <Clock size={10} className="text-indigo-400" /> Sync here ({formatSeconds(currentTime)})
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    {typeof utterance.confidence === 'number' && (
+                                      <span className={`text-[10px] font-mono ${utterance.confidence >= 0.9 ? 'text-emerald-500' : utterance.confidence >= 0.75 ? 'text-amber-500' : 'text-rose-400'}`}
+                                        title="Confidence score">{(utterance.confidence * 100).toFixed(0)}%</span>
+                                    )}
+                                    {isPlayingThisUtterance && (
+                                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
+                                        <Volume2 size={11} /> Speaking Now
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
+                                  {highlightMatch(utterance.text, search)}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )
+            )}
           </div>
         </div>
       )}
