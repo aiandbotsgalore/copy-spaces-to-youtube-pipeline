@@ -19,100 +19,39 @@ permissions:
 jobs:
   transcribe:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 120
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download Audio from Release
-        id: download
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: |
-          New-Item -ItemType Directory -Path "work" -Force | Out-Null
-          Write-Host "[*] Downloading MP3 for release $env:RELEASE_TAG..."
-          gh release download "$env:RELEASE_TAG" --pattern "*.mp3" --dir "work" --clobber
-          $mp3File = Get-ChildItem -Path "work" -Filter "*.mp3" | Select-Object -First 1
-          if (-not $mp3File) {
-            Write-Error "No MP3 asset found in release $env:RELEASE_TAG"
-            exit 1
-          }
-          Write-Host "[✓] Downloaded audio: $($mp3File.FullName)"
-          "mp3_path=$($mp3File.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Run RTX 4060 Ti Neural Transcriber & Diarization
-        shell: pwsh
+      - name: Install Modal & Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install modal requests
+
+      - name: Run Modal Cloud GPU Transcription
         env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          $pyExe = "C:\Users\Logan\AppData\Local\Programs\Python\Python312\python.exe"
-          $mp3Path = "${{ steps.download.outputs.mp3_path }}"
-          Write-Host "[*] Running batch_transcriber on RTX 4060 Ti..."
-          & $pyExe batch_transcriber.py --file "$mp3Path" --output-dir "output_transcripts" --non-interactive
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "batch_transcriber exited with code $LASTEXITCODE"
-            exit $LASTEXITCODE
-          }
-
-      - name: Upload Transcripts to GitHub Release
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: |
-          $stem = [System.IO.Path]::GetFileNameWithoutExtension("${{ steps.download.outputs.mp3_path }}")
-          $txt = "output_transcripts\$stem.txt"
-          $srt = "output_transcripts\$stem.srt"
-          $json = "output_transcripts\$stem.json"
-          Write-Host "[*] Checking files for upload to release $env:RELEASE_TAG..."
-          $toUpload = @()
-          foreach ($f in @($txt, $srt, $json)) {
-            if (Test-Path $f) {
-              $size = (Get-Item $f).Length
-              if ($size -gt 0) {
-                $toUpload += $f
-                Write-Host "  [+] Queued: $f ($size bytes)"
-              } else {
-                Write-Warning "Skipping 0-byte file: $f"
-              }
-            }
-          }
-          if ($toUpload.Count -gt 0) {
-            gh release upload "$env:RELEASE_TAG" $toUpload --clobber
-            Write-Host "[✓] Transcripts successfully uploaded to GitHub Release."
-          } else {
-            Write-Warning "No non-empty transcripts found to upload."
-          }
-
-      - name: Extract AI Best & Funniest Highlights
-        shell: pwsh
-        env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $pyExe = "C:\Users\Logan\AppData\Local\Programs\Python\Python312\python.exe"
-          $stem = [System.IO.Path]::GetFileNameWithoutExtension("${{ steps.download.outputs.mp3_path }}")
-          $jsonPath = "output_transcripts\$stem.json"
-          $mp3Path = "${{ steps.download.outputs.mp3_path }}"
-          if ((Test-Path $jsonPath) -and (Test-Path $mp3Path)) {
-            $jsonSize = (Get-Item $jsonPath).Length
-            if ($jsonSize -gt 500) {
-              Write-Host "[*] Extracting AI Best & Funniest Moments with Gemini 2.5 Flash..."
-              & $pyExe scripts/find_and_cut_best_clips.py --json "$jsonPath" --audio "$mp3Path" --limit 5
-              Write-Host "[✓] AI Highlight clips created and saved to best_saved_clips/!"
-            }
-          }
+          echo "[*] Triggering Modal Serverless GPU transcription for ${{ inputs.release_tag }}..."
+          modal run modal_transcriber.py --release-tag "${{ inputs.release_tag }}"
 
       - name: Trigger RSS Update
-        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           try {
             gh workflow run update_rss.yml --ref master
           } catch {
-            Write-Host "[!] Note: Could not trigger update_rss.yml: $_"
+            echo "[!] Note: Could not trigger update_rss.yml: $_"
           }
