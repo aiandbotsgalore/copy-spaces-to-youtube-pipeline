@@ -12,6 +12,7 @@ import sys
 import json
 import subprocess
 from pathlib import Path
+from scripts.clean_transcript_index import clean_episode_segments
 
 INDEX_PATH = Path("public/transcripts/transcripts_search_index.json")
 CACHE_DIR = Path(".cache/transcripts")
@@ -123,17 +124,18 @@ def main():
             if len(segments) == 1319 and rel_tag != '20260826_1AxRnZYBVdrxl':
                 continue
 
-            total_segments += len(segments)
+            cleaned_segments = clean_episode_segments(segments, rel_name)
+            total_segments += len(cleaned_segments)
             index.append({
                 'release_id': r.get('id'),
                 'release_tag': rel_tag,
                 'title': rel_name,
                 'published_at': r.get('published_at'),
                 'audio_url': mp3_asset.get('browser_download_url') if mp3_asset else '',
-                'segment_count': len(segments),
-                'segments': segments
+                'segment_count': len(cleaned_segments),
+                'segments': cleaned_segments
             })
-            print(f"  [✓] {rel_name[:32]:32} : {len(segments)} turns")
+            print(f"  [✓] {rel_name[:32]:32} : {len(cleaned_segments)} turns")
 
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:

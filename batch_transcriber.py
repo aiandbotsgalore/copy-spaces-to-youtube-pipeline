@@ -277,11 +277,13 @@ classifier = EncoderClassifier.from_hparams(
     run_opts={{'device': 'cuda:0'}}
 )
 
-# 4. Extract 192-dim neural embeddings for each segment with context padding
+# 4. Extract 192-dim neural embeddings for each segment with smart context padding
 segment_embeddings = []
 for seg in raw_segments:
     dur = seg['end'] - seg['start']
-    pad = max(0.0, (1.8 - dur) / 2.0)
+    # ECAPA-TDNN performs best on ~2.5s-3.0s speech windows. Symmetrically pad short segments
+    target_dur = max(2.5, dur)
+    pad = (target_dur - dur) / 2.0
     start_sample = max(0, int((seg['start'] - pad) * sr))
     end_sample = min(total_samples, int((seg['end'] + pad) * sr))
     count = end_sample - start_sample
@@ -293,7 +295,8 @@ for seg in raw_segments:
         if seg_audio.ndim > 1:
             seg_audio = np.mean(seg_audio, axis=1)
 
-    if len(seg_audio) > sr * 0.35:
+    # Require at least 0.7s of actual audio
+    if len(seg_audio) >= int(sr * 0.7):
         max_val = np.max(np.abs(seg_audio))
         if max_val > 1e-6:
             seg_audio = seg_audio / max_val
@@ -313,9 +316,10 @@ sfile.close()
 valid_indices = [i for i, emb in enumerate(segment_embeddings) if np.linalg.norm(emb) > 0.5]
 if len(valid_indices) >= 2:
     feat_matrix = np.array([segment_embeddings[i] for i in valid_indices])
+    # Tighter distance threshold (0.52) to avoid grouping different speakers into massive blobs
     clustering = AgglomerativeClustering(
         n_clusters=None,
-        distance_threshold=0.70,
+        distance_threshold=0.52,
         metric='cosine',
         linkage='average'
     )
@@ -326,33 +330,78 @@ else:
     for idx in valid_indices:
         raw_segments[idx]['cluster_id'] = 0
 
-# 6. Dominant cluster consolidation (merge micro-clusters)
+# 6. Dominant cluster consolidation (Merge micro-clusters and combine acoustic drift)
 cluster_talk_time = {{}}
 for r in raw_segments:
     cid = r.get('cluster_id', 0)
-    cluster_talk_time[cid] = cluster_talk_time.get(cid, 0.0) + (r['end'] - r['start'])
+    dur = r['end'] - r['start']
+    cluster_talk_time[cid] = cluster_talk_time.get(cid, 0.0) + dur
+
+total_speech = sum(cluster_talk_time.values())
 
 cluster_centroids = {{}}
-for cid in set(r.get('cluster_id', 0) for r in raw_segments if 'cluster_id' in r):
+for cid in set(r.get('cluster_id', 0) for r in raw_segments):
     c_embs = [segment_embeddings[i] for i, r in enumerate(raw_segments) if r.get('cluster_id') == cid and np.linalg.norm(segment_embeddings[i]) > 0.5]
     if c_embs:
         mean_emb = np.mean(c_embs, axis=0)
-        cluster_centroids[cid] = mean_emb / (np.linalg.norm(mean_emb) + 1e-10)
+        norm = np.linalg.norm(mean_emb)
+        if norm > 1e-6:
+            cluster_centroids[cid] = mean_emb / norm
 
-dominant_clusters = [cid for cid, t in cluster_talk_time.items() if t >= 5.0]
-if not dominant_clusters:
-    dominant_clusters = list(cluster_centroids.keys())
+# Primary speaker threshold: in a Twitter Space, a true speaker speaks for at least 30s or 1% of total speech
+min_primary_time = max(30.0, min(120.0, total_speech * 0.01))
+sorted_cids_by_time = sorted(cluster_centroids.keys(), key=lambda c: cluster_talk_time.get(c, 0.0), reverse=True)
 
-for r in raw_segments:
+dominant_clusters = [c for c in sorted_cids_by_time if cluster_talk_time.get(c, 0.0) >= min_primary_time]
+if len(dominant_clusters) > 12:
+    dominant_clusters = dominant_clusters[:12]
+elif not dominant_clusters:
+    dominant_clusters = sorted_cids_by_time[:min(6, len(sorted_cids_by_time))]
+
+# Iterative centroid merging: combine clusters with high cosine similarity (>= 0.60)
+# This solves the intra-speaker fragmentation where a speaker's voice drifts over a multi-hour space
+merged_dom = {{}}
+while True:
+    merged_any = False
+    for i in range(len(dominant_clusters)):
+        for j in range(i + 1, len(dominant_clusters)):
+            c1, c2 = dominant_clusters[i], dominant_clusters[j]
+            sim = cosine_similarity(cluster_centroids[c1], cluster_centroids[c2])
+            if sim >= 0.60:
+                w1 = cluster_talk_time.get(c1, 1.0)
+                w2 = cluster_talk_time.get(c2, 1.0)
+                new_emb = (cluster_centroids[c1] * w1 + cluster_centroids[c2] * w2) / (w1 + w2)
+                cluster_centroids[c1] = new_emb / (np.linalg.norm(new_emb) + 1e-10)
+                cluster_talk_time[c1] = w1 + w2
+                merged_dom[c2] = c1
+                dominant_clusters.pop(j)
+                merged_any = True
+                break
+        if merged_any:
+            break
+    if not merged_any:
+        break
+
+# Re-assign all segments: map micro-clusters (< 30s) and noise to their closest dominant centroid
+for i, r in enumerate(raw_segments):
     cid = r.get('cluster_id', 0)
-    if cid not in dominant_clusters and dominant_clusters and cid in cluster_centroids:
-        c_emb = cluster_centroids[cid]
-        best_dom = max(dominant_clusters, key=lambda d: cosine_similarity(c_emb, cluster_centroids[d]))
-        r['cluster_id'] = best_dom
+    cid = merged_dom.get(cid, cid)
+    if cid not in dominant_clusters and dominant_clusters:
+        emb = segment_embeddings[i]
+        if np.linalg.norm(emb) > 0.5:
+            best_dom = max(dominant_clusters, key=lambda d: cosine_similarity(emb, cluster_centroids[d]))
+            r['cluster_id'] = best_dom
+        elif cid in cluster_centroids:
+            best_dom = max(dominant_clusters, key=lambda d: cosine_similarity(cluster_centroids[cid], cluster_centroids[d]))
+            r['cluster_id'] = best_dom
+        else:
+            r['cluster_id'] = dominant_clusters[0]
+    else:
+        r['cluster_id'] = cid
 
 # 7. Speaker Identification against voice_profiles.json
+# Allow MULTIPLE clusters to match the same enrolled person if they sound like that person!
 cluster_to_speaker = {{}}
-matched_profiles = set()
 
 for cid in dominant_clusters:
     mean_emb = cluster_centroids[cid]
@@ -366,22 +415,27 @@ for cid in dominant_clusters:
                 best_sim = s
                 best_name = pname
 
-    if best_name and best_sim >= threshold and best_name not in matched_profiles:
+    if best_name and best_sim >= threshold:
         cluster_to_speaker[cid] = best_name
-        matched_profiles.add(best_name)
         # Update profile with EMA
         existing = np.array(profiles[best_name]['embedding'], dtype=np.float32)
         cnt = profiles[best_name].get('sample_count', 1)
         upd = (existing * cnt + mean_emb) / (cnt + 1)
-        upd = upd / np.linalg.norm(upd)
+        upd = upd / (np.linalg.norm(upd) + 1e-10)
         profiles[best_name]['embedding'] = upd.tolist()
         profiles[best_name]['sample_count'] = cnt + 1
         profiles[best_name]['last_updated'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
-# 8. Chronological Sequential Numbering (Speaker 1, Speaker 2, Speaker 3...)
+# 8. Chronological Sequential Numbering for unnamed speakers (Speaker 1, Speaker 2...)
 speaker_counter = 1
+# Sort dominant clusters by their first appearance in time
+first_seen = {{}}
 for r in raw_segments:
     cid = r.get('cluster_id', 0)
+    if cid not in first_seen:
+        first_seen[cid] = r['start']
+
+for cid in sorted(dominant_clusters, key=lambda c: first_seen.get(c, 0.0)):
     if cid not in cluster_to_speaker:
         cluster_to_speaker[cid] = f'Speaker {{speaker_counter}}'
         speaker_counter += 1
@@ -401,6 +455,15 @@ for r in raw_segments:
     cid = r.get('cluster_id', 0)
     r['speaker'] = cluster_to_speaker.get(cid, 'Speaker 1')
 
+# Temporal smoothing: if a short segment (< 1.5s) is sandwiched between two turns of the same speaker, assign it to that speaker
+for i in range(1, len(raw_segments) - 1):
+    prev_s = raw_segments[i-1]
+    curr_s = raw_segments[i]
+    next_s = raw_segments[i+1]
+    curr_dur = curr_s['end'] - curr_s['start']
+    if prev_s['speaker'] == next_s['speaker'] and curr_dur < 1.5:
+        curr_s['speaker'] = prev_s['speaker']
+
 # Re-calculate clean talk time per named speaker
 speaker_talk_time = {{}}
 for r in raw_segments:
@@ -412,13 +475,13 @@ merged = []
 for r in raw_segments:
     if not r['text']:
         continue
-    if merged and merged[-1]['speaker'] == r['speaker'] and (r['start'] - merged[-1]['end']) < 2.0:
+    if merged and merged[-1]['speaker'] == r['speaker'] and (r['start'] - merged[-1]['end']) < 2.5:
         merged[-1]['end'] = r['end']
         merged[-1]['text'] += ' ' + r['text']
     else:
         merged.append({{
-            'start': r['start'],
-            'end': r['end'],
+            'start': round(r['start'], 2),
+            'end': round(r['end'], 2),
             'speaker': r['speaker'],
             'text': r['text']
         }})
@@ -486,32 +549,60 @@ def resolve_speakers_with_gemini(
         known_speakers = list(profiles.keys())
         known_str = ", ".join(known_speakers) if known_speakers else "None"
 
-        # Build transcript sample (up to 180 segments for rich conversational context)
+        # Build transcript sample spanning beginning, middle, and end (up to 450 turns)
+        total_segs = len(segments)
         sample_lines = []
-        for s in segments[:180]:
+        if total_segs <= 450:
+            sample_candidates = segments
+        else:
+            # 150 from start, 150 from middle, 150 from near the end
+            mid_start = max(150, (total_segs // 2) - 75)
+            sample_candidates = (
+                segments[:150] +
+                segments[mid_start:mid_start + 150] +
+                segments[-150:]
+            )
+
+        for s in sample_candidates:
             sample_lines.append(f"[{s['start']:.1f}s] {s['speaker']}: {s['text']}")
         transcript_sample = "\n".join(sample_lines)
 
         prompt = f"""
 You are an expert audio diarization analyst. Analyze this Twitter Space transcript and identify the real names or specific roles of the generic speakers (e.g. Speaker 1, Speaker 2, etc.) based on:
-1. Direct self-introductions (e.g. "I am [Name]")
-2. How others address them in conversation (e.g. "Good morning there, Parr", "Mr. Ebo", "Hey Sarah")
+1. Direct self-introductions (e.g. "I am [Name]", "This is [Name]")
+2. How others address them in conversation (e.g. "Good morning there, Parr", "Hey Logan", "Chan", "Mr. Ebo", "Hey Sarah")
 3. Self-descriptions, location, and topic context.
 
-Known enrolled speakers: {known_str}
+Known enrolled recurring speakers in this community: {known_str}
 
 Transcript sample:
 {transcript_sample}
 """
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_json_schema": DiarizationResolution.model_json_schema()
-            }
-        )
+        # Try models in order of capability
+        candidate_models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite"]
+        response = None
+        for mod in candidate_models:
+            try:
+                response = client.models.generate_content(
+                    model=mod,
+                    contents=prompt,
+                    config={
+                        "response_mime_type": "application/json",
+                        "response_json_schema": DiarizationResolution.model_json_schema()
+                    }
+                )
+                if response and response.text:
+                    break
+            except Exception as model_err:
+                if "429" in str(model_err) or "RESOURCE_EXHAUSTED" in str(model_err):
+                    continue
+                else:
+                    break
+
+        if not response or not response.text:
+            print("[!] Gemini contextual speaker resolution skipped (API quota reached; keeping neural acoustic diarization)")
+            return segments, {}
 
         res = DiarizationResolution.model_validate_json(response.text)
         mapping = {}
@@ -628,6 +719,18 @@ class BatchAudioTranscriber:
                     profiles_path=self.profiles_file
                 )
                 if ai_mappings:
+                    # Re-merge consecutive segments if AI resolution unified multiple generic labels
+                    re_merged = []
+                    for s in merged_segments:
+                        if not s["text"].strip():
+                            continue
+                        if re_merged and re_merged[-1]["speaker"] == s["speaker"] and (s["start"] - re_merged[-1]["end"]) < 3.0:
+                            re_merged[-1]["end"] = s["end"]
+                            re_merged[-1]["text"] += " " + s["text"].strip()
+                        else:
+                            re_merged.append(s)
+                    merged_segments = re_merged
+
                     # Update talk times with resolved names
                     speaker_talk_time = {}
                     for s in merged_segments:
