@@ -158,10 +158,8 @@ def run_cloud_transcription(release_tag: str):
             "--non-interactive"
         ]
         print(f"[*] Running batch_transcriber on cloud NVIDIA A10G GPU...")
-        res = subprocess.run(cmd_transcribe, env=sub_env, capture_output=True, text=True)
-        print(res.stdout)
+        res = subprocess.run(cmd_transcribe, env=sub_env)
         if res.returncode != 0:
-            print("STDERR:", res.stderr)
             raise RuntimeError(f"batch_transcriber failed with exit code {res.returncode}")
         print(f"[✓] GPU Transcription & Diarization Complete!")
 
@@ -177,10 +175,15 @@ def run_cloud_transcription(release_tag: str):
             "--audio", str(local_mp3),
             "--limit", "5"
         ]
-        res_clips = subprocess.run(cmd_clips, env=sub_env, capture_output=True, text=True)
-        print(res_clips.stdout)
-        if res_clips.returncode != 0:
-            print("Clip Extractor Notice:", res_clips.stderr)
+        try:
+            # Stream output directly with a 300s (5 minute) timeout to prevent hanging the 1-hr container
+            res_clips = subprocess.run(cmd_clips, env=sub_env, timeout=300)
+            if res_clips.returncode != 0:
+                print(f"[!] Clip extraction returned code {res_clips.returncode}. Proceeding with transcript upload...")
+        except subprocess.TimeoutExpired:
+            print("[!] Clip extraction reached 300s timeout. Proceeding with transcript upload...")
+        except Exception as e:
+            print(f"[!] Clip extraction notice: {e}. Proceeding with transcript upload...")
 
     # 5. Gather Files to Upload
     txt_path = output_dir / f"{stem}.txt"

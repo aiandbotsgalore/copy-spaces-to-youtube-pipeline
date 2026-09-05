@@ -108,7 +108,7 @@ Target Criteria:
 
 Guidelines:
 - Each clip should ideally be between 20 seconds and 90 seconds long (self-contained, with complete context).
-- Crucial: Ensure 'start_seconds' begins cleanly at the start of a sentence/thought, and 'end_seconds' ends right after the punchline or natural resolution. Never cut mid-sentence.
+- Crucial: Ensure 'start_seconds' begins 1.5 to 2.0 seconds BEFORE the natural opening words of the quote/setup to guarantee no words are ever clipped or dropped. Always err on starting early. Ensure 'end_seconds' ends 1.0 second after the punchline or natural resolution. Never cut mid-sentence.
 - Rank by viral/entertainment appeal.
 {filter_instruction}
 
@@ -116,10 +116,10 @@ Transcript:
 {transcript_text}
 """
 
-    models_to_try = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
+    models_to_try = ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
     last_err = None
     for model_name in models_to_try:
-        for attempt in range(3):
+        for attempt in range(2):
             try:
                 print(f"[*] Analyzing with {model_name} (attempt {attempt + 1})...", flush=True)
                 response = client.models.generate_content(
@@ -136,30 +136,36 @@ Transcript:
                 last_err = e
                 err_str = str(e)
                 print(f"[!] {model_name} attempt {attempt + 1} notice: {e}", flush=True)
+                # If project hit daily quota limit, retrying is futile — skip model immediately
+                if "GenerateRequestsPerDay" in err_str or "Daily" in err_str or "limit: 20" in err_str:
+                    print(f"[*] Daily quota reached for {model_name}. Skipping to next model...", flush=True)
+                    break
                 delay = 2 * (attempt + 1)
                 if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                     import re
                     m = re.search(r"retryDelay':\s*'(\d+)s'", err_str)
                     if m:
-                        delay = int(m.group(1)) + 2
+                        delay = min(30, int(m.group(1)) + 1)
                     else:
-                        delay = 35
+                        delay = 10
                 print(f"[*] Backing off for {delay}s before retry...", flush=True)
                 time.sleep(delay)
 
     raise RuntimeError(f"All Gemini models failed highlight extraction: {last_err}")
 
 
-def slice_audio_clip(audio_path: str, start: float, end: float, out_path: str) -> bool:
-    """Slices a segment from source audio using FFmpeg as high-bitrate MP3 with broadcast-level fade in/out."""
-    duration = max(0.5, end - start)
+def slice_audio_clip(audio_path: str, start: float, end: float, out_path: str, pre_roll: float = 1.5) -> bool:
+    """Slices a segment from source audio using FFmpeg as high-bitrate MP3 with broadcast-level fade in/out and safety pre-roll."""
+    safe_start = max(0.0, start - pre_roll)
+    duration = max(0.5, (end - start) + pre_roll + 0.8)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    fade_len = min(0.5, duration / 4.0)
+    fade_len = min(0.3, duration / 8.0)
     af_filter = f"afade=t=in:ss=0:d={fade_len:.2f},afade=t=out:st={max(0, duration - fade_len):.2f}:d={fade_len:.2f}"
     cmd = [
         FFMPEG_EXE,
         "-y",
-        "-ss", str(start),
+        "-nostdin",
+        "-ss", str(safe_start),
         "-t", str(duration),
         "-i", audio_path,
         "-af", af_filter,
@@ -167,18 +173,21 @@ def slice_audio_clip(audio_path: str, start: float, end: float, out_path: str) -
         "-b:a", "192k",
         out_path
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    return res.returncode == 0
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        return res.returncode == 0
+    except Exception as e:
+        print(f"    [!] Error slicing clip {out_path}: {e}")
+        return False
 
 
 def update_markdown_catalog(catalog_file: str, all_clips: List[Dict[str, Any]]):
     """Generates an organized markdown catalog of all saved highlight clips."""
     lines = [
-        "# 🎙️ Best Saved Clips Catalog",
+        "# 🎙️ SpacePipe Highlights & Best Moments",
         "",
-        "> Automated highlights curated by Gemini AI from archived Twitter Spaces.",
-        "",
-        f"**Total Clips in Library:** {len(all_clips)}",
+        "> Curated moments of humor, banter, wild stories, and golden quotes from archived Twitter Spaces.",
+        f"> **Total Highlights Extracted:** {len(all_clips)}",
         "",
         "---",
         ""
@@ -240,17 +249,18 @@ def process_single_episode(
 
     ep_title = data.get("title") or Path(json_path).stem
 
-    # Handle long transcripts by windowing to prevent Gemini free-tier token exhaustion
-    WINDOW_SIZE = 150
-    OVERLAP = 25
+    # Gemini 2.5 Flash has a 1,000,000 token context window.
+    # We analyze up to 1,500 turns in one call (~25k tokens), eliminating fragmented rate-limit loops.
+    WINDOW_SIZE = 1500
+    OVERLAP = 100
     highlights = []
     
     if len(segments) <= WINDOW_SIZE:
         dialogue_lines = [f"[{s['start']:.1f}s - {s['end']:.1f}s] {s.get('speaker', 'Speaker')}: {s['text']}" for s in segments]
-        print(f"[*] Sending {len(segments)} dialogue turns to Gemini for highlight discovery...")
+        print(f"[*] Sending {len(segments)} dialogue turns to Gemini in a single pass...")
         highlights = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=limit, category_filter=category)
     else:
-        print(f"[*] Transcript has {len(segments)} turns. Analyzing in windowed chunks to avoid rate limits...")
+        print(f"[*] Transcript has {len(segments)} turns. Analyzing in windowed chunks of {WINDOW_SIZE}...")
         all_candidates = []
         num_windows = max(1, math.ceil(len(segments) / (WINDOW_SIZE - OVERLAP)))
         for w_idx in range(num_windows):
