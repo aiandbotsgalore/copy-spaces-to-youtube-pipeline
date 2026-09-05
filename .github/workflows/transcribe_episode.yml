@@ -45,7 +45,18 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           echo "[*] Triggering Modal Serverless GPU transcription for ${{ inputs.release_tag }}..."
-          modal run modal_transcriber.py --release-tag "${{ inputs.release_tag }}"
+          MAX_ATTEMPTS=4
+          ATTEMPT=1
+          until modal run modal_transcriber.py --release-tag "${{ inputs.release_tag }}"; do
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "[!] Modal execution failed after $MAX_ATTEMPTS attempts."
+              exit 1
+            fi
+            SLEEP_SEC=$((ATTEMPT * 30))
+            echo "[!] Modal run encountered transient issue or rate limit. Retrying in ${SLEEP_SEC}s (Attempt $ATTEMPT/$MAX_ATTEMPTS)..."
+            sleep $SLEEP_SEC
+            ATTEMPT=$((ATTEMPT + 1))
+          done
 
       - name: Trigger RSS Update
         env:

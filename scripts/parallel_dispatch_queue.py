@@ -99,14 +99,21 @@ def main():
     parser.add_argument("--index-interval", type=int, default=5, help="Update search index every N completions (default: 5)")
     parser.add_argument("--max-episodes", type=int, default=None, help="Maximum number of episodes to process in this run")
     parser.add_argument("--dry-run", action="store_true", help="Print actions without dispatching")
+    parser.add_argument("--reset-failed", action="store_true", help="Clear previously failed history and re-queue all episodes")
 
     args = parser.parse_args()
 
     queue = load_queue()
     state = load_state()
 
+    if args.reset_failed:
+        print("[*] Resetting failed episode history...")
+        state["failed"] = {}
+        save_state(state)
+
     completed_set: Set[str] = set(state.get("completed", []))
     failed_dict: Dict[str, int] = state.get("failed", {})
+    failed_at_dict: Dict[str, float] = state.get("failed_at", {})
     active_dict: Dict[str, Dict[str, Any]] = state.get("active", {})
 
     print("=" * 70)
@@ -178,12 +185,14 @@ def main():
                 else:
                     retries = failed_dict.get(tag, 0) + 1
                     failed_dict[tag] = retries
+                    failed_at_dict[tag] = time.time()
                     state["failed"] = failed_dict
+                    state["failed_at"] = failed_at_dict
                     print(f"\n[⚠️ FAILURE] Episode {tag} finished with: {conclusion} (attempt {retries})")
-                    if retries >= 2:
-                        print(f"  [-] Reached max retries for {tag}. Skipping.")
+                    if retries >= 4:
+                        print(f"  [-] Reached max retries (4) for {tag}. Skipping.")
                     else:
-                        print(f"  [-] Will retry {tag} in next cycle.")
+                        print(f"  [-] Will retry {tag} after cooldown.")
 
             # Save state update
             state["active"] = active_dict
@@ -203,6 +212,7 @@ def main():
             available_slots = args.concurrency - len(active_dict)
             if available_slots > 0:
                 # Find next items in queue
+                now = time.time()
                 for item in queue:
                     if available_slots <= 0:
                         break
@@ -213,8 +223,11 @@ def main():
                         continue
                     if tag in active_dict:
                         continue
-                    if failed_dict.get(tag, 0) >= 2:
+                    if failed_dict.get(tag, 0) >= 4:
                         continue  # Skip permanently failed
+                    # Cooldown for failed items: wait at least 120s before retrying
+                    if tag in failed_at_dict and (now - failed_at_dict[tag]) < 120:
+                        continue
 
                     print(f"\n[⚡ DISPATCHING] {tag} -> '{title[:40]}'")
                     print(f"  Slot: {len(active_dict) + 1}/{args.concurrency}")
@@ -231,8 +244,8 @@ def main():
                                 "run_id": None
                             }
                             state["dispatched_count"] = state.get("dispatched_count", 0) + 1
-                            # Stagger dispatches by 4 seconds
-                            time.sleep(4)
+                            # Stagger dispatches by 15 seconds to prevent hammering APIs
+                            time.sleep(15)
                         else:
                             print(f"  [!] Failed to dispatch {tag}")
                     
