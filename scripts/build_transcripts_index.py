@@ -12,7 +12,12 @@ import sys
 import json
 import subprocess
 from pathlib import Path
-from scripts.clean_transcript_index import clean_episode_segments
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+try:
+    from scripts.clean_transcript_index import clean_episode_segments
+except ImportError:
+    from clean_transcript_index import clean_episode_segments
 
 INDEX_PATH = Path("public/transcripts/transcripts_search_index.json")
 CACHE_DIR = Path(".cache/transcripts")
