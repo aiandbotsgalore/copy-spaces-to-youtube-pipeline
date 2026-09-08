@@ -45,6 +45,8 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           echo "[*] Triggering Modal Serverless GPU transcription for ${{ inputs.release_tag }}..."
+          export MODAL_TOKEN_ID=$(echo -n "$MODAL_TOKEN_ID" | tr -d '\r\n ' )
+          export MODAL_TOKEN_SECRET=$(echo -n "$MODAL_TOKEN_SECRET" | tr -d '\r\n ' )
           MAX_ATTEMPTS=4
           ATTEMPT=1
           until modal run modal_transcriber.py --release-tag "${{ inputs.release_tag }}"; do
