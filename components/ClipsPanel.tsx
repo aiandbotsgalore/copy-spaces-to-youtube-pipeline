@@ -116,6 +116,7 @@ export const ClipsPanel: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [autoNext, setAutoNext] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedRss, setCopiedRss] = useState(false);
 
   const globalPlayer = usePlayer();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -541,6 +542,19 @@ export const ClipsPanel: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-start md:self-auto flex-shrink-0">
+          <button
+            onClick={() => {
+              const url = 'https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/clips.xml';
+              navigator.clipboard.writeText(url);
+              setCopiedRss(true);
+              setTimeout(() => setCopiedRss(false), 2500);
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm"
+            title="Copy dedicated Clips RSS feed URL for YouTube Studio Podcasts"
+          >
+            {copiedRss ? <Check size={14} className="text-emerald-400" /> : <Radio size={14} className="text-amber-400" />}
+            <span>{copiedRss ? 'Copied clips.xml URL!' : 'Clips RSS Feed (YouTube)'}</span>
+          </button>
           <button
             onClick={loadClips}
             disabled={loading}

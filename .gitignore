@@ -37,7 +37,8 @@ scripts/__pycache__/
 output_transcripts/
 speaker_samples/
 best_saved_clips/
-public/clips/
+public/clips/*
+!public/clips/clips_catalog.json
 !public/transcripts/transcripts_search_index.json
 social_shorts/
 

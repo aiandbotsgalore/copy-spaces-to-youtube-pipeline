@@ -209,14 +209,17 @@ jobs:
           </rss>'''
 
           with open('podcast.xml', 'w') as f: f.write(rss)
+          with open('releases.json', 'w') as f: json.dump(releases, f)
           print(f"Generated RSS with {len(items)} episodes")
           PYEOF
           python3 gen_rss.py
+          python3 scripts/gen_clips_rss.py
 
       - name: Deploy to Pages
         run: |
           mkdir -p site
           cp podcast.xml site/
+          cp clips.xml site/
           [ -f artwork.png ] && cp artwork.png site/ || true
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
 
