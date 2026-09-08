@@ -184,7 +184,12 @@ def main():
         full_desc = escape("\n".join(desc_parts))
         clean_title = escape(f"[{category}] {raw_title}")
 
-        guid = asset["id"] if asset and asset.get("id") else abs(hash(url))
+        title_slug = re.sub(r'[^a-z0-9]', '', raw_title.lower())[:12]
+        if asset and asset.get("id"):
+            guid = f"clip_{asset['id']}_{title_slug}"
+        else:
+            guid = f"clip_{abs(hash(url + raw_title))}"
+
         tags = escape(f"Twitter Space,X Space,Highlights,{category},{speakers},Logan Black,viral clip")
 
         item_xml = f'''<item>
@@ -192,7 +197,7 @@ def main():
       <description>{full_desc}</description>
       <pubDate>{pub_date_str}</pubDate>
       <enclosure url="{url}" length="{size}" type="audio/mpeg"/>
-      <guid isPermaLink="false">clip_{guid}</guid>
+      <guid isPermaLink="false">{guid}</guid>
       <itunes:author>Logan Black</itunes:author>
       <itunes:summary>{full_desc}</itunes:summary>
       <itunes:duration>{duration_str}</itunes:duration>
@@ -227,11 +232,17 @@ def main():
 </channel>
 </rss>'''
 
-    # Validate XML
+    # Validate XML & GUID Uniqueness
     try:
         root = ET.fromstring(rss_content)
         clip_items = root.findall(".//item")
-        print(f"[✓] XML is valid! Generated {len(clip_items)} items.")
+        guids = [item.find("guid").text for item in clip_items if item.find("guid") is not None]
+        if len(guids) != len(set(guids)):
+            from collections import Counter
+            counts = Counter(guids)
+            dups = [g for g, c in counts.items() if c > 1]
+            raise ValueError(f"Duplicate GUIDs found: {dups}")
+        print(f"[✓] XML is valid! Generated {len(clip_items)} items with 100% unique GUIDs.")
     except Exception as e:
         print(f"[!] XML validation error: {e}")
         raise

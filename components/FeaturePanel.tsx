@@ -60,16 +60,16 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
           enabled={config.enableTranscription}
           onToggle={() => onChange({ enableTranscription: !config.enableTranscription })}
           icon={<Mic size={16} />}
-          title="RTX 4060 Ti GPU Neural Transcription"
-          badge="Local Runner Active"
-          description="Transcribe each episode with speaker identification using your local NVIDIA GeForce RTX 4060 Ti GPU runner. Combines Faster-Whisper ASR, SpeechBrain ECAPA-TDNN biometric voiceprints, and Gemini contextual name discovery."
+          title="Automated Neural Transcription"
+          badge="Active"
+          description="Transcribe each episode with speaker identification. Combines Faster-Whisper ASR, SpeechBrain ECAPA-TDNN biometric voiceprints, and AI contextual name discovery."
         >
           <div className="space-y-3">
             <div className="flex items-start gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
               <Info size={13} className="text-indigo-400 mt-0.5 flex-shrink-0" />
               <div className="space-y-1.5">
-                <p className="text-xs text-indigo-300 font-medium">Local GPU Runner Active: Logan-RTX4060Ti</p>
-                <p className="text-[10px] text-slate-400">Audio is processed locally with Faster-Whisper (large-v3-turbo) at 22x–28x real-time speed with zero API costs.</p>
+                <p className="text-xs text-indigo-300 font-medium">Automated Pipeline Active</p>
+                <p className="text-[10px] text-slate-400">Audio is transcribed with Faster-Whisper (large-v3-turbo) with diarization and speaker identification.</p>
               </div>
             </div>
             <div className="flex items-start gap-2 p-3 bg-slate-800/60 border border-slate-700 rounded-lg">

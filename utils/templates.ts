@@ -107,13 +107,13 @@ const buildPythonRSSScript = () => [
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
   const transcriptionStep = config.enableTranscription ? `
-      - name: Trigger GPU Transcription on Local Runner
+      - name: Trigger Transcription Workflow
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Dispatching transcribe_episode.yml for release: \${{ steps.process.outputs.release_tag }}"
-          gh workflow run transcribe_episode.yml -f release_tag="\${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed or runner offline"
+          gh workflow run transcribe_episode.yml -f release_tag="\${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed"
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `

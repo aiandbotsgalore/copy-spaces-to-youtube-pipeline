@@ -203,7 +203,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         'transcribe_episode.yml',
         { release_tag: release.tag_name }
       );
-      setDispatchMsg(m => ({ ...m, [release.id]: 'Dispatched to RTX 4060 Ti runner!' }));
+      setDispatchMsg(m => ({ ...m, [release.id]: 'Transcription dispatched!' }));
     } catch (e) {
       setDispatchMsg(m => ({ ...m, [release.id]: (e as Error).message }));
     } finally {
@@ -575,12 +575,12 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                             onClick={() => handleTranscribe(release)}
                             disabled={dispatching === release.id}
                             className="flex items-center gap-1 px-2 py-0.5 text-[10px] text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded transition-colors disabled:opacity-50"
-                            title="Transcribe with local RTX 4060 Ti GPU runner"
+                            title="Transcribe Space"
                           >
                             {dispatching === release.id
                               ? <Loader size={9} className="animate-spin" />
                               : <FileText size={9} />}
-                            Transcribe (GPU)
+                            Transcribe
                           </button>
                         )}
                         {dispatchMsg[release.id] && (
