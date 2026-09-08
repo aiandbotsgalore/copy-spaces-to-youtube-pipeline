@@ -173,16 +173,16 @@ jobs:
               tags = f"Twitter Space,X Space,{escape(host_name)},podcast,audio,live recording"
 
               items.append(f'''<item>
-    <title>{escape(rel['name'])}</title>
-    <description>{full_desc}</description>
-    <pubDate>{date}</pubDate>
-    <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
-    <guid isPermaLink="false">{asset['id']}</guid>
-    <itunes:author>{escape(host)}</itunes:author>
-    <itunes:summary>{full_desc}</itunes:summary>
-    <itunes:duration>{duration}</itunes:duration>
-    <itunes:keywords>{tags}</itunes:keywords>
-  </item>''')
+                <title>{escape(rel['name'])}</title>
+                <description>{full_desc}</description>
+                <pubDate>{date}</pubDate>
+                <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
+                <guid isPermaLink="false">{asset['id']}</guid>
+                <itunes:author>{escape(host)}</itunes:author>
+                <itunes:summary>{full_desc}</itunes:summary>
+                <itunes:duration>{duration}</itunes:duration>
+                <itunes:keywords>{tags}</itunes:keywords>
+              </item>''')
 
           rss = f'''<?xml version="1.0" encoding="UTF-8"?>
           <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
