@@ -68,7 +68,7 @@ def extract_audio_to_wav(source: str, output_wav: str, github_token: Optional[st
         output_wav
     ])
     
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     if result.returncode != 0:
         print(f"[!] FFmpeg error converting audio from {source}:\n{result.stderr[-500:]}")
         return False

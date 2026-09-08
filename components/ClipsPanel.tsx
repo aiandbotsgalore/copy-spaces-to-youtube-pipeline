@@ -220,24 +220,22 @@ export const ClipsPanel: React.FC = () => {
               }
             }
 
-            // Standalone clip MP3s
+            // Standalone clip MP3s (must have timestamp pattern like 05m20s_ or 01h15m30s_)
             for (const a of assets) {
               const fname: string = a.name || '';
-              if ((fname.endsWith('.mp3') || (!fname.includes('.') && fname.includes('m') && fname.includes('s'))) && fname.includes('m') && fname.includes('s')) {
+              if (fname.endsWith('.mp3')) {
+                const stem = fname.replace(/\.mp3$/, '');
+                const match = stem.match(/^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$/);
+                if (!match) continue;
+
                 const baseName = fname.toLowerCase();
                 if (!seenFiles.has(baseName)) {
                   seenFiles.add(baseName);
-                  const stem = fname.replace(/\.mp3$/, '');
-                  const match = stem.match(/^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$/);
-                  let startSec = 0;
-                  let title = stem;
-                  if (match) {
-                    const h = parseInt(match[1] || '0', 10);
-                    const m = parseInt(match[2] || '0', 10);
-                    const s = parseInt(match[3] || '0', 10);
-                    startSec = h * 3600 + m * 60 + s;
-                    title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
-                  }
+                  const h = parseInt(match[1] || '0', 10);
+                  const m = parseInt(match[2] || '0', 10);
+                  const s = parseInt(match[3] || '0', 10);
+                  const startSec = h * 3600 + m * 60 + s;
+                  const title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
                   combinedClips.push({
                     title: title,
                     category: 'Highlights',
