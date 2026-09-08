@@ -8,7 +8,10 @@ set -euo pipefail
 # Includes: duplicate detection against existing GitHub Releases
 # ==============================================================================
 
-QUEUE_FILE="space_queue.txt"
+QUEUE_FILE="${QUEUE_FILE:-batch_queue.txt}"
+if [[ ! -f "$QUEUE_FILE" && -f "space_queue.txt" ]]; then
+    QUEUE_FILE="space_queue.txt"
+fi
 WORK_DIR="work"
 TARGET_URL=""
 
@@ -47,13 +50,22 @@ fi
 
 # 4. Duplicate Detection
 # Extract the platform-specific source ID before downloading.
-# We look for METADATA::SOURCE_ID::<id> in existing release bodies via the
-# GitHub Releases API. If found, we skip gracefully without re-downloading.
+# We look for git tags or METADATA::SOURCE_ID::<id> in existing releases.
 echo "--- Duplicate check ---"
 SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
+    # Fast-check 1: Check local or fetched git tags (instant O(1), zero API requests)
+    if git tag -l "*_${SPACE_ID}" | grep -q "${SPACE_ID}"; then
+        echo "::warning::Source $SPACE_ID is already tagged in git — skipping to avoid duplicate."
+        if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+            echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
+    fi
+
     if [[ -n "${GITHUB_TOKEN:-}" && -n "${GITHUB_REPOSITORY:-}" ]]; then
         ALREADY_EXISTS=$(SPACE_ID="$SPACE_ID" GH_TOKEN="$GITHUB_TOKEN" REPO="$GITHUB_REPOSITORY" \
             python3 - <<'PYEOF'
@@ -63,27 +75,26 @@ repo  = os.environ.get("REPO", "")
 sid   = os.environ.get("SPACE_ID", "")
 if not (token and repo and sid):
     print("no"); exit()
-# Paginate through ALL releases until the API returns an empty page
 found = False
 page = 1
-while True:
+while page <= 5:  # Check recent 500 releases with strict timeout
     req = urllib.request.Request(
         f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
     )
     req.add_header("Authorization", f"token {token}")
     req.add_header("Accept", "application/vnd.github.v3+json")
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req, timeout=15.0) as r:
             releases = json.loads(r.read())
     except Exception:
         break
     if not releases:
-        break  # No more pages
-    if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
+        break
+    if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") or sid in (rel.get("tag_name") or "") for rel in releases):
         found = True
         break
     if len(releases) < 100:
-        break  # Last page — no need to fetch another
+        break
     page += 1
 print("yes" if found else "no")
 PYEOF
@@ -100,6 +111,7 @@ PYEOF
     else
         echo "::notice::No GitHub context — skipping duplicate check."
     fi
+
 else
     echo "::notice::Could not extract source ID — skipping duplicate check."
 fi

@@ -38,12 +38,26 @@ def main():
     pages_url = f"https://{owner}.github.io/{reponame}/"
     feed_url = f"{pages_url}clips.xml"
 
+    # Load metadata dynamically
+    meta = {}
+    if os.path.exists("metadata.json"):
+        try:
+            with open("metadata.json", "r", encoding="utf-8") as mf:
+                meta = json.load(mf)
+        except Exception:
+            pass
+
+    author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
+    email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
+    base_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
+    clips_title = f"{base_title} Best Clips & Highlights"
+
     if os.path.exists("artwork.png"):
         image_url = f"{pages_url}artwork.png"
     elif os.path.exists("artwork.jpg"):
         image_url = f"{pages_url}artwork.jpg"
     else:
-        image_url = f"{pages_url}artwork.png"
+        image_url = os.environ.get("PODCAST_IMAGE") or meta.get("imageUrl") or f"{pages_url}artwork.png"
 
     # Load clips catalog
     catalog_path = Path("public/clips/clips_catalog.json")
@@ -76,11 +90,12 @@ def main():
             req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
             req.add_header("Authorization", f"token {token}")
             try:
-                with urllib.request.urlopen(req) as r:
+                with urllib.request.urlopen(req, timeout=20.0) as r:
                     data = json.loads(r.read())
             except Exception as e:
                 print(f"  [!] Error fetching releases page {page}: {e}")
                 break
+
             if not data:
                 break
             releases.extend(data)
@@ -190,7 +205,7 @@ def main():
         else:
             guid = f"clip_{abs(hash(url + raw_title))}"
 
-        tags = escape(f"Twitter Space,X Space,Highlights,{category},{speakers},Logan Black,viral clip")
+        tags = escape(f"Twitter Space,X Space,Highlights,{category},{speakers},{author},viral clip")
 
         item_xml = f'''<item>
       <title>{clean_title}</title>
@@ -198,7 +213,7 @@ def main():
       <pubDate>{pub_date_str}</pubDate>
       <enclosure url="{url}" length="{size}" type="audio/mpeg"/>
       <guid isPermaLink="false">{guid}</guid>
-      <itunes:author>Logan Black</itunes:author>
+      <itunes:author>{escape(author)}</itunes:author>
       <itunes:summary>{full_desc}</itunes:summary>
       <itunes:duration>{duration_str}</itunes:duration>
       <itunes:keywords>{tags}</itunes:keywords>
@@ -209,20 +224,20 @@ def main():
     rss_content = f'''<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>Logan Black's X-Space Best Clips &amp; Highlights</title>
+  <title>{escape(clips_title)}</title>
   <link>{pages_url}</link>
   <atom:link href="{feed_url}" rel="self" type="application/rss+xml"/>
-  <description>The best curated highlights, viral moments, debates, and comedy clips from Logan Black's X-Spaces.</description>
+  <description>The best curated highlights, viral moments, debates, and comedy clips from {escape(base_title)}.</description>
   <language>en-us</language>
-  <itunes:author>Logan Black</itunes:author>
+  <itunes:author>{escape(author)}</itunes:author>
   <itunes:owner>
-    <itunes:name>Logan Black</itunes:name>
-    <itunes:email>loganblack0@gmail.com</itunes:email>
+    <itunes:name>{escape(author)}</itunes:name>
+    <itunes:email>{escape(email)}</itunes:email>
   </itunes:owner>
   <itunes:image href="{image_url}"/>
   <image>
     <url>{image_url}</url>
-    <title>Logan Black's X-Space Best Clips &amp; Highlights</title>
+    <title>{escape(clips_title)}</title>
     <link>{pages_url}</link>
   </image>
   <itunes:category text="Technology"/>

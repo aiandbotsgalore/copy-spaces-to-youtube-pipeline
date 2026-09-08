@@ -6,13 +6,14 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import random
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
 
-def req(method: str, url: str, token: str, payload: dict | None = None) -> dict:
+def req(method: str, url: str, token: str, payload: dict | None = None, timeout: float = 30.0) -> dict:
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     r = urllib.request.Request(url, data=data, method=method)
     r.add_header("Authorization", f"token {token}")
@@ -20,7 +21,7 @@ def req(method: str, url: str, token: str, payload: dict | None = None) -> dict:
     r.add_header("X-GitHub-Api-Version", "2022-11-28")
     if data is not None:
         r.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(r) as resp:
+    with urllib.request.urlopen(r, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -63,7 +64,7 @@ def main() -> int:
             return 0
         except urllib.error.HTTPError as err:
             if err.code in (409, 422):
-                time.sleep(0.35 * attempt)
+                time.sleep((0.25 * (2 ** min(attempt, 5))) + random.uniform(0.05, 0.25))
                 continue
             raise
     return 1

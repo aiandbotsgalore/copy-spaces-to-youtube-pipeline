@@ -129,6 +129,7 @@ def main():
 
     completed_since_last_index = 0
     total_processed_this_session = 0
+    last_dispatch_time = 0.0
 
     try:
         while True:
@@ -208,14 +209,12 @@ def main():
                 print(f"[*] Reached target maximum episodes for this session ({args.max_episodes}). Exiting.")
                 break
 
-            # 5. Fill available worker slots up to concurrency limit
+            # 5. Fill available worker slots up to concurrency limit (non-blocking stagger)
             available_slots = args.concurrency - len(active_dict)
-            if available_slots > 0:
-                # Find next items in queue
-                now = time.time()
+            now = time.time()
+            if available_slots > 0 and (now - last_dispatch_time) >= 10.0:
+                # Find next candidate in queue
                 for item in queue:
-                    if available_slots <= 0:
-                        break
                     tag = item["tag"]
                     title = item.get("title", tag)
 
@@ -244,13 +243,12 @@ def main():
                                 "run_id": None
                             }
                             state["dispatched_count"] = state.get("dispatched_count", 0) + 1
-                            # Stagger dispatches by 15 seconds to prevent hammering APIs
-                            time.sleep(15)
+                            last_dispatch_time = time.time()
                         else:
                             print(f"  [!] Failed to dispatch {tag}")
-                    
-                    available_slots -= 1
+
                     save_state(state)
+                    break  # Dispatch one candidate per loop pass to maintain non-blocking telemetry
 
             # Status heartbeat
             print(f"[{time.strftime('%H:%M:%S')}] Active Cloud Workers: {len(active_dict)}/{args.concurrency} | "

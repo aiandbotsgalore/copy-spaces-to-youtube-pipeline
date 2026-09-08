@@ -3,6 +3,7 @@ name: Ingest Space
 on:
   push:
     paths:
+      - 'batch_queue.txt'
       - 'space_queue.txt'
   workflow_dispatch:
     inputs:
@@ -67,23 +68,29 @@ jobs:
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
-      - name: Clear Queue File
-        if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
+      - name: Dequeue Processed Item
+        if: success() && inputs.space_url == ''
         run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear processed space from queue [skip ci]" || echo "No changes to commit"
-          git push
+          # Dequeue from batch_queue.txt if present
+          if [ -f batch_queue.txt ]; then
+            python3 -c "
+with open('batch_queue.txt', 'r', encoding='utf-8') as f:
+    lines = [l for l in f if l.strip()]
+if lines:
+    with open('batch_queue.txt', 'w', encoding='utf-8') as f:
+        f.writelines(lines[1:])
+"
+          fi
+          # Clear space_queue.txt if present
+          if [ -f space_queue.txt ]; then
+            echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
+          fi
+          git add batch_queue.txt space_queue.txt || true
+          git commit -m "chore(queue): dequeue processed space [skip ci]" || echo "No changes to commit"
+          git push || echo "Notice: Push skipped or no changes"
 
-      - name: Clear Queue File on Duplicate Detection
-        if: success() && steps.process.outputs.already_exists == 'true' && inputs.space_url == ''
-        run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear duplicate URL from queue [skip ci]" || echo "No changes to commit"
-          git push
 
       - name: Create Release
         if: success() && steps.process.outputs.already_exists != 'true'
@@ -135,11 +142,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PODCAST_TITLE: "Logan Black's X-Space"
-          PODCAST_DESC: "Logan Black's X-Space Podcast Archive"
-          PODCAST_AUTHOR: "Logan Black"
-          PODCAST_EMAIL: "loganblack0@gmail.com"
-          PODCAST_IMAGE: ""
+          PODCAST_TITLE: ${{ vars.PODCAST_TITLE || '' }}
+          PODCAST_DESC: ${{ vars.PODCAST_DESC || '' }}
+          PODCAST_AUTHOR: ${{ vars.PODCAST_AUTHOR || '' }}
+          PODCAST_EMAIL: ${{ vars.PODCAST_EMAIL || '' }}
+          PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
           cat <<'PYEOF' > generate_rss.py
           import os, json, re, urllib.request
@@ -148,11 +155,21 @@ jobs:
 
           repo = os.environ["REPO"]
           token = os.environ["GH_TOKEN"]
-          title = os.environ.get("PODCAST_TITLE", "Logan Black's X-Space")
-          desc = os.environ.get("PODCAST_DESC", "Logan Black's X-Space Podcast Archive")
-          author = os.environ.get("PODCAST_AUTHOR", "Logan Black")
-          email = os.environ.get("PODCAST_EMAIL", "loganblack0@gmail.com")
-          image_fallback = os.environ.get("PODCAST_IMAGE", "https://picsum.photos/1400/1400")
+
+          # Load metadata from repository metadata.json if present
+          meta = {}
+          if os.path.exists("metadata.json"):
+              try:
+                  with open("metadata.json", "r", encoding="utf-8") as mf:
+                      meta = json.load(mf)
+              except Exception:
+                  pass
+
+          title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
+          desc = os.environ.get("PODCAST_DESC") or meta.get("podcastDescription") or "Logan Black's X-Space Podcast Archive"
+          author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
+          email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
+          image_fallback = os.environ.get("PODCAST_IMAGE") or meta.get("imageUrl") or "https://picsum.photos/1400/1400"
 
           owner, repo_name = repo.split("/", 1)
           github_pages_url = f"https://{owner}.github.io/{repo_name}/"
@@ -169,13 +186,14 @@ jobs:
               req.add_header("Authorization", f"token {token}")
               req.add_header("Accept", "application/vnd.github.v3+json")
               try:
-                  with urllib.request.urlopen(req) as r:
+                  with urllib.request.urlopen(req, timeout=20.0) as r:
                       batch = json.loads(r.read())
               except Exception as e:
                   print(f"Failed fetching releases page {page}: {e}")
                   exit(1)
               if not batch:
                   break
+
               releases.extend(batch)
               if len(batch) < 100:
                   break

@@ -27,6 +27,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
+          PODCAST_TITLE: ${{ vars.PODCAST_TITLE || '' }}
+          PODCAST_DESC: ${{ vars.PODCAST_DESC || '' }}
+          PODCAST_AUTHOR: ${{ vars.PODCAST_AUTHOR || '' }}
+          PODCAST_EMAIL: ${{ vars.PODCAST_EMAIL || '' }}
+          PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
           cat <<'PYEOF' > gen_rss.py
           import os, json, re, urllib.request
@@ -36,6 +41,20 @@ jobs:
           repo = os.environ['REPO']
           token = os.environ['GH_TOKEN']
 
+          # Load metadata from repository metadata.json if present
+          meta = {}
+          if os.path.exists("metadata.json"):
+              try:
+                  with open("metadata.json", "r", encoding="utf-8") as mf:
+                      meta = json.load(mf)
+              except Exception:
+                  pass
+
+          podcast_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
+          podcast_desc = os.environ.get("PODCAST_DESC") or meta.get("podcastDescription") or "Logan Black's X-Space Podcast Archive"
+          podcast_author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
+          podcast_email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
+
           pages_url = f"https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/"
 
           # Artwork - use local file if exists, else fallback
@@ -44,7 +63,7 @@ jobs:
           elif os.path.exists('artwork.jpg'):
               image_url = f"{pages_url}artwork.jpg"
           else:
-              image_url = "https://picsum.photos/1400/1400"
+              image_url = os.environ.get("PODCAST_IMAGE") or meta.get("imageUrl") or "https://picsum.photos/1400/1400"
 
           # Fetch all releases with pagination
           releases = []
@@ -53,7 +72,7 @@ jobs:
               req = urllib.request.Request(f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}")
               req.add_header('Authorization', f'token {token}')
               try:
-                  with urllib.request.urlopen(req) as r:
+                  with urllib.request.urlopen(req, timeout=20.0) as r:
                       data = json.loads(r.read())
               except Exception as e:
                   print(f"Error fetching releases: {e}")
@@ -187,19 +206,19 @@ jobs:
           rss = f'''<?xml version="1.0" encoding="UTF-8"?>
           <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
           <channel>
-            <title>Logan Black's X-Space</title>
+            <title>{escape(podcast_title)}</title>
             <link>{pages_url}</link>
-            <description>Logan Black's X-Space Podcast Archive</description>
+            <description>{escape(podcast_desc)}</description>
             <language>en-us</language>
-            <itunes:author>Logan Black</itunes:author>
+            <itunes:author>{escape(podcast_author)}</itunes:author>
             <itunes:owner>
-              <itunes:name>Logan Black</itunes:name>
-              <itunes:email>loganblack0@gmail.com</itunes:email>
+              <itunes:name>{escape(podcast_author)}</itunes:name>
+              <itunes:email>{escape(podcast_email)}</itunes:email>
             </itunes:owner>
             <itunes:image href="{image_url}"/>
             <image>
               <url>{image_url}</url>
-              <title>Logan Black's X-Space</title>
+              <title>{escape(podcast_title)}</title>
               <link>{pages_url}</link>
             </image>
             <itunes:category text="Technology"/>

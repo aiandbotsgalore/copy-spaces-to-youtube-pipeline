@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import base64
 import json
+import random
 import time
 import urllib.error
 import urllib.parse
@@ -19,9 +20,10 @@ def utc_now() -> str:
 
 
 class GitHubStore:
-    def __init__(self, repo: str, token: str):
+    def __init__(self, repo: str, token: str, timeout: float = 30.0):
         self.repo = repo
         self.token = token
+        self.timeout = timeout
 
     def _req(self, method: str, url: str, payload: dict[str, Any] | None = None) -> Any:
         data = None
@@ -33,7 +35,7 @@ class GitHubStore:
         req.add_header("X-GitHub-Api-Version", "2022-11-28")
         if data is not None:
             req.add_header("Content-Type", "application/json")
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, timeout=self.timeout) as resp:
             body = resp.read().decode("utf-8")
             return json.loads(body) if body else {}
 
@@ -69,7 +71,7 @@ class GitHubStore:
                     body["sha"] = latest_sha
                 else:
                     body.pop("sha", None)
-                time.sleep(0.35 * attempt)
+                time.sleep((0.2 * (2 ** min(attempt, 5))) + random.uniform(0.05, 0.25))
 
     def list_paths(self, branch: str, prefix: str) -> list[str]:
         ref = self._req("GET", f"https://api.github.com/repos/{self.repo}/git/ref/heads/{branch}")

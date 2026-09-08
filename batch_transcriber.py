@@ -78,19 +78,20 @@ def extract_audio_to_wav(source: str, output_wav: str, github_token: Optional[st
 # ---------------------------------------------------------------------------
 # Stage 1 Worker: GPU ASR (Faster-Whisper)
 # ---------------------------------------------------------------------------
-def _transcribe_single_wav(wav_path: str, model_size: str, device: str, compute_type: str, time_offset: float = 0.0) -> List[Dict[str, Any]]:
-    """Transcribes a single WAV file on GPU with Faster-Whisper."""
+def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: str) -> List[Dict[str, Any]]:
+    """Runs Faster-Whisper ASR on GPU in an isolated process with a single model session and native VAD streaming."""
     abs_wav = os.path.abspath(wav_path)
-    json_out_path = os.path.abspath(f"{abs_wav}.tmp_segs.json")
+    payload = {
+        "wav_path": abs_wav,
+        "model_size": model_size,
+        "device": device,
+        "compute_type": compute_type,
+    }
 
-    wav_json = json.dumps(abs_wav)
-    json_out_json = json.dumps(json_out_path)
+    worker_script = """
+import sys, json, os, warnings
+warnings.filterwarnings('ignore')
 
-    code = f"""
-import sys, os, json
-from faster_whisper import WhisperModel
-
-import os
 try:
     import nvidia.cublas.lib, nvidia.cudnn.lib
     cp = os.path.dirname(nvidia.cublas.lib.__file__)
@@ -99,120 +100,85 @@ try:
 except Exception:
     pass
 
-try:
-    model = WhisperModel('{model_size}', device='{device}', compute_type='{compute_type}')
-except Exception as e:
-    model = WhisperModel('{model_size}', device='{device}', compute_type='int8_float16' if '{device}' == 'cuda' else 'int8')
+from faster_whisper import WhisperModel
 
+payload = json.loads(sys.stdin.read())
+wav_path = payload["wav_path"]
+model_size = payload["model_size"]
+device = payload["device"]
+compute_type = payload["compute_type"]
+
+# 1. Initialize WhisperModel once
 try:
-    beam = 1 if '{model_size}' == 'large-v3-turbo' else 5
+    model = WhisperModel(model_size, device=device, compute_type=compute_type)
+except Exception as init_err:
+    if device == "cuda":
+        sys.stderr.write(f"CUDA init notice ({init_err}), trying int8_float16...\\n")
+        try:
+            model = WhisperModel(model_size, device="cuda", compute_type="int8_float16")
+        except Exception:
+            sys.stderr.write("CUDA fallback to CPU int8...\\n")
+            model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    else:
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+
+# 2. Transcribe entire audio file directly with streaming VAD
+beam = 1 if "turbo" in model_size else 5
+try:
     segments, info = model.transcribe(
-        {wav_json},
+        wav_path,
         beam_size=beam,
         vad_filter=True,
         vad_parameters=dict(min_silence_duration_ms=500),
         word_timestamps=False
     )
-except Exception as cuda_err:
-    if '{device}' == 'cuda':
-        sys.stderr.write("CUDA transcription notice: " + str(cuda_err) + ". Falling back to CPU.\\n")
-        model = WhisperModel('{model_size}', device='cpu', compute_type='int8')
+    results = []
+    for s in segments:
+        results.append({
+            "start": round(s.start, 3),
+            "end": round(s.end, 3),
+            "text": s.text.strip()
+        })
+except Exception as trans_err:
+    if device == "cuda":
+        sys.stderr.write(f"CUDA transcription error ({trans_err}). Falling back to CPU...\\n")
+        del model
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
         segments, info = model.transcribe(
-            {wav_json},
+            wav_path,
             beam_size=1,
             vad_filter=True,
             vad_parameters=dict(min_silence_duration_ms=500),
             word_timestamps=False
         )
+        results = []
+        for s in segments:
+            results.append({
+                "start": round(s.start, 3),
+                "end": round(s.end, 3),
+                "text": s.text.strip()
+            })
     else:
         raise
 
-results = []
-offset = {time_offset}
-for s in segments:
-    results.append({{'start': round(s.start + offset, 3), 'end': round(s.end + offset, 3), 'text': s.text.strip()}})
-
-with open({json_out_json}, 'w', encoding='utf-8') as f:
-    json.dump(results, f)
-    f.flush()
-    os.fsync(f.fileno())
-
-sys.stdout.flush()
-os._exit(0)
+print("__SPACEPIPE_ASR_START__")
+print(json.dumps(results))
 """
-    res = subprocess.run([PYTHON_EXE, "-c", code], capture_output=True, text=True, encoding="utf-8")
 
-    if os.path.exists(json_out_path):
-        try:
-            with open(json_out_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        finally:
-            try:
-                os.remove(json_out_path)
-            except Exception:
-                pass
+    res = subprocess.run(
+        [PYTHON_EXE, "-c", worker_script],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        encoding="utf-8"
+    )
 
-    if res.returncode != 0:
+    if res.returncode != 0 or "__SPACEPIPE_ASR_START__" not in res.stdout:
         raise RuntimeError(f"ASR worker failed (exit code {res.returncode}):\n{res.stderr}\n{res.stdout}")
-    
-    return []
 
+    json_str = res.stdout.split("__SPACEPIPE_ASR_START__")[1].strip()
+    return json.loads(json_str)
 
-def run_asr_worker(wav_path: str, model_size: str, device: str, compute_type: str) -> List[Dict[str, Any]]:
-    """Runs Faster-Whisper ASR on GPU with intelligent chunking to support multi-hour audio files without RAM limits."""
-    with sf.SoundFile(wav_path) as f:
-        duration_sec = len(f) / f.samplerate
-
-    CHUNK_SEC = 600.0  # 10 minutes per chunk to guarantee safe <100MB NumPy RAM allocation
-    if duration_sec <= CHUNK_SEC:
-        return _transcribe_single_wav(wav_path, model_size, device, compute_type, time_offset=0.0)
-
-    num_chunks = math.ceil(duration_sec / CHUNK_SEC)
-    print(f"[*] Audio is long ({duration_sec / 3600:.1f} hours). Splitting into {num_chunks} 10-minute chunks for GPU ASR...")
-    
-    base_name = os.path.splitext(wav_path)[0]
-    all_segments = []
-    for i in range(num_chunks):
-        start_sec = i * CHUNK_SEC
-        chunk_wav = f"{base_name}_chunk_{i}.wav"
-        try:
-            print(f"  [{i + 1}/{num_chunks}] Transcribing chunk {i + 1} (Offset +{int(start_sec // 60)}m)...")
-            cmd = [FFMPEG_EXE, "-y", "-ss", str(start_sec), "-t", str(CHUNK_SEC), "-i", wav_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", chunk_wav]
-            subprocess.run(cmd, capture_output=True, check=True)
-            chunk_info = sf.info(chunk_wav)
-            if chunk_info.duration < 0.1:
-                print(f"  [!] Warning: Chunk {i + 1} duration is {chunk_info.duration}s, skipping.")
-                continue
-            try:
-                chunk_segs = _transcribe_single_wav(chunk_wav, model_size, device, compute_type, time_offset=start_sec)
-                all_segments.extend(chunk_segs)
-            except Exception as chunk_err:
-                print(f"  [!] Chunk {i + 1} notice ({chunk_err}). Retrying in 5-minute sub-chunks...")
-                half_sec = CHUNK_SEC / 2.0
-                for sub_i in range(2):
-                    sub_start = start_sec + (sub_i * half_sec)
-                    sub_wav = f"{base_name}_chunk_{i}_sub_{sub_i}.wav"
-                    try:
-                        cmd_sub = [FFMPEG_EXE, "-y", "-ss", str(sub_start), "-t", str(half_sec), "-i", wav_path, "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", sub_wav]
-                        subprocess.run(cmd_sub, capture_output=True, check=True)
-                        sub_info = sf.info(sub_wav)
-                        if sub_info.duration >= 0.1:
-                            sub_segs = _transcribe_single_wav(sub_wav, model_size, device, compute_type, time_offset=sub_start)
-                            all_segments.extend(sub_segs)
-                    finally:
-                        if os.path.exists(sub_wav):
-                            try:
-                                os.remove(sub_wav)
-                            except Exception:
-                                pass
-        finally:
-            if os.path.exists(chunk_wav):
-                try:
-                    os.remove(chunk_wav)
-                except Exception:
-                    pass
-
-    return all_segments
 
 
 # ---------------------------------------------------------------------------

@@ -355,7 +355,7 @@ export async function updateReleaseTranscriptAssets(
   const txtPath = `transcripts/${baseTag}.txt`;
   const jsonPath = `transcripts/${baseTag}.json`;
 
-  // 1. Commit to git repository (100% CORS-supported official GitHub API)
+  // 1. Commit to git repository first (Canonical version controlled storage, 100% CORS-safe)
   try {
     const branch = await getRepositoryDefaultBranch(token, owner, repo).catch(() => 'master');
     const existingTxt = await readRepositoryTextFile(token, owner, repo, txtPath, branch).catch(() => null);
@@ -384,35 +384,42 @@ export async function updateReleaseTranscriptAssets(
       );
     }
   } catch (gitErr) {
-    console.warn('Repository file commit warning:', gitErr);
+    console.error('Repository file commit error:', gitErr);
+    throw new Error(`Failed to commit transcript updates to git repository: ${(gitErr as Error).message}`);
   }
 
-  // 2. Delete existing txt and json release assets before uploading replacements
+  // 2. Safe replacement of release assets (only delete right before replacement upload)
+  const txtName = `${baseName}.txt`;
+  const jsonName = `${baseName}.json`;
+
   for (const asset of release.assets) {
-    if (asset.name.endsWith('.txt') || (updatedJsonContent && asset.name.endsWith('.json'))) {
+    if (asset.name === txtName || (updatedJsonContent && asset.name === jsonName)) {
       try {
         await ghFetch(token, `/repos/${owner}/${repo}/releases/assets/${asset.id}`, {
           method: 'DELETE',
         });
       } catch (delErr) {
-        console.warn(`Could not delete old asset ${asset.name}:`, delErr);
+        console.warn(`Notice: Could not delete old release asset ${asset.name}:`, delErr);
       }
     }
   }
 
   // 3. Upload updated txt and json release assets
-  const txtName = `${baseName}.txt`;
-  await uploadReleaseAsset(token, owner, repo, release.id, txtName, updatedTxtContent, 'text/plain; charset=utf-8').catch(err => {
-    console.warn('Release asset txt upload warning:', err);
-  });
+  try {
+    await uploadReleaseAsset(token, owner, repo, release.id, txtName, updatedTxtContent, 'text/plain; charset=utf-8');
+  } catch (err) {
+    console.warn('Release asset txt upload notice (canonical copy is saved in git):', err);
+  }
 
   if (updatedJsonContent) {
-    const jsonName = `${baseName}.json`;
-    await uploadReleaseAsset(token, owner, repo, release.id, jsonName, updatedJsonContent, 'application/json').catch(err => {
-      console.warn('Release asset json upload warning:', err);
-    });
+    try {
+      await uploadReleaseAsset(token, owner, repo, release.id, jsonName, updatedJsonContent, 'application/json');
+    } catch (err) {
+      console.warn('Release asset json upload notice (canonical copy is saved in git):', err);
+    }
   }
 }
+
 
 export async function fetchRssXml(url: string): Promise<string> {
   const res = await fetch(url, { cache: 'no-store' });

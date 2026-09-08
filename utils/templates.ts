@@ -153,6 +153,7 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
 on:
   push:
     paths:
+      - 'batch_queue.txt'
       - 'space_queue.txt'
   workflow_dispatch:
     inputs:
@@ -217,23 +218,27 @@ jobs:
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
-      - name: Clear Queue File
-        if: success() && steps.process.outputs.already_exists != 'true' && inputs.space_url == ''
+      - name: Dequeue Processed Item
+        if: success() && inputs.space_url == ''
         run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear processed space from queue [skip ci]" || echo "No changes to commit"
-          git push
+          if [ -f batch_queue.txt ]; then
+            python3 -c "
+with open('batch_queue.txt', 'r', encoding='utf-8') as f:
+    lines = [l for l in f if l.strip()]
+if lines:
+    with open('batch_queue.txt', 'w', encoding='utf-8') as f:
+        f.writelines(lines[1:])
+"
+          fi
+          if [ -f space_queue.txt ]; then
+            echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
+          fi
+          git add batch_queue.txt space_queue.txt || true
+          git commit -m "chore(queue): dequeue processed space [skip ci]" || echo "No changes to commit"
+          git push || echo "Notice: Push skipped or no changes"
 
-      - name: Clear Queue File on Duplicate Detection
-        if: success() && steps.process.outputs.already_exists == 'true' && inputs.space_url == ''
-        run: |
-          echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: clear duplicate URL from queue [skip ci]" || echo "No changes to commit"
-          git push
 
       - name: Create Release
         if: success() && steps.process.outputs.already_exists != 'true'
@@ -367,7 +372,10 @@ set -euo pipefail
 # Includes: duplicate detection against existing GitHub Releases
 # ==============================================================================
 
-QUEUE_FILE="space_queue.txt"
+QUEUE_FILE="\${QUEUE_FILE:-batch_queue.txt}"
+if [[ ! -f "$QUEUE_FILE" && -f "space_queue.txt" ]]; then
+    QUEUE_FILE="space_queue.txt"
+fi
 WORK_DIR="work"
 TARGET_URL=""
 

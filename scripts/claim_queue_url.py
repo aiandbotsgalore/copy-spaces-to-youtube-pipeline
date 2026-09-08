@@ -4,6 +4,7 @@
 import argparse
 import base64
 import json
+import random
 import re
 import sys
 import time
@@ -11,7 +12,7 @@ import urllib.error
 import urllib.request
 
 
-def api_request(method: str, url: str, token: str, payload: dict | None = None) -> dict:
+def api_request(method: str, url: str, token: str, payload: dict | None = None, timeout: float = 30.0) -> dict:
     data = None
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
@@ -23,7 +24,7 @@ def api_request(method: str, url: str, token: str, payload: dict | None = None) 
     if data is not None:
         req.add_header("Content-Type", "application/json")
 
-    with urllib.request.urlopen(req) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -95,7 +96,7 @@ def claim_url(repo: str, queue_file: str, token: str, branch: str, max_retries: 
         except urllib.error.HTTPError as err:
             # SHA mismatch/race, retry.
             if err.code in (409, 422):
-                time.sleep(0.5 * attempt)
+                time.sleep((0.25 * (2 ** min(attempt, 5))) + random.uniform(0.05, 0.25))
                 continue
             return 1, f"Failed to update queue file: HTTP {err.code}"
 

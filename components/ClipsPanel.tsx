@@ -400,7 +400,10 @@ export const ClipsPanel: React.FC = () => {
         if (globalPlayer.isPlaying) {
           globalPlayer.close();
         }
-        audioRef.current.play();
+        audioRef.current.play().catch(err => {
+          console.warn('Clip playback prevented or stalled:', err);
+          setIsPlaying(false);
+        });
         setIsPlaying(true);
       }
       return;
@@ -416,7 +419,10 @@ export const ClipsPanel: React.FC = () => {
       audioRef.current.src = url;
       audioRef.current.playbackRate = clipSpeed;
       audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.play();
+      audioRef.current.play().catch(err => {
+        console.warn('Clip playback prevented or stalled:', err);
+        setIsPlaying(false);
+      });
       setIsPlaying(true);
     }
   };
