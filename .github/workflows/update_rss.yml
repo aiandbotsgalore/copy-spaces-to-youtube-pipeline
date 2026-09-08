@@ -117,64 +117,72 @@ jobs:
               dur_match = re.search(r'METADATA::DURATION::(\d{2}:\d{2}:\d{2})', body)
               duration = dur_match.group(1) if dur_match else "00:00:00"
 
-              for asset in rel.get('assets', []):
-                  if asset['name'].endswith('.mp3'):
-                      # Extract all metadata from release body
-                      body = rel.get('body', '')
+              mp3_assets = [a for a in rel.get('assets', []) if a.get('name', '').endswith('.mp3')]
+              if not mp3_assets:
+                  continue
 
-                      title_match = re.search(r'\*\*Title:\*\*\s*(.+?)(?:\n|$)', body)
-                      host_match = re.search(r'\*\*Host:\*\*\s*(.+?)(?:\n|$)', body)
-                      listeners_match = re.search(r'\*\*Listeners:\*\*\s*(.+?)(?:\n|$)', body)
-                      recorded_match = re.search(r'\*\*Recorded:\*\*\s*(.+?)(?:\n|$)', body)
-                      source_match = re.search(r'\*\*Source:\*\*\s*(.+?)(?:\n|$)', body)
-                      spaceid_match = re.search(r'\*\*Space ID:\*\*\s*(.+?)(?:\n|$)', body)
+              # Exclude highlight clips (which start with time patterns like '05m53s_' or '01h20m30s_')
+              non_clip_mp3s = [a for a in mp3_assets if not re.match(r'^\d+(?:h\d+)?m\d+s_', a.get('name', ''))]
 
-                      # Get description (text after metadata block, before ---)
-                      desc_match = re.search(r'\*\*Space ID:\*\*[^\n]*\n\n(.+?)\n\n---', body, re.DOTALL)
+              # Pick the primary full episode MP3 (prefer largest non-clip MP3)
+              asset = max(non_clip_mp3s if non_clip_mp3s else mp3_assets, key=lambda a: a.get('size', 0))
 
-                      title = title_match.group(1).strip() if title_match else rel.get('name', 'Unknown')
-                      host = host_match.group(1).strip() if host_match else ''
-                      if not host or host.lower() in ('unknown', 'none', ''):
-                          host = 'Logan Black'
-                      listeners = listeners_match.group(1).strip() if listeners_match else '0'
-                      recorded = recorded_match.group(1).strip() if recorded_match else ''
-                      source = source_match.group(1).strip() if source_match else ''
-                      space_id = spaceid_match.group(1).strip() if spaceid_match else ''
-                      orig_desc = desc_match.group(1).strip() if desc_match else ''
+              # Extract all metadata from release body
+              body = rel.get('body', '')
 
-                      # Build rich description
-                      desc_parts = [escape(title)]
-                      desc_parts.append(f"\n\nHost: {escape(host)}")
-                      desc_parts.append(f"\nDuration: {duration}")
-                      if listeners and listeners != '0':
-                          desc_parts.append(f"\nOriginal Listeners: {escape(listeners)}")
-                      if recorded:
-                          desc_parts.append(f"\nRecorded: {escape(recorded)}")
-                      if orig_desc:
-                          desc_parts.append(f"\n\n{escape(orig_desc)}")
-                      desc_parts.append("\n\n---")
-                      if source:
-                          desc_parts.append(f"\nSource: {escape(source)}")
-                      if space_id:
-                          desc_parts.append(f"\nSpace ID: {escape(space_id)}")
+              title_match = re.search(r'\*\*Title:\*\*\s*(.+?)(?:\n|$)', body)
+              host_match = re.search(r'\*\*Host:\*\*\s*(.+?)(?:\n|$)', body)
+              listeners_match = re.search(r'\*\*Listeners:\*\*\s*(.+?)(?:\n|$)', body)
+              recorded_match = re.search(r'\*\*Recorded:\*\*\s*(.+?)(?:\n|$)', body)
+              source_match = re.search(r'\*\*Source:\*\*\s*(.+?)(?:\n|$)', body)
+              spaceid_match = re.search(r'\*\*Space ID:\*\*\s*(.+?)(?:\n|$)', body)
 
-                      full_desc = ''.join(desc_parts)
+              # Get description (text after metadata block, before ---)
+              desc_match = re.search(r'\*\*Space ID:\*\*[^\n]*\n\n(.+?)\n\n---', body, re.DOTALL)
 
-                      # Generate tags for discovery
-                      host_name = host.split('(')[0].strip() if '(' in host else host
-                      tags = f"Twitter Space,X Space,{escape(host_name)},podcast,audio,live recording"
+              title = title_match.group(1).strip() if title_match else rel.get('name', 'Unknown')
+              host = host_match.group(1).strip() if host_match else ''
+              if not host or host.lower() in ('unknown', 'none', ''):
+                  host = 'Logan Black'
+              listeners = listeners_match.group(1).strip() if listeners_match else '0'
+              recorded = recorded_match.group(1).strip() if recorded_match else ''
+              source = source_match.group(1).strip() if source_match else ''
+              space_id = spaceid_match.group(1).strip() if spaceid_match else ''
+              orig_desc = desc_match.group(1).strip() if desc_match else ''
 
-                      items.append(f'''<item>
-            <title>{escape(rel['name'])}</title>
-            <description>{full_desc}</description>
-            <pubDate>{date}</pubDate>
-            <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
-            <guid isPermaLink="false">{asset['id']}</guid>
-            <itunes:author>{escape(host)}</itunes:author>
-            <itunes:summary>{full_desc}</itunes:summary>
-            <itunes:duration>{duration}</itunes:duration>
-            <itunes:keywords>{tags}</itunes:keywords>
-          </item>''')
+              # Build rich description
+              desc_parts = [escape(title)]
+              desc_parts.append(f"\n\nHost: {escape(host)}")
+              desc_parts.append(f"\nDuration: {duration}")
+              if listeners and listeners != '0':
+                  desc_parts.append(f"\nOriginal Listeners: {escape(listeners)}")
+              if recorded:
+                  desc_parts.append(f"\nRecorded: {escape(recorded)}")
+              if orig_desc:
+                  desc_parts.append(f"\n\n{escape(orig_desc)}")
+              desc_parts.append("\n\n---")
+              if source:
+                  desc_parts.append(f"\nSource: {escape(source)}")
+              if space_id:
+                  desc_parts.append(f"\nSpace ID: {escape(space_id)}")
+
+              full_desc = ''.join(desc_parts)
+
+              # Generate tags for discovery
+              host_name = host.split('(')[0].strip() if '(' in host else host
+              tags = f"Twitter Space,X Space,{escape(host_name)},podcast,audio,live recording"
+
+              items.append(f'''<item>
+    <title>{escape(rel['name'])}</title>
+    <description>{full_desc}</description>
+    <pubDate>{date}</pubDate>
+    <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
+    <guid isPermaLink="false">{asset['id']}</guid>
+    <itunes:author>{escape(host)}</itunes:author>
+    <itunes:summary>{full_desc}</itunes:summary>
+    <itunes:duration>{duration}</itunes:duration>
+    <itunes:keywords>{tags}</itunes:keywords>
+  </item>''')
 
           rss = f'''<?xml version="1.0" encoding="UTF-8"?>
           <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
