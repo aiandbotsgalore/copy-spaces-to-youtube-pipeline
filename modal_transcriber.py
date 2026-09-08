@@ -49,17 +49,23 @@ modal_image = (
     .env({
         "LD_LIBRARY_PATH": "/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib"
     })
+    # Pre-cache Whisper & SpeechBrain neural weights during image build so the GPU never pays download time
+    .run_commands(
+        "python -c 'from faster_whisper import WhisperModel; WhisperModel(\"large-v3-turbo\", device=\"cpu\", compute_type=\"int8\")'",
+        "python -c 'import os; from speechbrain.inference.speaker import EncoderClassifier; EncoderClassifier.from_hparams(source=\"speechbrain/spkrec-ecapa-voxceleb\", savedir=os.path.join(os.path.expanduser(\"~\"), \".cache\", \"speechbrain\", \"spkrec-ecapa-voxceleb\"), run_opts={\"device\": \"cpu\"})'"
+    )
     .add_local_dir(
         ".",
         remote_path="/root/workspace",
-        ignore=[".git", "node_modules", "dist", ".gemini", "work", "*.mp3", "*.wav"]
+        ignore=[".git", "node_modules", "dist", ".gemini", "work", "*.mp3", "*.wav", "best_saved_clips", ".cache", "scratch"]
     )
 )
 
 
 @app.function(
     image=modal_image,
-    gpu="A10G",
+    gpu=["L4", "A10G"],
+    scaledown_window=0,
     timeout=3600,
     secrets=[
         modal.Secret.from_dict({

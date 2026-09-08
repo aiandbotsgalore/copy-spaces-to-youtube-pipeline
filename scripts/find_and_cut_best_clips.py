@@ -136,6 +136,10 @@ Transcript:
                 last_err = e
                 err_str = str(e)
                 print(f"[!] {model_name} attempt {attempt + 1} notice: {e}", flush=True)
+                # If key is suspended or permission denied, retrying will never work — abort immediately to save compute
+                if "CONSUMER_SUSPENDED" in err_str or "PERMISSION_DENIED" in err_str or "403" in err_str:
+                    print(f"[!] Gemini API key suspended or permission denied. Aborting Gemini calls immediately to save GPU compute.", flush=True)
+                    raise RuntimeError(f"Gemini API key is invalid/suspended: {e}")
                 # If project hit daily quota limit, retrying is futile — skip model immediately
                 if "GenerateRequestsPerDay" in err_str or "Daily" in err_str or "limit: 20" in err_str:
                     print(f"[*] Daily quota reached for {model_name}. Skipping to next model...", flush=True)

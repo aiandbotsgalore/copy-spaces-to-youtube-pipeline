@@ -105,9 +105,10 @@ except Exception as e:
     model = WhisperModel('{model_size}', device='{device}', compute_type='int8_float16' if '{device}' == 'cuda' else 'int8')
 
 try:
+    beam = 1 if '{model_size}' == 'large-v3-turbo' else 5
     segments, info = model.transcribe(
         {wav_json},
-        beam_size=5,
+        beam_size=beam,
         vad_filter=True,
         vad_parameters=dict(min_silence_duration_ms=500),
         word_timestamps=False
