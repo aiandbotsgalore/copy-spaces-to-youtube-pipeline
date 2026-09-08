@@ -75,13 +75,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           # Dequeue from batch_queue.txt if present
           if [ -f batch_queue.txt ]; then
-            python3 -c "
-with open('batch_queue.txt', 'r', encoding='utf-8') as f:
-    lines = [l for l in f if l.strip()]
-if lines:
-    with open('batch_queue.txt', 'w', encoding='utf-8') as f:
-        f.writelines(lines[1:])
-"
+            python3 -c "import sys; lines = [l for l in open('batch_queue.txt', 'r', encoding='utf-8') if l.strip()]; open('batch_queue.txt', 'w', encoding='utf-8').writelines(lines[1:]) if lines else None"
           fi
           # Clear space_queue.txt if present
           if [ -f space_queue.txt ]; then
@@ -100,6 +94,7 @@ if lines:
           name: "${{ steps.process.outputs.space_title }}"
           files: |
             ${{ steps.process.outputs.mp3_path }}
+            work/*.mp3
           fail_on_unmatched_files: false
           draft: false
           prerelease: false
@@ -138,7 +133,7 @@ if lines:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate RSS Feed
+      - name: Generate RSS Feeds
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -148,191 +143,34 @@ if lines:
           PODCAST_EMAIL: ${{ vars.PODCAST_EMAIL || '' }}
           PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
-          cat <<'PYEOF' > generate_rss.py
-          import os, json, re, urllib.request
-          from datetime import datetime, timezone
-          from xml.sax.saxutils import escape
+          python3 scripts/gen_podcast_rss.py
+          python3 scripts/gen_clips_rss.py
 
-          repo = os.environ["REPO"]
-          token = os.environ["GH_TOKEN"]
-
-          # Load metadata from repository metadata.json if present
-          meta = {}
-          if os.path.exists("metadata.json"):
-              try:
-                  with open("metadata.json", "r", encoding="utf-8") as mf:
-                      meta = json.load(mf)
-              except Exception:
-                  pass
-
-          title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
-          desc = os.environ.get("PODCAST_DESC") or meta.get("podcastDescription") or "Logan Black's X-Space Podcast Archive"
-          author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
-          email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
-          image_fallback = os.environ.get("PODCAST_IMAGE") or meta.get("imageUrl") or "https://picsum.photos/1400/1400"
-
-          owner, repo_name = repo.split("/", 1)
-          github_pages_url = f"https://{owner}.github.io/{repo_name}/"
-          rss_url = f"{github_pages_url}podcast.xml"
-          image = f"{github_pages_url}artwork.jpg" if os.path.exists("artwork.jpg") else image_fallback
-
-          # Fetch all releases (newest first)
-          releases = []
-          page = 1
-          while True:
-              req = urllib.request.Request(
-                  f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
-              )
-              req.add_header("Authorization", f"token {token}")
-              req.add_header("Accept", "application/vnd.github.v3+json")
-              try:
-                  with urllib.request.urlopen(req, timeout=20.0) as r:
-                      batch = json.loads(r.read())
-              except Exception as e:
-                  print(f"Failed fetching releases page {page}: {e}")
-                  exit(1)
-              if not batch:
-                  break
-
-              releases.extend(batch)
-              if len(batch) < 100:
-                  break
-              page += 1
-
-          def extract_recorded_datetime(rel):
-              body = rel.get("body", "") or ""
-              tag = rel.get("tag_name", "") or ""
-              name = rel.get("name", "") or ""
-              pub = rel.get("published_at", "") or ""
-
-              m = re.search(r"METADATA::EPISODE_DATE::(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
-              if m:
-                  try:
-                      return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)), 12, 0, 0, tzinfo=timezone.utc)
-                  except Exception:
-                      pass
-
-              rec = re.search(r"\*\*Recorded:\*\*\s*(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
-              if rec:
-                  try:
-                      return datetime(int(rec.group(1)), int(rec.group(2)), int(rec.group(3)), 12, 0, 0, tzinfo=timezone.utc)
-                  except Exception:
-                      pass
-
-              t = re.search(r"^(?:v)?(\d{4})[-_]?(\d{2})[-_]?(\d{2})", tag)
-              if t:
-                  try:
-                      return datetime(int(t.group(1)), int(t.group(2)), int(t.group(3)), 12, 0, 0, tzinfo=timezone.utc)
-                  except Exception:
-                      pass
-
-              n = re.search(r"\b(\d{4})[-/](\d{2})[-/](\d{2})\b", name)
-              if n:
-                  try:
-                      return datetime(int(n.group(1)), int(n.group(2)), int(n.group(3)), 12, 0, 0, tzinfo=timezone.utc)
-                  except Exception:
-                      pass
-
-              if pub:
-                  try:
-                      return datetime.strptime(pub, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-                  except Exception:
-                      pass
-
-              return datetime.now(timezone.utc)
-
-          published = [r for r in releases if not r.get("draft") and not r.get("prerelease")]
-          published = sorted(published, key=extract_recorded_datetime, reverse=True)
-          total_eps = len(published)
-
-          rss_items = []
-          for idx, release in enumerate(published):
-              dt = extract_recorded_datetime(release)
-              rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
-              body = release.get("body", "")
-              m = re.search(r"METADATA::DURATION::(\d{2}:\d{2}:\d{2})", body)
-              duration = m.group(1) if m else "00:00:00"
-              ep_num = total_eps - idx
-              for asset in release.get("assets", []):
-                  if asset["name"].endswith(".mp3"):
-                      url = asset["browser_download_url"]
-                      size = asset["size"]
-                      guid = f"spacepipe-{asset['id']}"
-                      t = escape(release.get("name", "Untitled Space"))
-                      d = escape(desc)
-                      lines = [
-                          "  <item>",
-                          f"    <title>{t}</title>",
-                          f"    <description>{t}</description>",
-                          f"    <itunes:summary>{t}</itunes:summary>",
-                          f"    <itunes:subtitle>{t}</itunes:subtitle>",
-                          f"    <link>{url}</link>",
-                          f"    <pubDate>{rfc822}</pubDate>",
-                          f'    <enclosure url="{url}" length="{size}" type="audio/mpeg"/>',
-                          f'    <guid isPermaLink="false">{guid}</guid>',
-                          f"    <itunes:duration>{duration}</itunes:duration>",
-                          f"    <itunes:explicit>no</itunes:explicit>",
-                          f"    <itunes:episode>{ep_num}</itunes:episode>",
-                          "    <itunes:episodeType>full</itunes:episodeType>",
-                          "  </item>",
-                      ]
-                      rss_items.append("\n".join(lines))
-
-          lbd = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
-          year = datetime.now(timezone.utc).year
-          items_xml = "\n".join(rss_items)
-
-          channel_lines = [
-              '<?xml version="1.0" encoding="UTF-8"?>',
-              '<rss version="2.0"',
-              '  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"',
-              '  xmlns:atom="http://www.w3.org/2005/Atom"',
-              '  xmlns:content="http://purl.org/rss/1.0/modules/content/">',
-              '  <channel>',
-              f'    <title>{escape(title)}</title>',
-              f'    <link>{github_pages_url}</link>',
-              f'    <description>{escape(desc)}</description>',
-              f'    <language>en-us</language>',
-              f'    <copyright>&#169; {year} {escape(author)}</copyright>',
-              f'    <managingEditor>{escape(email)} ({escape(author)})</managingEditor>',
-              f'    <lastBuildDate>{lbd}</lastBuildDate>',
-              f'    <atom:link href="{rss_url}" rel="self" type="application/rss+xml"/>',
-              f'    <itunes:author>{escape(author)}</itunes:author>',
-              f'    <itunes:summary>{escape(desc)}</itunes:summary>',
-              f'    <itunes:subtitle>{escape(desc)}</itunes:subtitle>',
-              '    <itunes:owner>',
-              f'      <itunes:name>{escape(author)}</itunes:name>',
-              f'      <itunes:email>{escape(email)}</itunes:email>',
-              '    </itunes:owner>',
-              f'    <itunes:image href="{image}"/>',
-              f'    <image><url>{image}</url><title>{escape(title)}</title><link>{github_pages_url}</link></image>',
-              '    <itunes:category text="Technology"/>',
-              '    <itunes:explicit>no</itunes:explicit>',
-              '    <itunes:type>episodic</itunes:type>',
-              items_xml,
-              '  </channel>',
-              '</rss>',
-          ]
-
-          rss = "\n".join(channel_lines)
-          with open("podcast.xml", "w", encoding="utf-8") as f:
-              f.write(rss)
-          print(f"Generated podcast.xml with {len(rss_items)} episode(s)")
-          PYEOF
-          python3 generate_rss.py
-
-      - name: Validate RSS
+      - name: Validate RSS Feeds
         run: |
-          if ! grep -q '<rss version="2.0"' podcast.xml; then
-            echo "Invalid RSS structure"
-            exit 1
-          fi
-          echo "RSS validation passed"
+          for feed in podcast.xml podcast_archive.xml clips.xml; do
+            if [ -f "$feed" ]; then
+              if ! grep -q '<rss version="2.0"' "$feed"; then
+                echo "Error: $feed has invalid RSS structure"
+                exit 1
+              fi
+              echo "Valid RSS: $feed"
+            fi
+          done
+
+      - name: Deploy to Pages
+        run: |
+          mkdir -p site
+          cp podcast.xml site/
+          [ -f podcast_archive.xml ] && cp podcast_archive.xml site/ || true
+          [ -f clips.xml ] && cp clips.xml site/ || true
+          [ -f artwork.png ] && cp artwork.png site/ || true
+          [ -f artwork.jpg ] && cp artwork.jpg site/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
 
       - name: Deploy to GitHub Pages
         id: deployment

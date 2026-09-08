@@ -143,6 +143,27 @@ if [[ -z "$MP3_FILE" ]]; then
 fi
 echo "Successfully created: $MP3_FILE"
 
+# Check duration for YouTube length limit (12 hours max)
+# If duration exceeds 11.5 hours (41400s), auto-split into YouTube-compliant parts (<= 10h each)
+if command -v ffprobe >/dev/null 2>&1 && command -v ffmpeg >/dev/null 2>&1; then
+    DURATION_SECS=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$MP3_FILE" 2>/dev/null | cut -d. -f1 || echo "0")
+    if [[ -n "$DURATION_SECS" && "$DURATION_SECS" -gt 41400 ]]; then
+        echo "::warning::Audio duration ($DURATION_SECS s) exceeds 11.5 hours. Splitting into YouTube-compliant multi-part episodes..."
+        CHUNK_SECS=36000 # 10 hours per part
+        PART=1
+        START=0
+        while [ "$START" -lt "$DURATION_SECS" ]; do
+            PART_FILE="${WORK_DIR}/${BASENAME}_Part${PART}.mp3"
+            ffmpeg -y -ss "$START" -i "$MP3_FILE" -t "$CHUNK_SECS" -c copy "$PART_FILE" </dev/null
+            PART=$((PART + 1))
+            START=$((START + CHUNK_SECS))
+        done
+        rm -f "$MP3_FILE"
+        MP3_FILE="${WORK_DIR}/${BASENAME}_Part1.mp3"
+        echo "Successfully split into $((PART - 1)) parts for YouTube compliance."
+    fi
+fi
+
 # 8. Extract Metadata
 BASENAME=$(basename "$MP3_FILE" .mp3)
 EPISODE_DATE="${BASENAME:0:8}"

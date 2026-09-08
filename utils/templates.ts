@@ -62,8 +62,10 @@ const buildPythonRSSScript = () => [
   '            dt = extract_recorded_datetime(release)',
   '            rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S GMT")',
   '            body = release.get("body", "")',
-  '            m = re.search(r"METADATA::DURATION::(\\d{2}:\\d{2}:\\d{2})", body)',
+  '            m = re.search(r"METADATA::DURATION::(\\d+:?\\d{2}:\\d{2})", body)',
   '            duration = m.group(1) if m else "00:00:00"',
+  '            dur_seconds = sum(int(x) * 60**i for i, x in enumerate(reversed(duration.split(":")))) if duration else 0',
+  '            if dur_seconds > (11 * 3600 + 58 * 60): continue',
   '            mp3_assets = [a for a in release.get("assets", []) if a.get("name", "").endswith(".mp3")]',
   '            if not mp3_assets: continue',
   '            non_clip_mp3s = [a for a in mp3_assets if not re.match(r"^\\d+(?:h\\d+)?m\\d+s_", a.get("name", "")) ]',
@@ -224,13 +226,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if [ -f batch_queue.txt ]; then
-            python3 -c "
-with open('batch_queue.txt', 'r', encoding='utf-8') as f:
-    lines = [l for l in f if l.strip()]
-if lines:
-    with open('batch_queue.txt', 'w', encoding='utf-8') as f:
-        f.writelines(lines[1:])
-"
+            python3 -c "import sys; lines = [l for l in open('batch_queue.txt', 'r', encoding='utf-8') if l.strip()]; open('batch_queue.txt', 'w', encoding='utf-8').writelines(lines[1:]) if lines else None"
           fi
           if [ -f space_queue.txt ]; then
             echo "# SpacePipe: paste a URL here and commit to trigger the pipeline" > space_queue.txt
