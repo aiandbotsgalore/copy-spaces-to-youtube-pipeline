@@ -65,7 +65,6 @@ modal_image = (
 @app.function(
     image=modal_image,
     gpu=["L4", "A10G"],
-    scaledown_window=0,
     timeout=3600,
     secrets=[
         modal.Secret.from_dict({
