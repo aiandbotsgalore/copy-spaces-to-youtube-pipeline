@@ -51,4 +51,9 @@ repomix-output.xml
 *.m4a
 *.wav
 *.tmp
+.cache/
+scratch/
+parallel_queue_state.json
+releases.json
+podcast*.xml
 

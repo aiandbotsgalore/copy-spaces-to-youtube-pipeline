@@ -186,14 +186,32 @@ jobs:
           echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
           echo "release_tag=${DATE}_${SPACE_ID}" >> $GITHUB_OUTPUT
 
-      - name: Get Duration
+      - name: Get Duration & YouTube Split
         id: duration
         if: steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true' && steps.download.outputs.mp3_file != ''
         run: |
-          DURATION=$(ffprobe -v error -show_entries format=duration \
-            -of default=noprint_wrappers=1:nokey=1 "${{ steps.download.outputs.mp3_file }}" \
-            | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
+          RAW_SECS=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${{ steps.download.outputs.mp3_file }}" 2>/dev/null | cut -d. -f1 || echo "0")
+          DURATION=$(echo "$RAW_SECS" | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
+
+          # Check YouTube 12h length limit; if > 11.5 hours (41400s), split into 10h parts
+          if [[ -n "$RAW_SECS" && "$RAW_SECS" -gt 41400 ]]; then
+            echo "::warning::Audio duration ($RAW_SECS s) exceeds 11.5 hours. Auto-splitting into YouTube-compliant parts..."
+            ORIG_FILE="${{ steps.download.outputs.mp3_file }}"
+            DIRNAME=$(dirname "$ORIG_FILE")
+            BASENAME=$(basename "$ORIG_FILE" .mp3)
+            CHUNK_SECS=36000 # 10 hours
+            PART=1
+            START=0
+            while [ "$START" -lt "$RAW_SECS" ]; do
+              PART_FILE="${DIRNAME}/${BASENAME}_Part${PART}.mp3"
+              ffmpeg -y -ss "$START" -i "$ORIG_FILE" -t "$CHUNK_SECS" -c copy "$PART_FILE" </dev/null
+              PART=$((PART + 1))
+              START=$((START + CHUNK_SECS))
+            done
+            rm -f "$ORIG_FILE"
+            echo "Successfully split into $((PART - 1)) parts for YouTube compliance."
+          fi
 
       - name: Create Release
         if: steps.existing.outputs.already_released != 'true' && steps.download.outputs.skipped != 'true' && steps.download.outputs.mp3_file != ''
@@ -202,7 +220,11 @@ jobs:
         with:
           tag_name: ${{ steps.download.outputs.release_tag }}
           name: "${{ steps.download.outputs.title }}"
-          files: ${{ steps.download.outputs.mp3_file }}
+          files: |
+            ${{ steps.download.outputs.mp3_file }}
+            batches/*/*_Part*.mp3
+            work/*_Part*.mp3
+          fail_on_unmatched_files: false
           draft: false
           prerelease: false
           make_latest: true
