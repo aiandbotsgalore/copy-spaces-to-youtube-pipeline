@@ -49,7 +49,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     setReleasesError('');
     try {
       const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
-      setReleases(data);
+      setReleases(sortReleasesByRecordedDate(data, 'desc'));
     } catch (e) {
       setReleasesError((e as Error).message);
     } finally {

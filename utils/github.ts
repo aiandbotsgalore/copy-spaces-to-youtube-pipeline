@@ -1,4 +1,5 @@
-import { GitHubUser, WorkflowRun, Release } from '../types';
+import { GitHubUser, WorkflowRun, Release, ReleaseAsset, EpisodePart } from '../types';
+import { sortReleasesByRecordedDate } from './dates';
 
 const BASE = 'https://api.github.com';
 
@@ -261,7 +262,8 @@ export async function getReleases(token: string, owner: string, repo: string): P
     if (batch.length < 100) break;
     page++;
   }
-  return all.filter(r => !r.draft && !r.prerelease);
+  const filtered = all.filter(r => !r.draft && !r.prerelease);
+  return sortReleasesByRecordedDate(filtered, 'desc');
 }
 
 export async function dispatchWorkflow(
@@ -490,3 +492,68 @@ export async function dataUrlToBase64(dataUrl: string): Promise<string> {
   if (commaIdx === -1) throw new Error('Invalid image data: expected a base64 data URL.');
   return dataUrl.slice(commaIdx + 1);
 }
+
+export function getReleaseParts(release: Release): EpisodePart[] {
+  if (!release || !release.assets) return [];
+
+  // Filter full MP3 assets (excluding short cut highlight clips starting with timing patterns)
+  const fullMp3s = release.assets.filter(
+    a => a.name.endsWith('.mp3') && !/^\d+(?:h\d+)?m\d+s_/i.test(a.name)
+  );
+
+  // Find all transcript text/json assets (excluding clip catalogs and metadata JSONs)
+  const textAssets = release.assets.filter(a => {
+    const name = a.name.toLowerCase();
+    if (name.endsWith('.mp3') || name.endsWith('.m4a') || name.endsWith('.wav') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.jpeg')) return false;
+    if (name.endsWith('_clips.json') || name === 'clips_catalog.json' || name === 'clips_catalog.md') return false;
+    return /\.(json|txt)$/i.test(name);
+  });
+
+  const partRegex = /(?:[_-]|\b)part\s*(\d+)/i;
+  const partNumbers = new Set<number>();
+
+  fullMp3s.forEach(a => {
+    const m = a.name.match(partRegex);
+    if (m) partNumbers.add(parseInt(m[1], 10));
+  });
+  textAssets.forEach(a => {
+    const m = a.name.match(partRegex);
+    if (m) partNumbers.add(parseInt(m[1], 10));
+  });
+
+  if (partNumbers.size <= 1 && fullMp3s.length <= 1) {
+    const singleMp3 = fullMp3s[0] || release.assets.find(a => a.name.endsWith('.mp3')) || null;
+    const singleTranscript = textAssets.sort((a, b) => (b.name.endsWith('.json') ? 1 : 0) - (a.name.endsWith('.json') ? 1 : 0))[0] || null;
+    return [{
+      partNumber: 1,
+      label: 'Full Episode',
+      mp3Asset: singleMp3,
+      transcriptAsset: singleTranscript,
+    }];
+  }
+
+  const sortedPartNums = Array.from(partNumbers).sort((a, b) => a - b);
+  if (!sortedPartNums.length) {
+    fullMp3s.sort((a, b) => a.name.localeCompare(b.name)).forEach((_, idx) => sortedPartNums.push(idx + 1));
+  }
+
+  return sortedPartNums.map(num => {
+    const numRegex = new RegExp(`(?:[_-]|\\b)part\\s*${num}(?:[._-]|$)`, 'i');
+    const mp3 = fullMp3s.find(a => numRegex.test(a.name)) || fullMp3s[num - 1] || null;
+    
+    const matchingTranscripts = textAssets.filter(a => numRegex.test(a.name));
+    const transcript = matchingTranscripts.sort((a, b) => {
+      const aJson = a.name.endsWith('.json') ? 1 : 0;
+      const bJson = b.name.endsWith('.json') ? 1 : 0;
+      return bJson - aJson;
+    })[0] || null;
+
+    return {
+      partNumber: num,
+      label: `Part ${num}`,
+      mp3Asset: mp3,
+      transcriptAsset: transcript,
+    };
+  });
+}
+

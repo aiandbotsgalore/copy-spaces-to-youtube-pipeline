@@ -4,9 +4,9 @@ import {
   CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, dispatchWorkflow, deleteRelease } from '../utils/github';
+import { getReleases, dispatchWorkflow, deleteRelease, getReleaseParts } from '../utils/github';
 import { usePlayer } from '../contexts/PlayerContext';
-import { getEpisodeRecordedDate } from '../utils/dates';
+import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 
 interface Props {
   config: EnhancedConfig;
@@ -18,17 +18,17 @@ interface DuplicateGroup {
   releases: Release[];
 }
 
-function episodeDateDisplay(body: string | null, tagName: string): string {
-  return getEpisodeRecordedDate({ body, tag_name: tagName }).displayDate;
+function episodeDateDisplay(release: Release): string {
+  return getEpisodeRecordedDate(release).displayDate;
 }
 
-function episodeDateMs(body: string | null, tagName: string): number {
-  return getEpisodeRecordedDate({ body, tag_name: tagName }).timestampMs;
+function episodeDateMs(release: Release): number {
+  return getEpisodeRecordedDate(release).timestampMs;
 }
 
 function parseDuration(body: string | null): string {
   if (!body) return '';
-  const m = body.match(/METADATA::DURATION::(\d{2}:\d{2}:\d{2})/);
+  const m = body.match(/METADATA::DURATION::(\d+:\d{2}:\d{2})/);
   return m ? m[1] : '';
 }
 
@@ -59,7 +59,7 @@ function findDuplicates(releases: Release[]): DuplicateGroup[] {
     .filter(([, g]) => g.length > 1)
     .map(([key, g]) => ({
       key,
-      releases: [...g].sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()),
+      releases: sortReleasesByRecordedDate(g, 'desc'),
     }));
 }
 
@@ -92,7 +92,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     setError('');
     try {
       const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
-      setReleases(data);
+      setReleases(sortReleasesByRecordedDate(data, 'desc'));
       setLoaded(true);
       setDupMode(false);
       setSelected(new Set());
@@ -221,8 +221,8 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const filtered = releases
     .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (sort === 'date-desc') return episodeDateMs(b.body, b.tag_name) - episodeDateMs(a.body, a.tag_name);
-      if (sort === 'date-asc')  return episodeDateMs(a.body, a.tag_name) - episodeDateMs(b.body, b.tag_name);
+      if (sort === 'date-desc') return episodeDateMs(b) - episodeDateMs(a);
+      if (sort === 'date-asc')  return episodeDateMs(a) - episodeDateMs(b);
       if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
       if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
       return 0;
@@ -372,8 +372,8 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          {episodeDateDisplay(release.body, release.tag_name) && (
-                            <span className="text-xs text-slate-500">{episodeDateDisplay(release.body, release.tag_name)}</span>
+                          {episodeDateDisplay(release) && (
+                            <span className="text-xs text-slate-500">{episodeDateDisplay(release)}</span>
                           )}
                           {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                         </div>
@@ -477,21 +477,23 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
           <div className="space-y-2">
             {filtered.map(release => {
-              const mp3 = release.assets.find(a => a.name.endsWith('.mp3'));
+              const parts = getReleaseParts(release);
+              const isMultiPart = parts.length > 1;
+              const mp3 = isMultiPart ? parts[0]?.mp3Asset : release.assets.find(a => a.name.endsWith('.mp3'));
               const txt = release.assets.find(a => a.name.endsWith('.txt') || a.name.endsWith('.json'));
               const duration = parseDuration(release.body);
               const sourceId = parseSourceId(release.body);
-              const epDate = episodeDateDisplay(release.body, release.tag_name);
+              const epDate = episodeDateDisplay(release);
 
               const isCurrent = current?.id === release.id;
               return (
                 <div key={release.id} className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
                   <div className="flex items-start gap-3">
                     <button
-                      onClick={() => mp3 && play({ id: release.id, title: release.name || release.tag_name, audioUrl: mp3.browser_download_url })}
+                      onClick={() => mp3 && play({ id: release.id, title: isMultiPart ? `${release.name || release.tag_name} (Part 1)` : (release.name || release.tag_name), audioUrl: mp3.browser_download_url })}
                       disabled={!mp3}
-                      className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-indigo-500/10 hover:bg-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed rounded-full mt-0.5 transition-colors"
-                      title={mp3 ? 'Play episode' : 'No audio file on this release'}
+                      className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-indigo-500/10 hover:bg-indigo-500/20 disabled:opacity-40 disabled:cursor-not-allowed rounded-full mt-0.5 transition-colors cursor-pointer"
+                      title={mp3 ? (isMultiPart ? 'Play Part 1' : 'Play episode') : 'No audio file on this release'}
                     >
                       {isCurrent && isPlaying
                         ? <Music size={14} className="text-indigo-400 animate-pulse" />
@@ -504,19 +506,48 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
                             {epDate && <span className="text-xs text-slate-500">{epDate}</span>}
                             {duration && <span className="text-xs text-slate-500">· {duration}</span>}
-                            {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
+                            {mp3 && !isMultiPart && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
                             {txt && (
                               <button
                                 onClick={() => onOpenTranscript?.(release.id)}
                                 className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 rounded font-medium transition-colors cursor-pointer"
                                 title="Open interactive transcript and sync audio"
                               >
-                                <FileText size={10} /> View Transcript
+                                <FileText size={10} /> View Transcript{isMultiPart ? ` (${parts.length} Parts)` : ''}
                               </button>
                             )}
                           </div>
                           {sourceId && (
                             <p className="text-[10px] text-slate-700 mt-0.5 font-mono truncate">ID: {sourceId}</p>
+                          )}
+                          {isMultiPart && (
+                            <div className="flex items-center gap-1.5 flex-wrap mt-2.5 pt-2 border-t border-slate-800/60">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Parts:</span>
+                              {parts.map(p => {
+                                const isThisPartPlaying = current?.id === release.id && current?.audioUrl === p.mp3Asset?.browser_download_url && isPlaying;
+                                return (
+                                  <button
+                                    key={p.partNumber}
+                                    disabled={!p.mp3Asset}
+                                    onClick={() => p.mp3Asset && play({
+                                      id: release.id,
+                                      title: `${release.name || release.tag_name} (${p.label})`,
+                                      audioUrl: p.mp3Asset.browser_download_url
+                                    })}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all border cursor-pointer ${
+                                      isThisPartPlaying
+                                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/25'
+                                        : 'bg-slate-800/90 hover:bg-indigo-600/20 text-indigo-300 border-slate-700 hover:border-indigo-500/40'
+                                    }`}
+                                    title={p.mp3Asset ? `Play ${p.label}` : `No audio file for ${p.label}`}
+                                  >
+                                    {isThisPartPlaying ? <Music size={11} className="animate-pulse text-white" /> : <Play size={11} />}
+                                    <span className="font-semibold">{p.label}</span>
+                                    {p.mp3Asset && <span className="text-[10px] opacity-75 font-mono">({formatSize(p.mp3Asset.size)})</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">

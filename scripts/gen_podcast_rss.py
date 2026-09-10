@@ -259,15 +259,26 @@ def main():
             item_title = f"{rel['name']} (Part {part_idx})" if is_multi else rel["name"]
             item_guid = f"{asset['id']}"
 
+            # Accurately report each part's duration for YouTube compliance (<= 10 hours per part)
+            if is_multi and dur_seconds > 0:
+                CHUNK_SECS = 36000  # 10 hours per chunk
+                part_start = (part_idx - 1) * CHUNK_SECS
+                part_dur_sec = max(0, min(CHUNK_SECS, dur_seconds - part_start))
+                part_dur_str = f"{part_dur_sec // 3600:02d}:{(part_dur_sec % 3600) // 60:02d}:{part_dur_sec % 60:02d}"
+            else:
+                part_dur_str = duration
+
+            item_desc = full_desc.replace(f"Duration: {duration}", f"Duration: {part_dur_str} (Total Space: {duration})") if is_multi else full_desc
+
             item_xml = f"""    <item>
       <title>{escape(item_title)}</title>
-      <description>{full_desc}</description>
+      <description>{item_desc}</description>
       <pubDate>{rfc822}</pubDate>
       <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
       <guid isPermaLink="false">{item_guid}</guid>
       <itunes:author>{escape(host)}</itunes:author>
-      <itunes:summary>{full_desc}</itunes:summary>
-      <itunes:duration>{duration}</itunes:duration>
+      <itunes:summary>{item_desc}</itunes:summary>
+      <itunes:duration>{part_dur_str}</itunes:duration>
       <itunes:keywords>{tags}</itunes:keywords>
       <itunes:explicit>no</itunes:explicit>
       <itunes:episodeType>full</itunes:episodeType>

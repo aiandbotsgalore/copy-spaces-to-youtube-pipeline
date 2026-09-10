@@ -16,16 +16,17 @@ const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
  *  4. YYYY-MM-DD date found in release title/name
  *  5. Fallback to GitHub release published_at / created_at timestamp
  */
-export function getEpisodeRecordedDate(release: {
+export function getEpisodeRecordedDate(release?: {
   body?: string | null;
   tag_name?: string;
   name?: string;
   published_at?: string;
   created_at?: string;
-}): EpisodeDateInfo {
+} | null): EpisodeDateInfo {
+  const rel = release || {};
   // 1. Check body METADATA or Recorded field
-  if (release.body) {
-    const metaMatch = release.body.match(/METADATA::EPISODE_DATE::(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
+  if (rel.body) {
+    const metaMatch = rel.body.match(/METADATA::EPISODE_DATE::(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
     if (metaMatch) {
       const year = parseInt(metaMatch[1], 10);
       const month = parseInt(metaMatch[2], 10) - 1;
@@ -41,7 +42,7 @@ export function getEpisodeRecordedDate(release: {
       }
     }
 
-    const recMatch = release.body.match(/\*\*Recorded:\*\*\s*(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
+    const recMatch = rel.body.match(/\*\*Recorded:\*\*\s*(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
     if (recMatch) {
       const year = parseInt(recMatch[1], 10);
       const month = parseInt(recMatch[2], 10) - 1;
@@ -59,8 +60,8 @@ export function getEpisodeRecordedDate(release: {
   }
 
   // 2. Check tag_name (e.g. 20260826_1AxRnZYBVdrxl)
-  if (release.tag_name) {
-    const tagMatch = release.tag_name.match(/^(?:v)?(\d{4})[-_]?(\d{2})[-_]?(\d{2})/);
+  if (rel.tag_name) {
+    const tagMatch = rel.tag_name.match(/^(?:v)?(\d{4})[-_]?(\d{2})[-_]?(\d{2})/);
     if (tagMatch) {
       const year = parseInt(tagMatch[1], 10);
       const month = parseInt(tagMatch[2], 10) - 1;
@@ -78,8 +79,8 @@ export function getEpisodeRecordedDate(release: {
   }
 
   // 3. Check release title/name for date
-  if (release.name) {
-    const nameMatch = release.name.match(/\b(\d{4})[-/](\d{2})[-/](\d{2})\b/);
+  if (rel.name) {
+    const nameMatch = rel.name.match(/\b(\d{4})[-/](\d{2})[-/](\d{2})\b/);
     if (nameMatch) {
       const year = parseInt(nameMatch[1], 10);
       const month = parseInt(nameMatch[2], 10) - 1;
@@ -97,7 +98,7 @@ export function getEpisodeRecordedDate(release: {
   }
 
   // 4. Fallback to GitHub published_at / created_at timestamp
-  const fallbackStr = release.published_at || (release as any).created_at || new Date().toISOString();
+  const fallbackStr = rel.published_at || (rel as any).created_at || new Date().toISOString();
   const parsed = new Date(fallbackStr);
   const valid = !isNaN(parsed.getTime());
   const dateObj = valid ? parsed : new Date();
@@ -122,6 +123,7 @@ export function sortReleasesByRecordedDate<T extends {
   published_at?: string;
   created_at?: string;
 }>(releases: T[], order: 'desc' | 'asc' = 'desc'): T[] {
+  if (!Array.isArray(releases)) return [];
   return [...releases].sort((a, b) => {
     const diff = getEpisodeRecordedDate(b).timestampMs - getEpisodeRecordedDate(a).timestampMs;
     return order === 'desc' ? diff : -diff;

@@ -69,6 +69,13 @@ export interface Release {
   prerelease: boolean;
 }
 
+export interface EpisodePart {
+  partNumber: number;
+  label: string;
+  mp3Asset: ReleaseAsset | null;
+  transcriptAsset: ReleaseAsset | null;
+}
+
 export interface DeployStep {
   id: string;
   label: string;

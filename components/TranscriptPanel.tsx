@@ -4,10 +4,10 @@ import {
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
   Save, CloudCheck, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
-  Globe, Radio, Layers, ArrowRight
+  Globe, Radio, Layers, ArrowRight, Headphones
 } from 'lucide-react';
-import { Release, EnhancedConfig } from '../types';
-import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets } from '../utils/github';
+import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
+import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 
@@ -158,9 +158,23 @@ function transcriptAssetScore(asset: ReleaseAssetLike, releaseTag?: string): num
   return score;
 }
 
-function pickTranscriptAsset(release: Release): Release['assets'][number] | undefined {
+function formatSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function pickTranscriptAsset(release: Release, partNum = 1): Release['assets'][number] | undefined {
   const textAssets = release.assets.filter(a => isLikelyTranscriptAsset(a));
   if (!textAssets.length) return undefined;
+
+  if (partNum > 0) {
+    const numRegex = new RegExp(`(?:[_-]|\\b)part\\s*${partNum}(?:[._-]|$)`, 'i');
+    const partAssets = textAssets.filter(a => numRegex.test(a.name));
+    if (partAssets.length > 0) {
+      return [...partAssets].sort((a, b) => transcriptAssetScore(b, release.tag_name) - transcriptAssetScore(a, release.tag_name))[0];
+    }
+  }
+
   return [...textAssets].sort((a, b) => transcriptAssetScore(b, release.tag_name) - transcriptAssetScore(a, release.tag_name))[0];
 }
 
@@ -418,6 +432,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [savingGitHub, setSavingGitHub] = useState(false);
   const [saveGitHubSuccess, setSaveGitHubSuccess] = useState('');
   const [saveGitHubError, setSaveGitHubError] = useState('');
+  const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
 
   const currentLoadedIdRef = useRef<number | null>(null);
   const transcriptionPollRef = useRef<number | null>(null);
@@ -458,7 +473,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       const res = await fetch('/transcripts/transcripts_search_index.json');
       if (!res.ok) throw new Error(`HTTP ${res.status}: Failed to load search index`);
       const data: SearchIndexEpisode[] = await res.json();
-      setGlobalIndex(data);
+      const sorted = [...data].sort((a, b) => {
+        const tA = getEpisodeRecordedDate({ tag_name: a.release_tag, name: a.title, published_at: a.published_at }).timestampMs;
+        const tB = getEpisodeRecordedDate({ tag_name: b.release_tag, name: b.title, published_at: b.published_at }).timestampMs;
+        return tB - tA;
+      });
+      setGlobalIndex(sorted);
     } catch (e) {
       setGlobalIndexError((e as Error).message);
     } finally {
@@ -530,14 +550,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     if (hasCredentials && !loaded && !loading) fetchReleases();
   }, [hasCredentials, loaded, loading, fetchReleases]);
 
-  const loadTranscript = useCallback(async (release: Release) => {
-    const asset = pickTranscriptAsset(release);
+  const loadTranscript = useCallback(async (release: Release, targetAsset?: ReleaseAsset | null, partNum?: number) => {
+    const pNum = typeof partNum === 'number' ? partNum : 1;
+    setSelectedPartNum(pNum);
+    const parts = getReleaseParts(release);
+    const partObj = parts.find(p => p.partNumber === pNum) || parts[0];
+    const asset = targetAsset !== undefined ? (targetAsset ?? undefined) : (partObj?.transcriptAsset || pickTranscriptAsset(release, pNum));
+
     setSelectedId(release.id);
     setSearch('');
     setSpeakerFilter('ALL');
     setTranscribeSuccess('');
     try {
-      const savedOffset = localStorage.getItem(`spk_offset_${release.id}`);
+      const savedOffset = localStorage.getItem(`spk_offset_${release.id}_p${pNum}`) || localStorage.getItem(`spk_offset_${release.id}`);
       setTimeOffsetSec(savedOffset ? parseFloat(savedOffset) : 0);
     } catch { setTimeOffsetSec(0); }
     setEditingSpeakerKey(null);
@@ -558,12 +583,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
       // Auto-clear stale offsets that would push the first segment to negative time
       try {
-        const savedOffset = localStorage.getItem(`spk_offset_${release.id}`);
+        const savedOffset = localStorage.getItem(`spk_offset_${release.id}_p${pNum}`) || localStorage.getItem(`spk_offset_${release.id}`);
         if (savedOffset) {
           const first = parseTranscriptData(text)[0];
           const rawOffset = Number.parseFloat(savedOffset);
           if (!Number.isFinite(rawOffset) || (first && first.rawStartSec + rawOffset < 0)) {
-            localStorage.removeItem(`spk_offset_${release.id}`);
+            localStorage.removeItem(`spk_offset_${release.id}_p${pNum}`);
             setTimeOffsetSec(0);
           }
         }
@@ -596,7 +621,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
       try {
         const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
-        setReleases(data);
+        setReleases(sortReleasesByRecordedDate(data, 'desc'));
         const updated = data.find(r => r.id === releaseId);
         if (updated && pickTranscriptAsset(updated)) {
           stopTranscriptPolling();
@@ -628,21 +653,28 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     if (releases.length > 0 && selectedId) {
       if (currentLoadedIdRef.current !== selectedId) {
         const rel = releases.find(r => r.id === selectedId);
-        if (rel) { currentLoadedIdRef.current = selectedId; loadTranscript(rel); }
+        if (rel) {
+          currentLoadedIdRef.current = selectedId;
+          setSelectedPartNum(1);
+          loadTranscript(rel, undefined, 1);
+        }
       }
     } else if (releases.length > 0 && !selectedId) {
       const first = releases.find(r => !!pickTranscriptAsset(r)) || releases[0];
       if (first && currentLoadedIdRef.current !== first.id) {
         currentLoadedIdRef.current = first.id;
-        loadTranscript(first);
+        setSelectedPartNum(1);
+        loadTranscript(first, undefined, 1);
       }
     }
   }, [releases, selectedId, loadTranscript]);
 
   const selectedRelease = releases.find(r => r.id === selectedId);
+  const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
+  const activePart = useMemo(() => episodeParts.find(p => p.partNumber === selectedPartNum) || episodeParts[0] || null, [episodeParts, selectedPartNum]);
   const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
-  const mp3Asset = useMemo(() => selectedRelease?.assets.find(a => a.name.endsWith('.mp3')) ?? null, [selectedRelease]);
-  const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && isPlaying;
+  const mp3Asset = useMemo(() => activePart?.mp3Asset ?? selectedRelease?.assets.find(a => a.name.endsWith('.mp3')) ?? null, [activePart, selectedRelease]);
+  const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && (activePart?.mp3Asset ? current?.audioUrl === activePart.mp3Asset.browser_download_url : true) && isPlaying;
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
@@ -808,15 +840,29 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const handlePlayUtterance = (startSec: number) => {
     if (!selectedRelease || !mp3Asset) return;
-    const nowPlaying: NowPlayingEpisode = { id: selectedRelease.id, title: selectedRelease.name || selectedRelease.tag_name, audioUrl: mp3Asset.browser_download_url };
-    if (current?.id !== selectedRelease.id) { play(nowPlaying, startSec); }
-    else { seek(startSec); if (!isPlaying) togglePlay(); }
+    const titleWithPart = episodeParts.length > 1 && activePart
+      ? `${selectedRelease.name || selectedRelease.tag_name} (${activePart.label})`
+      : (selectedRelease.name || selectedRelease.tag_name);
+    const nowPlaying: NowPlayingEpisode = { id: selectedRelease.id, title: titleWithPart, audioUrl: mp3Asset.browser_download_url };
+    if (current?.id !== selectedRelease.id || current?.audioUrl !== mp3Asset.browser_download_url) {
+      play(nowPlaying, startSec);
+    } else {
+      seek(startSec);
+      if (!isPlaying) togglePlay();
+    }
   };
 
   const handlePlayEpisodeToggle = () => {
     if (!selectedRelease || !mp3Asset) return;
-    const nowPlaying: NowPlayingEpisode = { id: selectedRelease.id, title: selectedRelease.name || selectedRelease.tag_name, audioUrl: mp3Asset.browser_download_url };
-    if (current?.id === selectedRelease.id) { togglePlay(); } else { play(nowPlaying); }
+    const titleWithPart = episodeParts.length > 1 && activePart
+      ? `${selectedRelease.name || selectedRelease.tag_name} (${activePart.label})`
+      : (selectedRelease.name || selectedRelease.tag_name);
+    const nowPlaying: NowPlayingEpisode = { id: selectedRelease.id, title: titleWithPart, audioUrl: mp3Asset.browser_download_url };
+    if (current?.id === selectedRelease.id && current?.audioUrl === mp3Asset.browser_download_url) {
+      togglePlay();
+    } else {
+      play(nowPlaying);
+    }
   };
 
   const handleCopyTranscript = async () => {
@@ -1227,7 +1273,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                   {ep.title || ep.release_tag}
                                 </h4>
                                 <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
-                                  <span>{formatDate(ep.published_at)}</span>
+                                  <span>{getEpisodeRecordedDate({ tag_name: ep.release_tag, name: ep.title, published_at: ep.published_at }).displayDate}</span>
                                   <span>•</span>
                                   <span className="text-indigo-400 font-medium">{ep.segment_count.toLocaleString()} turns</span>
                                 </p>
@@ -1519,6 +1565,58 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   </div>
 
+                  {/* Multi-Part Episode Tabs */}
+                  {episodeParts.length > 1 && (
+                    <div className="px-4 md:px-6 py-2.5 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Episode Parts:</span>
+                        <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                          {episodeParts.map(part => {
+                            const isSelected = selectedPartNum === part.partNumber;
+                            const hasTranscript = !!part.transcriptAsset;
+                            return (
+                              <button
+                                key={part.partNumber}
+                                onClick={() => {
+                                  setSelectedPartNum(part.partNumber);
+                                  if (part.transcriptAsset) {
+                                    loadTranscript(selectedRelease, part.transcriptAsset, part.partNumber);
+                                  } else {
+                                    setTranscriptRaw('');
+                                    setTranscriptError('');
+                                  }
+                                }}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                                    : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                                }`}
+                              >
+                                <span>{part.label}</span>
+                                {hasTranscript ? (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}`}>
+                                    Transcript
+                                  </span>
+                                ) : (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'}`}>
+                                    Audio Only
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {activePart?.mp3Asset && (
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <span>Active Audio: <span className="font-mono text-slate-300">{activePart.label}</span></span>
+                          <span className="text-slate-600">·</span>
+                          <span className="font-mono text-slate-400">{formatSize(activePart.mp3Asset.size)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Transcript Feed */}
                   <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
                     {transcriptLoading && (
@@ -1538,21 +1636,38 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     {!transcriptLoading && !transcriptError && !transcriptRaw && (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-20">
                         <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl shadow-indigo-500/5">
-                          <Sparkles size={28} />
+                          {activePart?.mp3Asset ? <Headphones size={28} /> : <Sparkles size={28} />}
                         </div>
-                        <h4 className="text-base font-bold text-white mb-1.5">No Transcript Generated Yet</h4>
-                        <p className="text-slate-400 text-xs mb-6 leading-relaxed">This Space has audio published, but no diarized transcript asset is available yet.</p>
+                        <h4 className="text-base font-bold text-white mb-1.5">
+                          {episodeParts.length > 1 && activePart ? `No Transcript for ${activePart.label} Yet` : 'No Transcript Generated Yet'}
+                        </h4>
+                        <p className="text-slate-400 text-xs mb-6 leading-relaxed">
+                          {episodeParts.length > 1 && activePart
+                            ? `Audio for ${activePart.label} is available to play, but this part has not yet been transcribed.`
+                            : 'This Space has audio published, but no diarized transcript asset is available yet.'}
+                        </p>
                         {transcribeSuccess ? (
                           <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
                             <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
                             <p className="mt-1 opacity-90">{transcribeSuccess}</p>
                           </div>
                         ) : (
-                          <button onClick={handleGenerateTranscript} disabled={transcribing}
-                            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer">
-                            {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                            {transcribing ? 'Dispatching transcription…' : '⚡ Transcribe Space'}
-                          </button>
+                          <div className="flex flex-col sm:flex-row items-center gap-3">
+                            {activePart?.mp3Asset && (
+                              <button
+                                onClick={handlePlayEpisodeToggle}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer"
+                              >
+                                {isCurrentEpisodePlaying ? <Pause size={14} /> : <Play size={14} />}
+                                {isCurrentEpisodePlaying ? `Pause ${activePart.label}` : `Play ${activePart.label} Audio`}
+                              </button>
+                            )}
+                            <button onClick={handleGenerateTranscript} disabled={transcribing}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl border border-slate-700 shadow-md transition-all hover:scale-105 cursor-pointer">
+                              {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} className="text-amber-400" />}
+                              {transcribing ? 'Dispatching transcription…' : (episodeParts.length > 1 && activePart ? `⚡ Transcribe ${activePart.label}` : '⚡ Transcribe Space')}
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}
