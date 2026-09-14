@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   Library, RefreshCw, ExternalLink, Download, Play, AlertCircle,
-  CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X
+  CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X, Sparkles
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, dispatchWorkflow, deleteRelease, getReleaseParts } from '../utils/github';
@@ -211,6 +211,29 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     }
   };
 
+  const [batchTranscribing, setBatchTranscribing] = useState(false);
+  const [batchMessage, setBatchMessage] = useState('');
+  const [batchSize, setBatchSize] = useState('10');
+
+  const handleBatchTranscribe = async () => {
+    setBatchTranscribing(true);
+    setBatchMessage('');
+    try {
+      await dispatchWorkflow(
+        config.githubToken,
+        config.ownerName.trim(),
+        config.repoName.trim(),
+        'batch_transcribe.yml',
+        { limit: batchSize }
+      );
+      setBatchMessage(`Batch transcription started! Modal GPU is transcribing the next ${batchSize} untranscribed episodes (newest first).`);
+    } catch (e) {
+      setBatchMessage(`Error: ${(e as Error).message}`);
+    } finally {
+      setBatchTranscribing(false);
+    }
+  };
+
   function durationToSecs(body: string | null): number {
     const dur = parseDuration(body);
     if (!dur) return -1;
@@ -229,7 +252,11 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     });
 
   const mp3Count = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
-  const txtCount = releases.reduce((n, r) => n + (r.assets.some(a => a.name.endsWith('.txt') || a.name.endsWith('.json')) ? 1 : 0), 0);
+  const txtCount = releases.reduce((n, r) => n + (r.assets.some(a => a.name.endsWith('.txt') || (a.name.endsWith('.json') && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')) ? 1 : 0), 0);
+  const untranscribedCount = releases.filter(r => 
+    r.assets.some(a => a.name.endsWith('.mp3')) && 
+    !r.assets.some(a => (a.name.endsWith('.txt') || a.name.endsWith('.json')) && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')
+  ).length;
   const dupCount = findDuplicates(releases).length;
 
   return (
@@ -430,11 +457,12 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
       {/* ── Normal library view ─────────────────────────────────────────── */}
       {!dupMode && loaded && releases.length > 0 && (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Episodes', value: releases.length, color: 'text-indigo-400' },
               { label: 'Audio files', value: mp3Count, color: 'text-emerald-400' },
-              { label: 'Transcripts', value: txtCount, color: 'text-amber-400' },
+              { label: 'Transcribed', value: txtCount, color: 'text-amber-400' },
+              { label: 'Untranscribed', value: untranscribedCount, color: 'text-rose-400' },
             ].map(s => (
               <div key={s.label} className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-center">
                 <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
@@ -442,6 +470,45 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
               </div>
             ))}
           </div>
+
+          {untranscribedCount > 0 && (
+            <div className="p-4 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 border border-indigo-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-indigo-400 animate-pulse" />
+                  <h4 className="text-sm font-semibold text-white">Batch Transcribe Queue (Newest to Oldest)</h4>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  {untranscribedCount} episode{untranscribedCount !== 1 ? 's' : ''} awaiting Modal cloud GPU transcription. Episodes are queued chronologically from most recently released to oldest.
+                </p>
+                {batchMessage && (
+                  <p className={`text-xs mt-2 font-medium ${batchMessage.startsWith('Error') ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {batchMessage}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <select
+                  value={batchSize}
+                  onChange={e => setBatchSize(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="5">Batch: 5 episodes</option>
+                  <option value="10">Batch: 10 episodes</option>
+                  <option value="25">Batch: 25 episodes</option>
+                  <option value="50">Batch: 50 episodes</option>
+                </select>
+                <button
+                  onClick={handleBatchTranscribe}
+                  disabled={batchTranscribing}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-600/20"
+                >
+                  {batchTranscribing ? <Loader size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                  Transcribe Next Batch
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-2">
             <input
