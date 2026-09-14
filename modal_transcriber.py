@@ -72,6 +72,7 @@ modal_image = (
         modal.Secret.from_dict({
             "GH_TOKEN": os.environ.get("GH_TOKEN", os.environ.get("GITHUB_TOKEN", "")),
             "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_API_KEY", "")),
+            "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
         })
     ]
 )
@@ -141,10 +142,12 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
         mp3_name = mp3_asset["name"]
         stem = Path(mp3_name).stem
 
-        # Check if already transcribed
+        # Check if already transcribed and clips generated
         existing_json_asset = next((a for a in assets if a.get("name") == f"{stem}.json" and a.get("size", 0) > 1000), None)
-        if existing_json_asset and not os.environ.get("FORCE_RETRANSCRIBE"):
-            print(f"[✓] {mp3_name} already has transcript: {existing_json_asset['name']} ({existing_json_asset['size']} bytes). Skipping.")
+        existing_clips_asset = next((a for a in assets if (a.get("name") == f"{stem}_clips.json" or a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json") and a.get("size", 0) > 100), None)
+
+        if existing_json_asset and existing_clips_asset and not os.environ.get("FORCE_RETRANSCRIBE"):
+            print(f"[✓] {mp3_name} already has transcript ({existing_json_asset['name']}) and clips ({existing_clips_asset['name']}). Skipping.")
             continue
 
         print(f"\n[*] Processing Audio Asset: {mp3_name} ({mp3_asset.get('size', 0) / (1024*1024):.1f} MB)")
@@ -167,18 +170,26 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
         output_dir.mkdir(parents=True, exist_ok=True)
         json_path = output_dir / f"{stem}.json"
 
-        cmd_transcribe = [
-            py_exe, "batch_transcriber.py",
-            "--file", str(local_mp3),
-            "--title", stem,
-            "--output-dir", str(output_dir),
-            "--non-interactive"
-        ]
-        print(f"[*] Running batch_transcriber on cloud NVIDIA A10G GPU for {mp3_name}...")
-        res = subprocess.run(cmd_transcribe, env=sub_env)
-        if res.returncode != 0:
-            raise RuntimeError(f"batch_transcriber failed for {mp3_name} with exit code {res.returncode}")
-        print(f"[✓] GPU Transcription & Diarization Complete for {mp3_name}!")
+        if existing_json_asset and not os.environ.get("FORCE_RETRANSCRIBE"):
+            print(f"[*] Transcript already exists ({existing_json_asset['name']}). Downloading directly to extract missing highlight clips...")
+            j_resp = requests.get(existing_json_asset["browser_download_url"], headers=headers)
+            j_resp.raise_for_status()
+            with open(json_path, "wb") as f:
+                f.write(j_resp.content)
+            print(f"[✓] Downloaded transcript JSON ({json_path.stat().st_size} bytes). Skipping GPU Whisper transcription.")
+        else:
+            cmd_transcribe = [
+                py_exe, "batch_transcriber.py",
+                "--file", str(local_mp3),
+                "--title", stem,
+                "--output-dir", str(output_dir),
+                "--non-interactive"
+            ]
+            print(f"[*] Running batch_transcriber on cloud NVIDIA GPU for {mp3_name}...")
+            res = subprocess.run(cmd_transcribe, env=sub_env)
+            if res.returncode != 0:
+                raise RuntimeError(f"batch_transcriber failed for {mp3_name} with exit code {res.returncode}")
+            print(f"[✓] GPU Transcription & Diarization Complete for {mp3_name}!")
 
         # Dynamic check for generated JSON
         if not json_path.exists():
@@ -187,10 +198,14 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
                 json_path = candidates[0]
                 print(f"[*] Note: json_path matched to {json_path.name}")
 
-        # 4. Extract Best & Funniest Highlights using Gemini 2.5 Flash
+        # 4. Extract Best & Funniest Highlights using OpenRouter / Gemini
         clips_dir = Path("best_saved_clips")
+        if clips_dir.exists():
+            shutil.rmtree(clips_dir, ignore_errors=True)
+        clips_dir.mkdir(parents=True, exist_ok=True)
+
         if json_path.exists():
-            print(f"[*] Extracting AI Highlight Clips with Gemini 2.5 Flash for {json_path.stem}...")
+            print(f"[*] Extracting AI Highlight Clips for {json_path.stem}...")
             cmd_clips = [
                 py_exe, "scripts/find_and_cut_best_clips.py",
                 "--json", str(json_path),
@@ -200,11 +215,11 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
             try:
                 res_clips = subprocess.run(cmd_clips, env=sub_env, timeout=300)
                 if res_clips.returncode != 0:
-                    print(f"[!] Clip extraction returned code {res_clips.returncode}. Proceeding with transcript upload...")
+                    print(f"[!] Clip extraction returned code {res_clips.returncode}. Proceeding with upload...")
             except subprocess.TimeoutExpired:
-                print("[!] Clip extraction reached 300s timeout. Proceeding with transcript upload...")
+                print("[!] Clip extraction reached 300s timeout. Proceeding with upload...")
             except Exception as e:
-                print(f"[!] Clip extraction notice: {e}. Proceeding with transcript upload...")
+                print(f"[!] Clip extraction notice: {e}. Proceeding with upload...")
 
         # 5. Gather Files to Upload
         txt_path = output_dir / f"{json_path.stem}.txt"
@@ -260,9 +275,14 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
                 else:
                     raise RuntimeError(f"Failed to upload {fname} to release: status {up_resp.status_code}, response: {up_resp.text}")
 
-        # Clean scratch mp3
+        # Clean scratch mp3 and clips
         try:
             local_mp3.unlink(missing_ok=True)
+        except Exception:
+            pass
+        try:
+            if clips_dir.exists():
+                shutil.rmtree(clips_dir, ignore_errors=True)
         except Exception:
             pass
 

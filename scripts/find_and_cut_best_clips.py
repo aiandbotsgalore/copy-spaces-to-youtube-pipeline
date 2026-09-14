@@ -28,6 +28,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+import requests
 import shutil
 
 FFMPEG_EXE = shutil.which("ffmpeg") or "ffmpeg"
@@ -67,30 +68,15 @@ def format_seconds_display(sec: float) -> str:
     return f"{minutes:02d}:{seconds:02d}"
 
 
-def call_gemini_highlight_discovery(
+def call_openrouter_highlight_discovery(
     transcript_text: str,
     limit: int = 5,
     category_filter: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Uses Gemini 2.5 Flash structured output to identify the top entertaining clips."""
-    from google import genai
-    from pydantic import BaseModel, Field
-
-    class HighlightClip(BaseModel):
-        title: str = Field(description="Catchy, punchy title summarizing this specific clip/moment")
-        category: str = Field(description="One of: 'Humor & Banter', 'Wild Story', 'Passionate Rant', 'Golden Quote'")
-        start_seconds: float = Field(description="Start time in seconds at the natural beginning of the setup or sentence")
-        end_seconds: float = Field(description="End time in seconds right after the punchline or conclusion")
-        speakers: List[str] = Field(description="List of speakers speaking in this clip")
-        viral_score: int = Field(description="Entertainment / viral score from 1 (mild) to 10 (hilarious / unforgettable)")
-        reason: str = Field(description="Brief explanation of why this moment is funny, entertaining, or memorable")
-        transcript_snippet: str = Field(description="The key dialogue lines or punchline in this clip")
-
-    class HighlightDiscoveryResult(BaseModel):
-        clips: List[HighlightClip] = Field(description="The top highlight moments found in the transcript")
-
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    client = genai.Client(api_key=api_key)
+    """Calls OpenRouter (Gemini 2.5 Flash / GPT-4o-mini) with structured JSON output."""
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        return []
 
     filter_instruction = ""
     if category_filter and category_filter.lower() != "all":
@@ -112,50 +98,212 @@ Guidelines:
 - Rank by viral/entertainment appeal.
 {filter_instruction}
 
+Return a valid JSON object with a single "clips" array containing dictionaries with keys:
+"title", "category", "start_seconds", "end_seconds", "speakers", "viral_score", "reason", "transcript_snippet".
+
 Transcript:
 {transcript_text}
 """
 
-    models_to_try = ["gemini-2.5-flash-lite", "gemini-2.5-flash"]
-    last_err = None
-    for model_name in models_to_try:
-        for attempt in range(2):
-            try:
-                print(f"[*] Analyzing with {model_name} (attempt {attempt + 1})...", flush=True)
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt,
-                    config={
-                        "response_mime_type": "application/json",
-                        "response_json_schema": HighlightDiscoveryResult.model_json_schema()
-                    }
-                )
-                parsed = HighlightDiscoveryResult.model_validate_json(response.text)
-                return [c.model_dump() for c in parsed.clips]
-            except Exception as e:
-                last_err = e
-                err_str = str(e)
-                print(f"[!] {model_name} attempt {attempt + 1} notice: {e}", flush=True)
-                # If key is suspended or permission denied, retrying will never work — abort immediately to save compute
-                if "CONSUMER_SUSPENDED" in err_str or "PERMISSION_DENIED" in err_str or "403" in err_str:
-                    print(f"[!] Gemini API key suspended or permission denied. Aborting Gemini calls immediately to save GPU compute.", flush=True)
-                    raise RuntimeError(f"Gemini API key is invalid/suspended: {e}")
-                # If project hit daily quota limit, retrying is futile — skip model immediately
-                if "GenerateRequestsPerDay" in err_str or "Daily" in err_str or "limit: 20" in err_str:
-                    print(f"[*] Daily quota reached for {model_name}. Skipping to next model...", flush=True)
-                    break
-                delay = 2 * (attempt + 1)
-                if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
-                    import re
-                    m = re.search(r"retryDelay':\s*'(\d+)s'", err_str)
-                    if m:
-                        delay = min(30, int(m.group(1)) + 1)
-                    else:
-                        delay = 10
-                print(f"[*] Backing off for {delay}s before retry...", flush=True)
-                time.sleep(delay)
+    models_to_try = ["google/gemini-2.5-flash", "openai/gpt-4o-mini"]
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
 
-    raise RuntimeError(f"All Gemini models failed highlight extraction: {last_err}")
+    for model_name in models_to_try:
+        try:
+            print(f"[*] Analyzing highlights with OpenRouter ({model_name})...", flush=True)
+            payload = {
+                "model": model_name,
+                "messages": [{"role": "user", "content": prompt}],
+                "response_format": {"type": "json_object"}
+            }
+            resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=90)
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"]
+                parsed = json.loads(content)
+                raw_clips = parsed.get("clips") or []
+                clean_clips = []
+                for c in raw_clips:
+                    if "start_seconds" in c and "end_seconds" in c and float(c["end_seconds"]) > float(c["start_seconds"]):
+                        clean_clips.append({
+                            "title": str(c.get("title", "Highlight Clip")),
+                            "category": str(c.get("category", "Humor & Banter")),
+                            "start_seconds": float(c["start_seconds"]),
+                            "end_seconds": float(c["end_seconds"]),
+                            "speakers": list(c.get("speakers", [])),
+                            "viral_score": int(c.get("viral_score", 8)),
+                            "reason": str(c.get("reason", "Entertaining dialogue")),
+                            "transcript_snippet": str(c.get("transcript_snippet", ""))
+                        })
+                if clean_clips:
+                    print(f"[✓] OpenRouter ({model_name}) extracted {len(clean_clips)} moments!", flush=True)
+                    return clean_clips
+            else:
+                print(f"[!] OpenRouter notice ({resp.status_code}): {resp.text[:150]}", flush=True)
+        except Exception as e:
+            print(f"[!] OpenRouter error with {model_name}: {e}", flush=True)
+
+    return []
+
+
+def extract_heuristic_highlights(
+    segments: List[Dict[str, Any]],
+    limit: int = 5
+) -> List[Dict[str, Any]]:
+    """Robust fallback: extracts energetic and funny conversational exchanges without external LLM."""
+    if not segments:
+        return []
+
+    laughter_tokens = {"haha", "hahaha", "lol", "lmao", "rofl", "giggle", "laugh", "laughing", "crying", "chuckle", "wheeze"}
+    wild_tokens = {"wild", "crazy", "insane", "unbelievable", "holy", "shit", "fuck", "fucking", "ridiculous", "hilarious", "bullshit", "no way"}
+
+    scored_windows = []
+    # Slide across segments to find 25s - 75s conversational windows
+    for i in range(len(segments)):
+        w_start = segments[i].get("start", 0.0)
+        curr_text = []
+        speakers = set()
+        score = 0
+        w_end = w_start
+        for j in range(i, min(len(segments), i + 20)):
+            seg = segments[j]
+            w_end = seg.get("end", w_start)
+            dur = w_end - w_start
+            txt = (seg.get("text") or "").strip()
+            spk = seg.get("speaker") or "Speaker"
+            speakers.add(spk)
+            curr_text.append(f"{spk}: {txt}")
+
+            txt_lower = txt.lower()
+            if any(t in txt_lower for t in laughter_tokens):
+                score += 5
+            if any(t in txt_lower for t in wild_tokens):
+                score += 4
+            score += txt.count("!") * 2
+            score += txt.count("?") * 1
+
+            if 25.0 <= dur <= 75.0:
+                if len(speakers) > 1:
+                    score += 4
+                scored_windows.append({
+                    "start_seconds": round(w_start, 2),
+                    "end_seconds": round(w_end, 2),
+                    "score": score,
+                    "speakers": list(speakers),
+                    "text": " ".join(curr_text)
+                })
+            elif dur > 75.0:
+                break
+
+    if not scored_windows:
+        total_dur = segments[-1].get("end", 0.0)
+        chunk_len = min(60.0, max(20.0, total_dur / max(1, limit)))
+        for i in range(min(limit, int(total_dur // chunk_len))):
+            s = i * chunk_len
+            e = s + chunk_len
+            scored_windows.append({
+                "start_seconds": round(s, 2),
+                "end_seconds": round(e, 2),
+                "score": 5,
+                "speakers": list({seg.get("speaker", "Speaker") for seg in segments if s <= seg.get("start", 0) <= e}),
+                "text": "Discussion highlight moment"
+            })
+
+    scored_windows.sort(key=lambda x: x["score"], reverse=True)
+    selected = []
+    for w in scored_windows:
+        if not any(abs(w["start_seconds"] - s["start_seconds"]) < 30.0 for s in selected):
+            selected.append(w)
+        if len(selected) >= limit:
+            break
+
+    clips = []
+    for idx, w in enumerate(selected, 1):
+        words = [wd for wd in w["text"].split() if not wd.endswith(":")]
+        first_few_words = " ".join(words[:6]).replace('"', "") if words else f"Moment {idx}"
+        clips.append({
+            "title": f"{first_few_words[:40]}",
+            "category": "Humor & Banter" if any(t in w["text"].lower() for t in laughter_tokens) else "Wild Story",
+            "start_seconds": w["start_seconds"],
+            "end_seconds": w["end_seconds"],
+            "speakers": w["speakers"],
+            "viral_score": min(10, max(6, 6 + (w["score"] // 3))),
+            "reason": "High-energy dialogue and rapid exchange",
+            "transcript_snippet": w["text"][:180] + "..."
+        })
+    return clips
+
+
+def call_gemini_highlight_discovery(
+    transcript_text: str,
+    limit: int = 5,
+    category_filter: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Uses OpenRouter or Gemini Flash to identify the top entertaining clips."""
+    # 1. Try OpenRouter first if available
+    if os.environ.get("OPENROUTER_API_KEY"):
+        or_clips = call_openrouter_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+        if or_clips:
+            return or_clips
+
+    # 2. Try Google Gemini Client if available
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            from google import genai
+            from pydantic import BaseModel, Field
+
+            class HighlightClip(BaseModel):
+                title: str = Field(description="Catchy title")
+                category: str = Field(description="Category")
+                start_seconds: float
+                end_seconds: float
+                speakers: List[str]
+                viral_score: int
+                reason: str
+                transcript_snippet: str
+
+            class HighlightDiscoveryResult(BaseModel):
+                clips: List[HighlightClip]
+
+            client = genai.Client(api_key=api_key)
+            filter_instruction = ""
+            if category_filter and category_filter.lower() != "all":
+                filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+            prompt = f"""
+You are an expert audio podcast producer and viral clip curator.
+Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
+{filter_instruction}
+Transcript:
+{transcript_text}
+"""
+            for model_name in ["gemini-2.5-flash-lite", "gemini-2.5-flash"]:
+                try:
+                    print(f"[*] Analyzing with Gemini ({model_name})...", flush=True)
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=prompt,
+                        config={
+                            "response_mime_type": "application/json",
+                            "response_json_schema": HighlightDiscoveryResult.model_json_schema()
+                        }
+                    )
+                    parsed = HighlightDiscoveryResult.model_validate_json(response.text)
+                    return [c.model_dump() for c in parsed.clips]
+                except Exception as e:
+                    err_str = str(e)
+                    print(f"[!] {model_name} notice: {e}", flush=True)
+                    if "CONSUMER_SUSPENDED" in err_str or "PERMISSION_DENIED" in err_str or "403" in err_str:
+                        print(f"[!] Gemini direct API key suspended or permission denied. Trying fallbacks...", flush=True)
+                        break
+        except Exception as e:
+            print(f"[!] Direct Gemini exception: {e}", flush=True)
+
+    return []
 
 
 def slice_audio_clip(audio_path: str, start: float, end: float, out_path: str, pre_roll: float = 1.5) -> bool:
@@ -293,7 +441,11 @@ def process_single_episode(
                 break
         highlights = filtered
 
-    print(f"[✓] Gemini identified {len(highlights)} top moments!")
+    if not highlights:
+        print("[*] External AI highlight discovery returned no moments. Falling back to dialogue heuristic highlight extraction...", flush=True)
+        highlights = extract_heuristic_highlights(segments, limit=limit)
+
+    print(f"[✓] Identified {len(highlights)} top moments!")
 
     saved_clips = []
     for idx, h in enumerate(highlights, 1):

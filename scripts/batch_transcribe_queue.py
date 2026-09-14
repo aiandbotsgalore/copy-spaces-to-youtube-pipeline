@@ -150,6 +150,12 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
         ]
         has_transcript = any(a.get("size", 0) > 1000 for a in transcript_assets)
 
+        clip_assets = [
+            a for a in assets 
+            if (a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json") and a.get("size", 0) > 100
+        ]
+        has_clips = len(clip_assets) > 0
+
         timestamp_ms, date_display = get_episode_recorded_timestamp(rel)
 
         info = {
@@ -161,6 +167,7 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
             "total_audio_bytes": sum(a.get("size", 0) for a in mp3_assets),
             "has_audio": has_audio,
             "has_transcript": has_transcript,
+            "has_clips": has_clips,
         }
 
         if not has_audio:
@@ -170,14 +177,19 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
         else:
             untranscribed.append(info)
 
+    # Missing clips: transcribed episodes that have no highlight clips generated yet
+    missing_clips = [item for item in transcribed if not item["has_clips"]]
+
     # Sort strictly from newest (most recently released/aired) to oldest
     untranscribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
     transcribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
+    missing_clips.sort(key=lambda x: x["timestamp_ms"], reverse=True)
 
     return {
         "total_releases": len(releases),
         "transcribed": transcribed,
         "untranscribed": untranscribed,
+        "missing_clips": missing_clips,
         "no_audio": no_audio
     }
 
@@ -210,6 +222,7 @@ def main():
     parser = argparse.ArgumentParser(description="Batch Transcribe Episodes in order from newest to oldest")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--limit", type=int, default=10, help="Number of episodes to transcribe (0 for all)")
+    parser.add_argument("--missing-clips", action="store_true", help="Process transcribed episodes that are missing highlight clips")
     parser.add_argument("--dry-run", action="store_true", help="Preview queue and exit without running Modal")
     parser.add_argument("--token", type=str, default=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"))
     args = parser.parse_args()
@@ -232,12 +245,19 @@ def main():
     print(f"  • Episodes with Audio:      {total_with_audio}")
     print(f"  • Already Transcribed:      {len(analysis['transcribed'])} ({pct:.1f}%)")
     print(f"  • Untranscribed Remaining:  {len(analysis['untranscribed'])}")
+    print(f"  • Transcribed Missing Clips:{len(analysis['missing_clips'])}")
     print("=" * 65)
 
-    queue = analysis["untranscribed"]
-    if not queue:
-        print("\n[🎉] All episodes in the repository are already transcribed!")
-        sys.exit(0)
+    if args.missing_clips:
+        queue = analysis["missing_clips"]
+        if not queue:
+            print("\n[🎉] All transcribed episodes already have highlight clips generated!")
+            sys.exit(0)
+    else:
+        queue = analysis["untranscribed"]
+        if not queue:
+            print("\n[🎉] All episodes in the repository are already transcribed!")
+            sys.exit(0)
 
     to_process = queue if args.limit <= 0 else queue[:args.limit]
 

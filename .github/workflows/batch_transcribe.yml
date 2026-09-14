@@ -14,6 +14,11 @@ on:
         required: false
         default: false
         type: boolean
+      missing_clips:
+        description: 'Process transcribed episodes that are missing highlight clips'
+        required: false
+        default: false
+        type: boolean
   schedule:
     # Continuously transcribes batches of untranscribed episodes every 4 hours
     - cron: '0 */4 * * *'
@@ -52,6 +57,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           export MODAL_TOKEN_ID=$(echo -n "$MODAL_TOKEN_ID" | tr -d '\r\n ' )
           export MODAL_TOKEN_SECRET=$(echo -n "$MODAL_TOKEN_SECRET" | tr -d '\r\n ' )
@@ -59,7 +65,11 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             DRY_ARG="--dry-run"
           fi
-          python scripts/batch_transcribe_queue.py --limit "${{ inputs.limit || 10 }}" $DRY_ARG
+          CLIPS_ARG=""
+          if [ "${{ inputs.missing_clips }}" = "true" ]; then
+            CLIPS_ARG="--missing-clips"
+          fi
+          python scripts/batch_transcribe_queue.py --limit "${{ inputs.limit || 10 }}" $DRY_ARG $CLIPS_ARG
 
       - name: Commit Updated Search Index and Status
         if: success()
