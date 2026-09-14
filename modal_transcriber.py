@@ -21,6 +21,7 @@ import subprocess
 import requests
 import urllib.parse
 from pathlib import Path
+import shutil
 
 import modal
 
@@ -161,12 +162,15 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
         print(f"[✓] Download Complete: {local_mp3.stat().st_size / (1024*1024):.1f} MB")
 
         output_dir = Path("/tmp/output_transcripts")
+        if output_dir.exists():
+            shutil.rmtree(output_dir, ignore_errors=True)
         output_dir.mkdir(parents=True, exist_ok=True)
         json_path = output_dir / f"{stem}.json"
 
         cmd_transcribe = [
             py_exe, "batch_transcriber.py",
             "--file", str(local_mp3),
+            "--title", stem,
             "--output-dir", str(output_dir),
             "--non-interactive"
         ]
@@ -176,10 +180,17 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
             raise RuntimeError(f"batch_transcriber failed for {mp3_name} with exit code {res.returncode}")
         print(f"[✓] GPU Transcription & Diarization Complete for {mp3_name}!")
 
+        # Dynamic check for generated JSON
+        if not json_path.exists():
+            candidates = list(output_dir.glob("*.json"))
+            if candidates:
+                json_path = candidates[0]
+                print(f"[*] Note: json_path matched to {json_path.name}")
+
         # 4. Extract Best & Funniest Highlights using Gemini 2.5 Flash
         clips_dir = Path("best_saved_clips")
         if json_path.exists():
-            print(f"[*] Extracting AI Highlight Clips with Gemini 2.5 Flash for {stem}...")
+            print(f"[*] Extracting AI Highlight Clips with Gemini 2.5 Flash for {json_path.stem}...")
             cmd_clips = [
                 py_exe, "scripts/find_and_cut_best_clips.py",
                 "--json", str(json_path),
@@ -196,10 +207,16 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
                 print(f"[!] Clip extraction notice: {e}. Proceeding with transcript upload...")
 
         # 5. Gather Files to Upload
-        txt_path = output_dir / f"{stem}.txt"
-        srt_path = output_dir / f"{stem}.srt"
+        txt_path = output_dir / f"{json_path.stem}.txt"
+        srt_path = output_dir / f"{json_path.stem}.srt"
         
         to_upload = [p for p in [txt_path, srt_path, json_path] if p.exists() and p.stat().st_size > 0]
+        for extra in output_dir.glob("*.*"):
+            if extra.suffix.lower() in [".txt", ".srt", ".json"] and extra.stat().st_size > 0 and extra not in to_upload:
+                to_upload.append(extra)
+        
+        if not to_upload:
+            raise RuntimeError(f"Transcription failed: no output files were generated or found in {output_dir} for {mp3_name}")
         
         if clips_dir.exists():
             for clip_file in clips_dir.glob("**/*.mp3"):
@@ -223,7 +240,9 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
                 del_id = existing_asset_map[fname]
                 print(f"  [-] Replacing existing asset: {fname} (ID {del_id})...")
                 del_url = f"https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/assets/{del_id}"
-                requests.delete(del_url, headers=headers)
+                del_res = requests.delete(del_url, headers=headers)
+                if del_res.status_code not in [200, 204]:
+                    print(f"  [!] Notice: asset delete returned status {del_res.status_code}")
                 
             print(f"[*] Uploading {fname} ({file_path.stat().st_size} bytes) to GitHub Release {release_tag}...")
             u_headers = {
@@ -239,7 +258,7 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
                 if up_resp.status_code in [200, 201]:
                     print(f"  [✓] Successfully uploaded {fname}")
                 else:
-                    print(f"  [!] Upload status ({up_resp.status_code}): {up_resp.text}")
+                    raise RuntimeError(f"Failed to upload {fname} to release: status {up_resp.status_code}, response: {up_resp.text}")
 
         # Clean scratch mp3
         try:

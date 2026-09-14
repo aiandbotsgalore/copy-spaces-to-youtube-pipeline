@@ -21,7 +21,7 @@ function parseRssEpisodes(xml: string): LiveEpisode[] {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, 'text/xml');
     const items = Array.from(doc.querySelectorAll('item'));
-    return items.map(item => {
+    const parsed = items.map(item => {
       const enc = item.querySelector('enclosure');
       const dur = item.querySelector('duration');
       return {
@@ -33,6 +33,7 @@ function parseRssEpisodes(xml: string): LiveEpisode[] {
         guid: item.querySelector('guid')?.textContent || '',
       };
     });
+    return parsed.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
   } catch {
     return [];
   }

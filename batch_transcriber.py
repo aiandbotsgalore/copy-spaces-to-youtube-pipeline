@@ -709,7 +709,15 @@ class BatchAudioTranscriber:
                 print(f"  • {spk_name}: {self.format_timestamp(tt)} ({tt/60:.1f} min)")
 
             # Step 5: Export Transcripts (.txt, .srt, .json)
-            safe_title = "".join(c for c in title if c.isalnum() or c in (" ", "-", "_")).strip().replace(" ", "_")
+            # Remove characters that are illegal across filesystems (< > : " / \ | ? *)
+            # while preserving dots, underscores, dashes, and other valid filename characters.
+            invalid_chars = set('<>:"/\\|?*')
+            safe_title = "".join(c for c in title if c not in invalid_chars and ord(c) >= 32).strip()
+            safe_title = safe_title.replace(" ", "_")
+            # Avoid trailing dots or spaces which are invalid on Windows filesystems
+            safe_title = safe_title.rstrip(". ")
+            if not safe_title:
+                safe_title = "transcript"
             txt_path = self.output_dir / f"{safe_title}.txt"
             srt_path = self.output_dir / f"{safe_title}.srt"
             json_path = self.output_dir / f"{safe_title}.json"
@@ -890,6 +898,7 @@ def main():
     parser.add_argument("--url", type=str, help="Direct audio URL (e.g. GitHub raw URL, Release download link, or HTTPS audio)")
     parser.add_argument("--repo", type=str, help="GitHub repository (e.g. 'owner/repo') to automatically scan for all audio releases/files")
     parser.add_argument("--file", type=str, help="Path to a local audio file (.mp3, .m4a, .wav, etc.)")
+    parser.add_argument("--title", type=str, default=None, help="Explicit title / base filename for outputs")
     parser.add_argument("--list", type=str, help="Path to a text file containing URLs or file paths (one per line)")
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL, choices=["tiny", "base", "small", "medium", "large-v3", "large-v3-turbo"], help="Whisper model size")
     parser.add_argument("--device", type=str, default="cuda", choices=["cuda", "cpu"], help="Compute device (default: cuda)")
@@ -937,9 +946,9 @@ def main():
     queue: List[Dict[str, str]] = []
 
     if args.url:
-        queue.append({"url": args.url, "title": None})
+        queue.append({"url": args.url, "title": args.title})
     elif args.file:
-        queue.append({"url": os.path.abspath(args.file), "title": Path(args.file).stem})
+        queue.append({"url": os.path.abspath(args.file), "title": args.title or Path(args.file).stem})
     elif args.repo:
         print(f"[*] Scanning GitHub repository '{args.repo}' for audio assets...")
         discovered = discover_github_audio(args.repo, github_token=args.github_token)

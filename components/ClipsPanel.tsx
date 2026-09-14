@@ -32,6 +32,7 @@ import {
   Share2
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
+import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 
 export interface ClipItem {
   title: string;
@@ -151,7 +152,8 @@ export const ClipsPanel: React.FC = () => {
       try {
         const ghRes = await fetch('https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=50');
         if (ghRes.ok) {
-          const releases = await ghRes.json();
+          const rawReleases = await ghRes.json();
+          const releases = Array.isArray(rawReleases) ? sortReleasesByRecordedDate(rawReleases, 'desc') : [];
           const seenFiles = new Set(
             combinedClips.map(c => (c.file_path ? c.file_path.split(/[\\/]/).pop()?.toLowerCase() : ''))
           );
@@ -298,7 +300,13 @@ export const ClipsPanel: React.FC = () => {
       const ep = c.episode || 'Unknown Space';
       epMap[ep] = (epMap[ep] || 0) + 1;
     });
-    return Object.entries(epMap).map(([name, count]) => ({ name, count }));
+    return Object.entries(epMap)
+      .sort(([epA], [epB]) => {
+        const tA = getEpisodeRecordedDate({ name: epA }).timestampMs;
+        const tB = getEpisodeRecordedDate({ name: epB }).timestampMs;
+        return tB - tA;
+      })
+      .map(([name, count]) => ({ name, count }));
   }, [clips]);
 
   // Unique Speakers list
@@ -340,14 +348,16 @@ export const ClipsPanel: React.FC = () => {
           return (b.viral_score || 0) - (a.viral_score || 0);
         }
         if (sortBy === 'newest') {
-          const epA = a.episode || '';
-          const epB = b.episode || '';
-          return epB.localeCompare(epA, undefined, { numeric: true });
+          const tA = getEpisodeRecordedDate({ name: a.episode }).timestampMs;
+          const tB = getEpisodeRecordedDate({ name: b.episode }).timestampMs;
+          if (tA !== tB) return tB - tA;
+          return (a.start_seconds || 0) - (b.start_seconds || 0);
         }
         if (sortBy === 'oldest') {
-          const epA = a.episode || '';
-          const epB = b.episode || '';
-          return epA.localeCompare(epB, undefined, { numeric: true });
+          const tA = getEpisodeRecordedDate({ name: a.episode }).timestampMs;
+          const tB = getEpisodeRecordedDate({ name: b.episode }).timestampMs;
+          if (tA !== tB) return tA - tB;
+          return (a.start_seconds || 0) - (b.start_seconds || 0);
         }
         if (sortBy === 'episode-az') {
           const epA = formatEpisodeTitle(a.episode).toLowerCase();
@@ -366,7 +376,7 @@ export const ClipsPanel: React.FC = () => {
       });
   }, [clips, selectedCategory, selectedEpisode, selectedSpeaker, onlyTopRated, search, sortBy]);
 
-  // Grouped by Episode
+  // Grouped by Episode (sorted chronologically by true air date)
   const groupedClips = useMemo(() => {
     const groups: Record<string, ClipItem[]> = {};
     filteredClips.forEach(c => {
@@ -374,7 +384,12 @@ export const ClipsPanel: React.FC = () => {
       if (!groups[epKey]) groups[epKey] = [];
       groups[epKey].push(c);
     });
-    return groups;
+    const sortedEntries = Object.entries(groups).sort(([epA], [epB]) => {
+      const tA = getEpisodeRecordedDate({ name: epA }).timestampMs;
+      const tB = getEpisodeRecordedDate({ name: epB }).timestampMs;
+      return tB - tA;
+    });
+    return Object.fromEntries(sortedEntries);
   }, [filteredClips]);
 
   const getAudioUrl = (clip: ClipItem): string => {
