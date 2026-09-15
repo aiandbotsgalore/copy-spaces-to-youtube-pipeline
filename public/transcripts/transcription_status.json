@@ -1,9 +1,14 @@
 {
-  "last_updated": "2026-09-15T06:13:35.576342+00:00",
-  "total_episodes_with_audio": 778,
-  "transcribed_count": 90,
-  "untranscribed_count": 688,
+  "last_updated": "2026-09-15T12:13:03.767134+00:00",
+  "total_episodes_with_audio": 779,
+  "transcribed_count": 97,
+  "untranscribed_count": 682,
   "next_in_queue": [
+    {
+      "tag": "20260915_1dJrPryRPeQKX",
+      "name": "Woo",
+      "date": "Sep 15, 2026"
+    },
     {
       "tag": "20260908_1YxNrbOnaXZxw",
       "name": "Setting the record straight",
@@ -33,41 +38,6 @@
       "tag": "20260202_1770117309",
       "name": "xW_.",
       "date": "Feb 2, 2026"
-    },
-    {
-      "tag": "20260212_1vOGwdjbBzvJB",
-      "name": "ONE DOWN SEVEN TO GO",
-      "date": "Jan 27, 2026"
-    },
-    {
-      "tag": "20260220_1rmGPvkQVeZxN",
-      "name": "LOVERS EXPOSED - UFO WHORE HOUSE",
-      "date": "Jan 25, 2026"
-    },
-    {
-      "tag": "20260216_1gqGvryOwLlGB",
-      "name": "\u00c6\u00ef\u016f\u00f1\u0141\u00eb\u00e5\u015e\u0126E\u00d0- \u011f\u0153\u00f0\u015f \u00f8f \u00c6\u00ef",
-      "date": "Jan 25, 2026"
-    },
-    {
-      "tag": "20260216_1yoJMPZRZQwGQ",
-      "name": "AiUNLEAS\u0126ED",
-      "date": "Jan 23, 2026"
-    },
-    {
-      "tag": "20260211_1ynKOMaryjyJR",
-      "name": "#\u00c6\u00ce\u016fN\u0141EAS\u0126E\u00d0 - O\u2019N\u016bni\u00e1n Memoirs",
-      "date": "Jan 23, 2026"
-    },
-    {
-      "tag": "20260216_1kvJpMAdvPZxE",
-      "name": "Portals?",
-      "date": "Jan 19, 2026"
-    },
-    {
-      "tag": "20260212_1rmxPvgdyBVGN",
-      "name": "Oor Rules the World",
-      "date": "Jan 18, 2026"
     },
     {
       "tag": "20260212_1djGXWqlYoyKZ",
@@ -103,6 +73,36 @@
       "tag": "20260211_1lPKqvLDEvZGb",
       "name": "Ai Spoilers",
       "date": "Jan 6, 2026"
+    },
+    {
+      "tag": "20260218_1YpKkkLdMamKj",
+      "name": "Mostly Conjecture",
+      "date": "Dec 7, 2025"
+    },
+    {
+      "tag": "20260217_1mrxmBnbnMwKy",
+      "name": "Borderline SchizoEffective",
+      "date": "Dec 7, 2025"
+    },
+    {
+      "tag": "20260218_1YqxolLjjpjKv",
+      "name": "God Sauce Sings Xmas tunes",
+      "date": "Dec 3, 2025"
+    },
+    {
+      "tag": "20260217_1OyKAjdVmMgGb",
+      "name": "Snuggles Cant Be Shut Down",
+      "date": "Nov 28, 2025"
+    },
+    {
+      "tag": "20260218_1yNGabVvNRqJj",
+      "name": "Deepstate A.I. Overlord",
+      "date": "Nov 27, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkkWnEVrKj",
+      "name": "Shorter space for the greys",
+      "date": "Nov 26, 2025"
     }
   ]
 }
