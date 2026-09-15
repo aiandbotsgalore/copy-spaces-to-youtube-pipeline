@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-14T19:26:50.738474+00:00",
+  "last_updated": "2026-09-15T02:33:42.700774+00:00",
   "total_episodes_with_audio": 777,
-  "transcribed_count": 80,
-  "untranscribed_count": 697,
+  "transcribed_count": 85,
+  "untranscribed_count": 692,
   "next_in_queue": [
     {
       "tag": "20260908_1YxNrbOnaXZxw",
@@ -20,21 +20,6 @@
       "date": "Sep 4, 2026"
     },
     {
-      "tag": "20260204_1YqxolvejaQKv",
-      "name": "Solar Flares Intensifying",
-      "date": "Feb 4, 2026"
-    },
-    {
-      "tag": "20260204_1YpJkklXEgZJj",
-      "name": "The Fate Paradox",
-      "date": "Feb 4, 2026"
-    },
-    {
-      "tag": "20260204_1RDxlAyeoegKL",
-      "name": "Open Eye Kicks Eric\u2019s Ass",
-      "date": "Feb 4, 2026"
-    },
-    {
       "tag": "20260204_1LyGBXoBMVjxN",
       "name": "LiVE! Brazil Alien/UFO Disclosure",
       "date": "Feb 4, 2026"
@@ -43,16 +28,6 @@
       "tag": "test-placeholder-20260203-035848",
       "name": "Placeholder Episode",
       "date": "Feb 3, 2026"
-    },
-    {
-      "tag": "20260204_20",
-      "name": "Revelation",
-      "date": "Feb 2, 2026"
-    },
-    {
-      "tag": "20260202_1770145946",
-      "name": "Jj_The_Fate_Paradox",
-      "date": "Feb 2, 2026"
     },
     {
       "tag": "20260202_1770117309",
@@ -103,6 +78,31 @@
       "tag": "20260211_1ynKOMaryjyJR",
       "name": "#\u00c6\u00ce\u016fN\u0141EAS\u0126E\u00d0 - O\u2019N\u016bni\u00e1n Memoirs",
       "date": "Jan 23, 2026"
+    },
+    {
+      "tag": "20260216_1kvJpMAdvPZxE",
+      "name": "Portals?",
+      "date": "Jan 19, 2026"
+    },
+    {
+      "tag": "20260212_1rmxPvgdyBVGN",
+      "name": "Oor Rules the World",
+      "date": "Jan 18, 2026"
+    },
+    {
+      "tag": "20260212_1djGXWqlYoyKZ",
+      "name": "Pre sombro",
+      "date": "Jan 16, 2026"
+    },
+    {
+      "tag": "20260211_1MnGnPlMgBMxO",
+      "name": "Consciousness",
+      "date": "Jan 16, 2026"
+    },
+    {
+      "tag": "20260212_1BdxYZYlzyBKX",
+      "name": "Guy & Logan Cook Up(experimental music space)",
+      "date": "Jan 11, 2026"
     }
   ]
 }
