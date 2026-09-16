@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-16T05:40:03.360478+00:00",
+  "last_updated": "2026-09-16T12:03:15.890930+00:00",
   "total_episodes_with_audio": 780,
-  "transcribed_count": 104,
-  "untranscribed_count": 676,
+  "transcribed_count": 107,
+  "untranscribed_count": 673,
   "next_in_queue": [
     {
       "tag": "20260915_1dJrPryRPeQKX",
@@ -25,11 +25,6 @@
       "date": "Sep 4, 2026"
     },
     {
-      "tag": "20260204_1LyGBXoBMVjxN",
-      "name": "LiVE! Brazil Alien/UFO Disclosure",
-      "date": "Feb 4, 2026"
-    },
-    {
       "tag": "test-placeholder-20260203-035848",
       "name": "Placeholder Episode",
       "date": "Feb 3, 2026"
@@ -43,16 +38,6 @@
       "tag": "20260212_1djGXWqlYoyKZ",
       "name": "Pre sombro",
       "date": "Jan 16, 2026"
-    },
-    {
-      "tag": "20260218_1YpKkkLdMamKj",
-      "name": "Mostly Conjecture",
-      "date": "Dec 7, 2025"
-    },
-    {
-      "tag": "20260217_1mrxmBnbnMwKy",
-      "name": "Borderline SchizoEffective",
-      "date": "Dec 7, 2025"
     },
     {
       "tag": "20260218_1YqxolLjjpjKv",
@@ -103,6 +88,21 @@
       "tag": "20260217_1LyGBXEwZjzxN",
       "name": "For Dave",
       "date": "Nov 19, 2025"
+    },
+    {
+      "tag": "20260218_1ynJOMjomwyKR",
+      "name": "Snuggles & the Flying Saucers",
+      "date": "Nov 16, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkknnQEBKj",
+      "name": "Be prepared",
+      "date": "Nov 16, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLBRBNaZGm",
+      "name": "Danzig",
+      "date": "Nov 13, 2025"
     }
   ]
 }
