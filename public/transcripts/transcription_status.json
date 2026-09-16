@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-16T01:40:04.512457+00:00",
-  "total_episodes_with_audio": 779,
-  "transcribed_count": 101,
-  "untranscribed_count": 678,
+  "last_updated": "2026-09-16T05:40:03.360478+00:00",
+  "total_episodes_with_audio": 780,
+  "transcribed_count": 104,
+  "untranscribed_count": 676,
   "next_in_queue": [
     {
       "tag": "20260915_1dJrPryRPeQKX",
@@ -43,16 +43,6 @@
       "tag": "20260212_1djGXWqlYoyKZ",
       "name": "Pre sombro",
       "date": "Jan 16, 2026"
-    },
-    {
-      "tag": "20260212_1nAKEEAwOnvKL",
-      "name": "Can you even formulate a questio",
-      "date": "Jan 6, 2026"
-    },
-    {
-      "tag": "20260211_1lPKqvLDEvZGb",
-      "name": "Ai Spoilers",
-      "date": "Jan 6, 2026"
     },
     {
       "tag": "20260218_1YpKkkLdMamKj",
@@ -103,6 +93,16 @@
       "tag": "20260218_1YqKDNRAjzOJV",
       "name": "Feathers",
       "date": "Nov 20, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBmelwdJy",
+      "name": "SUPERMIND",
+      "date": "Nov 20, 2025"
+    },
+    {
+      "tag": "20260217_1LyGBXEwZjzxN",
+      "name": "For Dave",
+      "date": "Nov 19, 2025"
     }
   ]
 }
