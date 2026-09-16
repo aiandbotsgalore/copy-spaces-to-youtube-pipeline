@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-16T12:03:15.890930+00:00",
+  "last_updated": "2026-09-16T18:24:11.791408+00:00",
   "total_episodes_with_audio": 780,
-  "transcribed_count": 107,
-  "untranscribed_count": 673,
+  "transcribed_count": 109,
+  "untranscribed_count": 671,
   "next_in_queue": [
     {
       "tag": "20260915_1dJrPryRPeQKX",
@@ -38,16 +38,6 @@
       "tag": "20260212_1djGXWqlYoyKZ",
       "name": "Pre sombro",
       "date": "Jan 16, 2026"
-    },
-    {
-      "tag": "20260218_1YqxolLjjpjKv",
-      "name": "God Sauce Sings Xmas tunes",
-      "date": "Dec 3, 2025"
-    },
-    {
-      "tag": "20260217_1OyKAjdVmMgGb",
-      "name": "Snuggles Cant Be Shut Down",
-      "date": "Nov 28, 2025"
     },
     {
       "tag": "20260218_1yNGabVvNRqJj",
@@ -102,6 +92,16 @@
     {
       "tag": "20260217_1lDxLBRBNaZGm",
       "name": "Danzig",
+      "date": "Nov 13, 2025"
+    },
+    {
+      "tag": "20260216_1gqxvrqrRPzxB",
+      "name": "Drugs & Gods",
+      "date": "Nov 13, 2025"
+    },
+    {
+      "tag": "20260216_1DXxyWywdpvGM",
+      "name": "UFO History",
       "date": "Nov 13, 2025"
     }
   ]
