@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-17T06:30:35.871903+00:00",
-  "total_episodes_with_audio": 782,
+  "last_updated": "2026-09-17T08:46:36.838134+00:00",
+  "total_episodes_with_audio": 781,
   "transcribed_count": 112,
-  "untranscribed_count": 670,
+  "untranscribed_count": 669,
   "next_in_queue": [
     {
       "tag": "20260915_1dJrPryRPeQKX",
@@ -23,11 +23,6 @@
       "tag": "20260904_1NGaroeWObQJj",
       "name": "1 minute of Motivational Music played 60x",
       "date": "Sep 4, 2026"
-    },
-    {
-      "tag": "test-placeholder-20260203-035848",
-      "name": "Placeholder Episode",
-      "date": "Feb 3, 2026"
     },
     {
       "tag": "20260202_1770117309",
@@ -102,6 +97,11 @@
     {
       "tag": "20260218_1YqxolWyzENKv",
       "name": "Gabe",
+      "date": "Nov 12, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYZPYmdgJX",
+      "name": "Graphic Adult Humor: Get Triggered \ud83d\ude18",
       "date": "Nov 12, 2025"
     }
   ]

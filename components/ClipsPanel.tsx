@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import { EnhancedConfig } from '../types';
 
 export interface ClipItem {
   title: string;
@@ -93,7 +94,11 @@ const getCategoryColor = (cat: string) => {
   };
 };
 
-export const ClipsPanel: React.FC = () => {
+export interface ClipsPanelProps {
+  config?: EnhancedConfig;
+}
+
+export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [clips, setClips] = useState<ClipItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -122,6 +127,10 @@ export const ClipsPanel: React.FC = () => {
   const globalPlayer = usePlayer();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const owner = config?.ownerName || 'aiandbotsgalore';
+  const repo = config?.repoName || 'copy-spaces-to-youtube-pipeline';
+  const token = config?.githubToken || '';
+
   // Auto-pause clips player if global episode player starts playing
   useEffect(() => {
     if (globalPlayer.isPlaying && isPlaying) {
@@ -137,20 +146,36 @@ export const ClipsPanel: React.FC = () => {
     try {
       let combinedClips: ClipItem[] = [];
 
-      // 1. Fetch static local catalog
-      try {
-        const res = await fetch('/clips/clips_catalog.json');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) combinedClips = [...data];
+      // 1. Fetch static local catalog (try relative, base, and root paths)
+      const catalogCandidates = [
+        './clips/clips_catalog.json',
+        '/clips/clips_catalog.json',
+        `${import.meta.env.BASE_URL || '/'}clips/clips_catalog.json`.replace(/\/+/g, '/')
+      ];
+      for (const catUrl of catalogCandidates) {
+        try {
+          const res = await fetch(catUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              combinedClips = [...data];
+              break;
+            }
+          }
+        } catch (e) {
+          // try next path
         }
-      } catch (e) {
-        console.warn('Local clips catalog not found, checking remote releases...', e);
       }
 
       // 2. Fetch live clips directly from GitHub Releases API
       try {
-        const ghRes = await fetch('https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=50');
+        const headers: Record<string, string> = {
+          'Accept': 'application/vnd.github.v3+json',
+        };
+        if (token) {
+          headers['Authorization'] = `token ${token}`;
+        }
+        const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=50`, { headers });
         if (ghRes.ok) {
           const rawReleases = await ghRes.json();
           const releases = Array.isArray(rawReleases) ? sortReleasesByRecordedDate(rawReleases, 'desc') : [];
@@ -563,7 +588,7 @@ export const ClipsPanel: React.FC = () => {
         <div className="flex items-center gap-2 self-start md:self-auto flex-shrink-0">
           <button
             onClick={() => {
-              const url = 'https://aiandbotsgalore.github.io/copy-spaces-to-youtube-pipeline/clips.xml';
+              const url = `https://${owner}.github.io/${repo}/clips.xml`;
               navigator.clipboard.writeText(url);
               setCopiedRss(true);
               setTimeout(() => setCopiedRss(false), 2500);

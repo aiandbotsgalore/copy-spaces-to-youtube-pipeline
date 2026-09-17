@@ -17,6 +17,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+import urllib.request
 
 # Ensure repository root is in path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -94,6 +95,7 @@ def get_episode_recorded_timestamp(rel: Dict[str, Any]) -> tuple[int, str]:
 def fetch_all_releases(repo: str, github_token: Optional[str] = None) -> List[Dict[str, Any]]:
     """Fetches all repository releases with pagination using gh api or requests."""
     print(f"[*] Fetching releases for {repo}...")
+    # 1. Try gh api if available
     cmd = ["gh", "api", f"repos/{repo}/releases?per_page=100", "--paginate"]
     env = os.environ.copy()
     if github_token:
@@ -117,11 +119,37 @@ def fetch_all_releases(repo: str, github_token: Optional[str] = None) -> List[Di
                 releases.extend(obj)
             elif isinstance(obj, dict):
                 releases.append(obj)
-        print(f"[✓] Retrieved {len(releases)} total releases.")
-        return releases
-    except Exception as e:
-        print(f"[!] Error fetching releases: {e}")
-        return []
+        if releases:
+            print(f"[✓] Retrieved {len(releases)} total releases via gh CLI.")
+            return releases
+    except Exception:
+        pass
+
+    # 2. Fallback: direct HTTP requests via urllib with pagination
+    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SpacePipe-BatchQueue"}
+    if github_token:
+        headers["Authorization"] = f"token {github_token}"
+
+    releases = []
+    page = 1
+    while True:
+        url = f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=20.0) as resp:
+                batch = json.loads(resp.read().decode("utf-8"))
+                if not batch:
+                    break
+                releases.extend(batch)
+                if len(batch) < 100:
+                    break
+                page += 1
+        except Exception as e:
+            print(f"[!] Warning: HTTP release fetch stopped on page {page}: {e}")
+            break
+
+    print(f"[✓] Retrieved {len(releases)} total releases via GitHub REST API.")
+    return releases
 
 
 def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -152,11 +180,15 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         clip_assets = [
             a for a in assets 
-            if (a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json") and a.get("size", 0) > 100
+            if ((a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json") and a.get("size", 0) > 100)
+            or (a.get("name", "").endswith(".mp3") and not re.match(r"^20\d{6}_", a.get("name", "")) and re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s", a.get("name", "")))
         ]
         has_clips = len(clip_assets) > 0
 
         timestamp_ms, date_display = get_episode_recorded_timestamp(rel)
+
+        total_audio_bytes = sum(a.get("size", 0) for a in mp3_assets)
+        is_placeholder = tag.startswith("test-placeholder") or "placeholder" in name.lower() or total_audio_bytes < 5000
 
         info = {
             "tag": tag,
@@ -164,13 +196,13 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
             "timestamp_ms": timestamp_ms,
             "date_display": date_display,
             "mp3_count": len(mp3_assets),
-            "total_audio_bytes": sum(a.get("size", 0) for a in mp3_assets),
-            "has_audio": has_audio,
+            "total_audio_bytes": total_audio_bytes,
+            "has_audio": has_audio and not is_placeholder,
             "has_transcript": has_transcript,
             "has_clips": has_clips,
         }
 
-        if not has_audio:
+        if not has_audio or is_placeholder:
             no_audio.append(info)
         elif has_transcript:
             transcribed.append(info)

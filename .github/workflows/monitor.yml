@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   process-batch-queue:
@@ -45,4 +46,13 @@ jobs:
           git commit -m "chore: promote next URL from batch queue" || echo "No changes"
           git push
           echo "promoted=true" >> $GITHUB_OUTPUT
+          echo "url=$NEXT_URL" >> $GITHUB_OUTPUT
           echo "URL promoted: $NEXT_URL"
+
+      - name: Dispatch Ingest Workflow
+        if: steps.promote.outputs.promoted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Dispatching ingest.yml for promoted space: ${{ steps.promote.outputs.url }}"
+          gh workflow run ingest.yml -f space_url="${{ steps.promote.outputs.url }}" || echo "[!] Dispatch notice: could not trigger ingest.yml"

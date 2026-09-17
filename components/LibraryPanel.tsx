@@ -546,8 +546,8 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
             {filtered.map(release => {
               const parts = getReleaseParts(release);
               const isMultiPart = parts.length > 1;
-              const mp3 = isMultiPart ? parts[0]?.mp3Asset : release.assets.find(a => a.name.endsWith('.mp3'));
-              const txt = release.assets.find(a => a.name.endsWith('.txt') || a.name.endsWith('.json'));
+              const mp3 = isMultiPart ? parts[0]?.mp3Asset : release.assets.find(a => a.name.endsWith('.mp3') && !/^\d+(?:h\d+)?m\d+s_/i.test(a.name));
+              const txt = isMultiPart ? parts[0]?.transcriptAsset : release.assets.find(a => (a.name.endsWith('.txt') || a.name.endsWith('.json')) && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json' && !a.name.endsWith('_catalog.json'));
               const duration = parseDuration(release.body);
               const sourceId = parseSourceId(release.body);
               const epDate = episodeDateDisplay(release);

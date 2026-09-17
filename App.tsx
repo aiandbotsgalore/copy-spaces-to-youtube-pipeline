@@ -633,7 +633,7 @@ export default function App() {
         )}
 
         {activePanel === 'clips' && (
-          <ClipsPanel />
+          <ClipsPanel config={config} />
         )}
       </main>
       <PlayerBar />

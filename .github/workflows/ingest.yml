@@ -133,7 +133,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate RSS Feeds
+      - name: Sync Clips Catalog & Generate RSS Feeds
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -143,6 +143,7 @@ jobs:
           PODCAST_EMAIL: ${{ vars.PODCAST_EMAIL || '' }}
           PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
+          python3 scripts/sync_clips_catalog.py --commit || echo "[!] Clips sync notice"
           python3 scripts/gen_podcast_rss.py
           python3 scripts/gen_clips_rss.py
 
@@ -160,12 +161,13 @@ jobs:
 
       - name: Deploy to Pages
         run: |
-          mkdir -p site
+          mkdir -p site/clips
           cp podcast.xml site/
           [ -f podcast_archive.xml ] && cp podcast_archive.xml site/ || true
           [ -f clips.xml ] && cp clips.xml site/ || true
           [ -f artwork.png ] && cp artwork.png site/ || true
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
+          [ -f public/clips/clips_catalog.json ] && cp public/clips/clips_catalog.json site/clips/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3

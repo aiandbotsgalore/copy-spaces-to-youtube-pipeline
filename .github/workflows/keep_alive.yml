@@ -29,7 +29,7 @@ jobs:
           echo "Re-enabling scheduled workflows to prevent GitHub auto-disable..."
 
           # Re-enable each scheduled workflow explicitly via GitHub API
-          for workflow in auto_detect_spaces.yml monitor.yml keep_alive.yml; do
+          for workflow in auto_detect_spaces.yml monitor.yml batch_transcribe.yml update_rss.yml keep_alive.yml; do
             echo "Enabling: $workflow"
             gh workflow enable "$workflow" || echo "  (already enabled or not found: $workflow)"
           done

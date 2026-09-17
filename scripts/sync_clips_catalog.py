@@ -7,14 +7,21 @@ and updates public/clips/clips_catalog.json so that the React web app displays
 all live clips from the cloud releases with playable audio URLs.
 """
 
+import os
+import sys
 import re
 import json
+import argparse
 import subprocess
+import urllib.request
+import urllib.parse
 from pathlib import Path
+from typing import List, Dict, Any, Optional
 
 PUBLIC_CATALOG = Path("public/clips/clips_catalog.json")
 
-def parse_clip_info(filename: str, release_title: str, download_url: str):
+
+def parse_clip_info(filename: str, release_title: str, download_url: str) -> Dict[str, Any]:
     stem = Path(filename).stem
     # Match patterns like 07m19s_Title or 01h33m45s_Title
     m = re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$", stem)
@@ -29,7 +36,7 @@ def parse_clip_info(filename: str, release_title: str, download_url: str):
         title_raw = stem
 
     title = title_raw.replace("_", " ").replace(".", "'").strip()
-    
+
     return {
         "title": title,
         "category": "Highlights",
@@ -37,7 +44,7 @@ def parse_clip_info(filename: str, release_title: str, download_url: str):
         "end_seconds": start_sec + 60.0,
         "duration": 60.0,
         "speakers": ["Speaker"],
-        "viral_score": 9,
+        "viral_score": 8,
         "reason": f"AI selected highlight moment from {release_title}.",
         "transcript_snippet": f"Highlight moment from {release_title}",
         "episode": release_title,
@@ -45,11 +52,73 @@ def parse_clip_info(filename: str, release_title: str, download_url: str):
         "download_url": download_url
     }
 
+
+def fetch_all_releases(repo: str, token: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Fetches releases with pagination using HTTP or gh cli fallback."""
+    releases = []
+
+    # First attempt: gh cli if available (handles auth automatically)
+    try:
+        cmd = ["gh", "api", f"repos/{repo}/releases?per_page=100", "--paginate"]
+        env = os.environ.copy()
+        if token:
+            env["GH_TOKEN"] = token
+            env["GITHUB_TOKEN"] = token
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True, env=env)
+        raw = res.stdout
+        decoder = json.JSONDecoder()
+        pos = 0
+        while pos < len(raw.strip()):
+            while pos < len(raw) and raw[pos].isspace():
+                pos += 1
+            if pos >= len(raw):
+                break
+            obj, idx = decoder.raw_decode(raw[pos:])
+            pos += idx
+            if isinstance(obj, list):
+                releases.extend(obj)
+            elif isinstance(obj, dict):
+                releases.append(obj)
+        if releases:
+            return releases
+    except Exception:
+        pass
+
+    # Fallback: direct HTTP request via urllib
+    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SpacePipe-ClipsSync"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+
+    page = 1
+    while True:
+        url = f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=20.0) as resp:
+                batch = json.loads(resp.read().decode("utf-8"))
+                if not batch:
+                    break
+                releases.extend(batch)
+                if len(batch) < 100:
+                    break
+                page += 1
+        except Exception as e:
+            print(f"[!] Notice: page {page} fetch stopped: {e}")
+            break
+
+    return releases
+
+
 def main():
-    print("[*] Fetching releases to scan for highlight clips...")
-    cmd = ["gh", "api", "repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases?per_page=100"]
-    res = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    releases = json.loads(res.stdout)
+    parser = argparse.ArgumentParser(description="Synchronize highlight clips catalog from repository releases")
+    parser.add_argument("--repo", default=os.environ.get("REPO", os.environ.get("GITHUB_REPOSITORY", "aiandbotsgalore/copy-spaces-to-youtube-pipeline")))
+    parser.add_argument("--token", default=os.environ.get("GH_TOKEN", os.environ.get("GITHUB_TOKEN", "")))
+    parser.add_argument("--commit", action="store_true", help="Auto-commit updated catalog if changes occurred")
+    args = parser.parse_args()
+
+    print(f"[*] Fetching releases to scan for highlight clips from {args.repo}...")
+    releases = fetch_all_releases(args.repo, args.token)
+    print(f"[✓] Retrieved {len(releases)} total releases.")
 
     # Load existing local catalog if present
     existing_clips = []
@@ -60,14 +129,17 @@ def main():
         except Exception:
             existing_clips = []
 
-    print(f"[*] Found {len(existing_clips)} existing catalog entries.")
-    
-    # Map existing clips by title / file_path
-    seen_titles = {c.get("title", "").lower() for c in existing_clips}
+    initial_count = len(existing_clips)
+    print(f"[*] Found {initial_count} existing catalog entries.")
+
     seen_files = {Path(c.get("file_path", "")).name.lower() for c in existing_clips if c.get("file_path")}
 
     new_clips_added = 0
-    
+
+    headers = {"User-Agent": "SpacePipe-ClipsSync"}
+    if args.token:
+        headers["Authorization"] = f"token {args.token}"
+
     for r in releases:
         rel_name = r.get("name") or r.get("tag_name")
         assets = r.get("assets", [])
@@ -80,19 +152,13 @@ def main():
 
         if clips_json_asset:
             try:
-                asset_id = clips_json_asset.get("id")
-                api_cmd = ["gh", "api", f"repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/assets/{asset_id}", "-H", "Accept: application/octet-stream"]
-                api_res = subprocess.run(api_cmd, capture_output=True, text=True)
-                if api_res.returncode == 0:
-                    remote_meta = json.loads(api_res.stdout)
-                else:
-                    import urllib.request
-                    with urllib.request.urlopen(clips_json_asset["browser_download_url"], timeout=15) as resp:
-                        remote_meta = json.loads(resp.read().decode("utf-8"))
+                dl_url = clips_json_asset.get("browser_download_url")
+                req = urllib.request.Request(dl_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15.0) as resp:
+                    remote_meta = json.loads(resp.read().decode("utf-8"))
 
                 if isinstance(remote_meta, list):
                     for rc in remote_meta:
-                        # Match MP3 asset
                         rc_start = round(rc.get("start_seconds", 0))
                         matched_asset = next(
                             (a for a in assets if a.get("name", "").endswith(".mp3") and (
@@ -107,7 +173,6 @@ def main():
                             seen_files.add(matched_asset.get("name", "").lower())
                         rc["episode"] = rc.get("episode") or rel_name
 
-                        # Replace existing placeholder if present, else append
                         ex_idx = next(
                             (idx for idx, c in enumerate(existing_clips) if (
                                 c.get("episode") == rc["episode"] and (
@@ -122,22 +187,20 @@ def main():
                         else:
                             existing_clips.append(rc)
                             new_clips_added += 1
-                            print(f"  [+] Added rich cloud clip: \"{rc.get('title')}\" ({rel_name})")
             except Exception as e:
-                print(f"  [!] Failed fetching clips JSON for {rel_name}: {e}")
+                pass
 
         for a in assets:
             fname = a.get("name", "")
             dl_url = a.get("browser_download_url", "")
-            
-            # Check if this asset is a clip (e.g. starts with timestamp like 07m19s or 03h05m)
-            if fname.endswith(".mp3") and ("m" in fname[:7] and "s" in fname[:7]):
+
+            # Check if this asset is a clip (e.g. starts with timestamp like 07m19s or 03h05m20s)
+            if fname.endswith(".mp3") and not re.match(r"^20\d{6}_", fname) and re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s", fname):
                 if fname.lower() not in seen_files:
                     clip_data = parse_clip_info(fname, rel_name, dl_url)
                     existing_clips.append(clip_data)
                     seen_files.add(fname.lower())
                     new_clips_added += 1
-                    print(f"  [+] Added fallback clip: {fname} ({rel_name})")
 
     # Deduplicate and prioritize rich metadata over generic fallback entries
     entries_by_file = {}
@@ -169,5 +232,19 @@ def main():
 
     print(f"\n[✓] Successfully updated {PUBLIC_CATALOG}: {len(final_clips)} total clips ({new_clips_added} new cloud clips added).")
 
+    # If --commit requested and changes occurred
+    if args.commit and len(final_clips) != initial_count:
+        try:
+            subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
+            subprocess.run(["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], check=True)
+            subprocess.run(["git", "add", str(PUBLIC_CATALOG)], check=True)
+            subprocess.run(["git", "commit", "-m", f"chore(clips): sync highlight clips catalog ({len(final_clips)} clips) [skip ci]"], check=True)
+            subprocess.run(["git", "push"], check=True)
+            print("[✓] Committed and pushed updated clips catalog to git repository.")
+        except Exception as git_err:
+            print(f"[!] Notice: Git commit/push skipped: {git_err}")
+
+
 if __name__ == "__main__":
     main()
+

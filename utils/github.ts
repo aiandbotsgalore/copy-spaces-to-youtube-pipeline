@@ -390,12 +390,15 @@ export async function updateReleaseTranscriptAssets(
     throw new Error(`Failed to commit transcript updates to git repository: ${(gitErr as Error).message}`);
   }
 
-  // 2. Safe replacement of release assets (only delete right before replacement upload)
-  const txtName = `${baseName}.txt`;
-  const jsonName = `${baseName}.json`;
+  // 2. Safe replacement of release assets (preserves original naming conventions)
+  const txtAsset = release.assets.find(a => a.name.endsWith('.txt') && !a.name.endsWith('_catalog.txt') && !a.name.endsWith('.md'));
+  const jsonAsset = release.assets.find(a => a.name.endsWith('.json') && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json' && !a.name.endsWith('_catalog.json'));
+
+  const txtName = txtAsset ? txtAsset.name : `${baseTag}_${baseName}.txt`;
+  const jsonName = jsonAsset ? jsonAsset.name : `${baseTag}_${baseName}.json`;
 
   for (const asset of release.assets) {
-    if (asset.name === txtName || (updatedJsonContent && asset.name === jsonName)) {
+    if ((txtAsset && asset.id === txtAsset.id) || (jsonAsset && asset.id === jsonAsset.id) || asset.name === txtName || (updatedJsonContent && asset.name === jsonName)) {
       try {
         await ghFetch(token, `/repos/${owner}/${repo}/releases/assets/${asset.id}`, {
           method: 'DELETE',
@@ -441,9 +444,10 @@ export async function fetchAssetText(url: string): Promise<string> {
 
 export async function fetchReleaseAssetText(
   token: string,
-  asset: { id?: number; url?: string; browser_download_url: string },
+  asset: { id?: number; url?: string; browser_download_url: string; name?: string },
   owner?: string,
-  repo?: string
+  repo?: string,
+  releaseTag?: string
 ): Promise<string> {
   const isLocal = typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
@@ -452,10 +456,14 @@ export async function fetchReleaseAssetText(
     window.location.hostname.startsWith('192.168.')
   );
 
-  // 1. If running on local Vite server, use the asset proxy
+  // 1. If running locally (Vite dev or preview server), use the asset proxy
   if (isLocal && asset.browser_download_url) {
     try {
-      const proxyRes = await fetch(`/api/fetch-asset?url=${encodeURIComponent(asset.browser_download_url)}`);
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const proxyRes = await fetch(`/api/fetch-asset?url=${encodeURIComponent(asset.browser_download_url)}`, {
+        headers,
+      });
       if (proxyRes.ok) {
         return await proxyRes.text();
       }
@@ -464,7 +472,52 @@ export async function fetchReleaseAssetText(
     }
   }
 
-  // 2. Try GitHub API
+  // 2. CORS-Safe Fallback: Read transcript file committed in git repository
+  // raw.githubusercontent.com and GitHub Contents API support CORS (Access-Control-Allow-Origin: *)
+  if (owner && repo) {
+    const candidatePaths: string[] = [];
+    if (asset.name) {
+      candidatePaths.push(`transcripts/${asset.name}`);
+      candidatePaths.push(asset.name);
+    }
+    if (releaseTag) {
+      candidatePaths.push(`transcripts/${releaseTag}.json`);
+      candidatePaths.push(`transcripts/${releaseTag}.txt`);
+      candidatePaths.push(`transcripts/md/${releaseTag}.md`);
+    }
+
+    // 2a. Try raw.githubusercontent.com (fast, publicly accessible, full CORS support)
+    for (const path of candidatePaths) {
+      for (const branch of ['master', 'main']) {
+        try {
+          const rawUrl = `https://raw.githubusercontent.com/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${branch}/${path}`;
+          const rawRes = await fetch(rawUrl, { cache: 'no-store' });
+          if (rawRes.ok) {
+            return await rawRes.text();
+          }
+        } catch {
+          // ignore and try next path
+        }
+      }
+    }
+
+    // 2b. Try GitHub Contents API with authentication (CORS enabled, returns base64)
+    if (token) {
+      for (const path of candidatePaths) {
+        try {
+          const defaultBranch = await getRepositoryDefaultBranch(token, owner, repo).catch(() => 'master');
+          const file = await readRepositoryTextFile(token, owner, repo, path, defaultBranch);
+          if (file?.content) {
+            return file.content;
+          }
+        } catch {
+          // ignore and continue
+        }
+      }
+    }
+  }
+
+  // 3. Try GitHub API release asset endpoint (works in environments where CORS redirects are permitted)
   const assetApiUrl = asset.url || (asset.id && owner && repo ? `https://api.github.com/repos/${owner}/${repo}/releases/assets/${asset.id}` : null);
   if (assetApiUrl && token) {
     try {
@@ -481,10 +534,14 @@ export async function fetchReleaseAssetText(
     }
   }
 
-  // 3. Direct browser download fallback
-  const res = await fetch(asset.browser_download_url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Could not fetch asset (HTTP ${res.status}).`);
-  return res.text();
+  // 4. Direct browser download fallback
+  try {
+    const res = await fetch(asset.browser_download_url, { cache: 'no-store' });
+    if (res.ok) return await res.text();
+    throw new Error(`Could not fetch asset (HTTP ${res.status}).`);
+  } catch (e) {
+    throw new Error(`Could not download release asset directly from GitHub (${(e as Error).message || 'CORS restriction'}).`);
+  }
 }
 
 export async function dataUrlToBase64(dataUrl: string): Promise<string> {
