@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:02:52.628168+00:00",
+  "last_updated": "2026-09-17T20:04:27.953035+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -868,57 +868,57 @@
       "last_attempt": "2026-09-17T20:01:51.727984+00:00"
     },
     "20260217_1mnxepaYymoJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxepaYymoJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:01:51.727988+00:00"
+      "last_attempt": "2026-09-17T20:03:33.067266+00:00"
     },
     "20260216_1dRKZEZaanaxB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEZaanaxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:01:51.727991+00:00"
+      "last_attempt": "2026-09-17T20:03:33.067282+00:00"
     },
     "20260218_1ypKdkQVnorxW": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdkQVnorxW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:01:51.727993+00:00"
+      "last_attempt": "2026-09-17T20:03:33.067286+00:00"
     },
     "20260216_1BdGYreENDyJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYreENDyJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:01:51.727996+00:00"
+      "last_attempt": "2026-09-17T20:03:33.067289+00:00"
+    },
+    "20260218_1yoJMwEoVEXKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwEoVEXKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067292+00:00"
+    },
+    "20260216_1dRKZEmodqzxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEmodqzxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067295+00:00"
+    },
+    "20260218_1vOxwjZyXAEJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjZyXAEJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067297+00:00"
+    },
+    "20260217_1lDxLPMeVaZxm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLPMeVaZxm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067299+00:00"
+    },
+    "20260217_1LyxBnybneOxN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBnybneOxN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067301+00:00"
+    },
+    "20260216_1jMJgmEAwmPKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgmEAwmPKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:03:33.067303+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNGaZNNlmVJj",
-      "name": "\ud83d\udc7d@JasonSa32135987\ud83d\udef8 Intel Gathering\ud83d\udd0dPre-Space Prep Recon.\ud83d\udd25@UAPodcast850",
-      "date": "Jun 14, 2024"
-    },
-    {
-      "tag": "20260217_1MnGnMpPDyoKO",
-      "name": "Post Sands. It\u2019s everywhere. \ud83c\udfdc\ufe0f",
-      "date": "Jun 14, 2024"
-    },
-    {
-      "tag": "20260216_1BRJjPZOpAjKw",
-      "name": "CHRIS BLEDSOE-Experiencer/Author of 'UFO of God'",
-      "date": "Jun 10, 2024"
-    },
-    {
-      "tag": "20260217_1mnxepdvjDLJX",
-      "name": "HOUR 4-Dramavention",
-      "date": "Jun 7, 2024"
-    },
-    {
-      "tag": "20260218_1ynKOyBOnrXJR",
-      "name": "\ud83d\udea8Friday Night Live Coverage @ CITD w/ John Strader\ud83d\udea8",
-      "date": "Jun 1, 2024"
-    },
-    {
-      "tag": "20260217_1rmGPMzzWVnJN",
-      "name": "Unplugging From the Illusion: The Truth About UFOs #UFOlogue",
-      "date": "Jun 1, 2024"
-    },
     {
       "tag": "20260217_1mnxepaYymoJX",
       "name": "Lawnmower & Car Tire DIY \ud83d\udea7",
@@ -988,6 +988,36 @@
       "tag": "20260216_1jMKgmqqpPjJL",
       "name": "Match Game with Dan Freeman",
       "date": "Apr 18, 2024"
+    },
+    {
+      "tag": "20260217_1MnxnMejzkwJO",
+      "name": "KONA BLUE SAYS AATIP IS REAL \ud83d\ude31",
+      "date": "Apr 16, 2024"
+    },
+    {
+      "tag": "20260217_1mrGmyRXrNLGy",
+      "name": "is bigfoot just a demon in a costume",
+      "date": "Apr 15, 2024"
+    },
+    {
+      "tag": "20260217_1mrxmyZBoOWxy",
+      "name": "the Oracle",
+      "date": "Apr 14, 2024"
+    },
+    {
+      "tag": "20260217_1OyKAWdDmMwJb",
+      "name": "C\u00f8nn\u00f8r\u2019s 3,6,9 \u2728conundrum",
+      "date": "Apr 13, 2024"
+    },
+    {
+      "tag": "20260216_1DXxyjEdwrbKM",
+      "name": "ALEX JONES sings Johnny Cash/The Doors/Rage Against The Machine",
+      "date": "Apr 13, 2024"
+    },
+    {
+      "tag": "20260217_1PlJQDQAerYGE",
+      "name": "Cults & Castration (no hands!)",
+      "date": "Apr 11, 2024"
     }
   ]
 }
