@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:25:21.860925+00:00",
+  "last_updated": "2026-09-17T20:26:53.692685+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1088,57 +1088,57 @@
       "last_attempt": "2026-09-17T20:24:18.234220+00:00"
     },
     "20260216_1BdGYrXEaVXJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYrXEaVXJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234222+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751815+00:00"
     },
     "20260217_1kvJpvZEdoOKE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpvZEdoOKE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234225+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751834+00:00"
     },
     "20260217_1kvJpvZEOzaKE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpvZEOzaKE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234227+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751839+00:00"
     },
     "20260218_1ynJOyPjbwVKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOyPjbwVKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234229+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751842+00:00"
     },
     "20260218_1yoJMwLqEBpKQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwLqEBpKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234231+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751844+00:00"
     },
     "20260218_1YqKDgVWerLxV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDgVWerLxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:24:18.234233+00:00"
+      "last_attempt": "2026-09-17T20:26:02.751847+00:00"
+    },
+    "20260216_1djxXNkreeNGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXNkreeNGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:26:02.751849+00:00"
+    },
+    "20260217_1RDxllpLnMrxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxllpLnMrxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:26:02.751851+00:00"
+    },
+    "20260217_1mrGmyjMlBdGy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmyjMlBdGy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:26:02.751854+00:00"
+    },
+    "20260218_1yoKMwOWRmRJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwOWRmRJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:26:02.751856+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNGaZeNjbQJj",
-      "name": "Logan plays 90's jamz while everone sleeps. Who will wake up first?",
-      "date": "Feb 24, 2024"
-    },
-    {
-      "tag": "20260218_1YqGoDwpDVXJv",
-      "name": "DMT TRIPS with God",
-      "date": "Feb 24, 2024"
-    },
-    {
-      "tag": "20260217_1nAKEabrPnaKL",
-      "name": "DMT TRIPS @",
-      "date": "Feb 24, 2024"
-    },
-    {
-      "tag": "20260218_1ynJOyzqLjXKR",
-      "name": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands",
-      "date": "Feb 23, 2024"
-    },
     {
       "tag": "20260216_1BdGYrXEaVXJX",
       "name": "Randy + Eva: Near Death Experience's & The Future",
@@ -1218,6 +1218,26 @@
       "tag": "20260216_1jMJgmanzDyKL",
       "name": "best of",
       "date": "Dec 19, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnMbOWABJO",
+      "name": "\ud83e\udd14\ud83d\ude0e",
+      "date": "Dec 18, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqbjNmXQGb",
+      "name": "Music Creations. Request your own song & Ill make it under>60seconds.",
+      "date": "Dec 16, 2023"
+    },
+    {
+      "tag": "20260218_1ypKdkWpWNqxW",
+      "name": "Annunaki/Sumerian Fairy Tales with Zechariah Sitchin",
+      "date": "Dec 14, 2023"
+    },
+    {
+      "tag": "20260218_1YqGoDPAmvaJv",
+      "name": "UFO Narratives & Imperatives",
+      "date": "Dec 13, 2023"
     }
   ]
 }
