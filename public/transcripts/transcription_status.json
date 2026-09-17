@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:37:20.740387+00:00",
+  "last_updated": "2026-09-17T23:39:09.663261+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2588,57 +2588,57 @@
       "last_attempt": "2026-09-17T23:36:42.302134+00:00"
     },
     "20260216_1jMJgLZymayxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLZymayxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302137+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688818+00:00"
     },
     "20260217_1rmGPkrBwpqKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkrBwpqKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302140+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688838+00:00"
     },
     "20260216_1eaKbrRBYpQKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrRBYpQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302143+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688841+00:00"
     },
     "20260217_1OdJrzekvMvJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrzekvMvJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302146+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688844+00:00"
     },
     "20260218_1lPKqBYLOdYGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1lPKqBYLOdYGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302149+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688847+00:00"
     },
     "20260216_1eaKbrlpmzQKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrlpmzQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:36:42.302151+00:00"
+      "last_attempt": "2026-09-17T23:38:03.688850+00:00"
+    },
+    "20260217_1kvKpmqkMdQGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmqkMdQGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:38:03.688853+00:00"
+    },
+    "20260217_1OdKrzNyemqKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzNyemqKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:38:03.688856+00:00"
+    },
+    "20260218_1YqKDojrQODxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDojrQODxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:38:03.688859+00:00"
+    },
+    "20260220_1MnxnpXBMwVGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1MnxnpXBMwVGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:38:03.688860+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdxYyPjDpQxX",
-      "name": "FRIDAY SEGSE GREASE-The Gloves Come Off\ud83d\udca9\ud83d\udca9 HAWT \ud83d\udd25",
-      "date": "Feb 17, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRWavYqKX",
-      "name": "CARL THE CRUSHER INTERVIEW ft. UFO-Shane\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25",
-      "date": "Feb 15, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZVqPmwJw",
-      "name": "GRAVITY AMPLIFIERS & MICHAEL PADILLA & MAX LOGAN! \ud83c\udfb8\u26a1",
-      "date": "Feb 15, 2023"
-    },
-    {
-      "tag": "20260218_1ynJOaNzkyrKR",
-      "name": "Pyramids of GIZA w/ @Third Eye Seeks #Ancient #History",
-      "date": "Feb 11, 2023"
-    },
     {
       "tag": "20260216_1jMJgLZymayxL",
       "name": "\ud83d\udce1 frequencies *Must be >= Thetan level 4",
@@ -2718,6 +2718,26 @@
       "tag": "20260217_1OwxWwqqLkQxQ",
       "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
       "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260220_1djGXlYkooRGZ",
+      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
+      "date": "Jan 19, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZRlQoeJw",
+      "name": "Space broken?",
+      "date": "Jan 19, 2023"
+    },
+    {
+      "tag": "20260218_1YpJkgeaVDEJj",
+      "name": "BIGELOW SECRETS",
+      "date": "Jan 18, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAzQrkYJl",
+      "name": "Messages from the future? [Open Discussion]",
+      "date": "Jan 15, 2023"
     }
   ]
 }
