@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:41:50.172286+00:00",
+  "last_updated": "2026-09-17T19:43:37.509894+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -638,57 +638,57 @@
       "last_attempt": "2026-09-17T19:40:56.806510+00:00"
     },
     "20260217_1kvKpbXEbqwJE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpbXEbqwJE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806513+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531935+00:00"
     },
     "20260217_1MYxNMkvWbZJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNMkvWbZJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806516+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531955+00:00"
     },
     "20260217_1rmGPoALOMgKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPoALOMgKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806519+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531958+00:00"
     },
     "20260217_1mnxeAzRZdPxX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeAzRZdPxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806522+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531961+00:00"
     },
     "20260217_1nAKEpZOALZxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEpZOALZxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806525+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531963+00:00"
     },
     "20260218_1vOxwrqbegVJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwrqbegVJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:40:56.806528+00:00"
+      "last_attempt": "2026-09-17T19:42:33.531966+00:00"
+    },
+    "20260217_1RDGlyqLObDJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlyqLObDJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:42:33.531968+00:00"
+    },
+    "20260217_1mrGmMnDXQgGy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmMnDXQgGy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:42:33.531970+00:00"
+    },
+    "20260218_1ynJODAyrPzxR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJODAyrPzxR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:42:33.531972+00:00"
+    },
+    "20260217_1rmxPomoomqJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPomoomqJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:42:33.531973+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyJAZgEOZgxb",
-      "name": "I Nogged TF out",
-      "date": "Dec 24, 2024"
-    },
-    {
-      "tag": "20260218_1YpJklQkLNAxj",
-      "name": "The Walrus Chronicle",
-      "date": "Dec 19, 2024"
-    },
-    {
-      "tag": "20260217_1mrxmMEVbAWxy",
-      "name": "Twilight Drone \ud83d\udc7d\ud83d\udeac\ud83d\udd75\ufe0f- The Return of Jade\ud83d\udef8\ud83d\udc7d",
-      "date": "Dec 19, 2024"
-    },
-    {
-      "tag": "20260216_1BRKjwQZEOdGw",
-      "name": "Mogeon Rim",
-      "date": "Dec 18, 2024"
-    },
     {
       "tag": "20260217_1kvKpbXEbqwJE",
       "name": "Secret Squirrels",
@@ -768,6 +768,26 @@
       "tag": "20260216_1eaKbamXgeaxX",
       "name": "Right Honorable Professor Doctor Karl",
       "date": "Nov 3, 2024"
+    },
+    {
+      "tag": "20260217_1OyKAZBwBZoGb",
+      "name": "The Virtual Tavern: Whistleblowers Drink Free! \u2620\ufe0f\ud83d\udc7d\ud83d\udef8\ud83c\udf7b",
+      "date": "Oct 26, 2024"
+    },
+    {
+      "tag": "20260218_1yNxagPMjXdGj",
+      "name": "26 Hours of content",
+      "date": "Oct 21, 2024"
+    },
+    {
+      "tag": "20260218_1yoJMyengRzJQ",
+      "name": "Would you Die for Disclosure?\ud83d\udc7d\ud83c\udfac\ud83e\udd3a\u2620\ufe0f\ud83e\udea6\ud83e\udd40",
+      "date": "Oct 20, 2024"
+    },
+    {
+      "tag": "20260218_1yoKMylmEnjKQ",
+      "name": "You seen 3 Giant Interlocking Orbs before?",
+      "date": "Sep 26, 2024"
     }
   ]
 }
