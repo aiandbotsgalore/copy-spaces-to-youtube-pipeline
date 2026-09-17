@@ -161,13 +161,15 @@ jobs:
 
       - name: Deploy to Pages
         run: |
-          mkdir -p site/clips
+          mkdir -p site/clips site/transcripts
           cp podcast.xml site/
           [ -f podcast_archive.xml ] && cp podcast_archive.xml site/ || true
           [ -f clips.xml ] && cp clips.xml site/ || true
           [ -f artwork.png ] && cp artwork.png site/ || true
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
           [ -f public/clips/clips_catalog.json ] && cp public/clips/clips_catalog.json site/clips/ || true
+          [ -f public/transcripts/transcription_status.json ] && cp public/transcripts/transcription_status.json site/transcripts/ || true
+          [ -f public/transcripts/transcripts_search_index.json ] && cp public/transcripts/transcripts_search_index.json site/transcripts/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3

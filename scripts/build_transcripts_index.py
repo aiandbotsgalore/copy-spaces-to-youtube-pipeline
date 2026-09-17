@@ -64,7 +64,7 @@ def main():
                 # Must not be a mismatched test file from another release
                 if '20260826_1AxRnZYBVdrxl' in name and rel_tag != '20260826_1AxRnZYBVdrxl':
                     continue
-                if a.get('size', 0) > 1000:
+                if a.get('size', 0) > 100:
                     json_asset = a
                     break
 

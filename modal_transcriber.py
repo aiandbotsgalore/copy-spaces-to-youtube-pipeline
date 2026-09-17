@@ -143,7 +143,7 @@ def run_cloud_transcription(release_tag: str, part: int = 0):
         stem = Path(mp3_name).stem
 
         # Check if already transcribed and clips generated
-        existing_json_asset = next((a for a in assets if a.get("name") == f"{stem}.json" and a.get("size", 0) > 1000), None)
+        existing_json_asset = next((a for a in assets if a.get("name") == f"{stem}.json" and a.get("size", 0) > 100), None)
         existing_clips_asset = next((a for a in assets if (a.get("name") == f"{stem}_clips.json" or a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json") and a.get("size", 0) > 100), None)
 
         if existing_json_asset and existing_clips_asset and not os.environ.get("FORCE_RETRANSCRIBE"):

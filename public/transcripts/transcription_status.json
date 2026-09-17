@@ -1,48 +1,22 @@
 {
-  "last_updated": "2026-09-17T08:46:36.838134+00:00",
+  "last_updated": "2026-09-17T10:59:07.009594+00:00",
   "total_episodes_with_audio": 781,
-  "transcribed_count": 112,
-  "untranscribed_count": 669,
+  "transcribed_count": 118,
+  "untranscribed_count": 663,
+  "percent_complete": 15.1,
+  "auto_chain_active": true,
+  "is_queue_complete": false,
+  "failed_episodes": {},
   "next_in_queue": [
-    {
-      "tag": "20260915_1dJrPryRPeQKX",
-      "name": "Woo",
-      "date": "Sep 15, 2026"
-    },
-    {
-      "tag": "20260908_1YxNrbOnaXZxw",
-      "name": "Setting the record straight",
-      "date": "Sep 8, 2026"
-    },
     {
       "tag": "20260905_1qxvvedveWWxB",
       "name": "ACHIEVING MY DREAMS \u2728 #RTV",
       "date": "Sep 4, 2026"
     },
     {
-      "tag": "20260904_1NGaroeWObQJj",
-      "name": "1 minute of Motivational Music played 60x",
-      "date": "Sep 4, 2026"
-    },
-    {
-      "tag": "20260202_1770117309",
-      "name": "xW_.",
-      "date": "Feb 2, 2026"
-    },
-    {
-      "tag": "20260212_1djGXWqlYoyKZ",
-      "name": "Pre sombro",
-      "date": "Jan 16, 2026"
-    },
-    {
       "tag": "20260218_1yNGabVvNRqJj",
       "name": "Deepstate A.I. Overlord",
       "date": "Nov 27, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLBAjAgaGm",
-      "name": "Short space for the grays",
-      "date": "Nov 26, 2025"
     },
     {
       "tag": "20260217_1mrGmBZOoNLJy",
@@ -103,6 +77,36 @@
       "tag": "20260216_1BdGYZPYmdgJX",
       "name": "Graphic Adult Humor: Get Triggered \ud83d\ude18",
       "date": "Nov 12, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkkdjqzmKj",
+      "name": "slumber siesta",
+      "date": "Nov 9, 2025"
+    },
+    {
+      "tag": "20260218_1YqGolWYLPlJv",
+      "name": "The Future of AI with Snuggles \u2728\ud83e\uddf8",
+      "date": "Nov 8, 2025"
+    },
+    {
+      "tag": "20260217_1rmGPvrXABQxN",
+      "name": "CUDDLE PARTY",
+      "date": "Nov 6, 2025"
+    },
+    {
+      "tag": "20260217_1OyKAjODoLgGb",
+      "name": "Huberman\u2019s Seat of the Will: The Brain\u2019s Hidden Engine",
+      "date": "Nov 1, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpMqzmDgGE",
+      "name": "Disclosure dissarono",
+      "date": "Oct 28, 2025"
+    },
+    {
+      "tag": "20260217_1mnGeNYAeDZJX",
+      "name": "metamaterials and the soul",
+      "date": "Oct 27, 2025"
     }
   ]
 }

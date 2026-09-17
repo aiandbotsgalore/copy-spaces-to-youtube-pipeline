@@ -20,8 +20,8 @@ on:
         default: false
         type: boolean
   schedule:
-    # Continuously transcribes batches of untranscribed episodes every 4 hours
-    - cron: '0 */4 * * *'
+    # Continuously transcribes batches of untranscribed episodes with watchdog every 2 hours
+    - cron: '0 */2 * * *'
 
 concurrency:
   group: batch-transcribe
@@ -50,6 +50,7 @@ jobs:
           pip install modal requests
 
       - name: Run Batch Transcription Queue (Newest to Oldest)
+        id: transcribe_step
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
@@ -72,7 +73,7 @@ jobs:
           python scripts/batch_transcribe_queue.py --limit "${{ inputs.limit || 10 }}" $DRY_ARG $CLIPS_ARG
 
       - name: Commit Updated Search Index and Status
-        if: success()
+        if: always() && steps.transcribe_step.outcome != 'skipped'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -82,8 +83,23 @@ jobs:
           git push origin master || echo "Push skipped or already up to date"
 
       - name: Trigger RSS Update
-        if: success()
+        if: always() && steps.transcribe_step.outcome != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
+
+      - name: Auto-Chain Next Batch
+        if: always() && steps.transcribe_step.outputs.has_more == 'true' && inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "================================================================="
+          echo " Auto-chaining next batch: ${{ steps.transcribe_step.outputs.remaining_count }} untranscribed episodes remaining in queue"
+          echo "================================================================="
+          sleep 5
+          CLIPS_FLAG=""
+          if [ "${{ inputs.missing_clips }}" = "true" ]; then
+            CLIPS_FLAG="-f missing_clips=true"
+          fi
+          gh workflow run batch_transcribe.yml --ref master -f limit="${{ inputs.limit || '10' }}" $CLIPS_FLAG

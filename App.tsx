@@ -44,7 +44,7 @@ const DEFAULT_CONFIG: EnhancedConfig = {
   artworkDataUrl: '',
   platforms: ['twitter', 'youtube', 'clubhouse', 'linkedin'],
   batchUrls: [],
-  enableTranscription: false,
+  enableTranscription: true,
   enableSlackWebhook: false,
   slackWebhookUrl: '',
   enableDiscordWebhook: false,
@@ -67,7 +67,7 @@ function buildInitialConfig(): EnhancedConfig {
     email: stored.email ? stored.email : DEFAULT_CONFIG.email,
     githubToken: storedToken,
     artworkDataUrl: '',
-    enableTranscription: false,
+    enableTranscription: true,
     enableSlackWebhook: false,
     enableDiscordWebhook: false,
     enableScheduledMonitoring: false,
@@ -169,11 +169,11 @@ export default function App() {
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Always reset feature toggles to off on mount — never restore from localStorage
+  // Always reset feature toggles to sensible defaults on mount
   useEffect(() => {
     setConfig(c => ({
       ...c,
-      enableTranscription: false,
+      enableTranscription: true,
       enableSlackWebhook: false,
       enableDiscordWebhook: false,
       enableScheduledMonitoring: false,

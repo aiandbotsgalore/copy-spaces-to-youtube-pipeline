@@ -40,7 +40,7 @@ def main():
         assets = r.get("assets", [])
         
         main_mp3 = next((a for a in assets if a["name"].endswith(".mp3") and not ("m" in a["name"][:7] and "s" in a["name"][:7])), None)
-        json_asset = next((a for a in assets if a["name"].endswith(".json") and a.get("size", 0) > 1000), None)
+        json_asset = next((a for a in assets if a["name"].endswith(".json") and not a["name"].endswith("_clips.json") and a["name"] != "clips_catalog.json" and a.get("size", 0) > 100), None)
         clips = [a for a in assets if a["name"].endswith(".mp3") and ("m" in a["name"][:7] and "s" in a["name"][:7])]
         
         has_mp3 = main_mp3 is not None

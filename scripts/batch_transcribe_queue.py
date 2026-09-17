@@ -176,7 +176,7 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
             if (a.get("name", "").endswith(".json") and not a.get("name", "").endswith("_clips.json") and a.get("name") != "clips_catalog.json") 
             or a.get("name", "").endswith(".txt")
         ]
-        has_transcript = any(a.get("size", 0) > 1000 for a in transcript_assets)
+        has_transcript = any(a.get("size", 0) > 100 for a in transcript_assets)
 
         clip_assets = [
             a for a in assets 
@@ -212,30 +212,64 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Missing clips: transcribed episodes that have no highlight clips generated yet
     missing_clips = [item for item in transcribed if not item["has_clips"]]
 
+    # Load known failure history to deprioritize stubborn poison pills (>= 3 failures)
+    status_file = Path("public/transcripts/transcription_status.json")
+    failed_history = {}
+    if status_file.exists():
+        try:
+            with open(status_file, "r", encoding="utf-8") as f:
+                prev_data = json.load(f)
+                failed_history = prev_data.get("failed_episodes", {})
+        except Exception:
+            pass
+
     # Sort strictly from newest (most recently released/aired) to oldest
     untranscribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
     transcribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
     missing_clips.sort(key=lambda x: x["timestamp_ms"], reverse=True)
 
+    # Separate healthy untranscribed from repeated failures (>= 3 attempts)
+    healthy_untranscribed = []
+    deprioritized = []
+    for item in untranscribed:
+        attempts = failed_history.get(item["tag"], {}).get("attempts", 0)
+        if attempts >= 3:
+            deprioritized.append(item)
+        else:
+            healthy_untranscribed.append(item)
+
+    # Place deprioritized at the very end so they never block the queue
+    ordered_untranscribed = healthy_untranscribed + deprioritized
+
     return {
         "total_releases": len(releases),
         "transcribed": transcribed,
-        "untranscribed": untranscribed,
+        "untranscribed": ordered_untranscribed,
         "missing_clips": missing_clips,
-        "no_audio": no_audio
+        "no_audio": no_audio,
+        "failed_history": failed_history
     }
 
 
-def save_status_manifest(analysis: Dict[str, Any]):
+def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict[str, Any]] = None):
     """Saves live progress summary to public/transcripts/transcription_status.json."""
     status_file = Path("public/transcripts/transcription_status.json")
     status_file.parent.mkdir(parents=True, exist_ok=True)
+
+    total_with_audio = len(analysis["transcribed"]) + len(analysis["untranscribed"])
+    pct = round((len(analysis["transcribed"]) / total_with_audio * 100), 1) if total_with_audio else 100.0
+
+    history = failed_history if failed_history is not None else analysis.get("failed_history", {})
     
     data = {
         "last_updated": datetime.now(timezone.utc).isoformat(),
-        "total_episodes_with_audio": len(analysis["transcribed"]) + len(analysis["untranscribed"]),
+        "total_episodes_with_audio": total_with_audio,
         "transcribed_count": len(analysis["transcribed"]),
         "untranscribed_count": len(analysis["untranscribed"]),
+        "percent_complete": pct,
+        "auto_chain_active": len(analysis["untranscribed"]) > 0,
+        "is_queue_complete": len(analysis["untranscribed"]) == 0,
+        "failed_episodes": history,
         "next_in_queue": [
             {
                 "tag": item["tag"],
@@ -247,7 +281,7 @@ def save_status_manifest(analysis: Dict[str, Any]):
     }
     with open(status_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    print(f"[✓] Status manifest updated: {status_file}")
+    print(f"[✓] Status manifest updated: {status_file} ({pct}% complete, {len(analysis['untranscribed'])} remaining)")
 
 
 def main():
@@ -301,6 +335,18 @@ def main():
         print(f"  {i:2d}. [{item['date_display']}] {item['tag']} - {item['name']} ({mb:.1f} MB, {item['mp3_count']} part(s))")
 
     if args.dry_run:
+        github_output = os.environ.get("GITHUB_OUTPUT")
+        if github_output:
+            remaining_count = len(queue)
+            has_more = remaining_count > 0
+            try:
+                with open(github_output, "a", encoding="utf-8") as f:
+                    f.write(f"has_more={'true' if has_more else 'false'}\n")
+                    f.write(f"remaining_count={remaining_count}\n")
+                    f.write(f"transcribed_count={len(analysis['transcribed'])}\n")
+                    f.write(f"success_count=0\n")
+            except Exception as e:
+                print(f"[!] Notice: Failed to write GITHUB_OUTPUT: {e}")
         print("\n[✓] Dry-run complete. Exiting without dispatching transcription jobs.")
         sys.exit(0)
 
@@ -333,6 +379,20 @@ def main():
             print(f"[!] Error processing {tag}: {e}. Continuing queue...")
             failed_items.append({"tag": tag, "error": str(e)})
 
+    # Update failure history
+    failed_history = analysis.get("failed_history", {})
+    for f in failed_items:
+        t = f["tag"]
+        prev = failed_history.get(t, {"attempts": 0})
+        failed_history[t] = {
+            "attempts": prev.get("attempts", 0) + 1,
+            "last_error": str(f["error"]),
+            "last_attempt": datetime.now(timezone.utc).isoformat()
+        }
+    for item in to_process:
+        if item["tag"] not in [f["tag"] for f in failed_items]:
+            failed_history.pop(item["tag"], None)
+
     # Post-batch tasks: rebuild search index
     print("\n[*] Rebuilding transcript search index with all newly uploaded transcripts...")
     try:
@@ -342,17 +402,35 @@ def main():
         print(f"[!] Notice: build_transcripts_index.py failed: {e}")
 
     # Re-analyze to update status file
+    fresh_analysis = analysis
     try:
         fresh_releases = fetch_all_releases(args.repo, args.token)
         fresh_analysis = analyze_releases(fresh_releases)
-        save_status_manifest(fresh_analysis)
-    except Exception:
-        pass
+        save_status_manifest(fresh_analysis, failed_history)
+    except Exception as e:
+        print(f"[!] Notice: failed to update final status manifest: {e}")
+
+    # Emit outputs to GitHub Actions runner
+    remaining_count = len(fresh_analysis["missing_clips"] if args.missing_clips else fresh_analysis["untranscribed"])
+    has_more = remaining_count > 0
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if github_output:
+        try:
+            with open(github_output, "a", encoding="utf-8") as f:
+                f.write(f"has_more={'true' if has_more else 'false'}\n")
+                f.write(f"remaining_count={remaining_count}\n")
+                f.write(f"transcribed_count={len(fresh_analysis['transcribed'])}\n")
+                f.write(f"success_count={success_count}\n")
+            print(f"[✓] Emitted GitHub Action outputs: has_more={has_more}, remaining_count={remaining_count}")
+        except Exception as e:
+            print(f"[!] Notice: Failed to write GITHUB_OUTPUT: {e}")
 
     print("\n" + "=" * 65)
     print("                    BATCH TRANSCRIPTION SUMMARY                 ")
     print("=" * 65)
     print(f"  • Successfully Transcribed: {success_count} / {len(to_process)}")
+    print(f"  • Remaining Untranscribed:  {remaining_count}")
+    print(f"  • Auto-Chain Eligible:      {'Yes (has_more=true)' if has_more else 'No (queue complete!)'}")
     if failed_items:
         print(f"  • Failed: {len(failed_items)}")
         for f in failed_items:

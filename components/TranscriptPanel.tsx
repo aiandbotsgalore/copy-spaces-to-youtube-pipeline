@@ -1787,12 +1787,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           {activePart?.mp3Asset ? <Headphones size={28} /> : <Sparkles size={28} />}
                         </div>
                         <h4 className="text-base font-bold text-white mb-1.5">
-                          {episodeParts.length > 1 && activePart ? `No Transcript for ${activePart.label} Yet` : 'No Transcript Generated Yet'}
+                          {episodeParts.length > 1 && activePart ? `Queued for Auto-Transcription (${activePart.label})` : 'Queued for Automatic Transcription'}
                         </h4>
                         <p className="text-slate-400 text-xs mb-6 leading-relaxed">
                           {episodeParts.length > 1 && activePart
-                            ? `Audio for ${activePart.label} is available to play, but this part has not yet been transcribed.`
-                            : 'This Space has audio published, but no diarized transcript asset is available yet.'}
+                            ? `Audio for ${activePart.label} is available to play. It is queued in the automatic transcription pipeline (newest to oldest). You can also prioritize it right now.`
+                            : 'This episode has audio published and is queued in the automatic transcription pipeline. You can also prioritize it right now to process it immediately.'}
                         </p>
                         {transcribeSuccess ? (
                           <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
@@ -1813,7 +1813,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             <button onClick={handleGenerateTranscript} disabled={transcribing}
                               className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl border border-slate-700 shadow-md transition-all hover:scale-105 cursor-pointer">
                               {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} className="text-amber-400" />}
-                              {transcribing ? 'Dispatching transcription…' : (episodeParts.length > 1 && activePart ? `⚡ Transcribe ${activePart.label}` : '⚡ Transcribe Space')}
+                              {transcribing ? 'Dispatching priority job…' : (episodeParts.length > 1 && activePart ? `⚡ Prioritize ${activePart.label}` : '⚡ Prioritize This Episode')}
                             </button>
                           </div>
                         )}

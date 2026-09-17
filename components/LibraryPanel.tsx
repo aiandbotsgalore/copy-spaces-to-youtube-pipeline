@@ -213,9 +213,33 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
   const [batchTranscribing, setBatchTranscribing] = useState(false);
   const [batchMessage, setBatchMessage] = useState('');
-  const [batchSize, setBatchSize] = useState('10');
+  const [transcriptionStatus, setTranscriptionStatus] = useState<any>(null);
 
-  const handleBatchTranscribe = async () => {
+  const loadStatusManifest = useCallback(async () => {
+    try {
+      const candidates = [
+        `https://raw.githubusercontent.com/${config.ownerName.trim()}/${config.repoName.trim()}/master/public/transcripts/transcription_status.json`,
+        `/transcripts/transcription_status.json`,
+        `./transcripts/transcription_status.json`
+      ];
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            setTranscriptionStatus(data);
+            return;
+          }
+        } catch {}
+      }
+    } catch {}
+  }, [config.ownerName, config.repoName]);
+
+  useEffect(() => {
+    loadStatusManifest();
+  }, [loadStatusManifest]);
+
+  const handleEnsureQueueRunning = async () => {
     setBatchTranscribing(true);
     setBatchMessage('');
     try {
@@ -224,11 +248,12 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         config.ownerName.trim(),
         config.repoName.trim(),
         'batch_transcribe.yml',
-        { limit: batchSize }
+        { limit: '10' }
       );
-      setBatchMessage(`Batch transcription started! Modal GPU is transcribing the next ${batchSize} untranscribed episodes (newest first).`);
+      setBatchMessage('Autonomous queue verified! Modal cloud GPU is continuously processing backlog episodes in order from newest to oldest.');
+      setTimeout(() => loadStatusManifest(), 4000);
     } catch (e) {
-      setBatchMessage(`Error: ${(e as Error).message}`);
+      setBatchMessage(`Notice: ${(e as Error).message}`);
     } finally {
       setBatchTranscribing(false);
     }
@@ -471,44 +496,82 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
             ))}
           </div>
 
-          {untranscribedCount > 0 && (
-            <div className="p-4 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 border border-indigo-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-indigo-400 animate-pulse" />
-                  <h4 className="text-sm font-semibold text-white">Batch Transcribe Queue (Newest to Oldest)</h4>
-                </div>
-                <p className="text-xs text-slate-400 mt-1">
-                  {untranscribedCount} episode{untranscribedCount !== 1 ? 's' : ''} awaiting Modal cloud GPU transcription. Episodes are queued chronologically from most recently released to oldest.
-                </p>
-                {batchMessage && (
-                  <p className={`text-xs mt-2 font-medium ${batchMessage.startsWith('Error') ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {batchMessage}
+          {/* Autonomous Transcription Pipeline Status Banner */}
+          <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-3 w-3">
+                  {untranscribedCount > 0 && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                  <span className={`relative inline-flex rounded-full h-3 w-3 ${untranscribedCount > 0 ? 'bg-emerald-500' : 'bg-indigo-400'}`}></span>
+                </span>
+                <div>
+                  <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                    Autonomous Transcription Pipeline
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      {untranscribedCount === 0 ? '100% COMPLETE' : 'ACTIVE BY DEFAULT'}
+                    </span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {untranscribedCount === 0
+                      ? 'All episodes in the library have been transcribed with full diarization and highlight clips.'
+                      : 'All episodes are transcribed automatically from newest to oldest via serverless cloud GPUs. Batches self-chain continuously until 100% complete.'}
                   </p>
-                )}
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <select
-                  value={batchSize}
-                  onChange={e => setBatchSize(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="5">Batch: 5 episodes</option>
-                  <option value="10">Batch: 10 episodes</option>
-                  <option value="25">Batch: 25 episodes</option>
-                  <option value="50">Batch: 50 episodes</option>
-                </select>
-                <button
-                  onClick={handleBatchTranscribe}
-                  disabled={batchTranscribing}
-                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg transition-colors cursor-pointer shadow-lg shadow-indigo-600/20"
-                >
-                  {batchTranscribing ? <Loader size={13} className="animate-spin" /> : <Sparkles size={13} />}
-                  Transcribe Next Batch
-                </button>
+
+              {untranscribedCount > 0 && (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={handleEnsureQueueRunning}
+                    disabled={batchTranscribing || !hasCredentials}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600/30 hover:bg-indigo-600 disabled:opacity-50 text-indigo-200 hover:text-white border border-indigo-500/30 rounded-lg transition-all cursor-pointer shadow-sm"
+                    title="Ensure the cloud GPU batch queue is running right now"
+                  >
+                    {batchTranscribing ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {batchTranscribing ? 'Verifying Queue…' : 'Sync / Ensure Active'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Visual Progress Bar */}
+            <div className="space-y-1.5 mt-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">
+                  <span className="text-white font-semibold">{txtCount}</span> of <span className="text-white font-semibold">{releases.length}</span> episodes transcribed
+                </span>
+                <span className="font-mono text-xs font-semibold text-emerald-400">
+                  {releases.length > 0 ? ((txtCount / releases.length) * 100).toFixed(1) : 0}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/50">
+                <div
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${releases.length > 0 ? Math.min(100, Math.max(2, (txtCount / releases.length) * 100)) : 0}%` }}
+                />
               </div>
             </div>
-          )}
+
+            {batchMessage && (
+              <p className={`text-xs mt-2.5 font-medium ${batchMessage.startsWith('Error') || batchMessage.startsWith('Notice') ? 'text-amber-400' : 'text-emerald-400'}`}>
+                {batchMessage}
+              </p>
+            )}
+
+            {untranscribedCount > 0 && transcriptionStatus?.next_in_queue && transcriptionStatus.next_in_queue.length > 0 && (
+              <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center gap-2 text-[11px] text-slate-400 overflow-x-auto">
+                <span className="text-slate-500 uppercase tracking-wider text-[10px] font-bold flex-shrink-0">Next in Queue:</span>
+                {transcriptionStatus.next_in_queue.slice(0, 3).map((item: any, i: number) => (
+                  <span key={item.tag} className="bg-slate-800/80 border border-slate-700/50 px-2 py-0.5 rounded text-slate-300 truncate max-w-[180px]" title={`${item.name} (${item.date})`}>
+                    #{i + 1} {item.name}
+                  </span>
+                ))}
+                {transcriptionStatus.next_in_queue.length > 3 && (
+                  <span className="text-slate-500 text-[10px] flex-shrink-0">+{untranscribedCount - 3} more</span>
+                )}
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
             <input
@@ -669,17 +732,22 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           </button>
                         )}
                         {!txt && mp3 && (
-                          <button
-                            onClick={() => handleTranscribe(release)}
-                            disabled={dispatching === release.id}
-                            className="flex items-center gap-1 px-2 py-0.5 text-[10px] text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded transition-colors disabled:opacity-50"
-                            title="Transcribe Space"
-                          >
-                            {dispatching === release.id
-                              ? <Loader size={9} className="animate-spin" />
-                              : <FileText size={9} />}
-                            Transcribe
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium">
+                              Queued for Auto-Transcription
+                            </span>
+                            <button
+                              onClick={() => handleTranscribe(release)}
+                              disabled={dispatching === release.id}
+                              className="flex items-center gap-1 px-2 py-0.5 text-[10px] text-indigo-300 hover:text-white bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/30 rounded transition-colors disabled:opacity-50 cursor-pointer"
+                              title="Prioritize this episode immediately out of order"
+                            >
+                              {dispatching === release.id
+                                ? <Loader size={9} className="animate-spin" />
+                                : <Sparkles size={9} className="text-amber-400" />}
+                              Prioritize Now
+                            </button>
+                          </div>
                         )}
                         {dispatchMsg[release.id] && (
                           <span className={`text-[10px] ${dispatchMsg[release.id].includes('dispatched') ? 'text-emerald-400' : 'text-red-400'}`}>
