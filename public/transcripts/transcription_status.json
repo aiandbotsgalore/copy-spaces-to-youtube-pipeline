@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:30:59.515155+00:00",
+  "last_updated": "2026-09-17T20:32:30.845078+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1168,57 +1168,57 @@
       "last_attempt": "2026-09-17T20:30:17.445683+00:00"
     },
     "20260217_1MnxnMbOWABJO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnMbOWABJO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:30:17.445686+00:00"
+      "last_attempt": "2026-09-17T20:31:40.400337+00:00"
     },
     "20260217_1lPKqbjNmXQGb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbjNmXQGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:30:17.445689+00:00"
+      "last_attempt": "2026-09-17T20:31:40.400357+00:00"
     },
     "20260218_1ypKdkWpWNqxW": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdkWpWNqxW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:30:17.445691+00:00"
+      "last_attempt": "2026-09-17T20:31:40.400362+00:00"
     },
     "20260218_1YqGoDPAmvaJv": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDPAmvaJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:30:17.445693+00:00"
+      "last_attempt": "2026-09-17T20:31:40.400366+00:00"
+    },
+    "20260218_1vOxwjzkwpNJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjzkwpNJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400370+00:00"
+    },
+    "20260218_1ypKdkWBQDyxW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdkWBQDyxW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400373+00:00"
+    },
+    "20260217_1lPJqbPeYwWxb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPJqbPeYwWxb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400376+00:00"
+    },
+    "20260217_1lPKqbPpMVZGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbPpMVZGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400379+00:00"
+    },
+    "20260216_1BdxYrmRXbZKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYrmRXbZKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400382+00:00"
+    },
+    "20260218_1yoKMwnpRRpJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwnpRRpJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:31:40.400385+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyJAWqoVaNKb",
-      "name": "The time has come for absolution. Kneel before Lord Ulrich \ud83d\udd25\ud83d\udca6 #BTFU",
-      "date": "Jan 2, 2024"
-    },
-    {
-      "tag": "20260217_1LyGBnYeYVLGN",
-      "name": "Kyle shares His Abduction Experiences",
-      "date": "Dec 28, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPMwXnbnJN",
-      "name": "Psyop currently in Progress.",
-      "date": "Dec 24, 2023"
-    },
-    {
-      "tag": "20260218_1yoKMwgkwgzJQ",
-      "name": "#Ai Discussion",
-      "date": "Dec 22, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZEvPXNbxB",
-      "name": "12/21 The Horrors Of Ego",
-      "date": "Dec 21, 2023"
-    },
-    {
-      "tag": "20260216_1jMJgmanzDyKL",
-      "name": "best of",
-      "date": "Dec 19, 2023"
-    },
     {
       "tag": "20260217_1MnxnMbOWABJO",
       "name": "\ud83e\udd14\ud83d\ude0e",
@@ -1288,6 +1288,36 @@
       "tag": "20260217_1LyGBnzDoPnGN",
       "name": "\ud83d\udc7d\ud83d\udd25DISCLOSURE coming in HAWT\ud83d\udd25\ud83d\udc7d",
       "date": "Dec 7, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgmWVrZeKL",
+      "name": "Was #Jesus The Son Of #God? Or was it a Cross of Fiction? #Debate",
+      "date": "Dec 3, 2023"
+    },
+    {
+      "tag": "20260216_1dRJZEpwjRmGB",
+      "name": "Does #God Exist? #debate",
+      "date": "Dec 3, 2023"
+    },
+    {
+      "tag": "20260217_1OdJrjdEbbvJX",
+      "name": "\ud83c\udfb5Calling Occupants of Interplanetary Craft\ud83c\udfb5 [no talking]",
+      "date": "Dec 2, 2023"
+    },
+    {
+      "tag": "20260216_1gqGvQmjkXpKB",
+      "name": "Fred Rogers: Singing, Screaming & #UFO's",
+      "date": "Dec 2, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRvldQQzGl",
+      "name": "Fred & Logan get musical(best of)",
+      "date": "Nov 26, 2023"
+    },
+    {
+      "tag": "20260217_1mrxmydegrnxy",
+      "name": "Logan Black's Bizarre Bazaar \u2122\ufe0f  \u26a1\u26a1",
+      "date": "Nov 26, 2023"
     }
   ]
 }
