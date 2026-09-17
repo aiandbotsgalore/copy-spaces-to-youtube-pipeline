@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:39:09.663261+00:00",
+  "last_updated": "2026-09-17T23:40:57.986706+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2618,57 +2618,57 @@
       "last_attempt": "2026-09-17T23:38:03.688850+00:00"
     },
     "20260217_1kvKpmqkMdQGE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmqkMdQGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:38:03.688853+00:00"
+      "last_attempt": "2026-09-17T23:39:54.454065+00:00"
     },
     "20260217_1OdKrzNyemqKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzNyemqKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:38:03.688856+00:00"
+      "last_attempt": "2026-09-17T23:39:54.454087+00:00"
     },
     "20260218_1YqKDojrQODxV": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDojrQODxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:38:03.688859+00:00"
+      "last_attempt": "2026-09-17T23:39:54.454090+00:00"
     },
     "20260220_1MnxnpXBMwVGO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1MnxnpXBMwVGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:38:03.688860+00:00"
+      "last_attempt": "2026-09-17T23:39:54.454093+00:00"
+    },
+    "20260218_1YqGoAXoRYkxv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoAXoRYkxv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454095+00:00"
+    },
+    "20260217_1LyGBqDopyzKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqDopyzKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454097+00:00"
+    },
+    "20260216_1DXGyvLywNWJM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyvLywNWJM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454098+00:00"
+    },
+    "20260218_1YpKkgeeApjKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgeeApjKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454100+00:00"
+    },
+    "20260217_1kvKpmVdQEoGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmVdQEoGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454101+00:00"
+    },
+    "20260217_1OwxWwqqLkQxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwqqLkQxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:39:54.454102+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLZymayxL",
-      "name": "\ud83d\udce1 frequencies *Must be >= Thetan level 4",
-      "date": "Feb 11, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPkrBwpqKN",
-      "name": "Mystery",
-      "date": "Feb 10, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrRBYpQKX",
-      "name": "Cocaine? The True Turkish Delight?",
-      "date": "Feb 10, 2023"
-    },
-    {
-      "tag": "20260217_1OdJrzekvMvJX",
-      "name": "\ud83d\udef8Kingdom of Nigh",
-      "date": "Feb 9, 2023"
-    },
-    {
-      "tag": "20260218_1lPKqBYLOdYGb",
-      "name": "#UFOtwitter Experiencer Night",
-      "date": "Feb 5, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrlpmzQKX",
-      "name": "#TwitterSpace Etiquette",
-      "date": "Feb 3, 2023"
-    },
     {
       "tag": "20260217_1kvKpmqkMdQGE",
       "name": "9/11 WTC Tower 1 & 2 & 3",
@@ -2738,6 +2738,36 @@
       "tag": "20260217_1vAxRAzQrkYJl",
       "name": "Messages from the future? [Open Discussion]",
       "date": "Jan 15, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqbXnRPJN",
+      "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
+      "date": "Jan 15, 2023"
+    },
+    {
+      "tag": "20260218_1ynJOazZeAVKR",
+      "name": "King's Chamber nub & Pole Shifts\ud83d\udc88 [HOUR 18]",
+      "date": "Jan 13, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgLyQyNAGL",
+      "name": "The Space after the space \ud83d\ude80",
+      "date": "Jan 12, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkDNLMXKN",
+      "name": "Taco Tuesday-Kayce Protocol edition",
+      "date": "Jan 10, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZlDeawxQ",
+      "name": "AFTER DARK",
+      "date": "Jan 8, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgLyAVgmxL",
+      "name": "Kayce UFO Protocols",
+      "date": "Jan 8, 2023"
     }
   ]
 }
