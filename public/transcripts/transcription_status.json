@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:16:02.722369+00:00",
+  "last_updated": "2026-09-17T19:17:46.726507+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -388,57 +388,57 @@
       "last_attempt": "2026-09-17T19:15:07.216259+00:00"
     },
     "20260216_1jMKgkYvBzWKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgkYvBzWKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216261+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332890+00:00"
     },
     "20260218_1YqGooWWWlbGv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGooWWWlbGv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216263+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332908+00:00"
     },
     "20260216_1djGXVvDeXXxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVvDeXXxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216265+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332912+00:00"
     },
     "20260217_1OdKrDeXLVwJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrDeXLVwJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216267+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332914+00:00"
     },
     "20260218_1YqGooEQnZMGv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGooEQnZMGv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216268+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332917+00:00"
     },
     "20260216_1dRKZYXQPlQxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZYXQPlQxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:15:07.216270+00:00"
+      "last_attempt": "2026-09-17T19:16:42.332919+00:00"
+    },
+    "20260218_1ypJdZLWVgvKW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypJdZLWVgvKW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:16:42.332921+00:00"
+    },
+    "20260217_1MnGnwrAOnkJO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnwrAOnkJO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:16:42.332923+00:00"
+    },
+    "20260216_1gqGvjRjZQeGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvjRjZQeGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:16:42.332924+00:00"
+    },
+    "20260216_1djGXVEqeqBxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVEqeqBxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:16:42.332926+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvJpyQkoYVxE",
-      "name": "Atacama Desert Anomalies",
-      "date": "May 15, 2025"
-    },
-    {
-      "tag": "20260217_1MYGNwAvrBRJw",
-      "name": "High Level Physics Breakthrough  & Mind Melding Discussion\u26a1\ufe0f\u26a1\ufe0f\ud83d\udc7d",
-      "date": "May 13, 2025"
-    },
-    {
-      "tag": "20260217_1PlJQMARWENJE",
-      "name": "Chappie Movie Fans",
-      "date": "May 12, 2025"
-    },
-    {
-      "tag": "20260216_1BdxYqvzqNBxX",
-      "name": "VC Rips The flow",
-      "date": "May 12, 2025"
-    },
     {
       "tag": "20260216_1jMKgkYvBzWKL",
       "name": "Snuggles Unpacks the Soul of the Machine",
@@ -518,6 +518,26 @@
       "tag": "20260216_1BRJjmkgmXBGw",
       "name": "420 soon zzz",
       "date": "Apr 20, 2025"
+    },
+    {
+      "tag": "20260217_1vAxRDzkZbjGl",
+      "name": "Spicy Ratchet Space \ud83d\udc7a",
+      "date": "Apr 19, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmkglAwGw",
+      "name": "Fred Explained",
+      "date": "Apr 19, 2025"
+    },
+    {
+      "tag": "20260216_1BRKjmkrjDgxw",
+      "name": "\ud83c\udf36\ufe0fSpicy Blue alien story",
+      "date": "Apr 17, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnwzkgWYJO",
+      "name": "Brother Jeremiah Snuggles debates God",
+      "date": "Apr 13, 2025"
     }
   ]
 }
