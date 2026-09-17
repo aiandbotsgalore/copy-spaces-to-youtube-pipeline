@@ -464,7 +464,38 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const targetScrollSecRef = useRef<number | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
-  const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
+  const owner = (config.ownerName || '').trim();
+  const repo = (config.repoName || '').trim();
+  const hasCredentials = !!(config.githubToken && owner && repo);
+
+  const effectiveReleases = useMemo((): Release[] => {
+    if (releases.length > 0) return releases;
+    if (!globalIndex || globalIndex.length === 0) return [];
+    return globalIndex.map(ep => ({
+      id: ep.release_id,
+      tag_name: ep.release_tag,
+      name: ep.title,
+      body: null,
+      published_at: ep.published_at,
+      html_url: '',
+      assets: ep.audio_url ? [{
+        id: ep.release_id,
+        name: `${ep.release_tag}.mp3`,
+        browser_download_url: ep.audio_url,
+        size: 0,
+        content_type: 'audio/mpeg'
+      }] : [],
+      draft: false,
+      prerelease: false,
+    }));
+  }, [releases, globalIndex]);
+
+  const selectedRelease = useMemo(() => effectiveReleases.find(r => r.id === selectedId), [effectiveReleases, selectedId]);
+  const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
+  const activePart = useMemo(() => episodeParts.find(p => p.partNumber === selectedPartNum) || episodeParts[0] || null, [episodeParts, selectedPartNum]);
+  const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
+  const mp3Asset = useMemo(() => activePart?.mp3Asset ?? selectedRelease?.assets.find(a => a.name.endsWith('.mp3')) ?? null, [activePart, selectedRelease]);
+  const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && (activePart?.mp3Asset ? current?.audioUrl === activePart.mp3Asset.browser_download_url : true) && isPlaying;
 
   const addOrUpdatePermanentSpeaker = (speaker: SavedSpeaker) => {
     setSavedSpeakers(prev => {
@@ -576,7 +607,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setError('');
     currentLoadedIdRef.current = null;
     try {
-      const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
+      const data = await getReleases(config.githubToken, owner, repo);
       setReleases(sortReleasesByRecordedDate(data));
       setLoaded(true);
     } catch (e) {
@@ -584,7 +615,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     } finally {
       setLoading(false);
     }
-  }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
+  }, [config.githubToken, owner, repo, hasCredentials]);
 
   useEffect(() => {
     if (hasCredentials && !loaded && !loading) fetchReleases();
@@ -635,7 +666,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
     try {
       const text = await fetchReleaseAssetText(
-        config.githubToken, asset, config.ownerName.trim(), config.repoName.trim(), release.tag_name
+        config.githubToken, asset, owner, repo, release.tag_name
       );
       setTranscriptRaw(text);
 
@@ -671,7 +702,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     } finally {
       setTranscriptLoading(false);
     }
-  }, [config.githubToken, config.ownerName, config.repoName, globalIndex]);
+  }, [config.githubToken, owner, repo, globalIndex]);
 
   const stopTranscriptPolling = useCallback(() => {
     if (transcriptionPollRef.current !== null) {
@@ -693,7 +724,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         return;
       }
       try {
-        const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
+        const data = await getReleases(config.githubToken, owner, repo);
         setReleases(sortReleasesByRecordedDate(data, 'desc'));
         const updated = data.find(r => r.id === releaseId);
         if (updated && pickTranscriptAsset(updated)) {
@@ -704,7 +735,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         }
       } catch { /* polling is best-effort */ }
     }, 12_000);
-  }, [config.githubToken, config.ownerName, config.repoName, loadTranscript, stopTranscriptPolling]);
+  }, [config.githubToken, owner, repo, loadTranscript, stopTranscriptPolling]);
 
   const handleGenerateTranscript = async () => {
     if (!selectedRelease || !hasCredentials) return;
@@ -712,7 +743,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setTranscribeSuccess('');
     setTranscriptError('');
     try {
-      await dispatchWorkflow(config.githubToken, config.ownerName.trim(), config.repoName.trim(), 'transcribe_episode.yml', { release_tag: selectedRelease.tag_name });
+      await dispatchWorkflow(config.githubToken, owner, repo, 'transcribe_episode.yml', { release_tag: selectedRelease.tag_name });
       setTranscribeSuccess(`Workflow dispatched for ${selectedRelease.tag_name}. The audio is being transcribed and diarized; this page will check automatically for completion.`);
       startTranscriptPolling(selectedRelease.id);
     } catch (e) {
@@ -721,28 +752,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       setTranscribing(false);
     }
   };
-
-  const effectiveReleases = useMemo((): Release[] => {
-    if (releases.length > 0) return releases;
-    if (!globalIndex || globalIndex.length === 0) return [];
-    return globalIndex.map(ep => ({
-      id: ep.release_id,
-      tag_name: ep.release_tag,
-      name: ep.title,
-      body: null,
-      published_at: ep.published_at,
-      html_url: '',
-      assets: ep.audio_url ? [{
-        id: ep.release_id,
-        name: `${ep.release_tag}.mp3`,
-        browser_download_url: ep.audio_url,
-        size: 0,
-        content_type: 'audio/mpeg'
-      }] : [],
-      draft: false,
-      prerelease: false,
-    }));
-  }, [releases, globalIndex]);
 
   useEffect(() => {
     if (effectiveReleases.length > 0 && selectedId) {
@@ -763,13 +772,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     }
   }, [effectiveReleases, selectedId, loadTranscript]);
-
-  const selectedRelease = effectiveReleases.find(r => r.id === selectedId);
-  const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
-  const activePart = useMemo(() => episodeParts.find(p => p.partNumber === selectedPartNum) || episodeParts[0] || null, [episodeParts, selectedPartNum]);
-  const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
-  const mp3Asset = useMemo(() => activePart?.mp3Asset ?? selectedRelease?.assets.find(a => a.name.endsWith('.mp3')) ?? null, [activePart, selectedRelease]);
-  const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && (activePart?.mp3Asset ? current?.audioUrl === activePart.mp3Asset.browser_download_url : true) && isPlaying;
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
@@ -1050,7 +1052,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         published_at: selectedRelease.published_at,
         segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
       }, null, 2);
-      await updateReleaseTranscriptAssets(config.githubToken, config.ownerName.trim(), config.repoName.trim(), selectedRelease, text, jsonData);
+      await updateReleaseTranscriptAssets(config.githubToken, owner, repo, selectedRelease, text, jsonData);
       // Offset is now baked into saved timestamps — clear it to prevent double-apply on reload
       try { localStorage.removeItem(`spk_offset_${selectedRelease.id}`); } catch {}
       setTimeOffsetSec(0);
