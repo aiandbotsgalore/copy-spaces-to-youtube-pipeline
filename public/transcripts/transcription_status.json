@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:25:44.555276+00:00",
+  "last_updated": "2026-09-17T19:27:17.538452+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -488,57 +488,57 @@
       "last_attempt": "2026-09-17T19:25:05.148452+00:00"
     },
     "20260217_1RDGlzwoRqgxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlzwoRqgxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148455+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975793+00:00"
     },
     "20260216_1BRJjmjoNkvGw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmjoNkvGw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148457+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975815+00:00"
     },
     "20260217_1MnxnwzBZRMKO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwzBZRMKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148460+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975817+00:00"
     },
     "20260217_1OwGWXpaNdwJQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwGWXpaNdwJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148462+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975820+00:00"
     },
     "20260218_1vOGwXBOQDLJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwXBOQDLJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148464+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975822+00:00"
     },
     "20260216_1BRJjmljkAjGw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmljkAjGw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:25:05.148466+00:00"
+      "last_attempt": "2026-09-17T19:26:18.975824+00:00"
+    },
+    "20260218_1djxXVkablVGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1djxXVkablVGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:26:18.975826+00:00"
+    },
+    "20260217_1MnxnwjYalXKO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwjYalXKO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:26:18.975828+00:00"
+    },
+    "20260218_1vOxwXDAllNKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwXDAllNKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:26:18.975830+00:00"
+    },
+    "20260218_1ypJdZjDYXYKW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypJdZjDYXYKW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:26:18.975831+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRDzkZbjGl",
-      "name": "Spicy Ratchet Space \ud83d\udc7a",
-      "date": "Apr 19, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmkglAwGw",
-      "name": "Fred Explained",
-      "date": "Apr 19, 2025"
-    },
-    {
-      "tag": "20260216_1BRKjmkrjDgxw",
-      "name": "\ud83c\udf36\ufe0fSpicy Blue alien story",
-      "date": "Apr 17, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnwzkgWYJO",
-      "name": "Brother Jeremiah Snuggles debates God",
-      "date": "Apr 13, 2025"
-    },
     {
       "tag": "20260217_1RDGlzwoRqgxL",
       "name": "$ROGERS \u2022 community coin poised for the moon \ud83c\udf19 \ud83d\uddfd",
@@ -618,6 +618,26 @@
       "tag": "20260217_1lDxLzEanlzGm",
       "name": "Short space for lulz",
       "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260217_1OdJrDnyAyQKX",
+      "name": "Trump & UFOs #ufoX",
+      "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260217_1OdJrDnZjYyKX",
+      "name": "I'm Aware Theres A/V Issues",
+      "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkBaojQPxj",
+      "name": "T ttttttttesting",
+      "date": "Mar 19, 2025"
+    },
+    {
+      "tag": "20260216_1jMJgkayRnwJL",
+      "name": "If your on android, you'll have audio issues in here",
+      "date": "Mar 19, 2025"
     }
   ]
 }
