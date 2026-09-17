@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:15:36.941396+00:00",
+  "last_updated": "2026-09-17T21:17:11.385512+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1638,57 +1638,57 @@
       "last_attempt": "2026-09-17T21:14:30.933513+00:00"
     },
     "20260217_1OyKAVjPEbnGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVjPEbnGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933516+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618379+00:00"
     },
     "20260217_1kvKpmybQroGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmybQroGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933518+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618401+00:00"
     },
     "20260217_1PlJQpMbEVBGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpMbEVBGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933520+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618405+00:00"
     },
     "20260217_1OdKrzDjPMQKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzDjPMQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933522+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618408+00:00"
     },
     "20260218_1zqJVPjXkXmKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVPjXkXmKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933524+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618412+00:00"
     },
     "20260218_1vOxwMXobMdGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMXobMdGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:14:30.933526+00:00"
+      "last_attempt": "2026-09-17T21:16:18.618415+00:00"
+    },
+    "20260218_1yNxaNLOXdWKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNLOXdWKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:16:18.618418+00:00"
+    },
+    "20260217_1mnxeRgOOjNKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRgOOjNKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:16:18.618421+00:00"
+    },
+    "20260217_1MnGnpwawENxO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnpwawENxO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:16:18.618423+00:00"
+    },
+    "20260216_1BdGYyqgeYZGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyqgeYZGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:16:18.618426+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1RDGlaApeRjJL",
-      "name": "#DMT  & #Consciousness \ud83c\udf35\ud83d\udc7d\ud83d\udef8\ud83e\udd2f",
-      "date": "Sep 5, 2023"
-    },
-    {
-      "tag": "20260216_1djxXlWwjAjxZ",
-      "name": "Music jam RIP SMASH MOUTH",
-      "date": "Sep 5, 2023"
-    },
-    {
-      "tag": "20260218_1YqxoAlMyrZGv",
-      "name": "The Complexities of Emotional Intelligence regarding Animalia",
-      "date": "Sep 2, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAQogoXJl",
-      "name": "Parapsy",
-      "date": "Sep 2, 2023"
-    },
     {
       "tag": "20260217_1OyKAVjPEbnGb",
       "name": "paranormality",
@@ -1768,6 +1768,26 @@
       "tag": "20260217_1lPJqBOmvlexb",
       "name": "Rick Doty 5pm PST Tonight on #perualiens & #davidgrusch",
       "date": "Aug 16, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyvdAYgWJM",
+      "name": "Ladies Lounge \ud83d\udc83",
+      "date": "Aug 15, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzXmEYwKX",
+      "name": "Logan Convention",
+      "date": "Aug 9, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwMrzyaLGB",
+      "name": "twitter-spaces video #1vOxwMrzyaLGB",
+      "date": "Aug 8, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqgzebrJN",
+      "name": "Talking Brandon Fugal & Honesty @brandonfugal",
+      "date": "Aug 7, 2023"
     }
   ]
 }
