@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:25:50.960273+00:00",
+  "last_updated": "2026-09-17T23:27:21.743810+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2468,57 +2468,57 @@
       "last_attempt": "2026-09-17T23:24:59.362998+00:00"
     },
     "20260217_1mnxeREaAZrKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeREaAZrKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:24:59.363001+00:00"
+      "last_attempt": "2026-09-17T23:26:36.649393+00:00"
     },
     "20260217_1PlJQpAmbqZGE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpAmbqZGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:24:59.363004+00:00"
+      "last_attempt": "2026-09-17T23:26:36.649416+00:00"
     },
     "20260217_1MYGNgAkZZoJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgAkZZoJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:24:59.363006+00:00"
+      "last_attempt": "2026-09-17T23:26:36.649421+00:00"
     },
     "20260216_1DXxyvyaVXbKM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvyaVXbKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:24:59.363009+00:00"
+      "last_attempt": "2026-09-17T23:26:36.649424+00:00"
+    },
+    "20260217_1vAxRAbEprgJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAbEprgJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649427+00:00"
+    },
+    "20260220_1LyxBqBjPYWJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1LyxBqBjPYWJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649430+00:00"
+    },
+    "20260218_1vOGwMvRgWNxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwMvRgWNxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649432+00:00"
+    },
+    "20260217_1MnxnpayOweGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpayOweGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649436+00:00"
+    },
+    "20260218_1YqJDowmRnYGV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDowmRnYGV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649438+00:00"
+    },
+    "20260217_1OwxWwARDEmxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwARDEmxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:26:36.649441+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1vOGwMOPWoExB",
-      "name": "Fred rogers backdoor",
-      "date": "Mar 15, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgmRgOXKj",
-      "name": "SEX Magick / Healing the Rift & Raising Your Frequency with love",
-      "date": "Mar 13, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPkqdWMVKN",
-      "name": "Angels \ud83d\ude07 & Demons  \ud83d\ude08",
-      "date": "Mar 13, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvyOzLdOJB",
-      "name": "space the final frontier",
-      "date": "Mar 13, 2023"
-    },
-    {
-      "tag": "20260217_1vAGRANakQYKl",
-      "name": "Friends Feeling Friendly",
-      "date": "Mar 12, 2023"
-    },
-    {
-      "tag": "20260216_1gqGvybjvqaKB",
-      "name": "Friday Night Rules: No Holds Barred",
-      "date": "Mar 11, 2023"
-    },
     {
       "tag": "20260217_1mnxeREaAZrKX",
       "name": "Paranormal Insights: Seeking the NIPS  \ud83e\udd5b",
@@ -2588,6 +2588,36 @@
       "tag": "20260217_1LyxBqjygQkJN",
       "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
       "date": "Feb 25, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNgLpWpRKw",
+      "name": "internet sucks & #ViralRabbi is going down",
+      "date": "Feb 24, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZelXQDxQ",
+      "name": "Tuesday(casual chat)",
+      "date": "Feb 21, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnpLWdbjGO",
+      "name": "UFO-Shane Wins Top Troll via Disqualification",
+      "date": "Feb 20, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwMYLEjWGB",
+      "name": "Popcorn ?",
+      "date": "Feb 19, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrPMkMoKX",
+      "name": "Ask Your Neighbour If They\u2019re A Reptilian Today, It\u2019s Free & Safe",
+      "date": "Feb 19, 2023"
+    },
+    {
+      "tag": "20260217_1lPJqBZERklxb",
+      "name": "Personal Phenomena Stories \ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
+      "date": "Feb 18, 2023"
     }
   ]
 }
