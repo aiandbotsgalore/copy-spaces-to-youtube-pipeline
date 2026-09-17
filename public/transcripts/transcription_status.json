@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:01:05.613553+00:00",
+  "last_updated": "2026-09-17T23:02:31.774732+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2188,57 +2188,57 @@
       "last_attempt": "2026-09-17T22:59:57.369516+00:00"
     },
     "20260218_1YpJkgVnpZNJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkgVnpZNJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369520+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607506+00:00"
     },
     "20260217_1PlJQpyeeeyGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpyeeeyGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369522+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607524+00:00"
     },
     "20260217_1PlJQpyorEyGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpyorEyGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369524+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607526+00:00"
     },
     "20260216_1dRKZMOkjbvxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZMOkjbvxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369527+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607529+00:00"
     },
     "20260218_1ZkKzXkzrwdJv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzXkzrwdJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369530+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607531+00:00"
     },
     "20260218_1yNxaNOjomQKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNOjomQKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:59:57.369531+00:00"
+      "last_attempt": "2026-09-17T23:01:41.607535+00:00"
+    },
+    "20260216_1gqxvynLnelJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvynLnelJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:01:41.607537+00:00"
+    },
+    "20260217_1lDxLnMdvwmGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnMdvwmGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:01:41.607540+00:00"
+    },
+    "20260217_1nAKErQpPLbGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErQpPLbGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:01:41.607542+00:00"
+    },
+    "20260218_1yoJMZVXMwkxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZVXMwkxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:01:41.607543+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1zqJVPOPBYDKB",
-      "name": "All Mysteries Revealed for One Low Price",
-      "date": "May 6, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoArRgrkxv",
-      "name": "STONER MEGALITH  \ud83d\udef8",
-      "date": "May 5, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAyyXEZJl",
-      "name": "What's the biggest mystery? + Philosophical discussion",
-      "date": "May 3, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzRZwkAKX",
-      "name": "pre skin walker",
-      "date": "May 3, 2023"
-    },
     {
       "tag": "20260218_1YpJkgVnpZNJj",
       "name": "Are We Aliens? Who Created Us? Philosophical debates \ud83d\udc7b\ud83d\udef8\ud83d\udc7e\ud83d\udc7d\ud83d\udd25\ud83d\udca5\ud83d\udd2b",
@@ -2318,6 +2318,26 @@
       "tag": "20260218_1ZkKzXNWqnDJv",
       "name": "part 2",
       "date": "Apr 18, 2023"
+    },
+    {
+      "tag": "20260218_1ZkJzXNnBOvKv",
+      "name": "UFO Homies \ud83d\udc7d\ud83d\udef8\u26a0\ufe0f",
+      "date": "Apr 18, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRoPeeLKX",
+      "name": "\ud83d\udc7dBOB LAZAR: LIAR? DISCLOSURE HERO? \ud83d\udef8\ud83c\udf15",
+      "date": "Apr 17, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXNzlbDJv",
+      "name": "What in the world?!? Opinions & thoughts the kind & adult way.\u2764\ufe0f\ud83d\udc7d",
+      "date": "Apr 16, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnpZoPajGO",
+      "name": "Quiet silence",
+      "date": "Apr 16, 2023"
     }
   ]
 }
