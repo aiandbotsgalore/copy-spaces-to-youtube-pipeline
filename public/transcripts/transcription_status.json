@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:35:06.465305+00:00",
+  "last_updated": "2026-09-17T21:36:34.307349+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1838,57 +1838,57 @@
       "last_attempt": "2026-09-17T21:34:11.336973+00:00"
     },
     "20260216_1gqGvylrEznKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvylrEznKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336975+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322422+00:00"
     },
     "20260218_1zqKVPBljVYJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPBljVYJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336978+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322444+00:00"
     },
     "20260218_1yNGaNYXLWqJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNYXLWqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336980+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322447+00:00"
     },
     "20260217_1MYGNgnjwEPJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgnjwEPJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336982+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322449+00:00"
     },
     "20260216_1djGXlPdBPdGZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlPdBPdGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336984+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322451+00:00"
     },
     "20260217_1lPKqBmpNVmGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBmpNVmGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:34:11.336986+00:00"
+      "last_attempt": "2026-09-17T21:35:41.322453+00:00"
+    },
+    "20260217_1RDxlagZDAgKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlagZDAgKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:35:41.322455+00:00"
+    },
+    "20260216_1BRJjZnaWzVJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZnaWzVJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:35:41.322456+00:00"
+    },
+    "20260217_1MnxnpkYOjeGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpkYOjeGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:35:41.322458+00:00"
+    },
+    "20260216_1dRJZMNEdgDGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZMNEdgDGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:35:41.322459+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lDxLnnrDwyGm",
-      "name": "We Love Diana Pasulka",
-      "date": "Jul 20, 2023"
-    },
-    {
-      "tag": "20260218_1yNxaNNOYEdKj",
-      "name": "Heather speaks the gospel",
-      "date": "Jul 19, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRRmjjbKX",
-      "name": "The Cube vs Orb",
-      "date": "Jul 18, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmmDovPxE",
-      "name": "bat and Elle",
-      "date": "Jul 12, 2023"
-    },
     {
       "tag": "20260216_1gqGvylrEznKB",
       "name": "UFO's: After Sunrise \ud83d\udd06 (deleting this space)",
@@ -1968,6 +1968,26 @@
       "tag": "20260218_1YqJDopAgwVGV",
       "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
       "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnyRroqGm",
+      "name": "after party",
+      "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgLXZgaPGL",
+      "name": "Cyber Stalking & harassment- Jalissa",
+      "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260216_1dRJZMZylwrGB",
+      "name": "Born to \ud83d\udc7d",
+      "date": "Jun 16, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRlDjwRKX",
+      "name": "The Disclosure Train Never Stops / NO \ud83d\ude4c needed",
+      "date": "Jun 15, 2023"
     }
   ]
 }
