@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:01:03.928410+00:00",
+  "last_updated": "2026-09-17T20:02:52.628168+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -838,57 +838,57 @@
       "last_attempt": "2026-09-17T20:00:20.958261+00:00"
     },
     "20260218_1yNGaZNNlmVJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZNNlmVJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958264+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727949+00:00"
     },
     "20260217_1MnGnMpPDyoKO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnMpPDyoKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958266+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727970+00:00"
     },
     "20260216_1BRJjPZOpAjKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjPZOpAjKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958270+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727975+00:00"
     },
     "20260217_1mnxepdvjDLJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxepdvjDLJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958273+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727978+00:00"
     },
     "20260218_1ynKOyBOnrXJR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOyBOnrXJR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958275+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727982+00:00"
     },
     "20260217_1rmGPMzzWVnJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPMzzWVnJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:00:20.958278+00:00"
+      "last_attempt": "2026-09-17T20:01:51.727984+00:00"
+    },
+    "20260217_1mnxepaYymoJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxepaYymoJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:01:51.727988+00:00"
+    },
+    "20260216_1dRKZEZaanaxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEZaanaxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:01:51.727991+00:00"
+    },
+    "20260218_1ypKdkQVnorxW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdkQVnorxW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:01:51.727993+00:00"
+    },
+    "20260216_1BdGYreENDyJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYreENDyJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:01:51.727996+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoJMwypnbDKQ",
-      "name": "A Cosmic Dance \ud83e\udea9 \ud83d\udef8\ud83d\udc7d\u2764\ufe0f\u200d\ud83d\udd25",
-      "date": "Jun 24, 2024"
-    },
-    {
-      "tag": "20260218_1yoJMwyLDkeKQ",
-      "name": "Sunday Morning Hymns",
-      "date": "Jun 23, 2024"
-    },
-    {
-      "tag": "20260216_1gqxvQQVzlqJB",
-      "name": "Aliens \ud83d\udc7d",
-      "date": "Jun 19, 2024"
-    },
-    {
-      "tag": "20260217_1vAGRvvpBXyGl",
-      "name": "Wild Stories \u26a0\ufe0f\u26a0\ufe0fNSFW\u26a0\ufe0f\u26a0\ufe0f",
-      "date": "Jun 17, 2024"
-    },
     {
       "tag": "20260218_1yNGaZNNlmVJj",
       "name": "\ud83d\udc7d@JasonSa32135987\ud83d\udef8 Intel Gathering\ud83d\udd0dPre-Space Prep Recon.\ud83d\udd25@UAPodcast850",
@@ -968,6 +968,26 @@
       "tag": "20260216_1jMJgmEAwmPKL",
       "name": "Jason Sands- UFO/UAP Whistleblower FULL AUDIO recording Replay",
       "date": "Apr 23, 2024"
+    },
+    {
+      "tag": "20260216_1dRKZEgXPRoxB",
+      "name": "#PeoplesWhistleblower @JasonSa32135987\u202c+@RTicky166+@Steve7945459334\ud83d\udef8\ud83d\udc7d\ud83e\uddec",
+      "date": "Apr 23, 2024"
+    },
+    {
+      "tag": "20260217_1mnGepXgXLoKX",
+      "name": "UFO Explanations & Answers & Made Up Stories. 420 get stoned",
+      "date": "Apr 20, 2024"
+    },
+    {
+      "tag": "20260216_1dRJZEedWWmGB",
+      "name": "Beyond The Veil w/ OpenEye aka Mr Nobody. Answering Your Questions!",
+      "date": "Apr 20, 2024"
+    },
+    {
+      "tag": "20260216_1jMKgmqqpPjJL",
+      "name": "Match Game with Dan Freeman",
+      "date": "Apr 18, 2024"
     }
   ]
 }
