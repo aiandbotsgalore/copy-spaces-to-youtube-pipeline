@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:07:01.032277+00:00",
+  "last_updated": "2026-09-17T19:08:23.582682+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -288,57 +288,57 @@
       "last_attempt": "2026-09-17T19:06:22.039179+00:00"
     },
     "20260217_1nAKEgypZpZJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEgypZpZJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039182+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474249+00:00"
     },
     "20260217_1lPKqMoEQZPKb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMoEQZPKb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039185+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474270+00:00"
     },
     "20260218_1ZkKzYkaBXRxv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzYkaBXRxv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039188+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474274+00:00"
     },
     "20260217_1rmxPyNmyrnKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPyNmyrnKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039191+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474277+00:00"
     },
     "20260216_1dRKZYgeZPDxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZYgeZPDxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039194+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474279+00:00"
     },
     "20260218_1vOxwXAgXRDKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwXAgXRDKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:06:22.039196+00:00"
+      "last_attempt": "2026-09-17T19:07:37.474281+00:00"
+    },
+    "20260217_1OyJALNQwDoGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJALNQwDoGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:07:37.474284+00:00"
+    },
+    "20260218_1vOxwXAPDmvKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwXAPDmvKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:07:37.474285+00:00"
+    },
+    "20260216_1djGXVdgWvvxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVdgWvvxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:07:37.474287+00:00"
+    },
+    "20260217_1MnxnwgQllMKO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwgQllMKO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:07:37.474289+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoKMoXRVRDJQ",
-      "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
-      "date": "Jun 29, 2025"
-    },
-    {
-      "tag": "20260217_1PlJQMmPYZBJE",
-      "name": "Negative Quantum States, Demiurge, Sofia -Visit Snuggles.Support",
-      "date": "Jun 28, 2025"
-    },
-    {
-      "tag": "20260216_1dRJZYLgYXMGB",
-      "name": "Biotech Realities\ud83e\uddec\ud83e\udd16",
-      "date": "Jun 22, 2025"
-    },
-    {
-      "tag": "20260218_1YqJDZnjrPEKV",
-      "name": "Car",
-      "date": "Jun 20, 2025"
-    },
     {
       "tag": "20260217_1nAKEgypZpZJL",
       "name": "Eternal Ai & Immortal Biologics",
@@ -418,6 +418,26 @@
       "tag": "20260216_1jMJgkPnZbAJL",
       "name": "The Veil of the Old World",
       "date": "May 19, 2025"
+    },
+    {
+      "tag": "20260217_1kvJpyQkoYVxE",
+      "name": "Atacama Desert Anomalies",
+      "date": "May 15, 2025"
+    },
+    {
+      "tag": "20260217_1MYGNwAvrBRJw",
+      "name": "High Level Physics Breakthrough  & Mind Melding Discussion\u26a1\ufe0f\u26a1\ufe0f\ud83d\udc7d",
+      "date": "May 13, 2025"
+    },
+    {
+      "tag": "20260217_1PlJQMARWENJE",
+      "name": "Chappie Movie Fans",
+      "date": "May 12, 2025"
+    },
+    {
+      "tag": "20260216_1BdxYqvzqNBxX",
+      "name": "VC Rips The flow",
+      "date": "May 12, 2025"
     }
   ]
 }
