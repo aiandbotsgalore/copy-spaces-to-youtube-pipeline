@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:10:58.613901+00:00",
+  "last_updated": "2026-09-17T21:12:13.364165+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1588,57 +1588,57 @@
       "last_attempt": "2026-09-17T21:10:06.530187+00:00"
     },
     "20260217_1MYGNgldMYLJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgldMYLJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530189+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209930+00:00"
     },
     "20260217_1RDGlaAWOBrJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaAWOBrJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530192+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209951+00:00"
     },
     "20260217_1OdKrzOgbZkKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzOgbZkKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530195+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209955+00:00"
     },
     "20260217_1MYxNglXeMbKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNglXeMbKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530197+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209958+00:00"
     },
     "20260216_1BdGYyZWmOEGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyZWmOEGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530200+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209961+00:00"
     },
     "20260217_1RDGlaAYgzNJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaAYgzNJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:10:06.530202+00:00"
+      "last_attempt": "2026-09-17T21:11:34.209964+00:00"
+    },
+    "20260217_1RDGlaApeRjJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaApeRjJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:11:34.209966+00:00"
+    },
+    "20260216_1djxXlWwjAjxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlWwjAjxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:11:34.209968+00:00"
+    },
+    "20260218_1YqxoAlMyrZGv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqxoAlMyrZGv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:11:34.209970+00:00"
+    },
+    "20260217_1vAxRAQogoXJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAQogoXJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:11:34.209972+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1DXGyjmgqjNJM",
-      "name": "we need to talk... real talk... personal stuff",
-      "date": "Sep 16, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrjgXonKX",
-      "name": "Mexico alien bodies",
-      "date": "Sep 13, 2023"
-    },
-    {
-      "tag": "20260218_1ynJOaMpMvyKR",
-      "name": "The Nature of Reality & Dimensions: Dreams",
-      "date": "Sep 12, 2023"
-    },
-    {
-      "tag": "20260217_1OyJAVjEWDDxb",
-      "name": "Mishlove/Biegelow interview/discussion b4 6PM CST Mexico #UFO Hearing",
-      "date": "Sep 12, 2023"
-    },
     {
       "tag": "20260217_1MYGNgldMYLJw",
       "name": "NEW David Grusch interview w/ @AmericanAlchemy & then discussion",
@@ -1718,6 +1718,26 @@
       "tag": "20260218_1vOxwMXobMdGB",
       "name": "TEST",
       "date": "Aug 28, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNLOXdWKj",
+      "name": "Guy \u2764\ufe0f\ud83d\udc7d",
+      "date": "Aug 27, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRgOOjNKX",
+      "name": "We \ud83d\udc9c Guy",
+      "date": "Aug 27, 2023"
+    },
+    {
+      "tag": "20260217_1MnGnpwawENxO",
+      "name": "30 minutes space",
+      "date": "Aug 25, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyqgeYZGX",
+      "name": "lo lol UFOs",
+      "date": "Aug 25, 2023"
     }
   ]
 }
