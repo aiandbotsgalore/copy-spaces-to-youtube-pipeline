@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:01:06.726540+00:00",
+  "last_updated": "2026-09-17T19:02:29.725724+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -218,54 +218,54 @@
       "last_attempt": "2026-09-17T18:58:40.591226+00:00"
     },
     "20260217_1mrxmPPjpvDJy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmPPjpvDJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366551+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550889+00:00"
     },
     "20260217_1mrGmPPloMdKy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmPPloMdKy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366569+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550908+00:00"
     },
     "20260217_1kvKpybQyQmGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpybQyQmGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366573+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550913+00:00"
     },
     "20260216_1djGXVrLBwoxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVrLBwoxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366576+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550916+00:00"
     },
     "20260217_1lPKqMBdEBZKb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMBdEBZKb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366578+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550919+00:00"
     },
     "20260217_1MnxnwkvblBKO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwkvblBKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366580+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550922+00:00"
     },
     "20260218_1YpJkBzBlOoGj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkBzBlOoGj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366583+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550924+00:00"
     },
     "20260216_1BdGYqYRodEGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqYRodEGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366585+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550927+00:00"
     },
     "20260217_1lDxLzylZYZGm": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLzylZYZGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366587+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550930+00:00"
     },
     "20260218_1zqKVjeZdwXKB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVjeZdwXKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:00:01.366588+00:00"
+      "last_attempt": "2026-09-17T19:01:46.550932+00:00"
     }
   },
   "next_in_queue": [
