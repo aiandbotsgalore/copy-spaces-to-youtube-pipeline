@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:20:29.767453+00:00",
+  "last_updated": "2026-09-17T20:22:16.040733+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1038,57 +1038,57 @@
       "last_attempt": "2026-09-17T20:19:38.311987+00:00"
     },
     "20260217_1OwxWYqNopAGQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWYqNopAGQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.311991+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140173+00:00"
     },
     "20260216_1eaJbgXgNYBxX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaJbgXgNYBxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.311994+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140192+00:00"
     },
     "20260218_1YqJDgDpoDvGV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDgDpoDvGV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.311998+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140194+00:00"
     },
     "20260217_1OdKrjYRoewKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrjYRoewKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.312001+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140197+00:00"
     },
     "20260218_1yoKMwrBOZdJQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwrBOZdJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.312004+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140199+00:00"
     },
     "20260217_1rmxPMRpELMKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPMRpELMKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:19:38.312006+00:00"
+      "last_attempt": "2026-09-17T20:21:19.140201+00:00"
+    },
+    "20260218_1yNGaZeNjbQJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZeNjbQJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:21:19.140203+00:00"
+    },
+    "20260218_1YqGoDwpDVXJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDwpDVXJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:21:19.140204+00:00"
+    },
+    "20260217_1nAKEabrPnaKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEabrPnaKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:21:19.140207+00:00"
+    },
+    "20260218_1ynJOyzqLjXKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOyzqLjXKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:21:19.140209+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lDxLPVwMMbxm",
-      "name": "\u2026",
-      "date": "Mar 13, 2024"
-    },
-    {
-      "tag": "20260218_1yNGaZAQowEJj",
-      "name": "History of Earth + Gods + Advanced Tech + Double Slit + \u26a1\ufe0fE-M\ud83e\uddf2",
-      "date": "Mar 10, 2024"
-    },
-    {
-      "tag": "20260218_1ZkKzjngDnaKv",
-      "name": "Afterspace (highly secret)",
-      "date": "Mar 6, 2024"
-    },
-    {
-      "tag": "20260217_1RDGllLlqoMGL",
-      "name": "Space Re-Scheduled to 10PM PST: The Secret History of the World: Ch.3",
-      "date": "Mar 4, 2024"
-    },
     {
       "tag": "20260217_1OwxWYqNopAGQ",
       "name": "I MET GOD ON DMT, LITERALLY- Russia's Spooky Files",
@@ -1168,6 +1168,26 @@
       "tag": "20260218_1YqKDgVWerLxV",
       "name": "Weekly SkyFire\ud83d\udd25 News: \u20b3 \u20a3 \u20ae E R \u20b4 \u20b1 \u20b3 \u20b5 E    #ufoX #FreeEnergy",
       "date": "Feb 3, 2024"
+    },
+    {
+      "tag": "20260216_1djxXNkreeNGZ",
+      "name": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
+      "date": "Feb 1, 2024"
+    },
+    {
+      "tag": "20260217_1RDxllpLnMrxL",
+      "name": "Mr.Fred Roger's @rfredrogers Epic Extravaganza!",
+      "date": "Jan 14, 2024"
+    },
+    {
+      "tag": "20260217_1mrGmyjMlBdGy",
+      "name": "Life Lessons with Me-Me",
+      "date": "Jan 8, 2024"
+    },
+    {
+      "tag": "20260218_1yoKMwOWRmRJQ",
+      "name": "\ud83d\udc7dMiami Mall Aliens: Post Party Review",
+      "date": "Jan 7, 2024"
     }
   ]
 }
