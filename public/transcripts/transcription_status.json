@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:15:28.726895+00:00",
+  "last_updated": "2026-09-17T20:17:17.743056+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -988,57 +988,57 @@
       "last_attempt": "2026-09-17T20:14:35.906981+00:00"
     },
     "20260218_1ZkKzjOMBzLKv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjOMBzLKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906983+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804842+00:00"
     },
     "20260218_1YqKDgwqZVwxV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDgwqZVwxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906986+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804861+00:00"
     },
     "20260218_1zqJVqAyAvnGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVqAyAvnGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906988+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804864+00:00"
     },
     "20260216_1djGXNvNYkvxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXNvNYkvxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906991+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804867+00:00"
     },
     "20260217_1MnGnMLRorYKO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnMLRorYKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906993+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804870+00:00"
     },
     "20260216_1gqGvQZqBYpKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvQZqBYpKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:14:35.906996+00:00"
+      "last_attempt": "2026-09-17T20:16:11.804872+00:00"
+    },
+    "20260217_1lDxLPVwMMbxm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLPVwMMbxm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:16:11.804875+00:00"
+    },
+    "20260218_1yNGaZAQowEJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZAQowEJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:16:11.804877+00:00"
+    },
+    "20260218_1ZkKzjngDnaKv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjngDnaKv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:16:11.804879+00:00"
+    },
+    "20260217_1RDGllLlqoMGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGllLlqoMGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:16:11.804881+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OwxWYMvvLRGQ",
-      "name": "LOVE",
-      "date": "Apr 10, 2024"
-    },
-    {
-      "tag": "20260218_1yoKMwMOMpDJQ",
-      "name": "Early Morni discussion",
-      "date": "Apr 9, 2024"
-    },
-    {
-      "tag": "20260218_1YqGoDmQLqBJv",
-      "name": "Grateful",
-      "date": "Apr 6, 2024"
-    },
-    {
-      "tag": "20260216_1dRKZEnkvZMxB",
-      "name": "CONNOR'S PERSONAL HELL",
-      "date": "Apr 3, 2024"
-    },
     {
       "tag": "20260218_1ZkKzjOMBzLKv",
       "name": "German",
@@ -1118,6 +1118,26 @@
       "tag": "20260217_1rmxPMRpELMKN",
       "name": "UAP Experiences featuring @LukeandLula",
       "date": "Feb 28, 2024"
+    },
+    {
+      "tag": "20260218_1yNGaZeNjbQJj",
+      "name": "Logan plays 90's jamz while everone sleeps. Who will wake up first?",
+      "date": "Feb 24, 2024"
+    },
+    {
+      "tag": "20260218_1YqGoDwpDVXJv",
+      "name": "DMT TRIPS with God",
+      "date": "Feb 24, 2024"
+    },
+    {
+      "tag": "20260217_1nAKEabrPnaKL",
+      "name": "DMT TRIPS @",
+      "date": "Feb 24, 2024"
+    },
+    {
+      "tag": "20260218_1ynJOyzqLjXKR",
+      "name": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands",
+      "date": "Feb 23, 2024"
     }
   ]
 }
