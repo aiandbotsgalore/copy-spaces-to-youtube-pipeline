@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:43:50.569898+00:00",
+  "last_updated": "2026-09-17T20:45:25.430789+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1288,57 +1288,57 @@
       "last_attempt": "2026-09-17T20:43:09.143963+00:00"
     },
     "20260218_1ynJOybbVPZKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOybbVPZKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143966+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313231+00:00"
     },
     "20260218_1ZkKzjaaBOZKv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjaaBOZKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143969+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313249+00:00"
     },
     "20260217_1LyGBnVPBBjGN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBnVPBBjGN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143971+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313254+00:00"
     },
     "20260216_1dRKZEoBRBgxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEoBRBgxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143974+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313257+00:00"
     },
     "20260218_1ZkJzjaMgBeJv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkJzjaMgBeJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143976+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313260+00:00"
     },
     "20260218_1ZkKzjBRzDRKv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjBRzDRKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:43:09.143979+00:00"
+      "last_attempt": "2026-09-17T20:44:32.313263+00:00"
+    },
+    "20260217_1rmxPMdgWNyKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPMdgWNyKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:44:32.313265+00:00"
+    },
+    "20260217_1mnGepBoNNQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGepBoNNQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:44:32.313268+00:00"
+    },
+    "20260217_1RDxlljWOPzxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlljWOPzxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:44:32.313270+00:00"
+    },
+    "20260218_1yNGaZzPWbXJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZzPWbXJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:44:32.313272+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdxYrzPgmyKX",
-      "name": "-POST TUPA SPACE WIND DOWN",
-      "date": "Nov 26, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbgoXlMQGX",
-      "name": "private audio test. stay out",
-      "date": "Nov 25, 2023"
-    },
-    {
-      "tag": "20260216_1DXGyjPLlRyJM",
-      "name": "private space audio test for guitar recording",
-      "date": "Nov 25, 2023"
-    },
-    {
-      "tag": "20260216_1jMKgmzaydbJL",
-      "name": "Mariah Carey-Obsessed",
-      "date": "Nov 23, 2023"
-    },
     {
       "tag": "20260218_1ynJOybbVPZKR",
       "name": "David Grusch on Rogan LIVE episode: (Replay)",
@@ -1418,6 +1418,26 @@
       "tag": "20260216_1eaKbgkNMQRGX",
       "name": "Sound Check Testing",
       "date": "Nov 6, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvQLEROwJB",
+      "name": "\u26a0\ufe0f[Axe Test ]\u26a0\ufe0f\ud83c\udfb8\ud83e\udd18\ud83d\udcaf",
+      "date": "Nov 5, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqbapgoQGb",
+      "name": "Thursdays gone",
+      "date": "Nov 3, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNoWjQZpKw",
+      "name": "Space Allies in Cahoots",
+      "date": "Nov 3, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwjLObNVJB",
+      "name": "Music, Sports & UFOs \u2764\ufe0f",
+      "date": "Nov 2, 2023"
     }
   ]
 }
