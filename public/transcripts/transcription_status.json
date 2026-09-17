@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:36:41.924952+00:00",
+  "last_updated": "2026-09-17T19:38:30.225353+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -588,57 +588,57 @@
       "last_attempt": "2026-09-17T19:35:42.338725+00:00"
     },
     "20260217_1MYGNwvNLgwJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNwvNLgwJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338727+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653818+00:00"
     },
     "20260218_1vOGwryMNEWKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwryMNEWKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338730+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653839+00:00"
     },
     "20260218_1yoKMyWjLjjKQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMyWjLjjKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338732+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653843+00:00"
     },
     "20260216_1BRJjwnDkdexw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjwnDkdexw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338734+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653845+00:00"
     },
     "20260218_1djGXrqPWEvxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1djGXrqPWEvxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338737+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653847+00:00"
     },
     "20260218_1YqJDkeVXvvGV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDkeVXvvGV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:35:42.338738+00:00"
+      "last_attempt": "2026-09-17T19:37:22.653850+00:00"
+    },
+    "20260217_1OyJAZgEOZgxb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJAZgEOZgxb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:37:22.653852+00:00"
+    },
+    "20260218_1YpJklQkLNAxj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJklQkLNAxj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:37:22.653854+00:00"
+    },
+    "20260217_1mrxmMEVbAWxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmMEVbAWxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:37:22.653856+00:00"
+    },
+    "20260216_1BRKjwQZEOdGw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjwQZEOdGw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:37:22.653858+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OdJrDnyAyQKX",
-      "name": "Trump & UFOs #ufoX",
-      "date": "Mar 20, 2025"
-    },
-    {
-      "tag": "20260217_1OdJrDnZjYyKX",
-      "name": "I'm Aware Theres A/V Issues",
-      "date": "Mar 20, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkBaojQPxj",
-      "name": "T ttttttttesting",
-      "date": "Mar 19, 2025"
-    },
-    {
-      "tag": "20260216_1jMJgkayRnwJL",
-      "name": "If your on android, you'll have audio issues in here",
-      "date": "Mar 19, 2025"
-    },
     {
       "tag": "20260217_1MYGNwvNLgwJw",
       "name": "I also like to live dangerously: Quietly.",
@@ -718,6 +718,26 @@
       "tag": "20260218_1vOxwrqbegVJB",
       "name": "\u3006 Kingman UFO \ud83d\udc41\ufe0f",
       "date": "Dec 1, 2024"
+    },
+    {
+      "tag": "20260217_1RDGlyqLObDJL",
+      "name": "AGI is Here!: Spaces the Series",
+      "date": "Nov 27, 2024"
+    },
+    {
+      "tag": "20260217_1mrGmMnDXQgGy",
+      "name": "Ai Run Locally and You",
+      "date": "Nov 20, 2024"
+    },
+    {
+      "tag": "20260218_1ynJODAyrPzxR",
+      "name": "Ricky Lu Works the Pole",
+      "date": "Nov 18, 2024"
+    },
+    {
+      "tag": "20260217_1rmxPomoomqJN",
+      "name": "NATO Leads WW3",
+      "date": "Nov 18, 2024"
     }
   ]
 }
