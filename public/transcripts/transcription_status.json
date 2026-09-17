@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:17:11.385512+00:00",
+  "last_updated": "2026-09-17T21:18:39.479817+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1668,57 +1668,57 @@
       "last_attempt": "2026-09-17T21:16:18.618415+00:00"
     },
     "20260218_1yNxaNLOXdWKj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNLOXdWKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:16:18.618418+00:00"
+      "last_attempt": "2026-09-17T21:17:55.990473+00:00"
     },
     "20260217_1mnxeRgOOjNKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRgOOjNKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:16:18.618421+00:00"
+      "last_attempt": "2026-09-17T21:17:55.990493+00:00"
     },
     "20260217_1MnGnpwawENxO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnpwawENxO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:16:18.618423+00:00"
+      "last_attempt": "2026-09-17T21:17:55.990498+00:00"
     },
     "20260216_1BdGYyqgeYZGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyqgeYZGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:16:18.618426+00:00"
+      "last_attempt": "2026-09-17T21:17:55.990503+00:00"
+    },
+    "20260218_1ynJOalzZOVKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOalzZOVKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990506+00:00"
+    },
+    "20260216_1jMJgLBkODjxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLBkODjxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990509+00:00"
+    },
+    "20260216_1dRKZMdaZjrxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZMdaZjrxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990513+00:00"
+    },
+    "20260218_1YqGoAvArzMxv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoAvArzMxv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990515+00:00"
+    },
+    "20260217_1PlJQpbVMrYGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpbVMrYGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990518+00:00"
+    },
+    "20260217_1lPJqBOmvlexb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPJqBOmvlexb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:17:55.990521+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyKAVjPEbnGb",
-      "name": "paranormality",
-      "date": "Sep 2, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmybQroGE",
-      "name": "Anunnakin' on Heaven's Door",
-      "date": "Aug 31, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpMbEVBGE",
-      "name": "test",
-      "date": "Aug 31, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzDjPMQKX",
-      "name": "Paranormality- Heated  #Debate",
-      "date": "Aug 30, 2023"
-    },
-    {
-      "tag": "20260218_1zqJVPjXkXmKB",
-      "name": "Time Travel Messages From the Future- Jack Sarfatti",
-      "date": "Aug 29, 2023"
-    },
-    {
-      "tag": "20260218_1vOxwMXobMdGB",
-      "name": "TEST",
-      "date": "Aug 28, 2023"
-    },
     {
       "tag": "20260218_1yNxaNLOXdWKj",
       "name": "Guy \u2764\ufe0f\ud83d\udc7d",
@@ -1788,6 +1788,36 @@
       "tag": "20260217_1LyxBqgzebrJN",
       "name": "Talking Brandon Fugal & Honesty @brandonfugal",
       "date": "Aug 7, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRAMVBQKX",
+      "name": "Doll Radio \ud83c\udf99\ufe0f\u2620\ufe0f\ud83d\udc9c\u2728",
+      "date": "Aug 6, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqnWQXEJN",
+      "name": "Aerospace Scientists: UFOs = Biblical Time Capsules | D.W. Pasulka\" \ud83d\udef8",
+      "date": "Aug 5, 2023"
+    },
+    {
+      "tag": "20260218_1zqKVPqPomXJB",
+      "name": "God Loves You. \u2764\ufe0f Imagination land",
+      "date": "Aug 4, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDogpyDaGV",
+      "name": "Open Eye Dialogues \ud83d\udc7d\ud83d\udef8\ud83d\udc40",
+      "date": "Aug 3, 2023"
+    },
+    {
+      "tag": "20260217_1OyKAVWYPonGb",
+      "name": "Acoustic Lasers/ EMF/ Pulsed Microwaves/ UFO's / Anasazi Hobbits",
+      "date": "Aug 2, 2023"
+    },
+    {
+      "tag": "20260218_1zqJVPqzjEwKB",
+      "name": "UFO Loco",
+      "date": "Jul 28, 2023"
     }
   ]
 }
