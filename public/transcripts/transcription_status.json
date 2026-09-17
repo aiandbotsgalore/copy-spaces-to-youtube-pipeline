@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:02:31.774732+00:00",
+  "last_updated": "2026-09-17T23:04:11.011077+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2218,57 +2218,57 @@
       "last_attempt": "2026-09-17T23:01:41.607535+00:00"
     },
     "20260216_1gqxvynLnelJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvynLnelJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:01:41.607537+00:00"
+      "last_attempt": "2026-09-17T23:03:16.983392+00:00"
     },
     "20260217_1lDxLnMdvwmGm": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnMdvwmGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:01:41.607540+00:00"
+      "last_attempt": "2026-09-17T23:03:16.983413+00:00"
     },
     "20260217_1nAKErQpPLbGL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErQpPLbGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:01:41.607542+00:00"
+      "last_attempt": "2026-09-17T23:03:16.983418+00:00"
     },
     "20260218_1yoJMZVXMwkxQ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZVXMwkxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:01:41.607543+00:00"
+      "last_attempt": "2026-09-17T23:03:16.983422+00:00"
+    },
+    "20260216_1djxXlnpwyBxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlnpwyBxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983426+00:00"
+    },
+    "20260216_1dRKZMgLqBQxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZMgLqBQxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983429+00:00"
+    },
+    "20260218_1ypJddYrlWjJW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypJddYrlWjJW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983432+00:00"
+    },
+    "20260217_1rmGPkNqEOYKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkNqEOYKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983435+00:00"
+    },
+    "20260217_1RDGlaWmjVMJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaWmjVMJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983437+00:00"
+    },
+    "20260218_1ZkKzXNWqnDJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzXNWqnDJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:03:16.983440+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1YpJkgVnpZNJj",
-      "name": "Are We Aliens? Who Created Us? Philosophical debates \ud83d\udc7b\ud83d\udef8\ud83d\udc7e\ud83d\udc7d\ud83d\udd25\ud83d\udca5\ud83d\udd2b",
-      "date": "May 1, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpyeeeyGE",
-      "name": "\ud83d\udef8UFO Video/Photo\ud83d\udc7d",
-      "date": "Apr 30, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpyorEyGE",
-      "name": "SHOW ME THE $$$",
-      "date": "Apr 29, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZMOkjbvxB",
-      "name": "ckcjjfjfjdf",
-      "date": "Apr 29, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzXkzrwdJv",
-      "name": "Missy Explains It All",
-      "date": "Apr 28, 2023"
-    },
-    {
-      "tag": "20260218_1yNxaNOjomQKj",
-      "name": "Casual chat",
-      "date": "Apr 27, 2023"
-    },
     {
       "tag": "20260216_1gqxvynLnelJB",
       "name": "I Love You",
@@ -2338,6 +2338,36 @@
       "tag": "20260217_1MnxnpZoPajGO",
       "name": "Quiet silence",
       "date": "Apr 16, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAEomXDJl",
+      "name": "How to win at life & maybe ufo talk.",
+      "date": "Apr 15, 2023"
+    },
+    {
+      "tag": "20260217_1nAJErQOAlYxL",
+      "name": "\ud83d\udc7dShift Happens: After Dark \ud83c\udf06\ud83c\udf15\ud83d\udef8",
+      "date": "Apr 14, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpXpdEDGE",
+      "name": "Dark Psychology: How naturally manipulative is the human mind? \ud83e\udd96",
+      "date": "Apr 12, 2023"
+    },
+    {
+      "tag": "20260217_1mrGmkRQyLgxy",
+      "name": "Are ghosts real??",
+      "date": "Apr 11, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqrAYMWJN",
+      "name": "Drugs & Sex",
+      "date": "Apr 10, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzZAjVeKX",
+      "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
+      "date": "Apr 9, 2023"
     }
   ]
 }
