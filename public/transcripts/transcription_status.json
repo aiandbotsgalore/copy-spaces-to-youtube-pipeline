@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:06:19.115763+00:00",
+  "last_updated": "2026-09-17T20:08:03.340006+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -888,57 +888,57 @@
       "last_attempt": "2026-09-17T20:05:16.958553+00:00"
     },
     "20260218_1yoJMwEoVEXKQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwEoVEXKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958557+00:00"
+      "last_attempt": "2026-09-17T20:07:04.794970+00:00"
     },
     "20260216_1dRKZEmodqzxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEmodqzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958560+00:00"
+      "last_attempt": "2026-09-17T20:07:04.794991+00:00"
     },
     "20260218_1vOxwjZyXAEJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjZyXAEJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958562+00:00"
+      "last_attempt": "2026-09-17T20:07:04.794996+00:00"
     },
     "20260217_1lDxLPMeVaZxm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLPMeVaZxm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958565+00:00"
+      "last_attempt": "2026-09-17T20:07:04.795000+00:00"
     },
     "20260217_1LyxBnybneOxN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBnybneOxN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958568+00:00"
+      "last_attempt": "2026-09-17T20:07:04.795004+00:00"
     },
     "20260216_1jMJgmEAwmPKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgmEAwmPKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:05:16.958570+00:00"
+      "last_attempt": "2026-09-17T20:07:04.795006+00:00"
+    },
+    "20260216_1dRKZEgXPRoxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEgXPRoxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:07:04.795009+00:00"
+    },
+    "20260217_1mnGepXgXLoKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGepXgXLoKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:07:04.795011+00:00"
+    },
+    "20260216_1dRJZEedWWmGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZEedWWmGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:07:04.795013+00:00"
+    },
+    "20260216_1jMKgmqqpPjJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgmqqpPjJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:07:04.795015+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnxepaYymoJX",
-      "name": "Lawnmower & Car Tire DIY \ud83d\udea7",
-      "date": "May 30, 2024"
-    },
-    {
-      "tag": "20260216_1dRKZEZaanaxB",
-      "name": "MH370 NEW EVIDENCE - Escaping the Dark Goo",
-      "date": "May 28, 2024"
-    },
-    {
-      "tag": "20260218_1ypKdkQVnorxW",
-      "name": "Divine Intelligence: The New Theology for a Universal Brotherhood",
-      "date": "May 16, 2024"
-    },
-    {
-      "tag": "20260216_1BdGYreENDyJX",
-      "name": "Vatican Controls Disclosure? E.T. vs Demons vs Humanity \u262e\ufe0f\u2764\ufe0f\ud83d\udc7d\ud83d\ude08\ud83d\udc69\ud83c\udffc\u200d\ud83c\udf3e",
-      "date": "May 15, 2024"
-    },
     {
       "tag": "20260218_1yoJMwEoVEXKQ",
       "name": "DumpsterFire-Save yourself! #dumpsterfire",
@@ -1018,6 +1018,26 @@
       "tag": "20260217_1PlJQDQAerYGE",
       "name": "Cults & Castration (no hands!)",
       "date": "Apr 11, 2024"
+    },
+    {
+      "tag": "20260217_1OwxWYMvvLRGQ",
+      "name": "LOVE",
+      "date": "Apr 10, 2024"
+    },
+    {
+      "tag": "20260218_1yoKMwMOMpDJQ",
+      "name": "Early Morni discussion",
+      "date": "Apr 9, 2024"
+    },
+    {
+      "tag": "20260218_1YqGoDmQLqBJv",
+      "name": "Grateful",
+      "date": "Apr 6, 2024"
+    },
+    {
+      "tag": "20260216_1dRKZEnkvZMxB",
+      "name": "CONNOR'S PERSONAL HELL",
+      "date": "Apr 3, 2024"
     }
   ]
 }
