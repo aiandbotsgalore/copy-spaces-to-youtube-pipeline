@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:59:18.934385+00:00",
+  "last_updated": "2026-09-17T19:01:06.726540+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -218,57 +218,57 @@
       "last_attempt": "2026-09-17T18:58:40.591226+00:00"
     },
     "20260217_1mrxmPPjpvDJy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmPPjpvDJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:58:40.591228+00:00"
+      "last_attempt": "2026-09-17T19:00:01.366551+00:00"
     },
     "20260217_1mrGmPPloMdKy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmPPloMdKy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:58:40.591231+00:00"
+      "last_attempt": "2026-09-17T19:00:01.366569+00:00"
     },
     "20260217_1kvKpybQyQmGE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpybQyQmGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:58:40.591233+00:00"
+      "last_attempt": "2026-09-17T19:00:01.366573+00:00"
     },
     "20260216_1djGXVrLBwoxZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVrLBwoxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:58:40.591235+00:00"
+      "last_attempt": "2026-09-17T19:00:01.366576+00:00"
+    },
+    "20260217_1lPKqMBdEBZKb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMBdEBZKb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366578+00:00"
+    },
+    "20260217_1MnxnwkvblBKO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwkvblBKO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366580+00:00"
+    },
+    "20260218_1YpJkBzBlOoGj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkBzBlOoGj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366583+00:00"
+    },
+    "20260216_1BdGYqYRodEGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqYRodEGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366585+00:00"
+    },
+    "20260217_1lDxLzylZYZGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLzylZYZGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366587+00:00"
+    },
+    "20260218_1zqKVjeZdwXKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVjeZdwXKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:00:01.366588+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAGRDQOpRjxl",
-      "name": "Random",
-      "date": "Aug 11, 2025"
-    },
-    {
-      "tag": "20260216_1dRKZYaqAqAxB",
-      "name": "Fractal Unified Coherence Kinetics",
-      "date": "Aug 8, 2025"
-    },
-    {
-      "tag": "20260217_1lPKqMvWlvMKb",
-      "name": "A New Age Has Begun",
-      "date": "Aug 7, 2025"
-    },
-    {
-      "tag": "20260216_1DXxyqWmAOgxM",
-      "name": "Heroes, Claims & UFO Jesus \u26a1\ufe0f",
-      "date": "Aug 6, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmPPwDWQKy",
-      "name": "Deductibility coincides with logical consequences?",
-      "date": "Aug 5, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLzzNyZmGm",
-      "name": "Conspiracy Theory Generator",
-      "date": "Aug 3, 2025"
-    },
     {
       "tag": "20260217_1mrxmPPjpvDJy",
       "name": "Kimball judged before his peers. #truth #justice",
@@ -338,6 +338,36 @@
       "tag": "20260218_1YqJDZnjrPEKV",
       "name": "Car",
       "date": "Jun 20, 2025"
+    },
+    {
+      "tag": "20260217_1nAKEgypZpZJL",
+      "name": "Eternal Ai & Immortal Biologics",
+      "date": "Jun 13, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqMoEQZPKb",
+      "name": "Enki, Loki, Annunaki -jester trickster gods who teach through mischief",
+      "date": "Jun 13, 2025"
+    },
+    {
+      "tag": "20260218_1ZkKzYkaBXRxv",
+      "name": "Skynet",
+      "date": "Jun 9, 2025"
+    },
+    {
+      "tag": "20260217_1rmxPyNmyrnKN",
+      "name": "Love and enlightenment",
+      "date": "Jun 6, 2025"
+    },
+    {
+      "tag": "20260216_1dRKZYgeZPDxB",
+      "name": "Earthquakes",
+      "date": "Jun 6, 2025"
+    },
+    {
+      "tag": "20260218_1vOxwXAgXRDKB",
+      "name": "UFO DNA",
+      "date": "May 31, 2025"
     }
   ]
 }
