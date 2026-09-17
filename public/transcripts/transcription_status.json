@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:49:37.520718+00:00",
+  "last_updated": "2026-09-17T20:50:53.835988+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1368,57 +1368,57 @@
       "last_attempt": "2026-09-17T20:48:51.900289+00:00"
     },
     "20260216_1gqxvQLEROwJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvQLEROwJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:48:51.900292+00:00"
+      "last_attempt": "2026-09-17T20:50:14.593299+00:00"
     },
     "20260217_1lPKqbapgoQGb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbapgoQGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:48:51.900294+00:00"
+      "last_attempt": "2026-09-17T20:50:14.593318+00:00"
     },
     "20260217_1MYxNoWjQZpKw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNoWjQZpKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:48:51.900296+00:00"
+      "last_attempt": "2026-09-17T20:50:14.593323+00:00"
     },
     "20260218_1vOxwjLObNVJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjLObNVJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:48:51.900298+00:00"
+      "last_attempt": "2026-09-17T20:50:14.593327+00:00"
+    },
+    "20260218_1YqGoDMWmwQJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDMWmwQJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593358+00:00"
+    },
+    "20260217_1lPJqbajLXPxb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPJqbajLXPxb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593361+00:00"
+    },
+    "20260217_1OdJrjlPkdvJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrjlPkdvJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593365+00:00"
+    },
+    "20260217_1RDxllXEPpkxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxllXEPpkxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593368+00:00"
+    },
+    "20260217_1OwGWYlXpRmxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwGWYlXpRmxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593371+00:00"
+    },
+    "20260217_1lDxLPZnmDRxm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLPZnmDRxm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:50:14.593374+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1dRKZEWPLpoxB",
-      "name": ";L,KNM;L.K",
-      "date": "Nov 14, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaZzAqejJj",
-      "name": "Hour 1",
-      "date": "Nov 13, 2023"
-    },
-    {
-      "tag": "20260217_1nAKEaXMkdVKL",
-      "name": "And we're off...",
-      "date": "Nov 13, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRvPZkgqxl",
-      "name": "Abby Norm-al",
-      "date": "Nov 9, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZEwdkMXxB",
-      "name": "Dark \ud83c\udf11",
-      "date": "Nov 7, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbgkNMQRGX",
-      "name": "Sound Check Testing",
-      "date": "Nov 6, 2023"
-    },
     {
       "tag": "20260216_1gqxvQLEROwJB",
       "name": "\u26a0\ufe0f[Axe Test ]\u26a0\ufe0f\ud83c\udfb8\ud83e\udd18\ud83d\udcaf",
@@ -1488,6 +1488,36 @@
       "tag": "20260218_1ZkKzjPdjdeKv",
       "name": "Saturday Night Space Daddy",
       "date": "Oct 22, 2023"
+    },
+    {
+      "tag": "20260217_1OyKAWwQAYNJb",
+      "name": "Human Origins \ud83e\udd37\ud83c\udffb\ud83e\udd14\ud83e\uddd0\ud83d\udc7d\ud83d\ude4f\ud83e\udd16",
+      "date": "Oct 22, 2023"
+    },
+    {
+      "tag": "20260217_1rmxPMZPpjEKN",
+      "name": "Guitar Intermission briefly",
+      "date": "Oct 21, 2023"
+    },
+    {
+      "tag": "20260217_1nAKEavkgEbKL",
+      "name": "private sound test",
+      "date": "Oct 20, 2023"
+    },
+    {
+      "tag": "20260217_1PlKQDWEWjaxE",
+      "name": "Logan JamZ",
+      "date": "Oct 20, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBnPbkObxN",
+      "name": "\ud83d\ude0e\ud83c\udfb8\ud83e\udd37\ud83c\udffb\ud83d\ude02\ud83d\ude01\ud83d\udcaa\ud83d\ude1c\ud83e\udd73\ud83c\udf86\ud83d\udc41\ufe0f\ud83d\udc68\u200d\ud83c\udfa4\ud83e\udd18\ud83d\ude06\ud83d\udc4c",
+      "date": "Oct 19, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgmbgkMXKL",
+      "name": "Self Actualization Of Perfect Creation - Eclipse Watch Party/Jam \ud83c\udfb8\ud83d\udda4\u2600\ufe0f\ud83c\udf19",
+      "date": "Oct 14, 2023"
     }
   ]
 }
