@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:36:34.307349+00:00",
+  "last_updated": "2026-09-17T21:37:54.732583+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1868,57 +1868,57 @@
       "last_attempt": "2026-09-17T21:35:41.322453+00:00"
     },
     "20260217_1RDxlagZDAgKL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlagZDAgKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:35:41.322455+00:00"
+      "last_attempt": "2026-09-17T21:37:12.424244+00:00"
     },
     "20260216_1BRJjZnaWzVJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZnaWzVJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:35:41.322456+00:00"
+      "last_attempt": "2026-09-17T21:37:12.424262+00:00"
     },
     "20260217_1MnxnpkYOjeGO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpkYOjeGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:35:41.322458+00:00"
+      "last_attempt": "2026-09-17T21:37:12.424266+00:00"
     },
     "20260216_1dRJZMNEdgDGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZMNEdgDGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:35:41.322459+00:00"
+      "last_attempt": "2026-09-17T21:37:12.424269+00:00"
+    },
+    "20260217_1mnxeRaODMEKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRaODMEKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424272+00:00"
+    },
+    "20260217_1nAJErLWEWvxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAJErLWEWvxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424274+00:00"
+    },
+    "20260217_1OdJrzVArwQJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrzVArwQJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424276+00:00"
+    },
+    "20260218_1yoJMZXanOkxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZXanOkxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424279+00:00"
+    },
+    "20260217_1nAKErAyWkkGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErAyWkkGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424281+00:00"
+    },
+    "20260218_1YqJDopAgwVGV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDopAgwVGV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:37:12.424283+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1gqGvylrEznKB",
-      "name": "UFO's: After Sunrise \ud83d\udd06 (deleting this space)",
-      "date": "Jul 11, 2023"
-    },
-    {
-      "tag": "20260218_1zqKVPBljVYJB",
-      "name": "casual paranormal chit chat",
-      "date": "Jul 8, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaNYXLWqJj",
-      "name": "Time Travel is real-McDonnell Douglas -Reverse Engineering \ud83d\udc7d\ud83d\udef8",
-      "date": "Jul 6, 2023"
-    },
-    {
-      "tag": "20260217_1MYGNgnjwEPJw",
-      "name": "empty",
-      "date": "Jul 6, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlPdBPdGZ",
-      "name": "Exo-Biospheric-Organisms Leak \ud83d\udc7d\ud83d\udef8 + MIB?",
-      "date": "Jul 6, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqBmpNVmGb",
-      "name": "Reptilians on a motherfukkin plane",
-      "date": "Jul 5, 2023"
-    },
     {
       "tag": "20260217_1RDxlagZDAgKL",
       "name": "Quantifying consciousness & love. Are they even REAL?",
@@ -1988,6 +1988,36 @@
       "tag": "20260217_1mnxeRlDjwRKX",
       "name": "The Disclosure Train Never Stops / NO \ud83d\ude4c needed",
       "date": "Jun 15, 2023"
+    },
+    {
+      "tag": "20260216_1eaJbrzDezZJX",
+      "name": "Bro Co-hoe Space",
+      "date": "Jun 15, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmeYRXLGE",
+      "name": "Logan+Guy Melt your brains\ud83c\udfb8\ud83c\udfb6\ud83d\ude08",
+      "date": "Jun 14, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyaLkmRJB",
+      "name": "Logan Is Disclosure lol With Rick Doty",
+      "date": "Jun 14, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlareLomKL",
+      "name": "Gravity after party",
+      "date": "Jun 13, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyQEOZyGX",
+      "name": "Logan plays \ud83c\udfb8",
+      "date": "Jun 12, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgLQLrpwxL",
+      "name": "#ufotwitter IN THE FLESH Party w/ Logan and friends",
+      "date": "Jun 11, 2023"
     }
   ]
 }
