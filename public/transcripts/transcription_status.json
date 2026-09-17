@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:08:23.582682+00:00",
+  "last_updated": "2026-09-17T19:10:11.894068+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -318,57 +318,57 @@
       "last_attempt": "2026-09-17T19:07:37.474281+00:00"
     },
     "20260217_1OyJALNQwDoGb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJALNQwDoGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:07:37.474284+00:00"
+      "last_attempt": "2026-09-17T19:09:12.643899+00:00"
     },
     "20260218_1vOxwXAPDmvKB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwXAPDmvKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:07:37.474285+00:00"
+      "last_attempt": "2026-09-17T19:09:12.643918+00:00"
     },
     "20260216_1djGXVdgWvvxZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVdgWvvxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:07:37.474287+00:00"
+      "last_attempt": "2026-09-17T19:09:12.643944+00:00"
     },
     "20260217_1MnxnwgQllMKO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwgQllMKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:07:37.474289+00:00"
+      "last_attempt": "2026-09-17T19:09:12.643948+00:00"
+    },
+    "20260216_1jMJgkdqDBwJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkdqDBwJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643952+00:00"
+    },
+    "20260216_1DXxyqEkalYxM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyqEkalYxM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643955+00:00"
+    },
+    "20260216_1BdGYqMzNaBGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqMzNaBGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643958+00:00"
+    },
+    "20260218_1yNGaLmZRrNKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaLmZRrNKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643960+00:00"
+    },
+    "20260218_1ypKdZloZznJW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdZloZznJW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643962+00:00"
+    },
+    "20260216_1jMJgkPnZbAJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkPnZbAJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:09:12.643963+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1nAKEgypZpZJL",
-      "name": "Eternal Ai & Immortal Biologics",
-      "date": "Jun 13, 2025"
-    },
-    {
-      "tag": "20260217_1lPKqMoEQZPKb",
-      "name": "Enki, Loki, Annunaki -jester trickster gods who teach through mischief",
-      "date": "Jun 13, 2025"
-    },
-    {
-      "tag": "20260218_1ZkKzYkaBXRxv",
-      "name": "Skynet",
-      "date": "Jun 9, 2025"
-    },
-    {
-      "tag": "20260217_1rmxPyNmyrnKN",
-      "name": "Love and enlightenment",
-      "date": "Jun 6, 2025"
-    },
-    {
-      "tag": "20260216_1dRKZYgeZPDxB",
-      "name": "Earthquakes",
-      "date": "Jun 6, 2025"
-    },
-    {
-      "tag": "20260218_1vOxwXAgXRDKB",
-      "name": "UFO DNA",
-      "date": "May 31, 2025"
-    },
     {
       "tag": "20260217_1OyJALNQwDoGb",
       "name": "UFO ABDUCTION: Pascagoula '73",
@@ -438,6 +438,36 @@
       "tag": "20260216_1BdxYqvzqNBxX",
       "name": "VC Rips The flow",
       "date": "May 12, 2025"
+    },
+    {
+      "tag": "20260216_1jMKgkYvBzWKL",
+      "name": "Snuggles Unpacks the Soul of the Machine",
+      "date": "May 10, 2025"
+    },
+    {
+      "tag": "20260218_1YqGooWWWlbGv",
+      "name": "Veit",
+      "date": "May 9, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVvDeXXxZ",
+      "name": "THE UFO Thunderdome",
+      "date": "May 8, 2025"
+    },
+    {
+      "tag": "20260217_1OdKrDeXLVwJX",
+      "name": "Reptilians of Blue Mountains",
+      "date": "May 6, 2025"
+    },
+    {
+      "tag": "20260218_1YqGooEQnZMGv",
+      "name": "\u26a0\ufe0fSIGNAL CHATS EXPOSED! \ud83d\udc7d\ud83d\ude31\ud83d\udd25 #ufoX",
+      "date": "May 5, 2025"
+    },
+    {
+      "tag": "20260216_1dRKZYXQPlQxB",
+      "name": "The Best of Chase! \ud83c\udf36\ufe0f\ud83d\udd25\ud83d\udd25\ud83d\udd25",
+      "date": "May 5, 2025"
     }
   ]
 }
