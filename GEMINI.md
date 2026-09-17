@@ -29,7 +29,7 @@ The application provides an interactive form where users input metadata (reposit
     ```bash
     npm run dev
     ```
-    The application will run at `http://localhost:3000`.
+    The application will run at `http://localhost:5000`.
 
 ## Production Build
 

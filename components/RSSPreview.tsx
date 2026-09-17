@@ -78,7 +78,9 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
   const [fetchState, setFetchState] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
   const [fetchError, setFetchError] = useState('');
 
-  const rssUrl = `https://${config.ownerName.trim()}.github.io/${config.repoName.trim()}/podcast.xml`;
+  const owner = (config.ownerName || '').trim();
+  const repo = (config.repoName || '').trim();
+  const rssUrl = owner && repo ? `https://${owner}.github.io/${repo}/podcast.xml` : '';
   const artwork = config.artworkDataUrl || config.imageUrl || null;
 
   const copyRss = () => {

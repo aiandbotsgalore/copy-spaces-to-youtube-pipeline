@@ -40,22 +40,24 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   const { play } = usePlayer();
   const { operations, trackDispatch, dismissOperation } = useActiveOperations(config);
 
-  const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
-  const rssUrl = `https://${config.ownerName.trim()}.github.io/${config.repoName.trim()}/podcast.xml`;
+  const owner = (config.ownerName || '').trim();
+  const repo = (config.repoName || '').trim();
+  const hasCredentials = !!(config.githubToken && owner && repo);
+  const rssUrl = owner && repo ? `https://${owner}.github.io/${repo}/podcast.xml` : '';
 
   const loadReleases = useCallback(async () => {
     if (!hasCredentials) return;
     setReleasesLoading(true);
     setReleasesError('');
     try {
-      const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
+      const data = await getReleases(config.githubToken, owner, repo);
       setReleases(sortReleasesByRecordedDate(data, 'desc'));
     } catch (e) {
       setReleasesError((e as Error).message);
     } finally {
       setReleasesLoading(false);
     }
-  }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
+  }, [config.githubToken, owner, repo, hasCredentials]);
 
   useEffect(() => { loadReleases(); }, [loadReleases]);
 
@@ -112,8 +114,8 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     try {
       await dispatchWorkflow(
         config.githubToken,
-        config.ownerName.trim(),
-        config.repoName.trim(),
+        owner,
+        repo,
         'auto_detect_spaces.yml',
         { x_handle: targetHandle }
       );

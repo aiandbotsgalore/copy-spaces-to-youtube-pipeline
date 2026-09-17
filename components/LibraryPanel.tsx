@@ -84,14 +84,16 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
   const { play, current, isPlaying } = usePlayer();
 
-  const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
+  const owner = (config.ownerName || '').trim();
+  const repo = (config.repoName || '').trim();
+  const hasCredentials = !!(config.githubToken && owner && repo);
 
   const fetchLibrary = useCallback(async () => {
     if (!hasCredentials) return;
     setLoading(true);
     setError('');
     try {
-      const data = await getReleases(config.githubToken, config.ownerName.trim(), config.repoName.trim());
+      const data = await getReleases(config.githubToken, owner, repo);
       setReleases(sortReleasesByRecordedDate(data, 'desc'));
       setLoaded(true);
       setDupMode(false);
@@ -101,7 +103,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     } finally {
       setLoading(false);
     }
-  }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
+  }, [config.githubToken, owner, repo, hasCredentials]);
 
   useEffect(() => {
     if (hasCredentials && !loaded && !loading) {
@@ -151,10 +153,10 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     const ids = [...selected];
     let done = 0;
     const errors: string[] = [];
-    for (const id of ids) {
-      try {
-        await deleteRelease(config.githubToken, config.ownerName.trim(), config.repoName.trim(), id);
-        done++;
+      for (const id of ids) {
+        try {
+          await deleteRelease(config.githubToken, owner, repo, id);
+          done++;
         setDeleteProgress({ done, total: ids.length });
       } catch (e) {
         errors.push((e as Error).message);
@@ -218,7 +220,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const loadStatusManifest = useCallback(async () => {
     try {
       const candidates = [
-        `https://raw.githubusercontent.com/${config.ownerName.trim()}/${config.repoName.trim()}/master/public/transcripts/transcription_status.json`,
+        ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcription_status.json`] : []),
         `/transcripts/transcription_status.json`,
         `./transcripts/transcription_status.json`
       ];
@@ -233,7 +235,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         } catch {}
       }
     } catch {}
-  }, [config.ownerName, config.repoName]);
+  }, [owner, repo]);
 
   useEffect(() => {
     loadStatusManifest();
@@ -245,8 +247,8 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     try {
       await dispatchWorkflow(
         config.githubToken,
-        config.ownerName.trim(),
-        config.repoName.trim(),
+        owner,
+        repo,
         'batch_transcribe.yml',
         { limit: '10' }
       );
