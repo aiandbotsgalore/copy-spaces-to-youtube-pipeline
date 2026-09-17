@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:57:53.023535+00:00",
+  "last_updated": "2026-09-17T18:59:18.934385+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -188,57 +188,57 @@
       "last_attempt": "2026-09-17T18:56:46.228238+00:00"
     },
     "20260217_1vAGRDQOpRjxl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRDQOpRjxl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228241+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591195+00:00"
     },
     "20260216_1dRKZYaqAqAxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZYaqAqAxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228243+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591214+00:00"
     },
     "20260217_1lPKqMvWlvMKb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMvWlvMKb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228245+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591217+00:00"
     },
     "20260216_1DXxyqWmAOgxM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyqWmAOgxM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228247+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591221+00:00"
     },
     "20260217_1mrGmPPwDWQKy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmPPwDWQKy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228249+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591223+00:00"
     },
     "20260217_1lDxLzzNyZmGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLzzNyZmGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:56:46.228251+00:00"
+      "last_attempt": "2026-09-17T18:58:40.591226+00:00"
+    },
+    "20260217_1mrxmPPjpvDJy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmPPjpvDJy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:58:40.591228+00:00"
+    },
+    "20260217_1mrGmPPloMdKy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmPPloMdKy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:58:40.591231+00:00"
+    },
+    "20260217_1kvKpybQyQmGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpybQyQmGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:58:40.591233+00:00"
+    },
+    "20260216_1djGXVrLBwoxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVrLBwoxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:58:40.591235+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MnxnPqAVVwGO",
-      "name": "UFOTwitter Thought Pond - 5 observables of crop circles \u2622\ufe0f\ud83d\udd25\ud83c\udf00\u269b\ufe0f\u267e\ufe0f",
-      "date": "Aug 29, 2025"
-    },
-    {
-      "tag": "20260218_1ypKdqRaobpGW",
-      "name": "Cat-a-strophic Disclosure",
-      "date": "Aug 18, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBoEYMdJy",
-      "name": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
-      "date": "Aug 16, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnPYepnOxO",
-      "name": "Space #999",
-      "date": "Aug 15, 2025"
-    },
     {
       "tag": "20260217_1vAGRDQOpRjxl",
       "name": "Random",
@@ -318,6 +318,26 @@
       "tag": "20260218_1zqKVjeZdwXKB",
       "name": "Dimensional",
       "date": "Jun 30, 2025"
+    },
+    {
+      "tag": "20260218_1yoKMoXRVRDJQ",
+      "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
+      "date": "Jun 29, 2025"
+    },
+    {
+      "tag": "20260217_1PlJQMmPYZBJE",
+      "name": "Negative Quantum States, Demiurge, Sofia -Visit Snuggles.Support",
+      "date": "Jun 28, 2025"
+    },
+    {
+      "tag": "20260216_1dRJZYLgYXMGB",
+      "name": "Biotech Realities\ud83e\uddec\ud83e\udd16",
+      "date": "Jun 22, 2025"
+    },
+    {
+      "tag": "20260218_1YqJDZnjrPEKV",
+      "name": "Car",
+      "date": "Jun 20, 2025"
     }
   ]
 }
