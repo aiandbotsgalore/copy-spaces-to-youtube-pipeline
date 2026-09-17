@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:15:03.773960+00:00",
+  "last_updated": "2026-09-17T23:16:35.526611+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2338,57 +2338,57 @@
       "last_attempt": "2026-09-17T23:14:03.685834+00:00"
     },
     "20260217_1OyKAVNRDvLGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVNRDvLGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685838+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864090+00:00"
     },
     "20260218_1yNGaNkjbqNJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNkjbqNJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685841+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864109+00:00"
     },
     "20260217_1LyxBqremqyJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqremqyJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685844+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864115+00:00"
     },
     "20260216_1jMKgLdkDjgGL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgLdkDjgGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685847+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864118+00:00"
     },
     "20260216_1BdGYyMqePLGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyMqePLGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685850+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864121+00:00"
     },
     "20260217_1nAKErWreNgGL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErWreNgGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:14:03.685853+00:00"
+      "last_attempt": "2026-09-17T23:15:44.864124+00:00"
+    },
+    "20260217_1MYxNgjdMaVKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgjdMaVKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:15:44.864127+00:00"
+    },
+    "20260218_1YpKkgWEqLXKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgWEqLXKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:15:44.864130+00:00"
+    },
+    "20260218_1vOxwMNeLvDGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMNeLvDGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:15:44.864132+00:00"
+    },
+    "20260218_1YqJDoLDkWEGV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDoLDkWEGV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:15:44.864135+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BRJjZrEmoeJw",
-      "name": "the great beyond",
-      "date": "Apr 8, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrpwgMQKX",
-      "name": "Time & Space. Perception & Reality",
-      "date": "Apr 6, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDodaEDOxV",
-      "name": "Ai",
-      "date": "Apr 5, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPkmVNqmKN",
-      "name": "boredom",
-      "date": "Apr 5, 2023"
-    },
     {
       "tag": "20260217_1OyKAVNRDvLGb",
       "name": "sorry Ai",
@@ -2468,6 +2468,26 @@
       "tag": "20260217_1lPKqBwnPMdGb",
       "name": "FRED ROGERS EATS A$$ on St. Patties",
       "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260216_1DXxyvOEqedKM",
+      "name": "\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6",
+      "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260217_1rmxPkqPOqZJN",
+      "name": "Artificial Imagination",
+      "date": "Mar 17, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyOYXVOJB",
+      "name": "jammmin + Philip K dick",
+      "date": "Mar 17, 2023"
+    },
+    {
+      "tag": "20260218_1zqKVPRkQjPJB",
+      "name": "Heph GPT- KC Protocols",
+      "date": "Mar 15, 2023"
     }
   ]
 }
