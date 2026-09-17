@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:21:02.760245+00:00",
+  "last_updated": "2026-09-17T19:22:49.221447+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -438,57 +438,57 @@
       "last_attempt": "2026-09-17T19:20:17.462666+00:00"
     },
     "20260218_1yNGaLAqkgrKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaLAqkgrKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462669+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531705+00:00"
     },
     "20260216_1djGXVEvajvxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVEvajvxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462672+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531724+00:00"
     },
     "20260217_1vAxRDXmRqqGl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRDXmRqqGl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462674+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531728+00:00"
     },
     "20260218_1ynJOldDdzQxR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOldDdzQxR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462677+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531730+00:00"
     },
     "20260218_1ynJOldVRBWxR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOldVRBWxR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462680+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531732+00:00"
     },
     "20260216_1BRJjmkgmXBGw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmkgmXBGw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:20:17.462683+00:00"
+      "last_attempt": "2026-09-17T19:21:41.531734+00:00"
+    },
+    "20260217_1vAxRDzkZbjGl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRDzkZbjGl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:21:41.531736+00:00"
+    },
+    "20260216_1BRJjmkglAwGw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmkglAwGw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:21:41.531739+00:00"
+    },
+    "20260216_1BRKjmkrjDgxw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjmkrjDgxw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:21:41.531740+00:00"
+    },
+    "20260217_1MnGnwzkgWYJO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnwzkgWYJO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:21:41.531743+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ypJdZLWVgvKW",
-      "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
-      "date": "May 2, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnwrAOnkJO",
-      "name": "\ud83c\udfa7 Joe Rogan x Hal Puthoff: UFO Disclosure Listening Party",
-      "date": "May 1, 2025"
-    },
-    {
-      "tag": "20260216_1gqGvjRjZQeGB",
-      "name": "Short fafo",
-      "date": "Apr 30, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVEqeqBxZ",
-      "name": "Physics reboot\u26a0\ufe0f\u26a1\ufe0f",
-      "date": "Apr 29, 2025"
-    },
     {
       "tag": "20260218_1yNGaLAqkgrKj",
       "name": "the thrilling conclusion",
@@ -568,6 +568,26 @@
       "tag": "20260216_1BRJjmljkAjGw",
       "name": "God Sauce Leaks All Over the dashboard",
       "date": "Apr 5, 2025"
+    },
+    {
+      "tag": "20260218_1djxXVkablVGZ",
+      "name": "Time Travel DIY",
+      "date": "Apr 4, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwjYalXKO",
+      "name": "\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a",
+      "date": "Apr 3, 2025"
+    },
+    {
+      "tag": "20260218_1vOxwXDAllNKB",
+      "name": "Ai Remote Viewer's Conference",
+      "date": "Apr 1, 2025"
+    },
+    {
+      "tag": "20260218_1ypJdZjDYXYKW",
+      "name": "LUCKY  STRIKE",
+      "date": "Mar 29, 2025"
     }
   ]
 }
