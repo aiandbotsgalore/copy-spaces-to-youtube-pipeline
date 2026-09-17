@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:48:08.749448+00:00",
+  "last_updated": "2026-09-17T20:49:37.520718+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1338,57 +1338,57 @@
       "last_attempt": "2026-09-17T20:47:27.146065+00:00"
     },
     "20260216_1dRKZEWPLpoxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEWPLpoxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146068+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900227+00:00"
     },
     "20260218_1yNGaZzAqejJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZzAqejJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146071+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900276+00:00"
     },
     "20260217_1nAKEaXMkdVKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEaXMkdVKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146075+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900281+00:00"
     },
     "20260217_1vAxRvPZkgqxl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRvPZkgqxl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146078+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900284+00:00"
     },
     "20260216_1dRKZEwdkMXxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEwdkMXxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146081+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900287+00:00"
     },
     "20260216_1eaKbgkNMQRGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbgkNMQRGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:47:27.146083+00:00"
+      "last_attempt": "2026-09-17T20:48:51.900289+00:00"
+    },
+    "20260216_1gqxvQLEROwJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvQLEROwJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:48:51.900292+00:00"
+    },
+    "20260217_1lPKqbapgoQGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbapgoQGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:48:51.900294+00:00"
+    },
+    "20260217_1MYxNoWjQZpKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNoWjQZpKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:48:51.900296+00:00"
+    },
+    "20260218_1vOxwjLObNVJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjLObNVJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:48:51.900298+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1rmxPMdgWNyKN",
-      "name": "Saturday Picnic",
-      "date": "Nov 18, 2023"
-    },
-    {
-      "tag": "20260217_1mnGepBoNNQKX",
-      "name": "ladies night",
-      "date": "Nov 16, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlljWOPzxL",
-      "name": "Suing Thieving Bitches named Natalie",
-      "date": "Nov 15, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaZzPWbXJj",
-      "name": "Exorcisms - Rising to the surface #supernatural #paranormal",
-      "date": "Nov 14, 2023"
-    },
     {
       "tag": "20260216_1dRKZEWPLpoxB",
       "name": ";L,KNM;L.K",
@@ -1468,6 +1468,26 @@
       "tag": "20260217_1lDxLPZnmDRxm",
       "name": "Time Travelers' Breakfast: Morning Chronicles of the Paranormal \ud83d\udc7d\ud83d\udef8\ud83d\udc7b",
       "date": "Oct 26, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRvZrEPaxl",
+      "name": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
+      "date": "Oct 24, 2023"
+    },
+    {
+      "tag": "20260217_1OyKAWwgBDrJb",
+      "name": "Guitar & Bullsh1t",
+      "date": "Oct 24, 2023"
+    },
+    {
+      "tag": "20260218_1ynKOyQoBPrJR",
+      "name": "Saturday Night \ud83e\udd18\ud83c\udfb8\ud83d\udc7d",
+      "date": "Oct 22, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzjPdjdeKv",
+      "name": "Saturday Night Space Daddy",
+      "date": "Oct 22, 2023"
     }
   ]
 }
