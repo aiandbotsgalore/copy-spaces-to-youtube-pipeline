@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:56:08.827106+00:00",
+  "last_updated": "2026-09-17T19:57:49.199598+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -788,57 +788,57 @@
       "last_attempt": "2026-09-17T19:55:22.932984+00:00"
     },
     "20260217_1lPKqOPNqWNJb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqOPNqWNJb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.932988+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387518+00:00"
     },
     "20260217_1MYxNMaVOBXJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNMaVOBXJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.932991+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387541+00:00"
     },
     "20260216_1kvJpbgEwzLKE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1kvJpbgEwzLKE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.932994+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387544+00:00"
     },
     "20260217_1rmxPolbzjYJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPolbzjYJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.932998+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387547+00:00"
     },
     "20260218_1ynKOyMzWNQJR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOyMzWNQJR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.933001+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387550+00:00"
     },
     "20260218_1yoJMwyzqQpKQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwyzqQpKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:55:22.933003+00:00"
+      "last_attempt": "2026-09-17T19:56:54.387553+00:00"
+    },
+    "20260218_1yoJMwypnbDKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwypnbDKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:56:54.387554+00:00"
+    },
+    "20260218_1yoJMwyLDkeKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwyLDkeKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:56:54.387556+00:00"
+    },
+    "20260216_1gqxvQQVzlqJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvQQVzlqJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:56:54.387558+00:00"
+    },
+    "20260217_1vAGRvvpBXyGl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRvvpBXyGl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:56:54.387559+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1YqKDklLpyVxV",
-      "name": "#UFO Deep Thought \ud83d\udcad - Congress Whistleblowers",
-      "date": "Sep 15, 2024"
-    },
-    {
-      "tag": "20260217_1mnGeAPMdvEGX",
-      "name": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
-      "date": "Sep 5, 2024"
-    },
-    {
-      "tag": "20260216_1jMJgBMWwPbGL",
-      "name": "Check out the @UFOTimeline Tupa-cabra.com",
-      "date": "Aug 30, 2024"
-    },
-    {
-      "tag": "20260216_1DXxydzWzQeJM",
-      "name": "Maintaining Balance",
-      "date": "Aug 23, 2024"
-    },
     {
       "tag": "20260217_1lPKqOPNqWNJb",
       "name": "Music & Friday Night Specials",
@@ -918,6 +918,26 @@
       "tag": "20260217_1rmGPMzzWVnJN",
       "name": "Unplugging From the Illusion: The Truth About UFOs #UFOlogue",
       "date": "Jun 1, 2024"
+    },
+    {
+      "tag": "20260217_1mnxepaYymoJX",
+      "name": "Lawnmower & Car Tire DIY \ud83d\udea7",
+      "date": "May 30, 2024"
+    },
+    {
+      "tag": "20260216_1dRKZEZaanaxB",
+      "name": "MH370 NEW EVIDENCE - Escaping the Dark Goo",
+      "date": "May 28, 2024"
+    },
+    {
+      "tag": "20260218_1ypKdkQVnorxW",
+      "name": "Divine Intelligence: The New Theology for a Universal Brotherhood",
+      "date": "May 16, 2024"
+    },
+    {
+      "tag": "20260216_1BdGYreENDyJX",
+      "name": "Vatican Controls Disclosure? E.T. vs Demons vs Humanity \u262e\ufe0f\u2764\ufe0f\ud83d\udc7d\ud83d\ude08\ud83d\udc69\ud83c\udffc\u200d\ud83c\udf3e",
+      "date": "May 15, 2024"
     }
   ]
 }
