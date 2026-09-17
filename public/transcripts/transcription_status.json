@@ -1,12 +1,43 @@
 {
-  "last_updated": "2026-09-17T10:59:07.009594+00:00",
+  "last_updated": "2026-09-17T17:39:54.169098+00:00",
   "total_episodes_with_audio": 781,
-  "transcribed_count": 118,
-  "untranscribed_count": 663,
-  "percent_complete": 15.1,
+  "transcribed_count": 124,
+  "untranscribed_count": 657,
+  "percent_complete": 15.9,
   "auto_chain_active": true,
   "is_queue_complete": false,
-  "failed_episodes": {},
+  "failed_episodes": {
+    "20260905_1qxvvedveWWxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579715+00:00"
+    },
+    "20260218_1yNGabVvNRqJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579733+00:00"
+    },
+    "20260217_1mrGmBZOoNLJy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579736+00:00"
+    },
+    "20260217_1mrGmBmelwdJy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579739+00:00"
+    },
+    "20260217_1LyGBXEwZjzxN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBXEwZjzxN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579741+00:00"
+    },
+    "20260218_1YpKkknnQEBKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkknnQEBKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T17:39:04.579743+00:00"
+    }
+  },
   "next_in_queue": [
     {
       "tag": "20260905_1qxvvedveWWxB",
@@ -24,39 +55,9 @@
       "date": "Nov 24, 2025"
     },
     {
-      "tag": "20260217_1RDGlAmAVbVJL",
-      "name": "Double Chocolate Eggnog",
-      "date": "Nov 22, 2025"
-    },
-    {
-      "tag": "20260218_1YqKDNRAjzOJV",
-      "name": "Feathers",
-      "date": "Nov 20, 2025"
-    },
-    {
       "tag": "20260217_1mrGmBmelwdJy",
       "name": "SUPERMIND",
       "date": "Nov 20, 2025"
-    },
-    {
-      "tag": "20260217_1LyGBXEwZjzxN",
-      "name": "For Dave",
-      "date": "Nov 19, 2025"
-    },
-    {
-      "tag": "20260218_1ynJOMjomwyKR",
-      "name": "Snuggles & the Flying Saucers",
-      "date": "Nov 16, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkknnQEBKj",
-      "name": "Be prepared",
-      "date": "Nov 16, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLBRBNaZGm",
-      "name": "Danzig",
-      "date": "Nov 13, 2025"
     },
     {
       "tag": "20260216_1gqxvrqrRPzxB",
@@ -107,6 +108,36 @@
       "tag": "20260217_1mnGeNYAeDZJX",
       "name": "metamaterials and the soul",
       "date": "Oct 27, 2025"
+    },
+    {
+      "tag": "20260218_1ZkJzZWVgwNJv",
+      "name": "Cold pizza",
+      "date": "Oct 25, 2025"
+    },
+    {
+      "tag": "20260216_1eaKbjXvNOrKX",
+      "name": "President Trump[Logan AFK]",
+      "date": "Oct 25, 2025"
+    },
+    {
+      "tag": "20260217_1vOGwdpDYndJB",
+      "name": "psyonic Weird",
+      "date": "Oct 18, 2025"
+    },
+    {
+      "tag": "20260216_1eaKbjLBmjZKX",
+      "name": "WIZARD LOUNGE",
+      "date": "Oct 18, 2025"
+    },
+    {
+      "tag": "20260218_1zqKVdzmaqdJB",
+      "name": "Dr Snuggles Gets Wrekt",
+      "date": "Oct 17, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqvArqebGb",
+      "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
+      "date": "Oct 16, 2025"
     }
   ]
 }
