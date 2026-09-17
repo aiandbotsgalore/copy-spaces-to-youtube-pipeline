@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:28:57.389765+00:00",
+  "last_updated": "2026-09-17T23:30:33.602635+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2488,57 +2488,57 @@
       "last_attempt": "2026-09-17T23:28:07.943201+00:00"
     },
     "20260217_1vAxRAbEprgJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAbEprgJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943204+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071043+00:00"
     },
     "20260220_1LyxBqBjPYWJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1LyxBqBjPYWJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943208+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071063+00:00"
     },
     "20260218_1vOGwMvRgWNxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwMvRgWNxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943211+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071067+00:00"
     },
     "20260217_1MnxnpayOweGO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpayOweGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943214+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071071+00:00"
     },
     "20260218_1YqJDowmRnYGV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDowmRnYGV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943217+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071073+00:00"
     },
     "20260217_1OwxWwARDEmxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwARDEmxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:28:07.943220+00:00"
+      "last_attempt": "2026-09-17T23:29:42.071076+00:00"
+    },
+    "20260216_1jMJgLoNrwXxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLoNrwXxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:29:42.071079+00:00"
+    },
+    "20260218_1YqKDoXkWWLxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDoXkWWLxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:29:42.071082+00:00"
+    },
+    "20260217_1OyJAVogXlyxb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJAVogXlyxb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:29:42.071084+00:00"
+    },
+    "20260217_1LyxBqjygQkJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqjygQkJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:29:42.071086+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnxeREaAZrKX",
-      "name": "Paranormal Insights: Seeking the NIPS  \ud83e\udd5b",
-      "date": "Mar 9, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpAmbqZGE",
-      "name": "Abilities, AI prompts, & Monkeys for some reason",
-      "date": "Mar 9, 2023"
-    },
-    {
-      "tag": "20260217_1MYGNgAkZZoJw",
-      "name": "Green Room for the On-Air taping",
-      "date": "Mar 8, 2023"
-    },
-    {
-      "tag": "20260216_1DXxyvyaVXbKM",
-      "name": "\ud83d\udca5\ud83d\udca5\ud83d\udca5\ud83e\udd2f\ud83d\udca5\ud83d\udca5\ud83d\udca5",
-      "date": "Mar 8, 2023"
-    },
     {
       "tag": "20260217_1vAxRAbEprgJl",
       "name": "Darcy Weir & Carlxtra with Secret Space UFOs and grifting",
@@ -2618,6 +2618,26 @@
       "tag": "20260217_1lPJqBZERklxb",
       "name": "Personal Phenomena Stories \ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
       "date": "Feb 18, 2023"
+    },
+    {
+      "tag": "20260216_1BdxYyPjDpQxX",
+      "name": "FRIDAY SEGSE GREASE-The Gloves Come Off\ud83d\udca9\ud83d\udca9 HAWT \ud83d\udd25",
+      "date": "Feb 17, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRWavYqKX",
+      "name": "CARL THE CRUSHER INTERVIEW ft. UFO-Shane\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25",
+      "date": "Feb 15, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZVqPmwJw",
+      "name": "GRAVITY AMPLIFIERS & MICHAEL PADILLA & MAX LOGAN! \ud83c\udfb8\u26a1",
+      "date": "Feb 15, 2023"
+    },
+    {
+      "tag": "20260218_1ynJOaNzkyrKR",
+      "name": "Pyramids of GIZA w/ @Third Eye Seeks #Ancient #History",
+      "date": "Feb 11, 2023"
     }
   ]
 }
