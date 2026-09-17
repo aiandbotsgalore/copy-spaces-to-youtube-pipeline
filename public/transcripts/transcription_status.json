@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:10:17.324089+00:00",
+  "last_updated": "2026-09-17T23:12:10.574053+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2288,57 +2288,57 @@
       "last_attempt": "2026-09-17T23:09:22.667174+00:00"
     },
     "20260217_1vAxRAEomXDJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAEomXDJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667177+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942723+00:00"
     },
     "20260217_1nAJErQOAlYxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAJErQOAlYxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667181+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942742+00:00"
     },
     "20260217_1PlJQpXpdEDGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpXpdEDGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667184+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942746+00:00"
     },
     "20260217_1mrGmkRQyLgxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkRQyLgxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667187+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942749+00:00"
     },
     "20260217_1LyxBqrAYMWJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqrAYMWJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667189+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942752+00:00"
     },
     "20260217_1OdKrzZAjVeKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzZAjVeKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:09:22.667192+00:00"
+      "last_attempt": "2026-09-17T23:11:02.942756+00:00"
+    },
+    "20260216_1BRJjZrEmoeJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZrEmoeJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:11:02.942759+00:00"
+    },
+    "20260216_1eaKbrpwgMQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrpwgMQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:11:02.942761+00:00"
+    },
+    "20260218_1YqKDodaEDOxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDodaEDOxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:11:02.942764+00:00"
+    },
+    "20260217_1rmGPkmVNqmKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkmVNqmKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:11:02.942766+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ZkJzXNnBOvKv",
-      "name": "UFO Homies \ud83d\udc7d\ud83d\udef8\u26a0\ufe0f",
-      "date": "Apr 18, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRoPeeLKX",
-      "name": "\ud83d\udc7dBOB LAZAR: LIAR? DISCLOSURE HERO? \ud83d\udef8\ud83c\udf15",
-      "date": "Apr 17, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzXNzlbDJv",
-      "name": "What in the world?!? Opinions & thoughts the kind & adult way.\u2764\ufe0f\ud83d\udc7d",
-      "date": "Apr 16, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpZoPajGO",
-      "name": "Quiet silence",
-      "date": "Apr 16, 2023"
-    },
     {
       "tag": "20260217_1vAxRAEomXDJl",
       "name": "How to win at life & maybe ufo talk.",
@@ -2418,6 +2418,26 @@
       "tag": "20260217_1nAKErWreNgGL",
       "name": "\ud83c\udfb5Music Hour\ud83c\udfb5-ALIEN DISCLOSURE IS HERE #UFO",
       "date": "Apr 1, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNgjdMaVKw",
+      "name": "Dating Game-Connor \u2764\ufe0f\ud83d\udc7d\ud83e\udd75[replay]",
+      "date": "Mar 30, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgWEqLXKj",
+      "name": "casual chatter",
+      "date": "Mar 29, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwMNeLvDGB",
+      "name": "GOD! Change your life now! (Super Casual)",
+      "date": "Mar 27, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDoLDkWEGV",
+      "name": "Sunday night lounge",
+      "date": "Mar 27, 2023"
     }
   ]
 }
