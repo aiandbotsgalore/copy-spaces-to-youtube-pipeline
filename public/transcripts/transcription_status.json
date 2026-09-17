@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:44:42.655499+00:00",
+  "last_updated": "2026-09-17T18:46:03.247173+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -68,57 +68,57 @@
       "last_attempt": "2026-09-17T18:43:41.048183+00:00"
     },
     "20260217_1rmGPvrXABQxN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPvrXABQxN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:43:41.048185+00:00"
+      "last_attempt": "2026-09-17T18:45:21.505646+00:00"
     },
     "20260217_1OyKAjODoLgGb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAjODoLgGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:43:41.048187+00:00"
+      "last_attempt": "2026-09-17T18:45:21.505663+00:00"
     },
     "20260217_1kvKpMqzmDgGE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpMqzmDgGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:43:41.048189+00:00"
+      "last_attempt": "2026-09-17T18:45:21.505668+00:00"
     },
     "20260217_1mnGeNYAeDZJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeNYAeDZJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:43:41.048191+00:00"
+      "last_attempt": "2026-09-17T18:45:21.505671+00:00"
+    },
+    "20260218_1ZkJzZWVgwNJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkJzZWVgwNJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505673+00:00"
+    },
+    "20260216_1eaKbjXvNOrKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbjXvNOrKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505676+00:00"
+    },
+    "20260217_1vOGwdpDYndJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vOGwdpDYndJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505678+00:00"
+    },
+    "20260216_1eaKbjLBmjZKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbjLBmjZKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505681+00:00"
+    },
+    "20260218_1zqKVdzmaqdJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVdzmaqdJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505683+00:00"
+    },
+    "20260217_1lPKqvArqebGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqvArqebGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:45:21.505685+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1gqxvrqrRPzxB",
-      "name": "Drugs & Gods",
-      "date": "Nov 13, 2025"
-    },
-    {
-      "tag": "20260216_1DXxyWywdpvGM",
-      "name": "UFO History",
-      "date": "Nov 13, 2025"
-    },
-    {
-      "tag": "20260218_1YqxolWyzENKv",
-      "name": "Gabe",
-      "date": "Nov 12, 2025"
-    },
-    {
-      "tag": "20260216_1BdGYZPYmdgJX",
-      "name": "Graphic Adult Humor: Get Triggered \ud83d\ude18",
-      "date": "Nov 12, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkkdjqzmKj",
-      "name": "slumber siesta",
-      "date": "Nov 9, 2025"
-    },
-    {
-      "tag": "20260218_1YqGolWYLPlJv",
-      "name": "The Future of AI with Snuggles \u2728\ud83e\uddf8",
-      "date": "Nov 8, 2025"
-    },
     {
       "tag": "20260217_1rmGPvrXABQxN",
       "name": "CUDDLE PARTY",
@@ -188,6 +188,36 @@
       "tag": "20260217_1MnGnPWNRpYxO",
       "name": "Snuggles Gets Weird & Marries Makedon",
       "date": "Oct 4, 2025"
+    },
+    {
+      "tag": "20260217_1OyKAjRlrzrGb",
+      "name": "God Sauce's Dungeon",
+      "date": "Sep 21, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnPompVoxO",
+      "name": "Zen and the art of egg nog: Combating Weaponized Vaginas",
+      "date": "Sep 16, 2025"
+    },
+    {
+      "tag": "20260218_1ypKdqaNYRrGW",
+      "name": "9/11 ALL DAY",
+      "date": "Sep 11, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpMYNNgXGE",
+      "name": "Se\u00f1or Snug in the Mornin\u2019",
+      "date": "Sep 3, 2025"
+    },
+    {
+      "tag": "20260218_1YqJDNvRgwkKV",
+      "name": "\u201cSauce is a piece of deranged shit\u201d- Anonymous",
+      "date": "Aug 31, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLBWEDAoGm",
+      "name": "Synonym buns, like grammar used to make. \ud83e\udd50\ud83c\udf69\ud83e\udd6e\u2615\ufe0f",
+      "date": "Aug 29, 2025"
     }
   ]
 }
