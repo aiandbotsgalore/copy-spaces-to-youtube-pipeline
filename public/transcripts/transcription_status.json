@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:48:52.845093+00:00",
+  "last_updated": "2026-09-17T22:50:25.352625+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2068,57 +2068,57 @@
       "last_attempt": "2026-09-17T22:47:56.868746+00:00"
     },
     "20260216_1djxXlRpRnRxZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlRpRnRxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:47:56.868748+00:00"
+      "last_attempt": "2026-09-17T22:49:36.349539+00:00"
     },
     "20260216_1BdGYyeQrNoGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyeQrNoGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:47:56.868750+00:00"
+      "last_attempt": "2026-09-17T22:49:36.349557+00:00"
     },
     "20260217_1mrGmkrnEkBxy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkrnEkBxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:47:56.868751+00:00"
+      "last_attempt": "2026-09-17T22:49:36.349561+00:00"
     },
     "20260217_1kvKpmRQvYwGE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmRQvYwGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:47:56.868752+00:00"
+      "last_attempt": "2026-09-17T22:49:36.349565+00:00"
+    },
+    "20260216_1gqxvygdypBJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvygdypBJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349568+00:00"
+    },
+    "20260217_1vAGRAqRAwaKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRAqRAwaKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349571+00:00"
+    },
+    "20260218_1YpKkgYPjkmKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgYPjkmKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349574+00:00"
+    },
+    "20260218_1YqKDonzmQDxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDonzmQDxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349577+00:00"
+    },
+    "20260217_1RDxlavzrPzKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlavzrPzKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349579+00:00"
+    },
+    "20260218_1yoKMZEWjYpGQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMZEWjYpGQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:49:36.349581+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvJpmRAvnaxE",
-      "name": "Sally & Logan Sing the Blues(waiting for Sally)",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmRAbmOxE",
-      "name": "Beware the crash \ud83d\udc7d\ud83c\udfb8",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260216_1BRKjZqnPypKw",
-      "name": "Sally & Logan Sing the Blues \ud83d\udc99(Waiting on Sally)",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaNpBMkvJj",
-      "name": "MUSICK HOUR w/ FRED ROGERSS",
-      "date": "May 29, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlaNrqnRKL",
-      "name": "Sunday night",
-      "date": "May 29, 2023"
-    },
-    {
-      "tag": "20260217_1OwxWwddjwqxQ",
-      "name": "ingo goes Mormon",
-      "date": "May 28, 2023"
-    },
     {
       "tag": "20260216_1djxXlRpRnRxZ",
       "name": "The Way-Fastball",
@@ -2188,6 +2188,36 @@
       "tag": "20260216_1djGXlpokZBGZ",
       "name": "Decoding the Unseen: A Session with Dr. Jeffrey Mishlove",
       "date": "May 17, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAWqzjzJl",
+      "name": "*TEST*",
+      "date": "May 16, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRAWNVmVKl",
+      "name": "Happy Mother's Day! \ud83d\udc9d\ud83d\udc90",
+      "date": "May 14, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnrVAvPGm",
+      "name": "103.5 The Fahhcks Rocks",
+      "date": "May 13, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpmbdeGZ",
+      "name": "Witching Hour",
+      "date": "May 10, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpjAQoGZ",
+      "name": "Astrotheology",
+      "date": "May 9, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmOPpkgGE",
+      "name": "solar system soiree",
+      "date": "May 8, 2023"
     }
   ]
 }
