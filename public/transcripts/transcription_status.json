@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:20:52.281537+00:00",
+  "last_updated": "2026-09-17T23:22:36.650735+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2418,57 +2418,57 @@
       "last_attempt": "2026-09-17T23:20:12.636232+00:00"
     },
     "20260216_1DXxyvOEqedKM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvOEqedKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:20:12.636234+00:00"
+      "last_attempt": "2026-09-17T23:21:35.020025+00:00"
     },
     "20260217_1rmxPkqPOqZJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPkqPOqZJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:20:12.636237+00:00"
+      "last_attempt": "2026-09-17T23:21:35.020043+00:00"
     },
     "20260216_1gqxvyOYXVOJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyOYXVOJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:20:12.636239+00:00"
+      "last_attempt": "2026-09-17T23:21:35.020048+00:00"
     },
     "20260218_1zqKVPRkQjPJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPRkQjPJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:20:12.636241+00:00"
+      "last_attempt": "2026-09-17T23:21:35.020052+00:00"
+    },
+    "20260218_1vOGwMOPWoExB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwMOPWoExB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020056+00:00"
+    },
+    "20260218_1YpKkgmRgOXKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgmRgOXKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020059+00:00"
+    },
+    "20260217_1rmGPkqdWMVKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkqdWMVKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020063+00:00"
+    },
+    "20260216_1gqxvyOzLdOJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyOzLdOJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020066+00:00"
+    },
+    "20260217_1vAGRANakQYKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRANakQYKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020069+00:00"
+    },
+    "20260216_1gqGvybjvqaKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvybjvqaKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:21:35.020072+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdxYyMkdmyxX",
-      "name": "Connor needs a UFO Waifu",
-      "date": "Mar 25, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqRmEqEJN",
-      "name": "Tayler talks religion AGAIN what a coincidence? \ud83d\udca1\ud83d\udd6f\ufe0f\ud83d\udcd6",
-      "date": "Mar 24, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvyOQWbzJB",
-      "name": "Something something (UFO casual talk)",
-      "date": "Mar 21, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqEdVYjJN",
-      "name": "Drama Free Love and Music",
-      "date": "Mar 20, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzXONwPLJv",
-      "name": "Sabbbath Saturday",
-      "date": "Mar 18, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqBwnPMdGb",
-      "name": "FRED ROGERS EATS A$$ on St. Patties",
-      "date": "Mar 18, 2023"
-    },
     {
       "tag": "20260216_1DXxyvOEqedKM",
       "name": "\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6",
@@ -2538,6 +2538,36 @@
       "tag": "20260216_1DXxyvyaVXbKM",
       "name": "\ud83d\udca5\ud83d\udca5\ud83d\udca5\ud83e\udd2f\ud83d\udca5\ud83d\udca5\ud83d\udca5",
       "date": "Mar 8, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAbEprgJl",
+      "name": "Darcy Weir & Carlxtra with Secret Space UFOs and grifting",
+      "date": "Mar 7, 2023"
+    },
+    {
+      "tag": "20260220_1LyxBqBjPYWJN",
+      "name": "FEARLESS MONKEY LEAGUE \ud83d\udc12\ud83d\udef8\u26a1\ud83c\udfb8",
+      "date": "Mar 5, 2023"
+    },
+    {
+      "tag": "20260218_1vOGwMvRgWNxB",
+      "name": "Sunday Morning | AI and UBI",
+      "date": "Mar 5, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnpayOweGO",
+      "name": "Mesopotamian Hour #ufotwitter",
+      "date": "Mar 4, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDowmRnYGV",
+      "name": "Paranormal Pals: Ai",
+      "date": "Mar 2, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwARDEmxQ",
+      "name": "Honor",
+      "date": "Mar 1, 2023"
     }
   ]
 }
