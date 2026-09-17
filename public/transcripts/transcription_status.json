@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:19:36.784252+00:00",
+  "last_updated": "2026-09-17T23:20:52.281537+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2388,57 +2388,57 @@
       "last_attempt": "2026-09-17T23:18:55.248162+00:00"
     },
     "20260216_1BdxYyMkdmyxX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYyMkdmyxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248164+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636197+00:00"
     },
     "20260217_1LyxBqRmEqEJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqRmEqEJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248167+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636217+00:00"
     },
     "20260216_1gqxvyOQWbzJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyOQWbzJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248170+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636222+00:00"
     },
     "20260217_1LyxBqEdVYjJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqEdVYjJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248172+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636225+00:00"
     },
     "20260218_1ZkKzXONwPLJv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzXONwPLJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248175+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636229+00:00"
     },
     "20260217_1lPKqBwnPMdGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBwnPMdGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:18:55.248177+00:00"
+      "last_attempt": "2026-09-17T23:20:12.636232+00:00"
+    },
+    "20260216_1DXxyvOEqedKM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvOEqedKM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:20:12.636234+00:00"
+    },
+    "20260217_1rmxPkqPOqZJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPkqPOqZJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:20:12.636237+00:00"
+    },
+    "20260216_1gqxvyOYXVOJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyOYXVOJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:20:12.636239+00:00"
+    },
+    "20260218_1zqKVPRkQjPJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPRkQjPJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:20:12.636241+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MYxNgjdMaVKw",
-      "name": "Dating Game-Connor \u2764\ufe0f\ud83d\udc7d\ud83e\udd75[replay]",
-      "date": "Mar 30, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgWEqLXKj",
-      "name": "casual chatter",
-      "date": "Mar 29, 2023"
-    },
-    {
-      "tag": "20260218_1vOxwMNeLvDGB",
-      "name": "GOD! Change your life now! (Super Casual)",
-      "date": "Mar 27, 2023"
-    },
-    {
-      "tag": "20260218_1YqJDoLDkWEGV",
-      "name": "Sunday night lounge",
-      "date": "Mar 27, 2023"
-    },
     {
       "tag": "20260216_1BdxYyMkdmyxX",
       "name": "Connor needs a UFO Waifu",
@@ -2518,6 +2518,26 @@
       "tag": "20260216_1gqGvybjvqaKB",
       "name": "Friday Night Rules: No Holds Barred",
       "date": "Mar 11, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeREaAZrKX",
+      "name": "Paranormal Insights: Seeking the NIPS  \ud83e\udd5b",
+      "date": "Mar 9, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpAmbqZGE",
+      "name": "Abilities, AI prompts, & Monkeys for some reason",
+      "date": "Mar 9, 2023"
+    },
+    {
+      "tag": "20260217_1MYGNgAkZZoJw",
+      "name": "Green Room for the On-Air taping",
+      "date": "Mar 8, 2023"
+    },
+    {
+      "tag": "20260216_1DXxyvyaVXbKM",
+      "name": "\ud83d\udca5\ud83d\udca5\ud83d\udca5\ud83e\udd2f\ud83d\udca5\ud83d\udca5\ud83d\udca5",
+      "date": "Mar 8, 2023"
     }
   ]
 }
