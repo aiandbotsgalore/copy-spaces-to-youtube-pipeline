@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:21:28.668052+00:00",
+  "last_updated": "2026-09-17T21:22:59.062610+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1718,57 +1718,57 @@
       "last_attempt": "2026-09-17T21:20:47.236036+00:00"
     },
     "20260216_1DXGyvdAYgWJM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyvdAYgWJM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:20:47.236039+00:00"
+      "last_attempt": "2026-09-17T21:22:04.236063+00:00"
     },
     "20260217_1OdKrzXmEYwKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzXmEYwKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:20:47.236041+00:00"
+      "last_attempt": "2026-09-17T21:22:04.236081+00:00"
     },
     "20260218_1vOxwMrzyaLGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMrzyaLGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:20:47.236043+00:00"
+      "last_attempt": "2026-09-17T21:22:04.236084+00:00"
     },
     "20260217_1LyxBqgzebrJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqgzebrJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:20:47.236045+00:00"
+      "last_attempt": "2026-09-17T21:22:04.236087+00:00"
+    },
+    "20260217_1mnxeRAMVBQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRAMVBQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236090+00:00"
+    },
+    "20260217_1LyxBqnWQXEJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqnWQXEJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236092+00:00"
+    },
+    "20260218_1zqKVPqPomXJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPqPomXJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236094+00:00"
+    },
+    "20260218_1YqJDogpyDaGV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDogpyDaGV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236096+00:00"
+    },
+    "20260217_1OyKAVWYPonGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVWYPonGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236098+00:00"
+    },
+    "20260218_1zqJVPqzjEwKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVPqzjEwKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:22:04.236099+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ynJOalzZOVKR",
-      "name": "lo lo ufos",
-      "date": "Aug 23, 2023"
-    },
-    {
-      "tag": "20260216_1jMJgLBkODjxL",
-      "name": "casual space",
-      "date": "Aug 18, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZMdaZjrxB",
-      "name": "twitter-spaces video #1dRKZMdaZjrxB",
-      "date": "Aug 18, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoAvArzMxv",
-      "name": "The Doty Space of Legend - Hour 17 \ud83d\udc7d\ud83d\udc68\u200d\ud83c\udfa4",
-      "date": "Aug 17, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpbVMrYGE",
-      "name": "Richard Doty on #PeruAliens & #DavidGrusch & answering your questions!",
-      "date": "Aug 17, 2023"
-    },
-    {
-      "tag": "20260217_1lPJqBOmvlexb",
-      "name": "Rick Doty 5pm PST Tonight on #perualiens & #davidgrusch",
-      "date": "Aug 16, 2023"
-    },
     {
       "tag": "20260216_1DXGyvdAYgWJM",
       "name": "Ladies Lounge \ud83d\udc83",
@@ -1838,6 +1838,36 @@
       "tag": "20260216_1BRJjZPdlbaJw",
       "name": "The Chip 'The Screw' Whiffle and Dick Williamson show(private)",
       "date": "Jul 26, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNZzkpXKj",
+      "name": "Moon rocks(pure columbian)",
+      "date": "Jul 25, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNgobAEVKw",
+      "name": "Moon Landing Realities: Mike Bara(Ancient Aliens) Debunks the Deniers",
+      "date": "Jul 25, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBbEprmGb",
+      "name": "Monday Morning Mothafuckaz",
+      "date": "Jul 24, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBBMEaEGb",
+      "name": "#ufotwitter Should you be Vegetarian for #Disclosure? Secrecy a Must?",
+      "date": "Jul 23, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNggggDXKw",
+      "name": "Time Travelling Aliens",
+      "date": "Jul 22, 2023"
+    },
+    {
+      "tag": "20260218_1YqxoAARONAGv",
+      "name": "UFO & Guitars \ud83d\udc7d\ud83c\udfb8",
+      "date": "Jul 21, 2023"
     }
   ]
 }
