@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:49:17.733302+00:00",
+  "last_updated": "2026-09-17T18:51:20.710373+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -118,57 +118,57 @@
       "last_attempt": "2026-09-17T18:48:32.731445+00:00"
     },
     "20260216_1gqxvrMpZjjxB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrMpZjjxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:48:32.731448+00:00"
+      "last_attempt": "2026-09-17T18:49:58.864542+00:00"
     },
     "20260217_1mrGmBzbrLBJy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBzbrLBJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:48:32.731450+00:00"
+      "last_attempt": "2026-09-17T18:49:58.864560+00:00"
     },
     "20260217_1OdKrOwbmDpGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrOwbmDpGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:48:32.731452+00:00"
+      "last_attempt": "2026-09-17T18:49:58.864564+00:00"
     },
     "20260217_1MnGnPWNRpYxO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnPWNRpYxO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:48:32.731454+00:00"
+      "last_attempt": "2026-09-17T18:49:58.864567+00:00"
+    },
+    "20260217_1OyKAjRlrzrGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAjRlrzrGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864569+00:00"
+    },
+    "20260217_1MnGnPompVoxO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnPompVoxO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864571+00:00"
+    },
+    "20260218_1ypKdqaNYRrGW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdqaNYRrGW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864574+00:00"
+    },
+    "20260217_1kvKpMYNNgXGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpMYNNgXGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864576+00:00"
+    },
+    "20260218_1YqJDNvRgwkKV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDNvRgwkKV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864578+00:00"
+    },
+    "20260217_1lDxLBWEDAoGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLBWEDAoGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:49:58.864580+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ZkJzZWVgwNJv",
-      "name": "Cold pizza",
-      "date": "Oct 25, 2025"
-    },
-    {
-      "tag": "20260216_1eaKbjXvNOrKX",
-      "name": "President Trump[Logan AFK]",
-      "date": "Oct 25, 2025"
-    },
-    {
-      "tag": "20260217_1vOGwdpDYndJB",
-      "name": "psyonic Weird",
-      "date": "Oct 18, 2025"
-    },
-    {
-      "tag": "20260216_1eaKbjLBmjZKX",
-      "name": "WIZARD LOUNGE",
-      "date": "Oct 18, 2025"
-    },
-    {
-      "tag": "20260218_1zqKVdzmaqdJB",
-      "name": "Dr Snuggles Gets Wrekt",
-      "date": "Oct 17, 2025"
-    },
-    {
-      "tag": "20260217_1lPKqvArqebGb",
-      "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
-      "date": "Oct 16, 2025"
-    },
     {
       "tag": "20260216_1gqxvrMpZjjxB",
       "name": "The Dawn Of A New Reality\ud83d\udd74\ufe0f+\ud83d\udeac+\ud83e\uddf8",
@@ -238,6 +238,36 @@
       "tag": "20260217_1MnGnPYepnOxO",
       "name": "Space #999",
       "date": "Aug 15, 2025"
+    },
+    {
+      "tag": "20260217_1vAGRDQOpRjxl",
+      "name": "Random",
+      "date": "Aug 11, 2025"
+    },
+    {
+      "tag": "20260216_1dRKZYaqAqAxB",
+      "name": "Fractal Unified Coherence Kinetics",
+      "date": "Aug 8, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqMvWlvMKb",
+      "name": "A New Age Has Begun",
+      "date": "Aug 7, 2025"
+    },
+    {
+      "tag": "20260216_1DXxyqWmAOgxM",
+      "name": "Heroes, Claims & UFO Jesus \u26a1\ufe0f",
+      "date": "Aug 6, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmPPwDWQKy",
+      "name": "Deductibility coincides with logical consequences?",
+      "date": "Aug 5, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLzzNyZmGm",
+      "name": "Conspiracy Theory Generator",
+      "date": "Aug 3, 2025"
     }
   ]
 }
