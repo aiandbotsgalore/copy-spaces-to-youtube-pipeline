@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:39:03.718812+00:00",
+  "last_updated": "2026-09-17T20:40:56.650705+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1238,57 +1238,57 @@
       "last_attempt": "2026-09-17T20:38:02.909648+00:00"
     },
     "20260216_1jMJgmWVrZeKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgmWVrZeKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909650+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490804+00:00"
     },
     "20260216_1dRJZEpwjRmGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZEpwjRmGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909654+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490821+00:00"
     },
     "20260217_1OdJrjdEbbvJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrjdEbbvJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909656+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490826+00:00"
     },
     "20260216_1gqGvQmjkXpKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvQmjkXpKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909659+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490829+00:00"
     },
     "20260217_1vAGRvldQQzGl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRvldQQzGl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909662+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490832+00:00"
     },
     "20260217_1mrxmydegrnxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmydegrnxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:38:02.909665+00:00"
+      "last_attempt": "2026-09-17T20:39:45.490835+00:00"
+    },
+    "20260216_1BdxYrzPgmyKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYrzPgmyKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:39:45.490837+00:00"
+    },
+    "20260216_1eaKbgoXlMQGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbgoXlMQGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:39:45.490840+00:00"
+    },
+    "20260216_1DXGyjPLlRyJM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyjPLlRyJM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:39:45.490843+00:00"
+    },
+    "20260216_1jMKgmzaydbJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgmzaydbJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:39:45.490845+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ZkKzjzEYNqKv",
-      "name": "Who Built The Pyramids",
-      "date": "Dec 9, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoDPEQdgJv",
-      "name": "Cult Signup Deadline Ending Soon",
-      "date": "Dec 8, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqbPREoeGb",
-      "name": "Cult Signups  \ud83e\udd73",
-      "date": "Dec 8, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBnzDoPnGN",
-      "name": "\ud83d\udc7d\ud83d\udd25DISCLOSURE coming in HAWT\ud83d\udd25\ud83d\udc7d",
-      "date": "Dec 7, 2023"
-    },
     {
       "tag": "20260216_1jMJgmWVrZeKL",
       "name": "Was #Jesus The Son Of #God? Or was it a Cross of Fiction? #Debate",
@@ -1368,6 +1368,26 @@
       "tag": "20260218_1ZkKzjBRzDRKv",
       "name": "twitter-spaces video #1ZkKzjBRzDRKv",
       "date": "Nov 19, 2023"
+    },
+    {
+      "tag": "20260217_1rmxPMdgWNyKN",
+      "name": "Saturday Picnic",
+      "date": "Nov 18, 2023"
+    },
+    {
+      "tag": "20260217_1mnGepBoNNQKX",
+      "name": "ladies night",
+      "date": "Nov 16, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlljWOPzxL",
+      "name": "Suing Thieving Bitches named Natalie",
+      "date": "Nov 15, 2023"
+    },
+    {
+      "tag": "20260218_1yNGaZzPWbXJj",
+      "name": "Exorcisms - Rising to the surface #supernatural #paranormal",
+      "date": "Nov 14, 2023"
     }
   ]
 }
