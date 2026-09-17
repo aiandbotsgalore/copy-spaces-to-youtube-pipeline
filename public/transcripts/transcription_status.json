@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:38:26.725127+00:00",
+  "last_updated": "2026-09-17T22:40:12.814034+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1968,57 +1968,57 @@
       "last_attempt": "2026-09-17T22:37:33.723458+00:00"
     },
     "20260217_1vAGRABkNdgKl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRABkNdgKl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:37:33.723460+00:00"
+      "last_attempt": "2026-09-17T22:39:16.755828+00:00"
     },
     "20260217_1MYGNgkVAgZJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgkVAgZJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:37:33.723462+00:00"
+      "last_attempt": "2026-09-17T22:39:16.755852+00:00"
     },
     "20260217_1MnxnpQvqWmGO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpQvqWmGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:37:33.723463+00:00"
+      "last_attempt": "2026-09-17T22:39:16.755856+00:00"
     },
     "20260217_1LyGBqNLwXMKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqNLwXMKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:37:33.723465+00:00"
+      "last_attempt": "2026-09-17T22:39:16.755859+00:00"
+    },
+    "20260217_1lPKqBVyOLwGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBVyOLwGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755861+00:00"
+    },
+    "20260217_1kvJpmXkNpXxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmXkNpXxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755863+00:00"
+    },
+    "20260217_1nAKErdMaVAGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErdMaVAGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755865+00:00"
+    },
+    "20260217_1lDxLngjYnYGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLngjYnYGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755867+00:00"
+    },
+    "20260216_1BRKjZQojkoKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjZQojkoKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755869+00:00"
+    },
+    "20260217_1vAxRABjnQRJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRABjnQRJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:39:16.755871+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1eaJbrzDezZJX",
-      "name": "Bro Co-hoe Space",
-      "date": "Jun 15, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmeYRXLGE",
-      "name": "Logan+Guy Melt your brains\ud83c\udfb8\ud83c\udfb6\ud83d\ude08",
-      "date": "Jun 14, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvyaLkmRJB",
-      "name": "Logan Is Disclosure lol With Rick Doty",
-      "date": "Jun 14, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlareLomKL",
-      "name": "Gravity after party",
-      "date": "Jun 13, 2023"
-    },
-    {
-      "tag": "20260216_1BdGYyQEOZyGX",
-      "name": "Logan plays \ud83c\udfb8",
-      "date": "Jun 12, 2023"
-    },
-    {
-      "tag": "20260216_1jMJgLQLrpwxL",
-      "name": "#ufotwitter IN THE FLESH Party w/ Logan and friends",
-      "date": "Jun 11, 2023"
-    },
     {
       "tag": "20260217_1vAGRABkNdgKl",
       "name": "Hang sesh",
@@ -2088,6 +2088,36 @@
       "tag": "20260216_1DXxyvpWDzvKM",
       "name": "UFO Experiencer Party Time Space",
       "date": "May 31, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmRAvnaxE",
+      "name": "Sally & Logan Sing the Blues(waiting for Sally)",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmRAbmOxE",
+      "name": "Beware the crash \ud83d\udc7d\ud83c\udfb8",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260216_1BRKjZqnPypKw",
+      "name": "Sally & Logan Sing the Blues \ud83d\udc99(Waiting on Sally)",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260218_1yNGaNpBMkvJj",
+      "name": "MUSICK HOUR w/ FRED ROGERSS",
+      "date": "May 29, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlaNrqnRKL",
+      "name": "Sunday night",
+      "date": "May 29, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwddjwqxQ",
+      "name": "ingo goes Mormon",
+      "date": "May 28, 2023"
     }
   ]
 }
