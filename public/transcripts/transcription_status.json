@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:12:34.955862+00:00",
+  "last_updated": "2026-09-17T20:13:54.008564+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -968,57 +968,57 @@
       "last_attempt": "2026-09-17T20:11:41.249714+00:00"
     },
     "20260217_1OwxWYMvvLRGQ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWYMvvLRGQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:11:41.249717+00:00"
+      "last_attempt": "2026-09-17T20:13:13.535311+00:00"
     },
     "20260218_1yoKMwMOMpDJQ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwMOMpDJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:11:41.249719+00:00"
+      "last_attempt": "2026-09-17T20:13:13.535332+00:00"
     },
     "20260218_1YqGoDmQLqBJv": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDmQLqBJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:11:41.249723+00:00"
+      "last_attempt": "2026-09-17T20:13:13.535337+00:00"
     },
     "20260216_1dRKZEnkvZMxB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEnkvZMxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:11:41.249726+00:00"
+      "last_attempt": "2026-09-17T20:13:13.535341+00:00"
+    },
+    "20260218_1ZkKzjOMBzLKv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjOMBzLKv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535343+00:00"
+    },
+    "20260218_1YqKDgwqZVwxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDgwqZVwxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535346+00:00"
+    },
+    "20260218_1zqJVqAyAvnGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVqAyAvnGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535349+00:00"
+    },
+    "20260216_1djGXNvNYkvxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXNvNYkvxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535352+00:00"
+    },
+    "20260217_1MnGnMLRorYKO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnMLRorYKO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535355+00:00"
+    },
+    "20260216_1gqGvQZqBYpKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvQZqBYpKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:13:13.535357+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MnxnMejzkwJO",
-      "name": "KONA BLUE SAYS AATIP IS REAL \ud83d\ude31",
-      "date": "Apr 16, 2024"
-    },
-    {
-      "tag": "20260217_1mrGmyRXrNLGy",
-      "name": "is bigfoot just a demon in a costume",
-      "date": "Apr 15, 2024"
-    },
-    {
-      "tag": "20260217_1mrxmyZBoOWxy",
-      "name": "the Oracle",
-      "date": "Apr 14, 2024"
-    },
-    {
-      "tag": "20260217_1OyKAWdDmMwJb",
-      "name": "C\u00f8nn\u00f8r\u2019s 3,6,9 \u2728conundrum",
-      "date": "Apr 13, 2024"
-    },
-    {
-      "tag": "20260216_1DXxyjEdwrbKM",
-      "name": "ALEX JONES sings Johnny Cash/The Doors/Rage Against The Machine",
-      "date": "Apr 13, 2024"
-    },
-    {
-      "tag": "20260217_1PlJQDQAerYGE",
-      "name": "Cults & Castration (no hands!)",
-      "date": "Apr 11, 2024"
-    },
     {
       "tag": "20260217_1OwxWYMvvLRGQ",
       "name": "LOVE",
@@ -1088,6 +1088,36 @@
       "tag": "20260217_1RDGllLlqoMGL",
       "name": "Space Re-Scheduled to 10PM PST: The Secret History of the World: Ch.3",
       "date": "Mar 4, 2024"
+    },
+    {
+      "tag": "20260217_1OwxWYqNopAGQ",
+      "name": "I MET GOD ON DMT, LITERALLY- Russia's Spooky Files",
+      "date": "Mar 4, 2024"
+    },
+    {
+      "tag": "20260216_1eaJbgXgNYBxX",
+      "name": "Secret History of the World: CH 3- Garden of Eden\u2022Enter the Dark Lord",
+      "date": "Mar 4, 2024"
+    },
+    {
+      "tag": "20260218_1YqJDgDpoDvGV",
+      "name": "The Secret History of the World: Chapter 2 discussion - Morning Show",
+      "date": "Mar 3, 2024"
+    },
+    {
+      "tag": "20260217_1OdKrjYRoewKX",
+      "name": "432 The Skeleton Key to the Universe + The Secret History of The World",
+      "date": "Mar 2, 2024"
+    },
+    {
+      "tag": "20260218_1yoKMwrBOZdJQ",
+      "name": "Evolutionary Sun Cycles,DNA Upgrades, End of Days",
+      "date": "Mar 1, 2024"
+    },
+    {
+      "tag": "20260217_1rmxPMRpELMKN",
+      "name": "UAP Experiences featuring @LukeandLula",
+      "date": "Feb 28, 2024"
     }
   ]
 }
