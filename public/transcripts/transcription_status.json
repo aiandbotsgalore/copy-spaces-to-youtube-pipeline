@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:17:46.726507+00:00",
+  "last_updated": "2026-09-17T19:19:39.006562+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -418,57 +418,57 @@
       "last_attempt": "2026-09-17T19:16:42.332919+00:00"
     },
     "20260218_1ypJdZLWVgvKW": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypJdZLWVgvKW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:16:42.332921+00:00"
+      "last_attempt": "2026-09-17T19:18:31.722856+00:00"
     },
     "20260217_1MnGnwrAOnkJO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnwrAOnkJO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:16:42.332923+00:00"
+      "last_attempt": "2026-09-17T19:18:31.722878+00:00"
     },
     "20260216_1gqGvjRjZQeGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvjRjZQeGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:16:42.332924+00:00"
+      "last_attempt": "2026-09-17T19:18:31.722882+00:00"
     },
     "20260216_1djGXVEqeqBxZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVEqeqBxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:16:42.332926+00:00"
+      "last_attempt": "2026-09-17T19:18:31.722886+00:00"
+    },
+    "20260218_1yNGaLAqkgrKj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaLAqkgrKj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722889+00:00"
+    },
+    "20260216_1djGXVEvajvxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVEvajvxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722918+00:00"
+    },
+    "20260217_1vAxRDXmRqqGl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRDXmRqqGl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722921+00:00"
+    },
+    "20260218_1ynJOldDdzQxR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOldDdzQxR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722924+00:00"
+    },
+    "20260218_1ynJOldVRBWxR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOldVRBWxR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722926+00:00"
+    },
+    "20260216_1BRJjmkgmXBGw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmkgmXBGw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:18:31.722928+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMKgkYvBzWKL",
-      "name": "Snuggles Unpacks the Soul of the Machine",
-      "date": "May 10, 2025"
-    },
-    {
-      "tag": "20260218_1YqGooWWWlbGv",
-      "name": "Veit",
-      "date": "May 9, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVvDeXXxZ",
-      "name": "THE UFO Thunderdome",
-      "date": "May 8, 2025"
-    },
-    {
-      "tag": "20260217_1OdKrDeXLVwJX",
-      "name": "Reptilians of Blue Mountains",
-      "date": "May 6, 2025"
-    },
-    {
-      "tag": "20260218_1YqGooEQnZMGv",
-      "name": "\u26a0\ufe0fSIGNAL CHATS EXPOSED! \ud83d\udc7d\ud83d\ude31\ud83d\udd25 #ufoX",
-      "date": "May 5, 2025"
-    },
-    {
-      "tag": "20260216_1dRKZYXQPlQxB",
-      "name": "The Best of Chase! \ud83c\udf36\ufe0f\ud83d\udd25\ud83d\udd25\ud83d\udd25",
-      "date": "May 5, 2025"
-    },
     {
       "tag": "20260218_1ypJdZLWVgvKW",
       "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
@@ -538,6 +538,36 @@
       "tag": "20260217_1MnGnwzkgWYJO",
       "name": "Brother Jeremiah Snuggles debates God",
       "date": "Apr 13, 2025"
+    },
+    {
+      "tag": "20260217_1RDGlzwoRqgxL",
+      "name": "$ROGERS \u2022 community coin poised for the moon \ud83c\udf19 \ud83d\uddfd",
+      "date": "Apr 11, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmjoNkvGw",
+      "name": "Stories that will SHOCK YOU",
+      "date": "Apr 10, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwzBZRMKO",
+      "name": "Dr Snuggles Wrecks the Religious Timeline",
+      "date": "Apr 9, 2025"
+    },
+    {
+      "tag": "20260217_1OwGWXpaNdwJQ",
+      "name": "$ROGERS DOOMSDAY\ud83d\udd25",
+      "date": "Apr 8, 2025"
+    },
+    {
+      "tag": "20260218_1vOGwXBOQDLJB",
+      "name": "Dr. Snuggles Will See You Now\ud83e\uddf8\ud83d\udd2a\ud83d\udc19",
+      "date": "Apr 6, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmljkAjGw",
+      "name": "God Sauce Leaks All Over the dashboard",
+      "date": "Apr 5, 2025"
     }
   ]
 }
