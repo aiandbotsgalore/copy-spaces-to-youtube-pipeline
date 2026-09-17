@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:12:47.847629+00:00",
+  "last_updated": "2026-09-17T19:14:30.302126+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -368,57 +368,57 @@
       "last_attempt": "2026-09-17T19:12:05.568521+00:00"
     },
     "20260217_1kvJpyQkoYVxE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpyQkoYVxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:12:05.568524+00:00"
+      "last_attempt": "2026-09-17T19:13:30.491052+00:00"
     },
     "20260217_1MYGNwAvrBRJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNwAvrBRJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:12:05.568527+00:00"
+      "last_attempt": "2026-09-17T19:13:30.491072+00:00"
     },
     "20260217_1PlJQMARWENJE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQMARWENJE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:12:05.568530+00:00"
+      "last_attempt": "2026-09-17T19:13:30.491076+00:00"
     },
     "20260216_1BdxYqvzqNBxX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYqvzqNBxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:12:05.568532+00:00"
+      "last_attempt": "2026-09-17T19:13:30.491080+00:00"
+    },
+    "20260216_1jMKgkYvBzWKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgkYvBzWKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491083+00:00"
+    },
+    "20260218_1YqGooWWWlbGv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGooWWWlbGv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491086+00:00"
+    },
+    "20260216_1djGXVvDeXXxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXVvDeXXxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491089+00:00"
+    },
+    "20260217_1OdKrDeXLVwJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrDeXLVwJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491092+00:00"
+    },
+    "20260218_1YqGooEQnZMGv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGooEQnZMGv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491095+00:00"
+    },
+    "20260216_1dRKZYXQPlQxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZYXQPlQxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:13:30.491097+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgkdqDBwJL",
-      "name": "Post Somber Sleep Space",
-      "date": "May 26, 2025"
-    },
-    {
-      "tag": "20260216_1DXxyqEkalYxM",
-      "name": "PsyOp in Progress: Redpanda Exposed: Taking Reservations \ud83d\udc7d\u26a0\ufe0f #ufoX",
-      "date": "May 23, 2025"
-    },
-    {
-      "tag": "20260216_1BdGYqMzNaBGX",
-      "name": "Times",
-      "date": "May 23, 2025"
-    },
-    {
-      "tag": "20260218_1yNGaLmZRrNKj",
-      "name": "Creation Station- Donate your Samples Here",
-      "date": "May 22, 2025"
-    },
-    {
-      "tag": "20260218_1ypKdZloZznJW",
-      "name": "Jason Christ",
-      "date": "May 19, 2025"
-    },
-    {
-      "tag": "20260216_1jMJgkPnZbAJL",
-      "name": "The Veil of the Old World",
-      "date": "May 19, 2025"
-    },
     {
       "tag": "20260217_1kvJpyQkoYVxE",
       "name": "Atacama Desert Anomalies",
@@ -488,6 +488,36 @@
       "tag": "20260216_1djGXVEqeqBxZ",
       "name": "Physics reboot\u26a0\ufe0f\u26a1\ufe0f",
       "date": "Apr 29, 2025"
+    },
+    {
+      "tag": "20260218_1yNGaLAqkgrKj",
+      "name": "the thrilling conclusion",
+      "date": "Apr 28, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVEvajvxZ",
+      "name": "Paranormal Break: Tune in for Tales of Poo and Peril.",
+      "date": "Apr 28, 2025"
+    },
+    {
+      "tag": "20260217_1vAxRDXmRqqGl",
+      "name": "Rick Doty Live! (Reboot)",
+      "date": "Apr 27, 2025"
+    },
+    {
+      "tag": "20260218_1ynJOldDdzQxR",
+      "name": "BLUE",
+      "date": "Apr 25, 2025"
+    },
+    {
+      "tag": "20260218_1ynJOldVRBWxR",
+      "name": "Jesse Michels: UFO WHISTLEBLOWER",
+      "date": "Apr 23, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmkgmXBGw",
+      "name": "420 soon zzz",
+      "date": "Apr 20, 2025"
     }
   ]
 }
