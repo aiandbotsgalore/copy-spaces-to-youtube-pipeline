@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:55:48.330642+00:00",
+  "last_updated": "2026-09-17T22:57:36.403451+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2138,57 +2138,57 @@
       "last_attempt": "2026-09-17T22:55:08.248913+00:00"
     },
     "20260217_1vAxRAWqzjzJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAWqzjzJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248915+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607562+00:00"
     },
     "20260217_1vAGRAWNVmVKl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRAWNVmVKl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248918+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607584+00:00"
     },
     "20260217_1lDxLnrVAvPGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnrVAvPGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248920+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607588+00:00"
     },
     "20260216_1djGXlpmbdeGZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlpmbdeGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248923+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607591+00:00"
     },
     "20260216_1djGXlpjAQoGZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlpjAQoGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248925+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607593+00:00"
     },
     "20260217_1kvKpmOPpkgGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmOPpkgGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:55:08.248926+00:00"
+      "last_attempt": "2026-09-17T22:56:41.607596+00:00"
+    },
+    "20260218_1zqJVPOPBYDKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVPOPBYDKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:56:41.607598+00:00"
+    },
+    "20260218_1YqGoArRgrkxv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoArRgrkxv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:56:41.607600+00:00"
+    },
+    "20260217_1vAxRAyyXEZJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAyyXEZJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:56:41.607604+00:00"
+    },
+    "20260217_1OdKrzRZwkAKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzRZwkAKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:56:41.607605+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnGeRvdlBWJX",
-      "name": "Afterparty",
-      "date": "May 18, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqAqrybJN",
-      "name": "dammit",
-      "date": "May 18, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBqAaBjnKN",
-      "name": "unified fields and hypothetical technology",
-      "date": "May 17, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlpokZBGZ",
-      "name": "Decoding the Unseen: A Session with Dr. Jeffrey Mishlove",
-      "date": "May 17, 2023"
-    },
     {
       "tag": "20260217_1vAxRAWqzjzJl",
       "name": "*TEST*",
@@ -2268,6 +2268,26 @@
       "tag": "20260218_1yNxaNOjomQKj",
       "name": "Casual chat",
       "date": "Apr 27, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvynLnelJB",
+      "name": "I Love You",
+      "date": "Apr 27, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnMdvwmGm",
+      "name": "Is Elon Musk A Martian? \ud83d\udef8",
+      "date": "Apr 26, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErQpPLbGL",
+      "name": "\ud83d\udc7dFearless Monkey League: The Great Unknown",
+      "date": "Apr 24, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZVXMwkxQ",
+      "name": "Sunday Morning Church",
+      "date": "Apr 23, 2023"
     }
   ]
 }
