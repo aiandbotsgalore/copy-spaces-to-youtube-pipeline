@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:53:09.664185+00:00",
+  "last_updated": "2026-09-17T19:54:44.764362+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -768,57 +768,57 @@
       "last_attempt": "2026-09-17T19:52:32.669824+00:00"
     },
     "20260218_1YqKDklLpyVxV": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDklLpyVxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:52:32.669827+00:00"
+      "last_attempt": "2026-09-17T19:53:50.415727+00:00"
     },
     "20260217_1mnGeAPMdvEGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeAPMdvEGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:52:32.669830+00:00"
+      "last_attempt": "2026-09-17T19:53:50.415746+00:00"
     },
     "20260216_1jMJgBMWwPbGL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgBMWwPbGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:52:32.669833+00:00"
+      "last_attempt": "2026-09-17T19:53:50.415750+00:00"
     },
     "20260216_1DXxydzWzQeJM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxydzWzQeJM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:52:32.669835+00:00"
+      "last_attempt": "2026-09-17T19:53:50.415753+00:00"
+    },
+    "20260217_1lPKqOPNqWNJb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqOPNqWNJb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415756+00:00"
+    },
+    "20260217_1MYxNMaVOBXJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNMaVOBXJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415758+00:00"
+    },
+    "20260216_1kvJpbgEwzLKE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1kvJpbgEwzLKE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415760+00:00"
+    },
+    "20260217_1rmxPolbzjYJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPolbzjYJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415763+00:00"
+    },
+    "20260218_1ynKOyMzWNQJR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOyMzWNQJR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415765+00:00"
+    },
+    "20260218_1yoJMwyzqQpKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMwyzqQpKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:53:50.415767+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1YqKDkblQQQxV",
-      "name": "Radio Waves Are Disturbances OF a Medium, Not IN a Medium",
-      "date": "Sep 26, 2024"
-    },
-    {
-      "tag": "20260216_1DXxydlbwLRJM",
-      "name": "Apollo Temple on Rothschilds Estate? Totally Normal",
-      "date": "Sep 26, 2024"
-    },
-    {
-      "tag": "20260216_1DXxydlbWOYJM",
-      "name": "Orbs?",
-      "date": "Sep 26, 2024"
-    },
-    {
-      "tag": "20260217_1MnxnDzblvmGO",
-      "name": "A War for New Physics \ud83d\udef8\ud83e\udd3a",
-      "date": "Sep 19, 2024"
-    },
-    {
-      "tag": "20260216_1gqxvNMWNkpxB",
-      "name": "Lue Elizondo Julian Dorey Interview \ud83d\udc7d\ud83d\udd25",
-      "date": "Sep 19, 2024"
-    },
-    {
-      "tag": "20260217_1vAxRORByQNKl",
-      "name": "Mercury. Why?",
-      "date": "Sep 16, 2024"
-    },
     {
       "tag": "20260218_1YqKDklLpyVxV",
       "name": "#UFO Deep Thought \ud83d\udcad - Congress Whistleblowers",
@@ -888,6 +888,36 @@
       "tag": "20260217_1vAGRvvpBXyGl",
       "name": "Wild Stories \u26a0\ufe0f\u26a0\ufe0fNSFW\u26a0\ufe0f\u26a0\ufe0f",
       "date": "Jun 17, 2024"
+    },
+    {
+      "tag": "20260218_1yNGaZNNlmVJj",
+      "name": "\ud83d\udc7d@JasonSa32135987\ud83d\udef8 Intel Gathering\ud83d\udd0dPre-Space Prep Recon.\ud83d\udd25@UAPodcast850",
+      "date": "Jun 14, 2024"
+    },
+    {
+      "tag": "20260217_1MnGnMpPDyoKO",
+      "name": "Post Sands. It\u2019s everywhere. \ud83c\udfdc\ufe0f",
+      "date": "Jun 14, 2024"
+    },
+    {
+      "tag": "20260216_1BRJjPZOpAjKw",
+      "name": "CHRIS BLEDSOE-Experiencer/Author of 'UFO of God'",
+      "date": "Jun 10, 2024"
+    },
+    {
+      "tag": "20260217_1mnxepdvjDLJX",
+      "name": "HOUR 4-Dramavention",
+      "date": "Jun 7, 2024"
+    },
+    {
+      "tag": "20260218_1ynKOyBOnrXJR",
+      "name": "\ud83d\udea8Friday Night Live Coverage @ CITD w/ John Strader\ud83d\udea8",
+      "date": "Jun 1, 2024"
+    },
+    {
+      "tag": "20260217_1rmGPMzzWVnJN",
+      "name": "Unplugging From the Illusion: The Truth About UFOs #UFOlogue",
+      "date": "Jun 1, 2024"
     }
   ]
 }
