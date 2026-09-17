@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:46:34.805992+00:00",
+  "last_updated": "2026-09-17T19:47:52.922719+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -688,57 +688,57 @@
       "last_attempt": "2026-09-17T19:45:37.466367+00:00"
     },
     "20260218_1ypKdpmrgjQKW": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdpmrgjQKW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466370+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294078+00:00"
     },
     "20260217_1OyKAZNRXQLGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAZNRXQLGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466372+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294098+00:00"
     },
     "20260218_1YqKDkdzvkYxV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDkdzvkYxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466375+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294102+00:00"
     },
     "20260218_1dRJZdndpVgKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1dRJZdndpVgKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466377+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294105+00:00"
     },
     "20260217_1vAGRONypwkJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRONypwkJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466380+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294108+00:00"
     },
     "20260216_1eaKbamXgeaxX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbamXgeaxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:45:37.466382+00:00"
+      "last_attempt": "2026-09-17T19:47:12.294110+00:00"
+    },
+    "20260217_1OyKAZBwBZoGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAZBwBZoGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:47:12.294112+00:00"
+    },
+    "20260218_1yNxagPMjXdGj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxagPMjXdGj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:47:12.294115+00:00"
+    },
+    "20260218_1yoJMyengRzJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMyengRzJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:47:12.294117+00:00"
+    },
+    "20260218_1yoKMylmEnjKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMylmEnjKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:47:12.294119+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1RDGlyqLObDJL",
-      "name": "AGI is Here!: Spaces the Series",
-      "date": "Nov 27, 2024"
-    },
-    {
-      "tag": "20260217_1mrGmMnDXQgGy",
-      "name": "Ai Run Locally and You",
-      "date": "Nov 20, 2024"
-    },
-    {
-      "tag": "20260218_1ynJODAyrPzxR",
-      "name": "Ricky Lu Works the Pole",
-      "date": "Nov 18, 2024"
-    },
-    {
-      "tag": "20260217_1rmxPomoomqJN",
-      "name": "NATO Leads WW3",
-      "date": "Nov 18, 2024"
-    },
     {
       "tag": "20260218_1ypKdpmrgjQKW",
       "name": "Join DIY Disclosure",
@@ -818,6 +818,26 @@
       "tag": "20260217_1vAxRORByQNKl",
       "name": "Mercury. Why?",
       "date": "Sep 16, 2024"
+    },
+    {
+      "tag": "20260218_1YqKDklLpyVxV",
+      "name": "#UFO Deep Thought \ud83d\udcad - Congress Whistleblowers",
+      "date": "Sep 15, 2024"
+    },
+    {
+      "tag": "20260217_1mnGeAPMdvEGX",
+      "name": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
+      "date": "Sep 5, 2024"
+    },
+    {
+      "tag": "20260216_1jMJgBMWwPbGL",
+      "name": "Check out the @UFOTimeline Tupa-cabra.com",
+      "date": "Aug 30, 2024"
+    },
+    {
+      "tag": "20260216_1DXxydzWzQeJM",
+      "name": "Maintaining Balance",
+      "date": "Aug 23, 2024"
     }
   ]
 }
