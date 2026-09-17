@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:35:34.176760+00:00",
+  "last_updated": "2026-09-17T20:37:22.659028+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1218,57 +1218,57 @@
       "last_attempt": "2026-09-17T20:34:48.701268+00:00"
     },
     "20260218_1ZkKzjzEYNqKv": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjzEYNqKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:34:48.701271+00:00"
+      "last_attempt": "2026-09-17T20:36:21.950900+00:00"
     },
     "20260218_1YqGoDPEQdgJv": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDPEQdgJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:34:48.701274+00:00"
+      "last_attempt": "2026-09-17T20:36:21.950926+00:00"
     },
     "20260217_1lPKqbPREoeGb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbPREoeGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:34:48.701277+00:00"
+      "last_attempt": "2026-09-17T20:36:21.950930+00:00"
     },
     "20260217_1LyGBnzDoPnGN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBnzDoPnGN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:34:48.701280+00:00"
+      "last_attempt": "2026-09-17T20:36:21.950932+00:00"
+    },
+    "20260216_1jMJgmWVrZeKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgmWVrZeKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950935+00:00"
+    },
+    "20260216_1dRJZEpwjRmGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZEpwjRmGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950936+00:00"
+    },
+    "20260217_1OdJrjdEbbvJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrjdEbbvJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950938+00:00"
+    },
+    "20260216_1gqGvQmjkXpKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvQmjkXpKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950940+00:00"
+    },
+    "20260217_1vAGRvldQQzGl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRvldQQzGl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950942+00:00"
+    },
+    "20260217_1mrxmydegrnxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmydegrnxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:36:21.950944+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1vOxwjzkwpNJB",
-      "name": "Jesse Michels: Diana Pasulka- Vatican Reveals Hidden Link LiveStream\ud83d\udc7d",
-      "date": "Dec 12, 2023"
-    },
-    {
-      "tag": "20260218_1ypKdkWBQDyxW",
-      "name": "Is God  real?",
-      "date": "Dec 11, 2023"
-    },
-    {
-      "tag": "20260217_1lPJqbPeYwWxb",
-      "name": "Guitar Jam",
-      "date": "Dec 11, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqbPpMVZGb",
-      "name": "guitar \ud83c\udfb8 test(private sound check)",
-      "date": "Dec 10, 2023"
-    },
-    {
-      "tag": "20260216_1BdxYrmRXbZKX",
-      "name": "\ud83d\udc7d\u2615\ufe0f UFOTwitter Corner Coffee & Space Crack \u2615\ufe0f\ud83d\udc7d",
-      "date": "Dec 10, 2023"
-    },
-    {
-      "tag": "20260218_1yoKMwnpRRpJQ",
-      "name": "MH370 Cult Headquarters",
-      "date": "Dec 9, 2023"
-    },
     {
       "tag": "20260218_1ZkKzjzEYNqKv",
       "name": "Who Built The Pyramids",
@@ -1338,6 +1338,36 @@
       "tag": "20260216_1jMKgmzaydbJL",
       "name": "Mariah Carey-Obsessed",
       "date": "Nov 23, 2023"
+    },
+    {
+      "tag": "20260218_1ynJOybbVPZKR",
+      "name": "David Grusch on Rogan LIVE episode: (Replay)",
+      "date": "Nov 22, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzjaaBOZKv",
+      "name": "live Guitar Practice sound test",
+      "date": "Nov 22, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBnVPBBjGN",
+      "name": "I just woke up",
+      "date": "Nov 21, 2023"
+    },
+    {
+      "tag": "20260216_1dRKZEoBRBgxB",
+      "name": "Road Trip Tagalong",
+      "date": "Nov 21, 2023"
+    },
+    {
+      "tag": "20260218_1ZkJzjaMgBeJv",
+      "name": "The Monkeys Died",
+      "date": "Nov 20, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzjBRzDRKv",
+      "name": "twitter-spaces video #1ZkKzjBRzDRKv",
+      "date": "Nov 19, 2023"
     }
   ]
 }
