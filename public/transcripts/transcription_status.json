@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:33:28.565388+00:00",
+  "last_updated": "2026-09-17T23:34:45.095598+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2538,57 +2538,57 @@
       "last_attempt": "2026-09-17T23:32:39.488951+00:00"
     },
     "20260217_1MYxNgLpWpRKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgLpWpRKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488954+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888251+00:00"
     },
     "20260218_1yoJMZelXQDxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZelXQDxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488957+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888270+00:00"
     },
     "20260217_1MnxnpLWdbjGO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpLWdbjGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488960+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888275+00:00"
     },
     "20260218_1vOxwMYLEjWGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMYLEjWGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488962+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888278+00:00"
     },
     "20260216_1eaKbrPMkMoKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrPMkMoKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488965+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888282+00:00"
     },
     "20260217_1lPJqBZERklxb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPJqBZERklxb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:32:39.488967+00:00"
+      "last_attempt": "2026-09-17T23:34:05.888285+00:00"
+    },
+    "20260216_1BdxYyPjDpQxX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYyPjDpQxX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:34:05.888288+00:00"
+    },
+    "20260217_1mnxeRWavYqKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRWavYqKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:34:05.888291+00:00"
+    },
+    "20260216_1BRJjZVqPmwJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZVqPmwJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:34:05.888293+00:00"
+    },
+    "20260218_1ynJOaNzkyrKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOaNzkyrKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:34:05.888296+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLoNrwXxL",
-      "name": "[closing in 5 minutes]",
-      "date": "Mar 1, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDoXkWWLxV",
-      "name": "Welcome to Hell",
-      "date": "Feb 27, 2023"
-    },
-    {
-      "tag": "20260217_1OyJAVogXlyxb",
-      "name": "TUPACABRA BDAY Radio: Taking Song Requests\ud83c\udfb8\ud83d\udc7d\u26a1\ud83c\udf89\ud83d\udc40\ud83c\udfb5\ud83c\udfb6",
-      "date": "Feb 26, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqjygQkJN",
-      "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
-      "date": "Feb 25, 2023"
-    },
     {
       "tag": "20260217_1MYxNgLpWpRKw",
       "name": "internet sucks & #ViralRabbi is going down",
@@ -2668,6 +2668,26 @@
       "tag": "20260216_1eaKbrlpmzQKX",
       "name": "#TwitterSpace Etiquette",
       "date": "Feb 3, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmqkMdQGE",
+      "name": "9/11 WTC Tower 1 & 2 & 3",
+      "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzNyemqKX",
+      "name": "MC & E are both Awesome \ud83d\udcab",
+      "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDojrQODxV",
+      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
+      "date": "Jan 30, 2023"
+    },
+    {
+      "tag": "20260220_1MnxnpXBMwVGO",
+      "name": "Saturday Theoretical Paranormal Space",
+      "date": "Jan 28, 2023"
     }
   ]
 }
