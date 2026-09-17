@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:34:45.095598+00:00",
+  "last_updated": "2026-09-17T23:36:01.531026+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2568,57 +2568,57 @@
       "last_attempt": "2026-09-17T23:34:05.888285+00:00"
     },
     "20260216_1BdxYyPjDpQxX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYyPjDpQxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:34:05.888288+00:00"
+      "last_attempt": "2026-09-17T23:35:22.359046+00:00"
     },
     "20260217_1mnxeRWavYqKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRWavYqKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:34:05.888291+00:00"
+      "last_attempt": "2026-09-17T23:35:22.359068+00:00"
     },
     "20260216_1BRJjZVqPmwJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZVqPmwJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:34:05.888293+00:00"
+      "last_attempt": "2026-09-17T23:35:22.359074+00:00"
     },
     "20260218_1ynJOaNzkyrKR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOaNzkyrKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:34:05.888296+00:00"
+      "last_attempt": "2026-09-17T23:35:22.359078+00:00"
+    },
+    "20260216_1jMJgLZymayxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLZymayxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359081+00:00"
+    },
+    "20260217_1rmGPkrBwpqKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkrBwpqKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359084+00:00"
+    },
+    "20260216_1eaKbrRBYpQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrRBYpQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359086+00:00"
+    },
+    "20260217_1OdJrzekvMvJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrzekvMvJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359090+00:00"
+    },
+    "20260218_1lPKqBYLOdYGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1lPKqBYLOdYGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359092+00:00"
+    },
+    "20260216_1eaKbrlpmzQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrlpmzQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:35:22.359095+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MYxNgLpWpRKw",
-      "name": "internet sucks & #ViralRabbi is going down",
-      "date": "Feb 24, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZelXQDxQ",
-      "name": "Tuesday(casual chat)",
-      "date": "Feb 21, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpLWdbjGO",
-      "name": "UFO-Shane Wins Top Troll via Disqualification",
-      "date": "Feb 20, 2023"
-    },
-    {
-      "tag": "20260218_1vOxwMYLEjWGB",
-      "name": "Popcorn ?",
-      "date": "Feb 19, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrPMkMoKX",
-      "name": "Ask Your Neighbour If They\u2019re A Reptilian Today, It\u2019s Free & Safe",
-      "date": "Feb 19, 2023"
-    },
-    {
-      "tag": "20260217_1lPJqBZERklxb",
-      "name": "Personal Phenomena Stories \ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
-      "date": "Feb 18, 2023"
-    },
     {
       "tag": "20260216_1BdxYyPjDpQxX",
       "name": "FRIDAY SEGSE GREASE-The Gloves Come Off\ud83d\udca9\ud83d\udca9 HAWT \ud83d\udd25",
@@ -2688,6 +2688,36 @@
       "tag": "20260220_1MnxnpXBMwVGO",
       "name": "Saturday Theoretical Paranormal Space",
       "date": "Jan 28, 2023"
+    },
+    {
+      "tag": "20260218_1YqGoAXoRYkxv",
+      "name": "Good Morning UFO \ud83d\udc7d",
+      "date": "Jan 26, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBqDopyzKN",
+      "name": "Kartott and the alien cigarette smoker.",
+      "date": "Jan 25, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyvLywNWJM",
+      "name": "UFOs and shizzz + Stuff: Paranormal Poo...p",
+      "date": "Jan 21, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgeeApjKj",
+      "name": "Apollo 20: The Secret Mission to the Moon 4 Aliens",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmVdQEoGE",
+      "name": "Unearthing the Secrets of the Ancients:Lost Civilizations & UFOs",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwqqLkQxQ",
+      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
+      "date": "Jan 20, 2023"
     }
   ]
 }
