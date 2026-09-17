@@ -1,8 +1,8 @@
 {
-  "last_updated": "2026-09-16T18:24:11.791408+00:00",
-  "total_episodes_with_audio": 780,
-  "transcribed_count": 109,
-  "untranscribed_count": 671,
+  "last_updated": "2026-09-17T01:09:18.124042+00:00",
+  "total_episodes_with_audio": 781,
+  "transcribed_count": 111,
+  "untranscribed_count": 670,
   "next_in_queue": [
     {
       "tag": "20260915_1dJrPryRPeQKX",
@@ -43,11 +43,6 @@
       "tag": "20260218_1yNGabVvNRqJj",
       "name": "Deepstate A.I. Overlord",
       "date": "Nov 27, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkkWnEVrKj",
-      "name": "Shorter space for the greys",
-      "date": "Nov 26, 2025"
     },
     {
       "tag": "20260217_1lDxLBAjAgaGm",
@@ -103,6 +98,11 @@
       "tag": "20260216_1DXxyWywdpvGM",
       "name": "UFO History",
       "date": "Nov 13, 2025"
+    },
+    {
+      "tag": "20260218_1YqxolWyzENKv",
+      "name": "Gabe",
+      "date": "Nov 12, 2025"
     }
   ]
 }
