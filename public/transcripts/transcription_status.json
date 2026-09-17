@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:47:06.716431+00:00",
+  "last_updated": "2026-09-17T22:48:52.845093+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2038,57 +2038,57 @@
       "last_attempt": "2026-09-17T22:46:24.720638+00:00"
     },
     "20260217_1kvJpmRAvnaxE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmRAvnaxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720641+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868715+00:00"
     },
     "20260217_1kvJpmRAbmOxE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmRAbmOxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720644+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868736+00:00"
     },
     "20260216_1BRKjZqnPypKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjZqnPypKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720647+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868739+00:00"
     },
     "20260218_1yNGaNpBMkvJj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNpBMkvJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720649+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868742+00:00"
     },
     "20260217_1RDxlaNrqnRKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlaNrqnRKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720652+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868744+00:00"
     },
     "20260217_1OwxWwddjwqxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwddjwqxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:46:24.720654+00:00"
+      "last_attempt": "2026-09-17T22:47:56.868746+00:00"
+    },
+    "20260216_1djxXlRpRnRxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlRpRnRxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:47:56.868748+00:00"
+    },
+    "20260216_1BdGYyeQrNoGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyeQrNoGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:47:56.868750+00:00"
+    },
+    "20260217_1mrGmkrnEkBxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkrnEkBxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:47:56.868751+00:00"
+    },
+    "20260217_1kvKpmRQvYwGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmRQvYwGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:47:56.868752+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNxaNQjXPXKj",
-      "name": "UFO \ud83d\udc7d + \ud83c\udfb8\ud83c\udfb8",
-      "date": "Jun 2, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqNPgjpJN",
-      "name": "[not a show.]*test*",
-      "date": "Jun 2, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRABnodvJl",
-      "name": "Its Closing time",
-      "date": "Jun 1, 2023"
-    },
-    {
-      "tag": "20260216_1DXxyvpWDzvKM",
-      "name": "UFO Experiencer Party Time Space",
-      "date": "May 31, 2023"
-    },
     {
       "tag": "20260217_1kvJpmRAvnaxE",
       "name": "Sally & Logan Sing the Blues(waiting for Sally)",
@@ -2168,6 +2168,26 @@
       "tag": "20260218_1yoKMZEWjYpGQ",
       "name": "Decoding the Unseen:A session with Dr. Mishlove",
       "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1mnGeRvdlBWJX",
+      "name": "Afterparty",
+      "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqAqrybJN",
+      "name": "dammit",
+      "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBqAaBjnKN",
+      "name": "unified fields and hypothetical technology",
+      "date": "May 17, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpokZBGZ",
+      "name": "Decoding the Unseen: A Session with Dr. Jeffrey Mishlove",
+      "date": "May 17, 2023"
     }
   ]
 }
