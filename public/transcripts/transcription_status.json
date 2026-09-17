@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:44:00.383053+00:00",
+  "last_updated": "2026-09-17T22:45:42.038839+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2018,57 +2018,57 @@
       "last_attempt": "2026-09-17T22:42:49.204873+00:00"
     },
     "20260218_1yNxaNQjXPXKj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNQjXPXKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:42:49.204875+00:00"
+      "last_attempt": "2026-09-17T22:44:40.335942+00:00"
     },
     "20260217_1LyxBqNPgjpJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqNPgjpJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:42:49.204878+00:00"
+      "last_attempt": "2026-09-17T22:44:40.335963+00:00"
     },
     "20260217_1vAxRABnodvJl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRABnodvJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:42:49.204881+00:00"
+      "last_attempt": "2026-09-17T22:44:40.335967+00:00"
     },
     "20260216_1DXxyvpWDzvKM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvpWDzvKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:42:49.204884+00:00"
+      "last_attempt": "2026-09-17T22:44:40.335971+00:00"
+    },
+    "20260217_1kvJpmRAvnaxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmRAvnaxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335974+00:00"
+    },
+    "20260217_1kvJpmRAbmOxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmRAbmOxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335976+00:00"
+    },
+    "20260216_1BRKjZqnPypKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjZqnPypKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335979+00:00"
+    },
+    "20260218_1yNGaNpBMkvJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNpBMkvJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335981+00:00"
+    },
+    "20260217_1RDxlaNrqnRKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlaNrqnRKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335983+00:00"
+    },
+    "20260217_1OwxWwddjwqxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwddjwqxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:44:40.335985+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lPKqBVyOLwGb",
-      "name": "UFO STORIES\ud83d\udc7d\ud83d\udef8",
-      "date": "Jun 7, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmXkNpXxE",
-      "name": "Wake UP \ud83d\udc7d\ud83d\udef8",
-      "date": "Jun 7, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErdMaVAGL",
-      "name": "\ud83c\udfb8 + \ud83d\udc7d",
-      "date": "Jun 6, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLngjYnYGm",
-      "name": "Lacey",
-      "date": "Jun 6, 2023"
-    },
-    {
-      "tag": "20260216_1BRKjZQojkoKw",
-      "name": "I Am Elon Musk's Song",
-      "date": "Jun 4, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRABjnQRJl",
-      "name": "Friday Evening Phenomenon",
-      "date": "Jun 3, 2023"
-    },
     {
       "tag": "20260218_1yNxaNQjXPXKj",
       "name": "UFO \ud83d\udc7d + \ud83c\udfb8\ud83c\udfb8",
@@ -2138,6 +2138,36 @@
       "tag": "20260217_1kvKpmRQvYwGE",
       "name": "TGIF",
       "date": "May 26, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvygdypBJB",
+      "name": "Wild On \ud83d\udc26\ud83d\udca6\ud83d\udca6",
+      "date": "May 24, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRAqRAwaKl",
+      "name": "Sex and Candy \ud83c\udf6d\ud83c\udf6c",
+      "date": "May 23, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgYPjkmKj",
+      "name": "Blame Mellow Demon",
+      "date": "May 22, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDonzmQDxV",
+      "name": "\ud83c\udfb6 Saturday morning \ud83c\udfb6",
+      "date": "May 20, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlavzrPzKL",
+      "name": "Guitar Jamming & gutter nuggets the band",
+      "date": "May 19, 2023"
+    },
+    {
+      "tag": "20260218_1yoKMZEWjYpGQ",
+      "name": "Decoding the Unseen:A session with Dr. Mishlove",
+      "date": "May 18, 2023"
     }
   ]
 }
