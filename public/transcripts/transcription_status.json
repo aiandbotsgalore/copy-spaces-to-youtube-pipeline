@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:01:17.738345+00:00",
+  "last_updated": "2026-09-17T21:03:10.082233+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1488,57 +1488,57 @@
       "last_attempt": "2026-09-17T21:00:08.765889+00:00"
     },
     "20260217_1nAKEamAyklKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEamAyklKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765892+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552377+00:00"
     },
     "20260217_1MYGNorpnYPJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNorpnYPJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765895+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552396+00:00"
     },
     "20260218_1ZkKzjDOkZgKv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjDOkZgKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765898+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552400+00:00"
     },
     "20260218_1yoKMwvrwkXJQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwvrwkXJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765901+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552403+00:00"
     },
     "20260217_1OyJAWPvBXyKb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJAWPvBXyKb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765904+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552406+00:00"
     },
     "20260216_1gqxvQvzBrnJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvQvzBrnJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:00:08.765906+00:00"
+      "last_attempt": "2026-09-17T21:02:04.552408+00:00"
+    },
+    "20260216_1djGXNgzADNxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXNgzADNxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:02:04.552411+00:00"
+    },
+    "20260218_1YqKDgPNmPaxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDgPNmPaxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:02:04.552414+00:00"
+    },
+    "20260217_1kvJpvrMVjXKE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpvrMVjXKE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:02:04.552416+00:00"
+    },
+    "20260216_1BRJjPzmPbNKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjPzmPbNKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:02:04.552419+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ynKOyLlgEzJR",
-      "name": "FREE NUMEROLOGY READINGS w/ Wise Cat \ud83d\udc08\u200d\u2b1b@catkingwisecat",
-      "date": "Oct 13, 2023"
-    },
-    {
-      "tag": "20260217_1mrxmyqyVOdxy",
-      "name": "Guitar-etallica\ud83e\udd18\ud83e\udd18\ud83c\udfb8\ud83d\udc7d(intermission \ud83d\udc15\u200d\ud83e\uddba)",
-      "date": "Oct 12, 2023"
-    },
-    {
-      "tag": "20260218_1ZkJzjDeWBeJv",
-      "name": "Good Morning \ud83d\udc7d\ud83e\udd16\ud83d\udd25",
-      "date": "Oct 11, 2023"
-    },
-    {
-      "tag": "20260217_1RDGlleabPOGL",
-      "name": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
-      "date": "Oct 11, 2023"
-    },
     {
       "tag": "20260217_1nAKEamAyklKL",
       "name": "Guitar \ud83c\udfb8 Test 2- Takin Song Requests(intermission)",
@@ -1618,6 +1618,26 @@
       "tag": "20260217_1mrGmyoqapwGy",
       "name": "voidprincess Natalie is a loving person",
       "date": "Sep 16, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyjmgqjNJM",
+      "name": "we need to talk... real talk... personal stuff",
+      "date": "Sep 16, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrjgXonKX",
+      "name": "Mexico alien bodies",
+      "date": "Sep 13, 2023"
+    },
+    {
+      "tag": "20260218_1ynJOaMpMvyKR",
+      "name": "The Nature of Reality & Dimensions: Dreams",
+      "date": "Sep 12, 2023"
+    },
+    {
+      "tag": "20260217_1OyJAVjEWDDxb",
+      "name": "Mishlove/Biegelow interview/discussion b4 6PM CST Mexico #UFO Hearing",
+      "date": "Sep 12, 2023"
     }
   ]
 }
