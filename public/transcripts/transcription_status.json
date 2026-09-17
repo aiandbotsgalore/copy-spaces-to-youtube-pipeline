@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:10:59.460276+00:00",
+  "last_updated": "2026-09-17T20:12:34.955862+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -938,57 +938,57 @@
       "last_attempt": "2026-09-17T20:10:08.989578+00:00"
     },
     "20260217_1MnxnMejzkwJO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnMejzkwJO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989582+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249638+00:00"
     },
     "20260217_1mrGmyRXrNLGy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmyRXrNLGy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989585+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249694+00:00"
     },
     "20260217_1mrxmyZBoOWxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmyZBoOWxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989588+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249704+00:00"
     },
     "20260217_1OyKAWdDmMwJb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAWdDmMwJb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989591+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249708+00:00"
     },
     "20260216_1DXxyjEdwrbKM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyjEdwrbKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989594+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249711+00:00"
     },
     "20260217_1PlJQDQAerYGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQDQAerYGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:10:08.989596+00:00"
+      "last_attempt": "2026-09-17T20:11:41.249714+00:00"
+    },
+    "20260217_1OwxWYMvvLRGQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWYMvvLRGQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:11:41.249717+00:00"
+    },
+    "20260218_1yoKMwMOMpDJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwMOMpDJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:11:41.249719+00:00"
+    },
+    "20260218_1YqGoDmQLqBJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDmQLqBJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:11:41.249723+00:00"
+    },
+    "20260216_1dRKZEnkvZMxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEnkvZMxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:11:41.249726+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1dRKZEgXPRoxB",
-      "name": "#PeoplesWhistleblower @JasonSa32135987\u202c+@RTicky166+@Steve7945459334\ud83d\udef8\ud83d\udc7d\ud83e\uddec",
-      "date": "Apr 23, 2024"
-    },
-    {
-      "tag": "20260217_1mnGepXgXLoKX",
-      "name": "UFO Explanations & Answers & Made Up Stories. 420 get stoned",
-      "date": "Apr 20, 2024"
-    },
-    {
-      "tag": "20260216_1dRJZEedWWmGB",
-      "name": "Beyond The Veil w/ OpenEye aka Mr Nobody. Answering Your Questions!",
-      "date": "Apr 20, 2024"
-    },
-    {
-      "tag": "20260216_1jMKgmqqpPjJL",
-      "name": "Match Game with Dan Freeman",
-      "date": "Apr 18, 2024"
-    },
     {
       "tag": "20260217_1MnxnMejzkwJO",
       "name": "KONA BLUE SAYS AATIP IS REAL \ud83d\ude31",
@@ -1068,6 +1068,26 @@
       "tag": "20260216_1gqGvQZqBYpKB",
       "name": "Early Morning",
       "date": "Mar 15, 2024"
+    },
+    {
+      "tag": "20260217_1lDxLPVwMMbxm",
+      "name": "\u2026",
+      "date": "Mar 13, 2024"
+    },
+    {
+      "tag": "20260218_1yNGaZAQowEJj",
+      "name": "History of Earth + Gods + Advanced Tech + Double Slit + \u26a1\ufe0fE-M\ud83e\uddf2",
+      "date": "Mar 10, 2024"
+    },
+    {
+      "tag": "20260218_1ZkKzjngDnaKv",
+      "name": "Afterspace (highly secret)",
+      "date": "Mar 6, 2024"
+    },
+    {
+      "tag": "20260217_1RDGllLlqoMGL",
+      "name": "Space Re-Scheduled to 10PM PST: The Secret History of the World: Ch.3",
+      "date": "Mar 4, 2024"
     }
   ]
 }
