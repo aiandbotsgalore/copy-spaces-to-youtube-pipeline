@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:45:25.430789+00:00",
+  "last_updated": "2026-09-17T20:46:45.584140+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1318,57 +1318,57 @@
       "last_attempt": "2026-09-17T20:44:32.313263+00:00"
     },
     "20260217_1rmxPMdgWNyKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPMdgWNyKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:44:32.313265+00:00"
+      "last_attempt": "2026-09-17T20:46:03.628946+00:00"
     },
     "20260217_1mnGepBoNNQKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGepBoNNQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:44:32.313268+00:00"
+      "last_attempt": "2026-09-17T20:46:03.628966+00:00"
     },
     "20260217_1RDxlljWOPzxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlljWOPzxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:44:32.313270+00:00"
+      "last_attempt": "2026-09-17T20:46:03.628970+00:00"
     },
     "20260218_1yNGaZzPWbXJj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZzPWbXJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:44:32.313272+00:00"
+      "last_attempt": "2026-09-17T20:46:03.628973+00:00"
+    },
+    "20260216_1dRKZEWPLpoxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEWPLpoxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628976+00:00"
+    },
+    "20260218_1yNGaZzAqejJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaZzAqejJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628979+00:00"
+    },
+    "20260217_1nAKEaXMkdVKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEaXMkdVKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628982+00:00"
+    },
+    "20260217_1vAxRvPZkgqxl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRvPZkgqxl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628984+00:00"
+    },
+    "20260216_1dRKZEwdkMXxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEwdkMXxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628987+00:00"
+    },
+    "20260216_1eaKbgkNMQRGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbgkNMQRGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:46:03.628989+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ynJOybbVPZKR",
-      "name": "David Grusch on Rogan LIVE episode: (Replay)",
-      "date": "Nov 22, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzjaaBOZKv",
-      "name": "live Guitar Practice sound test",
-      "date": "Nov 22, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBnVPBBjGN",
-      "name": "I just woke up",
-      "date": "Nov 21, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZEoBRBgxB",
-      "name": "Road Trip Tagalong",
-      "date": "Nov 21, 2023"
-    },
-    {
-      "tag": "20260218_1ZkJzjaMgBeJv",
-      "name": "The Monkeys Died",
-      "date": "Nov 20, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzjBRzDRKv",
-      "name": "twitter-spaces video #1ZkKzjBRzDRKv",
-      "date": "Nov 19, 2023"
-    },
     {
       "tag": "20260217_1rmxPMdgWNyKN",
       "name": "Saturday Picnic",
@@ -1438,6 +1438,36 @@
       "tag": "20260218_1vOxwjLObNVJB",
       "name": "Music, Sports & UFOs \u2764\ufe0f",
       "date": "Nov 2, 2023"
+    },
+    {
+      "tag": "20260218_1YqGoDMWmwQJv",
+      "name": "Christ Consciousness \ud83e\udd18",
+      "date": "Nov 2, 2023"
+    },
+    {
+      "tag": "20260217_1lPJqbajLXPxb",
+      "name": "RETURN OF THE NEPHILIM \ud83d\udc7d\ud83d\udc7c\ud83d\udcd6",
+      "date": "Oct 30, 2023"
+    },
+    {
+      "tag": "20260217_1OdJrjlPkdvJX",
+      "name": "\u2600\ufe0f\ud83d\udc7dSunrise Sessions -  Lost Knowledge Of The Gods \ud83d\udc7d\u2600\ufe0f",
+      "date": "Oct 28, 2023"
+    },
+    {
+      "tag": "20260217_1RDxllXEPpkxL",
+      "name": "[pvt]",
+      "date": "Oct 27, 2023"
+    },
+    {
+      "tag": "20260217_1OwGWYlXpRmxQ",
+      "name": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
+      "date": "Oct 27, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLPZnmDRxm",
+      "name": "Time Travelers' Breakfast: Morning Chronicles of the Paranormal \ud83d\udc7d\ud83d\udef8\ud83d\udc7b",
+      "date": "Oct 26, 2023"
     }
   ]
 }
