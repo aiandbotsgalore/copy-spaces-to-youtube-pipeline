@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:24:45.127534+00:00",
+  "last_updated": "2026-09-17T21:26:17.152667+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1738,57 +1738,57 @@
       "last_attempt": "2026-09-17T21:23:41.646670+00:00"
     },
     "20260217_1mnxeRAMVBQKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRAMVBQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646673+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469545+00:00"
     },
     "20260217_1LyxBqnWQXEJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqnWQXEJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646675+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469566+00:00"
     },
     "20260218_1zqKVPqPomXJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPqPomXJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646677+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469570+00:00"
     },
     "20260218_1YqJDogpyDaGV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDogpyDaGV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646680+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469573+00:00"
     },
     "20260217_1OyKAVWYPonGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVWYPonGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646682+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469576+00:00"
     },
     "20260218_1zqJVPqzjEwKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqJVPqzjEwKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:23:41.646683+00:00"
+      "last_attempt": "2026-09-17T21:25:25.469580+00:00"
+    },
+    "20260217_1LyxBqnbRqOJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqnbRqOJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:25:25.469582+00:00"
+    },
+    "20260217_1lPKqBbWWjWGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBbWWjWGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:25:25.469585+00:00"
+    },
+    "20260218_1YqGoADzOVNxv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoADzOVNxv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:25:25.469588+00:00"
+    },
+    "20260216_1BRJjZPdlbaJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZPdlbaJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:25:25.469590+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1DXGyvdAYgWJM",
-      "name": "Ladies Lounge \ud83d\udc83",
-      "date": "Aug 15, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzXmEYwKX",
-      "name": "Logan Convention",
-      "date": "Aug 9, 2023"
-    },
-    {
-      "tag": "20260218_1vOxwMrzyaLGB",
-      "name": "twitter-spaces video #1vOxwMrzyaLGB",
-      "date": "Aug 8, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqgzebrJN",
-      "name": "Talking Brandon Fugal & Honesty @brandonfugal",
-      "date": "Aug 7, 2023"
-    },
     {
       "tag": "20260217_1mnxeRAMVBQKX",
       "name": "Doll Radio \ud83c\udf99\ufe0f\u2620\ufe0f\ud83d\udc9c\u2728",
@@ -1868,6 +1868,26 @@
       "tag": "20260218_1YqxoAARONAGv",
       "name": "UFO & Guitars \ud83d\udc7d\ud83c\udfb8",
       "date": "Jul 21, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnnrDwyGm",
+      "name": "We Love Diana Pasulka",
+      "date": "Jul 20, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNNOYEdKj",
+      "name": "Heather speaks the gospel",
+      "date": "Jul 19, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRRmjjbKX",
+      "name": "The Cube vs Orb",
+      "date": "Jul 18, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmmDovPxE",
+      "name": "bat and Elle",
+      "date": "Jul 12, 2023"
     }
   ]
 }
