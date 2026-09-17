@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:02:29.725724+00:00",
+  "last_updated": "2026-09-17T19:03:51.688611+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -238,57 +238,57 @@
       "last_attempt": "2026-09-17T19:01:46.550916+00:00"
     },
     "20260217_1lPKqMBdEBZKb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMBdEBZKb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550919+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925631+00:00"
     },
     "20260217_1MnxnwkvblBKO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwkvblBKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550922+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925649+00:00"
     },
     "20260218_1YpJkBzBlOoGj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkBzBlOoGj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550924+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925653+00:00"
     },
     "20260216_1BdGYqYRodEGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqYRodEGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550927+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925656+00:00"
     },
     "20260217_1lDxLzylZYZGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLzylZYZGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550930+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925658+00:00"
     },
     "20260218_1zqKVjeZdwXKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVjeZdwXKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:01:46.550932+00:00"
+      "last_attempt": "2026-09-17T19:03:07.925661+00:00"
+    },
+    "20260218_1yoKMoXRVRDJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMoXRVRDJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:03:07.925664+00:00"
+    },
+    "20260217_1PlJQMmPYZBJE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQMmPYZBJE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:03:07.925666+00:00"
+    },
+    "20260216_1dRJZYLgYXMGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZYLgYXMGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:03:07.925668+00:00"
+    },
+    "20260218_1YqJDZnjrPEKV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDZnjrPEKV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:03:07.925670+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mrxmPPjpvDJy",
-      "name": "Kimball judged before his peers. #truth #justice",
-      "date": "Aug 2, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmPPloMdKy",
-      "name": "twitter-spaces video #1mrGmPPloMdKy",
-      "date": "Aug 2, 2025"
-    },
-    {
-      "tag": "20260217_1kvKpybQyQmGE",
-      "name": "???????",
-      "date": "Jul 29, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVrLBwoxZ",
-      "name": "Credentials please.",
-      "date": "Jul 29, 2025"
-    },
     {
       "tag": "20260217_1lPKqMBdEBZKb",
       "name": "\ud83c\udff4\u200d\u2620\ufe0f\ud83c\udff4\u200d\u2620\ufe0fpirates get free booty",
@@ -368,6 +368,26 @@
       "tag": "20260218_1vOxwXAgXRDKB",
       "name": "UFO DNA",
       "date": "May 31, 2025"
+    },
+    {
+      "tag": "20260217_1OyJALNQwDoGb",
+      "name": "UFO ABDUCTION: Pascagoula '73",
+      "date": "May 31, 2025"
+    },
+    {
+      "tag": "20260218_1vOxwXAPDmvKB",
+      "name": "Terrence McKenna Answers Your Questions",
+      "date": "May 30, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVdgWvvxZ",
+      "name": "A New (\u1d54\u1d25\u1d54)",
+      "date": "May 29, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwgQllMKO",
+      "name": "\ud83e\uddd0\ud83d\udc7d and human space bombs",
+      "date": "May 27, 2025"
     }
   ]
 }
