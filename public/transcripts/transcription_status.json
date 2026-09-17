@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:36:57.819277+00:00",
+  "last_updated": "2026-09-17T22:38:26.725127+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1938,57 +1938,57 @@
       "last_attempt": "2026-09-17T22:36:14.490202+00:00"
     },
     "20260216_1eaJbrzDezZJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaJbrzDezZJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490205+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723433+00:00"
     },
     "20260217_1kvKpmeYRXLGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmeYRXLGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490207+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723446+00:00"
     },
     "20260216_1gqxvyaLkmRJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyaLkmRJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490211+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723450+00:00"
     },
     "20260217_1RDxlareLomKL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlareLomKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490214+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723452+00:00"
     },
     "20260216_1BdGYyQEOZyGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyQEOZyGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490216+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723455+00:00"
     },
     "20260216_1jMJgLQLrpwxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLQLrpwxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:36:14.490218+00:00"
+      "last_attempt": "2026-09-17T22:37:33.723458+00:00"
+    },
+    "20260217_1vAGRABkNdgKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRABkNdgKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:37:33.723460+00:00"
+    },
+    "20260217_1MYGNgkVAgZJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgkVAgZJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:37:33.723462+00:00"
+    },
+    "20260217_1MnxnpQvqWmGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpQvqWmGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:37:33.723463+00:00"
+    },
+    "20260217_1LyGBqNLwXMKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqNLwXMKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:37:33.723465+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lDxLnyRroqGm",
-      "name": "after party",
-      "date": "Jun 18, 2023"
-    },
-    {
-      "tag": "20260216_1jMKgLXZgaPGL",
-      "name": "Cyber Stalking & harassment- Jalissa",
-      "date": "Jun 18, 2023"
-    },
-    {
-      "tag": "20260216_1dRJZMZylwrGB",
-      "name": "Born to \ud83d\udc7d",
-      "date": "Jun 16, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRlDjwRKX",
-      "name": "The Disclosure Train Never Stops / NO \ud83d\ude4c needed",
-      "date": "Jun 15, 2023"
-    },
     {
       "tag": "20260216_1eaJbrzDezZJX",
       "name": "Bro Co-hoe Space",
@@ -2068,6 +2068,26 @@
       "tag": "20260217_1vAxRABjnQRJl",
       "name": "Friday Evening Phenomenon",
       "date": "Jun 3, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNQjXPXKj",
+      "name": "UFO \ud83d\udc7d + \ud83c\udfb8\ud83c\udfb8",
+      "date": "Jun 2, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqNPgjpJN",
+      "name": "[not a show.]*test*",
+      "date": "Jun 2, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRABnodvJl",
+      "name": "Its Closing time",
+      "date": "Jun 1, 2023"
+    },
+    {
+      "tag": "20260216_1DXxyvpWDzvKM",
+      "name": "UFO Experiencer Party Time Space",
+      "date": "May 31, 2023"
     }
   ]
 }
