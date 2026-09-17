@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:22:49.221447+00:00",
+  "last_updated": "2026-09-17T19:24:28.784088+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -468,57 +468,57 @@
       "last_attempt": "2026-09-17T19:21:41.531734+00:00"
     },
     "20260217_1vAxRDzkZbjGl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRDzkZbjGl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:21:41.531736+00:00"
+      "last_attempt": "2026-09-17T19:23:31.189700+00:00"
     },
     "20260216_1BRJjmkglAwGw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmkglAwGw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:21:41.531739+00:00"
+      "last_attempt": "2026-09-17T19:23:31.189720+00:00"
     },
     "20260216_1BRKjmkrjDgxw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjmkrjDgxw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:21:41.531740+00:00"
+      "last_attempt": "2026-09-17T19:23:31.189723+00:00"
     },
     "20260217_1MnGnwzkgWYJO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnwzkgWYJO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:21:41.531743+00:00"
+      "last_attempt": "2026-09-17T19:23:31.189727+00:00"
+    },
+    "20260217_1RDGlzwoRqgxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlzwoRqgxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189729+00:00"
+    },
+    "20260216_1BRJjmjoNkvGw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmjoNkvGw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189730+00:00"
+    },
+    "20260217_1MnxnwzBZRMKO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwzBZRMKO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189732+00:00"
+    },
+    "20260217_1OwGWXpaNdwJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwGWXpaNdwJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189734+00:00"
+    },
+    "20260218_1vOGwXBOQDLJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwXBOQDLJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189736+00:00"
+    },
+    "20260216_1BRJjmljkAjGw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjmljkAjGw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:23:31.189737+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNGaLAqkgrKj",
-      "name": "the thrilling conclusion",
-      "date": "Apr 28, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVEvajvxZ",
-      "name": "Paranormal Break: Tune in for Tales of Poo and Peril.",
-      "date": "Apr 28, 2025"
-    },
-    {
-      "tag": "20260217_1vAxRDXmRqqGl",
-      "name": "Rick Doty Live! (Reboot)",
-      "date": "Apr 27, 2025"
-    },
-    {
-      "tag": "20260218_1ynJOldDdzQxR",
-      "name": "BLUE",
-      "date": "Apr 25, 2025"
-    },
-    {
-      "tag": "20260218_1ynJOldVRBWxR",
-      "name": "Jesse Michels: UFO WHISTLEBLOWER",
-      "date": "Apr 23, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmkgmXBGw",
-      "name": "420 soon zzz",
-      "date": "Apr 20, 2025"
-    },
     {
       "tag": "20260217_1vAxRDzkZbjGl",
       "name": "Spicy Ratchet Space \ud83d\udc7a",
@@ -588,6 +588,36 @@
       "tag": "20260218_1ypJdZjDYXYKW",
       "name": "LUCKY  STRIKE",
       "date": "Mar 29, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYqbyyPEGX",
+      "name": "Satellites and Starfish",
+      "date": "Mar 27, 2025"
+    },
+    {
+      "tag": "20260217_1RDxlzMnDrDGL",
+      "name": "$ROGERS Journey to 5Million",
+      "date": "Mar 26, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwOgznNKO",
+      "name": "Pray for Lil Poptart, Kimball, Citizens Dawn and Grider",
+      "date": "Mar 26, 2025"
+    },
+    {
+      "tag": "20260217_1nAKEgooZQYJL",
+      "name": "Drama space. Lots of *!#*!#\ud83e\udd2c. [Trigger Warning] also, hilarious",
+      "date": "Mar 24, 2025"
+    },
+    {
+      "tag": "20260218_1zqKVjnPZZWKB",
+      "name": "Inside the Pyramid: Uncovering Truths with Dr. Aether",
+      "date": "Mar 22, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLzEanlzGm",
+      "name": "Short space for lulz",
+      "date": "Mar 20, 2025"
     }
   ]
 }
