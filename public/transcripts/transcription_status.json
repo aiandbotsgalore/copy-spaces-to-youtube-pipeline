@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:34:12.110784+00:00",
+  "last_updated": "2026-09-17T20:35:34.176760+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1188,57 +1188,57 @@
       "last_attempt": "2026-09-17T20:33:18.039173+00:00"
     },
     "20260218_1vOxwjzkwpNJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwjzkwpNJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039177+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701233+00:00"
     },
     "20260218_1ypKdkWBQDyxW": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdkWBQDyxW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039179+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701252+00:00"
     },
     "20260217_1lPJqbPeYwWxb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPJqbPeYwWxb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039182+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701258+00:00"
     },
     "20260217_1lPKqbPpMVZGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbPpMVZGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039185+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701261+00:00"
     },
     "20260216_1BdxYrmRXbZKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYrmRXbZKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039188+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701265+00:00"
     },
     "20260218_1yoKMwnpRRpJQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwnpRRpJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:33:18.039190+00:00"
+      "last_attempt": "2026-09-17T20:34:48.701268+00:00"
+    },
+    "20260218_1ZkKzjzEYNqKv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzjzEYNqKv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:34:48.701271+00:00"
+    },
+    "20260218_1YqGoDPEQdgJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoDPEQdgJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:34:48.701274+00:00"
+    },
+    "20260217_1lPKqbPREoeGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqbPREoeGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:34:48.701277+00:00"
+    },
+    "20260217_1LyGBnzDoPnGN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBnzDoPnGN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:34:48.701280+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MnxnMbOWABJO",
-      "name": "\ud83e\udd14\ud83d\ude0e",
-      "date": "Dec 18, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqbjNmXQGb",
-      "name": "Music Creations. Request your own song & Ill make it under>60seconds.",
-      "date": "Dec 16, 2023"
-    },
-    {
-      "tag": "20260218_1ypKdkWpWNqxW",
-      "name": "Annunaki/Sumerian Fairy Tales with Zechariah Sitchin",
-      "date": "Dec 14, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoDPAmvaJv",
-      "name": "UFO Narratives & Imperatives",
-      "date": "Dec 13, 2023"
-    },
     {
       "tag": "20260218_1vOxwjzkwpNJB",
       "name": "Jesse Michels: Diana Pasulka- Vatican Reveals Hidden Link LiveStream\ud83d\udc7d",
@@ -1318,6 +1318,26 @@
       "tag": "20260217_1mrxmydegrnxy",
       "name": "Logan Black's Bizarre Bazaar \u2122\ufe0f  \u26a1\u26a1",
       "date": "Nov 26, 2023"
+    },
+    {
+      "tag": "20260216_1BdxYrzPgmyKX",
+      "name": "-POST TUPA SPACE WIND DOWN",
+      "date": "Nov 26, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbgoXlMQGX",
+      "name": "private audio test. stay out",
+      "date": "Nov 25, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyjPLlRyJM",
+      "name": "private space audio test for guitar recording",
+      "date": "Nov 25, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgmzaydbJL",
+      "name": "Mariah Carey-Obsessed",
+      "date": "Nov 23, 2023"
     }
   ]
 }
