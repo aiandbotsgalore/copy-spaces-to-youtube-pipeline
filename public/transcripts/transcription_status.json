@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:43:55.602206+00:00",
+  "last_updated": "2026-09-17T23:45:36.258615+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2668,57 +2668,57 @@
       "last_attempt": "2026-09-17T23:42:56.759509+00:00"
     },
     "20260220_1djGXlYkooRGZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1djGXlYkooRGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:42:56.759512+00:00"
+      "last_attempt": "2026-09-17T23:44:35.021685+00:00"
     },
     "20260216_1BRJjZRlQoeJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZRlQoeJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:42:56.759514+00:00"
+      "last_attempt": "2026-09-17T23:44:35.021704+00:00"
     },
     "20260218_1YpJkgeaVDEJj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkgeaVDEJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:42:56.759517+00:00"
+      "last_attempt": "2026-09-17T23:44:35.021708+00:00"
     },
     "20260217_1vAxRAzQrkYJl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAzQrkYJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:42:56.759519+00:00"
+      "last_attempt": "2026-09-17T23:44:35.021711+00:00"
+    },
+    "20260217_1LyxBqbXnRPJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqbXnRPJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021714+00:00"
+    },
+    "20260218_1ynJOazZeAVKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOazZeAVKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021716+00:00"
+    },
+    "20260216_1jMKgLyQyNAGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgLyQyNAGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021719+00:00"
+    },
+    "20260217_1rmGPkDNLMXKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkDNLMXKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021722+00:00"
+    },
+    "20260218_1yoJMZlDeawxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZlDeawxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021725+00:00"
+    },
+    "20260216_1jMJgLyAVgmxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLyAVgmxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:44:35.021726+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1YqGoAXoRYkxv",
-      "name": "Good Morning UFO \ud83d\udc7d",
-      "date": "Jan 26, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBqDopyzKN",
-      "name": "Kartott and the alien cigarette smoker.",
-      "date": "Jan 25, 2023"
-    },
-    {
-      "tag": "20260216_1DXGyvLywNWJM",
-      "name": "UFOs and shizzz + Stuff: Paranormal Poo...p",
-      "date": "Jan 21, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgeeApjKj",
-      "name": "Apollo 20: The Secret Mission to the Moon 4 Aliens",
-      "date": "Jan 20, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmVdQEoGE",
-      "name": "Unearthing the Secrets of the Ancients:Lost Civilizations & UFOs",
-      "date": "Jan 20, 2023"
-    },
-    {
-      "tag": "20260217_1OwxWwqqLkQxQ",
-      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
-      "date": "Jan 20, 2023"
-    },
     {
       "tag": "20260220_1djGXlYkooRGZ",
       "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
@@ -2788,6 +2788,36 @@
       "tag": "20260216_1DXGyvZvZpEJM",
       "name": "MAX Logan- New Years Day\ud83c\udf89\ud83d\udc7d\u2764\ufe0f",
       "date": "Jan 1, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyXQeLyGX",
+      "name": "New Years Eve \ud83d\udc7d\ud83c\udf87\ud83c\udf89",
+      "date": "Dec 31, 2022"
+    },
+    {
+      "tag": "20260218_1YqKDoVywBDxV",
+      "name": "UFO pit stop for Aussie Outback Political Corner.",
+      "date": "Dec 30, 2022"
+    },
+    {
+      "tag": "20260217_1mnGeRnrgARJX",
+      "name": "Learning to Let Go:The Power of Surrender in Personal Growth",
+      "date": "Dec 29, 2022"
+    },
+    {
+      "tag": "20260218_1yoJMZLMvlWxQ",
+      "name": "e\u00e8wwws",
+      "date": "Dec 28, 2022"
+    },
+    {
+      "tag": "20260217_1LyGBqljLerKN",
+      "name": "Stevie Wonder built the Pyramids with his great eyesight \ud83d\udc40\ud83d\udc7d",
+      "date": "Dec 28, 2022"
+    },
+    {
+      "tag": "20260218_1YpKkgpeBdrKj",
+      "name": "No sleep till...UAP Report",
+      "date": "Dec 27, 2022"
     }
   ]
 }
