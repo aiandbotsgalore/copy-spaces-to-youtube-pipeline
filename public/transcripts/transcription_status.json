@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:42:14.744696+00:00",
+  "last_updated": "2026-09-17T23:43:55.602206+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2638,57 +2638,57 @@
       "last_attempt": "2026-09-17T23:41:35.248759+00:00"
     },
     "20260218_1YqGoAXoRYkxv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGoAXoRYkxv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248762+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759475+00:00"
     },
     "20260217_1LyGBqDopyzKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqDopyzKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248765+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759495+00:00"
     },
     "20260216_1DXGyvLywNWJM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyvLywNWJM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248767+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759500+00:00"
     },
     "20260218_1YpKkgeeApjKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgeeApjKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248770+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759504+00:00"
     },
     "20260217_1kvKpmVdQEoGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmVdQEoGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248772+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759507+00:00"
     },
     "20260217_1OwxWwqqLkQxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwqqLkQxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:41:35.248775+00:00"
+      "last_attempt": "2026-09-17T23:42:56.759509+00:00"
+    },
+    "20260220_1djGXlYkooRGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260220_1djGXlYkooRGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:42:56.759512+00:00"
+    },
+    "20260216_1BRJjZRlQoeJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZRlQoeJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:42:56.759514+00:00"
+    },
+    "20260218_1YpJkgeaVDEJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkgeaVDEJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:42:56.759517+00:00"
+    },
+    "20260217_1vAxRAzQrkYJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAzQrkYJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:42:56.759519+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvKpmqkMdQGE",
-      "name": "9/11 WTC Tower 1 & 2 & 3",
-      "date": "Feb 2, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzNyemqKX",
-      "name": "MC & E are both Awesome \ud83d\udcab",
-      "date": "Feb 2, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDojrQODxV",
-      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
-      "date": "Jan 30, 2023"
-    },
-    {
-      "tag": "20260220_1MnxnpXBMwVGO",
-      "name": "Saturday Theoretical Paranormal Space",
-      "date": "Jan 28, 2023"
-    },
     {
       "tag": "20260218_1YqGoAXoRYkxv",
       "name": "Good Morning UFO \ud83d\udc7d",
@@ -2768,6 +2768,26 @@
       "tag": "20260216_1jMJgLyAVgmxL",
       "name": "Kayce UFO Protocols",
       "date": "Jan 8, 2023"
+    },
+    {
+      "tag": "20260217_1mnGeRkMerYJX",
+      "name": "Tall Greys/EBE's/Nordics and getting weird",
+      "date": "Jan 3, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDoVNzzDxV",
+      "name": "homies",
+      "date": "Jan 2, 2023"
+    },
+    {
+      "tag": "20260217_1RDGlawyYYrJL",
+      "name": "AAA/Alien Addicts Anonymous - AMENTI HALL\ud83d\udc8a\ud83e\udd74\ud83d\ude35",
+      "date": "Jan 2, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyvZvZpEJM",
+      "name": "MAX Logan- New Years Day\ud83c\udf89\ud83d\udc7d\u2764\ufe0f",
+      "date": "Jan 1, 2023"
     }
   ]
 }
