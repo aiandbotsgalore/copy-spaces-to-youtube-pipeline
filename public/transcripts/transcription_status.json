@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:08:03.340006+00:00",
+  "last_updated": "2026-09-17T20:09:32.153431+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -918,57 +918,57 @@
       "last_attempt": "2026-09-17T20:07:04.795006+00:00"
     },
     "20260216_1dRKZEgXPRoxB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEgXPRoxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:07:04.795009+00:00"
+      "last_attempt": "2026-09-17T20:08:43.852590+00:00"
     },
     "20260217_1mnGepXgXLoKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGepXgXLoKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:07:04.795011+00:00"
+      "last_attempt": "2026-09-17T20:08:43.852611+00:00"
     },
     "20260216_1dRJZEedWWmGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZEedWWmGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:07:04.795013+00:00"
+      "last_attempt": "2026-09-17T20:08:43.852615+00:00"
     },
     "20260216_1jMKgmqqpPjJL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgmqqpPjJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:07:04.795015+00:00"
+      "last_attempt": "2026-09-17T20:08:43.852618+00:00"
+    },
+    "20260217_1MnxnMejzkwJO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnMejzkwJO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852621+00:00"
+    },
+    "20260217_1mrGmyRXrNLGy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmyRXrNLGy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852623+00:00"
+    },
+    "20260217_1mrxmyZBoOWxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmyZBoOWxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852626+00:00"
+    },
+    "20260217_1OyKAWdDmMwJb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAWdDmMwJb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852628+00:00"
+    },
+    "20260216_1DXxyjEdwrbKM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyjEdwrbKM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852630+00:00"
+    },
+    "20260217_1PlJQDQAerYGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQDQAerYGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:08:43.852632+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoJMwEoVEXKQ",
-      "name": "DumpsterFire-Save yourself! #dumpsterfire",
-      "date": "May 9, 2024"
-    },
-    {
-      "tag": "20260216_1dRKZEmodqzxB",
-      "name": "Whistleblower\u2019s Deserve Safe Spaces \u262e\ufe0f\u2764\ufe0f",
-      "date": "May 4, 2024"
-    },
-    {
-      "tag": "20260218_1vOxwjZyXAEJB",
-      "name": "Jedi Council in Session",
-      "date": "May 2, 2024"
-    },
-    {
-      "tag": "20260217_1lDxLPMeVaZxm",
-      "name": "UFO Secrets-after space-Mario Woods recounds his UFO encounter(Replay)",
-      "date": "Apr 29, 2024"
-    },
-    {
-      "tag": "20260217_1LyxBnybneOxN",
-      "name": "Round table discussion; deeper truths on consciousness\u2026",
-      "date": "Apr 29, 2024"
-    },
-    {
-      "tag": "20260216_1jMJgmEAwmPKL",
-      "name": "Jason Sands- UFO/UAP Whistleblower FULL AUDIO recording Replay",
-      "date": "Apr 23, 2024"
-    },
     {
       "tag": "20260216_1dRKZEgXPRoxB",
       "name": "#PeoplesWhistleblower @JasonSa32135987\u202c+@RTicky166+@Steve7945459334\ud83d\udef8\ud83d\udc7d\ud83e\uddec",
@@ -1038,6 +1038,36 @@
       "tag": "20260216_1dRKZEnkvZMxB",
       "name": "CONNOR'S PERSONAL HELL",
       "date": "Apr 3, 2024"
+    },
+    {
+      "tag": "20260218_1ZkKzjOMBzLKv",
+      "name": "German",
+      "date": "Apr 1, 2024"
+    },
+    {
+      "tag": "20260218_1YqKDgwqZVwxV",
+      "name": "Raven Rock: The Governments Secret  Plan to Save Itself While We Die",
+      "date": "Mar 31, 2024"
+    },
+    {
+      "tag": "20260218_1zqJVqAyAvnGB",
+      "name": "Ulrich's Plasma Apocalypse \ud83d\udc80\ud83d\udc40",
+      "date": "Mar 26, 2024"
+    },
+    {
+      "tag": "20260216_1djGXNvNYkvxZ",
+      "name": "Secret History of Earth- Lucifer\u2022The Apple of Desire\u2022War in Heaven",
+      "date": "Mar 25, 2024"
+    },
+    {
+      "tag": "20260217_1MnGnMLRorYKO",
+      "name": "Hour 15-only 52 more hours",
+      "date": "Mar 19, 2024"
+    },
+    {
+      "tag": "20260216_1gqGvQZqBYpKB",
+      "name": "Early Morning",
+      "date": "Mar 15, 2024"
     }
   ]
 }
