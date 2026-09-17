@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:31:32.436689+00:00",
+  "last_updated": "2026-09-17T19:33:21.206302+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -538,57 +538,57 @@
       "last_attempt": "2026-09-17T19:30:28.053252+00:00"
     },
     "20260216_1BdGYqbyyPEGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqbyyPEGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053254+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977211+00:00"
     },
     "20260217_1RDxlzMnDrDGL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlzMnDrDGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053257+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977229+00:00"
     },
     "20260217_1MnxnwOgznNKO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnwOgznNKO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053260+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977233+00:00"
     },
     "20260217_1nAKEgooZQYJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEgooZQYJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053262+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977235+00:00"
     },
     "20260218_1zqKVjnPZZWKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVjnPZZWKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053264+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977238+00:00"
     },
     "20260217_1lDxLzEanlzGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLzEanlzGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:30:28.053266+00:00"
+      "last_attempt": "2026-09-17T19:32:14.977241+00:00"
+    },
+    "20260217_1OdJrDnyAyQKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrDnyAyQKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:32:14.977243+00:00"
+    },
+    "20260217_1OdJrDnZjYyKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrDnZjYyKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:32:14.977245+00:00"
+    },
+    "20260218_1YpKkBaojQPxj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkBaojQPxj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:32:14.977247+00:00"
+    },
+    "20260216_1jMJgkayRnwJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkayRnwJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:32:14.977249+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1djxXVkablVGZ",
-      "name": "Time Travel DIY",
-      "date": "Apr 4, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwjYalXKO",
-      "name": "\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a",
-      "date": "Apr 3, 2025"
-    },
-    {
-      "tag": "20260218_1vOxwXDAllNKB",
-      "name": "Ai Remote Viewer's Conference",
-      "date": "Apr 1, 2025"
-    },
-    {
-      "tag": "20260218_1ypJdZjDYXYKW",
-      "name": "LUCKY  STRIKE",
-      "date": "Mar 29, 2025"
-    },
     {
       "tag": "20260216_1BdGYqbyyPEGX",
       "name": "Satellites and Starfish",
@@ -668,6 +668,26 @@
       "tag": "20260218_1YqJDkeVXvvGV",
       "name": "EBE talks",
       "date": "Dec 27, 2024"
+    },
+    {
+      "tag": "20260217_1OyJAZgEOZgxb",
+      "name": "I Nogged TF out",
+      "date": "Dec 24, 2024"
+    },
+    {
+      "tag": "20260218_1YpJklQkLNAxj",
+      "name": "The Walrus Chronicle",
+      "date": "Dec 19, 2024"
+    },
+    {
+      "tag": "20260217_1mrxmMEVbAWxy",
+      "name": "Twilight Drone \ud83d\udc7d\ud83d\udeac\ud83d\udd75\ufe0f- The Return of Jade\ud83d\udef8\ud83d\udc7d",
+      "date": "Dec 19, 2024"
+    },
+    {
+      "tag": "20260216_1BRKjwQZEOdGw",
+      "name": "Mogeon Rim",
+      "date": "Dec 18, 2024"
     }
   ]
 }
