@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:33:21.206302+00:00",
+  "last_updated": "2026-09-17T19:34:57.495127+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -568,57 +568,57 @@
       "last_attempt": "2026-09-17T19:32:14.977241+00:00"
     },
     "20260217_1OdJrDnyAyQKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrDnyAyQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:32:14.977243+00:00"
+      "last_attempt": "2026-09-17T19:34:03.239194+00:00"
     },
     "20260217_1OdJrDnZjYyKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrDnZjYyKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:32:14.977245+00:00"
+      "last_attempt": "2026-09-17T19:34:03.239212+00:00"
     },
     "20260218_1YpKkBaojQPxj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkBaojQPxj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:32:14.977247+00:00"
+      "last_attempt": "2026-09-17T19:34:03.239216+00:00"
     },
     "20260216_1jMJgkayRnwJL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkayRnwJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:32:14.977249+00:00"
+      "last_attempt": "2026-09-17T19:34:03.239218+00:00"
+    },
+    "20260217_1MYGNwvNLgwJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNwvNLgwJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239220+00:00"
+    },
+    "20260218_1vOGwryMNEWKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwryMNEWKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239223+00:00"
+    },
+    "20260218_1yoKMyWjLjjKQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMyWjLjjKQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239226+00:00"
+    },
+    "20260216_1BRJjwnDkdexw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjwnDkdexw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239228+00:00"
+    },
+    "20260218_1djGXrqPWEvxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1djGXrqPWEvxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239230+00:00"
+    },
+    "20260218_1YqJDkeVXvvGV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDkeVXvvGV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:34:03.239232+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdGYqbyyPEGX",
-      "name": "Satellites and Starfish",
-      "date": "Mar 27, 2025"
-    },
-    {
-      "tag": "20260217_1RDxlzMnDrDGL",
-      "name": "$ROGERS Journey to 5Million",
-      "date": "Mar 26, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwOgznNKO",
-      "name": "Pray for Lil Poptart, Kimball, Citizens Dawn and Grider",
-      "date": "Mar 26, 2025"
-    },
-    {
-      "tag": "20260217_1nAKEgooZQYJL",
-      "name": "Drama space. Lots of *!#*!#\ud83e\udd2c. [Trigger Warning] also, hilarious",
-      "date": "Mar 24, 2025"
-    },
-    {
-      "tag": "20260218_1zqKVjnPZZWKB",
-      "name": "Inside the Pyramid: Uncovering Truths with Dr. Aether",
-      "date": "Mar 22, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLzEanlzGm",
-      "name": "Short space for lulz",
-      "date": "Mar 20, 2025"
-    },
     {
       "tag": "20260217_1OdJrDnyAyQKX",
       "name": "Trump & UFOs #ufoX",
@@ -688,6 +688,36 @@
       "tag": "20260216_1BRKjwQZEOdGw",
       "name": "Mogeon Rim",
       "date": "Dec 18, 2024"
+    },
+    {
+      "tag": "20260217_1kvKpbXEbqwJE",
+      "name": "Secret Squirrels",
+      "date": "Dec 17, 2024"
+    },
+    {
+      "tag": "20260217_1MYxNMkvWbZJw",
+      "name": "Mystery Drones! \ud83d\udef8 *No Hands*\ud83d\udeab\u270b",
+      "date": "Dec 14, 2024"
+    },
+    {
+      "tag": "20260217_1rmGPoALOMgKN",
+      "name": "There\u2019s Only 1 Suspect Left \ud83d\udc7d",
+      "date": "Dec 13, 2024"
+    },
+    {
+      "tag": "20260217_1mnxeAzRZdPxX",
+      "name": "Drone Mass Hallucination HQ: No Hands!\ud83d\udeab\u270b",
+      "date": "Dec 12, 2024"
+    },
+    {
+      "tag": "20260217_1nAKEpZOALZxL",
+      "name": "Operation Comic Key Bump",
+      "date": "Dec 7, 2024"
+    },
+    {
+      "tag": "20260218_1vOxwrqbegVJB",
+      "name": "\u3006 Kingman UFO \ud83d\udc41\ufe0f",
+      "date": "Dec 1, 2024"
     }
   ]
 }
