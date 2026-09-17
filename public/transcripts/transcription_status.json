@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:34:19.107965+00:00",
+  "last_updated": "2026-09-17T22:35:37.244781+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1918,57 +1918,57 @@
       "last_attempt": "2026-09-17T22:33:17.861376+00:00"
     },
     "20260217_1lDxLnyRroqGm": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnyRroqGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:33:17.861378+00:00"
+      "last_attempt": "2026-09-17T22:34:59.705308+00:00"
     },
     "20260216_1jMKgLXZgaPGL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgLXZgaPGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:33:17.861380+00:00"
+      "last_attempt": "2026-09-17T22:34:59.705327+00:00"
     },
     "20260216_1dRJZMZylwrGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZMZylwrGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:33:17.861382+00:00"
+      "last_attempt": "2026-09-17T22:34:59.705331+00:00"
     },
     "20260217_1mnxeRlDjwRKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRlDjwRKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:33:17.861384+00:00"
+      "last_attempt": "2026-09-17T22:34:59.705334+00:00"
+    },
+    "20260216_1eaJbrzDezZJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaJbrzDezZJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705336+00:00"
+    },
+    "20260217_1kvKpmeYRXLGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmeYRXLGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705340+00:00"
+    },
+    "20260216_1gqxvyaLkmRJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyaLkmRJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705342+00:00"
+    },
+    "20260217_1RDxlareLomKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlareLomKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705344+00:00"
+    },
+    "20260216_1BdGYyQEOZyGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyQEOZyGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705347+00:00"
+    },
+    "20260216_1jMJgLQLrpwxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLQLrpwxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:34:59.705349+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnxeRaODMEKX",
-      "name": "UFO Music Concert - LIVE Space",
-      "date": "Jun 25, 2023"
-    },
-    {
-      "tag": "20260217_1nAJErLWEWvxL",
-      "name": "Bring the good vibes",
-      "date": "Jun 24, 2023"
-    },
-    {
-      "tag": "20260217_1OdJrzVArwQJX",
-      "name": "Alien insight",
-      "date": "Jun 23, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZXanOkxQ",
-      "name": "The Majestic Majestic - CIA Whistleblowers Welcome",
-      "date": "Jun 22, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErAyWkkGL",
-      "name": "Bad Boys Fo Lyfe",
-      "date": "Jun 21, 2023"
-    },
-    {
-      "tag": "20260218_1YqJDopAgwVGV",
-      "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
-      "date": "Jun 18, 2023"
-    },
     {
       "tag": "20260217_1lDxLnyRroqGm",
       "name": "after party",
@@ -2038,6 +2038,36 @@
       "tag": "20260217_1LyGBqNLwXMKN",
       "name": "Real people",
       "date": "Jun 9, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBVyOLwGb",
+      "name": "UFO STORIES\ud83d\udc7d\ud83d\udef8",
+      "date": "Jun 7, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmXkNpXxE",
+      "name": "Wake UP \ud83d\udc7d\ud83d\udef8",
+      "date": "Jun 7, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErdMaVAGL",
+      "name": "\ud83c\udfb8 + \ud83d\udc7d",
+      "date": "Jun 6, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLngjYnYGm",
+      "name": "Lacey",
+      "date": "Jun 6, 2023"
+    },
+    {
+      "tag": "20260216_1BRKjZQojkoKw",
+      "name": "I Am Elon Musk's Song",
+      "date": "Jun 4, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRABjnQRJl",
+      "name": "Friday Evening Phenomenon",
+      "date": "Jun 3, 2023"
     }
   ]
 }
