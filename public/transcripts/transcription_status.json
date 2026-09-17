@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:03:51.688611+00:00",
+  "last_updated": "2026-09-17T19:05:45.696742+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -268,57 +268,57 @@
       "last_attempt": "2026-09-17T19:03:07.925661+00:00"
     },
     "20260218_1yoKMoXRVRDJQ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMoXRVRDJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:03:07.925664+00:00"
+      "last_attempt": "2026-09-17T19:04:34.442070+00:00"
     },
     "20260217_1PlJQMmPYZBJE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQMmPYZBJE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:03:07.925666+00:00"
+      "last_attempt": "2026-09-17T19:04:34.442090+00:00"
     },
     "20260216_1dRJZYLgYXMGB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZYLgYXMGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:03:07.925668+00:00"
+      "last_attempt": "2026-09-17T19:04:34.442095+00:00"
     },
     "20260218_1YqJDZnjrPEKV": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDZnjrPEKV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:03:07.925670+00:00"
+      "last_attempt": "2026-09-17T19:04:34.442098+00:00"
+    },
+    "20260217_1nAKEgypZpZJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKEgypZpZJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442100+00:00"
+    },
+    "20260217_1lPKqMoEQZPKb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqMoEQZPKb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442103+00:00"
+    },
+    "20260218_1ZkKzYkaBXRxv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzYkaBXRxv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442106+00:00"
+    },
+    "20260217_1rmxPyNmyrnKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPyNmyrnKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442109+00:00"
+    },
+    "20260216_1dRKZYgeZPDxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZYgeZPDxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442111+00:00"
+    },
+    "20260218_1vOxwXAgXRDKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwXAgXRDKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:04:34.442114+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lPKqMBdEBZKb",
-      "name": "\ud83c\udff4\u200d\u2620\ufe0f\ud83c\udff4\u200d\u2620\ufe0fpirates get free booty",
-      "date": "Jul 19, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwkvblBKO",
-      "name": "Literally on monkey Vacation and drunk",
-      "date": "Jul 13, 2025"
-    },
-    {
-      "tag": "20260218_1YpJkBzBlOoGj",
-      "name": "Matt Monroe Dark Gift",
-      "date": "Jul 10, 2025"
-    },
-    {
-      "tag": "20260216_1BdGYqYRodEGX",
-      "name": "Debunking Gary McKinnon",
-      "date": "Jul 8, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLzylZYZGm",
-      "name": "Remix",
-      "date": "Jul 4, 2025"
-    },
-    {
-      "tag": "20260218_1zqKVjeZdwXKB",
-      "name": "Dimensional",
-      "date": "Jun 30, 2025"
-    },
     {
       "tag": "20260218_1yoKMoXRVRDJQ",
       "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
@@ -388,6 +388,36 @@
       "tag": "20260217_1MnxnwgQllMKO",
       "name": "\ud83e\uddd0\ud83d\udc7d and human space bombs",
       "date": "May 27, 2025"
+    },
+    {
+      "tag": "20260216_1jMJgkdqDBwJL",
+      "name": "Post Somber Sleep Space",
+      "date": "May 26, 2025"
+    },
+    {
+      "tag": "20260216_1DXxyqEkalYxM",
+      "name": "PsyOp in Progress: Redpanda Exposed: Taking Reservations \ud83d\udc7d\u26a0\ufe0f #ufoX",
+      "date": "May 23, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYqMzNaBGX",
+      "name": "Times",
+      "date": "May 23, 2025"
+    },
+    {
+      "tag": "20260218_1yNGaLmZRrNKj",
+      "name": "Creation Station- Donate your Samples Here",
+      "date": "May 22, 2025"
+    },
+    {
+      "tag": "20260218_1ypKdZloZznJW",
+      "name": "Jason Christ",
+      "date": "May 19, 2025"
+    },
+    {
+      "tag": "20260216_1jMJgkPnZbAJL",
+      "name": "The Veil of the Old World",
+      "date": "May 19, 2025"
     }
   ]
 }
