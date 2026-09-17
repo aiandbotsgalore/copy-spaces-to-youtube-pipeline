@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:05:55.474248+00:00",
+  "last_updated": "2026-09-17T23:07:22.054916+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2238,57 +2238,57 @@
       "last_attempt": "2026-09-17T23:04:51.677061+00:00"
     },
     "20260216_1djxXlnpwyBxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlnpwyBxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677064+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746294+00:00"
     },
     "20260216_1dRKZMgLqBQxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZMgLqBQxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677067+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746312+00:00"
     },
     "20260218_1ypJddYrlWjJW": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypJddYrlWjJW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677069+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746315+00:00"
     },
     "20260217_1rmGPkNqEOYKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkNqEOYKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677072+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746319+00:00"
     },
     "20260217_1RDGlaWmjVMJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaWmjVMJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677074+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746321+00:00"
     },
     "20260218_1ZkKzXNWqnDJv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzXNWqnDJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:04:51.677076+00:00"
+      "last_attempt": "2026-09-17T23:06:35.746324+00:00"
+    },
+    "20260218_1ZkJzXNnBOvKv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkJzXNnBOvKv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:06:35.746327+00:00"
+    },
+    "20260217_1mnxeRoPeeLKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRoPeeLKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:06:35.746330+00:00"
+    },
+    "20260218_1ZkKzXNzlbDJv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkKzXNzlbDJv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:06:35.746333+00:00"
+    },
+    "20260217_1MnxnpZoPajGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpZoPajGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:06:35.746335+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1gqxvynLnelJB",
-      "name": "I Love You",
-      "date": "Apr 27, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLnMdvwmGm",
-      "name": "Is Elon Musk A Martian? \ud83d\udef8",
-      "date": "Apr 26, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErQpPLbGL",
-      "name": "\ud83d\udc7dFearless Monkey League: The Great Unknown",
-      "date": "Apr 24, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZVXMwkxQ",
-      "name": "Sunday Morning Church",
-      "date": "Apr 23, 2023"
-    },
     {
       "tag": "20260216_1djxXlnpwyBxZ",
       "name": "Friday Night UFO Homiez",
@@ -2368,6 +2368,26 @@
       "tag": "20260217_1OdKrzZAjVeKX",
       "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
       "date": "Apr 9, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZrEmoeJw",
+      "name": "the great beyond",
+      "date": "Apr 8, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrpwgMQKX",
+      "name": "Time & Space. Perception & Reality",
+      "date": "Apr 6, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDodaEDOxV",
+      "name": "Ai",
+      "date": "Apr 5, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkmVNqmKN",
+      "name": "boredom",
+      "date": "Apr 5, 2023"
     }
   ]
 }
