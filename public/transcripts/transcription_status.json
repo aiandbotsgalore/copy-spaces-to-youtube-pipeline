@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:11:29.079049+00:00",
+  "last_updated": "2026-09-17T19:12:47.847629+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -338,57 +338,57 @@
       "last_attempt": "2026-09-17T19:10:49.276116+00:00"
     },
     "20260216_1jMJgkdqDBwJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkdqDBwJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276119+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568487+00:00"
     },
     "20260216_1DXxyqEkalYxM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyqEkalYxM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276122+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568508+00:00"
     },
     "20260216_1BdGYqMzNaBGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYqMzNaBGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276125+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568512+00:00"
     },
     "20260218_1yNGaLmZRrNKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaLmZRrNKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276128+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568516+00:00"
     },
     "20260218_1ypKdZloZznJW": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdZloZznJW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276131+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568519+00:00"
     },
     "20260216_1jMJgkPnZbAJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgkPnZbAJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:10:49.276134+00:00"
+      "last_attempt": "2026-09-17T19:12:05.568521+00:00"
+    },
+    "20260217_1kvJpyQkoYVxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpyQkoYVxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:12:05.568524+00:00"
+    },
+    "20260217_1MYGNwAvrBRJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNwAvrBRJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:12:05.568527+00:00"
+    },
+    "20260217_1PlJQMARWENJE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQMARWENJE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:12:05.568530+00:00"
+    },
+    "20260216_1BdxYqvzqNBxX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYqvzqNBxX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:12:05.568532+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyJALNQwDoGb",
-      "name": "UFO ABDUCTION: Pascagoula '73",
-      "date": "May 31, 2025"
-    },
-    {
-      "tag": "20260218_1vOxwXAPDmvKB",
-      "name": "Terrence McKenna Answers Your Questions",
-      "date": "May 30, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVdgWvvxZ",
-      "name": "A New (\u1d54\u1d25\u1d54)",
-      "date": "May 29, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwgQllMKO",
-      "name": "\ud83e\uddd0\ud83d\udc7d and human space bombs",
-      "date": "May 27, 2025"
-    },
     {
       "tag": "20260216_1jMJgkdqDBwJL",
       "name": "Post Somber Sleep Space",
@@ -468,6 +468,26 @@
       "tag": "20260216_1dRKZYXQPlQxB",
       "name": "The Best of Chase! \ud83c\udf36\ufe0f\ud83d\udd25\ud83d\udd25\ud83d\udd25",
       "date": "May 5, 2025"
+    },
+    {
+      "tag": "20260218_1ypJdZLWVgvKW",
+      "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
+      "date": "May 2, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnwrAOnkJO",
+      "name": "\ud83c\udfa7 Joe Rogan x Hal Puthoff: UFO Disclosure Listening Party",
+      "date": "May 1, 2025"
+    },
+    {
+      "tag": "20260216_1gqGvjRjZQeGB",
+      "name": "Short fafo",
+      "date": "Apr 30, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVEqeqBxZ",
+      "name": "Physics reboot\u26a0\ufe0f\u26a1\ufe0f",
+      "date": "Apr 29, 2025"
     }
   ]
 }
