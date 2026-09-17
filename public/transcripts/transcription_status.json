@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T19:43:37.509894+00:00",
+  "last_updated": "2026-09-17T19:44:56.490357+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -668,57 +668,57 @@
       "last_attempt": "2026-09-17T19:42:33.531966+00:00"
     },
     "20260217_1RDGlyqLObDJL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlyqLObDJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:42:33.531968+00:00"
+      "last_attempt": "2026-09-17T19:44:19.567935+00:00"
     },
     "20260217_1mrGmMnDXQgGy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmMnDXQgGy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:42:33.531970+00:00"
+      "last_attempt": "2026-09-17T19:44:19.567954+00:00"
     },
     "20260218_1ynJODAyrPzxR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJODAyrPzxR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:42:33.531972+00:00"
+      "last_attempt": "2026-09-17T19:44:19.567958+00:00"
     },
     "20260217_1rmxPomoomqJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPomoomqJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T19:42:33.531973+00:00"
+      "last_attempt": "2026-09-17T19:44:19.567961+00:00"
+    },
+    "20260218_1ypKdpmrgjQKW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdpmrgjQKW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567964+00:00"
+    },
+    "20260217_1OyKAZNRXQLGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAZNRXQLGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567966+00:00"
+    },
+    "20260218_1YqKDkdzvkYxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDkdzvkYxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567968+00:00"
+    },
+    "20260218_1dRJZdndpVgKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1dRJZdndpVgKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567971+00:00"
+    },
+    "20260217_1vAGRONypwkJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRONypwkJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567973+00:00"
+    },
+    "20260216_1eaKbamXgeaxX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbamXgeaxX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T19:44:19.567975+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvKpbXEbqwJE",
-      "name": "Secret Squirrels",
-      "date": "Dec 17, 2024"
-    },
-    {
-      "tag": "20260217_1MYxNMkvWbZJw",
-      "name": "Mystery Drones! \ud83d\udef8 *No Hands*\ud83d\udeab\u270b",
-      "date": "Dec 14, 2024"
-    },
-    {
-      "tag": "20260217_1rmGPoALOMgKN",
-      "name": "There\u2019s Only 1 Suspect Left \ud83d\udc7d",
-      "date": "Dec 13, 2024"
-    },
-    {
-      "tag": "20260217_1mnxeAzRZdPxX",
-      "name": "Drone Mass Hallucination HQ: No Hands!\ud83d\udeab\u270b",
-      "date": "Dec 12, 2024"
-    },
-    {
-      "tag": "20260217_1nAKEpZOALZxL",
-      "name": "Operation Comic Key Bump",
-      "date": "Dec 7, 2024"
-    },
-    {
-      "tag": "20260218_1vOxwrqbegVJB",
-      "name": "\u3006 Kingman UFO \ud83d\udc41\ufe0f",
-      "date": "Dec 1, 2024"
-    },
     {
       "tag": "20260217_1RDGlyqLObDJL",
       "name": "AGI is Here!: Spaces the Series",
@@ -788,6 +788,36 @@
       "tag": "20260218_1yoKMylmEnjKQ",
       "name": "You seen 3 Giant Interlocking Orbs before?",
       "date": "Sep 26, 2024"
+    },
+    {
+      "tag": "20260218_1YqKDkblQQQxV",
+      "name": "Radio Waves Are Disturbances OF a Medium, Not IN a Medium",
+      "date": "Sep 26, 2024"
+    },
+    {
+      "tag": "20260216_1DXxydlbwLRJM",
+      "name": "Apollo Temple on Rothschilds Estate? Totally Normal",
+      "date": "Sep 26, 2024"
+    },
+    {
+      "tag": "20260216_1DXxydlbWOYJM",
+      "name": "Orbs?",
+      "date": "Sep 26, 2024"
+    },
+    {
+      "tag": "20260217_1MnxnDzblvmGO",
+      "name": "A War for New Physics \ud83d\udef8\ud83e\udd3a",
+      "date": "Sep 19, 2024"
+    },
+    {
+      "tag": "20260216_1gqxvNMWNkpxB",
+      "name": "Lue Elizondo Julian Dorey Interview \ud83d\udc7d\ud83d\udd25",
+      "date": "Sep 19, 2024"
+    },
+    {
+      "tag": "20260217_1vAxRORByQNKl",
+      "name": "Mercury. Why?",
+      "date": "Sep 16, 2024"
     }
   ]
 }
