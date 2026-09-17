@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:07:48.528470+00:00",
+  "last_updated": "2026-09-17T21:09:28.090887+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1568,57 +1568,57 @@
       "last_attempt": "2026-09-17T21:06:57.469598+00:00"
     },
     "20260216_1DXGyjmgqjNJM": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyjmgqjNJM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:06:57.469601+00:00"
+      "last_attempt": "2026-09-17T21:08:25.766123+00:00"
     },
     "20260216_1eaKbrjgXonKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrjgXonKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:06:57.469604+00:00"
+      "last_attempt": "2026-09-17T21:08:25.766142+00:00"
     },
     "20260218_1ynJOaMpMvyKR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOaMpMvyKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:06:57.469606+00:00"
+      "last_attempt": "2026-09-17T21:08:25.766145+00:00"
     },
     "20260217_1OyJAVjEWDDxb": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJAVjEWDDxb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:06:57.469608+00:00"
+      "last_attempt": "2026-09-17T21:08:25.766148+00:00"
+    },
+    "20260217_1MYGNgldMYLJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgldMYLJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766152+00:00"
+    },
+    "20260217_1RDGlaAWOBrJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaAWOBrJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766154+00:00"
+    },
+    "20260217_1OdKrzOgbZkKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzOgbZkKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766156+00:00"
+    },
+    "20260217_1MYxNglXeMbKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNglXeMbKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766159+00:00"
+    },
+    "20260216_1BdGYyZWmOEGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyZWmOEGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766160+00:00"
+    },
+    "20260217_1RDGlaAYgzNJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaAYgzNJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:08:25.766162+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRvavOaaxl",
-      "name": "Where did we all come from?",
-      "date": "Sep 28, 2023"
-    },
-    {
-      "tag": "20260217_1lPJqbEmyQZxb",
-      "name": "Guitar Audio Test",
-      "date": "Sep 27, 2023"
-    },
-    {
-      "tag": "20260217_1MYxNoZnjOZKw",
-      "name": "The Giant Golden Orb of Idaho",
-      "date": "Sep 27, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrjEpyOVKX",
-      "name": "Private Chat. Don't say I didn't warn you.",
-      "date": "Sep 24, 2023"
-    },
-    {
-      "tag": "20260217_1RDGllEpYADGL",
-      "name": "guitar test",
-      "date": "Sep 19, 2023"
-    },
-    {
-      "tag": "20260217_1mrGmyoqapwGy",
-      "name": "voidprincess Natalie is a loving person",
-      "date": "Sep 16, 2023"
-    },
     {
       "tag": "20260216_1DXGyjmgqjNJM",
       "name": "we need to talk... real talk... personal stuff",
@@ -1688,6 +1688,36 @@
       "tag": "20260217_1vAxRAQogoXJl",
       "name": "Parapsy",
       "date": "Sep 2, 2023"
+    },
+    {
+      "tag": "20260217_1OyKAVjPEbnGb",
+      "name": "paranormality",
+      "date": "Sep 2, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmybQroGE",
+      "name": "Anunnakin' on Heaven's Door",
+      "date": "Aug 31, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpMbEVBGE",
+      "name": "test",
+      "date": "Aug 31, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzDjPMQKX",
+      "name": "Paranormality- Heated  #Debate",
+      "date": "Aug 30, 2023"
+    },
+    {
+      "tag": "20260218_1zqJVPjXkXmKB",
+      "name": "Time Travel Messages From the Future- Jack Sarfatti",
+      "date": "Aug 29, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwMXobMdGB",
+      "name": "TEST",
+      "date": "Aug 28, 2023"
     }
   ]
 }
