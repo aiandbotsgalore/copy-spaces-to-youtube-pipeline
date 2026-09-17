@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:52:39.048499+00:00",
+  "last_updated": "2026-09-17T18:54:43.645726+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -138,57 +138,57 @@
       "last_attempt": "2026-09-17T18:51:59.934437+00:00"
     },
     "20260217_1OyKAjRlrzrGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAjRlrzrGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934440+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463213+00:00"
     },
     "20260217_1MnGnPompVoxO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnPompVoxO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934442+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463232+00:00"
     },
     "20260218_1ypKdqaNYRrGW": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdqaNYRrGW']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934445+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463236+00:00"
     },
     "20260217_1kvKpMYNNgXGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpMYNNgXGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934448+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463239+00:00"
     },
     "20260218_1YqJDNvRgwkKV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqJDNvRgwkKV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934450+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463241+00:00"
     },
     "20260217_1lDxLBWEDAoGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLBWEDAoGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:51:59.934453+00:00"
+      "last_attempt": "2026-09-17T18:53:22.463244+00:00"
+    },
+    "20260217_1MnxnPqAVVwGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnPqAVVwGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:53:22.463247+00:00"
+    },
+    "20260218_1ypKdqRaobpGW": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ypKdqRaobpGW']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:53:22.463248+00:00"
+    },
+    "20260217_1mrGmBoEYMdJy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBoEYMdJy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:53:22.463250+00:00"
+    },
+    "20260217_1MnGnPYepnOxO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnPYepnOxO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:53:22.463252+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1gqxvrMpZjjxB",
-      "name": "The Dawn Of A New Reality\ud83d\udd74\ufe0f+\ud83d\udeac+\ud83e\uddf8",
-      "date": "Oct 14, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBzbrLBJy",
-      "name": "Disclosure knights",
-      "date": "Oct 13, 2025"
-    },
-    {
-      "tag": "20260217_1OdKrOwbmDpGX",
-      "name": "Go Within \ud83e\udee0",
-      "date": "Oct 13, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnPWNRpYxO",
-      "name": "Snuggles Gets Weird & Marries Makedon",
-      "date": "Oct 4, 2025"
-    },
     {
       "tag": "20260217_1OyKAjRlrzrGb",
       "name": "God Sauce's Dungeon",
@@ -268,6 +268,26 @@
       "tag": "20260217_1lDxLzzNyZmGm",
       "name": "Conspiracy Theory Generator",
       "date": "Aug 3, 2025"
+    },
+    {
+      "tag": "20260217_1mrxmPPjpvDJy",
+      "name": "Kimball judged before his peers. #truth #justice",
+      "date": "Aug 2, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmPPloMdKy",
+      "name": "twitter-spaces video #1mrGmPPloMdKy",
+      "date": "Aug 2, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpybQyQmGE",
+      "name": "???????",
+      "date": "Jul 29, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVrLBwoxZ",
+      "name": "Credentials please.",
+      "date": "Jul 29, 2025"
     }
   ]
 }
