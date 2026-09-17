@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:24:18.871086+00:00",
+  "last_updated": "2026-09-17T23:25:50.960273+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2438,57 +2438,57 @@
       "last_attempt": "2026-09-17T23:23:21.591838+00:00"
     },
     "20260218_1vOGwMOPWoExB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOGwMOPWoExB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591841+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362963+00:00"
     },
     "20260218_1YpKkgmRgOXKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgmRgOXKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591844+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362984+00:00"
     },
     "20260217_1rmGPkqdWMVKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkqdWMVKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591846+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362989+00:00"
     },
     "20260216_1gqxvyOzLdOJB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyOzLdOJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591849+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362992+00:00"
     },
     "20260217_1vAGRANakQYKl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRANakQYKl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591851+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362995+00:00"
     },
     "20260216_1gqGvybjvqaKB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvybjvqaKB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:23:21.591853+00:00"
+      "last_attempt": "2026-09-17T23:24:59.362998+00:00"
+    },
+    "20260217_1mnxeREaAZrKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeREaAZrKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:24:59.363001+00:00"
+    },
+    "20260217_1PlJQpAmbqZGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlJQpAmbqZGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:24:59.363004+00:00"
+    },
+    "20260217_1MYGNgAkZZoJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgAkZZoJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:24:59.363006+00:00"
+    },
+    "20260216_1DXxyvyaVXbKM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvyaVXbKM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:24:59.363009+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1DXxyvOEqedKM",
-      "name": "\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6",
-      "date": "Mar 18, 2023"
-    },
-    {
-      "tag": "20260217_1rmxPkqPOqZJN",
-      "name": "Artificial Imagination",
-      "date": "Mar 17, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvyOYXVOJB",
-      "name": "jammmin + Philip K dick",
-      "date": "Mar 17, 2023"
-    },
-    {
-      "tag": "20260218_1zqKVPRkQjPJB",
-      "name": "Heph GPT- KC Protocols",
-      "date": "Mar 15, 2023"
-    },
     {
       "tag": "20260218_1vOGwMOPWoExB",
       "name": "Fred rogers backdoor",
@@ -2568,6 +2568,26 @@
       "tag": "20260217_1OwxWwARDEmxQ",
       "name": "Honor",
       "date": "Mar 1, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgLoNrwXxL",
+      "name": "[closing in 5 minutes]",
+      "date": "Mar 1, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDoXkWWLxV",
+      "name": "Welcome to Hell",
+      "date": "Feb 27, 2023"
+    },
+    {
+      "tag": "20260217_1OyJAVogXlyxb",
+      "name": "TUPACABRA BDAY Radio: Taking Song Requests\ud83c\udfb8\ud83d\udc7d\u26a1\ud83c\udf89\ud83d\udc40\ud83c\udfb5\ud83c\udfb6",
+      "date": "Feb 26, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqjygQkJN",
+      "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
+      "date": "Feb 25, 2023"
     }
   ]
 }
