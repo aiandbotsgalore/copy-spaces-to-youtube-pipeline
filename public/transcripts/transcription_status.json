@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:12:10.574053+00:00",
+  "last_updated": "2026-09-17T23:13:24.211859+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2318,57 +2318,57 @@
       "last_attempt": "2026-09-17T23:11:02.942756+00:00"
     },
     "20260216_1BRJjZrEmoeJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZrEmoeJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:11:02.942759+00:00"
+      "last_attempt": "2026-09-17T23:12:48.237844+00:00"
     },
     "20260216_1eaKbrpwgMQKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrpwgMQKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:11:02.942761+00:00"
+      "last_attempt": "2026-09-17T23:12:48.237867+00:00"
     },
     "20260218_1YqKDodaEDOxV": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDodaEDOxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:11:02.942764+00:00"
+      "last_attempt": "2026-09-17T23:12:48.237871+00:00"
     },
     "20260217_1rmGPkmVNqmKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkmVNqmKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:11:02.942766+00:00"
+      "last_attempt": "2026-09-17T23:12:48.237876+00:00"
+    },
+    "20260217_1OyKAVNRDvLGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVNRDvLGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237879+00:00"
+    },
+    "20260218_1yNGaNkjbqNJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNkjbqNJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237882+00:00"
+    },
+    "20260217_1LyxBqremqyJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqremqyJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237886+00:00"
+    },
+    "20260216_1jMKgLdkDjgGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgLdkDjgGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237888+00:00"
+    },
+    "20260216_1BdGYyMqePLGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyMqePLGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237892+00:00"
+    },
+    "20260217_1nAKErWreNgGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErWreNgGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T23:12:48.237894+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRAEomXDJl",
-      "name": "How to win at life & maybe ufo talk.",
-      "date": "Apr 15, 2023"
-    },
-    {
-      "tag": "20260217_1nAJErQOAlYxL",
-      "name": "\ud83d\udc7dShift Happens: After Dark \ud83c\udf06\ud83c\udf15\ud83d\udef8",
-      "date": "Apr 14, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpXpdEDGE",
-      "name": "Dark Psychology: How naturally manipulative is the human mind? \ud83e\udd96",
-      "date": "Apr 12, 2023"
-    },
-    {
-      "tag": "20260217_1mrGmkRQyLgxy",
-      "name": "Are ghosts real??",
-      "date": "Apr 11, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqrAYMWJN",
-      "name": "Drugs & Sex",
-      "date": "Apr 10, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzZAjVeKX",
-      "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
-      "date": "Apr 9, 2023"
-    },
     {
       "tag": "20260216_1BRJjZrEmoeJw",
       "name": "the great beyond",
@@ -2438,6 +2438,36 @@
       "tag": "20260218_1YqJDoLDkWEGV",
       "name": "Sunday night lounge",
       "date": "Mar 27, 2023"
+    },
+    {
+      "tag": "20260216_1BdxYyMkdmyxX",
+      "name": "Connor needs a UFO Waifu",
+      "date": "Mar 25, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqRmEqEJN",
+      "name": "Tayler talks religion AGAIN what a coincidence? \ud83d\udca1\ud83d\udd6f\ufe0f\ud83d\udcd6",
+      "date": "Mar 24, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyOQWbzJB",
+      "name": "Something something (UFO casual talk)",
+      "date": "Mar 21, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqEdVYjJN",
+      "name": "Drama Free Love and Music",
+      "date": "Mar 20, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXONwPLJv",
+      "name": "Sabbbath Saturday",
+      "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBwnPMdGb",
+      "name": "FRED ROGERS EATS A$$ on St. Patties",
+      "date": "Mar 18, 2023"
     }
   ]
 }
