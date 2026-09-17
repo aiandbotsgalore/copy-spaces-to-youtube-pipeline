@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T20:26:53.692685+00:00",
+  "last_updated": "2026-09-17T20:28:22.988819+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1118,57 +1118,57 @@
       "last_attempt": "2026-09-17T20:26:02.751847+00:00"
     },
     "20260216_1djxXNkreeNGZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXNkreeNGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:26:02.751849+00:00"
+      "last_attempt": "2026-09-17T20:27:33.618773+00:00"
     },
     "20260217_1RDxllpLnMrxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxllpLnMrxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:26:02.751851+00:00"
+      "last_attempt": "2026-09-17T20:27:33.618792+00:00"
     },
     "20260217_1mrGmyjMlBdGy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmyjMlBdGy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:26:02.751854+00:00"
+      "last_attempt": "2026-09-17T20:27:33.618796+00:00"
     },
     "20260218_1yoKMwOWRmRJQ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwOWRmRJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T20:26:02.751856+00:00"
+      "last_attempt": "2026-09-17T20:27:33.618798+00:00"
+    },
+    "20260217_1OyJAWqoVaNKb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyJAWqoVaNKb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618801+00:00"
+    },
+    "20260217_1LyGBnYeYVLGN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBnYeYVLGN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618803+00:00"
+    },
+    "20260217_1rmGPMwXnbnJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPMwXnbnJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618805+00:00"
+    },
+    "20260218_1yoKMwgkwgzJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMwgkwgzJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618807+00:00"
+    },
+    "20260216_1dRKZEvPXNbxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZEvPXNbxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618808+00:00"
+    },
+    "20260216_1jMJgmanzDyKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgmanzDyKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T20:27:33.618810+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdGYrXEaVXJX",
-      "name": "Randy + Eva: Near Death Experience's & The Future",
-      "date": "Feb 13, 2024"
-    },
-    {
-      "tag": "20260217_1kvJpvZEdoOKE",
-      "name": "\ud83d\udd25SKY fIRE News After space",
-      "date": "Feb 10, 2024"
-    },
-    {
-      "tag": "20260217_1kvJpvZEOzaKE",
-      "name": "Artists & The Phenomenon.\ud83d\udc7d",
-      "date": "Feb 10, 2024"
-    },
-    {
-      "tag": "20260218_1ynJOyPjbwVKR",
-      "name": "Post Mellow Snooze- The Dreamtime",
-      "date": "Feb 8, 2024"
-    },
-    {
-      "tag": "20260218_1yoJMwLqEBpKQ",
-      "name": "Ronny Dawson: Alien Abductee/Metallic Orb holder",
-      "date": "Feb 7, 2024"
-    },
-    {
-      "tag": "20260218_1YqKDgVWerLxV",
-      "name": "Weekly SkyFire\ud83d\udd25 News: \u20b3 \u20a3 \u20ae E R \u20b4 \u20b1 \u20b3 \u20b5 E    #ufoX #FreeEnergy",
-      "date": "Feb 3, 2024"
-    },
     {
       "tag": "20260216_1djxXNkreeNGZ",
       "name": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
@@ -1238,6 +1238,36 @@
       "tag": "20260218_1YqGoDPAmvaJv",
       "name": "UFO Narratives & Imperatives",
       "date": "Dec 13, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwjzkwpNJB",
+      "name": "Jesse Michels: Diana Pasulka- Vatican Reveals Hidden Link LiveStream\ud83d\udc7d",
+      "date": "Dec 12, 2023"
+    },
+    {
+      "tag": "20260218_1ypKdkWBQDyxW",
+      "name": "Is God  real?",
+      "date": "Dec 11, 2023"
+    },
+    {
+      "tag": "20260217_1lPJqbPeYwWxb",
+      "name": "Guitar Jam",
+      "date": "Dec 11, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqbPpMVZGb",
+      "name": "guitar \ud83c\udfb8 test(private sound check)",
+      "date": "Dec 10, 2023"
+    },
+    {
+      "tag": "20260216_1BdxYrmRXbZKX",
+      "name": "\ud83d\udc7d\u2615\ufe0f UFOTwitter Corner Coffee & Space Crack \u2615\ufe0f\ud83d\udc7d",
+      "date": "Dec 10, 2023"
+    },
+    {
+      "tag": "20260218_1yoKMwnpRRpJQ",
+      "name": "MH370 Cult Headquarters",
+      "date": "Dec 9, 2023"
     }
   ]
 }
