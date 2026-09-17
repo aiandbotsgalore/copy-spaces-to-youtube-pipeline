@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T18:42:32.771862+00:00",
+  "last_updated": "2026-09-17T18:44:42.655499+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -38,57 +38,57 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506494+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048153+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506496+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048173+00:00"
     },
     "20260218_1YqxolWyzENKv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqxolWyzENKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506499+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048176+00:00"
     },
     "20260216_1BdGYZPYmdgJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYZPYmdgJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506501+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048179+00:00"
     },
     "20260218_1YpKkkdjqzmKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkkdjqzmKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506503+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048181+00:00"
     },
     "20260218_1YqGolWYLPlJv": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqGolWYLPlJv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506505+00:00"
+      "last_attempt": "2026-09-17T18:43:41.048183+00:00"
+    },
+    "20260217_1rmGPvrXABQxN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPvrXABQxN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:43:41.048185+00:00"
+    },
+    "20260217_1OyKAjODoLgGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAjODoLgGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:43:41.048187+00:00"
+    },
+    "20260217_1kvKpMqzmDgGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpMqzmDgGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:43:41.048189+00:00"
+    },
+    "20260217_1mnGeNYAeDZJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeNYAeDZJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T18:43:41.048191+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260905_1qxvvedveWWxB",
-      "name": "ACHIEVING MY DREAMS \u2728 #RTV",
-      "date": "Sep 4, 2026"
-    },
-    {
-      "tag": "20260218_1yNGabVvNRqJj",
-      "name": "Deepstate A.I. Overlord",
-      "date": "Nov 27, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBZOoNLJy",
-      "name": "\ud83d\udd25\ud83d\udd25Snuggles Prime Returns\ud83d\udd25\ud83d\udd25",
-      "date": "Nov 24, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBmelwdJy",
-      "name": "SUPERMIND",
-      "date": "Nov 20, 2025"
-    },
     {
       "tag": "20260216_1gqxvrqrRPzxB",
       "name": "Drugs & Gods",
@@ -168,6 +168,26 @@
       "tag": "20260217_1lPKqvArqebGb",
       "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
       "date": "Oct 16, 2025"
+    },
+    {
+      "tag": "20260216_1gqxvrMpZjjxB",
+      "name": "The Dawn Of A New Reality\ud83d\udd74\ufe0f+\ud83d\udeac+\ud83e\uddf8",
+      "date": "Oct 14, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBzbrLBJy",
+      "name": "Disclosure knights",
+      "date": "Oct 13, 2025"
+    },
+    {
+      "tag": "20260217_1OdKrOwbmDpGX",
+      "name": "Go Within \ud83e\udee0",
+      "date": "Oct 13, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnPWNRpYxO",
+      "name": "Snuggles Gets Weird & Marries Makedon",
+      "date": "Oct 4, 2025"
     }
   ]
 }
