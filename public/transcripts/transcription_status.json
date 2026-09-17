@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T21:31:23.097669+00:00",
+  "last_updated": "2026-09-17T21:33:21.265688+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -1818,57 +1818,57 @@
       "last_attempt": "2026-09-17T21:30:13.348589+00:00"
     },
     "20260217_1lDxLnnrDwyGm": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnnrDwyGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:30:13.348592+00:00"
+      "last_attempt": "2026-09-17T21:32:41.902583+00:00"
     },
     "20260218_1yNxaNNOYEdKj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNNOYEdKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:30:13.348595+00:00"
+      "last_attempt": "2026-09-17T21:32:41.902603+00:00"
     },
     "20260217_1mnxeRRmjjbKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRRmjjbKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:30:13.348597+00:00"
+      "last_attempt": "2026-09-17T21:32:41.902608+00:00"
     },
     "20260217_1kvJpmmDovPxE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvJpmmDovPxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T21:30:13.348599+00:00"
+      "last_attempt": "2026-09-17T21:32:41.902611+00:00"
+    },
+    "20260216_1gqGvylrEznKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqGvylrEznKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902615+00:00"
+    },
+    "20260218_1zqKVPBljVYJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVPBljVYJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902617+00:00"
+    },
+    "20260218_1yNGaNYXLWqJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGaNYXLWqJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902620+00:00"
+    },
+    "20260217_1MYGNgnjwEPJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgnjwEPJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902623+00:00"
+    },
+    "20260216_1djGXlPdBPdGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlPdBPdGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902626+00:00"
+    },
+    "20260217_1lPKqBmpNVmGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBmpNVmGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T21:32:41.902628+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNxaNZzkpXKj",
-      "name": "Moon rocks(pure columbian)",
-      "date": "Jul 25, 2023"
-    },
-    {
-      "tag": "20260217_1MYxNgobAEVKw",
-      "name": "Moon Landing Realities: Mike Bara(Ancient Aliens) Debunks the Deniers",
-      "date": "Jul 25, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqBbEprmGb",
-      "name": "Monday Morning Mothafuckaz",
-      "date": "Jul 24, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqBBMEaEGb",
-      "name": "#ufotwitter Should you be Vegetarian for #Disclosure? Secrecy a Must?",
-      "date": "Jul 23, 2023"
-    },
-    {
-      "tag": "20260217_1MYxNggggDXKw",
-      "name": "Time Travelling Aliens",
-      "date": "Jul 22, 2023"
-    },
-    {
-      "tag": "20260218_1YqxoAARONAGv",
-      "name": "UFO & Guitars \ud83d\udc7d\ud83c\udfb8",
-      "date": "Jul 21, 2023"
-    },
     {
       "tag": "20260217_1lDxLnnrDwyGm",
       "name": "We Love Diana Pasulka",
@@ -1938,6 +1938,36 @@
       "tag": "20260216_1dRJZMNEdgDGB",
       "name": "music kinda?",
       "date": "Jun 28, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRaODMEKX",
+      "name": "UFO Music Concert - LIVE Space",
+      "date": "Jun 25, 2023"
+    },
+    {
+      "tag": "20260217_1nAJErLWEWvxL",
+      "name": "Bring the good vibes",
+      "date": "Jun 24, 2023"
+    },
+    {
+      "tag": "20260217_1OdJrzVArwQJX",
+      "name": "Alien insight",
+      "date": "Jun 23, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZXanOkxQ",
+      "name": "The Majestic Majestic - CIA Whistleblowers Welcome",
+      "date": "Jun 22, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErAyWkkGL",
+      "name": "Bad Boys Fo Lyfe",
+      "date": "Jun 21, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDopAgwVGV",
+      "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
+      "date": "Jun 18, 2023"
     }
   ]
 }
