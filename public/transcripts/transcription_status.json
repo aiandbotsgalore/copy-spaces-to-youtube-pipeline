@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T22:52:52.798377+00:00",
+  "last_updated": "2026-09-17T22:54:32.944521+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2118,57 +2118,57 @@
       "last_attempt": "2026-09-17T22:52:18.729796+00:00"
     },
     "20260217_1mnGeRvdlBWJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeRvdlBWJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:52:18.729798+00:00"
+      "last_attempt": "2026-09-17T22:53:37.524098+00:00"
     },
     "20260217_1LyxBqAqrybJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqAqrybJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:52:18.729800+00:00"
+      "last_attempt": "2026-09-17T22:53:37.524112+00:00"
     },
     "20260217_1LyGBqAaBjnKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqAaBjnKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:52:18.729803+00:00"
+      "last_attempt": "2026-09-17T22:53:37.524115+00:00"
     },
     "20260216_1djGXlpokZBGZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlpokZBGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T22:52:18.729805+00:00"
+      "last_attempt": "2026-09-17T22:53:37.524118+00:00"
+    },
+    "20260217_1vAxRAWqzjzJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAWqzjzJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524119+00:00"
+    },
+    "20260217_1vAGRAWNVmVKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAGRAWNVmVKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524121+00:00"
+    },
+    "20260217_1lDxLnrVAvPGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnrVAvPGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524122+00:00"
+    },
+    "20260216_1djGXlpmbdeGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlpmbdeGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524124+00:00"
+    },
+    "20260216_1djGXlpjAQoGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlpjAQoGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524125+00:00"
+    },
+    "20260217_1kvKpmOPpkgGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmOPpkgGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-17T22:53:37.524127+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1gqxvygdypBJB",
-      "name": "Wild On \ud83d\udc26\ud83d\udca6\ud83d\udca6",
-      "date": "May 24, 2023"
-    },
-    {
-      "tag": "20260217_1vAGRAqRAwaKl",
-      "name": "Sex and Candy \ud83c\udf6d\ud83c\udf6c",
-      "date": "May 23, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgYPjkmKj",
-      "name": "Blame Mellow Demon",
-      "date": "May 22, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDonzmQDxV",
-      "name": "\ud83c\udfb6 Saturday morning \ud83c\udfb6",
-      "date": "May 20, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlavzrPzKL",
-      "name": "Guitar Jamming & gutter nuggets the band",
-      "date": "May 19, 2023"
-    },
-    {
-      "tag": "20260218_1yoKMZEWjYpGQ",
-      "name": "Decoding the Unseen:A session with Dr. Mishlove",
-      "date": "May 18, 2023"
-    },
     {
       "tag": "20260217_1mnGeRvdlBWJX",
       "name": "Afterparty",
@@ -2238,6 +2238,36 @@
       "tag": "20260217_1OdKrzRZwkAKX",
       "name": "pre skin walker",
       "date": "May 3, 2023"
+    },
+    {
+      "tag": "20260218_1YpJkgVnpZNJj",
+      "name": "Are We Aliens? Who Created Us? Philosophical debates \ud83d\udc7b\ud83d\udef8\ud83d\udc7e\ud83d\udc7d\ud83d\udd25\ud83d\udca5\ud83d\udd2b",
+      "date": "May 1, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpyeeeyGE",
+      "name": "\ud83d\udef8UFO Video/Photo\ud83d\udc7d",
+      "date": "Apr 30, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpyorEyGE",
+      "name": "SHOW ME THE $$$",
+      "date": "Apr 29, 2023"
+    },
+    {
+      "tag": "20260216_1dRKZMOkjbvxB",
+      "name": "ckcjjfjfjdf",
+      "date": "Apr 29, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXkzrwdJv",
+      "name": "Missy Explains It All",
+      "date": "Apr 28, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNOjomQKj",
+      "name": "Casual chat",
+      "date": "Apr 27, 2023"
     }
   ]
 }
