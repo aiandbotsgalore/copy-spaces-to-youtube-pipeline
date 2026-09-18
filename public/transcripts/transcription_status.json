@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:03:52.811276+00:00",
+  "last_updated": "2026-09-18T03:05:30.167100+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3118,57 +3118,57 @@
       "last_attempt": "2026-09-18T03:03:17.092681+00:00"
     },
     "20260218_1ynJOabzEqOKR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOabzEqOKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:03:17.092684+00:00"
+      "last_attempt": "2026-09-18T03:04:35.133478+00:00"
     },
     "20260216_1djGXlaaolNGZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlaaolNGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:03:17.092687+00:00"
+      "last_attempt": "2026-09-18T03:04:35.133505+00:00"
     },
     "20260216_1jMJgLjqREgxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLjqREgxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:03:17.092689+00:00"
+      "last_attempt": "2026-09-18T03:04:35.133509+00:00"
     },
     "20260216_1jMJgLjPnvjxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLjPnvjxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:03:17.092691+00:00"
+      "last_attempt": "2026-09-18T03:04:35.133513+00:00"
+    },
+    "20260217_1PlKQpBqpyyxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpBqpyyxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133517+00:00"
+    },
+    "20260218_1ynJOavvNblKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOavvNblKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133520+00:00"
+    },
+    "20260216_1eaKbrMybgoKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrMybgoKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133523+00:00"
+    },
+    "20260216_1BRJjZDzQRWJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZDzQRWJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133527+00:00"
+    },
+    "20260216_1DXxyvkAAjbKM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvkAAjbKM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133530+00:00"
+    },
+    "20260218_1ynJOagRAqyKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOagRAqyKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:04:35.133533+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1DXxyvPdmZEKM",
-      "name": "InFamous brings da noize",
-      "date": "Oct 26, 2022"
-    },
-    {
-      "tag": "20260216_1BdxYyzwXevxX",
-      "name": "TOWN SQUARE.. NO HANDS. OPEN FORUM, SPEAK FREELY",
-      "date": "Oct 25, 2022"
-    },
-    {
-      "tag": "20260218_1ynKOabBOerJR",
-      "name": "\u269b\ufe0f\ud83c\udf0eWandering Thoughts Of Collective Consciousness Though the Unknown\ud83d\udc7d\ud83d\udc7b",
-      "date": "Oct 24, 2022"
-    },
-    {
-      "tag": "20260216_1djxXlaQRnexZ",
-      "name": "UFO AFTER DARK \ud83e\uddeb\ud83e\uddea",
-      "date": "Oct 24, 2022"
-    },
-    {
-      "tag": "20260218_1ynJOabwAvQKR",
-      "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
-      "date": "Oct 23, 2022"
-    },
-    {
-      "tag": "20260217_1LyGBqVBnMnKN",
-      "name": "MICHAEL JACKSON \u2728\ud83d\udc40",
-      "date": "Oct 21, 2022"
-    },
     {
       "tag": "20260218_1ynJOabzEqOKR",
       "name": "The Doghouse",
@@ -3238,6 +3238,36 @@
       "tag": "20260218_1ynJOagYErQKR",
       "name": "MilitaryWitness2 UAP Livestream audio(watch video instead if possible)",
       "date": "Oct 4, 2022"
+    },
+    {
+      "tag": "20260217_1kvJpmNyjpgxE",
+      "name": "UFO/UAP Ancient Aliens and Disclosure \u2764\ufe0f\ud83c\udf0d",
+      "date": "Sep 28, 2022"
+    },
+    {
+      "tag": "20260217_1OyKAVwwNqrGb",
+      "name": "Supporting Roswell UFO Symposium Premier @mindEscapePodcast",
+      "date": "Sep 18, 2022"
+    },
+    {
+      "tag": "20260216_1djGXlBeqXXGZ",
+      "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
+      "date": "Sep 18, 2022"
+    },
+    {
+      "tag": "20260216_1eaKbrdvNdkKX",
+      "name": "Be Patient \ud83d\udef8",
+      "date": "Sep 15, 2022"
+    },
+    {
+      "tag": "20260217_1MYxNgrvWmoKw",
+      "name": "Indigenous peoples and Ley Lines?",
+      "date": "Sep 9, 2022"
+    },
+    {
+      "tag": "20260218_1YpKkgyBAABKj",
+      "name": "The Lue Elizondo School For People That Can't See Good & Want to..LOGAN=\ud83d\udc80\ud83d\udef8",
+      "date": "Sep 7, 2022"
     }
   ]
 }
