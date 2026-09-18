@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:45:23.202947+00:00",
+  "last_updated": "2026-09-18T02:46:39.230227+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2918,57 +2918,57 @@
       "last_attempt": "2026-09-18T02:44:41.438047+00:00"
     },
     "20260217_1RDGlaprMkkJL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaprMkkJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:44:41.438049+00:00"
+      "last_attempt": "2026-09-18T02:45:58.364399+00:00"
     },
     "20260216_1djxXlDoBaPxZ": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlDoBaPxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:44:41.438052+00:00"
+      "last_attempt": "2026-09-18T02:45:58.364419+00:00"
     },
     "20260218_1ZkJzXoNpLXKv": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkJzXoNpLXKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:44:41.438054+00:00"
+      "last_attempt": "2026-09-18T02:45:58.364423+00:00"
     },
     "20260217_1OdKrzQRVneKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzQRVneKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:44:41.438056+00:00"
+      "last_attempt": "2026-09-18T02:45:58.364426+00:00"
+    },
+    "20260218_1vOxwMDOgZPGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMDOgZPGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364430+00:00"
+    },
+    "20260216_1djGXlDApoyGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlDApoyGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364432+00:00"
+    },
+    "20260217_1mrGmkLLZpMxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkLLZpMxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364435+00:00"
+    },
+    "20260217_1mnxeRPnORaKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRPnORaKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364438+00:00"
+    },
+    "20260218_1vOxwMDQDLdGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMDQDLdGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364440+00:00"
+    },
+    "20260217_1vAxRAmjWnRJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAmjWnRJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:45:58.364442+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyKAVnaLzrGb",
-      "name": "DJ Loyalty Radio taking song Requests",
-      "date": "Dec 12, 2022"
-    },
-    {
-      "tag": "20260217_1lDxLnqYOaMGm",
-      "name": "boom",
-      "date": "Dec 11, 2022"
-    },
-    {
-      "tag": "20260217_1rmxPkBvDpXJN",
-      "name": "XXX freedom",
-      "date": "Dec 10, 2022"
-    },
-    {
-      "tag": "20260217_1kvKpmLmOaVGE",
-      "name": "Bloodlines of the Illuminati",
-      "date": "Dec 9, 2022"
-    },
-    {
-      "tag": "20260217_1PlKQpopPwZxE",
-      "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\u2620\ufe0f\ud83d\udc7d",
-      "date": "Dec 9, 2022"
-    },
-    {
-      "tag": "20260217_1OyKAVkVeWrGb",
-      "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\ud83d\udd25\ud83d\udc7d",
-      "date": "Dec 9, 2022"
-    },
     {
       "tag": "20260217_1RDGlaprMkkJL",
       "name": "Happy Birthday Natalie \ud83c\udf89\ud83d\udc83",
@@ -3038,6 +3038,36 @@
       "tag": "20260217_1PlKQpqOreMxE",
       "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
       "date": "Nov 28, 2022"
+    },
+    {
+      "tag": "20260217_1rmGPkVNvNYKN",
+      "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
+      "date": "Nov 25, 2022"
+    },
+    {
+      "tag": "20260216_1BRKjZMLNBLKw",
+      "name": "after astral party \ud83c\udf8a",
+      "date": "Nov 24, 2022"
+    },
+    {
+      "tag": "20260217_1MYxNgQrNqNKw",
+      "name": "The physiognomy of ulterior, superior, and anterior races of humanoid.",
+      "date": "Nov 18, 2022"
+    },
+    {
+      "tag": "20260217_1rmGPkVLZEmKN",
+      "name": "Planets & Produce",
+      "date": "Nov 17, 2022"
+    },
+    {
+      "tag": "20260216_1eaKbrZjzYRKX",
+      "name": "love love",
+      "date": "Nov 17, 2022"
+    },
+    {
+      "tag": "20260218_1yoKMZgZglwGQ",
+      "name": "\ud83d\ude80NASA conspiracies & Area 51 \ud83d\udc7d",
+      "date": "Nov 16, 2022"
     }
   ]
 }
