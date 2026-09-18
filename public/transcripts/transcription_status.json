@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:07:03.582092+00:00",
+  "last_updated": "2026-09-18T03:08:18.950966+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3138,57 +3138,57 @@
       "last_attempt": "2026-09-18T03:06:09.815699+00:00"
     },
     "20260217_1PlKQpBqpyyxE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpBqpyyxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815702+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098810+00:00"
     },
     "20260218_1ynJOavvNblKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOavvNblKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815704+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098832+00:00"
     },
     "20260216_1eaKbrMybgoKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrMybgoKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815706+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098836+00:00"
     },
     "20260216_1BRJjZDzQRWJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZDzQRWJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815708+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098839+00:00"
     },
     "20260216_1DXxyvkAAjbKM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvkAAjbKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815710+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098841+00:00"
     },
     "20260218_1ynJOagRAqyKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOagRAqyKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:06:09.815711+00:00"
+      "last_attempt": "2026-09-18T03:07:43.098844+00:00"
+    },
+    "20260217_1lPKqBaoOedGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lPKqBaoOedGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:07:43.098847+00:00"
+    },
+    "20260217_1OwxWwRWyZZxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OwxWwRWyZZxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:07:43.098849+00:00"
+    },
+    "20260216_1BdGYyBelqYGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyBelqYGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:07:43.098852+00:00"
+    },
+    "20260218_1ynJOagYErQKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOagYErQKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:07:43.098854+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ynJOabzEqOKR",
-      "name": "The Doghouse",
-      "date": "Oct 20, 2022"
-    },
-    {
-      "tag": "20260216_1djGXlaaolNGZ",
-      "name": "A calming oasis in the desert of my confusion",
-      "date": "Oct 18, 2022"
-    },
-    {
-      "tag": "20260216_1jMJgLjqREgxL",
-      "name": "Navigating Disclosure \ud83d\udc7d\ud83d\udef8\u2764\ufe0f",
-      "date": "Oct 14, 2022"
-    },
-    {
-      "tag": "20260216_1jMJgLjPnvjxL",
-      "name": "--TESTING-- Don't Enter",
-      "date": "Oct 14, 2022"
-    },
     {
       "tag": "20260217_1PlKQpBqpyyxE",
       "name": "3kdjrbrj",
@@ -3268,6 +3268,26 @@
       "tag": "20260218_1YpKkgyBAABKj",
       "name": "The Lue Elizondo School For People That Can't See Good & Want to..LOGAN=\ud83d\udc80\ud83d\udef8",
       "date": "Sep 7, 2022"
+    },
+    {
+      "tag": "20260217_1nAKErOaEgyGL",
+      "name": "Accidentally ended the space earlier.... \ud83d\ude23",
+      "date": "Sep 7, 2022"
+    },
+    {
+      "tag": "20260217_1MYGNgZmPBLJw",
+      "name": "Did cavemen in our ancient past bone down dinosaurs? Truth revealed!",
+      "date": "Sep 6, 2022"
+    },
+    {
+      "tag": "20260217_1vAxRAaqDZqJl",
+      "name": "UAP DRAMA \u203c\ufe0f\ud83d\udef8",
+      "date": "Sep 5, 2022"
+    },
+    {
+      "tag": "20260217_1OdKrzEpbjPKX",
+      "name": "Atlantis & the Empires the Gods created afterwards",
+      "date": "Sep 4, 2022"
     }
   ]
 }
