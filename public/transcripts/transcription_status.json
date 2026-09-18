@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:52:41.983439+00:00",
+  "last_updated": "2026-09-18T02:53:58.915044+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2988,57 +2988,57 @@
       "last_attempt": "2026-09-18T02:51:40.314495+00:00"
     },
     "20260217_1rmGPkVNvNYKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkVNvNYKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314497+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140557+00:00"
     },
     "20260216_1BRKjZMLNBLKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjZMLNBLKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314500+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140576+00:00"
     },
     "20260217_1MYxNgQrNqNKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgQrNqNKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314503+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140581+00:00"
     },
     "20260217_1rmGPkVLZEmKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkVLZEmKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314505+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140585+00:00"
     },
     "20260216_1eaKbrZjzYRKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrZjzYRKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314507+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140588+00:00"
     },
     "20260218_1yoKMZgZglwGQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMZgZglwGQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:51:40.314509+00:00"
+      "last_attempt": "2026-09-18T02:53:20.140592+00:00"
+    },
+    "20260216_1jMJgLadNWmxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLadNWmxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:53:20.140595+00:00"
+    },
+    "20260217_1LyxBqmjYoYJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqmjYoYJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:53:20.140598+00:00"
+    },
+    "20260217_1rmGPkwjrzYKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkwjrzYKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:53:20.140601+00:00"
+    },
+    "20260217_1RDxlabMgrrKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlabMgrrKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:53:20.140604+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BRJjZoOvdZJw",
-      "name": "Rock Hard Late Night with Bruce Johnny\ud83d\ude0e",
-      "date": "Dec 1, 2022"
-    },
-    {
-      "tag": "20260217_1OdJrzQrynpJX",
-      "name": "21hr Marathon UFO/UAP SPICY Fiesta Combo #spaces",
-      "date": "Nov 29, 2022"
-    },
-    {
-      "tag": "20260216_1jMJgLDbZXmxL",
-      "name": "\ud83d\udc7dMorning UFO",
-      "date": "Nov 29, 2022"
-    },
-    {
-      "tag": "20260217_1PlKQpqOreMxE",
-      "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
-      "date": "Nov 28, 2022"
-    },
     {
       "tag": "20260217_1rmGPkVNvNYKN",
       "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
@@ -3118,6 +3118,26 @@
       "tag": "20260217_1MnxnpobBqdGO",
       "name": "Fearless Monkey Alliance- Sleepers welcome",
       "date": "Oct 29, 2022"
+    },
+    {
+      "tag": "20260217_1MYxNgvZeNnKw",
+      "name": "Religion/ Freemasonry",
+      "date": "Oct 27, 2022"
+    },
+    {
+      "tag": "20260216_1BdGYymjXOYGX",
+      "name": "Chewbacca: After Dark",
+      "date": "Oct 27, 2022"
+    },
+    {
+      "tag": "20260217_1nAKErNpDYAGL",
+      "name": "NASA-Not A Space Agency",
+      "date": "Oct 26, 2022"
+    },
+    {
+      "tag": "20260217_1mnxeRbNvAaKX",
+      "name": "beep",
+      "date": "Oct 26, 2022"
     }
   ]
 }
