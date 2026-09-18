@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:02:37.041488+00:00",
+  "last_updated": "2026-09-18T03:03:52.811276+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3088,57 +3088,57 @@
       "last_attempt": "2026-09-18T03:01:45.259449+00:00"
     },
     "20260216_1DXxyvPdmZEKM": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvPdmZEKM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259453+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092605+00:00"
     },
     "20260216_1BdxYyzwXevxX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYyzwXevxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259455+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092663+00:00"
     },
     "20260218_1ynKOabBOerJR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOabBOerJR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259458+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092671+00:00"
     },
     "20260216_1djxXlaQRnexZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlaQRnexZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259461+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092674+00:00"
     },
     "20260218_1ynJOabwAvQKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOabwAvQKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259463+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092677+00:00"
     },
     "20260217_1LyGBqVBnMnKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqVBnMnKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:01:45.259466+00:00"
+      "last_attempt": "2026-09-18T03:03:17.092681+00:00"
+    },
+    "20260218_1ynJOabzEqOKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOabzEqOKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:03:17.092684+00:00"
+    },
+    "20260216_1djGXlaaolNGZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlaaolNGZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:03:17.092687+00:00"
+    },
+    "20260216_1jMJgLjqREgxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLjqREgxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:03:17.092689+00:00"
+    },
+    "20260216_1jMJgLjPnvjxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLjPnvjxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:03:17.092691+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MYxNgvZeNnKw",
-      "name": "Religion/ Freemasonry",
-      "date": "Oct 27, 2022"
-    },
-    {
-      "tag": "20260216_1BdGYymjXOYGX",
-      "name": "Chewbacca: After Dark",
-      "date": "Oct 27, 2022"
-    },
-    {
-      "tag": "20260217_1nAKErNpDYAGL",
-      "name": "NASA-Not A Space Agency",
-      "date": "Oct 26, 2022"
-    },
-    {
-      "tag": "20260217_1mnxeRbNvAaKX",
-      "name": "beep",
-      "date": "Oct 26, 2022"
-    },
     {
       "tag": "20260216_1DXxyvPdmZEKM",
       "name": "InFamous brings da noize",
@@ -3218,6 +3218,26 @@
       "tag": "20260218_1ynJOagRAqyKR",
       "name": "14 HR Intermission mark",
       "date": "Oct 5, 2022"
+    },
+    {
+      "tag": "20260217_1lPKqBaoOedGb",
+      "name": "stuff and heavy metal\ud83c\udfb8\ud83e\udd18\ud83d\udc7d",
+      "date": "Oct 5, 2022"
+    },
+    {
+      "tag": "20260217_1OwxWwRWyZZxQ",
+      "name": "Semi Quiet & Curious Paranormal Researchers \ud83d\udd2e\ud83d\udef8\ud83d\udc7d\ud83c\udfb8",
+      "date": "Oct 5, 2022"
+    },
+    {
+      "tag": "20260216_1BdGYyBelqYGX",
+      "name": "NO DEMON HITCHHIKERS IN OUR ENERGY/SPACE!! ADDRESSING THE - ENERGY. \u2764\ufe0f\ud83d\udc7b",
+      "date": "Oct 5, 2022"
+    },
+    {
+      "tag": "20260218_1ynJOagYErQKR",
+      "name": "MilitaryWitness2 UAP Livestream audio(watch video instead if possible)",
+      "date": "Oct 4, 2022"
     }
   ]
 }
