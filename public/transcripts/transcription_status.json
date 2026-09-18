@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:17:58.508475+00:00",
+  "last_updated": "2026-09-18T03:19:32.568368+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -8,19 +8,19 @@
   "is_queue_complete": false,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 3,
+      "attempts": 4,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506466+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944207+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 3,
+      "attempts": 4,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506486+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944210+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 3,
+      "attempts": 4,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T18:41:32.506489+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944213+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
       "attempts": 3,
@@ -3268,57 +3268,42 @@
       "last_attempt": "2026-09-18T03:16:56.573104+00:00"
     },
     "20260217_1rmGPgyPpvYKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPgyPpvYKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:16:56.573107+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944162+00:00"
     },
     "20260217_1vAxRkDorraKl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRkDorraKl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:16:56.573109+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944185+00:00"
     },
     "20260217_1MnGnkwqgMdJO": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnkwqgMdJO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:16:56.573111+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944190+00:00"
     },
     "20260217_1PlKQaMvNNWKE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQaMvNNWKE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:16:56.573113+00:00"
+      "last_attempt": "2026-09-18T03:18:42.944194+00:00"
+    },
+    "20260216_1BRJjnwQEgQJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjnwQEgQJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:18:42.944197+00:00"
+    },
+    "20260218_1zqKVBYOzqmKB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1zqKVBYOzqmKB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:18:42.944200+00:00"
+    },
+    "20260216_1jMJgeBdvrqKL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgeBdvrqKL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:18:42.944204+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoJMZRDNDkxQ",
-      "name": "Groovy vibes \ud83d\udef8\ud83d\udeac\u2615\ud83d\ude0d",
-      "date": "Sep 2, 2022"
-    },
-    {
-      "tag": "20260218_1vOxwMlBaOrGB",
-      "name": "UFOs Coffee & Cigars\u2615 ft. Mick West & 3 weird synchronous UFO videos",
-      "date": "Sep 1, 2022"
-    },
-    {
-      "tag": "20260217_1vAxRkQVXnNKl",
-      "name": "UFO HUMPDAY",
-      "date": "Aug 24, 2022"
-    },
-    {
-      "tag": "20260217_1mrxmaBgBQwxy",
-      "name": "UFO, Science, Old World Knowledge & The Woooo \ud83d\udc7e",
-      "date": "Aug 24, 2022"
-    },
-    {
-      "tag": "20260218_1yoKMWPLebzJQ",
-      "name": "24 hour marathon ACCOMPLISHED \ud83c\udf86\ud83c\udf87\"\ud835\udd6e\ud835\udd94\ud835\udd93\ud835\udd98\ud835\udd95\ud835\udd8e\ud835\udd97\ud835\udd86cy\u201d",
-      "date": "Aug 22, 2022"
-    },
-    {
-      "tag": "20260218_1YpKkZBQRRVxj",
-      "name": "UAP / UFO CHAT",
-      "date": "Aug 17, 2022"
-    },
     {
       "tag": "20260217_1rmGPgyPpvYKN",
       "name": "just random Paranormal chat",
@@ -3388,6 +3373,36 @@
       "tag": "20260218_1YqxolWyzENKv",
       "name": "Gabe",
       "date": "Nov 12, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYZPYmdgJX",
+      "name": "Graphic Adult Humor: Get Triggered \ud83d\ude18",
+      "date": "Nov 12, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkkdjqzmKj",
+      "name": "slumber siesta",
+      "date": "Nov 9, 2025"
+    },
+    {
+      "tag": "20260218_1YqGolWYLPlJv",
+      "name": "The Future of AI with Snuggles \u2728\ud83e\uddf8",
+      "date": "Nov 8, 2025"
+    },
+    {
+      "tag": "20260217_1rmGPvrXABQxN",
+      "name": "CUDDLE PARTY",
+      "date": "Nov 6, 2025"
+    },
+    {
+      "tag": "20260217_1OyKAjODoLgGb",
+      "name": "Huberman\u2019s Seat of the Will: The Brain\u2019s Hidden Engine",
+      "date": "Nov 1, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpMqzmDgGE",
+      "name": "Disclosure dissarono",
+      "date": "Oct 28, 2025"
     }
   ]
 }
