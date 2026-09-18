@@ -57,8 +57,29 @@ const formatEpisodeTitle = (ep?: string) => {
   return clean || ep;
 };
 
+const normalizeCategory = (cat?: string): string => {
+  const c = (cat || '').trim();
+  const lower = c.toLowerCase();
+  if (lower.includes('humor') || lower.includes('banter')) return 'Humor & Banter';
+  if (lower.includes('story') || lower.includes('stories') || lower.includes('wild')) return 'Wild Stories';
+  if (lower.includes('rant')) return 'Passionate Rants';
+  if (lower.includes('quote') || lower.includes('golden')) return 'Golden Quotes';
+  if (lower.includes('highlight')) return 'Highlights';
+  return c || 'Highlights';
+};
+
+const CANONICAL_CATEGORY_ORDER = [
+  'ALL',
+  'Humor & Banter',
+  'Wild Stories',
+  'Passionate Rants',
+  'Golden Quotes',
+  'Highlights'
+];
+
 const getCategoryColor = (cat: string) => {
-  const c = (cat || '').toLowerCase();
+  const canonical = normalizeCategory(cat);
+  const c = canonical.toLowerCase();
   if (c.includes('humor') || c.includes('banter')) {
     return {
       badge: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
@@ -158,7 +179,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {
-              combinedClips = [...data];
+              combinedClips = data.map((c: any) => ({
+                ...c,
+                category: normalizeCategory(c.category)
+              }));
               break;
             }
           }
@@ -227,12 +251,14 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                         combinedClips[existingIdx] = {
                           ...combinedClips[existingIdx],
                           ...mc,
+                          category: normalizeCategory(mc.category || combinedClips[existingIdx].category),
                           episode: mc.episode || relTitle,
                           file_path: audioUrl || combinedClips[existingIdx].file_path
                         };
                       } else {
                         combinedClips.push({
                           ...mc,
+                          category: normalizeCategory(mc.category),
                           episode: mc.episode || relTitle,
                           file_path: audioUrl
                         });
@@ -307,15 +333,19 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { ALL: clips.length };
     clips.forEach(c => {
-      const cat = c.category || 'Highlights';
+      const cat = normalizeCategory(c.category);
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return counts;
   }, [clips]);
 
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(clips.map(c => c.category || 'Highlights')));
-    return ['ALL', ...unique];
+    const found = new Set(clips.map(c => normalizeCategory(c.category)));
+    const ordered = CANONICAL_CATEGORY_ORDER.filter(cat => cat === 'ALL' || found.has(cat));
+    found.forEach(cat => {
+      if (!ordered.includes(cat)) ordered.push(cat);
+    });
+    return ordered;
   }, [clips]);
 
   // Unique Episodes list with clip count
@@ -349,7 +379,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const filteredClips = useMemo(() => {
     return clips
       .filter(c => {
-        const matchesCategory = selectedCategory === 'ALL' || c.category === selectedCategory;
+        const matchesCategory = selectedCategory === 'ALL' || normalizeCategory(c.category) === normalizeCategory(selectedCategory);
         const matchesEpisode = selectedEpisode === 'ALL' || c.episode === selectedEpisode;
         const matchesSpeaker = selectedSpeaker === 'ALL' || (c.speakers && c.speakers.includes(selectedSpeaker));
         const matchesTopRated = !onlyTopRated || (c.viral_score >= 9);
@@ -999,7 +1029,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                       {/* Category */}
                       <td className="py-3 px-4 hidden sm:table-cell whitespace-nowrap">
                         <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${catColor.badge}`}>
-                          {catColor.icon} {clip.category || 'Highlight'}
+                          {catColor.icon} {normalizeCategory(clip.category)}
                         </span>
                       </td>
 
@@ -1075,7 +1105,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     {activeClip.title}
                   </h4>
                   <span className={`hidden sm:inline-block px-2 py-0.2 text-[9px] font-bold uppercase rounded-md border ${getCategoryColor(activeClip.category).badge}`}>
-                    {activeClip.category}
+                    {normalizeCategory(activeClip.category)}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
@@ -1229,7 +1259,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           {/* Top Row: Category + Stars */}
           <div className="flex items-center justify-between gap-2 mb-2.5">
             <span className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border ${catColor.badge}`}>
-              {catColor.icon} {clip.category || 'Highlight'}
+              {catColor.icon} {normalizeCategory(clip.category)}
             </span>
             <div className="flex items-center gap-1 text-amber-400 text-xs" title={`Viral Score: ${clip.viral_score}/10`}>
               {'⭐'.repeat(starsCount)}

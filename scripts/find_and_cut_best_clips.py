@@ -68,6 +68,21 @@ def format_seconds_display(sec: float) -> str:
     return f"{minutes:02d}:{seconds:02d}"
 
 
+def normalize_category(cat: str) -> str:
+    c = (cat or "").strip().lower()
+    if "humor" in c or "banter" in c:
+        return "Humor & Banter"
+    if "story" in c or "stories" in c or "wild" in c:
+        return "Wild Stories"
+    if "rant" in c:
+        return "Passionate Rants"
+    if "quote" in c or "golden" in c:
+        return "Golden Quotes"
+    if "highlight" in c:
+        return "Highlights"
+    return cat.strip() if cat else "Highlights"
+
+
 def call_openrouter_highlight_discovery(
     transcript_text: str,
     limit: int = 5,
@@ -130,7 +145,7 @@ Transcript:
                     if "start_seconds" in c and "end_seconds" in c and float(c["end_seconds"]) > float(c["start_seconds"]):
                         clean_clips.append({
                             "title": str(c.get("title", "Highlight Clip")),
-                            "category": str(c.get("category", "Humor & Banter")),
+                            "category": normalize_category(str(c.get("category", "Humor & Banter"))),
                             "start_seconds": float(c["start_seconds"]),
                             "end_seconds": float(c["end_seconds"]),
                             "speakers": list(c.get("speakers", [])),
@@ -226,7 +241,7 @@ def extract_heuristic_highlights(
         first_few_words = " ".join(words[:6]).replace('"', "") if words else f"Moment {idx}"
         clips.append({
             "title": f"{first_few_words[:40]}",
-            "category": "Humor & Banter" if any(t in w["text"].lower() for t in laughter_tokens) else "Wild Story",
+            "category": "Humor & Banter" if any(t in w["text"].lower() for t in laughter_tokens) else "Wild Stories",
             "start_seconds": w["start_seconds"],
             "end_seconds": w["end_seconds"],
             "speakers": w["speakers"],
@@ -258,7 +273,7 @@ def call_gemini_highlight_discovery(
 
             class HighlightClip(BaseModel):
                 title: str = Field(description="Catchy title")
-                category: str = Field(description="Category")
+                category: str = Field(description="Must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'")
                 start_seconds: float
                 end_seconds: float
                 speakers: List[str]
@@ -277,6 +292,7 @@ def call_gemini_highlight_discovery(
             prompt = f"""
 You are an expert audio podcast producer and viral clip curator.
 Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
+Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
 {filter_instruction}
 Transcript:
 {transcript_text}
@@ -293,7 +309,7 @@ Transcript:
                         }
                     )
                     parsed = HighlightDiscoveryResult.model_validate_json(response.text)
-                    return [c.model_dump() for c in parsed.clips]
+                    return [{**c.model_dump(), "category": normalize_category(c.category)} for c in parsed.clips]
                 except Exception as e:
                     err_str = str(e)
                     print(f"[!] {model_name} notice: {e}", flush=True)

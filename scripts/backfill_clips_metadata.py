@@ -29,9 +29,23 @@ from pydantic import BaseModel, Field
 PUBLIC_CATALOG = Path("public/clips/clips_catalog.json")
 LOCAL_CATALOG = Path("best_saved_clips/clips_catalog.json")
 
+def normalize_category(cat: str) -> str:
+    c = (cat or "").strip().lower()
+    if "humor" in c or "banter" in c:
+        return "Humor & Banter"
+    if "story" in c or "stories" in c or "wild" in c:
+        return "Wild Stories"
+    if "rant" in c:
+        return "Passionate Rants"
+    if "quote" in c or "golden" in c:
+        return "Golden Quotes"
+    if "highlight" in c:
+        return "Highlights"
+    return cat.strip() if cat else "Highlights"
+
 class ClipMetadata(BaseModel):
     title: str = Field(description="Punchy, catchy title summarizing this moment")
-    category: str = Field(description="'Humor & Banter', 'Wild Story', 'Passionate Rant', or 'Golden Quote'")
+    category: str = Field(description="'Humor & Banter', 'Wild Stories', 'Passionate Rants', or 'Golden Quotes'")
     viral_score: int = Field(description="Entertainment / viral score from 1 to 10")
     reason: str = Field(description="Engaging explanation of why this moment is hilarious, wild, or memorable")
     transcript_snippet: str = Field(description="Key dialogue quote or punchline from this moment")
@@ -80,7 +94,7 @@ Clip Title Hint: "{clip_title}"
 
 Extract structured metadata for this highlight moment:
 1. title: A catchy, hilarious, or punchy title.
-2. category: Must be one of: 'Humor & Banter', 'Wild Story', 'Passionate Rant', 'Golden Quote'.
+2. category: Must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
 3. viral_score: Rating from 1 to 10 based on viral and entertainment appeal.
 4. reason: 1-2 sentences explaining why this moment is funny, crazy, or memorable.
 5. transcript_snippet: The exact punchline or key dialogue lines from this clip.
@@ -240,7 +254,7 @@ def main():
 
                 clip_item = {
                     "title": meta.title or clean_title,
-                    "category": meta.category or "Humor & Banter",
+                    "category": normalize_category(meta.category or "Humor & Banter"),
                     "start_seconds": start_sec,
                     "end_seconds": start_sec + duration,
                     "duration": duration,
