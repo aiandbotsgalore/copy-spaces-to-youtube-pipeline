@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:49:31.081330+00:00",
+  "last_updated": "2026-09-18T02:50:56.766351+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2968,57 +2968,57 @@
       "last_attempt": "2026-09-18T02:48:39.850663+00:00"
     },
     "20260216_1BRJjZoOvdZJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZoOvdZJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:48:39.850666+00:00"
+      "last_attempt": "2026-09-18T02:50:10.210030+00:00"
     },
     "20260217_1OdJrzQrynpJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrzQrynpJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:48:39.850668+00:00"
+      "last_attempt": "2026-09-18T02:50:10.210050+00:00"
     },
     "20260216_1jMJgLDbZXmxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLDbZXmxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:48:39.850671+00:00"
+      "last_attempt": "2026-09-18T02:50:10.210054+00:00"
     },
     "20260217_1PlKQpqOreMxE": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpqOreMxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:48:39.850672+00:00"
+      "last_attempt": "2026-09-18T02:50:10.210058+00:00"
+    },
+    "20260217_1rmGPkVNvNYKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkVNvNYKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210061+00:00"
+    },
+    "20260216_1BRKjZMLNBLKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRKjZMLNBLKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210063+00:00"
+    },
+    "20260217_1MYxNgQrNqNKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgQrNqNKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210066+00:00"
+    },
+    "20260217_1rmGPkVLZEmKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkVLZEmKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210069+00:00"
+    },
+    "20260216_1eaKbrZjzYRKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1eaKbrZjzYRKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210071+00:00"
+    },
+    "20260218_1yoKMZgZglwGQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMZgZglwGQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:50:10.210073+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1vOxwMDOgZPGB",
-      "name": "Recorded Banshee Live while Rod Roddy Piper battles Kent drunk",
-      "date": "Dec 5, 2022"
-    },
-    {
-      "tag": "20260216_1djGXlDApoyGZ",
-      "name": "Today's #Hot Topics ft. Keith Morrison",
-      "date": "Dec 4, 2022"
-    },
-    {
-      "tag": "20260217_1mrGmkLLZpMxy",
-      "name": "Love",
-      "date": "Dec 2, 2022"
-    },
-    {
-      "tag": "20260217_1mnxeRPnORaKX",
-      "name": "\ud83c\udf44\ud83d\udc7dShameless Saucer Society- Sending Tayler \u2764",
-      "date": "Dec 2, 2022"
-    },
-    {
-      "tag": "20260218_1vOxwMDQDLdGB",
-      "name": "LOVE IS ALL YOU NEED & TAYLER",
-      "date": "Dec 1, 2022"
-    },
-    {
-      "tag": "20260217_1vAxRAmjWnRJl",
-      "name": "Your Space",
-      "date": "Dec 1, 2022"
-    },
     {
       "tag": "20260216_1BRJjZoOvdZJw",
       "name": "Rock Hard Late Night with Bruce Johnny\ud83d\ude0e",
@@ -3088,6 +3088,36 @@
       "tag": "20260217_1RDxlabMgrrKL",
       "name": "Jesus Christ died for our sins?",
       "date": "Nov 9, 2022"
+    },
+    {
+      "tag": "20260217_1vAxRAeoDNzJl",
+      "name": "MiNDWAR",
+      "date": "Nov 8, 2022"
+    },
+    {
+      "tag": "20260218_1vOxwMWlYPmGB",
+      "name": "\ud83d\udc7dUFO Brekkie",
+      "date": "Nov 7, 2022"
+    },
+    {
+      "tag": "20260217_1mrGmkOMbgBxy",
+      "name": "\ud83d\udc7d A.i in charge of disclosure? -NO Hands\ud83e\udd1a",
+      "date": "Nov 6, 2022"
+    },
+    {
+      "tag": "20260217_1OdKrzdBRenKX",
+      "name": "All aboard the crazy train! Woo Woo! \ud83d\ude82",
+      "date": "Nov 5, 2022"
+    },
+    {
+      "tag": "20260217_1RDGlaDQRgzJL",
+      "name": "Sunrise \ud83c\udf04 Surprise \ud83d\udef8\ud83d\udc7d\ud83e\udee2 #mRna",
+      "date": "Nov 4, 2022"
+    },
+    {
+      "tag": "20260217_1MnxnpobBqdGO",
+      "name": "Fearless Monkey Alliance- Sleepers welcome",
+      "date": "Oct 29, 2022"
     }
   ]
 }
