@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:40:04.302807+00:00",
+  "last_updated": "2026-09-18T02:41:22.689355+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2838,57 +2838,57 @@
       "last_attempt": "2026-09-18T02:39:28.920808+00:00"
     },
     "20260217_1rmGPkEmyDmKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkEmyDmKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920812+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435534+00:00"
     },
     "20260217_1nAKErneLLVGL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErneLLVGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920815+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435553+00:00"
     },
     "20260218_1ynKOarNamVJR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOarNamVJR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920818+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435557+00:00"
     },
     "20260217_1OdKrzmywLyKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzmywLyKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920821+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435560+00:00"
     },
     "20260217_1kvKpmlVLvkGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmlVLvkGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920824+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435563+00:00"
     },
     "20260216_1djGXlkYALPGZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlkYALPGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:39:28.920826+00:00"
+      "last_attempt": "2026-09-18T02:40:41.435566+00:00"
+    },
+    "20260218_1BdxYykLvbyxX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1BdxYykLvbyxX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:40:41.435567+00:00"
+    },
+    "20260217_1mrxmklDwWNGy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmklDwWNGy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:40:41.435570+00:00"
+    },
+    "20260216_1gqxvyAPBonJB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyAPBonJB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:40:41.435573+00:00"
+    },
+    "20260218_1YpJkgjrgrmJj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkgjrgrmJj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:40:41.435574+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1BdGYykenzQGX",
-      "name": "The Otherworldly Hour - The Cosmos & Beyond \ud83d\udc7d\ud83c\udde6\ud83c\uddfa\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf2\ud83e\udd85\ud83e\udd96",
-      "date": "Dec 19, 2022"
-    },
-    {
-      "tag": "20260217_1vAxRAREEZqJl",
-      "name": "UFO 101 FAFO",
-      "date": "Dec 18, 2022"
-    },
-    {
-      "tag": "20260217_1mrxmklrbokGy",
-      "name": "Lost Souls of #UFOTwitter. We're talking about you @ElonMusk",
-      "date": "Dec 18, 2022"
-    },
-    {
-      "tag": "20260216_1dRJZMkLrObGB",
-      "name": "\ud83d\udc0d\ud83d\udc0a\ud83e\udd96REPTILLIANS \ud83d\udc0a\ud83d\udc0d\ud83e\udd96.  Lost souls of #UFOTwitter",
-      "date": "Dec 18, 2022"
-    },
     {
       "tag": "20260217_1rmGPkEmyDmKN",
       "name": "\ud83c\udf44\ud83d\udc7dCome get your #UFO Disclosure #ufotwitter\ud83d\udc79\ud83d\udc7b\ud83e\udd16",
@@ -2968,6 +2968,26 @@
       "tag": "20260217_1OyKAVkVeWrGb",
       "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\ud83d\udd25\ud83d\udc7d",
       "date": "Dec 9, 2022"
+    },
+    {
+      "tag": "20260217_1RDGlaprMkkJL",
+      "name": "Happy Birthday Natalie \ud83c\udf89\ud83d\udc83",
+      "date": "Dec 7, 2022"
+    },
+    {
+      "tag": "20260216_1djxXlDoBaPxZ",
+      "name": "25\ud83c\udf89",
+      "date": "Dec 7, 2022"
+    },
+    {
+      "tag": "20260218_1ZkJzXoNpLXKv",
+      "name": "I Believe in Doty the Bigtoe",
+      "date": "Dec 6, 2022"
+    },
+    {
+      "tag": "20260217_1OdKrzQRVneKX",
+      "name": "\u26a0\ufe0fTWITTER FILES LIVE\u2757",
+      "date": "Dec 6, 2022"
     }
   ]
 }
