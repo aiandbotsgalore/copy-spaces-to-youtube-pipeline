@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:13:08.921677+00:00",
+  "last_updated": "2026-09-18T03:14:22.544142+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3218,57 +3218,57 @@
       "last_attempt": "2026-09-18T03:12:23.110822+00:00"
     },
     "20260217_1nAKErOaEgyGL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErOaEgyGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:12:23.110825+00:00"
+      "last_attempt": "2026-09-18T03:13:44.814745+00:00"
     },
     "20260217_1MYGNgZmPBLJw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgZmPBLJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:12:23.110827+00:00"
+      "last_attempt": "2026-09-18T03:13:44.814766+00:00"
     },
     "20260217_1vAxRAaqDZqJl": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAaqDZqJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:12:23.110829+00:00"
+      "last_attempt": "2026-09-18T03:13:44.814771+00:00"
     },
     "20260217_1OdKrzEpbjPKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzEpbjPKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:12:23.110830+00:00"
+      "last_attempt": "2026-09-18T03:13:44.814774+00:00"
+    },
+    "20260218_1yoJMZRDNDkxQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZRDNDkxQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814778+00:00"
+    },
+    "20260218_1vOxwMlBaOrGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMlBaOrGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814781+00:00"
+    },
+    "20260217_1vAxRkQVXnNKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRkQVXnNKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814784+00:00"
+    },
+    "20260217_1mrxmaBgBQwxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmaBgBQwxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814787+00:00"
+    },
+    "20260218_1yoKMWPLebzJQ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMWPLebzJQ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814790+00:00"
+    },
+    "20260218_1YpKkZBQRRVxj": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkZBQRRVxj']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:13:44.814792+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvJpmNyjpgxE",
-      "name": "UFO/UAP Ancient Aliens and Disclosure \u2764\ufe0f\ud83c\udf0d",
-      "date": "Sep 28, 2022"
-    },
-    {
-      "tag": "20260217_1OyKAVwwNqrGb",
-      "name": "Supporting Roswell UFO Symposium Premier @mindEscapePodcast",
-      "date": "Sep 18, 2022"
-    },
-    {
-      "tag": "20260216_1djGXlBeqXXGZ",
-      "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
-      "date": "Sep 18, 2022"
-    },
-    {
-      "tag": "20260216_1eaKbrdvNdkKX",
-      "name": "Be Patient \ud83d\udef8",
-      "date": "Sep 15, 2022"
-    },
-    {
-      "tag": "20260217_1MYxNgrvWmoKw",
-      "name": "Indigenous peoples and Ley Lines?",
-      "date": "Sep 9, 2022"
-    },
-    {
-      "tag": "20260218_1YpKkgyBAABKj",
-      "name": "The Lue Elizondo School For People That Can't See Good & Want to..LOGAN=\ud83d\udc80\ud83d\udef8",
-      "date": "Sep 7, 2022"
-    },
     {
       "tag": "20260217_1nAKErOaEgyGL",
       "name": "Accidentally ended the space earlier.... \ud83d\ude23",
@@ -3338,6 +3338,36 @@
       "tag": "20260217_1PlKQaMvNNWKE",
       "name": "Mick West Anomalous Seagull Sighting Society",
       "date": "Aug 10, 2022"
+    },
+    {
+      "tag": "20260216_1BRJjnwQEgQJw",
+      "name": "Sunday Eve UAP",
+      "date": "Aug 8, 2022"
+    },
+    {
+      "tag": "20260218_1zqKVBYOzqmKB",
+      "name": "ALL Night Woo-FO",
+      "date": "Aug 7, 2022"
+    },
+    {
+      "tag": "20260216_1jMJgeBdvrqKL",
+      "name": "Good morning UAP Space",
+      "date": "Aug 6, 2022"
+    },
+    {
+      "tag": "20260905_1qxvvedveWWxB",
+      "name": "ACHIEVING MY DREAMS \u2728 #RTV",
+      "date": "Sep 4, 2026"
+    },
+    {
+      "tag": "20260218_1yNGabVvNRqJj",
+      "name": "Deepstate A.I. Overlord",
+      "date": "Nov 27, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBZOoNLJy",
+      "name": "\ud83d\udd25\ud83d\udd25Snuggles Prime Returns\ud83d\udd25\ud83d\udd25",
+      "date": "Nov 24, 2025"
     }
   ]
 }
