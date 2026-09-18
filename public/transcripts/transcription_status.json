@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:44:06.364124+00:00",
+  "last_updated": "2026-09-18T02:45:23.202947+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2888,57 +2888,57 @@
       "last_attempt": "2026-09-18T02:43:15.134693+00:00"
     },
     "20260217_1OyKAVnaLzrGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVnaLzrGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134698+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438017+00:00"
     },
     "20260217_1lDxLnqYOaMGm": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnqYOaMGm']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134714+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438036+00:00"
     },
     "20260217_1rmxPkBvDpXJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPkBvDpXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134718+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438040+00:00"
     },
     "20260217_1kvKpmLmOaVGE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmLmOaVGE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134720+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438042+00:00"
     },
     "20260217_1PlKQpopPwZxE": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpopPwZxE']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134723+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438045+00:00"
     },
     "20260217_1OyKAVkVeWrGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVkVeWrGb']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:43:15.134725+00:00"
+      "last_attempt": "2026-09-18T02:44:41.438047+00:00"
+    },
+    "20260217_1RDGlaprMkkJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaprMkkJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:44:41.438049+00:00"
+    },
+    "20260216_1djxXlDoBaPxZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlDoBaPxZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:44:41.438052+00:00"
+    },
+    "20260218_1ZkJzXoNpLXKv": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ZkJzXoNpLXKv']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:44:41.438054+00:00"
+    },
+    "20260217_1OdKrzQRVneKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzQRVneKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:44:41.438056+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1BdxYykLvbyxX",
-      "name": "12/12 Twitter took away 4650 of the people I'm following.(This is why)",
-      "date": "Dec 13, 2022"
-    },
-    {
-      "tag": "20260217_1mrxmklDwWNGy",
-      "name": "SLEEP SCIENCE",
-      "date": "Dec 13, 2022"
-    },
-    {
-      "tag": "20260216_1gqxvyAPBonJB",
-      "name": "12/12",
-      "date": "Dec 13, 2022"
-    },
-    {
-      "tag": "20260218_1YpJkgjrgrmJj",
-      "name": "Chat gpt Ai",
-      "date": "Dec 12, 2022"
-    },
     {
       "tag": "20260217_1OyKAVnaLzrGb",
       "name": "DJ Loyalty Radio taking song Requests",
@@ -3018,6 +3018,26 @@
       "tag": "20260217_1vAxRAmjWnRJl",
       "name": "Your Space",
       "date": "Dec 1, 2022"
+    },
+    {
+      "tag": "20260216_1BRJjZoOvdZJw",
+      "name": "Rock Hard Late Night with Bruce Johnny\ud83d\ude0e",
+      "date": "Dec 1, 2022"
+    },
+    {
+      "tag": "20260217_1OdJrzQrynpJX",
+      "name": "21hr Marathon UFO/UAP SPICY Fiesta Combo #spaces",
+      "date": "Nov 29, 2022"
+    },
+    {
+      "tag": "20260216_1jMJgLDbZXmxL",
+      "name": "\ud83d\udc7dMorning UFO",
+      "date": "Nov 29, 2022"
+    },
+    {
+      "tag": "20260217_1PlKQpqOreMxE",
+      "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
+      "date": "Nov 28, 2022"
     }
   ]
 }
