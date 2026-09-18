@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:47:53.392336+00:00",
+  "last_updated": "2026-09-18T02:49:31.081330+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2938,57 +2938,57 @@
       "last_attempt": "2026-09-18T02:47:15.691103+00:00"
     },
     "20260218_1vOxwMDOgZPGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMDOgZPGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691107+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850632+00:00"
     },
     "20260216_1djGXlDApoyGZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djGXlDApoyGZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691109+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850650+00:00"
     },
     "20260217_1mrGmkLLZpMxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkLLZpMxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691112+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850654+00:00"
     },
     "20260217_1mnxeRPnORaKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRPnORaKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691116+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850657+00:00"
     },
     "20260218_1vOxwMDQDLdGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMDQDLdGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691118+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850660+00:00"
     },
     "20260217_1vAxRAmjWnRJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAmjWnRJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:47:15.691121+00:00"
+      "last_attempt": "2026-09-18T02:48:39.850663+00:00"
+    },
+    "20260216_1BRJjZoOvdZJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZoOvdZJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:48:39.850666+00:00"
+    },
+    "20260217_1OdJrzQrynpJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdJrzQrynpJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:48:39.850668+00:00"
+    },
+    "20260216_1jMJgLDbZXmxL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLDbZXmxL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:48:39.850671+00:00"
+    },
+    "20260217_1PlKQpqOreMxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpqOreMxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:48:39.850672+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1RDGlaprMkkJL",
-      "name": "Happy Birthday Natalie \ud83c\udf89\ud83d\udc83",
-      "date": "Dec 7, 2022"
-    },
-    {
-      "tag": "20260216_1djxXlDoBaPxZ",
-      "name": "25\ud83c\udf89",
-      "date": "Dec 7, 2022"
-    },
-    {
-      "tag": "20260218_1ZkJzXoNpLXKv",
-      "name": "I Believe in Doty the Bigtoe",
-      "date": "Dec 6, 2022"
-    },
-    {
-      "tag": "20260217_1OdKrzQRVneKX",
-      "name": "\u26a0\ufe0fTWITTER FILES LIVE\u2757",
-      "date": "Dec 6, 2022"
-    },
     {
       "tag": "20260218_1vOxwMDOgZPGB",
       "name": "Recorded Banshee Live while Rod Roddy Piper battles Kent drunk",
@@ -3068,6 +3068,26 @@
       "tag": "20260218_1yoKMZgZglwGQ",
       "name": "\ud83d\ude80NASA conspiracies & Area 51 \ud83d\udc7d",
       "date": "Nov 16, 2022"
+    },
+    {
+      "tag": "20260216_1jMJgLadNWmxL",
+      "name": "5-1030pm Richard Doty Q & A , then afterParty till morning\ud83d\udef8\ud83d\udc7d",
+      "date": "Nov 13, 2022"
+    },
+    {
+      "tag": "20260217_1LyxBqmjYoYJN",
+      "name": "Paranormal",
+      "date": "Nov 12, 2022"
+    },
+    {
+      "tag": "20260217_1rmGPkwjrzYKN",
+      "name": "Houston, we have a problem  #Elon Come hang\ud83d\udc7d",
+      "date": "Nov 9, 2022"
+    },
+    {
+      "tag": "20260217_1RDxlabMgrrKL",
+      "name": "Jesus Christ died for our sins?",
+      "date": "Nov 9, 2022"
     }
   ]
 }
