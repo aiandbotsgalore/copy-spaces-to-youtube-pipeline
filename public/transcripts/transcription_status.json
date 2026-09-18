@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:31:17.475673+00:00",
+  "last_updated": "2026-09-18T02:33:32.511182+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2738,57 +2738,57 @@
       "last_attempt": "2026-09-18T02:30:17.729576+00:00"
     },
     "20260216_1BdGYyXQeLyGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYyXQeLyGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729579+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913648+00:00"
     },
     "20260218_1YqKDoVywBDxV": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDoVywBDxV']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729581+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913667+00:00"
     },
     "20260217_1mnGeRnrgARJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeRnrgARJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729585+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913672+00:00"
     },
     "20260218_1yoJMZLMvlWxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZLMvlWxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729587+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913676+00:00"
     },
     "20260217_1LyGBqljLerKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqljLerKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729590+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913680+00:00"
     },
     "20260218_1YpKkgpeBdrKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkgpeBdrKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:30:17.729592+00:00"
+      "last_attempt": "2026-09-18T02:32:33.913683+00:00"
+    },
+    "20260216_1dRKZMVRkYAxB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRKZMVRkYAxB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:32:33.913686+00:00"
+    },
+    "20260216_1BRJjZjRMkwJw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BRJjZjRMkwJw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:32:33.913688+00:00"
+    },
+    "20260217_1mrGmkzjQQWxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkzjQQWxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:32:33.913691+00:00"
+    },
+    "20260217_1mnGeRnMkOvJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeRnMkOvJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:32:33.913693+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnGeRkMerYJX",
-      "name": "Tall Greys/EBE's/Nordics and getting weird",
-      "date": "Jan 3, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDoVNzzDxV",
-      "name": "homies",
-      "date": "Jan 2, 2023"
-    },
-    {
-      "tag": "20260217_1RDGlawyYYrJL",
-      "name": "AAA/Alien Addicts Anonymous - AMENTI HALL\ud83d\udc8a\ud83e\udd74\ud83d\ude35",
-      "date": "Jan 2, 2023"
-    },
-    {
-      "tag": "20260216_1DXGyvZvZpEJM",
-      "name": "MAX Logan- New Years Day\ud83c\udf89\ud83d\udc7d\u2764\ufe0f",
-      "date": "Jan 1, 2023"
-    },
     {
       "tag": "20260216_1BdGYyXQeLyGX",
       "name": "New Years Eve \ud83d\udc7d\ud83c\udf87\ud83c\udf89",
@@ -2868,6 +2868,26 @@
       "tag": "20260217_1MnGnpjlkwdxO",
       "name": "Poseidon's Time Travelers Union",
       "date": "Dec 20, 2022"
+    },
+    {
+      "tag": "20260216_1BdGYykenzQGX",
+      "name": "The Otherworldly Hour - The Cosmos & Beyond \ud83d\udc7d\ud83c\udde6\ud83c\uddfa\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf2\ud83e\udd85\ud83e\udd96",
+      "date": "Dec 19, 2022"
+    },
+    {
+      "tag": "20260217_1vAxRAREEZqJl",
+      "name": "UFO 101 FAFO",
+      "date": "Dec 18, 2022"
+    },
+    {
+      "tag": "20260217_1mrxmklrbokGy",
+      "name": "Lost Souls of #UFOTwitter. We're talking about you @ElonMusk",
+      "date": "Dec 18, 2022"
+    },
+    {
+      "tag": "20260216_1dRJZMkLrObGB",
+      "name": "\ud83d\udc0d\ud83d\udc0a\ud83e\udd96REPTILLIANS \ud83d\udc0a\ud83d\udc0d\ud83e\udd96.  Lost souls of #UFOTwitter",
+      "date": "Dec 18, 2022"
     }
   ]
 }
