@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:57:08.537609+00:00",
+  "last_updated": "2026-09-18T02:58:58.335053+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3038,57 +3038,57 @@
       "last_attempt": "2026-09-18T02:56:15.167209+00:00"
     },
     "20260217_1vAxRAeoDNzJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAeoDNzJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167212+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078490+00:00"
     },
     "20260218_1vOxwMWlYPmGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMWlYPmGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167216+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078512+00:00"
     },
     "20260217_1mrGmkOMbgBxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkOMbgBxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167219+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078517+00:00"
     },
     "20260217_1OdKrzdBRenKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzdBRenKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167223+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078519+00:00"
     },
     "20260217_1RDGlaDQRgzJL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaDQRgzJL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167225+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078521+00:00"
     },
     "20260217_1MnxnpobBqdGO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpobBqdGO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:56:15.167228+00:00"
+      "last_attempt": "2026-09-18T02:57:54.078524+00:00"
+    },
+    "20260217_1MYxNgvZeNnKw": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgvZeNnKw']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:57:54.078526+00:00"
+    },
+    "20260216_1BdGYymjXOYGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYymjXOYGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:57:54.078528+00:00"
+    },
+    "20260217_1nAKErNpDYAGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErNpDYAGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:57:54.078529+00:00"
+    },
+    "20260217_1mnxeRbNvAaKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRbNvAaKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:57:54.078530+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLadNWmxL",
-      "name": "5-1030pm Richard Doty Q & A , then afterParty till morning\ud83d\udef8\ud83d\udc7d",
-      "date": "Nov 13, 2022"
-    },
-    {
-      "tag": "20260217_1LyxBqmjYoYJN",
-      "name": "Paranormal",
-      "date": "Nov 12, 2022"
-    },
-    {
-      "tag": "20260217_1rmGPkwjrzYKN",
-      "name": "Houston, we have a problem  #Elon Come hang\ud83d\udc7d",
-      "date": "Nov 9, 2022"
-    },
-    {
-      "tag": "20260217_1RDxlabMgrrKL",
-      "name": "Jesus Christ died for our sins?",
-      "date": "Nov 9, 2022"
-    },
     {
       "tag": "20260217_1vAxRAeoDNzJl",
       "name": "MiNDWAR",
@@ -3168,6 +3168,26 @@
       "tag": "20260217_1LyGBqVBnMnKN",
       "name": "MICHAEL JACKSON \u2728\ud83d\udc40",
       "date": "Oct 21, 2022"
+    },
+    {
+      "tag": "20260218_1ynJOabzEqOKR",
+      "name": "The Doghouse",
+      "date": "Oct 20, 2022"
+    },
+    {
+      "tag": "20260216_1djGXlaaolNGZ",
+      "name": "A calming oasis in the desert of my confusion",
+      "date": "Oct 18, 2022"
+    },
+    {
+      "tag": "20260216_1jMJgLjqREgxL",
+      "name": "Navigating Disclosure \ud83d\udc7d\ud83d\udef8\u2764\ufe0f",
+      "date": "Oct 14, 2022"
+    },
+    {
+      "tag": "20260216_1jMJgLjPnvjxL",
+      "name": "--TESTING-- Don't Enter",
+      "date": "Oct 14, 2022"
     }
   ]
 }
