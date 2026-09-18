@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T03:16:20.299709+00:00",
+  "last_updated": "2026-09-18T03:17:58.508475+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3238,57 +3238,57 @@
       "last_attempt": "2026-09-18T03:15:23.987474+00:00"
     },
     "20260218_1yoJMZRDNDkxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZRDNDkxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987477+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573073+00:00"
     },
     "20260218_1vOxwMlBaOrGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMlBaOrGB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987479+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573092+00:00"
     },
     "20260217_1vAxRkQVXnNKl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRkQVXnNKl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987481+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573096+00:00"
     },
     "20260217_1mrxmaBgBQwxy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmaBgBQwxy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987484+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573099+00:00"
     },
     "20260218_1yoKMWPLebzJQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoKMWPLebzJQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987486+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573102+00:00"
     },
     "20260218_1YpKkZBQRRVxj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkZBQRRVxj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:15:23.987487+00:00"
+      "last_attempt": "2026-09-18T03:16:56.573104+00:00"
+    },
+    "20260217_1rmGPgyPpvYKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPgyPpvYKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:16:56.573107+00:00"
+    },
+    "20260217_1vAxRkDorraKl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRkDorraKl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:16:56.573109+00:00"
+    },
+    "20260217_1MnGnkwqgMdJO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnkwqgMdJO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:16:56.573111+00:00"
+    },
+    "20260217_1PlKQaMvNNWKE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQaMvNNWKE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T03:16:56.573113+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1nAKErOaEgyGL",
-      "name": "Accidentally ended the space earlier.... \ud83d\ude23",
-      "date": "Sep 7, 2022"
-    },
-    {
-      "tag": "20260217_1MYGNgZmPBLJw",
-      "name": "Did cavemen in our ancient past bone down dinosaurs? Truth revealed!",
-      "date": "Sep 6, 2022"
-    },
-    {
-      "tag": "20260217_1vAxRAaqDZqJl",
-      "name": "UAP DRAMA \u203c\ufe0f\ud83d\udef8",
-      "date": "Sep 5, 2022"
-    },
-    {
-      "tag": "20260217_1OdKrzEpbjPKX",
-      "name": "Atlantis & the Empires the Gods created afterwards",
-      "date": "Sep 4, 2022"
-    },
     {
       "tag": "20260218_1yoJMZRDNDkxQ",
       "name": "Groovy vibes \ud83d\udef8\ud83d\udeac\u2615\ud83d\ude0d",
@@ -3368,6 +3368,26 @@
       "tag": "20260217_1mrGmBZOoNLJy",
       "name": "\ud83d\udd25\ud83d\udd25Snuggles Prime Returns\ud83d\udd25\ud83d\udd25",
       "date": "Nov 24, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBmelwdJy",
+      "name": "SUPERMIND",
+      "date": "Nov 20, 2025"
+    },
+    {
+      "tag": "20260216_1gqxvrqrRPzxB",
+      "name": "Drugs & Gods",
+      "date": "Nov 13, 2025"
+    },
+    {
+      "tag": "20260216_1DXxyWywdpvGM",
+      "name": "UFO History",
+      "date": "Nov 13, 2025"
+    },
+    {
+      "tag": "20260218_1YqxolWyzENKv",
+      "name": "Gabe",
+      "date": "Nov 12, 2025"
     }
   ]
 }
