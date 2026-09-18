@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:58:58.335053+00:00",
+  "last_updated": "2026-09-18T03:00:51.720506+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3068,57 +3068,57 @@
       "last_attempt": "2026-09-18T02:57:54.078524+00:00"
     },
     "20260217_1MYxNgvZeNnKw": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYxNgvZeNnKw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:57:54.078526+00:00"
+      "last_attempt": "2026-09-18T02:59:41.824090+00:00"
     },
     "20260216_1BdGYymjXOYGX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYymjXOYGX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:57:54.078528+00:00"
+      "last_attempt": "2026-09-18T02:59:41.824109+00:00"
     },
     "20260217_1nAKErNpDYAGL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1nAKErNpDYAGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:57:54.078529+00:00"
+      "last_attempt": "2026-09-18T02:59:41.824114+00:00"
     },
     "20260217_1mnxeRbNvAaKX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRbNvAaKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:57:54.078530+00:00"
+      "last_attempt": "2026-09-18T02:59:41.824118+00:00"
+    },
+    "20260216_1DXxyvPdmZEKM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyvPdmZEKM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824121+00:00"
+    },
+    "20260216_1BdxYyzwXevxX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdxYyzwXevxX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824124+00:00"
+    },
+    "20260218_1ynKOabBOerJR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynKOabBOerJR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824127+00:00"
+    },
+    "20260216_1djxXlaQRnexZ": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlaQRnexZ']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824130+00:00"
+    },
+    "20260218_1ynJOabwAvQKR": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOabwAvQKR']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824133+00:00"
+    },
+    "20260217_1LyGBqVBnMnKN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBqVBnMnKN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:59:41.824135+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRAeoDNzJl",
-      "name": "MiNDWAR",
-      "date": "Nov 8, 2022"
-    },
-    {
-      "tag": "20260218_1vOxwMWlYPmGB",
-      "name": "\ud83d\udc7dUFO Brekkie",
-      "date": "Nov 7, 2022"
-    },
-    {
-      "tag": "20260217_1mrGmkOMbgBxy",
-      "name": "\ud83d\udc7d A.i in charge of disclosure? -NO Hands\ud83e\udd1a",
-      "date": "Nov 6, 2022"
-    },
-    {
-      "tag": "20260217_1OdKrzdBRenKX",
-      "name": "All aboard the crazy train! Woo Woo! \ud83d\ude82",
-      "date": "Nov 5, 2022"
-    },
-    {
-      "tag": "20260217_1RDGlaDQRgzJL",
-      "name": "Sunrise \ud83c\udf04 Surprise \ud83d\udef8\ud83d\udc7d\ud83e\udee2 #mRna",
-      "date": "Nov 4, 2022"
-    },
-    {
-      "tag": "20260217_1MnxnpobBqdGO",
-      "name": "Fearless Monkey Alliance- Sleepers welcome",
-      "date": "Oct 29, 2022"
-    },
     {
       "tag": "20260217_1MYxNgvZeNnKw",
       "name": "Religion/ Freemasonry",
@@ -3188,6 +3188,36 @@
       "tag": "20260216_1jMJgLjPnvjxL",
       "name": "--TESTING-- Don't Enter",
       "date": "Oct 14, 2022"
+    },
+    {
+      "tag": "20260217_1PlKQpBqpyyxE",
+      "name": "3kdjrbrj",
+      "date": "Oct 11, 2022"
+    },
+    {
+      "tag": "20260218_1ynJOavvNblKR",
+      "name": "can you hear me? can't get this app to work today",
+      "date": "Oct 10, 2022"
+    },
+    {
+      "tag": "20260216_1eaKbrMybgoKX",
+      "name": "Salsa dancing with my confusion",
+      "date": "Oct 10, 2022"
+    },
+    {
+      "tag": "20260216_1BRJjZDzQRWJw",
+      "name": "Conscious Connections \u269c\ufe0f",
+      "date": "Oct 9, 2022"
+    },
+    {
+      "tag": "20260216_1DXxyvkAAjbKM",
+      "name": "MIDDAY Thursday Thoughts",
+      "date": "Oct 6, 2022"
+    },
+    {
+      "tag": "20260218_1ynJOagRAqyKR",
+      "name": "14 HR Intermission mark",
+      "date": "Oct 5, 2022"
     }
   ]
 }
