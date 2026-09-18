@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:53:58.915044+00:00",
+  "last_updated": "2026-09-18T02:55:30.583228+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -3018,57 +3018,57 @@
       "last_attempt": "2026-09-18T02:53:20.140592+00:00"
     },
     "20260216_1jMJgLadNWmxL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLadNWmxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:53:20.140595+00:00"
+      "last_attempt": "2026-09-18T02:54:39.588905+00:00"
     },
     "20260217_1LyxBqmjYoYJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqmjYoYJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:53:20.140598+00:00"
+      "last_attempt": "2026-09-18T02:54:39.588924+00:00"
     },
     "20260217_1rmGPkwjrzYKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkwjrzYKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:53:20.140601+00:00"
+      "last_attempt": "2026-09-18T02:54:39.588929+00:00"
     },
     "20260217_1RDxlabMgrrKL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDxlabMgrrKL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:53:20.140604+00:00"
+      "last_attempt": "2026-09-18T02:54:39.588933+00:00"
+    },
+    "20260217_1vAxRAeoDNzJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAeoDNzJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588937+00:00"
+    },
+    "20260218_1vOxwMWlYPmGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1vOxwMWlYPmGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588940+00:00"
+    },
+    "20260217_1mrGmkOMbgBxy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmkOMbgBxy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588943+00:00"
+    },
+    "20260217_1OdKrzdBRenKX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OdKrzdBRenKX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588946+00:00"
+    },
+    "20260217_1RDGlaDQRgzJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlaDQRgzJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588948+00:00"
+    },
+    "20260217_1MnxnpobBqdGO": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnxnpobBqdGO']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:54:39.588951+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1rmGPkVNvNYKN",
-      "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
-      "date": "Nov 25, 2022"
-    },
-    {
-      "tag": "20260216_1BRKjZMLNBLKw",
-      "name": "after astral party \ud83c\udf8a",
-      "date": "Nov 24, 2022"
-    },
-    {
-      "tag": "20260217_1MYxNgQrNqNKw",
-      "name": "The physiognomy of ulterior, superior, and anterior races of humanoid.",
-      "date": "Nov 18, 2022"
-    },
-    {
-      "tag": "20260217_1rmGPkVLZEmKN",
-      "name": "Planets & Produce",
-      "date": "Nov 17, 2022"
-    },
-    {
-      "tag": "20260216_1eaKbrZjzYRKX",
-      "name": "love love",
-      "date": "Nov 17, 2022"
-    },
-    {
-      "tag": "20260218_1yoKMZgZglwGQ",
-      "name": "\ud83d\ude80NASA conspiracies & Area 51 \ud83d\udc7d",
-      "date": "Nov 16, 2022"
-    },
     {
       "tag": "20260216_1jMJgLadNWmxL",
       "name": "5-1030pm Richard Doty Q & A , then afterParty till morning\ud83d\udef8\ud83d\udc7d",
@@ -3138,6 +3138,36 @@
       "tag": "20260217_1mnxeRbNvAaKX",
       "name": "beep",
       "date": "Oct 26, 2022"
+    },
+    {
+      "tag": "20260216_1DXxyvPdmZEKM",
+      "name": "InFamous brings da noize",
+      "date": "Oct 26, 2022"
+    },
+    {
+      "tag": "20260216_1BdxYyzwXevxX",
+      "name": "TOWN SQUARE.. NO HANDS. OPEN FORUM, SPEAK FREELY",
+      "date": "Oct 25, 2022"
+    },
+    {
+      "tag": "20260218_1ynKOabBOerJR",
+      "name": "\u269b\ufe0f\ud83c\udf0eWandering Thoughts Of Collective Consciousness Though the Unknown\ud83d\udc7d\ud83d\udc7b",
+      "date": "Oct 24, 2022"
+    },
+    {
+      "tag": "20260216_1djxXlaQRnexZ",
+      "name": "UFO AFTER DARK \ud83e\uddeb\ud83e\uddea",
+      "date": "Oct 24, 2022"
+    },
+    {
+      "tag": "20260218_1ynJOabwAvQKR",
+      "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
+      "date": "Oct 23, 2022"
+    },
+    {
+      "tag": "20260217_1LyGBqVBnMnKN",
+      "name": "MICHAEL JACKSON \u2728\ud83d\udc40",
+      "date": "Oct 21, 2022"
     }
   ]
 }
