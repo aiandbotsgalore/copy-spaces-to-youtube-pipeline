@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:41:22.689355+00:00",
+  "last_updated": "2026-09-18T02:42:36.759440+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2868,57 +2868,57 @@
       "last_attempt": "2026-09-18T02:40:41.435566+00:00"
     },
     "20260218_1BdxYykLvbyxX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1BdxYykLvbyxX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:40:41.435567+00:00"
+      "last_attempt": "2026-09-18T02:41:55.282434+00:00"
     },
     "20260217_1mrxmklDwWNGy": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmklDwWNGy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:40:41.435570+00:00"
+      "last_attempt": "2026-09-18T02:41:55.282455+00:00"
     },
     "20260216_1gqxvyAPBonJB": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvyAPBonJB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:40:41.435573+00:00"
+      "last_attempt": "2026-09-18T02:41:55.282459+00:00"
     },
     "20260218_1YpJkgjrgrmJj": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpJkgjrgrmJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:40:41.435574+00:00"
+      "last_attempt": "2026-09-18T02:41:55.282462+00:00"
+    },
+    "20260217_1OyKAVnaLzrGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVnaLzrGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282465+00:00"
+    },
+    "20260217_1lDxLnqYOaMGm": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1lDxLnqYOaMGm']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282467+00:00"
+    },
+    "20260217_1rmxPkBvDpXJN": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmxPkBvDpXJN']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282469+00:00"
+    },
+    "20260217_1kvKpmLmOaVGE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1kvKpmLmOaVGE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282471+00:00"
+    },
+    "20260217_1PlKQpopPwZxE": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1PlKQpopPwZxE']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282473+00:00"
+    },
+    "20260217_1OyKAVkVeWrGb": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1OyKAVkVeWrGb']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:41:55.282475+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1rmGPkEmyDmKN",
-      "name": "\ud83c\udf44\ud83d\udc7dCome get your #UFO Disclosure #ufotwitter\ud83d\udc79\ud83d\udc7b\ud83e\udd16",
-      "date": "Dec 17, 2022"
-    },
-    {
-      "tag": "20260217_1nAKErneLLVGL",
-      "name": "AI Alien Debate After midnight\ud83d\udeac\ud83e\udd16\ud83d\udc7e \ud83d\udc7d #ufotwitter #NASA",
-      "date": "Dec 17, 2022"
-    },
-    {
-      "tag": "20260218_1ynKOarNamVJR",
-      "name": "MISSING 411 - The UFO Connection",
-      "date": "Dec 16, 2022"
-    },
-    {
-      "tag": "20260217_1OdKrzmywLyKX",
-      "name": "UFO news & discussion #ufotwitter #twitterspace",
-      "date": "Dec 16, 2022"
-    },
-    {
-      "tag": "20260217_1kvKpmlVLvkGE",
-      "name": "Mr. Rogers is getting SuperFreq \ud83e\udd20\ud83d\udc7d and so is Daniel!",
-      "date": "Dec 15, 2022"
-    },
-    {
-      "tag": "20260216_1djGXlkYALPGZ",
-      "name": "Mr.Rogers lives in the ghetto with Elmo",
-      "date": "Dec 15, 2022"
-    },
     {
       "tag": "20260218_1BdxYykLvbyxX",
       "name": "12/12 Twitter took away 4650 of the people I'm following.(This is why)",
@@ -2988,6 +2988,36 @@
       "tag": "20260217_1OdKrzQRVneKX",
       "name": "\u26a0\ufe0fTWITTER FILES LIVE\u2757",
       "date": "Dec 6, 2022"
+    },
+    {
+      "tag": "20260218_1vOxwMDOgZPGB",
+      "name": "Recorded Banshee Live while Rod Roddy Piper battles Kent drunk",
+      "date": "Dec 5, 2022"
+    },
+    {
+      "tag": "20260216_1djGXlDApoyGZ",
+      "name": "Today's #Hot Topics ft. Keith Morrison",
+      "date": "Dec 4, 2022"
+    },
+    {
+      "tag": "20260217_1mrGmkLLZpMxy",
+      "name": "Love",
+      "date": "Dec 2, 2022"
+    },
+    {
+      "tag": "20260217_1mnxeRPnORaKX",
+      "name": "\ud83c\udf44\ud83d\udc7dShameless Saucer Society- Sending Tayler \u2764",
+      "date": "Dec 2, 2022"
+    },
+    {
+      "tag": "20260218_1vOxwMDQDLdGB",
+      "name": "LOVE IS ALL YOU NEED & TAYLER",
+      "date": "Dec 1, 2022"
+    },
+    {
+      "tag": "20260217_1vAxRAmjWnRJl",
+      "name": "Your Space",
+      "date": "Dec 1, 2022"
     }
   ]
 }
