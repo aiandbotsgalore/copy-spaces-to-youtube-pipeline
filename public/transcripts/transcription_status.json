@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T08:38:36.015058+00:00",
+  "last_updated": "2026-09-18T08:40:21.196049+00:00",
   "total_episodes_with_audio": 782,
   "transcribed_count": 124,
   "untranscribed_count": 658,
@@ -8,24 +8,24 @@
   "is_queue_complete": false,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 9,
+      "attempts": 10,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061520+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870394+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 9,
+      "attempts": 10,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061525+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870397+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 9,
+      "attempts": 10,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061528+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870400+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
-      "attempts": 7,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061531+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870403+00:00"
     },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
@@ -38,29 +38,29 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 7,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061534+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870407+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 7,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061536+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870410+00:00"
     },
     "20260218_1YqxolWyzENKv": {
-      "attempts": 7,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqxolWyzENKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061539+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870412+00:00"
     },
     "20260216_1BdGYZPYmdgJX": {
-      "attempts": 6,
+      "attempts": 7,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYZPYmdgJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061542+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870415+00:00"
     },
     "20260218_1YpKkkdjqzmKj": {
-      "attempts": 6,
+      "attempts": 7,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkkdjqzmKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061544+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870418+00:00"
     },
     "20260218_1YqGolWYLPlJv": {
       "attempts": 5,
@@ -3303,9 +3303,9 @@
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
     },
     "20260918_1mGPaZqoVQXJN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1mGPaZqoVQXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T08:37:53.061503+00:00"
+      "last_attempt": "2026-09-18T08:39:18.870374+00:00"
     }
   },
   "next_in_queue": [
