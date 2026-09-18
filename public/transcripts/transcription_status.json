@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-18T02:36:12.092203+00:00",
+  "last_updated": "2026-09-18T02:37:36.082925+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2788,57 +2788,57 @@
       "last_attempt": "2026-09-18T02:35:32.623976+00:00"
     },
     "20260217_1MYGNgBbkXVJw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MYGNgBbkXVJw']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623978+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608820+00:00"
     },
     "20260218_1yNxaNwbgmnKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNxaNwbgmnKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623982+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608840+00:00"
     },
     "20260217_1mnxeRnLmloKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnxeRnLmloKX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623985+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608843+00:00"
     },
     "20260216_1djxXlkWdRkxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1djxXlkWdRkxZ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623989+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608846+00:00"
     },
     "20260217_1vAxRARvmDYJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRARvmDYJl']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623991+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608848+00:00"
     },
     "20260217_1MnGnpjlkwdxO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1MnGnpjlkwdxO']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T02:35:32.623994+00:00"
+      "last_attempt": "2026-09-18T02:36:43.608850+00:00"
+    },
+    "20260216_1BdGYykenzQGX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYykenzQGX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:36:43.608852+00:00"
+    },
+    "20260217_1vAxRAREEZqJl": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1vAxRAREEZqJl']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:36:43.608854+00:00"
+    },
+    "20260217_1mrxmklrbokGy": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrxmklrbokGy']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:36:43.608856+00:00"
+    },
+    "20260216_1dRJZMkLrObGB": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1dRJZMkLrObGB']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:36:43.608857+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1dRKZMVRkYAxB",
-      "name": "alcohol hour",
-      "date": "Dec 27, 2022"
-    },
-    {
-      "tag": "20260216_1BRJjZjRMkwJw",
-      "name": "Did Santa leave you alien technology? Astral is holding an RV space",
-      "date": "Dec 26, 2022"
-    },
-    {
-      "tag": "20260217_1mrGmkzjQQWxy",
-      "name": "Corey Goode, David Wilcox, David Adair-Insertion\ud83c\udf46#ufotwitter",
-      "date": "Dec 25, 2022"
-    },
-    {
-      "tag": "20260217_1mnGeRnMkOvJX",
-      "name": "Alien Attacks w/ Matt Hurley- BadAliens.info #UFOtwitter",
-      "date": "Dec 23, 2022"
-    },
     {
       "tag": "20260217_1MYGNgBbkXVJw",
       "name": "Matt Hurley of BadAliens.info interview with r/UFOB",
@@ -2918,6 +2918,26 @@
       "tag": "20260216_1djGXlkYALPGZ",
       "name": "Mr.Rogers lives in the ghetto with Elmo",
       "date": "Dec 15, 2022"
+    },
+    {
+      "tag": "20260218_1BdxYykLvbyxX",
+      "name": "12/12 Twitter took away 4650 of the people I'm following.(This is why)",
+      "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260217_1mrxmklDwWNGy",
+      "name": "SLEEP SCIENCE",
+      "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260216_1gqxvyAPBonJB",
+      "name": "12/12",
+      "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260218_1YpJkgjrgrmJj",
+      "name": "Chat gpt Ai",
+      "date": "Dec 12, 2022"
     }
   ]
 }
