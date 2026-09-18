@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-17T23:46:47.708280+00:00",
+  "last_updated": "2026-09-18T02:27:25.057929+00:00",
   "total_episodes_with_audio": 781,
   "transcribed_count": 124,
   "untranscribed_count": 657,
@@ -2688,57 +2688,57 @@
       "last_attempt": "2026-09-17T23:46:10.900113+00:00"
     },
     "20260217_1LyxBqbXnRPJN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyxBqbXnRPJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900115+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936673+00:00"
     },
     "20260218_1ynJOazZeAVKR": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1ynJOazZeAVKR']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900117+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936697+00:00"
     },
     "20260216_1jMKgLyQyNAGL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMKgLyQyNAGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900119+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936700+00:00"
     },
     "20260217_1rmGPkDNLMXKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1rmGPkDNLMXKN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900121+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936703+00:00"
     },
     "20260218_1yoJMZlDeawxQ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yoJMZlDeawxQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900123+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936706+00:00"
     },
     "20260216_1jMJgLyAVgmxL": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgLyAVgmxL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-17T23:46:10.900124+00:00"
+      "last_attempt": "2026-09-18T02:26:14.936708+00:00"
+    },
+    "20260217_1mnGeRkMerYJX": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mnGeRkMerYJX']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:26:14.936710+00:00"
+    },
+    "20260218_1YqKDoVNzzDxV": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqKDoVNzzDxV']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:26:14.936711+00:00"
+    },
+    "20260217_1RDGlawyYYrJL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1RDGlawyYYrJL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:26:14.936714+00:00"
+    },
+    "20260216_1DXGyvZvZpEJM": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXGyvZvZpEJM']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-18T02:26:14.936715+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260220_1djGXlYkooRGZ",
-      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
-      "date": "Jan 19, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZRlQoeJw",
-      "name": "Space broken?",
-      "date": "Jan 19, 2023"
-    },
-    {
-      "tag": "20260218_1YpJkgeaVDEJj",
-      "name": "BIGELOW SECRETS",
-      "date": "Jan 18, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAzQrkYJl",
-      "name": "Messages from the future? [Open Discussion]",
-      "date": "Jan 15, 2023"
-    },
     {
       "tag": "20260217_1LyxBqbXnRPJN",
       "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
@@ -2818,6 +2818,26 @@
       "tag": "20260218_1YpKkgpeBdrKj",
       "name": "No sleep till...UAP Report",
       "date": "Dec 27, 2022"
+    },
+    {
+      "tag": "20260216_1dRKZMVRkYAxB",
+      "name": "alcohol hour",
+      "date": "Dec 27, 2022"
+    },
+    {
+      "tag": "20260216_1BRJjZjRMkwJw",
+      "name": "Did Santa leave you alien technology? Astral is holding an RV space",
+      "date": "Dec 26, 2022"
+    },
+    {
+      "tag": "20260217_1mrGmkzjQQWxy",
+      "name": "Corey Goode, David Wilcox, David Adair-Insertion\ud83c\udf46#ufotwitter",
+      "date": "Dec 25, 2022"
+    },
+    {
+      "tag": "20260217_1mnGeRnMkOvJX",
+      "name": "Alien Attacks w/ Matt Hurley- BadAliens.info #UFOtwitter",
+      "date": "Dec 23, 2022"
     }
   ]
 }
