@@ -373,16 +373,21 @@ def transcribe_audio_chunk_deepgram(
     deepgram_key: str,
     time_offset: float = 0.0
 ) -> List[Dict[str, Any]]:
-    """Transcribes a single audio file/chunk with Deepgram Nova-2 with speaker diarization."""
+    """Transcribes a single audio file/chunk with Deepgram Nova-2 with word-level speaker diarization."""
     print(f"[*] Submitting {audio_path.name} ({audio_path.stat().st_size / (1024*1024):.1f} MB, offset: {time_offset:.1f}s) to Deepgram Nova-2...")
 
+    # Fix 3: Deepgram Diarization Tuning
+    # - diarize=true: enables speaker diarization
+    # - filler_words=true: retains interjections (yeah, uh-huh, right) with proper speaker attribution
+    # - smart_format=true & punctuate=true: clean formatting
+    # - Omit coarse utterances=true so we build exact turn boundaries from word-level speaker tags
     endpoint = (
         "https://api.deepgram.com/v1/listen?"
         "model=nova-2&"
         "smart_format=true&"
         "diarize=true&"
         "punctuate=true&"
-        "utterances=true"
+        "filler_words=true"
     )
 
     headers = {
@@ -407,34 +412,25 @@ def transcribe_audio_chunk_deepgram(
     result = resp.json()
     print(f"[✓] Deepgram transcription completed in {elapsed:.1f}s!")
 
-    # Extract utterances
-    utterances = result.get("results", {}).get("utterances", [])
+    # Fix 1: Word-Level State Machine
+    # Use word-by-word speaker tags as the primary source of truth for crisp turn boundaries
+    alts = result.get("results", {}).get("channels", [{}])[0].get("alternatives", [{}])[0]
+    words = alts.get("words", [])
     segments: List[Dict[str, Any]] = []
 
-    if utterances:
-        for u in utterances:
-            text = u.get("transcript", "").strip()
-            if not text:
-                continue
-            spk_num = u.get("speaker", 0)
-            segments.append({
-                "start": round(u.get("start", 0.0) + time_offset, 2),
-                "end": round(u.get("end", 0.0) + time_offset, 2),
-                "speaker": f"Speaker {spk_num}",
-                "text": text
-            })
-    else:
-        # Fallback to alternatives paragraphs / words if utterances not returned
-        alts = result.get("results", {}).get("channels", [{}])[0].get("alternatives", [{}])[0]
-        words = alts.get("words", [])
+    if words:
         curr_speaker = None
         curr_start = 0.0
         curr_end = 0.0
-        curr_words = []
+        curr_words: List[str] = []
 
         for w in words:
-            spk = f"Speaker {w.get('speaker', 0)}"
-            word_text = w.get("punctuated_word") or w.get("word", "")
+            spk_id = w.get("speaker", 0)
+            spk = f"Speaker {spk_id}"
+            word_text = (w.get("punctuated_word") or w.get("word", "")).strip()
+            if not word_text:
+                continue
+
             w_start = w.get("start", 0.0) + time_offset
             w_end = w.get("end", 0.0) + time_offset
 
@@ -443,10 +439,29 @@ def transcribe_audio_chunk_deepgram(
                 curr_start = w_start
                 curr_end = w_end
                 curr_words = [word_text]
-            elif curr_speaker == spk and (w_start - curr_end) < 2.0:
-                curr_words.append(word_text)
-                curr_end = w_end
+            elif curr_speaker == spk:
+                # Same speaker continues
+                # If there's a significant pause (>2.5s) AND the previous word ended a sentence,
+                # split into a new segment for visual readability
+                last_word = curr_words[-1] if curr_words else ""
+                sentence_ended = any(last_word.endswith(p) for p in [".", "!", "?", ".\"", "!\"", "?\""])
+                pause_gap = w_start - curr_end
+
+                if pause_gap > 2.5 and sentence_ended:
+                    segments.append({
+                        "start": round(curr_start, 2),
+                        "end": round(curr_end, 2),
+                        "speaker": curr_speaker,
+                        "text": " ".join(curr_words).strip()
+                    })
+                    curr_start = w_start
+                    curr_end = w_end
+                    curr_words = [word_text]
+                else:
+                    curr_words.append(word_text)
+                    curr_end = w_end
             else:
+                # Speaker SWITCH: immediately flush previous speaker's turn!
                 if curr_words:
                     segments.append({
                         "start": round(curr_start, 2),
@@ -465,6 +480,20 @@ def transcribe_audio_chunk_deepgram(
                 "end": round(curr_end, 2),
                 "speaker": curr_speaker,
                 "text": " ".join(curr_words).strip()
+            })
+    else:
+        # Fallback to coarse utterances only if word-level data is unavailable
+        utterances = result.get("results", {}).get("utterances", [])
+        for u in utterances:
+            text = u.get("transcript", "").strip()
+            if not text:
+                continue
+            spk_num = u.get("speaker", 0)
+            segments.append({
+                "start": round(u.get("start", 0.0) + time_offset, 2),
+                "end": round(u.get("end", 0.0) + time_offset, 2),
+                "speaker": f"Speaker {spk_num}",
+                "text": text
             })
 
     return segments
@@ -590,14 +619,21 @@ def process_audio_file(
         except Exception:
             pass
 
-    # Merge consecutive segments by the same speaker with short pauses
+    # Fix 2: Prevent aggressive merging across sentences or distinct thoughts.
+    # Only merge tight intra-sentence fragments (<0.6s) without sentence terminators.
     merged: List[Dict[str, Any]] = []
     for s in all_segments:
-        if not s["text"].strip():
+        text = s["text"].strip()
+        if not text:
             continue
-        if merged and merged[-1]["speaker"] == s["speaker"] and (s["start"] - merged[-1]["end"]) < 2.5:
+        if (
+            merged
+            and merged[-1]["speaker"] == s["speaker"]
+            and (s["start"] - merged[-1]["end"]) < 0.6
+            and not any(merged[-1]["text"].endswith(p) for p in [".", "!", "?", ".\"", "!\"", "?\""])
+        ):
             merged[-1]["end"] = s["end"]
-            merged[-1]["text"] += " " + s["text"].strip()
+            merged[-1]["text"] += " " + text
         else:
             merged.append(s)
 
