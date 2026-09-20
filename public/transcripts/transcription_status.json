@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-20T14:59:00.708832+00:00",
+  "last_updated": "2026-09-20T15:36:16.758093+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 148,
-  "untranscribed_count": 637,
-  "percent_complete": 18.9,
+  "transcribed_count": 158,
+  "untranscribed_count": 627,
+  "percent_complete": 20.1,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mrGmBzbrLBJy",
-      "name": "Disclosure knights",
-      "date": "Oct 13, 2025"
-    },
-    {
-      "tag": "20260217_1OdKrOwbmDpGX",
-      "name": "Go Within \ud83e\udee0",
-      "date": "Oct 13, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnPWNRpYxO",
-      "name": "Snuggles Gets Weird & Marries Makedon",
-      "date": "Oct 4, 2025"
-    },
-    {
-      "tag": "20260217_1OyKAjRlrzrGb",
-      "name": "God Sauce's Dungeon",
-      "date": "Sep 21, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnPompVoxO",
-      "name": "Zen and the art of egg nog: Combating Weaponized Vaginas",
-      "date": "Sep 16, 2025"
-    },
-    {
-      "tag": "20260218_1ypKdqaNYRrGW",
-      "name": "9/11 ALL DAY",
-      "date": "Sep 11, 2025"
-    },
-    {
-      "tag": "20260217_1kvKpMYNNgXGE",
-      "name": "Se\u00f1or Snug in the Mornin\u2019",
-      "date": "Sep 3, 2025"
-    },
-    {
-      "tag": "20260218_1YqJDNvRgwkKV",
-      "name": "\u201cSauce is a piece of deranged shit\u201d- Anonymous",
-      "date": "Aug 31, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLBWEDAoGm",
-      "name": "Synonym buns, like grammar used to make. \ud83e\udd50\ud83c\udf69\ud83e\udd6e\u2615\ufe0f",
-      "date": "Aug 29, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnPqAVVwGO",
-      "name": "UFOTwitter Thought Pond - 5 observables of crop circles \u2622\ufe0f\ud83d\udd25\ud83c\udf00\u269b\ufe0f\u267e\ufe0f",
-      "date": "Aug 29, 2025"
-    },
     {
       "tag": "20260218_1ypKdqRaobpGW",
       "name": "Cat-a-strophic Disclosure",
@@ -114,6 +64,56 @@
       "tag": "20260217_1mrxmPPjpvDJy",
       "name": "Kimball judged before his peers. #truth #justice",
       "date": "Aug 2, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmPPloMdKy",
+      "name": "twitter-spaces video #1mrGmPPloMdKy",
+      "date": "Aug 2, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpybQyQmGE",
+      "name": "???????",
+      "date": "Jul 29, 2025"
+    },
+    {
+      "tag": "20260216_1djGXVrLBwoxZ",
+      "name": "Credentials please.",
+      "date": "Jul 29, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqMBdEBZKb",
+      "name": "\ud83c\udff4\u200d\u2620\ufe0f\ud83c\udff4\u200d\u2620\ufe0fpirates get free booty",
+      "date": "Jul 19, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwkvblBKO",
+      "name": "Literally on monkey Vacation and drunk",
+      "date": "Jul 13, 2025"
+    },
+    {
+      "tag": "20260218_1YpJkBzBlOoGj",
+      "name": "Matt Monroe Dark Gift",
+      "date": "Jul 10, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYqYRodEGX",
+      "name": "Debunking Gary McKinnon",
+      "date": "Jul 8, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLzylZYZGm",
+      "name": "Remix",
+      "date": "Jul 4, 2025"
+    },
+    {
+      "tag": "20260218_1zqKVjeZdwXKB",
+      "name": "Dimensional",
+      "date": "Jun 30, 2025"
+    },
+    {
+      "tag": "20260218_1yoKMoXRVRDJQ",
+      "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
+      "date": "Jun 29, 2025"
     }
   ]
 }
