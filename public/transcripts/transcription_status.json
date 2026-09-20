@@ -1,119 +1,124 @@
 {
-  "last_updated": "2026-09-20T16:35:28.792806+00:00",
+  "last_updated": "2026-09-20T18:29:27.814937+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 168,
-  "untranscribed_count": 617,
-  "percent_complete": 21.4,
-  "auto_chain_active": true,
+  "transcribed_count": 197,
+  "untranscribed_count": 588,
+  "percent_complete": 25.1,
+  "auto_chain_active": false,
   "is_queue_complete": false,
-  "fatal_error": null,
+  "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
       "attempts": 9,
       "last_error": "FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'",
       "last_attempt": "2026-09-20T09:24:47.237123+00:00"
+    },
+    "20260217_1kvJpyQkoYVxE": {
+      "attempts": 1,
+      "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
+      "last_attempt": "2026-09-20T18:28:30.930760+00:00"
     }
   },
   "next_in_queue": [
     {
-      "tag": "20260217_1mrGmPPloMdKy",
-      "name": "twitter-spaces video #1mrGmPPloMdKy",
-      "date": "Aug 2, 2025"
+      "tag": "20260217_1kvJpyQkoYVxE",
+      "name": "Atacama Desert Anomalies",
+      "date": "May 15, 2025"
     },
     {
-      "tag": "20260217_1kvKpybQyQmGE",
-      "name": "???????",
-      "date": "Jul 29, 2025"
+      "tag": "20260217_1MYGNwAvrBRJw",
+      "name": "High Level Physics Breakthrough  & Mind Melding Discussion\u26a1\ufe0f\u26a1\ufe0f\ud83d\udc7d",
+      "date": "May 13, 2025"
     },
     {
-      "tag": "20260216_1djGXVrLBwoxZ",
-      "name": "Credentials please.",
-      "date": "Jul 29, 2025"
+      "tag": "20260217_1PlJQMARWENJE",
+      "name": "Chappie Movie Fans",
+      "date": "May 12, 2025"
     },
     {
-      "tag": "20260217_1lPKqMBdEBZKb",
-      "name": "\ud83c\udff4\u200d\u2620\ufe0f\ud83c\udff4\u200d\u2620\ufe0fpirates get free booty",
-      "date": "Jul 19, 2025"
+      "tag": "20260216_1BdxYqvzqNBxX",
+      "name": "VC Rips The flow",
+      "date": "May 12, 2025"
     },
     {
-      "tag": "20260217_1MnxnwkvblBKO",
-      "name": "Literally on monkey Vacation and drunk",
-      "date": "Jul 13, 2025"
+      "tag": "20260216_1jMKgkYvBzWKL",
+      "name": "Snuggles Unpacks the Soul of the Machine",
+      "date": "May 10, 2025"
     },
     {
-      "tag": "20260218_1YpJkBzBlOoGj",
-      "name": "Matt Monroe Dark Gift",
-      "date": "Jul 10, 2025"
+      "tag": "20260218_1YqGooWWWlbGv",
+      "name": "Veit",
+      "date": "May 9, 2025"
     },
     {
-      "tag": "20260216_1BdGYqYRodEGX",
-      "name": "Debunking Gary McKinnon",
-      "date": "Jul 8, 2025"
+      "tag": "20260216_1djGXVvDeXXxZ",
+      "name": "THE UFO Thunderdome",
+      "date": "May 8, 2025"
     },
     {
-      "tag": "20260217_1lDxLzylZYZGm",
-      "name": "Remix",
-      "date": "Jul 4, 2025"
+      "tag": "20260217_1OdKrDeXLVwJX",
+      "name": "Reptilians of Blue Mountains",
+      "date": "May 6, 2025"
     },
     {
-      "tag": "20260218_1zqKVjeZdwXKB",
-      "name": "Dimensional",
-      "date": "Jun 30, 2025"
+      "tag": "20260218_1YqGooEQnZMGv",
+      "name": "\u26a0\ufe0fSIGNAL CHATS EXPOSED! \ud83d\udc7d\ud83d\ude31\ud83d\udd25 #ufoX",
+      "date": "May 5, 2025"
     },
     {
-      "tag": "20260218_1yoKMoXRVRDJQ",
-      "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
-      "date": "Jun 29, 2025"
+      "tag": "20260216_1dRKZYXQPlQxB",
+      "name": "The Best of Chase! \ud83c\udf36\ufe0f\ud83d\udd25\ud83d\udd25\ud83d\udd25",
+      "date": "May 5, 2025"
     },
     {
-      "tag": "20260217_1PlJQMmPYZBJE",
-      "name": "Negative Quantum States, Demiurge, Sofia -Visit Snuggles.Support",
-      "date": "Jun 28, 2025"
+      "tag": "20260218_1ypJdZLWVgvKW",
+      "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
+      "date": "May 2, 2025"
     },
     {
-      "tag": "20260216_1dRJZYLgYXMGB",
-      "name": "Biotech Realities\ud83e\uddec\ud83e\udd16",
-      "date": "Jun 22, 2025"
+      "tag": "20260217_1MnGnwrAOnkJO",
+      "name": "\ud83c\udfa7 Joe Rogan x Hal Puthoff: UFO Disclosure Listening Party",
+      "date": "May 1, 2025"
     },
     {
-      "tag": "20260218_1YqJDZnjrPEKV",
-      "name": "Car",
-      "date": "Jun 20, 2025"
+      "tag": "20260216_1gqGvjRjZQeGB",
+      "name": "Short fafo",
+      "date": "Apr 30, 2025"
     },
     {
-      "tag": "20260217_1nAKEgypZpZJL",
-      "name": "Eternal Ai & Immortal Biologics",
-      "date": "Jun 13, 2025"
+      "tag": "20260216_1djGXVEqeqBxZ",
+      "name": "Physics reboot\u26a0\ufe0f\u26a1\ufe0f",
+      "date": "Apr 29, 2025"
     },
     {
-      "tag": "20260217_1lPKqMoEQZPKb",
-      "name": "Enki, Loki, Annunaki -jester trickster gods who teach through mischief",
-      "date": "Jun 13, 2025"
+      "tag": "20260218_1yNGaLAqkgrKj",
+      "name": "the thrilling conclusion",
+      "date": "Apr 28, 2025"
     },
     {
-      "tag": "20260218_1ZkKzYkaBXRxv",
-      "name": "Skynet",
-      "date": "Jun 9, 2025"
+      "tag": "20260216_1djGXVEvajvxZ",
+      "name": "Paranormal Break: Tune in for Tales of Poo and Peril.",
+      "date": "Apr 28, 2025"
     },
     {
-      "tag": "20260217_1rmxPyNmyrnKN",
-      "name": "Love and enlightenment",
-      "date": "Jun 6, 2025"
+      "tag": "20260217_1vAxRDXmRqqGl",
+      "name": "Rick Doty Live! (Reboot)",
+      "date": "Apr 27, 2025"
     },
     {
-      "tag": "20260216_1dRKZYgeZPDxB",
-      "name": "Earthquakes",
-      "date": "Jun 6, 2025"
+      "tag": "20260218_1ynJOldDdzQxR",
+      "name": "BLUE",
+      "date": "Apr 25, 2025"
     },
     {
-      "tag": "20260218_1vOxwXAgXRDKB",
-      "name": "UFO DNA",
-      "date": "May 31, 2025"
+      "tag": "20260218_1ynJOldVRBWxR",
+      "name": "Jesse Michels: UFO WHISTLEBLOWER",
+      "date": "Apr 23, 2025"
     },
     {
-      "tag": "20260217_1OyJALNQwDoGb",
-      "name": "UFO ABDUCTION: Pascagoula '73",
-      "date": "May 31, 2025"
+      "tag": "20260216_1BRJjmkgmXBGw",
+      "name": "420 soon zzz",
+      "date": "Apr 20, 2025"
     }
   ]
 }
