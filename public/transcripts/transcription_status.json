@@ -1,31 +1,31 @@
 {
-  "last_updated": "2026-09-20T02:00:08.033798+00:00",
-  "total_episodes_with_audio": 784,
+  "last_updated": "2026-09-20T02:45:58.550687+00:00",
+  "total_episodes_with_audio": 785,
   "transcribed_count": 124,
-  "untranscribed_count": 660,
+  "untranscribed_count": 661,
   "percent_complete": 15.8,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 813,
+      "attempts": 814,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079068+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206340+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 813,
+      "attempts": 814,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079071+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206342+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 813,
+      "attempts": 814,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079073+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206346+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
-      "attempts": 811,
+      "attempts": 812,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079075+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206348+00:00"
     },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
@@ -38,14 +38,14 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 811,
+      "attempts": 812,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079077+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206351+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 811,
+      "attempts": 812,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079079+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206353+00:00"
     },
     "20260218_1YqxolWyzENKv": {
       "attempts": 811,
@@ -3303,22 +3303,32 @@
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
     },
     "20260918_1mGPaZqoVQXJN": {
-      "attempts": 805,
+      "attempts": 806,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1mGPaZqoVQXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079066+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206337+00:00"
     },
     "20260918_1wGWjlMgYrAKQ": {
-      "attempts": 505,
+      "attempts": 506,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1wGWjlMgYrAKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079063+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206333+00:00"
     },
     "20260919_1dxYlaMMOdzJX": {
-      "attempts": 121,
+      "attempts": 122,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260919_1dxYlaMMOdzJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079040+00:00"
+      "last_attempt": "2026-09-20T02:45:01.206329+00:00"
+    },
+    "20260918_1MJgNbdaAPlGL": {
+      "attempts": 1,
+      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1MJgNbdaAPlGL']' returned non-zero exit status 1.",
+      "last_attempt": "2026-09-20T02:45:01.206311+00:00"
     }
   },
   "next_in_queue": [
+    {
+      "tag": "20260918_1MJgNbdaAPlGL",
+      "name": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "date": "Sep 18, 2026"
+    },
     {
       "tag": "20260919_1dxYlaMMOdzJX",
       "name": "Quadruple_Amputee_Centaur",
@@ -3413,11 +3423,6 @@
       "tag": "20260216_1eaKbjXvNOrKX",
       "name": "President Trump[Logan AFK]",
       "date": "Oct 25, 2025"
-    },
-    {
-      "tag": "20260217_1vOGwdpDYndJB",
-      "name": "psyonic Weird",
-      "date": "Oct 18, 2025"
     }
   ]
 }
