@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-20T14:28:41.842916+00:00",
+  "last_updated": "2026-09-20T14:59:00.708832+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 138,
-  "untranscribed_count": 647,
-  "percent_complete": 17.6,
+  "transcribed_count": 148,
+  "untranscribed_count": 637,
+  "percent_complete": 18.9,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyKAjODoLgGb",
-      "name": "Huberman\u2019s Seat of the Will: The Brain\u2019s Hidden Engine",
-      "date": "Nov 1, 2025"
-    },
-    {
-      "tag": "20260217_1kvKpMqzmDgGE",
-      "name": "Disclosure dissarono",
-      "date": "Oct 28, 2025"
-    },
-    {
-      "tag": "20260217_1mnGeNYAeDZJX",
-      "name": "metamaterials and the soul",
-      "date": "Oct 27, 2025"
-    },
-    {
-      "tag": "20260218_1ZkJzZWVgwNJv",
-      "name": "Cold pizza",
-      "date": "Oct 25, 2025"
-    },
-    {
-      "tag": "20260216_1eaKbjXvNOrKX",
-      "name": "President Trump[Logan AFK]",
-      "date": "Oct 25, 2025"
-    },
-    {
-      "tag": "20260217_1vOGwdpDYndJB",
-      "name": "psyonic Weird",
-      "date": "Oct 18, 2025"
-    },
-    {
-      "tag": "20260216_1eaKbjLBmjZKX",
-      "name": "WIZARD LOUNGE",
-      "date": "Oct 18, 2025"
-    },
-    {
-      "tag": "20260218_1zqKVdzmaqdJB",
-      "name": "Dr Snuggles Gets Wrekt",
-      "date": "Oct 17, 2025"
-    },
-    {
-      "tag": "20260217_1lPKqvArqebGb",
-      "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
-      "date": "Oct 16, 2025"
-    },
-    {
-      "tag": "20260216_1gqxvrMpZjjxB",
-      "name": "The Dawn Of A New Reality\ud83d\udd74\ufe0f+\ud83d\udeac+\ud83e\uddf8",
-      "date": "Oct 14, 2025"
-    },
     {
       "tag": "20260217_1mrGmBzbrLBJy",
       "name": "Disclosure knights",
@@ -114,6 +64,56 @@
       "tag": "20260217_1MnxnPqAVVwGO",
       "name": "UFOTwitter Thought Pond - 5 observables of crop circles \u2622\ufe0f\ud83d\udd25\ud83c\udf00\u269b\ufe0f\u267e\ufe0f",
       "date": "Aug 29, 2025"
+    },
+    {
+      "tag": "20260218_1ypKdqRaobpGW",
+      "name": "Cat-a-strophic Disclosure",
+      "date": "Aug 18, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBoEYMdJy",
+      "name": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
+      "date": "Aug 16, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnPYepnOxO",
+      "name": "Space #999",
+      "date": "Aug 15, 2025"
+    },
+    {
+      "tag": "20260217_1vAGRDQOpRjxl",
+      "name": "Random",
+      "date": "Aug 11, 2025"
+    },
+    {
+      "tag": "20260216_1dRKZYaqAqAxB",
+      "name": "Fractal Unified Coherence Kinetics",
+      "date": "Aug 8, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqMvWlvMKb",
+      "name": "A New Age Has Begun",
+      "date": "Aug 7, 2025"
+    },
+    {
+      "tag": "20260216_1DXxyqWmAOgxM",
+      "name": "Heroes, Claims & UFO Jesus \u26a1\ufe0f",
+      "date": "Aug 6, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmPPwDWQKy",
+      "name": "Deductibility coincides with logical consequences?",
+      "date": "Aug 5, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLzzNyZmGm",
+      "name": "Conspiracy Theory Generator",
+      "date": "Aug 3, 2025"
+    },
+    {
+      "tag": "20260217_1mrxmPPjpvDJy",
+      "name": "Kimball judged before his peers. #truth #justice",
+      "date": "Aug 2, 2025"
     }
   ]
 }
