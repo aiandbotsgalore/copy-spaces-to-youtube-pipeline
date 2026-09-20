@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-20T03:06:10.895721+00:00",
+  "last_updated": "2026-09-20T03:07:23.337590+00:00",
   "total_episodes_with_audio": 785,
   "transcribed_count": 124,
   "untranscribed_count": 661,
@@ -8,24 +8,24 @@
   "is_queue_complete": false,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 828,
+      "attempts": 829,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346438+00:00"
+      "last_attempt": "2026-09-20T03:06:47.117998+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 828,
+      "attempts": 829,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346441+00:00"
+      "last_attempt": "2026-09-20T03:06:47.118001+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 828,
+      "attempts": 829,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346443+00:00"
+      "last_attempt": "2026-09-20T03:06:47.118005+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
-      "attempts": 826,
+      "attempts": 827,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346446+00:00"
+      "last_attempt": "2026-09-20T03:06:47.118008+00:00"
     },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
@@ -38,14 +38,14 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 826,
+      "attempts": 827,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346450+00:00"
+      "last_attempt": "2026-09-20T03:06:47.118011+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 826,
+      "attempts": 827,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346452+00:00"
+      "last_attempt": "2026-09-20T03:06:47.118013+00:00"
     },
     "20260218_1YqxolWyzENKv": {
       "attempts": 811,
@@ -3303,24 +3303,24 @@
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
     },
     "20260918_1mGPaZqoVQXJN": {
-      "attempts": 820,
+      "attempts": 821,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1mGPaZqoVQXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346435+00:00"
+      "last_attempt": "2026-09-20T03:06:47.117995+00:00"
     },
     "20260918_1wGWjlMgYrAKQ": {
-      "attempts": 520,
+      "attempts": 521,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1wGWjlMgYrAKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346432+00:00"
+      "last_attempt": "2026-09-20T03:06:47.117992+00:00"
     },
     "20260919_1dxYlaMMOdzJX": {
-      "attempts": 136,
+      "attempts": 137,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260919_1dxYlaMMOdzJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346406+00:00"
+      "last_attempt": "2026-09-20T03:06:47.117967+00:00"
     },
     "20260918_1MJgNbdaAPlGL": {
-      "attempts": 15,
+      "attempts": 16,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1MJgNbdaAPlGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T03:05:20.346427+00:00"
+      "last_attempt": "2026-09-20T03:06:47.117987+00:00"
     }
   },
   "next_in_queue": [
