@@ -27,6 +27,7 @@ import subprocess
 import urllib.parse
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
+from collections import defaultdict
 
 import requests
 
@@ -76,29 +77,73 @@ def get_audio_duration(file_path: Path) -> float:
     return 0.0
 
 
-def resolve_speakers_with_gemini(segments: List[Dict[str, Any]], gemini_api_key: str) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
-    """Uses Gemini 2.5 Flash to resolve generic 'Speaker 0', 'Speaker 1' to real conversational names."""
-    if not gemini_api_key or not segments:
-        return segments, {}
+def load_known_speakers(repo_root: Optional[Path] = None) -> List[str]:
+    """Loads known recurring hosts and community speakers."""
+    default_speakers = [
+        "Angela", "Logan", "Oor", "Eric Hecker", "Mary", "Shane",
+        "Lana", "Rick Doty", "Gabe", "Parr", "Chan", "Tom"
+    ]
+    known_set = set(default_speakers)
 
-    try:
-        total_segs = len(segments)
-        sample_candidates = segments if total_segs <= 300 else (
-            segments[:100] + segments[max(100, (total_segs // 2) - 50):max(100, (total_segs // 2) + 50)] + segments[-100:]
-        )
-        sample_lines = [f"[{s['start']:.1f}s] {s['speaker']}: {s['text']}" for s in sample_candidates]
-        transcript_sample = "\n".join(sample_lines)
+    paths_to_try = []
+    if repo_root:
+        paths_to_try.append(repo_root / "voice_profiles.json")
+    paths_to_try.extend([
+        Path("voice_profiles.json"),
+        Path(__file__).parent.parent / "voice_profiles.json",
+        Path(__file__).parent / "voice_profiles.json"
+    ])
 
-        prompt = f"""You are an expert audio diarization analyst. Analyze this Twitter Space transcript sample and identify the real names of the generic speakers (e.g. Speaker 0, Speaker 1, etc.) based on:
-1. Direct self-introductions (e.g. "I am [Name]", "This is [Name]")
-2. How others address them in conversation (e.g. "Hey Logan", "Morning Parr", "Thanks Chan")
-3. Self-descriptions and conversational roles.
+    for p in paths_to_try:
+        if p.exists():
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    for k in data.get("profiles", {}).keys():
+                        if k and not k.lower().startswith("speaker"):
+                            known_set.add(k.strip())
+            except Exception:
+                pass
+            break
 
-Return a JSON object with this exact schema:
+    return sorted(list(known_set))
+
+
+def resolve_speakers_llm(
+    segments: List[Dict[str, Any]],
+    title: str,
+    known_speakers: List[str],
+    gemini_key: str = "",
+    cohere_key: str = "",
+    openrouter_key: str = ""
+) -> Dict[str, str]:
+    """Tries resolving speaker names via LLM with full context (Gemini -> Cohere -> OpenRouter)."""
+    if not segments:
+        return {}
+
+    total_segs = len(segments)
+    sample_candidates = segments if total_segs <= 120 else (
+        segments[:60] + segments[max(60, (total_segs // 2) - 20):max(60, (total_segs // 2) + 20)] + segments[-40:]
+    )
+    sample_lines = [f"[{s['start']:.1f}s] {s['speaker']}: {s['text']}" for s in sample_candidates]
+    transcript_sample = "\n".join(sample_lines)
+
+    prompt = f"""You are an expert audio diarization analyst. Identify the real names of the generic speakers (e.g. Speaker 0, Speaker 1, etc.) in this Twitter Space transcript.
+
+Space Title: {title}
+Known Community Hosts & Recurring Speakers: {', '.join(known_speakers)}
+
+Diarization & Identification Rules:
+1. Direct Self-Introductions: Look for speakers introducing themselves (e.g. "I'm Angela", "This is Logan").
+2. Direct Conversational Address: Look for when one speaker directly addresses another (e.g. "Good morning Angela, thanks for hosting", "I agree with you Angela"). Note who was speaking before or after.
+3. Third-Person vs Direct Address: Do NOT confuse talking ABOUT a person (e.g. "we are reading Logan Black chats", "Logan was unmasked") with the person speaking! If a host is discussing someone, the host is NOT that subject unless they explicitly say so.
+4. Host Identification: The dominant speaker who is addressed as host by participants is the host.
+5. Only map speakers you are confident about (confidence >= 0.70). Do not use generic labels like "Unknown" or "Speaker".
+
+Return a valid JSON object with this exact schema:
 {{
   "speaker_mappings": [
-    {{"speaker_id": "Speaker 0", "identified_name": "Logan", "confidence": 0.95}},
-    ...
+    {{"speaker_id": "Speaker 0", "identified_name": "Angela", "confidence": 0.95}}
   ]
 }}
 
@@ -106,47 +151,221 @@ Transcript sample:
 {transcript_sample}
 """
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_api_key}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json"}
-        }
+    generic_tokens = {"participant", "unknown", "listener", "guest", "someone", "unidentified", "audience", "none"}
 
-        resp = requests.post(url, headers=headers, json=payload, timeout=45)
-        if resp.status_code != 200:
-            return segments, {}
+    def parse_speaker_json(text: str) -> Dict[str, str]:
+        if not text:
+            return {}
+        clean_text = text.strip()
+        if "```" in clean_text:
+            clean_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", clean_text, flags=re.MULTILINE).strip()
+        match = re.search(r"\{[\s\S]*\}", clean_text)
+        if match:
+            clean_text = match.group(0)
+        try:
+            parsed = json.loads(clean_text)
+            mappings = {}
+            for m in parsed.get("speaker_mappings", []):
+                spk_id = m.get("speaker_id", "")
+                name = m.get("identified_name", "").strip()
+                conf = float(m.get("confidence", 0.0))
+                if spk_id and name and conf >= 0.70:
+                    if not any(token in name.lower() for token in generic_tokens) and not name.lower().startswith("speaker"):
+                        mappings[spk_id] = name
+            return mappings
+        except Exception:
+            return {}
 
-        data = resp.json()
-        raw_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-        if not raw_text:
-            return segments, {}
+    # 1. Try Gemini Flash
+    if gemini_key:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json"}
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            if resp.status_code == 200:
+                raw_text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                res = parse_speaker_json(raw_text)
+                if res:
+                    print(f"[*] Resolved speakers via Gemini Flash: {res}")
+                    return res
+        except Exception as e:
+            print(f"[!] Notice: Gemini speaker resolution skipped: {e}")
 
-        parsed = json.loads(raw_text)
-        mappings = {}
-        generic_tokens = {"participant", "unknown", "listener", "guest", "someone", "unidentified", "audience", "none"}
+    # 2. Try Cohere Command Fallback
+    if cohere_key:
+        try:
+            url = "https://api.cohere.ai/v1/chat"
+            headers = {
+                "Authorization": f"Bearer {cohere_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "message": prompt,
+                "temperature": 0.1,
+                "response_format": {"type": "json_object"}
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            if resp.status_code == 200:
+                raw_text = resp.json().get("text", "")
+                res = parse_speaker_json(raw_text)
+                if res:
+                    print(f"[*] Resolved speakers via Cohere Command: {res}")
+                    return res
+        except Exception as e:
+            print(f"[!] Notice: Cohere speaker resolution skipped: {e}")
 
-        for m in parsed.get("speaker_mappings", []):
-            spk_id = m.get("speaker_id", "")
-            name = m.get("identified_name", "").strip()
-            conf = float(m.get("confidence", 0.0))
-            if spk_id and name and conf >= 0.70:
-                if not any(token in name.lower() for token in generic_tokens) and not name.lower().startswith("speaker"):
-                    mappings[spk_id] = name
+    # 3. Try OpenRouter Fallback
+    if openrouter_key:
+        for m_slug in ["google/gemini-2.5-flash", "openai/gpt-4o-mini"]:
+            try:
+                url = "https://openrouter.ai/api/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {openrouter_key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": m_slug,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "response_format": {"type": "json_object"}
+                }
+                resp = requests.post(url, headers=headers, json=payload, timeout=30)
+                if resp.status_code == 200:
+                    raw_text = resp.json()["choices"][0]["message"]["content"]
+                    res = parse_speaker_json(raw_text)
+                    if res:
+                        print(f"[*] Resolved speakers via OpenRouter ({m_slug}): {res}")
+                        return res
+            except Exception:
+                pass
 
-        if mappings:
-            print(f"[*] AI Speaker Resolution Identified:")
-            for k, v in mappings.items():
-                print(f"    • {k} -> {v}")
-            for s in segments:
-                if s["speaker"] in mappings:
-                    s["speaker"] = mappings[s["speaker"]]
+    return {}
 
-        return segments, mappings
 
-    except Exception as e:
-        print(f"[!] Notice: Speaker name resolution skipped: {e}")
+def analyze_conversational_heuristics(
+    segments: List[Dict[str, Any]],
+    known_speakers: List[str]
+) -> Dict[str, str]:
+    """Deterministic, zero-API conversational analyzer detecting self-intros and vocatives."""
+    if not segments:
+        return {}
+
+    name_pattern = "|".join(re.escape(n) for n in known_speakers)
+    self_intro_re = re.compile(
+        rf"(?:(?<!said\s)(?<!says\s)(?<!told\s)\b(?:i(?:'m| am)|this is|my name is|it(?:'s| s) me)\s+({name_pattern})\b)",
+        re.IGNORECASE
+    )
+    direct_addr_re = re.compile(
+        rf"(?:"
+        rf"(?:[,\.\?!]|\b(?:hey|hi|hello|morning|thanks|thank you|sorry|appreciate|agree with|tell|ask|apologize to|here)\b)\s*,?\s*({name_pattern})\b"
+        rf"|"
+        rf"\b({name_pattern})\s*,\s*(?:what|can|could|do|did|would|are|you|how|let|please|i think|i know|look|see|yeah)\b"
+        rf")",
+        re.IGNORECASE
+    )
+    third_person_re = re.compile(
+        rf"\b(?:about|reading|post|allegation|chats|tweets|video|expose|unmasked|story of)\s+({name_pattern})\b|"
+        rf"\b({name_pattern})(?:'s|\s+chats|\s+video|\s+tweets|\s+allegations|\s+was|\s+did|\s+said)\b",
+        re.IGNORECASE
+    )
+
+    talk_times = {}
+    for s in segments:
+        talk_times[s["speaker"]] = talk_times.get(s["speaker"], 0.0) + (s["end"] - s["start"])
+    top_spk = max(talk_times.items(), key=lambda x: x[1])[0] if talk_times else None
+
+    speaker_scores = defaultdict(lambda: defaultdict(float))
+
+    for i, seg in enumerate(segments):
+        spk = seg["speaker"]
+        text = seg["text"]
+
+        # 1. Self introductions
+        for intro in self_intro_re.findall(text):
+            target = next(n for n in known_speakers if n.lower() == intro.lower())
+            speaker_scores[spk][target] += 10.0
+
+        # 2. Direct address
+        for m in direct_addr_re.findall(text):
+            found_raw = next(n for n in m if n)
+            target = next(n for n in known_speakers if n.lower() == found_raw.lower())
+            idx_name = text.lower().find(found_raw.lower())
+            surrounding = text[max(0, idx_name - 20):idx_name + len(found_raw) + 20]
+            if third_person_re.search(surrounding) and not any(k in surrounding.lower() for k in ["morning", "thanks", "apologize", "here,"]):
+                continue
+
+            if i > 0 and segments[i - 1]["speaker"] != spk:
+                speaker_scores[segments[i - 1]["speaker"]][target] += 3.0
+            elif top_spk and spk != top_spk:
+                speaker_scores[top_spk][target] += 2.0
+
+    mappings = {}
+    assigned = set()
+    for spk, scores in sorted(speaker_scores.items(), key=lambda item: max(item[1].values(), default=0.0), reverse=True):
+        if not scores:
+            continue
+        best_name, best_score = max(scores.items(), key=lambda x: x[1])
+        if best_name in assigned:
+            continue
+        if best_score >= 5.0:
+            mappings[spk] = best_name
+            assigned.add(best_name)
+
+    return mappings
+
+
+def resolve_speakers_intelligently(
+    segments: List[Dict[str, Any]],
+    title: str = "",
+    gemini_key: str = "",
+    cohere_key: str = "",
+    openrouter_key: str = ""
+) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """Comprehensive multi-tier speaker identification."""
+    if not segments:
         return segments, {}
+
+    known_speakers = load_known_speakers()
+
+    # Tier 1: Try LLM resolution with full context
+    llm_mappings = resolve_speakers_llm(
+        segments=segments,
+        title=title,
+        known_speakers=known_speakers,
+        gemini_key=gemini_key,
+        cohere_key=cohere_key,
+        openrouter_key=openrouter_key
+    )
+
+    # Tier 2: Deterministic conversational analysis
+    heuristic_mappings = analyze_conversational_heuristics(
+        segments=segments,
+        known_speakers=known_speakers
+    )
+
+    # Combine mappings (LLM prioritized, filled by heuristics)
+    final_mappings = dict(heuristic_mappings)
+    final_mappings.update(llm_mappings)
+
+    if final_mappings:
+        print(f"[*] AI Speaker Resolution Identified:")
+        for spk_id, name in final_mappings.items():
+            print(f"    • {spk_id} -> {name}")
+        for s in segments:
+            if s["speaker"] in final_mappings:
+                s["speaker"] = final_mappings[s["speaker"]]
+
+    return segments, final_mappings
+
+
+def resolve_speakers_with_gemini(segments: List[Dict[str, Any]], gemini_api_key: str) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    """Backwards compatibility alias for resolve_speakers_intelligently."""
+    cohere_key = os.environ.get("COHERE_API_KEY", "")
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "")
+    return resolve_speakers_intelligently(segments, gemini_key=gemini_api_key, cohere_key=cohere_key, openrouter_key=openrouter_key)
 
 
 def transcribe_audio_chunk_deepgram(
@@ -256,7 +475,9 @@ def process_audio_file(
     deepgram_key: str,
     gemini_key: str,
     title: str,
-    output_dir: Path
+    output_dir: Path,
+    cohere_key: str = "",
+    openrouter_key: str = ""
 ) -> Tuple[Path, Path, Path, float]:
     """Processes an audio file through the 2GB Workaround Pipeline and Deepgram Nova-2."""
     file_size = input_audio.stat().st_size
@@ -383,7 +604,13 @@ def process_audio_file(
     all_segments = merged
 
     # AI Contextual Speaker Resolution
-    all_segments, _ = resolve_speakers_with_gemini(all_segments, gemini_key)
+    all_segments, _ = resolve_speakers_intelligently(
+        segments=all_segments,
+        title=title,
+        gemini_key=gemini_key,
+        cohere_key=cohere_key,
+        openrouter_key=openrouter_key
+    )
 
     # Compute speaker talk time stats
     speaker_talk_time: Dict[str, float] = {}
@@ -455,6 +682,8 @@ def main():
 
     gh_token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
+    cohere_key = os.environ.get("COHERE_API_KEY", "").strip()
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
     headers = {
         "Accept": "application/vnd.github+json",
@@ -523,12 +752,15 @@ def main():
             with open(json_path, "wb") as f:
                 f.write(j_resp.content)
         else:
+            space_title = release_data.get("name") or stem
             txt_path, srt_path, json_path, _ = process_audio_file(
                 input_audio=local_mp3,
                 deepgram_key=deepgram_key,
                 gemini_key=gemini_key,
-                title=stem,
-                output_dir=output_dir
+                title=space_title,
+                output_dir=output_dir,
+                cohere_key=cohere_key,
+                openrouter_key=openrouter_key
             )
 
         # Highlight clip extraction via Gemini Flash

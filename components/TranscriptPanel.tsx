@@ -226,6 +226,7 @@ const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: stri
 };
 
 const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
+  { id: 'angela',    name: 'Angela',    avatarEmoji: '🎙️', color: 'rose',    role: 'Host'          },
   { id: 'logan',     name: 'Logan',     avatarEmoji: '🎙️', color: 'indigo',  role: 'Host'          },
   { id: 'mary',      name: 'Mary',      avatarEmoji: '👩‍🎨', color: 'purple',  role: 'Co-Host'       },
   { id: 'oor',       name: 'Oor',       avatarEmoji: '⚡',  color: 'sky',     role: 'Speaker'       },
