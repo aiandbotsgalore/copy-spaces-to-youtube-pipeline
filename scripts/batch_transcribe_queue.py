@@ -261,14 +261,25 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
 
     history = failed_history if failed_history is not None else analysis.get("failed_history", {})
     
+    fatal_error = None
+    for item in history.values():
+        err = item.get("last_error", "")
+        if "spend limit" in err.lower():
+            fatal_error = "Modal workspace has exceeded its spend limit. Please update billing/credits at https://modal.com/settings/billing."
+            break
+        elif "not authenticated" in err.lower() or "authentication failed" in err.lower():
+            fatal_error = "Modal authentication failed. Please verify MODAL_TOKEN_ID and MODAL_TOKEN_SECRET in GitHub secrets."
+            break
+
     data = {
         "last_updated": datetime.now(timezone.utc).isoformat(),
         "total_episodes_with_audio": total_with_audio,
         "transcribed_count": len(analysis["transcribed"]),
         "untranscribed_count": len(analysis["untranscribed"]),
         "percent_complete": pct,
-        "auto_chain_active": len(analysis["untranscribed"]) > 0,
+        "auto_chain_active": len(analysis["untranscribed"]) > 0 and not fatal_error,
         "is_queue_complete": len(analysis["untranscribed"]) == 0,
+        "fatal_error": fatal_error,
         "failed_episodes": history,
         "next_in_queue": [
             {
@@ -366,14 +377,40 @@ def main():
         cmd = ["modal", "run", "modal_transcriber.py", "--release-tag", tag]
         start_time = time.time()
         try:
-            res = subprocess.run(cmd, check=True)
+            res = subprocess.run(cmd, capture_output=True, text=True)
             elapsed = time.time() - start_time
-            print(f"[✓] Completed {tag} in {elapsed:.1f}s!")
-            success_count += 1
-        except subprocess.CalledProcessError as err:
-            elapsed = time.time() - start_time
-            print(f"[!] Failed transcribing {tag} (exit code {err.returncode}) after {elapsed:.1f}s. Continuing queue...")
-            failed_items.append({"tag": tag, "error": str(err)})
+            if res.returncode == 0:
+                print(f"[✓] Completed {tag} in {elapsed:.1f}s!")
+                if res.stdout.strip():
+                    for line in res.stdout.strip().splitlines()[-4:]:
+                        print(f"    {line}")
+                success_count += 1
+            else:
+                combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
+                error_summary = f"Modal exited with code {res.returncode}"
+                if "exceeded its spend limit" in combined_output:
+                    error_summary = "Modal workspace has exceeded its spend limit"
+                elif "Not authenticated" in combined_output:
+                    error_summary = "Modal authentication failed (invalid or missing tokens)"
+                elif res.stderr.strip():
+                    non_empty = [l.strip() for l in res.stderr.strip().splitlines() if l.strip()]
+                    if non_empty:
+                        error_summary = non_empty[-1][:120]
+
+                print(f"[!] Failed transcribing {tag} ({error_summary}) after {elapsed:.1f}s.")
+                if res.stdout.strip():
+                    print(f"--- MODAL STDOUT ---\n{res.stdout.strip()}\n--------------------")
+                if res.stderr.strip():
+                    print(f"--- MODAL STDERR ---\n{res.stderr.strip()}\n--------------------")
+
+                failed_items.append({"tag": tag, "error": error_summary})
+
+                if "exceeded its spend limit" in combined_output or "Not authenticated" in combined_output:
+                    print("\n" + "!" * 65)
+                    print(f"[🛑] FATAL MODAL INFRASTRUCTURE ERROR: {error_summary}")
+                    print("     Halting remaining batch queue immediately to prevent wasted runs.")
+                    print("!" * 65 + "\n")
+                    break
         except Exception as e:
             elapsed = time.time() - start_time
             print(f"[!] Error processing {tag}: {e}. Continuing queue...")
@@ -412,7 +449,8 @@ def main():
 
     # Emit outputs to GitHub Actions runner
     remaining_count = len(fresh_analysis["missing_clips"] if args.missing_clips else fresh_analysis["untranscribed"])
-    has_more = remaining_count > 0
+    # Crucial safeguard: only auto-chain if at least one episode was successfully transcribed
+    has_more = (remaining_count > 0) and (success_count > 0)
     github_output = os.environ.get("GITHUB_OUTPUT")
     if github_output:
         try:
@@ -421,7 +459,7 @@ def main():
                 f.write(f"remaining_count={remaining_count}\n")
                 f.write(f"transcribed_count={len(fresh_analysis['transcribed'])}\n")
                 f.write(f"success_count={success_count}\n")
-            print(f"[✓] Emitted GitHub Action outputs: has_more={has_more}, remaining_count={remaining_count}")
+            print(f"[✓] Emitted GitHub Action outputs: has_more={has_more}, remaining_count={remaining_count}, success_count={success_count}")
         except Exception as e:
             print(f"[!] Notice: Failed to write GITHUB_OUTPUT: {e}")
 

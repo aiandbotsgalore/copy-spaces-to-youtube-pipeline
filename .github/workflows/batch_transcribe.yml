@@ -72,6 +72,13 @@ jobs:
           fi
           python scripts/batch_transcribe_queue.py --limit "${{ inputs.limit || 10 }}" $DRY_ARG $CLIPS_ARG
 
+      - name: Rebuild Transcripts Search Index
+        if: always() && steps.transcribe_step.outcome != 'skipped' && inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/build_transcripts_index.py || echo "[!] Warning: Failed to rebuild transcripts search index"
+
       - name: Commit Updated Search Index and Status
         if: always() && steps.transcribe_step.outcome != 'skipped'
         run: |
@@ -90,7 +97,7 @@ jobs:
           gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
 
       - name: Auto-Chain Next Batch
-        if: always() && steps.transcribe_step.outputs.has_more == 'true' && inputs.dry_run != 'true'
+        if: always() && steps.transcribe_step.outputs.has_more == 'true' && steps.transcribe_step.outputs.success_count != '0' && inputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

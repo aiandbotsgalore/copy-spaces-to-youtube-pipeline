@@ -1,31 +1,32 @@
 {
-  "last_updated": "2026-09-20T04:13:22.768581+00:00",
-  "total_episodes_with_audio": 785,
+  "last_updated": "2026-09-18T03:25:41.717487+00:00",
+  "total_episodes_with_audio": 781,
   "transcribed_count": 124,
-  "untranscribed_count": 661,
-  "percent_complete": 15.8,
-  "auto_chain_active": true,
+  "untranscribed_count": 657,
+  "percent_complete": 15.9,
+  "auto_chain_active": false,
   "is_queue_complete": false,
+  "fatal_error": "Modal workspace has exceeded its spend limit. Cloud GPU jobs are paused until spend limit is increased or credits are added at https://modal.com/settings/billing.",
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 873,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933097+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838657+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 873,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933101+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838676+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 873,
+      "attempts": 8,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933104+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838681+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
-      "attempts": 871,
+      "attempts": 6,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933107+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838685+00:00"
     },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
@@ -38,29 +39,29 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 871,
+      "attempts": 6,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933110+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838687+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 871,
+      "attempts": 6,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933113+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838691+00:00"
     },
     "20260218_1YqxolWyzENKv": {
-      "attempts": 811,
+      "attempts": 6,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YqxolWyzENKv']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T01:59:30.079081+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838694+00:00"
     },
     "20260216_1BdGYZPYmdgJX": {
-      "attempts": 689,
+      "attempts": 5,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1BdGYZPYmdgJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-19T20:44:12.575160+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838698+00:00"
     },
     "20260218_1YpKkkdjqzmKj": {
-      "attempts": 305,
+      "attempts": 5,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkkdjqzmKj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T20:54:34.125143+00:00"
+      "last_attempt": "2026-09-18T03:25:13.838700+00:00"
     },
     "20260218_1YqGolWYLPlJv": {
       "attempts": 5,
@@ -3301,49 +3302,9 @@
       "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgeBdvrqKL']' returned non-zero exit status 1.",
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
-    },
-    "20260918_1mGPaZqoVQXJN": {
-      "attempts": 865,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1mGPaZqoVQXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933093+00:00"
-    },
-    "20260918_1wGWjlMgYrAKQ": {
-      "attempts": 565,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1wGWjlMgYrAKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933089+00:00"
-    },
-    "20260919_1dxYlaMMOdzJX": {
-      "attempts": 181,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260919_1dxYlaMMOdzJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933065+00:00"
-    },
-    "20260918_1MJgNbdaAPlGL": {
-      "attempts": 60,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1MJgNbdaAPlGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T04:12:13.933084+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260919_1dxYlaMMOdzJX",
-      "name": "Quadruple_Amputee_Centaur",
-      "date": "Sep 19, 2026"
-    },
-    {
-      "tag": "20260918_1MJgNbdaAPlGL",
-      "name": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
-      "date": "Sep 18, 2026"
-    },
-    {
-      "tag": "20260918_1wGWjlMgYrAKQ",
-      "name": "ALIEN GOSPEL RADIO \ud83d\udcfb",
-      "date": "Sep 18, 2026"
-    },
-    {
-      "tag": "20260918_1mGPaZqoVQXJN",
-      "name": "ZZZ",
-      "date": "Sep 18, 2026"
-    },
     {
       "tag": "20260905_1qxvvedveWWxB",
       "name": "ACHIEVING MY DREAMS \u2728 #RTV",
@@ -3423,6 +3384,26 @@
       "tag": "20260216_1eaKbjXvNOrKX",
       "name": "President Trump[Logan AFK]",
       "date": "Oct 25, 2025"
+    },
+    {
+      "tag": "20260217_1vOGwdpDYndJB",
+      "name": "psyonic Weird",
+      "date": "Oct 18, 2025"
+    },
+    {
+      "tag": "20260216_1eaKbjLBmjZKX",
+      "name": "WIZARD LOUNGE",
+      "date": "Oct 18, 2025"
+    },
+    {
+      "tag": "20260218_1zqKVdzmaqdJB",
+      "name": "Dr Snuggles Gets Wrekt",
+      "date": "Oct 17, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqvArqebGb",
+      "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
+      "date": "Oct 16, 2025"
     }
   ]
 }

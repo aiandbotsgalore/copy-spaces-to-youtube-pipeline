@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
-  Save, CloudCheck, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
+  Save, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
   Globe, Radio, Layers, ArrowRight, Headphones
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
@@ -59,6 +59,7 @@ export interface SearchIndexSegment {
   end: number | null;
   speaker: string;
   text: string;
+  _search?: string;
 }
 
 export interface SearchIndexEpisode {
@@ -274,26 +275,38 @@ const POPULAR_SEARCH_TOPICS = [
 
 function highlightMatch(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text;
-  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  const words = Array.from(new Set(query.trim().split(/\s+/).filter(Boolean))).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!words.length) return text;
+  const regex = new RegExp(`(${words.join('|')})`, 'gi');
+  const wordSet = new Set(query.trim().toLowerCase().split(/\s+/).filter(Boolean));
+  const parts = text.split(regex);
   return parts.map((p, i) =>
-    p.toLowerCase() === query.toLowerCase()
+    wordSet.has(p.toLowerCase())
       ? <mark key={i} className="bg-amber-400/30 text-amber-200 rounded px-0.5 font-medium">{p}</mark>
       : p
   );
 }
 
-async function fetchSearchIndex(): Promise<SearchIndexEpisode[]> {
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+async function fetchSearchIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<SearchIndexEpisode[]> {
+  const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
+  const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
   const urls = [
     `${base}/transcripts/transcripts_search_index.json`,
     '/transcripts/transcripts_search_index.json',
     './transcripts/transcripts_search_index.json',
-  ];
+    pathBase ? `${pathBase}/transcripts/transcripts_search_index.json` : '',
+    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_search_index.json`,
+  ].filter(Boolean);
+
   let lastErr: unknown = null;
   for (const url of Array.from(new Set(urls))) {
     try {
       const res = await fetch(url);
       if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('text/html')) {
+          continue;
+        }
         return await res.json();
       }
     } catch (e) {
@@ -462,6 +475,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const transcriptionPollRef = useRef<number | null>(null);
   const lastAutoScrolledUtteranceRef = useRef<string | null>(null);
   const targetScrollSecRef = useRef<number | null>(null);
+  const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
   const owner = (config.ownerName || '').trim();
@@ -526,19 +540,26 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setGlobalIndexLoading(true);
     setGlobalIndexError('');
     try {
-      const data = await fetchSearchIndex();
+      const data = await fetchSearchIndex(owner || 'aiandbotsgalore', repo || 'copy-spaces-to-youtube-pipeline');
       const sorted = [...data].sort((a, b) => {
         const tA = getEpisodeRecordedDate({ tag_name: a.release_tag, name: a.title, published_at: a.published_at }).timestampMs;
         const tB = getEpisodeRecordedDate({ tag_name: b.release_tag, name: b.title, published_at: b.published_at }).timestampMs;
         return tB - tA;
       });
-      setGlobalIndex(sorted);
+      const indexed = sorted.map(ep => ({
+        ...ep,
+        segments: (ep.segments || []).map(seg => ({
+          ...seg,
+          _search: `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase(),
+        })),
+      }));
+      setGlobalIndex(indexed);
     } catch (e) {
       setGlobalIndexError((e as Error).message);
     } finally {
       setGlobalIndexLoading(false);
     }
-  }, [globalIndex, globalIndexLoading]);
+  }, [globalIndex, globalIndexLoading, owner, repo]);
 
   useEffect(() => {
     loadGlobalIndex();
@@ -629,7 +650,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     const asset = targetAsset !== undefined ? (targetAsset ?? undefined) : (partObj?.transcriptAsset || pickTranscriptAsset(release, pNum));
 
     setSelectedId(release.id);
-    setSearch('');
+    if (!targetScrollRef.current) {
+      setSearch('');
+    }
     setSpeakerFilter('ALL');
     setTranscribeSuccess('');
     try {
@@ -789,7 +812,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }), [parsedUtterances, speakerMap, timeOffsetSec]);
 
   useEffect(() => {
-    if (targetScrollSecRef.current !== null && utterances.length > 0) {
+    if (targetScrollRef.current && utterances.length > 0 && selectedRelease) {
+      const { releaseId, tag, sec } = targetScrollRef.current;
+      if (selectedRelease.id === releaseId || (tag && selectedRelease.tag_name === tag)) {
+        targetScrollRef.current = null;
+        targetScrollSecRef.current = null;
+        const u = utterances.find(item => item.startSec <= sec && (item.endSec === null || item.endSec >= sec))
+          || utterances.find(item => item.startSec >= sec)
+          || utterances[0];
+        if (u) {
+          const timer = setTimeout(() => {
+            const el = document.getElementById(`utterance-card-${u.id}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 200);
+          return () => clearTimeout(timer);
+        }
+      }
+    } else if (targetScrollSecRef.current !== null && utterances.length > 0) {
       const targetSec = targetScrollSecRef.current;
       targetScrollSecRef.current = null;
       const u = utterances.find(item => item.startSec <= targetSec && (item.endSec === null || item.endSec >= targetSec))
@@ -799,11 +838,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         const timer = setTimeout(() => {
           const el = document.getElementById(`utterance-card-${u.id}`);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+        }, 200);
         return () => clearTimeout(timer);
       }
     }
-  }, [utterances]);
+  }, [utterances, selectedRelease]);
 
   const speakerStats = useMemo(() => {
     const counts = new Map<string, number>();
@@ -839,16 +878,20 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return globalIndex.reduce((acc, ep) => acc + (ep.segment_count || ep.segments.length), 0);
   }, [globalIndex]);
 
+  const deferredSearch = useDeferredValue(search);
+
   // All matches for text query across all episodes (without tag or speaker filter)
   const globalAllTextMatches = useMemo((): GlobalSearchResult[] => {
-    if (!globalIndex || !search.trim()) return [];
-    const q = search.trim().toLowerCase();
+    if (!globalIndex || !deferredSearch.trim()) return [];
+    const terms = deferredSearch.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
     const results: GlobalSearchResult[] = [];
 
     for (const ep of globalIndex) {
       for (let i = 0; i < ep.segments.length; i++) {
         const seg = ep.segments[i];
-        if (seg.text.toLowerCase().includes(q) || seg.speaker.toLowerCase().includes(q)) {
+        const searchTarget = seg._search ?? `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase();
+        if (terms.every(term => searchTarget.includes(term))) {
           results.push({
             release_id: ep.release_id,
             release_tag: ep.release_tag,
@@ -862,7 +905,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     }
     return results;
-  }, [globalIndex, search]);
+  }, [globalIndex, deferredSearch]);
 
   // Episode match counts across all text matches (preserved even when an episode is selected)
   const globalResultEpisodeCounts = useMemo(() => {
@@ -916,6 +959,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const handlePlayGlobalResult = (res: GlobalSearchResult) => {
     if (!res.audio_url) return;
+    const isThisPlaying = current?.id === res.release_id && isPlaying &&
+      currentTime >= res.segment.start &&
+      currentTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
+
+    if (isThisPlaying) {
+      togglePlay();
+      return;
+    }
+
     const nowPlaying: NowPlayingEpisode = {
       id: res.release_id,
       title: res.title,
@@ -930,9 +982,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   };
 
   const handleOpenInFullTranscript = (res: GlobalSearchResult) => {
+    targetScrollRef.current = { releaseId: res.release_id, tag: res.release_tag, sec: res.segment.start };
     targetScrollSecRef.current = res.segment.start;
     const rel = effectiveReleases.find(r => r.id === res.release_id || r.tag_name === res.release_tag);
     if (rel) {
+      currentLoadedIdRef.current = rel.id;
       setSelectedId(rel.id);
       loadTranscript(rel);
     }
@@ -1165,7 +1219,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <span className="text-xs font-bold truncate">Search All Transcripts</span>
                     </div>
                     <p className="text-[10px] text-slate-400 truncate">
-                      {globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '84 episodes • 76,200+ turns'}
+                      {globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '120 episodes • 118,800+ turns'}
                     </p>
                   </div>
                 </div>
@@ -1217,7 +1271,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <Globe size={13} />
                           <span>All Transcripts</span>
                           <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px] font-semibold ml-0.5">
-                            {globalIndex ? globalIndex.length : 84}
+                            {globalIndex ? globalIndex.length : 120}
                           </span>
                         </button>
                         {selectedRelease && (
@@ -1234,7 +1288,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 pl-1">
                         <Layers size={13} className="text-indigo-400" />
                         <span className="font-semibold text-slate-200">
-                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '76,200+'}
+                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '118,800+'}
                         </span>
                         <span>indexed turns</span>
                       </div>
@@ -1263,7 +1317,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <input
                         type="text"
                         autoFocus
-                        placeholder={`Search across all ${globalIndex?.length || 84} transcripts (e.g. aliens, bidet, chipper, whistleblower)…`}
+                        placeholder={`Search across all ${globalIndex?.length || 120} transcripts (e.g. aliens, bidet, chipper, whistleblower)…`}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
@@ -1355,9 +1409,20 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 {/* Global Feed Content */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
                   {globalIndexError && (
-                    <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
+                    <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg space-y-2">
                       <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load search index</p>
-                      <p className="mt-1 opacity-90 pl-6">{globalIndexError}</p>
+                      <p className="opacity-90 pl-6">{globalIndexError}</p>
+                      <div className="pl-6 pt-1">
+                        <button
+                          onClick={() => {
+                            setGlobalIndex(null);
+                            loadGlobalIndex();
+                          }}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                        >
+                          Retry Loading Index
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1370,7 +1435,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                         <h3 className="text-xl font-bold text-white tracking-tight">Global Transcript Search</h3>
                         <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
-                          Search across all {globalIndex?.length || 84} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 76239).toLocaleString()} transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
+                          Search across all {globalIndex?.length || 120} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 118826).toLocaleString()} transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
                         </p>
                       </div>
 
@@ -1397,7 +1462,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Indexed Space Library ({globalIndex?.length || 84} Episodes)
+                            Indexed Space Library ({globalIndex?.length || 120} Episodes)
                           </span>
                           <span className="text-[11px] text-slate-500">
                             {totalGlobalSegments.toLocaleString()} total spoken turns
@@ -1441,7 +1506,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
                       <Search size={36} className="mb-3 text-slate-600" />
                       <p className="text-sm font-semibold text-slate-300">
-                        No turns match "{search}" across all {globalIndex?.length || 84} transcripts.
+                        No turns match "{search}" across all {globalIndex?.length || 120} transcripts.
                       </p>
                       <p className="text-xs text-slate-500 mt-1.5">
                         Try checking spelling or searching for a different keyword.
@@ -1466,7 +1531,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                       {globalSearchResults.map((res, idx) => {
                         const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
-                        const isPlayingThis = current?.id === res.release_id && isPlaying && Math.abs(currentTime - res.segment.start) < 20;
+                        const isPlayingThis = current?.id === res.release_id && isPlaying &&
+                          currentTime >= res.segment.start &&
+                          currentTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
                         const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
                         return (
@@ -1648,7 +1715,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white cursor-pointer transition-colors"
                           title="Search all episodes"
                         >
-                          <Globe size={12} className="text-indigo-400" /> All Transcripts ({globalIndex?.length || 84})
+                          <Globe size={12} className="text-indigo-400" /> All Transcripts ({globalIndex?.length || 120})
                         </button>
                         <button
                           onClick={() => setSearchScope('current')}
