@@ -8,6 +8,11 @@ on:
         description: 'Release tag to transcribe (e.g. 20260902_1AJEmvwnykXJL)'
         required: true
         type: string
+      force:
+        description: 'Force re-transcription even if transcript already exists'
+        required: false
+        default: true
+        type: boolean
 
 concurrency:
   group: transcribe-${{ inputs.release_tag }}
@@ -37,6 +42,7 @@ jobs:
           pip install requests
 
       - name: Run Deepgram Cloud Audio Transcription
+        id: transcribe_step
         env:
           DEEPGRAM_API_KEY: ${{ secrets.DEEPGRAM_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,9 +53,31 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           echo "[*] Triggering Deepgram Nova-2 cloud transcription for ${{ inputs.release_tag }}..."
-          python scripts/deepgram_transcriber.py --release-tag "${{ inputs.release_tag }}"
+          FORCE_ARG=""
+          if [ "${{ inputs.force }}" != "false" ]; then
+            FORCE_ARG="--force"
+          fi
+          python scripts/deepgram_transcriber.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
+
+      - name: Rebuild Transcripts Search Index
+        if: always() && steps.transcribe_step.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/build_transcripts_index.py || echo "[!] Warning: Failed to rebuild transcripts search index"
+
+      - name: Commit Updated Search Index
+        if: always() && steps.transcribe_step.outcome == 'success'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/transcripts_search_index.json public/transcripts/transcription_status.json || true
+          git commit -m "chore(transcripts): update search index for ${{ inputs.release_tag }} [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin master || true
+          git push origin master || echo "Push skipped or already up to date"
 
       - name: Trigger RSS Update
+        if: always() && steps.transcribe_step.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
