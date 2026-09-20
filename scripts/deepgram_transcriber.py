@@ -283,15 +283,18 @@ def process_audio_file(
             "-b:a", "48k",
             str(compressed_audio)
         ]
-        res_comp = subprocess.run(compress_cmd, capture_output=True, text=True, errors="replace")
-        if res_comp.returncode == 0 and compressed_audio.exists():
-            new_size = compressed_audio.stat().st_size
-            pct = (1.0 - (new_size / file_size)) * 100
-            print(f"[✓] Compression Complete: {new_size / (1024*1024):.1f} MB ({pct:.1f}% size reduction!)")
-            active_audio = compressed_audio
-            file_size = new_size
-        else:
-            print(f"[!] Notice: FFmpeg compression failed ({res_comp.stderr[-300:]}); proceeding with original.")
+        try:
+            res_comp = subprocess.run(compress_cmd, capture_output=True, text=True, errors="replace")
+            if res_comp.returncode == 0 and compressed_audio.exists():
+                new_size = compressed_audio.stat().st_size
+                pct = (1.0 - (new_size / file_size)) * 100
+                print(f"[✓] Compression Complete: {new_size / (1024*1024):.1f} MB ({pct:.1f}% size reduction!)")
+                active_audio = compressed_audio
+                file_size = new_size
+            else:
+                print(f"[!] Notice: FFmpeg compression skipped; proceeding with original audio.")
+        except Exception as ffmpeg_err:
+            print(f"[!] Notice: FFmpeg execution unavailable ({ffmpeg_err}); proceeding with original audio.")
 
     # -------------------------------------------------------------------------
     # 2GB Workaround - Tier 2: Lossless Cloud Audio Chunking & Stitching
@@ -317,27 +320,35 @@ def process_audio_file(
             "-c", "copy",
             chunk_pattern
         ]
-        res_split = subprocess.run(split_cmd, capture_output=True, text=True, errors="replace")
-        chunk_files = sorted(list(chunks_dir.glob("chunk_*.mp3")))
+        try:
+            res_split = subprocess.run(split_cmd, capture_output=True, text=True, errors="replace")
+            chunk_files = sorted(list(chunks_dir.glob("chunk_*.mp3")))
 
-        if res_split.returncode == 0 and chunk_files:
-            print(f"[✓] Successfully sliced audio into {len(chunk_files)} segment(s).")
-            current_offset = 0.0
+            if res_split.returncode == 0 and chunk_files:
+                print(f"[✓] Successfully sliced audio into {len(chunk_files)} segment(s).")
+                current_offset = 0.0
 
-            for idx, c_file in enumerate(chunk_files, 1):
-                c_dur = get_audio_duration(c_file)
-                print(f"\n--- Processing Chunk [{idx}/{len(chunk_files)}]: {c_file.name} ({format_timestamp(c_dur)}) ---")
-                chunk_segs = transcribe_audio_chunk_deepgram(
-                    audio_path=c_file,
+                for idx, c_file in enumerate(chunk_files, 1):
+                    c_dur = get_audio_duration(c_file)
+                    print(f"\n--- Processing Chunk [{idx}/{len(chunk_files)}]: {c_file.name} ({format_timestamp(c_dur)}) ---")
+                    chunk_segs = transcribe_audio_chunk_deepgram(
+                        audio_path=c_file,
+                        deepgram_key=deepgram_key,
+                        time_offset=current_offset
+                    )
+                    all_segments.extend(chunk_segs)
+                    current_offset += c_dur if c_dur > 0 else chunk_seconds
+
+                shutil.rmtree(chunks_dir, ignore_errors=True)
+            else:
+                print(f"[!] Slicing skipped; submitting as direct audio stream.")
+                all_segments = transcribe_audio_chunk_deepgram(
+                    audio_path=active_audio,
                     deepgram_key=deepgram_key,
-                    time_offset=current_offset
+                    time_offset=0.0
                 )
-                all_segments.extend(chunk_segs)
-                current_offset += c_dur if c_dur > 0 else chunk_seconds
-
-            shutil.rmtree(chunks_dir, ignore_errors=True)
-        else:
-            print(f"[!] Slicing failed, falling back to direct single-pass submission.")
+        except Exception as split_err:
+            print(f"[!] Slicing unavailable ({split_err}); submitting as direct audio stream.")
             all_segments = transcribe_audio_chunk_deepgram(
                 audio_path=active_audio,
                 deepgram_key=deepgram_key,

@@ -30,8 +30,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Dependencies
+      - name: Install FFmpeg & Dependencies
         run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
           pip install requests
 
