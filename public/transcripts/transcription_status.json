@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-20T09:25:33.444706+00:00",
+  "last_updated": "2026-09-20T14:28:41.842916+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 128,
-  "untranscribed_count": 657,
-  "percent_complete": 16.3,
+  "transcribed_count": 138,
+  "untranscribed_count": 647,
+  "percent_complete": 17.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,61 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260905_1qxvvedveWWxB",
-      "name": "ACHIEVING MY DREAMS \u2728 #RTV",
-      "date": "Sep 4, 2026"
-    },
-    {
-      "tag": "20260218_1yNGabVvNRqJj",
-      "name": "Deepstate A.I. Overlord",
-      "date": "Nov 27, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBZOoNLJy",
-      "name": "\ud83d\udd25\ud83d\udd25Snuggles Prime Returns\ud83d\udd25\ud83d\udd25",
-      "date": "Nov 24, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBmelwdJy",
-      "name": "SUPERMIND",
-      "date": "Nov 20, 2025"
-    },
-    {
-      "tag": "20260216_1gqxvrqrRPzxB",
-      "name": "Drugs & Gods",
-      "date": "Nov 13, 2025"
-    },
-    {
-      "tag": "20260216_1DXxyWywdpvGM",
-      "name": "UFO History",
-      "date": "Nov 13, 2025"
-    },
-    {
-      "tag": "20260218_1YqxolWyzENKv",
-      "name": "Gabe",
-      "date": "Nov 12, 2025"
-    },
-    {
-      "tag": "20260216_1BdGYZPYmdgJX",
-      "name": "Graphic Adult Humor: Get Triggered \ud83d\ude18",
-      "date": "Nov 12, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkkdjqzmKj",
-      "name": "slumber siesta",
-      "date": "Nov 9, 2025"
-    },
-    {
-      "tag": "20260218_1YqGolWYLPlJv",
-      "name": "The Future of AI with Snuggles \u2728\ud83e\uddf8",
-      "date": "Nov 8, 2025"
-    },
-    {
-      "tag": "20260217_1rmGPvrXABQxN",
-      "name": "CUDDLE PARTY",
-      "date": "Nov 6, 2025"
-    },
     {
       "tag": "20260217_1OyKAjODoLgGb",
       "name": "Huberman\u2019s Seat of the Will: The Brain\u2019s Hidden Engine",
@@ -114,6 +59,61 @@
       "tag": "20260217_1lPKqvArqebGb",
       "name": "\"UFO gifting site 95% verified\"-AllThingsPodcast",
       "date": "Oct 16, 2025"
+    },
+    {
+      "tag": "20260216_1gqxvrMpZjjxB",
+      "name": "The Dawn Of A New Reality\ud83d\udd74\ufe0f+\ud83d\udeac+\ud83e\uddf8",
+      "date": "Oct 14, 2025"
+    },
+    {
+      "tag": "20260217_1mrGmBzbrLBJy",
+      "name": "Disclosure knights",
+      "date": "Oct 13, 2025"
+    },
+    {
+      "tag": "20260217_1OdKrOwbmDpGX",
+      "name": "Go Within \ud83e\udee0",
+      "date": "Oct 13, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnPWNRpYxO",
+      "name": "Snuggles Gets Weird & Marries Makedon",
+      "date": "Oct 4, 2025"
+    },
+    {
+      "tag": "20260217_1OyKAjRlrzrGb",
+      "name": "God Sauce's Dungeon",
+      "date": "Sep 21, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnPompVoxO",
+      "name": "Zen and the art of egg nog: Combating Weaponized Vaginas",
+      "date": "Sep 16, 2025"
+    },
+    {
+      "tag": "20260218_1ypKdqaNYRrGW",
+      "name": "9/11 ALL DAY",
+      "date": "Sep 11, 2025"
+    },
+    {
+      "tag": "20260217_1kvKpMYNNgXGE",
+      "name": "Se\u00f1or Snug in the Mornin\u2019",
+      "date": "Sep 3, 2025"
+    },
+    {
+      "tag": "20260218_1YqJDNvRgwkKV",
+      "name": "\u201cSauce is a piece of deranged shit\u201d- Anonymous",
+      "date": "Aug 31, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLBWEDAoGm",
+      "name": "Synonym buns, like grammar used to make. \ud83e\udd50\ud83c\udf69\ud83e\udd6e\u2615\ufe0f",
+      "date": "Aug 29, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnPqAVVwGO",
+      "name": "UFOTwitter Thought Pond - 5 observables of crop circles \u2622\ufe0f\ud83d\udd25\ud83c\udf00\u269b\ufe0f\u267e\ufe0f",
+      "date": "Aug 29, 2025"
     }
   ]
 }
