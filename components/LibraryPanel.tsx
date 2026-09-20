@@ -252,7 +252,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         'batch_transcribe.yml',
         { limit: '10' }
       );
-      setBatchMessage('Autonomous queue verified! Modal cloud GPU is continuously processing backlog episodes in order from newest to oldest.');
+      setBatchMessage('Autonomous queue verified! Deepgram Nova-2 is continuously processing backlog episodes in order from newest to oldest.');
       setTimeout(() => loadStatusManifest(), 4000);
     } catch (e) {
       setBatchMessage(`Notice: ${(e as Error).message}`);

@@ -10,7 +10,7 @@ on:
         default: '10'
         type: string
       dry_run:
-        description: 'Preview untranscribed queue in order without running Modal'
+        description: 'Preview untranscribed queue in order without running transcription'
         required: false
         default: false
         type: boolean
