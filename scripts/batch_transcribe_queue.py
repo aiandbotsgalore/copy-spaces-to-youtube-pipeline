@@ -264,11 +264,12 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
     fatal_error = None
     for item in history.values():
         err = item.get("last_error", "")
-        if "spend limit" in err.lower():
-            fatal_error = "Modal workspace has exceeded its spend limit. Please update billing/credits at https://modal.com/settings/billing."
+        err_l = err.lower()
+        if "deepgram_api_key" in err_l or "deepgram authentication" in err_l:
+            fatal_error = "Deepgram API key is missing or invalid. Please add DEEPGRAM_API_KEY to your GitHub Secrets."
             break
-        elif "not authenticated" in err.lower() or "authentication failed" in err.lower():
-            fatal_error = "Modal authentication failed. Please verify MODAL_TOKEN_ID and MODAL_TOKEN_SECRET in GitHub secrets."
+        elif "insufficient" in err_l or "spend limit" in err_l or "funds" in err_l:
+            fatal_error = "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com."
             break
 
     data = {
@@ -361,9 +362,9 @@ def main():
         print("\n[✓] Dry-run complete. Exiting without dispatching transcription jobs.")
         sys.exit(0)
 
-    # Execute Modal transcription for each item in the batch sequentially
+    # Execute Deepgram transcription for each item in the batch sequentially
     print("\n" + "=" * 65)
-    print("              STARTING MODAL GPU TRANSCRIPTION BATCH            ")
+    print("           STARTING DEEPGRAM CLOUD TRANSCRIPTION BATCH          ")
     print("=" * 65)
 
     success_count = 0
@@ -374,7 +375,7 @@ def main():
         name = item["name"]
         print(f"\n>>> [{idx}/{len(to_process)}] Transcribing: {tag} ({name})...")
 
-        cmd = ["modal", "run", "modal_transcriber.py", "--release-tag", tag]
+        cmd = [sys.executable, "scripts/deepgram_transcriber.py", "--release-tag", tag]
         start_time = time.time()
         try:
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -387,11 +388,13 @@ def main():
                 success_count += 1
             else:
                 combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
-                error_summary = f"Modal exited with code {res.returncode}"
-                if "exceeded its spend limit" in combined_output:
-                    error_summary = "Modal workspace has exceeded its spend limit"
-                elif "Not authenticated" in combined_output:
-                    error_summary = "Modal authentication failed (invalid or missing tokens)"
+                error_summary = f"Process exited with code {res.returncode}"
+                if "DEEPGRAM_API_KEY environment variable is not set" in combined_output:
+                    error_summary = "DEEPGRAM_API_KEY environment variable is not set"
+                elif "Deepgram Authentication Failed" in combined_output:
+                    error_summary = "Deepgram Authentication Failed: Invalid API key"
+                elif "Deepgram Insufficient Credits" in combined_output or "INSUFFICIENT_FUNDS" in combined_output:
+                    error_summary = "Deepgram Insufficient Credits: Spend limit or zero balance"
                 elif res.stderr.strip():
                     non_empty = [l.strip() for l in res.stderr.strip().splitlines() if l.strip()]
                     if non_empty:
@@ -399,15 +402,15 @@ def main():
 
                 print(f"[!] Failed transcribing {tag} ({error_summary}) after {elapsed:.1f}s.")
                 if res.stdout.strip():
-                    print(f"--- MODAL STDOUT ---\n{res.stdout.strip()}\n--------------------")
+                    print(f"--- STDOUT ---\n{res.stdout.strip()}\n--------------")
                 if res.stderr.strip():
-                    print(f"--- MODAL STDERR ---\n{res.stderr.strip()}\n--------------------")
+                    print(f"--- STDERR ---\n{res.stderr.strip()}\n--------------")
 
                 failed_items.append({"tag": tag, "error": error_summary})
 
-                if "exceeded its spend limit" in combined_output or "Not authenticated" in combined_output:
+                if "DEEPGRAM_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary:
                     print("\n" + "!" * 65)
-                    print(f"[🛑] FATAL MODAL INFRASTRUCTURE ERROR: {error_summary}")
+                    print(f"[🛑] FATAL DEEPGRAM INFRASTRUCTURE ERROR: {error_summary}")
                     print("     Halting remaining batch queue immediately to prevent wasted runs.")
                     print("!" * 65 + "\n")
                     break

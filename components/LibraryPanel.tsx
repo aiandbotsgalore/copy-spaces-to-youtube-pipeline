@@ -516,7 +516,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   <p className="text-xs text-slate-400 mt-0.5">
                     {untranscribedCount === 0
                       ? 'All episodes in the library have been transcribed with full diarization and highlight clips.'
-                      : 'All episodes are transcribed automatically from newest to oldest via serverless cloud GPUs. Batches self-chain continuously until 100% complete.'}
+                      : 'All episodes are transcribed automatically from newest to oldest via Deepgram Nova-2 cloud audio intelligence with 2GB auto-workaround. Batches self-chain continuously until 100% complete.'}
                   </p>
                 </div>
               </div>
@@ -527,7 +527,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                     onClick={handleEnsureQueueRunning}
                     disabled={batchTranscribing || !hasCredentials}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600/30 hover:bg-indigo-600 disabled:opacity-50 text-indigo-200 hover:text-white border border-indigo-500/30 rounded-lg transition-all cursor-pointer shadow-sm"
-                    title="Ensure the cloud GPU batch queue is running right now"
+                    title="Ensure the cloud batch queue is running right now"
                   >
                     {batchTranscribing ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
                     {batchTranscribing ? 'Verifying Queue…' : 'Sync / Ensure Active'}
@@ -578,11 +578,21 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
               <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2.5">
                 <AlertCircle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-red-300">Modal Infrastructure Notice</p>
+                  <p className="text-xs font-semibold text-red-300">Cloud Transcription Notice</p>
                   <p className="text-xs text-red-400/90 mt-0.5">
                     {transcriptionStatus.fatal_error}
                   </p>
-                  {transcriptionStatus.fatal_error.includes('spend limit') && (
+                  {transcriptionStatus.fatal_error.toLowerCase().includes('deepgram') && (
+                    <a
+                      href="https://console.deepgram.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-red-300 hover:text-red-200 underline mt-1.5 font-medium"
+                    >
+                      Open Deepgram Console <ExternalLink size={11} />
+                    </a>
+                  )}
+                  {transcriptionStatus.fatal_error.toLowerCase().includes('modal') && (
                     <a
                       href="https://modal.com/settings/billing"
                       target="_blank"

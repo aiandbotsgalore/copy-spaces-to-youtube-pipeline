@@ -30,36 +30,22 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Modal & Dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install modal requests
+          pip install requests
 
-      - name: Run Modal Cloud GPU Transcription
+      - name: Run Deepgram Cloud Audio Transcription
         env:
-          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          DEEPGRAM_API_KEY: ${{ secrets.DEEPGRAM_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          echo "[*] Triggering Modal Serverless GPU transcription for ${{ inputs.release_tag }}..."
-          export MODAL_TOKEN_ID=$(echo -n "$MODAL_TOKEN_ID" | tr -d '\r\n ' )
-          export MODAL_TOKEN_SECRET=$(echo -n "$MODAL_TOKEN_SECRET" | tr -d '\r\n ' )
-          MAX_ATTEMPTS=4
-          ATTEMPT=1
-          until modal run modal_transcriber.py --release-tag "${{ inputs.release_tag }}"; do
-            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
-              echo "[!] Modal execution failed after $MAX_ATTEMPTS attempts."
-              exit 1
-            fi
-            SLEEP_SEC=$((ATTEMPT * 30))
-            echo "[!] Modal run encountered transient issue or rate limit. Retrying in ${SLEEP_SEC}s (Attempt $ATTEMPT/$MAX_ATTEMPTS)..."
-            sleep $SLEEP_SEC
-            ATTEMPT=$((ATTEMPT + 1))
-          done
+          echo "[*] Triggering Deepgram Nova-2 cloud transcription for ${{ inputs.release_tag }}..."
+          python scripts/deepgram_transcriber.py --release-tag "${{ inputs.release_tag }}"
 
       - name: Trigger RSS Update
         env:
