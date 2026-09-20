@@ -1,33 +1,13 @@
 {
-  "last_updated": "2026-09-20T04:17:19.249982+00:00",
+  "last_updated": "2026-09-20T08:57:17.094164+00:00",
   "total_episodes_with_audio": 785,
   "transcribed_count": 124,
   "untranscribed_count": 661,
   "percent_complete": 15.8,
-  "auto_chain_active": true,
+  "auto_chain_active": false,
   "is_queue_complete": false,
-  "fatal_error": null,
+  "fatal_error": "Modal workspace has exceeded its spend limit. Please update billing/credits at https://modal.com/settings/billing.",
   "failed_episodes": {
-    "20260905_1qxvvedveWWxB": {
-      "attempts": 8,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838657+00:00"
-    },
-    "20260218_1yNGabVvNRqJj": {
-      "attempts": 8,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838676+00:00"
-    },
-    "20260217_1mrGmBZOoNLJy": {
-      "attempts": 8,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838681+00:00"
-    },
-    "20260217_1mrGmBmelwdJy": {
-      "attempts": 6,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838685+00:00"
-    },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1LyGBXEwZjzxN']' returned non-zero exit status 1.",
@@ -37,16 +17,6 @@
       "attempts": 1,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1YpKkknnQEBKj']' returned non-zero exit status 1.",
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
-    },
-    "20260216_1gqxvrqrRPzxB": {
-      "attempts": 6,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838687+00:00"
-    },
-    "20260216_1DXxyWywdpvGM": {
-      "attempts": 6,
-      "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-18T03:25:13.838691+00:00"
     },
     "20260218_1YqxolWyzENKv": {
       "attempts": 6,
@@ -3302,6 +3272,11 @@
       "attempts": 3,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1jMJgeBdvrqKL']' returned non-zero exit status 1.",
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
+    },
+    "20260919_1dxYlaMMOdzJX": {
+      "attempts": 1,
+      "last_error": "Modal workspace has exceeded its spend limit",
+      "last_attempt": "2026-09-20T08:56:03.962308+00:00"
     }
   },
   "next_in_queue": [
