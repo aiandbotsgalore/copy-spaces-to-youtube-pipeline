@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-20T15:36:16.758093+00:00",
+  "last_updated": "2026-09-20T16:35:28.792806+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 158,
-  "untranscribed_count": 627,
-  "percent_complete": 20.1,
+  "transcribed_count": 168,
+  "untranscribed_count": 617,
+  "percent_complete": 21.4,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ypKdqRaobpGW",
-      "name": "Cat-a-strophic Disclosure",
-      "date": "Aug 18, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmBoEYMdJy",
-      "name": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
-      "date": "Aug 16, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnPYepnOxO",
-      "name": "Space #999",
-      "date": "Aug 15, 2025"
-    },
-    {
-      "tag": "20260217_1vAGRDQOpRjxl",
-      "name": "Random",
-      "date": "Aug 11, 2025"
-    },
-    {
-      "tag": "20260216_1dRKZYaqAqAxB",
-      "name": "Fractal Unified Coherence Kinetics",
-      "date": "Aug 8, 2025"
-    },
-    {
-      "tag": "20260217_1lPKqMvWlvMKb",
-      "name": "A New Age Has Begun",
-      "date": "Aug 7, 2025"
-    },
-    {
-      "tag": "20260216_1DXxyqWmAOgxM",
-      "name": "Heroes, Claims & UFO Jesus \u26a1\ufe0f",
-      "date": "Aug 6, 2025"
-    },
-    {
-      "tag": "20260217_1mrGmPPwDWQKy",
-      "name": "Deductibility coincides with logical consequences?",
-      "date": "Aug 5, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLzzNyZmGm",
-      "name": "Conspiracy Theory Generator",
-      "date": "Aug 3, 2025"
-    },
-    {
-      "tag": "20260217_1mrxmPPjpvDJy",
-      "name": "Kimball judged before his peers. #truth #justice",
-      "date": "Aug 2, 2025"
-    },
     {
       "tag": "20260217_1mrGmPPloMdKy",
       "name": "twitter-spaces video #1mrGmPPloMdKy",
@@ -114,6 +64,56 @@
       "tag": "20260218_1yoKMoXRVRDJQ",
       "name": "XSpace Host Survival Guide: Dealing with Disruptors,Derailers, & Drama",
       "date": "Jun 29, 2025"
+    },
+    {
+      "tag": "20260217_1PlJQMmPYZBJE",
+      "name": "Negative Quantum States, Demiurge, Sofia -Visit Snuggles.Support",
+      "date": "Jun 28, 2025"
+    },
+    {
+      "tag": "20260216_1dRJZYLgYXMGB",
+      "name": "Biotech Realities\ud83e\uddec\ud83e\udd16",
+      "date": "Jun 22, 2025"
+    },
+    {
+      "tag": "20260218_1YqJDZnjrPEKV",
+      "name": "Car",
+      "date": "Jun 20, 2025"
+    },
+    {
+      "tag": "20260217_1nAKEgypZpZJL",
+      "name": "Eternal Ai & Immortal Biologics",
+      "date": "Jun 13, 2025"
+    },
+    {
+      "tag": "20260217_1lPKqMoEQZPKb",
+      "name": "Enki, Loki, Annunaki -jester trickster gods who teach through mischief",
+      "date": "Jun 13, 2025"
+    },
+    {
+      "tag": "20260218_1ZkKzYkaBXRxv",
+      "name": "Skynet",
+      "date": "Jun 9, 2025"
+    },
+    {
+      "tag": "20260217_1rmxPyNmyrnKN",
+      "name": "Love and enlightenment",
+      "date": "Jun 6, 2025"
+    },
+    {
+      "tag": "20260216_1dRKZYgeZPDxB",
+      "name": "Earthquakes",
+      "date": "Jun 6, 2025"
+    },
+    {
+      "tag": "20260218_1vOxwXAgXRDKB",
+      "name": "UFO DNA",
+      "date": "May 31, 2025"
+    },
+    {
+      "tag": "20260217_1OyJALNQwDoGb",
+      "name": "UFO ABDUCTION: Pascagoula '73",
+      "date": "May 31, 2025"
     }
   ]
 }
