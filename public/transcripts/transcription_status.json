@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-20T02:48:52.896698+00:00",
+  "last_updated": "2026-09-20T02:50:33.494838+00:00",
   "total_episodes_with_audio": 785,
   "transcribed_count": 124,
   "untranscribed_count": 661,
@@ -8,24 +8,24 @@
   "is_queue_complete": false,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
-      "attempts": 816,
+      "attempts": 817,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260905_1qxvvedveWWxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955813+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042316+00:00"
     },
     "20260218_1yNGabVvNRqJj": {
-      "attempts": 816,
+      "attempts": 817,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260218_1yNGabVvNRqJj']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955816+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042319+00:00"
     },
     "20260217_1mrGmBZOoNLJy": {
-      "attempts": 816,
+      "attempts": 817,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBZOoNLJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955819+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042322+00:00"
     },
     "20260217_1mrGmBmelwdJy": {
-      "attempts": 814,
+      "attempts": 815,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260217_1mrGmBmelwdJy']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955823+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042324+00:00"
     },
     "20260217_1LyGBXEwZjzxN": {
       "attempts": 1,
@@ -38,14 +38,14 @@
       "last_attempt": "2026-09-17T17:39:04.579743+00:00"
     },
     "20260216_1gqxvrqrRPzxB": {
-      "attempts": 814,
+      "attempts": 815,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1gqxvrqrRPzxB']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955827+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042326+00:00"
     },
     "20260216_1DXxyWywdpvGM": {
-      "attempts": 814,
+      "attempts": 815,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260216_1DXxyWywdpvGM']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955829+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042328+00:00"
     },
     "20260218_1YqxolWyzENKv": {
       "attempts": 811,
@@ -3303,36 +3303,36 @@
       "last_attempt": "2026-09-18T03:21:58.190160+00:00"
     },
     "20260918_1mGPaZqoVQXJN": {
-      "attempts": 808,
+      "attempts": 809,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1mGPaZqoVQXJN']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955809+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042314+00:00"
     },
     "20260918_1wGWjlMgYrAKQ": {
-      "attempts": 508,
+      "attempts": 509,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1wGWjlMgYrAKQ']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955805+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042311+00:00"
     },
     "20260919_1dxYlaMMOdzJX": {
-      "attempts": 124,
+      "attempts": 125,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260919_1dxYlaMMOdzJX']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955800+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042289+00:00"
     },
     "20260918_1MJgNbdaAPlGL": {
-      "attempts": 3,
+      "attempts": 4,
       "last_error": "Command '['modal', 'run', 'modal_transcriber.py', '--release-tag', '20260918_1MJgNbdaAPlGL']' returned non-zero exit status 1.",
-      "last_attempt": "2026-09-20T02:48:01.955780+00:00"
+      "last_attempt": "2026-09-20T02:49:31.042307+00:00"
     }
   },
   "next_in_queue": [
     {
-      "tag": "20260918_1MJgNbdaAPlGL",
-      "name": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
-      "date": "Sep 18, 2026"
-    },
-    {
       "tag": "20260919_1dxYlaMMOdzJX",
       "name": "Quadruple_Amputee_Centaur",
       "date": "Sep 19, 2026"
+    },
+    {
+      "tag": "20260918_1MJgNbdaAPlGL",
+      "name": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "date": "Sep 18, 2026"
     },
     {
       "tag": "20260918_1wGWjlMgYrAKQ",
