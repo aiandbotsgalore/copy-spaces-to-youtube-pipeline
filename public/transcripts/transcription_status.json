@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-21T18:03:47.813065+00:00",
+  "last_updated": "2026-09-21T18:42:21.969999+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 237,
-  "untranscribed_count": 548,
-  "percent_complete": 30.2,
+  "transcribed_count": 247,
+  "untranscribed_count": 538,
+  "percent_complete": 31.5,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OdJrDnyAyQKX",
-      "name": "Trump & UFOs #ufoX",
-      "date": "Mar 20, 2025"
-    },
-    {
-      "tag": "20260217_1OdJrDnZjYyKX",
-      "name": "I'm Aware Theres A/V Issues",
-      "date": "Mar 20, 2025"
-    },
-    {
-      "tag": "20260218_1YpKkBaojQPxj",
-      "name": "T ttttttttesting",
-      "date": "Mar 19, 2025"
-    },
-    {
-      "tag": "20260216_1jMJgkayRnwJL",
-      "name": "If your on android, you'll have audio issues in here",
-      "date": "Mar 19, 2025"
-    },
-    {
-      "tag": "20260217_1MYGNwvNLgwJw",
-      "name": "I also like to live dangerously: Quietly.",
-      "date": "Mar 12, 2025"
-    },
-    {
-      "tag": "20260218_1vOGwryMNEWKB",
-      "name": "Dragons & UFOs \u2022 Time Machine \u2022 Holographic Universe",
-      "date": "Jan 5, 2025"
-    },
-    {
-      "tag": "20260218_1yoKMyWjLjjKQ",
-      "name": "UFO SHANE COMES OUT AS A GAY FAG",
-      "date": "Jan 4, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjwnDkdexw",
-      "name": "Last Space of the Year",
-      "date": "Dec 31, 2024"
-    },
-    {
-      "tag": "20260218_1djGXrqPWEvxZ",
-      "name": "\ud83d\udd75\ufe0f\ud83d\udd75\ufe0f\ud83d\udd75\ufe0fIt\u2019s A Mystery",
-      "date": "Dec 30, 2024"
-    },
-    {
-      "tag": "20260218_1YqJDkeVXvvGV",
-      "name": "EBE talks",
-      "date": "Dec 27, 2024"
-    },
     {
       "tag": "20260217_1OyJAZgEOZgxb",
       "name": "I Nogged TF out",
@@ -114,6 +64,56 @@
       "tag": "20260218_1vOxwrqbegVJB",
       "name": "\u3006 Kingman UFO \ud83d\udc41\ufe0f",
       "date": "Dec 1, 2024"
+    },
+    {
+      "tag": "20260217_1RDGlyqLObDJL",
+      "name": "AGI is Here!: Spaces the Series",
+      "date": "Nov 27, 2024"
+    },
+    {
+      "tag": "20260217_1mrGmMnDXQgGy",
+      "name": "Ai Run Locally and You",
+      "date": "Nov 20, 2024"
+    },
+    {
+      "tag": "20260218_1ynJODAyrPzxR",
+      "name": "Ricky Lu Works the Pole",
+      "date": "Nov 18, 2024"
+    },
+    {
+      "tag": "20260217_1rmxPomoomqJN",
+      "name": "NATO Leads WW3",
+      "date": "Nov 18, 2024"
+    },
+    {
+      "tag": "20260218_1ypKdpmrgjQKW",
+      "name": "Join DIY Disclosure",
+      "date": "Nov 16, 2024"
+    },
+    {
+      "tag": "20260217_1OyKAZNRXQLGb",
+      "name": "Paranormal Pulse + NLM on Todays Hearings",
+      "date": "Nov 14, 2024"
+    },
+    {
+      "tag": "20260218_1YqKDkdzvkYxV",
+      "name": "UFO Congressional hearing today!!!  #LueCrewBBQ w/The Great Eggnog",
+      "date": "Nov 13, 2024"
+    },
+    {
+      "tag": "20260218_1dRJZdndpVgKB",
+      "name": "The Big Story",
+      "date": "Nov 6, 2024"
+    },
+    {
+      "tag": "20260217_1vAGRONypwkJl",
+      "name": "\ud83d\udef8 UFO Radio:Right Honorable  Doctor Prof. Carl is Disclosure\ud83d\udcb0\ud83d\udcb5\ud83c\udf0e",
+      "date": "Nov 4, 2024"
+    },
+    {
+      "tag": "20260216_1eaKbamXgeaxX",
+      "name": "Right Honorable Professor Doctor Karl",
+      "date": "Nov 3, 2024"
     }
   ]
 }
