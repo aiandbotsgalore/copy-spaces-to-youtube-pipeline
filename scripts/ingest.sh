@@ -143,6 +143,9 @@ if [[ -z "$MP3_FILE" ]]; then
 fi
 echo "Successfully created: $MP3_FILE"
 
+# 8. Extract Metadata Base
+BASENAME=$(basename "$MP3_FILE" .mp3)
+
 # Check duration for YouTube length limit (12 hours max)
 # If duration exceeds 11.5 hours (41400s), auto-split into YouTube-compliant parts (<= 10h each)
 if command -v ffprobe >/dev/null 2>&1 && command -v ffmpeg >/dev/null 2>&1; then
@@ -164,8 +167,6 @@ if command -v ffprobe >/dev/null 2>&1 && command -v ffmpeg >/dev/null 2>&1; then
     fi
 fi
 
-# 8. Extract Metadata
-BASENAME=$(basename "$MP3_FILE" .mp3)
 EPISODE_DATE="${BASENAME:0:8}"
 if [[ -n "$SPACE_ID" ]]; then
     # Deterministic, collision-free tag using the platform source ID
