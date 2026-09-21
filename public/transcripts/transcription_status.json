@@ -4,24 +4,14 @@
   "transcribed_count": 197,
   "untranscribed_count": 588,
   "percent_complete": 25.1,
-  "auto_chain_active": false,
+  "auto_chain_active": true,
   "is_queue_complete": false,
-  "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
+  "fatal_error": null,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
       "attempts": 9,
       "last_error": "FileNotFoundError: [Errno 2] No such file or directory: 'ffmpeg'",
       "last_attempt": "2026-09-20T09:24:47.237123+00:00"
-    },
-    "20260217_1kvJpyQkoYVxE": {
-      "attempts": 3,
-      "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
-      "last_attempt": "2026-09-20T20:03:45.659237+00:00"
-    },
-    "20260217_1MYGNwAvrBRJw": {
-      "attempts": 3,
-      "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
-      "last_attempt": "2026-09-21T09:38:04.289908+00:00"
     }
   },
   "next_in_queue": [
