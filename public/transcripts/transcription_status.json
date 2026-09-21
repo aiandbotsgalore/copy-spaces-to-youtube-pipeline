@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-21T17:34:06.531423+00:00",
+  "last_updated": "2026-09-21T18:03:47.813065+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 227,
-  "untranscribed_count": 558,
-  "percent_complete": 28.9,
+  "transcribed_count": 237,
+  "untranscribed_count": 548,
+  "percent_complete": 30.2,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1djxXVkablVGZ",
-      "name": "Time Travel DIY",
-      "date": "Apr 4, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwjYalXKO",
-      "name": "\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a",
-      "date": "Apr 3, 2025"
-    },
-    {
-      "tag": "20260218_1vOxwXDAllNKB",
-      "name": "Ai Remote Viewer's Conference",
-      "date": "Apr 1, 2025"
-    },
-    {
-      "tag": "20260218_1ypJdZjDYXYKW",
-      "name": "LUCKY  STRIKE",
-      "date": "Mar 29, 2025"
-    },
-    {
-      "tag": "20260216_1BdGYqbyyPEGX",
-      "name": "Satellites and Starfish",
-      "date": "Mar 27, 2025"
-    },
-    {
-      "tag": "20260217_1RDxlzMnDrDGL",
-      "name": "$ROGERS Journey to 5Million",
-      "date": "Mar 26, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwOgznNKO",
-      "name": "Pray for Lil Poptart, Kimball, Citizens Dawn and Grider",
-      "date": "Mar 26, 2025"
-    },
-    {
-      "tag": "20260217_1nAKEgooZQYJL",
-      "name": "Drama space. Lots of *!#*!#\ud83e\udd2c. [Trigger Warning] also, hilarious",
-      "date": "Mar 24, 2025"
-    },
-    {
-      "tag": "20260218_1zqKVjnPZZWKB",
-      "name": "Inside the Pyramid: Uncovering Truths with Dr. Aether",
-      "date": "Mar 22, 2025"
-    },
-    {
-      "tag": "20260217_1lDxLzEanlzGm",
-      "name": "Short space for lulz",
-      "date": "Mar 20, 2025"
-    },
     {
       "tag": "20260217_1OdJrDnyAyQKX",
       "name": "Trump & UFOs #ufoX",
@@ -114,6 +64,56 @@
       "tag": "20260218_1YqJDkeVXvvGV",
       "name": "EBE talks",
       "date": "Dec 27, 2024"
+    },
+    {
+      "tag": "20260217_1OyJAZgEOZgxb",
+      "name": "I Nogged TF out",
+      "date": "Dec 24, 2024"
+    },
+    {
+      "tag": "20260218_1YpJklQkLNAxj",
+      "name": "The Walrus Chronicle",
+      "date": "Dec 19, 2024"
+    },
+    {
+      "tag": "20260217_1mrxmMEVbAWxy",
+      "name": "Twilight Drone \ud83d\udc7d\ud83d\udeac\ud83d\udd75\ufe0f- The Return of Jade\ud83d\udef8\ud83d\udc7d",
+      "date": "Dec 19, 2024"
+    },
+    {
+      "tag": "20260216_1BRKjwQZEOdGw",
+      "name": "Mogeon Rim",
+      "date": "Dec 18, 2024"
+    },
+    {
+      "tag": "20260217_1kvKpbXEbqwJE",
+      "name": "Secret Squirrels",
+      "date": "Dec 17, 2024"
+    },
+    {
+      "tag": "20260217_1MYxNMkvWbZJw",
+      "name": "Mystery Drones! \ud83d\udef8 *No Hands*\ud83d\udeab\u270b",
+      "date": "Dec 14, 2024"
+    },
+    {
+      "tag": "20260217_1rmGPoALOMgKN",
+      "name": "There\u2019s Only 1 Suspect Left \ud83d\udc7d",
+      "date": "Dec 13, 2024"
+    },
+    {
+      "tag": "20260217_1mnxeAzRZdPxX",
+      "name": "Drone Mass Hallucination HQ: No Hands!\ud83d\udeab\u270b",
+      "date": "Dec 12, 2024"
+    },
+    {
+      "tag": "20260217_1nAKEpZOALZxL",
+      "name": "Operation Comic Key Bump",
+      "date": "Dec 7, 2024"
+    },
+    {
+      "tag": "20260218_1vOxwrqbegVJB",
+      "name": "\u3006 Kingman UFO \ud83d\udc41\ufe0f",
+      "date": "Dec 1, 2024"
     }
   ]
 }
