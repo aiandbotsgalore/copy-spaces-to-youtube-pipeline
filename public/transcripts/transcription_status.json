@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-21T16:39:22.056289+00:00",
+  "last_updated": "2026-09-21T17:00:45.991995+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 207,
-  "untranscribed_count": 578,
-  "percent_complete": 26.4,
+  "transcribed_count": 217,
+  "untranscribed_count": 568,
+  "percent_complete": 27.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ypJdZLWVgvKW",
-      "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
-      "date": "May 2, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnwrAOnkJO",
-      "name": "\ud83c\udfa7 Joe Rogan x Hal Puthoff: UFO Disclosure Listening Party",
-      "date": "May 1, 2025"
-    },
-    {
-      "tag": "20260216_1gqGvjRjZQeGB",
-      "name": "Short fafo",
-      "date": "Apr 30, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVEqeqBxZ",
-      "name": "Physics reboot\u26a0\ufe0f\u26a1\ufe0f",
-      "date": "Apr 29, 2025"
-    },
-    {
-      "tag": "20260218_1yNGaLAqkgrKj",
-      "name": "the thrilling conclusion",
-      "date": "Apr 28, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVEvajvxZ",
-      "name": "Paranormal Break: Tune in for Tales of Poo and Peril.",
-      "date": "Apr 28, 2025"
-    },
-    {
-      "tag": "20260217_1vAxRDXmRqqGl",
-      "name": "Rick Doty Live! (Reboot)",
-      "date": "Apr 27, 2025"
-    },
-    {
-      "tag": "20260218_1ynJOldDdzQxR",
-      "name": "BLUE",
-      "date": "Apr 25, 2025"
-    },
-    {
-      "tag": "20260218_1ynJOldVRBWxR",
-      "name": "Jesse Michels: UFO WHISTLEBLOWER",
-      "date": "Apr 23, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmkgmXBGw",
-      "name": "420 soon zzz",
-      "date": "Apr 20, 2025"
-    },
     {
       "tag": "20260217_1vAxRDzkZbjGl",
       "name": "Spicy Ratchet Space \ud83d\udc7a",
@@ -114,6 +64,56 @@
       "tag": "20260216_1BRJjmljkAjGw",
       "name": "God Sauce Leaks All Over the dashboard",
       "date": "Apr 5, 2025"
+    },
+    {
+      "tag": "20260218_1djxXVkablVGZ",
+      "name": "Time Travel DIY",
+      "date": "Apr 4, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwjYalXKO",
+      "name": "\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a\ud83d\udd2a",
+      "date": "Apr 3, 2025"
+    },
+    {
+      "tag": "20260218_1vOxwXDAllNKB",
+      "name": "Ai Remote Viewer's Conference",
+      "date": "Apr 1, 2025"
+    },
+    {
+      "tag": "20260218_1ypJdZjDYXYKW",
+      "name": "LUCKY  STRIKE",
+      "date": "Mar 29, 2025"
+    },
+    {
+      "tag": "20260216_1BdGYqbyyPEGX",
+      "name": "Satellites and Starfish",
+      "date": "Mar 27, 2025"
+    },
+    {
+      "tag": "20260217_1RDxlzMnDrDGL",
+      "name": "$ROGERS Journey to 5Million",
+      "date": "Mar 26, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwOgznNKO",
+      "name": "Pray for Lil Poptart, Kimball, Citizens Dawn and Grider",
+      "date": "Mar 26, 2025"
+    },
+    {
+      "tag": "20260217_1nAKEgooZQYJL",
+      "name": "Drama space. Lots of *!#*!#\ud83e\udd2c. [Trigger Warning] also, hilarious",
+      "date": "Mar 24, 2025"
+    },
+    {
+      "tag": "20260218_1zqKVjnPZZWKB",
+      "name": "Inside the Pyramid: Uncovering Truths with Dr. Aether",
+      "date": "Mar 22, 2025"
+    },
+    {
+      "tag": "20260217_1lDxLzEanlzGm",
+      "name": "Short space for lulz",
+      "date": "Mar 20, 2025"
     }
   ]
 }
