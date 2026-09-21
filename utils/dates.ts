@@ -129,3 +129,58 @@ export function sortReleasesByRecordedDate<T extends {
     return order === 'desc' ? diff : -diff;
   });
 }
+
+/**
+ * Extracts the true recorded air date for a ClipItem.
+ * Checks:
+ *  1. Release tag YYYYMMDD in file_path or download_url (e.g. 20260826_1AxRnZYBVdrxl)
+ *  2. YYYYMMDD prefix in clip.episode
+ *  3. Fallback to getEpisodeRecordedDate({ name: clip.episode })
+ */
+export function getClipRecordedDate(clip?: {
+  episode?: string;
+  file_path?: string;
+  download_url?: string;
+} | null): EpisodeDateInfo {
+  if (!clip) return getEpisodeRecordedDate(null);
+
+  // 1. Check file_path or download_url for tag prefix e.g. 20260826_1AxRnZYBVdrxl
+  const url = clip.file_path || clip.download_url || '';
+  const urlMatch = url.match(/(?:releases\/download\/|\/)(\d{4})(\d{2})(\d{2})_/);
+  if (urlMatch) {
+    const year = parseInt(urlMatch[1], 10);
+    const month = parseInt(urlMatch[2], 10) - 1;
+    const day = parseInt(urlMatch[3], 10);
+    if (year >= 2000 && year <= 2099 && month >= 0 && month < 12 && day >= 1 && day <= 31) {
+      const dateObj = new Date(Date.UTC(year, month, day, 12, 0, 0));
+      return {
+        dateObj,
+        timestampMs: dateObj.getTime(),
+        displayDate: `${MONTH_NAMES[month] ?? '???'} ${day}, ${year}`,
+        rawDateStr: `${urlMatch[1]}-${urlMatch[2]}-${urlMatch[3]}`,
+      };
+    }
+  }
+
+  // 2. Check clip.episode for YYYYMMDD or YYYY-MM-DD
+  if (clip.episode) {
+    const epMatch = clip.episode.match(/^(?:v)?(\d{4})[-_]?(\d{2})[-_]?(\d{2})/);
+    if (epMatch) {
+      const year = parseInt(epMatch[1], 10);
+      const month = parseInt(epMatch[2], 10) - 1;
+      const day = parseInt(epMatch[3], 10);
+      if (year >= 2000 && year <= 2099 && month >= 0 && month < 12 && day >= 1 && day <= 31) {
+        const dateObj = new Date(Date.UTC(year, month, day, 12, 0, 0));
+        return {
+          dateObj,
+          timestampMs: dateObj.getTime(),
+          displayDate: `${MONTH_NAMES[month] ?? '???'} ${day}, ${year}`,
+          rawDateStr: `${epMatch[1]}-${epMatch[2]}-${epMatch[3]}`,
+        };
+      }
+    }
+  }
+
+  return getEpisodeRecordedDate({ name: clip.episode });
+}
+
