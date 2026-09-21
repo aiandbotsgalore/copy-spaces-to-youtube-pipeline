@@ -32,7 +32,7 @@ import {
   Share2
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
-import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
 import { EnhancedConfig } from '../types';
 
 export interface ClipItem {
@@ -129,7 +129,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [selectedEpisode, setSelectedEpisode] = useState<string>('ALL');
   const [selectedSpeaker, setSelectedSpeaker] = useState<string>('ALL');
   const [onlyTopRated, setOnlyTopRated] = useState(false);
-  const [sortBy, setSortBy] = useState<'viral' | 'newest' | 'oldest' | 'episode-az' | 'duration-desc' | 'duration-asc'>('viral');
+  const [sortBy, setSortBy] = useState<'newest' | 'viral' | 'oldest' | 'episode-az' | 'duration-desc' | 'duration-asc'>('newest');
   const [viewMode, setViewMode] = useState<'grouped' | 'grid' | 'list'>('grouped');
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<string, boolean>>({});
 
@@ -348,20 +348,23 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     return ordered;
   }, [clips]);
 
-  // Unique Episodes list with clip count
+  // Unique Episodes list with clip count (sorted chronologically by true air date)
   const episodeList = useMemo(() => {
-    const epMap: Record<string, number> = {};
+    const epMap: Record<string, { count: number; sampleClip: ClipItem }> = {};
     clips.forEach(c => {
       const ep = c.episode || 'Unknown Space';
-      epMap[ep] = (epMap[ep] || 0) + 1;
+      if (!epMap[ep]) {
+        epMap[ep] = { count: 0, sampleClip: c };
+      }
+      epMap[ep].count += 1;
     });
     return Object.entries(epMap)
-      .sort(([epA], [epB]) => {
-        const tA = getEpisodeRecordedDate({ name: epA }).timestampMs;
-        const tB = getEpisodeRecordedDate({ name: epB }).timestampMs;
+      .sort(([, aData], [, bData]) => {
+        const tA = getClipRecordedDate(aData.sampleClip).timestampMs;
+        const tB = getClipRecordedDate(bData.sampleClip).timestampMs;
         return tB - tA;
       })
-      .map(([name, count]) => ({ name, count }));
+      .map(([name, { count }]) => ({ name, count }));
   }, [clips]);
 
   // Unique Speakers list
@@ -399,20 +402,20 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         return matchesCategory && matchesEpisode && matchesSpeaker && matchesTopRated && matchesSearch;
       })
       .sort((a, b) => {
-        if (sortBy === 'viral') {
-          return (b.viral_score || 0) - (a.viral_score || 0);
-        }
         if (sortBy === 'newest') {
-          const tA = getEpisodeRecordedDate({ name: a.episode }).timestampMs;
-          const tB = getEpisodeRecordedDate({ name: b.episode }).timestampMs;
+          const tA = getClipRecordedDate(a).timestampMs;
+          const tB = getClipRecordedDate(b).timestampMs;
           if (tA !== tB) return tB - tA;
           return (a.start_seconds || 0) - (b.start_seconds || 0);
         }
         if (sortBy === 'oldest') {
-          const tA = getEpisodeRecordedDate({ name: a.episode }).timestampMs;
-          const tB = getEpisodeRecordedDate({ name: b.episode }).timestampMs;
+          const tA = getClipRecordedDate(a).timestampMs;
+          const tB = getClipRecordedDate(b).timestampMs;
           if (tA !== tB) return tA - tB;
           return (a.start_seconds || 0) - (b.start_seconds || 0);
+        }
+        if (sortBy === 'viral') {
+          return (b.viral_score || 0) - (a.viral_score || 0);
         }
         if (sortBy === 'episode-az') {
           const epA = formatEpisodeTitle(a.episode).toLowerCase();
@@ -439,9 +442,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       if (!groups[epKey]) groups[epKey] = [];
       groups[epKey].push(c);
     });
-    const sortedEntries = Object.entries(groups).sort(([epA], [epB]) => {
-      const tA = getEpisodeRecordedDate({ name: epA }).timestampMs;
-      const tB = getEpisodeRecordedDate({ name: epB }).timestampMs;
+    const sortedEntries = Object.entries(groups).sort(([, clipsA], [, clipsB]) => {
+      const tA = clipsA.length > 0 ? getClipRecordedDate(clipsA[0]).timestampMs : 0;
+      const tB = clipsB.length > 0 ? getClipRecordedDate(clipsB[0]).timestampMs : 0;
       return tB - tA;
     });
     return Object.fromEntries(sortedEntries);
@@ -715,9 +718,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 onChange={e => setSortBy(e.target.value as any)}
                 className="bg-transparent text-white font-medium focus:outline-none cursor-pointer text-xs pr-1"
               >
+                <option value="newest" className="bg-slate-900 text-white">📅 Chronological (Newest First)</option>
+                <option value="oldest" className="bg-slate-900 text-white">⏳ Chronological (Oldest First)</option>
                 <option value="viral" className="bg-slate-900 text-white">⭐ Highest Viral Score</option>
-                <option value="newest" className="bg-slate-900 text-white">📅 Newest Space First</option>
-                <option value="oldest" className="bg-slate-900 text-white">⏳ Oldest Space First</option>
                 <option value="episode-az" className="bg-slate-900 text-white">🔤 Space Name (A-Z)</option>
                 <option value="duration-desc" className="bg-slate-900 text-white">⏱️ Longest Clips</option>
                 <option value="duration-asc" className="bg-slate-900 text-white">⚡ Shortest Quick-Bites</option>
@@ -922,6 +925,12 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                         )}
                       </h2>
                       <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                        {epClips.length > 0 && (
+                          <>
+                            <span className="text-amber-400 font-medium">📅 {getClipRecordedDate(epClips[0]).displayDate}</span>
+                            <span>•</span>
+                          </>
+                        )}
                         <span className="font-semibold text-indigo-300">{epClips.length} {epClips.length === 1 ? 'Highlight' : 'Highlights'}</span>
                         <span>•</span>
                         <span>Avg Rating: {(epClips.reduce((acc, c) => acc + (c.viral_score || 8), 0) / epClips.length).toFixed(1)}/10</span>
@@ -1020,9 +1029,12 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                       </td>
 
                       {/* Episode */}
-                      <td className="py-3 px-4 hidden md:table-cell max-w-xs truncate text-sky-400">
-                        <span className="truncate block" title={formatEpisodeTitle(clip.episode)}>
+                      <td className="py-3 px-4 hidden md:table-cell max-w-xs truncate">
+                        <span className="truncate block font-medium text-sky-400" title={formatEpisodeTitle(clip.episode)}>
                           {formatEpisodeTitle(clip.episode)}
+                        </span>
+                        <span className="text-[10px] text-amber-400/80 block">
+                          📅 {getClipRecordedDate(clip).displayDate}
                         </span>
                       </td>
 
@@ -1271,10 +1283,15 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
           {/* Space Episode Banner (if not grouped) */}
           {viewMode !== 'grouped' && clip.episode && (
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-sky-400 bg-sky-950/40 border border-sky-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-fit max-w-full">
-              <Radio size={12} className="flex-shrink-0 text-sky-400" />
-              <span className="truncate" title={formatEpisodeTitle(clip.episode)}>
-                {formatEpisodeTitle(clip.episode)}
+            <div className="flex items-center justify-between gap-1.5 text-[11px] font-medium text-sky-400 bg-sky-950/40 border border-sky-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-full">
+              <div className="flex items-center gap-1.5 truncate">
+                <Radio size={12} className="flex-shrink-0 text-sky-400" />
+                <span className="truncate" title={formatEpisodeTitle(clip.episode)}>
+                  {formatEpisodeTitle(clip.episode)}
+                </span>
+              </div>
+              <span className="text-[10px] text-amber-400/90 flex-shrink-0 font-normal">
+                📅 {getClipRecordedDate(clip).displayDate}
               </span>
             </div>
           )}
