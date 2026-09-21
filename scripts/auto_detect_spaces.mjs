@@ -230,9 +230,9 @@ async function run() {
     }
 
     if (isAvailable) {
-      console.log(`🚀 Dispatching batch_ingest.yml for ${space.url}...`);
+      console.log(`🚀 Dispatching ingest.yml for ${space.url}...`);
       try {
-        execSync(`gh workflow run batch_ingest.yml -f url="${space.url}"`, {
+        execSync(`gh workflow run ingest.yml -f space_url="${space.url}"`, {
           encoding: 'utf-8',
           env: { ...process.env, GITHUB_TOKEN }
         });
