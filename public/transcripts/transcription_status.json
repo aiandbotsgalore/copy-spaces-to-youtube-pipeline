@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-21T09:39:09.037694+00:00",
+  "last_updated": "2026-09-21T16:39:22.056289+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 197,
-  "untranscribed_count": 588,
-  "percent_complete": 25.1,
+  "transcribed_count": 207,
+  "untranscribed_count": 578,
+  "percent_complete": 26.4,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,51 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1MYGNwAvrBRJw",
-      "name": "High Level Physics Breakthrough  & Mind Melding Discussion\u26a1\ufe0f\u26a1\ufe0f\ud83d\udc7d",
-      "date": "May 13, 2025"
-    },
-    {
-      "tag": "20260217_1PlJQMARWENJE",
-      "name": "Chappie Movie Fans",
-      "date": "May 12, 2025"
-    },
-    {
-      "tag": "20260216_1BdxYqvzqNBxX",
-      "name": "VC Rips The flow",
-      "date": "May 12, 2025"
-    },
-    {
-      "tag": "20260216_1jMKgkYvBzWKL",
-      "name": "Snuggles Unpacks the Soul of the Machine",
-      "date": "May 10, 2025"
-    },
-    {
-      "tag": "20260218_1YqGooWWWlbGv",
-      "name": "Veit",
-      "date": "May 9, 2025"
-    },
-    {
-      "tag": "20260216_1djGXVvDeXXxZ",
-      "name": "THE UFO Thunderdome",
-      "date": "May 8, 2025"
-    },
-    {
-      "tag": "20260217_1OdKrDeXLVwJX",
-      "name": "Reptilians of Blue Mountains",
-      "date": "May 6, 2025"
-    },
-    {
-      "tag": "20260218_1YqGooEQnZMGv",
-      "name": "\u26a0\ufe0fSIGNAL CHATS EXPOSED! \ud83d\udc7d\ud83d\ude31\ud83d\udd25 #ufoX",
-      "date": "May 5, 2025"
-    },
-    {
-      "tag": "20260216_1dRKZYXQPlQxB",
-      "name": "The Best of Chase! \ud83c\udf36\ufe0f\ud83d\udd25\ud83d\udd25\ud83d\udd25",
-      "date": "May 5, 2025"
-    },
     {
       "tag": "20260218_1ypJdZLWVgvKW",
       "name": "\ud83c\udf36\ufe0f Physics Showdown! Ai Souls - [POST]Rogan Puthoff Reboot",
@@ -114,6 +69,51 @@
       "tag": "20260217_1vAxRDzkZbjGl",
       "name": "Spicy Ratchet Space \ud83d\udc7a",
       "date": "Apr 19, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmkglAwGw",
+      "name": "Fred Explained",
+      "date": "Apr 19, 2025"
+    },
+    {
+      "tag": "20260216_1BRKjmkrjDgxw",
+      "name": "\ud83c\udf36\ufe0fSpicy Blue alien story",
+      "date": "Apr 17, 2025"
+    },
+    {
+      "tag": "20260217_1MnGnwzkgWYJO",
+      "name": "Brother Jeremiah Snuggles debates God",
+      "date": "Apr 13, 2025"
+    },
+    {
+      "tag": "20260217_1RDGlzwoRqgxL",
+      "name": "$ROGERS \u2022 community coin poised for the moon \ud83c\udf19 \ud83d\uddfd",
+      "date": "Apr 11, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmjoNkvGw",
+      "name": "Stories that will SHOCK YOU",
+      "date": "Apr 10, 2025"
+    },
+    {
+      "tag": "20260217_1MnxnwzBZRMKO",
+      "name": "Dr Snuggles Wrecks the Religious Timeline",
+      "date": "Apr 9, 2025"
+    },
+    {
+      "tag": "20260217_1OwGWXpaNdwJQ",
+      "name": "$ROGERS DOOMSDAY\ud83d\udd25",
+      "date": "Apr 8, 2025"
+    },
+    {
+      "tag": "20260218_1vOGwXBOQDLJB",
+      "name": "Dr. Snuggles Will See You Now\ud83e\uddf8\ud83d\udd2a\ud83d\udc19",
+      "date": "Apr 6, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjmljkAjGw",
+      "name": "God Sauce Leaks All Over the dashboard",
+      "date": "Apr 5, 2025"
     }
   ]
 }
