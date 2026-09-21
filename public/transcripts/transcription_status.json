@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-21T17:00:45.991995+00:00",
+  "last_updated": "2026-09-21T17:34:06.531423+00:00",
   "total_episodes_with_audio": 785,
-  "transcribed_count": 217,
-  "untranscribed_count": 568,
-  "percent_complete": 27.6,
+  "transcribed_count": 227,
+  "untranscribed_count": 558,
+  "percent_complete": 28.9,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -15,56 +15,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRDzkZbjGl",
-      "name": "Spicy Ratchet Space \ud83d\udc7a",
-      "date": "Apr 19, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmkglAwGw",
-      "name": "Fred Explained",
-      "date": "Apr 19, 2025"
-    },
-    {
-      "tag": "20260216_1BRKjmkrjDgxw",
-      "name": "\ud83c\udf36\ufe0fSpicy Blue alien story",
-      "date": "Apr 17, 2025"
-    },
-    {
-      "tag": "20260217_1MnGnwzkgWYJO",
-      "name": "Brother Jeremiah Snuggles debates God",
-      "date": "Apr 13, 2025"
-    },
-    {
-      "tag": "20260217_1RDGlzwoRqgxL",
-      "name": "$ROGERS \u2022 community coin poised for the moon \ud83c\udf19 \ud83d\uddfd",
-      "date": "Apr 11, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmjoNkvGw",
-      "name": "Stories that will SHOCK YOU",
-      "date": "Apr 10, 2025"
-    },
-    {
-      "tag": "20260217_1MnxnwzBZRMKO",
-      "name": "Dr Snuggles Wrecks the Religious Timeline",
-      "date": "Apr 9, 2025"
-    },
-    {
-      "tag": "20260217_1OwGWXpaNdwJQ",
-      "name": "$ROGERS DOOMSDAY\ud83d\udd25",
-      "date": "Apr 8, 2025"
-    },
-    {
-      "tag": "20260218_1vOGwXBOQDLJB",
-      "name": "Dr. Snuggles Will See You Now\ud83e\uddf8\ud83d\udd2a\ud83d\udc19",
-      "date": "Apr 6, 2025"
-    },
-    {
-      "tag": "20260216_1BRJjmljkAjGw",
-      "name": "God Sauce Leaks All Over the dashboard",
-      "date": "Apr 5, 2025"
-    },
     {
       "tag": "20260218_1djxXVkablVGZ",
       "name": "Time Travel DIY",
@@ -114,6 +64,56 @@
       "tag": "20260217_1lDxLzEanlzGm",
       "name": "Short space for lulz",
       "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260217_1OdJrDnyAyQKX",
+      "name": "Trump & UFOs #ufoX",
+      "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260217_1OdJrDnZjYyKX",
+      "name": "I'm Aware Theres A/V Issues",
+      "date": "Mar 20, 2025"
+    },
+    {
+      "tag": "20260218_1YpKkBaojQPxj",
+      "name": "T ttttttttesting",
+      "date": "Mar 19, 2025"
+    },
+    {
+      "tag": "20260216_1jMJgkayRnwJL",
+      "name": "If your on android, you'll have audio issues in here",
+      "date": "Mar 19, 2025"
+    },
+    {
+      "tag": "20260217_1MYGNwvNLgwJw",
+      "name": "I also like to live dangerously: Quietly.",
+      "date": "Mar 12, 2025"
+    },
+    {
+      "tag": "20260218_1vOGwryMNEWKB",
+      "name": "Dragons & UFOs \u2022 Time Machine \u2022 Holographic Universe",
+      "date": "Jan 5, 2025"
+    },
+    {
+      "tag": "20260218_1yoKMyWjLjjKQ",
+      "name": "UFO SHANE COMES OUT AS A GAY FAG",
+      "date": "Jan 4, 2025"
+    },
+    {
+      "tag": "20260216_1BRJjwnDkdexw",
+      "name": "Last Space of the Year",
+      "date": "Dec 31, 2024"
+    },
+    {
+      "tag": "20260218_1djGXrqPWEvxZ",
+      "name": "\ud83d\udd75\ufe0f\ud83d\udd75\ufe0f\ud83d\udd75\ufe0fIt\u2019s A Mystery",
+      "date": "Dec 30, 2024"
+    },
+    {
+      "tag": "20260218_1YqJDkeVXvvGV",
+      "name": "EBE talks",
+      "date": "Dec 27, 2024"
     }
   ]
 }
