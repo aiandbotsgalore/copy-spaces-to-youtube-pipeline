@@ -64,10 +64,16 @@ function fetchTweetsForHandle(handle) {
     console.warn(`⚠️  @${handle}: xactions tweets timeline fetch failed — ${err.message}`);
   }
 
-  // If authenticated and no recent tweets found, try search as fallback
-  if (authToken && (!tweets || tweets.length === 0)) {
+  // If authenticated and no recent tweets found (or all tweets are ancient/pinned), try search as fallback
+  const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const hasRecentTweets = Array.isArray(tweets) && tweets.some(t => {
+    const parsed = new Date(t.timeParsed || t.createdAt || 0).getTime();
+    return !isNaN(parsed) && parsed > twoWeeksAgo;
+  });
+
+  if (authToken && (!tweets || tweets.length === 0 || !hasRecentTweets)) {
     try {
-      console.log(`   @${handle}: attempting authenticated search fallback...`);
+      console.log(`   @${handle}: attempting authenticated search fallback (timeline had ${tweets.length} tweets, recent=${hasRecentTweets})...`);
       const searchOutput = execSync(
         `npx -y xactions search "from:${handle} (spaces OR space OR t.co)" --filter latest --limit ${TWEET_LIMIT} --json`,
         {
