@@ -271,8 +271,16 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const filtered = releases
     .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      if (sort === 'date-desc') return episodeDateMs(b) - episodeDateMs(a);
-      if (sort === 'date-asc')  return episodeDateMs(a) - episodeDateMs(b);
+      if (sort === 'date-desc') {
+        const diff = episodeDateMs(b) - episodeDateMs(a);
+        if (diff !== 0) return diff;
+        return new Date(b.published_at || (b as any).created_at || 0).getTime() - new Date(a.published_at || (a as any).created_at || 0).getTime();
+      }
+      if (sort === 'date-asc') {
+        const diff = episodeDateMs(a) - episodeDateMs(b);
+        if (diff !== 0) return diff;
+        return new Date(a.published_at || (a as any).created_at || 0).getTime() - new Date(b.published_at || (b as any).created_at || 0).getTime();
+      }
       if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
       if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
       return 0;
