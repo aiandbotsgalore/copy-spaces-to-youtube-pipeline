@@ -129,7 +129,8 @@ yt-dlp \
     --restrict-filenames \
     --extract-audio \
     --audio-format mp3 \
-    --audio-quality 0 \
+    --audio-quality 160k \
+    --postprocessor-args "ExtractAudio:-b:a 160k" \
     --embed-metadata \
     --embed-thumbnail \
     --output "$WORK_DIR/%(release_date,upload_date)s_%(id)s_%(title)s.%(ext)s" \

@@ -451,8 +451,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
-  const [transcribeSuccess, setTranscribeSuccess] = useState('');
   const [timeOffsetSec, setTimeOffsetSec] = useState<number>(0);
+  const [audioSeekOffsetSec, setAudioSeekOffsetSec] = useState<number>(0);
 
   const [searchScope, setSearchScope] = useState<'current' | 'all'>('current');
   const [globalIndex, setGlobalIndex] = useState<SearchIndexEpisode[] | null>(null);
@@ -640,6 +640,25 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     });
   };
 
+  const setAndSaveAudioSeekOffset = (offset: number | ((prev: number) => number)) => {
+    setAudioSeekOffsetSec(prev => {
+      const next = typeof offset === 'function' ? offset(prev) : offset;
+      const rounded = Math.round(next * 10) / 10;
+      if (selectedId) {
+        try {
+          if (rounded === 0) {
+            localStorage.removeItem(`spk_seek_offset_${selectedId}`);
+            if (selectedRelease?.tag_name) localStorage.removeItem(`spk_seek_offset_${selectedRelease.tag_name}`);
+          } else {
+            localStorage.setItem(`spk_seek_offset_${selectedId}`, rounded.toString());
+            if (selectedRelease?.tag_name) localStorage.setItem(`spk_seek_offset_${selectedRelease.tag_name}`, rounded.toString());
+          }
+        } catch {}
+      }
+      return rounded;
+    });
+  };
+
   const fetchReleases = useCallback(async () => {
     if (!hasCredentials) return;
     setLoading(true);
@@ -677,6 +696,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       const savedOffset = localStorage.getItem(`spk_offset_${release.id}_p${pNum}`) || localStorage.getItem(`spk_offset_${release.id}`);
       setTimeOffsetSec(savedOffset ? parseFloat(savedOffset) : 0);
     } catch { setTimeOffsetSec(0); }
+    try {
+      const savedSeekOffset = localStorage.getItem(`spk_seek_offset_${release.id}_p${pNum}`)
+        || localStorage.getItem(`spk_seek_offset_${release.id}`)
+        || (release.tag_name ? localStorage.getItem(`spk_seek_offset_${release.tag_name}`) : null);
+      if (savedSeekOffset !== null) {
+        setAudioSeekOffsetSec(parseFloat(savedSeekOffset));
+      } else if (release.tag_name?.includes('20260918_1AxRnZMeZNYxl') || release.name?.includes('Angela_Maggard_fan_club')) {
+        setAudioSeekOffsetSec(15);
+      } else {
+        setAudioSeekOffsetSec(0);
+      }
+    } catch { setAudioSeekOffsetSec(0); }
     setQuickRenameTarget(null);
     setSaveGitHubSuccess('');
     setSaveGitHubError('');
@@ -994,9 +1025,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const handlePlayGlobalResult = (res: GlobalSearchResult) => {
     if (!res.audio_url) return;
+    const effectiveTime = currentTime - audioSeekOffsetSec;
     const isThisPlaying = current?.id === res.release_id && isPlaying &&
-      currentTime >= res.segment.start &&
-      currentTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
+      effectiveTime >= res.segment.start &&
+      effectiveTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
 
     if (isThisPlaying) {
       togglePlay();
@@ -1008,10 +1040,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       title: res.title,
       audioUrl: res.audio_url,
     };
+    const targetSeekSec = Math.max(0, res.segment.start + audioSeekOffsetSec);
     if (current?.id !== res.release_id) {
-      play(nowPlaying, res.segment.start);
+      play(nowPlaying, targetSeekSec);
     } else {
-      seek(res.segment.start);
+      seek(targetSeekSec);
       if (!isPlaying) togglePlay();
     }
   };
@@ -1032,10 +1065,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         title: res.title,
         audioUrl: res.audio_url,
       };
+      const targetSeekSec = Math.max(0, res.segment.start + audioSeekOffsetSec);
       if (current?.id !== res.release_id) {
-        play(nowPlaying, res.segment.start);
+        play(nowPlaying, targetSeekSec);
       } else {
-        seek(res.segment.start);
+        seek(targetSeekSec);
         if (!isPlaying) togglePlay();
       }
     }
@@ -1044,17 +1078,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   // Binary search — O(log n) active utterance lookup
   const activeUtteranceIndex = useMemo(() => {
     if (current?.id !== selectedRelease?.id || !utterances.length) return -1;
+    const effectiveTime = currentTime - audioSeekOffsetSec;
     let lo = 0, hi = utterances.length - 1, candidate = -1;
     while (lo <= hi) {
       const mid = (lo + hi) >> 1;
-      if (utterances[mid].startSec <= currentTime) { candidate = mid; lo = mid + 1; }
+      if (utterances[mid].startSec <= effectiveTime) { candidate = mid; lo = mid + 1; }
       else { hi = mid - 1; }
     }
     if (candidate < 0) return -1;
     const u = utterances[candidate];
     const effectiveEnd = u.endSec ?? utterances[candidate + 1]?.startSec ?? Number.POSITIVE_INFINITY;
-    return currentTime < effectiveEnd ? candidate : -1;
-  }, [current?.id, selectedRelease?.id, utterances, currentTime]);
+    return effectiveTime < effectiveEnd ? candidate : -1;
+  }, [current?.id, selectedRelease?.id, utterances, currentTime, audioSeekOffsetSec]);
 
   // ID-based comparison is filter-safe (index comparison would break under search/filter)
   const activeUtteranceId = activeUtteranceIndex >= 0 ? utterances[activeUtteranceIndex]?.id ?? null : null;
@@ -1074,10 +1109,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       ? `${selectedRelease.name || selectedRelease.tag_name} (${activePart.label})`
       : (selectedRelease.name || selectedRelease.tag_name);
     const nowPlaying: NowPlayingEpisode = { id: selectedRelease.id, title: titleWithPart, audioUrl: mp3Asset.browser_download_url };
+    const targetSeekSec = Math.max(0, startSec + audioSeekOffsetSec);
     if (current?.id !== selectedRelease.id || current?.audioUrl !== mp3Asset.browser_download_url) {
-      play(nowPlaying, startSec);
+      play(nowPlaying, targetSeekSec);
     } else {
-      seek(startSec);
+      seek(targetSeekSec);
       if (!isPlaying) togglePlay();
     }
   };
@@ -1785,6 +1821,30 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                       )}
 
+                      {/* Audio Playback Seek Sync (fixes VBR audio seeking lead/lag without changing transcript text) */}
+                      <div className="flex items-center gap-1.5 bg-slate-950 border border-indigo-500/30 rounded-lg px-2.5 py-1"
+                        title="Calibrate audio playback seek offset (e.g. +15s if audio plays 15s before text)">
+                        <Headphones size={12} className={audioSeekOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
+                        <span className="text-[11px] text-slate-400 font-medium">Audio Seek:</span>
+                        <input type="number" value={audioSeekOffsetSec} step="0.5"
+                          onChange={e => { const n = Number.parseFloat(e.target.value); setAndSaveAudioSeekOffset(Number.isFinite(n) ? n : 0); }}
+                          className="w-14 px-1 py-0.5 text-center text-xs font-mono font-bold bg-slate-900 border border-slate-700 rounded text-indigo-300 focus:outline-none focus:border-indigo-500"
+                          title="Audio seek compensation offset in seconds" />
+                        <span className="text-[11px] text-slate-400 font-mono">s</span>
+                        <div className="flex items-center gap-0.5 ml-1">
+                          <button onClick={() => setAndSaveAudioSeekOffset(0)}
+                            className={`px-1.5 py-0.5 text-[10px] font-semibold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 0 ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700'}`}
+                            title="Exact 0s seek">0s</button>
+                          <button onClick={() => setAndSaveAudioSeekOffset(15)}
+                            className={`px-1.5 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 15 ? 'bg-indigo-600 text-white ring-1 ring-indigo-400' : 'text-amber-300 hover:text-white bg-indigo-950/60 border border-indigo-500/40 hover:bg-indigo-900'}`}
+                            title="Compensate for 15s audio lead (+15s)">+15s</button>
+                          <button onClick={() => setAndSaveAudioSeekOffset(p => Number((p - 1).toFixed(1)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek back -1.0s">-1s</button>
+                          <button onClick={() => setAndSaveAudioSeekOffset(p => Number((p + 1).toFixed(1)))}
+                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek forward +1.0s">+1s</button>
+                        </div>
+                      </div>
+
                       {/* Sync Offset Control */}
                       <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">
                         <Clock size={12} className={timeOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
@@ -2003,12 +2063,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       {utterance.endLabel && <span className="text-slate-500 font-normal"> – {utterance.endLabel}</span>}
                                     </button>
 
-                                    {/* 1-click sync calibration */}
+                                    {/* 1-click audio seek sync calibration */}
                                     {isPlaying && (
-                                      <button onClick={e => { e.stopPropagation(); setAndSaveTimeOffset(Number((currentTime - utterance.rawStartSec).toFixed(3))); }}
+                                      <button onClick={e => {
+                                          e.stopPropagation();
+                                          const diff = Math.round((currentTime - utterance.startSec) * 10) / 10;
+                                          setAndSaveAudioSeekOffset(diff);
+                                        }}
                                         className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 cursor-pointer"
-                                        title={`Align transcript to audio time ${formatSeconds(currentTime)}`}>
-                                        <Clock size={10} className="text-indigo-400" /> Sync here ({formatSeconds(currentTime)})
+                                        title={`Align audio playback seek to this turn (${Math.round((currentTime - utterance.startSec) * 10) / 10 > 0 ? `+${Math.round((currentTime - utterance.startSec) * 10) / 10}s` : `${Math.round((currentTime - utterance.startSec) * 10) / 10}s`} offset)`}>
+                                        <Clock size={10} className="text-indigo-400" />
+                                        Sync audio ({Math.round((currentTime - utterance.startSec) * 10) / 10 > 0 ? `+${Math.round((currentTime - utterance.startSec) * 10) / 10}s` : `${Math.round((currentTime - utterance.startSec) * 10) / 10}s`})
                                       </button>
                                     )}
                                   </div>
