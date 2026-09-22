@@ -483,7 +483,7 @@ yt-dlp \\
     --audio-quality 0 \\
     --embed-metadata \\
     --embed-thumbnail \\
-    --output "$WORK_DIR/%(upload_date)s_%(id)s_%(title)s.%(ext)s" \\
+    --output "$WORK_DIR/%(release_date,upload_date)s_%(id)s_%(title)s.%(ext)s" \\
     "$TARGET_URL"
 
 # 7. Verify Output
