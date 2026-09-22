@@ -16,6 +16,12 @@ interface Props {
   initialReleaseId?: number | null;
 }
 
+export interface UtteranceWord {
+  word: string;
+  start: number;
+  end: number;
+}
+
 export interface ParsedUtterance {
   id: string;
   startSec: number;
@@ -30,6 +36,7 @@ export interface ParsedUtterance {
   raw: string;
   confidence?: number | null;
   wordCount?: number;
+  words?: UtteranceWord[];
 }
 
 interface TranscriptMetadata {
@@ -300,6 +307,53 @@ function highlightMatch(text: string, query: string): React.ReactNode {
   );
 }
 
+export interface WordTimingSource {
+  text: string;
+  startSec: number;
+  endSec: number | null;
+  words?: UtteranceWord[];
+}
+
+export function getUtteranceWords(source: WordTimingSource): UtteranceWord[] {
+  if (source.words && source.words.length > 0) {
+    return source.words;
+  }
+  const tokens = source.text.trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return [];
+
+  const start = source.startSec;
+  const duration = (source.endSec !== null && source.endSec > start)
+    ? source.endSec - start
+    : Math.max(1.0, tokens.length * 0.38);
+
+  const weights = tokens.map(token => {
+    const clean = token.replace(/[^a-zA-Z0-9]/g, '');
+    const len = Math.max(1, clean.length);
+    let pause = 0;
+    if (/[.?!]$/.test(token)) pause = 2.5;
+    else if (/[,;:\-–—]$/.test(token)) pause = 1.2;
+    return len + pause;
+  });
+
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || 1;
+  let runningStart = start;
+  const result: UtteranceWord[] = [];
+
+  for (let i = 0; i < tokens.length; i++) {
+    const wordDuration = (weights[i] / totalWeight) * duration;
+    const wordStart = runningStart;
+    const wordEnd = i === tokens.length - 1 ? (source.endSec ?? (start + duration)) : runningStart + wordDuration;
+    result.push({
+      word: tokens[i],
+      start: Math.round(wordStart * 100) / 100,
+      end: Math.round(wordEnd * 100) / 100,
+    });
+    runningStart += wordDuration;
+  }
+
+  return result;
+}
+
 async function fetchSearchIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<SearchIndexEpisode[]> {
   const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
   const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
@@ -369,7 +423,24 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
           const text = String(seg?.text ?? seg?.transcript ?? '').trim();
           if (!text) return null;
           const confidence = typeof seg?.confidence === 'number' && Number.isFinite(seg.confidence) ? seg.confidence : null;
-          const wordCount = Array.isArray(seg?.words) ? seg.words.length : text.split(/\s+/).filter(Boolean).length;
+          let parsedWords: UtteranceWord[] | undefined = undefined;
+          if (Array.isArray(seg?.words) && seg.words.length > 0) {
+            parsedWords = seg.words
+              .map((w: any) => {
+                const wText = String(w?.punctuated_word ?? w?.word ?? '').trim();
+                const wStart = readTimestampSeconds(w, 'start', scale);
+                const wEnd = readTimestampSeconds(w, 'end', scale);
+                if (!wText || wStart === null) return null;
+                return {
+                  word: wText,
+                  start: Math.max(0, wStart),
+                  end: wEnd !== null && wEnd >= wStart ? wEnd : wStart + 0.3,
+                };
+              })
+              .filter((w: UtteranceWord | null): w is UtteranceWord => w !== null);
+            if (parsedWords.length === 0) parsedWords = undefined;
+          }
+          const wordCount = parsedWords ? parsedWords.length : text.split(/\s+/).filter(Boolean).length;
           return {
             id: `seg-${idx}-${Math.round(startSec * 1000)}`,
             startSec, endSec, rawStartSec: startSec, rawEndSec: endSec,
@@ -378,6 +449,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
             speaker: formattedSpeaker, rawSpeaker, text,
             raw: `[${formatSeconds(startSec)}${endSec !== null ? ` - ${formatSeconds(endSec)}` : ''}] ${formattedSpeaker}: ${text}`,
             confidence, wordCount,
+            words: parsedWords,
           };
         })
         .filter((u: ParsedUtterance | null): u is ParsedUtterance => u !== null)
@@ -850,6 +922,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const utterances = useMemo(() => parsedUtterances.map(u => {
     const adjustedStart = Math.max(0, u.rawStartSec + timeOffsetSec);
     const adjustedEnd = u.rawEndSec !== null ? Math.max(0, u.rawEndSec + timeOffsetSec) : null;
+    const adjustedWords = u.words ? u.words.map(w => ({
+      ...w,
+      start: Math.max(0, w.start + timeOffsetSec),
+      end: Math.max(0, w.end + timeOffsetSec),
+    })) : undefined;
     return {
       ...u,
       startSec: adjustedStart,
@@ -857,6 +934,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       startLabel: formatSeconds(adjustedStart),
       endLabel: adjustedEnd !== null ? formatSeconds(adjustedEnd) : '',
       speaker: speakerMap[u.rawSpeaker] || u.speaker,
+      words: adjustedWords,
     };
   }), [parsedUtterances, speakerMap, timeOffsetSec]);
 
@@ -1602,10 +1680,36 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                       {globalSearchResults.map((res, idx) => {
                         const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
+                        const effectiveGlobalTime = currentTime - audioSeekOffsetSec;
                         const isPlayingThis = current?.id === res.release_id && isPlaying &&
-                          currentTime >= res.segment.start &&
-                          currentTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
+                          effectiveGlobalTime >= res.segment.start &&
+                          effectiveGlobalTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
                         const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
+
+                        let searchWordIndex = -1;
+                        let searchWords: UtteranceWord[] = [];
+                        if (isPlayingThis) {
+                          searchWords = getUtteranceWords({
+                            text: res.segment.text,
+                            startSec: res.segment.start,
+                            endSec: res.segment.end,
+                            words: (res.segment as any).words,
+                          });
+                          for (let wI = 0; wI < searchWords.length; wI++) {
+                            const wObj = searchWords[wI];
+                            const nextStart = wI < searchWords.length - 1 ? searchWords[wI + 1].start : (wObj.end + 0.8);
+                            if (effectiveGlobalTime >= wObj.start && effectiveGlobalTime < nextStart) {
+                              searchWordIndex = wI;
+                              break;
+                            }
+                          }
+                          if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= res.segment.start && effectiveGlobalTime < searchWords[0].start) {
+                            searchWordIndex = 0;
+                          }
+                          if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= searchWords[searchWords.length - 1].start) {
+                            searchWordIndex = searchWords.length - 1;
+                          }
+                        }
 
                         return (
                           <div
@@ -1680,9 +1784,50 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               </div>
 
                               {/* Highlighted text */}
-                              <p className="text-[14px] leading-relaxed text-slate-100 select-text">
-                                {highlightMatch(res.segment.text, search)}
-                              </p>
+                              {isPlayingThis ? (
+                                <p className="text-[14px] leading-relaxed select-text text-slate-100">
+                                  {searchWords.map((w, wIdx) => {
+                                    const isActiveWord = wIdx === searchWordIndex;
+                                    const isPastWord = searchWordIndex >= 0 && wIdx < searchWordIndex;
+                                    return (
+                                      <React.Fragment key={wIdx}>
+                                        <span
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const nowPlaying: NowPlayingEpisode = {
+                                              id: res.release_id,
+                                              title: res.title,
+                                              audioUrl: res.audio_url,
+                                            };
+                                            const targetSeekSec = Math.max(0, w.start + audioSeekOffsetSec);
+                                            if (current?.id !== res.release_id) {
+                                              play(nowPlaying, targetSeekSec);
+                                            } else {
+                                              seek(targetSeekSec);
+                                              if (!isPlaying) togglePlay();
+                                            }
+                                          }}
+                                          className={`cursor-pointer transition-all duration-75 rounded px-1 -mx-0.5 py-0.5 ${
+                                            isActiveWord
+                                              ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/50 ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
+                                              : isPastWord
+                                              ? 'text-slate-100 font-medium hover:text-white hover:bg-slate-800/60'
+                                              : 'text-slate-400 font-normal hover:text-slate-200 hover:bg-slate-800/40'
+                                          }`}
+                                          title={`Play from ${formatSeconds(w.start)}`}
+                                        >
+                                          {highlightMatch(w.word, search)}
+                                        </span>
+                                        {' '}
+                                      </React.Fragment>
+                                    );
+                                  })}
+                                </p>
+                              ) : (
+                                <p className="text-[14px] leading-relaxed text-slate-100 select-text">
+                                  {highlightMatch(res.segment.text, search)}
+                                </p>
+                              )}
                             </div>
                           </div>
                         );
@@ -2019,6 +2164,27 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
                           const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
+                          let activeWordIndex = -1;
+                          let utteranceWords: UtteranceWord[] = [];
+                          if (isPlayingThisUtterance) {
+                            utteranceWords = getUtteranceWords(utterance);
+                            const effectiveTime = currentTime - audioSeekOffsetSec;
+                            for (let i = 0; i < utteranceWords.length; i++) {
+                              const w = utteranceWords[i];
+                              const nextStart = i < utteranceWords.length - 1 ? utteranceWords[i + 1].start : (w.end + 0.8);
+                              if (effectiveTime >= w.start && effectiveTime < nextStart) {
+                                activeWordIndex = i;
+                                break;
+                              }
+                            }
+                            if (activeWordIndex === -1 && utteranceWords.length > 0 && effectiveTime >= utterance.startSec && effectiveTime < utteranceWords[0].start) {
+                              activeWordIndex = 0;
+                            }
+                            if (activeWordIndex === -1 && utteranceWords.length > 0 && effectiveTime >= utteranceWords[utteranceWords.length - 1].start) {
+                              activeWordIndex = utteranceWords.length - 1;
+                            }
+                          }
+
                           return (
                             <div
                               id={`utterance-card-${utterance.id}`}
@@ -2091,9 +2257,39 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                   </div>
                                 </div>
 
-                                <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
-                                  {highlightMatch(utterance.text, search)}
-                                </p>
+                                {isPlayingThisUtterance ? (
+                                  <p className="text-[15px] leading-relaxed transition-colors select-text text-slate-100">
+                                    {utteranceWords.map((w, wIdx) => {
+                                      const isActiveWord = wIdx === activeWordIndex;
+                                      const isPastWord = activeWordIndex >= 0 && wIdx < activeWordIndex;
+                                      return (
+                                        <React.Fragment key={wIdx}>
+                                          <span
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handlePlayUtterance(w.start);
+                                            }}
+                                            className={`cursor-pointer transition-all duration-75 rounded px-1 -mx-0.5 py-0.5 ${
+                                              isActiveWord
+                                                ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/50 ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
+                                                : isPastWord
+                                                ? 'text-slate-100 font-medium hover:text-white hover:bg-slate-800/60'
+                                                : 'text-slate-400 font-normal hover:text-slate-200 hover:bg-slate-800/40'
+                                            }`}
+                                            title={`Play from ${formatSeconds(w.start)}`}
+                                          >
+                                            {highlightMatch(w.word, search)}
+                                          </span>
+                                          {' '}
+                                        </React.Fragment>
+                                      );
+                                    })}
+                                  </p>
+                                ) : (
+                                  <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
+                                    {highlightMatch(utterance.text, search)}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           );

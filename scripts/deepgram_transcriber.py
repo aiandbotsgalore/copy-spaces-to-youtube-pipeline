@@ -491,6 +491,7 @@ def transcribe_audio_chunk_deepgram(
         curr_start = 0.0
         curr_end = 0.0
         curr_words: List[str] = []
+        curr_word_objs: List[Dict[str, Any]] = []
 
         for w in words:
             spk_id = w.get("speaker", 0)
@@ -501,12 +502,18 @@ def transcribe_audio_chunk_deepgram(
 
             w_start = w.get("start", 0.0) + time_offset
             w_end = w.get("end", 0.0) + time_offset
+            w_dict = {
+                "word": word_text,
+                "start": round(w_start, 2),
+                "end": round(w_end, 2)
+            }
 
             if curr_speaker is None:
                 curr_speaker = spk
                 curr_start = w_start
                 curr_end = w_end
                 curr_words = [word_text]
+                curr_word_objs = [w_dict]
             elif curr_speaker == spk:
                 # Same speaker continues
                 # If there's a significant pause (>2.5s) AND the previous word ended a sentence,
@@ -520,13 +527,16 @@ def transcribe_audio_chunk_deepgram(
                         "start": round(curr_start, 2),
                         "end": round(curr_end, 2),
                         "speaker": curr_speaker,
-                        "text": " ".join(curr_words).strip()
+                        "text": " ".join(curr_words).strip(),
+                        "words": curr_word_objs
                     })
                     curr_start = w_start
                     curr_end = w_end
                     curr_words = [word_text]
+                    curr_word_objs = [w_dict]
                 else:
                     curr_words.append(word_text)
+                    curr_word_objs.append(w_dict)
                     curr_end = w_end
             else:
                 # Speaker SWITCH: immediately flush previous speaker's turn!
@@ -535,19 +545,22 @@ def transcribe_audio_chunk_deepgram(
                         "start": round(curr_start, 2),
                         "end": round(curr_end, 2),
                         "speaker": curr_speaker,
-                        "text": " ".join(curr_words).strip()
+                        "text": " ".join(curr_words).strip(),
+                        "words": curr_word_objs
                     })
                 curr_speaker = spk
                 curr_start = w_start
                 curr_end = w_end
                 curr_words = [word_text]
+                curr_word_objs = [w_dict]
 
         if curr_words:
             segments.append({
                 "start": round(curr_start, 2),
                 "end": round(curr_end, 2),
                 "speaker": curr_speaker,
-                "text": " ".join(curr_words).strip()
+                "text": " ".join(curr_words).strip(),
+                "words": curr_word_objs
             })
     else:
         # Fallback to coarse utterances only if word-level data is unavailable
@@ -557,12 +570,23 @@ def transcribe_audio_chunk_deepgram(
             if not text:
                 continue
             spk_num = u.get("speaker", 0)
-            segments.append({
+            u_words = [
+                {
+                    "word": (w.get("punctuated_word") or w.get("word", "")).strip(),
+                    "start": round(w.get("start", 0.0) + time_offset, 2),
+                    "end": round(w.get("end", 0.0) + time_offset, 2)
+                }
+                for w in u.get("words", []) if (w.get("punctuated_word") or w.get("word", "")).strip()
+            ]
+            seg_dict: Dict[str, Any] = {
                 "start": round(u.get("start", 0.0) + time_offset, 2),
                 "end": round(u.get("end", 0.0) + time_offset, 2),
                 "speaker": f"Speaker {spk_num}",
                 "text": text
-            })
+            }
+            if u_words:
+                seg_dict["words"] = u_words
+            segments.append(seg_dict)
 
     return segments
 
@@ -702,6 +726,10 @@ def process_audio_file(
         ):
             merged[-1]["end"] = s["end"]
             merged[-1]["text"] += " " + text
+            if "words" in s or "words" in merged[-1]:
+                m_words = merged[-1].get("words", [])
+                s_words = s.get("words", [])
+                merged[-1]["words"] = m_words + s_words
         else:
             merged.append(s)
 
