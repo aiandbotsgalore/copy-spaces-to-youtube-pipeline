@@ -43,10 +43,20 @@ jobs:
           pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
           pip install speechbrain soundfile requests
 
-      - name: Download Sample Audio
+      - name: Prepare Sample Audio
         run: |
           mkdir -p speaker_samples/downloaded
-          curl -L "${{ inputs.audio_url }}" -o "speaker_samples/downloaded/input_raw"
+          SRC="${{ inputs.audio_url }}"
+          if [[ "$SRC" =~ ^https?:// ]]; then
+            echo "Downloading audio from URL: $SRC"
+            curl -L "$SRC" -o "speaker_samples/downloaded/input_raw"
+          elif [ -f "$SRC" ]; then
+            echo "Using file directly from repository: $SRC"
+            cp "$SRC" "speaker_samples/downloaded/input_raw"
+          else
+            echo "Error: Audio source not found: $SRC"
+            exit 1
+          fi
           # Convert to 16kHz mono WAV for optimal SpeechBrain ECAPA embedding extraction
           ffmpeg -i "speaker_samples/downloaded/input_raw" -ar 16000 -ac 1 "speaker_samples/downloaded/sample.wav" -y
 

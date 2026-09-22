@@ -143,6 +143,50 @@ export async function writeRepositoryTextFile(
   if (!res.ok) throw await githubError(res, `Could not update ${path}.`);
 }
 
+export async function writeRepositoryBinaryFile(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  base64Content: string,
+  message: string,
+  branch: string,
+  sha?: string
+): Promise<void> {
+  const encodedPath = encodeRepositoryPath(path);
+  let fileSha = sha;
+
+  if (!fileSha) {
+    try {
+      const checkRes = await ghFetch(
+        token,
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`
+      );
+      if (checkRes.ok) {
+        const data = await checkRes.json() as { sha?: string };
+        fileSha = data.sha;
+      }
+    } catch {
+      // file does not exist yet
+    }
+  }
+
+  const body: Record<string, string> = {
+    message,
+    content: base64Content,
+    branch,
+  };
+  if (fileSha) body.sha = fileSha;
+
+  const res = await ghFetch(
+    token,
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}`,
+    { method: 'PUT', body: JSON.stringify(body) }
+  );
+  assertNotRateLimited(res);
+  if (!res.ok) throw await githubError(res, `Could not upload binary file ${path}.`);
+}
+
 export async function appendLineToRepositoryTextFile(
   token: string,
   owner: string,

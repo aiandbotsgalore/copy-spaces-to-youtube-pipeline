@@ -3,10 +3,11 @@ import {
   AudioWaveform, Plus, Search, Filter, Star, Sparkles, Check, X,
   Save, Loader, AlertCircle, CheckCircle2, Trash2, Edit3, ExternalLink,
   Download, Upload, Copy, Info, Terminal, RefreshCw, Mic, Volume2,
-  Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText
+  Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText,
+  UploadCloud, Music, FileAudio
 } from 'lucide-react';
 import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release } from '../types';
-import { readRepositoryTextFile, writeRepositoryTextFile, getReleases, dispatchWorkflow } from '../utils/github';
+import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
 
 interface Props {
   config: EnhancedConfig;
@@ -123,6 +124,11 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [formEmoji, setFormEmoji] = useState('🎙️');
   const [formNotes, setFormNotes] = useState('');
   const [formAudioUrl, setFormAudioUrl] = useState('');
+  const [audioSourceTab, setAudioSourceTab] = useState<'COMPUTER' | 'URL'>('COMPUTER');
+  const [localAudioFile, setLocalAudioFile] = useState<File | null>(null);
+  const [localAudioPreviewUrl, setLocalAudioPreviewUrl] = useState<string | null>(null);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   // Episode diarization test state
   const [episodes, setEpisodes] = useState<Release[]>([]);
@@ -268,6 +274,10 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setFormEmoji('🎙️');
     setFormNotes('');
     setFormAudioUrl('');
+    setLocalAudioFile(null);
+    if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
+    setLocalAudioPreviewUrl(null);
+    setAudioSourceTab('COMPUTER');
     setModalMode('CREATE');
   };
 
@@ -280,7 +290,107 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setFormEmoji(p.avatar_emoji || '🎙️');
     setFormNotes(p.notes || '');
     setFormAudioUrl(p.sample_audio_url || '');
+    setLocalAudioFile(null);
+    if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
+    setLocalAudioPreviewUrl(null);
+    setAudioSourceTab(p.sample_audio_url?.startsWith('http') ? 'URL' : 'COMPUTER');
     setModalMode('EDIT');
+  };
+
+  // Select Audio File from Computer
+  const handleSelectAudioFile = (file: File) => {
+    if (!file) return;
+    setLocalAudioFile(file);
+    if (localAudioPreviewUrl) {
+      URL.revokeObjectURL(localAudioPreviewUrl);
+    }
+    const preview = URL.createObjectURL(file);
+    setLocalAudioPreviewUrl(preview);
+  };
+
+  // Upload Audio File from Computer & Cloud Enroll
+  const handleUploadFromComputerAndEnroll = async () => {
+    const trimmedName = formName.trim();
+    if (!trimmedName) {
+      setStatusMsg({ type: 'error', text: 'Please enter a speaker name first.' });
+      return;
+    }
+    if (!localAudioFile) {
+      setStatusMsg({ type: 'error', text: 'Please select an audio file (.wav, .mp3, .m4a) from your computer.' });
+      return;
+    }
+    if (!hasGitHub) {
+      setStatusMsg({ type: 'error', text: 'GitHub Token, Owner, and Repo must be configured in Settings to upload audio to your repository.' });
+      return;
+    }
+
+    setUploadingAudio(true);
+    setStatusMsg(null);
+    try {
+      // 1. Convert File to Base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = reader.result as string;
+          resolve(res.includes(',') ? res.split(',')[1] : res);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(localAudioFile);
+      });
+
+      const sanitizedSpeaker = trimmedName.replace(/[/\\?%*:|"<>]/g, '_').trim();
+      const cleanFileName = localAudioFile.name.replace(/[/\\?%*:|"<>]/g, '_');
+      const repoPath = `speaker_samples/${sanitizedSpeaker}/${cleanFileName}`;
+
+      // 2. Commit the audio binary to GitHub repository
+      setStatusMsg({ type: 'success', text: `Uploading "${cleanFileName}" (${Math.round(localAudioFile.size / 1024)} KB) to repository…` });
+      await writeRepositoryBinaryFile(
+        config.githubToken,
+        owner,
+        repo,
+        repoPath,
+        base64,
+        `feat(voice): upload sample audio for speaker ${trimmedName}`,
+        'master'
+      );
+
+      // 3. Save profile metadata locally
+      const nextCatalog: VoiceProfilesCatalog = {
+        ...catalog,
+        updated_at: new Date().toISOString(),
+        profiles: { ...catalog.profiles },
+      };
+      const existing = targetProfile || nextCatalog.profiles[trimmedName] || {};
+      nextCatalog.profiles[trimmedName] = {
+        ...existing,
+        name: trimmedName,
+        role: formRole,
+        color: formColor,
+        avatar_emoji: formEmoji,
+        notes: formNotes,
+        sample_audio_url: repoPath,
+        last_updated: new Date().toISOString(),
+      };
+      saveCatalogLocal(nextCatalog);
+
+      // 4. Trigger GitHub Actions cloud runner with the uploaded repo path
+      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
+        speaker_name: trimmedName,
+        audio_url: repoPath,
+        role: formRole,
+      });
+
+      setModalMode(null);
+      setStatusMsg({
+        type: 'success',
+        text: `🎉 Audio "${cleanFileName}" uploaded directly from your computer! GitHub Actions is now extracting the 192-dim SpeechBrain vector and updating voice_profiles.json.`
+      });
+      setTimeout(() => setStatusMsg(null), 12000);
+    } catch (e) {
+      setStatusMsg({ type: 'error', text: `Failed to upload audio from computer: ${(e as Error).message}` });
+    } finally {
+      setUploadingAudio(false);
+    }
   };
 
   // Save Form
@@ -1069,46 +1179,163 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 />
               </div>
 
-              {/* Audio URL Reference & Cloud Enrollment */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Audio Sample Reference (Optional)</label>
-                  {formAudioUrl.trim().startsWith('http') && (
-                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
-                      <Sparkles size={11} /> Ready for Cloud Extraction
-                    </span>
-                  )}
+              {/* Audio Sample Reference (From Computer or Web URL) */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Audio Sample Reference</span>
+                  <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setAudioSourceTab('COMPUTER')}
+                      className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                        audioSourceTab === 'COMPUTER' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      💻 From Computer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAudioSourceTab('URL')}
+                      className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                        audioSourceTab === 'URL' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      🌐 Web URL / Path
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="e.g. https://domain.com/sample.wav or speaker_samples/Angela/clean_clip_01.wav"
-                  value={formAudioUrl}
-                  onChange={e => setFormAudioUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
-                />
 
-                {formAudioUrl.trim().startsWith('http') && (
-                  <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-2 mt-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
-                          <Sparkles size={13} className="text-indigo-400" /> 1-Click Cloud Neural Enrollment
-                        </p>
-                        <p className="text-[11px] text-slate-400 leading-relaxed">
-                          Extract the 192-dim SpeechBrain ECAPA-TDNN vector in GitHub Actions cloud runner and auto-commit to <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleCloudEnroll}
-                        disabled={enrollingCloud || !hasGitHub || !formName.trim()}
-                        title={!hasGitHub ? 'Configure GitHub Token in Settings first' : 'Dispatch enroll_voice.yml workflow'}
-                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                {audioSourceTab === 'COMPUTER' ? (
+                  <div className="space-y-3">
+                    {!localAudioFile ? (
+                      <label
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragOver(false);
+                          if (e.dataTransfer.files?.[0]) {
+                            handleSelectAudioFile(e.dataTransfer.files[0]);
+                          }
+                        }}
+                        className={`flex flex-col items-center justify-center p-5 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                          dragOver ? 'border-indigo-500 bg-indigo-950/20' : 'border-slate-700 hover:border-indigo-500/60 bg-slate-950/60 hover:bg-slate-950'
+                        }`}
                       >
-                        {enrollingCloud ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                        {enrollingCloud ? 'Dispatching…' : 'Enroll in Cloud'}
-                      </button>
-                    </div>
+                        <input
+                          type="file"
+                          accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleSelectAudioFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 mb-2">
+                          <UploadCloud size={20} />
+                        </div>
+                        <span className="text-xs font-bold text-slate-200">
+                          Click to browse or drag &amp; drop audio sample
+                        </span>
+                        <span className="text-[10px] text-slate-400 mt-0.5">
+                          Direct from your computer: WAV, MP3, M4A, OGG (3s – 15s clean monologue recommended)
+                        </span>
+                      </label>
+                    ) : (
+                      <div className="p-3.5 bg-slate-950 border border-slate-700/80 rounded-xl space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex-shrink-0">
+                              <Music size={16} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-white truncate">{localAudioFile.name}</p>
+                              <p className="text-[10px] text-slate-400">
+                                {(localAudioFile.size / 1024).toFixed(1)} KB • {localAudioFile.type || 'audio file'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLocalAudioFile(null);
+                              if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
+                              setLocalAudioPreviewUrl(null);
+                            }}
+                            className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                            title="Remove file"
+                          >
+                            <X size={15} />
+                          </button>
+                        </div>
+
+                        {/* Audio Player Preview */}
+                        {localAudioPreviewUrl && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
+                              <Volume2 size={11} className="text-indigo-400" /> Listen to Audio Sample
+                            </span>
+                            <audio
+                              controls
+                              src={localAudioPreviewUrl}
+                              className="w-full h-8 rounded-lg bg-slate-900 border border-slate-800"
+                            />
+                          </div>
+                        )}
+
+                        {/* Action: Upload & Cloud Enroll */}
+                        <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                          <p className="text-[10px] text-slate-400 max-w-xs leading-relaxed">
+                            Uploads file directly to <code className="text-indigo-300 font-mono">speaker_samples/</code> and triggers cloud enrollment.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={handleUploadFromComputerAndEnroll}
+                            disabled={uploadingAudio || !hasGitHub || !formName.trim()}
+                            title={!hasGitHub ? 'Configure GitHub Token in Settings' : 'Upload file to repo and enroll'}
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                          >
+                            {uploadingAudio ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                            {uploadingAudio ? 'Uploading…' : 'Upload & Enroll'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. https://domain.com/sample.wav or speaker_samples/Angela/clip_01.wav"
+                      value={formAudioUrl}
+                      onChange={e => setFormAudioUrl(e.target.value)}
+                      className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
+                    />
+                    {formAudioUrl.trim().startsWith('http') && (
+                      <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-0.5">
+                            <p className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
+                              <Sparkles size={13} className="text-indigo-400" /> 1-Click Cloud Neural Enrollment
+                            </p>
+                            <p className="text-[11px] text-slate-400 leading-relaxed">
+                              Extract the 192-dim SpeechBrain ECAPA-TDNN vector in GitHub Actions cloud runner and auto-commit to <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleCloudEnroll}
+                            disabled={enrollingCloud || !hasGitHub || !formName.trim()}
+                            title={!hasGitHub ? 'Configure GitHub Token in Settings first' : 'Dispatch enroll_voice.yml workflow'}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                          >
+                            {enrollingCloud ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                            {enrollingCloud ? 'Dispatching…' : 'Enroll in Cloud'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
