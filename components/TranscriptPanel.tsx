@@ -590,6 +590,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [transcribeSuccess, setTranscribeSuccess] = useState('');
   const [timeOffsetSec, setTimeOffsetSec] = useState<number>(0);
   const [audioSeekOffsetSec, setAudioSeekOffsetSec] = useState<number>(0);
 

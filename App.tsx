@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense, Component } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
@@ -48,7 +48,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class PanelErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class PanelErrorBoundary extends (Component as any) {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
