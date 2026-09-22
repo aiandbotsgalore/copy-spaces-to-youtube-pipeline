@@ -18,8 +18,55 @@ export interface RepositoryTextFile {
   sha: string;
 }
 
+export interface GitHubRateLimitInfo {
+  limit: number;
+  remaining: number;
+  reset: number;
+  used: number;
+}
+
+interface CachedResponse {
+  etag: string;
+  data: any;
+  status: number;
+  timestamp: number;
+}
+
+const ETAG_CACHE = new Map<string, CachedResponse>();
+let lastRateLimit: GitHubRateLimitInfo | null = null;
+const rateLimitListeners = new Set<(info: GitHubRateLimitInfo) => void>();
+
+export function getCachedRateLimit(): GitHubRateLimitInfo | null {
+  return lastRateLimit;
+}
+
+export function onRateLimitChange(listener: (info: GitHubRateLimitInfo) => void): () => void {
+  rateLimitListeners.add(listener);
+  if (lastRateLimit) listener(lastRateLimit);
+  return () => { rateLimitListeners.delete(listener); };
+}
+
+function updateRateLimitFromHeaders(headers: Headers) {
+  const limit = headers.get('x-ratelimit-limit');
+  const remaining = headers.get('x-ratelimit-remaining');
+  const reset = headers.get('x-ratelimit-reset');
+  const used = headers.get('x-ratelimit-used');
+  if (limit && remaining && reset) {
+    lastRateLimit = {
+      limit: parseInt(limit, 10),
+      remaining: parseInt(remaining, 10),
+      reset: parseInt(reset, 10),
+      used: used ? parseInt(used, 10) : 0,
+    };
+    rateLimitListeners.forEach(cb => {
+      try { cb(lastRateLimit!); } catch { /* ignore */ }
+    });
+  }
+}
+
 async function ghFetch(token: string, path: string, options: RequestInit = {}) {
   const url = path.startsWith('http') ? path : `${BASE}${path}`;
+  const method = (options.method || 'GET').toUpperCase();
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
@@ -29,10 +76,54 @@ async function ghFetch(token: string, path: string, options: RequestInit = {}) {
   if (options.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
+
+  const cacheKey = `${token.slice(-6)}:${url}`;
+  const isGet = method === 'GET';
+
+  if (isGet && ETAG_CACHE.has(cacheKey)) {
+    const cached = ETAG_CACHE.get(cacheKey)!;
+    if (cached.etag) {
+      headers['If-None-Match'] = cached.etag;
+    }
+  }
+
   const res = await fetch(url, {
     ...options,
     headers,
   });
+
+  updateRateLimitFromHeaders(res.headers);
+
+  // If 304 Not Modified, serve cached body cleanly
+  if (isGet && res.status === 304 && ETAG_CACHE.has(cacheKey)) {
+    const cached = ETAG_CACHE.get(cacheKey)!;
+    return new Response(JSON.stringify(cached.data), {
+      status: 200,
+      headers: res.headers,
+    });
+  }
+
+  // If 200 with an ETag, store in cache for subsequent polling
+  if (isGet && res.status === 200) {
+    const etag = res.headers.get('etag');
+    if (etag) {
+      const cloned = res.clone();
+      cloned.json().then(data => {
+        ETAG_CACHE.set(cacheKey, {
+          etag,
+          data,
+          status: 200,
+          timestamp: Date.now(),
+        });
+      }).catch(() => {});
+    }
+  }
+
+  // Mutation commands invalidate the cache
+  if (!isGet && res.ok) {
+    ETAG_CACHE.clear();
+  }
+
   return res;
 }
 

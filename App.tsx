@@ -1,29 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
-  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
+  Loader2
 } from 'lucide-react';
-import FileViewer from './components/FileViewer';
-import GitHubConnect from './components/GitHubConnect';
-import FeaturePanel from './components/FeaturePanel';
-import BatchUrlEditor from './components/BatchUrlEditor';
-import ArtworkUpload from './components/ArtworkUpload';
-import RSSPreview from './components/RSSPreview';
-import RunHistory from './components/RunHistory';
-import DeployWizard from './components/DeployWizard';
-import LibraryPanel from './components/LibraryPanel';
-import TranscriptPanel from './components/TranscriptPanel';
-import { ClipsPanel } from './components/ClipsPanel';
-import VoiceProfileLibrary from './components/VoiceProfileLibrary';
-import SubmitSpacePanel from './components/SubmitSpacePanel';
-import DashboardOverview from './components/DashboardOverview';
-import LiveQueuePanel from './components/LiveQueuePanel';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
+import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { saveConfig, loadConfig, loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
+
+// Code-split / Lazy-loaded Panels
+const DashboardOverview = React.lazy(() => import('./components/DashboardOverview'));
+const SubmitSpacePanel = React.lazy(() => import('./components/SubmitSpacePanel'));
+const LibraryPanel = React.lazy(() => import('./components/LibraryPanel'));
+const TranscriptPanel = React.lazy(() => import('./components/TranscriptPanel'));
+const ClipsPanel = React.lazy(() => import('./components/ClipsPanel').then(m => ({ default: m.ClipsPanel })));
+const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
+const RunHistory = React.lazy(() => import('./components/RunHistory'));
+const RSSPreview = React.lazy(() => import('./components/RSSPreview'));
+const LiveQueuePanel = React.lazy(() => import('./components/LiveQueuePanel'));
+const GitHubConnect = React.lazy(() => import('./components/GitHubConnect'));
+const DeployWizard = React.lazy(() => import('./components/DeployWizard'));
+const FeaturePanel = React.lazy(() => import('./components/FeaturePanel'));
+const BatchUrlEditor = React.lazy(() => import('./components/BatchUrlEditor'));
+const ArtworkUpload = React.lazy(() => import('./components/ArtworkUpload'));
+const FileViewer = React.lazy(() => import('./components/FileViewer'));
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -395,13 +399,27 @@ export default function App() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-slate-800/80 text-[10px] text-slate-700 text-center">
+        <div className="p-3 border-t border-slate-800/80">
+          <PipelineHealthWidget
+            config={config}
+            compact={true}
+            onNavigateToGitHub={() => setActivePanel('github')}
+          />
+        </div>
+
+        <div className="px-4 py-2 border-t border-slate-800/40 text-[10px] text-slate-700 text-center">
           Generated files comply with DevOps strict mode
         </div>
       </aside>
 
       {/* ── Main Content ── */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+        <Suspense fallback={
+          <div className="flex-1 flex flex-col items-center justify-center h-full p-12 bg-slate-950">
+            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mb-3" />
+            <span className="text-xs text-slate-400 font-medium tracking-wide">Loading workspace view...</span>
+          </div>
+        }>
 
         {activePanel === 'dashboard' && (
           <DashboardOverview
@@ -655,6 +673,7 @@ export default function App() {
             }}
           />
         )}
+        </Suspense>
       </main>
       <PlayerBar />
     </div>

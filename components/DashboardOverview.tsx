@@ -9,6 +9,7 @@ import { validateSubmission, friendlyGitHubError } from '../utils/submitSpace';
 import { useActiveOperations } from '../hooks/useActiveOperations';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import PipelineHealthWidget from './PipelineHealthWidget';
 
 interface Props {
   config: EnhancedConfig;
@@ -138,6 +139,14 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-1">Command Center</h2>
         <p className="text-slate-400 text-sm">Ingest a new Space, keep an eye on what's running, and jump back into recent episodes.</p>
+      </div>
+
+      {/* Automated Pipeline Health & Telemetry Monitor */}
+      <div className="mb-8">
+        <PipelineHealthWidget
+          config={config}
+          onNavigateToGitHub={() => onNavigate('submit-space')}
+        />
       </div>
 
       {!hasCredentials && (

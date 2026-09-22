@@ -218,11 +218,30 @@ if os.path.exists(profiles_file):
         pass
 
 data.setdefault('profiles', {{}})
-data['profiles'][speaker_name] = {{
+existing_profile = data['profiles'].get(speaker_name, {{}})
+old_count = existing_profile.get('sample_count', 0)
+old_emb = existing_profile.get('embedding', [])
+
+if old_count > 0 and len(old_emb) == 192:
+    old_vec = np.array(old_emb, dtype=np.float32)
+    new_count = old_count + 1
+    weighted_sum = (old_vec * float(old_count)) + emb
+    norm_merged = np.linalg.norm(weighted_sum)
+    if norm_merged > 1e-6:
+        weighted_sum = weighted_sum / norm_merged
+    final_emb = [float(x) for x in weighted_sum]
+    sample_count = new_count
+else:
+    final_emb = emb_list
+    sample_count = max(1, old_count + 1)
+
+profile_entry = dict(existing_profile)
+profile_entry.update({{
     'name': speaker_name,
-    'sample_count': 1,
-    'embedding': emb_list
-}}
+    'sample_count': sample_count,
+    'embedding': final_emb
+}})
+data['profiles'][speaker_name] = profile_entry
 
 with open(profiles_file, 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2)

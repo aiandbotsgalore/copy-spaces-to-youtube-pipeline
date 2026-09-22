@@ -114,8 +114,21 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Modals
-  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | null>(null);
+  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | null>(null);
   const [targetProfile, setTargetProfile] = useState<VoiceProfile | null>(null);
+  const [audioPreCheck, setAudioPreCheck] = useState<{
+    duration: number;
+    peakDb: number;
+    isClipping: boolean;
+    isTooQuiet: boolean;
+    isOptimalDuration: boolean;
+    silenceRatio: number;
+    sampleRate: number;
+    channels: number;
+    qualityLevel: 'excellent' | 'good' | 'warning' | 'error';
+    qualityNotes: string[];
+  } | null>(null);
+  const [inspectingAudio, setInspectingAudio] = useState(false);
 
   // Form State
   const [formName, setFormName] = useState('');
@@ -265,6 +278,97 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     }
   };
 
+  // Audio Quality Inspector via Web Audio API
+  const inspectAudioFile = async (file: File) => {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) {
+      return {
+        duration: 0,
+        peakDb: 0,
+        isClipping: false,
+        isTooQuiet: false,
+        isOptimalDuration: true,
+        silenceRatio: 0,
+        sampleRate: 44100,
+        channels: 1,
+        qualityLevel: 'good' as const,
+        qualityNotes: ['Browser Web Audio inspection not supported, will proceed with cloud validation.']
+      };
+    }
+
+    const ctx = new AudioCtx();
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+      const duration = audioBuffer.duration;
+      const channels = audioBuffer.numberOfChannels;
+      const sampleRate = audioBuffer.sampleRate;
+
+      const data = audioBuffer.getChannelData(0);
+      let maxPeak = 0;
+      let silentCount = 0;
+      const step = Math.max(1, Math.floor(data.length / 50000));
+      let samplesChecked = 0;
+
+      for (let i = 0; i < data.length; i += step) {
+        const abs = Math.abs(data[i]);
+        if (abs > maxPeak) maxPeak = abs;
+        if (abs < 0.005) silentCount++;
+        samplesChecked++;
+      }
+
+      const silenceRatio = samplesChecked > 0 ? silentCount / samplesChecked : 0;
+      const peakDb = maxPeak > 0 ? 20 * Math.log10(maxPeak) : -100;
+      const isClipping = maxPeak >= 0.99;
+      const isTooQuiet = peakDb < -25;
+      const isOptimalDuration = duration >= 3.0 && duration <= 20.0;
+
+      const notes: string[] = [];
+      let level: 'excellent' | 'good' | 'warning' | 'error' = 'excellent';
+
+      if (duration < 2.0) {
+        notes.push('Too brief (< 2s). May not contain enough acoustic variance for ECAPA-TDNN.');
+        level = 'error';
+      } else if (duration < 3.5) {
+        notes.push('Slightly short (< 3.5s). Recommend 4s–12s for optimal speaker vector extraction.');
+        level = 'warning';
+      } else if (duration > 35.0) {
+        notes.push('Long audio sample (> 35s). Ensure it contains only this speaker without crosstalk.');
+        level = 'warning';
+      } else {
+        notes.push(`Optimal monologue duration (${duration.toFixed(1)}s).`);
+      }
+
+      if (isClipping) {
+        notes.push('Digital clipping detected (0 dBFS peak). Audio may have distorted frequencies.');
+        if (level !== 'error') level = 'warning';
+      } else if (isTooQuiet) {
+        notes.push('Audio signal is quiet (< -25 dBFS). Consider a louder or closer recording.');
+        if (level !== 'error') level = 'warning';
+      }
+
+      if (silenceRatio > 0.65) {
+        notes.push('High silence ratio (> 65%). Sample contains extended quiet pauses.');
+        if (level !== 'error') level = 'warning';
+      }
+
+      return {
+        duration,
+        peakDb,
+        isClipping,
+        isTooQuiet,
+        isOptimalDuration,
+        silenceRatio,
+        sampleRate,
+        channels,
+        qualityLevel: level,
+        qualityNotes: notes,
+      };
+    } finally {
+      ctx.close().catch(() => {});
+    }
+  };
+
   // Open Create Modal
   const handleOpenCreate = () => {
     setTargetProfile(null);
@@ -277,6 +381,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setLocalAudioFile(null);
     if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
     setLocalAudioPreviewUrl(null);
+    setAudioPreCheck(null);
     setAudioSourceTab('COMPUTER');
     setModalMode('CREATE');
   };
@@ -293,12 +398,13 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setLocalAudioFile(null);
     if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
     setLocalAudioPreviewUrl(null);
+    setAudioPreCheck(null);
     setAudioSourceTab(p.sample_audio_url?.startsWith('http') ? 'URL' : 'COMPUTER');
     setModalMode('EDIT');
   };
 
-  // Select Audio File from Computer
-  const handleSelectAudioFile = (file: File) => {
+  // Select Audio File from Computer & Run Pre-Flight Check
+  const handleSelectAudioFile = async (file: File) => {
     if (!file) return;
     setLocalAudioFile(file);
     if (localAudioPreviewUrl) {
@@ -306,6 +412,16 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     }
     const preview = URL.createObjectURL(file);
     setLocalAudioPreviewUrl(preview);
+    setAudioPreCheck(null);
+    setInspectingAudio(true);
+    try {
+      const check = await inspectAudioFile(file);
+      setAudioPreCheck(check);
+    } catch {
+      // ignore inspection failure
+    } finally {
+      setInspectingAudio(false);
+    }
   };
 
   // Upload Audio File from Computer & Cloud Enroll
@@ -557,6 +673,57 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     };
   }, [catalog]);
 
+  // Pairwise Cosine Similarity for Vocal Confusion Analysis
+  const confusionPairs = useMemo(() => {
+    const list = Object.values(catalog.profiles || {}).filter(p => p.embedding && p.embedding.length === 192);
+    const pairs: Array<{
+      speakerA: string;
+      speakerB: string;
+      similarity: number;
+      risk: 'high' | 'moderate' | 'low';
+    }> = [];
+
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const pA = list[i];
+        const pB = list[j];
+        const a = pA.embedding!;
+        const b = pB.embedding!;
+        let dot = 0, normA = 0, normB = 0;
+        for (let k = 0; k < 192; k++) {
+          dot += a[k] * b[k];
+          normA += a[k] * a[k];
+          normB += b[k] * b[k];
+        }
+        const denom = Math.sqrt(normA) * Math.sqrt(normB);
+        const sim = denom > 1e-6 ? dot / denom : 0;
+        const risk = sim >= 0.75 ? 'high' : sim >= 0.65 ? 'moderate' : 'low';
+        pairs.push({
+          speakerA: pA.name,
+          speakerB: pB.name,
+          similarity: Math.min(1.0, Math.max(0, sim)),
+          risk,
+        });
+      }
+    }
+
+    pairs.sort((x, y) => y.similarity - x.similarity);
+    return pairs;
+  }, [catalog]);
+
+  const speakerConfusionMap = useMemo(() => {
+    const map: Record<string, Array<{ other: string; sim: number; risk: 'high' | 'moderate' }>> = {};
+    confusionPairs.forEach(pair => {
+      if (pair.similarity >= 0.65) {
+        map[pair.speakerA] = map[pair.speakerA] || [];
+        map[pair.speakerA].push({ other: pair.speakerB, sim: pair.similarity, risk: pair.risk as 'high' | 'moderate' });
+        map[pair.speakerB] = map[pair.speakerB] || [];
+        map[pair.speakerB].push({ other: pair.speakerA, sim: pair.similarity, risk: pair.risk as 'high' | 'moderate' });
+      }
+    });
+    return map;
+  }, [confusionPairs]);
+
   // Export JSON
   const handleExportJson = () => {
     const blob = new Blob([JSON.stringify(catalog, null, 2)], { type: 'application/json' });
@@ -660,6 +827,17 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             >
               {savingGitHub ? <Loader size={14} className="animate-spin" /> : <Save size={14} />}
               {savingGitHub ? 'Committing…' : 'Sync to GitHub'}
+            </button>
+
+            <button
+              onClick={() => setModalMode('SEPARATION_MATRIX')}
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+            >
+              <Sparkles size={14} className="text-indigo-400" />
+              <span>Acoustic Auditor</span>
+              {confusionPairs.filter(p => p.risk === 'high').length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" title="High confusion risk detected" />
+              )}
             </button>
 
             <button
@@ -944,6 +1122,28 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                       ) : (
                         <div className="py-2 text-center text-[11px] text-slate-500">
                           Attach an audio clip to enroll acoustic vector
+                        </div>
+                      )}
+
+                      {/* Confusion Risk Alert */}
+                      {hasEmbedding && speakerConfusionMap[profile.name] && speakerConfusionMap[profile.name].length > 0 && (
+                        <div className={`p-2 rounded-lg border text-[11px] flex items-center justify-between gap-1.5 ${
+                          speakerConfusionMap[profile.name][0].risk === 'high'
+                            ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                            : 'bg-amber-500/10 border-amber-500/25 text-amber-300'
+                        }`}>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <AlertCircle size={12} className={speakerConfusionMap[profile.name][0].risk === 'high' ? 'text-rose-400 flex-shrink-0' : 'text-amber-400 flex-shrink-0'} />
+                            <span className="truncate">
+                              Overlap with <strong>{speakerConfusionMap[profile.name][0].other}</strong> ({Math.round(speakerConfusionMap[profile.name][0].sim * 100)}%)
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setModalMode('SEPARATION_MATRIX')}
+                            className="text-[10px] underline font-semibold hover:text-white flex-shrink-0 cursor-pointer"
+                          >
+                            Inspect
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1284,6 +1484,62 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                           </div>
                         )}
 
+                        {/* Web Audio Pre-Flight Inspection Card */}
+                        {inspectingAudio && (
+                          <div className="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/25 flex items-center gap-2 text-xs text-indigo-300">
+                            <Loader size={13} className="animate-spin text-indigo-400" />
+                            <span>Analyzing acoustic waveform with Web Audio API…</span>
+                          </div>
+                        )}
+
+                        {audioPreCheck && (
+                          <div className={`p-3 rounded-xl border space-y-2 text-xs ${
+                            audioPreCheck.qualityLevel === 'excellent' ? 'bg-emerald-500/10 border-emerald-500/30' :
+                            audioPreCheck.qualityLevel === 'good' ? 'bg-indigo-500/10 border-indigo-500/30' :
+                            audioPreCheck.qualityLevel === 'warning' ? 'bg-amber-500/10 border-amber-500/30' :
+                            'bg-rose-500/10 border-rose-500/30'
+                          }`}>
+                            <div className="flex items-center justify-between font-bold">
+                              <span className="flex items-center gap-1.5 text-white">
+                                <Sparkles size={13} className={audioPreCheck.qualityLevel === 'error' ? 'text-rose-400' : audioPreCheck.qualityLevel === 'warning' ? 'text-amber-400' : 'text-emerald-400'} />
+                                Pre-Flight Quality Check
+                              </span>
+                              <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold ${
+                                audioPreCheck.qualityLevel === 'excellent' ? 'bg-emerald-500/20 text-emerald-300' :
+                                audioPreCheck.qualityLevel === 'good' ? 'bg-indigo-500/20 text-indigo-300' :
+                                audioPreCheck.qualityLevel === 'warning' ? 'bg-amber-500/20 text-amber-300' :
+                                'bg-rose-500/20 text-rose-300'
+                              }`}>
+                                {audioPreCheck.qualityLevel}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
+                                <span className="text-slate-400 block text-[9px]">DURATION</span>
+                                <span className="font-bold text-white">{audioPreCheck.duration.toFixed(1)}s</span>
+                              </div>
+                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
+                                <span className="text-slate-400 block text-[9px]">PEAK LEVEL</span>
+                                <span className="font-bold text-white">{audioPreCheck.peakDb.toFixed(1)} dBFS</span>
+                              </div>
+                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
+                                <span className="text-slate-400 block text-[9px]">SAMPLE RATE</span>
+                                <span className="font-bold text-white">{audioPreCheck.sampleRate / 1000} kHz</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-0.5 text-[11px] text-slate-300">
+                              {audioPreCheck.qualityNotes.map((note, idx) => (
+                                <p key={idx} className="flex items-start gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />
+                                  <span>{note}</span>
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {/* Action: Upload & Cloud Enroll */}
                         <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
                           <p className="text-[10px] text-slate-400 max-w-xs leading-relaxed">
@@ -1555,6 +1811,130 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Separation Matrix & Quality Auditor Modal ── */}
+      {modalMode === 'SEPARATION_MATRIX' && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Acoustic Separation Matrix &amp; Diarization Auditor</h3>
+                  <p className="text-xs text-slate-400">Pairwise cosine similarity between enrolled 192-dim neural vectors</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalMode(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Total Enrolled Voices</span>
+                  <p className="text-xl font-black text-white">{stats.enrolled}</p>
+                </div>
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Evaluated Pairs</span>
+                  <p className="text-xl font-black text-indigo-400">{confusionPairs.length}</p>
+                </div>
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">High Overlap Risks (&gt;75%)</span>
+                  <p className={`text-xl font-black ${confusionPairs.filter(p => p.risk === 'high').length > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {confusionPairs.filter(p => p.risk === 'high').length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Guidance Box */}
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-slate-300 leading-relaxed text-[11px] space-y-1">
+                <span className="font-bold text-indigo-300 flex items-center gap-1">
+                  <Info size={12} /> Diarization Quality Metric Interpretation
+                </span>
+                <p>
+                  Cosine similarity ranges from <strong>0.00</strong> (completely orthogonal vocal acoustics) to <strong>1.00</strong> (identical voice).
+                  Separation below <strong>0.65</strong> ensures razor-sharp multi-speaker discrimination.
+                  Pairs with <strong>&gt;0.75</strong> similarity run a slight risk of label mixing during crosstalk or degraded microphone conditions.
+                </p>
+              </div>
+
+              {/* Pairs List */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Pairwise Similarity Scores</h4>
+                {confusionPairs.length === 0 ? (
+                  <p className="p-4 text-center text-slate-500 bg-slate-950 rounded-xl border border-slate-800">
+                    At least 2 enrolled voice profiles with 192-dim vectors are required to calculate acoustic separation.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {confusionPairs.map((pair, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
+                          pair.risk === 'high' ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' :
+                          pair.risk === 'moderate' ? 'bg-amber-500/10 border-amber-500/25 text-amber-200' :
+                          'bg-slate-950/80 border-slate-800 text-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-mono text-xs font-bold text-slate-500">#{idx + 1}</span>
+                          <div>
+                            <span className="font-bold text-white text-xs">{pair.speakerA}</span>
+                            <span className="text-slate-500 mx-2">↔</span>
+                            <span className="font-bold text-white text-xs">{pair.speakerB}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 flex-shrink-0">
+                          {/* Progress bar */}
+                          <div className="w-24 bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800 hidden sm:block">
+                            <div
+                              style={{ width: `${Math.round(pair.similarity * 100)}%` }}
+                              className={`h-full rounded-full ${
+                                pair.risk === 'high' ? 'bg-rose-500' :
+                                pair.risk === 'moderate' ? 'bg-amber-400' :
+                                'bg-emerald-400'
+                              }`}
+                            />
+                          </div>
+
+                          <span className="font-mono text-xs font-bold text-white">
+                            {(pair.similarity * 100).toFixed(1)}%
+                          </span>
+
+                          <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                            pair.risk === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
+                            pair.risk === 'moderate' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
+                            'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                          }`}>
+                            {pair.risk === 'high' ? 'High Overlap' : pair.risk === 'moderate' ? 'Moderate' : 'Optimal Separation'}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setModalMode(null)}
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              >
+                Close Auditor
               </button>
             </div>
           </div>

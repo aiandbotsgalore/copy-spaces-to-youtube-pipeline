@@ -317,6 +317,74 @@ def analyze_conversational_heuristics(
     return mappings
 
 
+def auto_extract_enrollment_samples(json_path: Path, audio_path: Path, max_samples: int = 2):
+    """
+    Automated Ingest-to-Enrollment Feedback Loop:
+    Extracts clean monologue turns (4s-12s) for recognized speakers
+    and saves them to speaker_samples/<SpeakerName>/ for continuous profile refinement.
+    """
+    if not json_path.exists() or not audio_path.exists():
+        return
+
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        segments = data.get("segments", [])
+        if not segments:
+            return
+
+        known = set(load_known_speakers())
+        samples_root = Path("speaker_samples")
+        samples_root.mkdir(parents=True, exist_ok=True)
+
+        # Group valid turns by recognized speaker
+        speaker_turns: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        for seg in segments:
+            spk = seg.get("speaker", "").strip()
+            if spk in known and not spk.lower().startswith("speaker"):
+                dur = seg.get("end", 0) - seg.get("start", 0)
+                text = seg.get("text", "").strip()
+                if 4.0 <= dur <= 12.0 and len(text.split()) >= 6:
+                    speaker_turns[spk].append(seg)
+
+        for spk, turns in speaker_turns.items():
+            safe_name = re.sub(r'[\\/*?:"<>|]', "", spk).strip()
+            spk_dir = samples_root / safe_name
+            spk_dir.mkdir(parents=True, exist_ok=True)
+
+            existing_wavs = list(spk_dir.glob("*.wav"))
+            if len(existing_wavs) >= 5:
+                continue
+
+            needed = min(max_samples, 5 - len(existing_wavs))
+            # Prefer turns closest to 7.5s (ideal ECAPA duration)
+            turns.sort(key=lambda t: abs((t["end"] - t["start"]) - 7.5))
+
+            for i, turn in enumerate(turns[:needed], 1):
+                start = turn["start"]
+                dur = round(turn["end"] - turn["start"], 2)
+                ts_label = f"{int(start//60):02d}m{int(start%60):02d}s"
+                out_wav = spk_dir / f"auto_sample_{ts_label}.wav"
+                if out_wav.exists():
+                    continue
+
+                cmd = [
+                    FFMPEG_EXE, "-y",
+                    "-ss", str(start),
+                    "-t", str(dur),
+                    "-i", str(audio_path),
+                    "-ac", "1",
+                    "-ar", "16000",
+                    "-c:a", "pcm_s16le",
+                    str(out_wav)
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode == 0:
+                    print(f"  [✓] Auto-extracted clean sample for '{spk}': {out_wav.name} ({dur}s)")
+    except Exception as e:
+        print(f"[!] Notice: auto_extract_enrollment_samples skipped: {e}")
+
+
 def resolve_speakers_intelligently(
     segments: List[Dict[str, Any]],
     title: str = "",
@@ -818,6 +886,10 @@ def main():
                     subprocess.run(cmd_clips, timeout=300)
                 except Exception as e:
                     print(f"[!] Notice: Clip extraction skipped: {e}")
+
+            # Automated Ingest-to-Enrollment Feedback: Extract clean speaker turns
+            print(f"[*] Checking for clean known speaker turns to refine voice profiles...")
+            auto_extract_enrollment_samples(json_path, local_mp3, max_samples=2)
 
         # Gather files to upload
         to_upload = [p for p in [txt_path, srt_path, json_path] if p.exists() and p.stat().st_size > 0]
