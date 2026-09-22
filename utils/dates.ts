@@ -22,8 +22,29 @@ export function getEpisodeRecordedDate(release?: {
   name?: string;
   published_at?: string;
   created_at?: string;
+  episode_date?: string;
 } | null): EpisodeDateInfo {
   const rel = release || {};
+
+  // 0. Check explicit episode_date field (e.g. from index or metadata)
+  if (rel.episode_date) {
+    const epMatch = rel.episode_date.match(/^(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
+    if (epMatch) {
+      const year = parseInt(epMatch[1], 10);
+      const month = parseInt(epMatch[2], 10) - 1;
+      const day = parseInt(epMatch[3], 10);
+      if (year >= 2000 && year <= 2099 && month >= 0 && month < 12 && day >= 1 && day <= 31) {
+        const dateObj = new Date(Date.UTC(year, month, day, 12, 0, 0));
+        return {
+          dateObj,
+          timestampMs: dateObj.getTime(),
+          displayDate: `${MONTH_NAMES[month] ?? '???'} ${day}, ${year}`,
+          rawDateStr: `${epMatch[1]}-${epMatch[2]}-${epMatch[3]}`,
+        };
+      }
+    }
+  }
+
   // 1. Check body METADATA or Recorded field
   if (rel.body) {
     const metaMatch = rel.body.match(/METADATA::EPISODE_DATE::(\d{4})[-/]?(\d{2})[-/]?(\d{2})/);
@@ -126,7 +147,18 @@ export function sortReleasesByRecordedDate<T extends {
   if (!Array.isArray(releases)) return [];
   return [...releases].sort((a, b) => {
     const diff = getEpisodeRecordedDate(b).timestampMs - getEpisodeRecordedDate(a).timestampMs;
-    return order === 'desc' ? diff : -diff;
+    if (diff !== 0) {
+      return order === 'desc' ? diff : -diff;
+    }
+    // Tie-breaker when two episodes share the exact same recorded date:
+    // Sort by GitHub published_at / created_at timestamp
+    const timeB = new Date(b.published_at || (b as any).created_at || 0).getTime();
+    const timeA = new Date(a.published_at || (a as any).created_at || 0).getTime();
+    const tieDiff = timeB - timeA;
+    if (tieDiff !== 0) {
+      return order === 'desc' ? tieDiff : -tieDiff;
+    }
+    return (b.tag_name || '').localeCompare(a.tag_name || '');
   });
 }
 
