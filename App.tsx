@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
-  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame
+  Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform
 } from 'lucide-react';
 import FileViewer from './components/FileViewer';
 import GitHubConnect from './components/GitHubConnect';
@@ -15,6 +15,7 @@ import DeployWizard from './components/DeployWizard';
 import LibraryPanel from './components/LibraryPanel';
 import TranscriptPanel from './components/TranscriptPanel';
 import { ClipsPanel } from './components/ClipsPanel';
+import VoiceProfileLibrary from './components/VoiceProfileLibrary';
 import SubmitSpacePanel from './components/SubmitSpacePanel';
 import DashboardOverview from './components/DashboardOverview';
 import LiveQueuePanel from './components/LiveQueuePanel';
@@ -126,6 +127,7 @@ type Panel =
   | 'library'
   | 'transcripts'
   | 'clips'
+  | 'voice-profiles'
   | `file:${string}`;
 
 interface NavItemProps {
@@ -306,6 +308,14 @@ export default function App() {
                 onClick={() => setActivePanel('clips')}
                 badge="AI"
                 badgeColor="bg-amber-500/20 text-amber-400"
+              />
+              <NavItem
+                icon={<AudioWaveform size={15} />}
+                label="Voice Profiles"
+                active={activePanel === 'voice-profiles'}
+                onClick={() => setActivePanel('voice-profiles')}
+                badge="AI"
+                badgeColor="bg-indigo-500/20 text-indigo-400"
               />
               <NavItem
                 icon={<History size={15} />}
@@ -634,6 +644,16 @@ export default function App() {
 
         {activePanel === 'clips' && (
           <ClipsPanel config={config} />
+        )}
+
+        {activePanel === 'voice-profiles' && (
+          <VoiceProfileLibrary
+            config={config}
+            onOpenTranscript={(id) => {
+              setSelectedTranscriptId(id);
+              setActivePanel('transcripts');
+            }}
+          />
         )}
       </main>
       <PlayerBar />

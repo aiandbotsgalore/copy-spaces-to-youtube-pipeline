@@ -82,3 +82,23 @@ export interface DeployStep {
   status: 'pending' | 'running' | 'done' | 'error';
   message?: string;
 }
+
+export interface VoiceProfile {
+  name: string;
+  role?: string;
+  sample_count?: number;
+  embedding?: number[];
+  last_updated?: string;
+  avatar_emoji?: string;
+  color?: string;
+  notes?: string;
+  sample_audio_url?: string;
+}
+
+export interface VoiceProfilesCatalog {
+  version: string;
+  updated_at: string;
+  embedding_model: string;
+  embedding_dim: number;
+  profiles: Record<string, VoiceProfile>;
+}
