@@ -79,6 +79,17 @@ export interface SearchIndexEpisode {
   segments: SearchIndexSegment[];
 }
 
+export interface EpisodeSummary {
+  release_id: number;
+  release_tag: string;
+  title: string;
+  published_at: string;
+  episode_date?: string | null;
+  audio_url: string;
+  segment_count: number;
+  body?: string;
+}
+
 export interface GlobalSearchResult {
   release_id: number;
   release_tag: string;
@@ -383,6 +394,62 @@ async function fetchSearchIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-t
   throw lastErr || new Error('Failed to load transcripts search index');
 }
 
+async function fetchSummaryIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<EpisodeSummary[]> {
+  const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
+  const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
+  const urls = [
+    `${base}/transcripts/transcripts_summary_index.json`,
+    '/transcripts/transcripts_summary_index.json',
+    './transcripts/transcripts_summary_index.json',
+    pathBase ? `${pathBase}/transcripts/transcripts_summary_index.json` : '',
+    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_summary_index.json`,
+  ].filter(Boolean);
+
+  let lastErr: unknown = null;
+  for (const url of Array.from(new Set(urls))) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('text/html')) {
+          continue;
+        }
+        return await res.json();
+      }
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Failed to load transcripts summary index');
+}
+
+async function fetchSingleEpisodeTranscript(releaseTag: string, owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<string | null> {
+  const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
+  const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
+  const urls = [
+    `${base}/transcripts/episodes/${releaseTag}.json`,
+    `/transcripts/episodes/${releaseTag}.json`,
+    `./transcripts/episodes/${releaseTag}.json`,
+    pathBase ? `${pathBase}/transcripts/episodes/${releaseTag}.json` : '',
+    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/episodes/${releaseTag}.json`,
+  ].filter(Boolean);
+
+  for (const url of Array.from(new Set(urls))) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('text/html')) {
+          return await res.text();
+        }
+      }
+    } catch {
+      // Continue to next candidate
+    }
+  }
+  return null;
+}
+
 function parseTranscriptData(rawContent: string): ParsedUtterance[] {
   if (!rawContent.trim()) return [];
 
@@ -530,6 +597,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [globalIndex, setGlobalIndex] = useState<SearchIndexEpisode[] | null>(null);
   const [globalIndexLoading, setGlobalIndexLoading] = useState(false);
   const [globalIndexError, setGlobalIndexError] = useState('');
+  const [summaryIndex, setSummaryIndex] = useState<EpisodeSummary[] | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [selectedGlobalTag, setSelectedGlobalTag] = useState<string>('ALL');
   const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
 
@@ -572,6 +641,25 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     let list: Release[] = [];
     if (releases.length > 0) {
       list = releases;
+    } else if (summaryIndex && summaryIndex.length > 0) {
+      list = summaryIndex.map(ep => ({
+        id: ep.release_id,
+        tag_name: ep.release_tag,
+        name: ep.title,
+        body: ep.body || null,
+        published_at: ep.published_at,
+        html_url: '',
+        assets: ep.audio_url ? [{
+          id: ep.release_id,
+          name: `${ep.release_tag}.mp3`,
+          browser_download_url: ep.audio_url,
+          size: 0,
+          content_type: 'audio/mpeg'
+        }] : [],
+        draft: false,
+        prerelease: false,
+        episode_date: ep.episode_date,
+      }));
     } else if (globalIndex && globalIndex.length > 0) {
       list = globalIndex.map(ep => ({
         id: ep.release_id,
@@ -593,7 +681,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }));
     }
     return sortReleasesByRecordedDate(list, 'desc');
-  }, [releases, globalIndex]);
+  }, [releases, summaryIndex, globalIndex]);
 
   const selectedRelease = useMemo(() => effectiveReleases.find(r => r.id === selectedId), [effectiveReleases, selectedId]);
   const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
@@ -632,19 +720,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setGlobalIndexError('');
     try {
       const data = await fetchSearchIndex(owner || 'aiandbotsgalore', repo || 'copy-spaces-to-youtube-pipeline');
-      const sorted = [...data].sort((a, b) => {
-        const tA = getEpisodeRecordedDate({ tag_name: a.release_tag, name: a.title, published_at: a.published_at }).timestampMs;
-        const tB = getEpisodeRecordedDate({ tag_name: b.release_tag, name: b.title, published_at: b.published_at }).timestampMs;
-        return tB - tA;
-      });
-      const indexed = sorted.map(ep => ({
-        ...ep,
-        segments: (ep.segments || []).map(seg => ({
-          ...seg,
-          _search: `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase(),
-        })),
-      }));
-      setGlobalIndex(indexed);
+      setGlobalIndex(data);
     } catch (e) {
       setGlobalIndexError((e as Error).message);
     } finally {
@@ -652,9 +728,31 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   }, [globalIndex, globalIndexLoading, owner, repo]);
 
+  const loadSummaryIndex = useCallback(async () => {
+    if (summaryIndex || summaryLoading) return;
+    setSummaryLoading(true);
+    try {
+      const data = await fetchSummaryIndex(owner || 'aiandbotsgalore', repo || 'copy-spaces-to-youtube-pipeline');
+      setSummaryIndex(data);
+    } catch (e) {
+      console.warn('Failed to load summary index, will fallback to global index if needed:', e);
+      if (!releases.length) {
+        loadGlobalIndex();
+      }
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [summaryIndex, summaryLoading, owner, repo, releases.length, loadGlobalIndex]);
+
   useEffect(() => {
-    loadGlobalIndex();
-  }, [loadGlobalIndex]);
+    loadSummaryIndex();
+  }, [loadSummaryIndex]);
+
+  useEffect(() => {
+    if ((searchScope === 'all' || (search.trim() && searchScope === 'all')) && !globalIndex && !globalIndexLoading) {
+      loadGlobalIndex();
+    }
+  }, [searchScope, search, globalIndex, globalIndexLoading, loadGlobalIndex]);
 
   useEffect(() => {
     if (selectedId) {
@@ -785,6 +883,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setSaveGitHubError('');
 
     if (!asset) {
+      setTranscriptLoading(true);
+      setTranscriptError('');
+      setTranscriptRaw('');
+      try {
+        const singleText = await fetchSingleEpisodeTranscript(release.tag_name, owner, repo);
+        if (singleText) {
+          const parsed = JSON.parse(singleText);
+          if (parsed && parsed.segments && parsed.segments.length > 0) {
+            setTranscriptRaw(JSON.stringify({ segments: parsed.segments }));
+            setTranscriptError('');
+            setTranscriptLoading(false);
+            return;
+          }
+        }
+      } catch { /* proceed to indexSource */ }
+
       let indexSource = globalIndex;
       if (!indexSource) {
         try {
@@ -797,10 +911,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       if (indexed && indexed.segments && indexed.segments.length > 0) {
         setTranscriptRaw(JSON.stringify({ segments: indexed.segments }));
         setTranscriptError('');
-        return;
+      } else {
+        setTranscriptRaw('');
+        setTranscriptError('');
       }
-      setTranscriptRaw('');
-      setTranscriptError('');
+      setTranscriptLoading(false);
       return;
     }
 
@@ -827,7 +942,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         }
       } catch { /* localStorage may be unavailable */ }
     } catch (e) {
-      // Resilient Fallback: If GitHub download is blocked by CORS or network, recover from local search index
+      // Resilient Fallback: If GitHub download is blocked by CORS or network, recover from local episode file
+      try {
+        const singleText = await fetchSingleEpisodeTranscript(release.tag_name, owner, repo);
+        if (singleText) {
+          const parsed = JSON.parse(singleText);
+          if (parsed && parsed.segments && parsed.segments.length > 0) {
+            setTranscriptRaw(JSON.stringify({ segments: parsed.segments }));
+            setTranscriptError('');
+            return;
+          }
+        }
+      } catch { /* proceed to globalIndex fallback */ }
+
       let indexSource = globalIndex;
       if (!indexSource) {
         try {
@@ -1018,9 +1145,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [search, utterances]);
 
   const totalGlobalSegments = useMemo(() => {
-    if (!globalIndex) return 0;
-    return globalIndex.reduce((acc, ep) => acc + (ep.segment_count || ep.segments.length), 0);
-  }, [globalIndex]);
+    if (summaryIndex && summaryIndex.length > 0) {
+      return summaryIndex.reduce((acc, ep) => acc + (ep.segment_count || 0), 0);
+    }
+    if (globalIndex) {
+      return globalIndex.reduce((acc, ep) => acc + (ep.segment_count || ep.segments?.length || 0), 0);
+    }
+    return 359134;
+  }, [summaryIndex, globalIndex]);
 
   const deferredSearch = useDeferredValue(search);
 
@@ -1324,18 +1456,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         </div>
       )}
 
-      {globalIndexLoading && effectiveReleases.length === 0 && (
+      {(summaryLoading || (globalIndexLoading && !summaryIndex)) && effectiveReleases.length === 0 && (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-400">
           <Loader size={28} className="animate-spin text-indigo-400 mb-3" />
           <p className="text-sm font-medium text-slate-300">Loading transcript database…</p>
         </div>
       )}
 
-      {effectiveReleases.length === 0 && !globalIndexLoading && (
+      {effectiveReleases.length === 0 && !summaryLoading && !globalIndexLoading && (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
           <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4"><FileText size={28} className="text-slate-500" /></div>
           <p className="text-slate-300 text-sm font-medium">No Transcripts or Episodes Found</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-sm">Connect your GitHub Personal Access Token or ensure transcripts_search_index.json is loaded.</p>
+          <p className="text-slate-500 text-xs mt-1 max-w-sm">Connect your GitHub Personal Access Token or ensure transcripts_summary_index.json is loaded.</p>
         </div>
       )}
 
@@ -1368,7 +1500,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <span className="text-xs font-bold truncate">Search All Transcripts</span>
                     </div>
                     <p className="text-[10px] text-slate-400 truncate">
-                      {globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '120 episodes • 118,800+ turns'}
+                      {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
                     </p>
                   </div>
                 </div>
@@ -1380,7 +1512,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({effectiveReleases.length})</span>
             </div>
             {effectiveReleases.map(release => {
-              const hasTxt = !!pickTranscriptAsset(release) || (globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0) ?? false);
+              const hasTxt = !!pickTranscriptAsset(release) || (summaryIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && (ep.segment_count || 0) > 0) ?? false) || (globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0) ?? false);
               const isSelected = searchScope === 'current' && selectedId === release.id;
               const isPlayingThis = current?.id === release.id && isPlaying;
               return (
@@ -1420,7 +1552,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <Globe size={13} />
                           <span>All Transcripts</span>
                           <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px] font-semibold ml-0.5">
-                            {globalIndex ? globalIndex.length : 120}
+                            {summaryIndex ? summaryIndex.length : (globalIndex ? globalIndex.length : 241)}
                           </span>
                         </button>
                         {selectedRelease && (
@@ -1437,7 +1569,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 pl-1">
                         <Layers size={13} className="text-indigo-400" />
                         <span className="font-semibold text-slate-200">
-                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '118,800+'}
+                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '359,000+'}
                         </span>
                         <span>indexed turns</span>
                       </div>
@@ -1466,7 +1598,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <input
                         type="text"
                         autoFocus
-                        placeholder={`Search across all ${globalIndex?.length || 120} transcripts (e.g. aliens, bidet, chipper, whistleblower)…`}
+                        placeholder={`Search across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts (e.g. aliens, bidet, chipper, whistleblower)…`}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
@@ -1483,7 +1615,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
 
                     {/* Episode filter */}
-                    {globalIndex && globalIndex.length > 0 && (
+                    {((summaryIndex && summaryIndex.length > 0) || (globalIndex && globalIndex.length > 0)) && (
                       <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
                         <Radio size={12} className="text-indigo-400" />
                         <select
@@ -1491,8 +1623,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           onChange={e => setSelectedGlobalTag(e.target.value)}
                           className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
                         >
-                          <option value="ALL" className="bg-slate-900 text-white">All Episodes ({globalIndex.length})</option>
-                          {globalIndex.map(ep => (
+                          <option value="ALL" className="bg-slate-900 text-white">All Episodes ({(summaryIndex || globalIndex)?.length || 241})</option>
+                          {(summaryIndex || globalIndex || []).map(ep => (
                             <option key={ep.release_tag} value={ep.release_tag} className="bg-slate-900 text-white">
                               {ep.title || ep.release_tag}
                             </option>
@@ -1584,7 +1716,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                         <h3 className="text-xl font-bold text-white tracking-tight">Global Transcript Search</h3>
                         <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
-                          Search across all {globalIndex?.length || 120} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 118826).toLocaleString()} transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
+                          Search across all {summaryIndex?.length || globalIndex?.length || 241} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 359134).toLocaleString()} transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
                         </p>
                       </div>
 
@@ -1611,7 +1743,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                            Indexed Space Library ({globalIndex?.length || 120} Episodes)
+                            Indexed Space Library ({summaryIndex?.length || globalIndex?.length || 241} Episodes)
                           </span>
                           <span className="text-[11px] text-slate-500">
                             {totalGlobalSegments.toLocaleString()} total spoken turns
@@ -1619,7 +1751,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {(globalIndex || []).map(ep => (
+                          {(summaryIndex || globalIndex || []).map(ep => (
                             <div
                               key={ep.release_tag}
                               onClick={() => {
@@ -1639,7 +1771,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
                                   <span>{getEpisodeRecordedDate({ tag_name: ep.release_tag, name: ep.title, published_at: ep.published_at }).displayDate}</span>
                                   <span>•</span>
-                                  <span className="text-indigo-400 font-medium">{ep.segment_count.toLocaleString()} turns</span>
+                                  <span className="text-indigo-400 font-medium">{(ep.segment_count || (ep as any).segments?.length || 0).toLocaleString()} turns</span>
                                 </p>
                               </div>
                               <ArrowRight size={13} className="text-slate-600 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-1" />
@@ -1655,7 +1787,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
                       <Search size={36} className="mb-3 text-slate-600" />
                       <p className="text-sm font-semibold text-slate-300">
-                        No turns match "{search}" across all {globalIndex?.length || 120} transcripts.
+                        No turns match "{search}" across all {summaryIndex?.length || globalIndex?.length || 241} transcripts.
                       </p>
                       <p className="text-xs text-slate-500 mt-1.5">
                         Try checking spelling or searching for a different keyword.
@@ -1931,7 +2063,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white cursor-pointer transition-colors"
                           title="Search all episodes"
                         >
-                          <Globe size={12} className="text-indigo-400" /> All Transcripts ({globalIndex?.length || 120})
+                          <Globe size={12} className="text-indigo-400" /> All Transcripts ({summaryIndex?.length || globalIndex?.length || 241})
                         </button>
                         <button
                           onClick={() => setSearchScope('current')}
@@ -2141,7 +2273,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
                               className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer transition-all hover:scale-105"
                             >
-                              <Globe size={13} /> Search All {globalIndex?.length || 28} Transcripts for "{search}"
+                              <Globe size={13} /> Search All {summaryIndex?.length || globalIndex?.length || 241} Transcripts for "{search}"
                             </button>
                             <button onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
                               className="text-xs text-slate-500 hover:text-slate-300 underline cursor-pointer">

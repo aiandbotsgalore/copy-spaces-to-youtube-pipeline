@@ -24,8 +24,13 @@ except ImportError:
 
 INDEX_PATH = Path("public/transcripts/transcripts_search_index.json")
 DIST_INDEX_PATH = Path("dist/transcripts/transcripts_search_index.json")
+SUMMARY_INDEX_PATH = Path("public/transcripts/transcripts_summary_index.json")
+DIST_SUMMARY_INDEX_PATH = Path("dist/transcripts/transcripts_summary_index.json")
+EPISODES_DIR = Path("public/transcripts/episodes")
+DIST_EPISODES_DIR = Path("dist/transcripts/episodes")
 CACHE_DIR = Path(".cache/transcripts")
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+EPISODES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def parse_time_to_seconds(time_str: str) -> float:
@@ -273,8 +278,48 @@ def main():
     if DIST_INDEX_PATH.parent.exists():
         shutil.copyfile(INDEX_PATH, DIST_INDEX_PATH)
 
+    # 1. Generate lightweight summary index (~80 KB) for instant page load
+    summary = []
+    for ep in index:
+        summary.append({
+            "release_id": ep["release_id"],
+            "release_tag": ep["release_tag"],
+            "title": ep["title"],
+            "published_at": ep["published_at"],
+            "episode_date": ep.get("episode_date"),
+            "audio_url": ep.get("audio_url", ""),
+            "segment_count": ep.get("segment_count", len(ep.get("segments", []))),
+            "body": ep.get("body", ""),
+        })
+
+    with open(SUMMARY_INDEX_PATH, "w", encoding="utf-8") as f:
+        json.dump(summary, f, indent=2)
+
+    if DIST_SUMMARY_INDEX_PATH.parent.exists():
+        shutil.copyfile(SUMMARY_INDEX_PATH, DIST_SUMMARY_INDEX_PATH)
+
+    # 2. Generate per-episode transcript files for instant single-episode loading
+    EPISODES_DIR.mkdir(parents=True, exist_ok=True)
+    if DIST_EPISODES_DIR.parent.exists():
+        DIST_EPISODES_DIR.mkdir(parents=True, exist_ok=True)
+
+    for ep in index:
+        ep_file = EPISODES_DIR / f"{ep['release_tag']}.json"
+        with open(ep_file, "w", encoding="utf-8") as f:
+            json.dump({
+                "release_id": ep["release_id"],
+                "release_tag": ep["release_tag"],
+                "title": ep["title"],
+                "published_at": ep["published_at"],
+                "audio_url": ep.get("audio_url", ""),
+                "segments": ep.get("segments", []),
+            }, f)
+        if DIST_EPISODES_DIR.exists():
+            shutil.copyfile(ep_file, DIST_EPISODES_DIR / f"{ep['release_tag']}.json")
+
     print(f"\n[🎉] Complete! Saved {len(index)} episodes ({total_segments} total spoken turns) to {INDEX_PATH}.")
-    print(f"File size: {INDEX_PATH.stat().st_size / (1024*1024):.2f} MB")
+    print(f"Full search index size: {INDEX_PATH.stat().st_size / (1024*1024):.2f} MB")
+    print(f"Summary index size: {SUMMARY_INDEX_PATH.stat().st_size / 1024:.1f} KB")
 
 
 if __name__ == "__main__":
