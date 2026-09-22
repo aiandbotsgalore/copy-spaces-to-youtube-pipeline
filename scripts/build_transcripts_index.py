@@ -248,12 +248,17 @@ def main():
 
             cleaned_segments = clean_episode_segments(segments, rel_name)
             total_segments += len(cleaned_segments)
+            body = r.get("body") or ""
+            date_m = re.search(r"METADATA::(?:EPISODE_DATE|DATE)::(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
+            ep_date = f"{date_m.group(1)}-{date_m.group(2)}-{date_m.group(3)}" if date_m else None
             index.append(
                 {
                     "release_id": r.get("id"),
                     "release_tag": rel_tag,
                     "title": rel_name,
                     "published_at": r.get("published_at"),
+                    "episode_date": ep_date,
+                    "body": body,
                     "audio_url": mp3_asset.get("browser_download_url") if mp3_asset else "",
                     "segment_count": len(cleaned_segments),
                     "segments": cleaned_segments,
