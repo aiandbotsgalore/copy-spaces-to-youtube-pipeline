@@ -1,0 +1,78 @@
+name: Enroll Voice Profile
+
+on:
+  workflow_dispatch:
+    inputs:
+      speaker_name:
+        description: 'Speaker Name (e.g. Angela, Logan, Rick Doty)'
+        required: true
+        type: string
+      audio_url:
+        description: 'Direct URL to an audio sample (.wav, .mp3, .m4a)'
+        required: true
+        type: string
+      role:
+        description: 'Speaker Role (Host, Co-Host, Special Guest, Speaker)'
+        required: false
+        default: 'Speaker'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  enroll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libsndfile1 curl
+
+      - name: Install Python AI Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install speechbrain soundfile requests
+
+      - name: Download Sample Audio
+        run: |
+          mkdir -p speaker_samples/downloaded
+          curl -L "${{ inputs.audio_url }}" -o "speaker_samples/downloaded/input_raw"
+          # Convert to 16kHz mono WAV for optimal SpeechBrain ECAPA embedding extraction
+          ffmpeg -i "speaker_samples/downloaded/input_raw" -ar 16000 -ac 1 "speaker_samples/downloaded/sample.wav" -y
+
+      - name: Enroll Audio Clip into voice_profiles.json
+        run: |
+          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/sample.wav" --name "${{ inputs.speaker_name }}"
+
+      - name: Update Role in voice_profiles.json & Sync to Web App
+        run: |
+          python -c "
+          import json, shutil, os
+          with open('voice_profiles.json', 'r') as f:
+              data = json.load(f)
+          data.setdefault('profiles', {})
+          name = '${{ inputs.speaker_name }}'.strip()
+          if name in data['profiles']:
+              data['profiles'][name]['role'] = '${{ inputs.role }}'.strip()
+          with open('voice_profiles.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          if os.path.exists('public/voice_profiles.json'):
+              shutil.copyfile('voice_profiles.json', 'public/voice_profiles.json')
+          "
+
+      - name: Commit and Push Updated voice_profiles.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add voice_profiles.json public/voice_profiles.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "feat(voice): enroll neural embedding for '${{ inputs.speaker_name }}'" && git push origin master)

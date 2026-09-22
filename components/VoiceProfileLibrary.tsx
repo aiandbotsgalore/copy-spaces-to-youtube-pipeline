@@ -6,7 +6,7 @@ import {
   Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText
 } from 'lucide-react';
 import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release } from '../types';
-import { readRepositoryTextFile, writeRepositoryTextFile, getReleases } from '../utils/github';
+import { readRepositoryTextFile, writeRepositoryTextFile, getReleases, dispatchWorkflow } from '../utils/github';
 
 interface Props {
   config: EnhancedConfig;
@@ -108,6 +108,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [sortBy, setSortBy] = useState<'name' | 'samples' | 'updated'>('samples');
 
   const [savingGitHub, setSavingGitHub] = useState(false);
+  const [enrollingCloud, setEnrollingCloud] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -314,6 +315,66 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setModalMode(null);
     setStatusMsg({ type: 'success', text: `Voice profile for "${trimmedName}" updated successfully.` });
     setTimeout(() => setStatusMsg(null), 4000);
+  };
+
+  // Cloud Enrollment via GitHub Actions (enroll_voice.yml)
+  const handleCloudEnroll = async () => {
+    const trimmedName = formName.trim();
+    const trimmedUrl = formAudioUrl.trim();
+
+    if (!trimmedName) {
+      setStatusMsg({ type: 'error', text: 'Please enter a speaker name first.' });
+      return;
+    }
+    if (!trimmedUrl || !trimmedUrl.startsWith('http')) {
+      setStatusMsg({ type: 'error', text: 'Please enter a direct audio URL (.wav, .mp3, or .m4a) to enroll via GitHub Actions cloud runner.' });
+      return;
+    }
+    if (!hasGitHub) {
+      setStatusMsg({ type: 'error', text: 'GitHub Token, Owner, and Repo must be configured in Settings to dispatch cloud enrollment.' });
+      return;
+    }
+
+    setEnrollingCloud(true);
+    setStatusMsg(null);
+    try {
+      // 1. Save profile locally so it's visible in UI immediately
+      const nextCatalog: VoiceProfilesCatalog = {
+        ...catalog,
+        updated_at: new Date().toISOString(),
+        profiles: { ...catalog.profiles },
+      };
+      const existing = targetProfile || nextCatalog.profiles[trimmedName] || {};
+      nextCatalog.profiles[trimmedName] = {
+        ...existing,
+        name: trimmedName,
+        role: formRole,
+        color: formColor,
+        avatar_emoji: formEmoji,
+        notes: formNotes,
+        sample_audio_url: trimmedUrl,
+        last_updated: new Date().toISOString(),
+      };
+      saveCatalogLocal(nextCatalog);
+
+      // 2. Dispatch GitHub Action workflow
+      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
+        speaker_name: trimmedName,
+        audio_url: trimmedUrl,
+        role: formRole,
+      });
+
+      setModalMode(null);
+      setStatusMsg({
+        type: 'success',
+        text: `⚡ Cloud enrollment dispatched for "${trimmedName}"! SpeechBrain ECAPA-TDNN is extracting the 192-dim neural vector in GitHub Actions and committing to voice_profiles.json.`
+      });
+      setTimeout(() => setStatusMsg(null), 10000);
+    } catch (e) {
+      setStatusMsg({ type: 'error', text: `Failed to trigger cloud enrollment: ${(e as Error).message}` });
+    } finally {
+      setEnrollingCloud(false);
+    }
   };
 
   // Delete Profile
@@ -1008,16 +1069,48 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 />
               </div>
 
-              {/* Audio URL Reference */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Audio Sample Reference (Optional)</label>
+              {/* Audio URL Reference & Cloud Enrollment */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Audio Sample Reference (Optional)</label>
+                  {formAudioUrl.trim().startsWith('http') && (
+                    <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <Sparkles size={11} /> Ready for Cloud Extraction
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
-                  placeholder="e.g. speaker_samples/Angela/clean_clip_01.wav or URL"
+                  placeholder="e.g. https://domain.com/sample.wav or speaker_samples/Angela/clean_clip_01.wav"
                   value={formAudioUrl}
                   onChange={e => setFormAudioUrl(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
                 />
+
+                {formAudioUrl.trim().startsWith('http') && (
+                  <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-2 mt-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
+                          <Sparkles size={13} className="text-indigo-400" /> 1-Click Cloud Neural Enrollment
+                        </p>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          Extract the 192-dim SpeechBrain ECAPA-TDNN vector in GitHub Actions cloud runner and auto-commit to <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCloudEnroll}
+                        disabled={enrollingCloud || !hasGitHub || !formName.trim()}
+                        title={!hasGitHub ? 'Configure GitHub Token in Settings first' : 'Dispatch enroll_voice.yml workflow'}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                      >
+                        {enrollingCloud ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        {enrollingCloud ? 'Dispatching…' : 'Enroll in Cloud'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1066,12 +1159,40 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
             <div className="space-y-4 text-xs text-slate-300">
               <p className="leading-relaxed">
-                To extract an acoustic embedding for <strong className="text-white font-bold">{targetProfile?.name}</strong>, use the built-in enrollment tool with any clean audio clip (.wav or .mp3, 3s to 15s recommended):
+                Add sample audio for <strong className="text-white font-bold">{targetProfile?.name || 'this speaker'}</strong> using either of the two enrollment methods below:
               </p>
 
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+              {/* Method 1: Cloud GitHub Action */}
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">CLI Command</span>
+                  <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                    <Sparkles size={13} className="text-indigo-400" /> Method 1: 1-Click Cloud Runner (Recommended)
+                  </span>
+                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Local Setup</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Provide any direct link to a voice clip (.wav, .mp3, .m4a) in the profile editor, or run the <strong className="text-slate-200">Enroll Voice Profile</strong> action in GitHub. The cloud runner loads PyTorch &amp; SpeechBrain ECAPA-TDNN, extracts the 192-dim vector, and commits to <code className="text-indigo-300 font-mono">voice_profiles.json</code> automatically.
+                </p>
+                <div className="pt-1 flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-slate-400">Workflow: .github/workflows/enroll_voice.yml</span>
+                  <button
+                    onClick={() => {
+                      setModalMode(null);
+                      if (targetProfile) handleOpenEdit(targetProfile);
+                    }}
+                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    Open Profile to Enroll <ArrowRight size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Method 2: Local CLI */}
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <Terminal size={13} className="text-emerald-400" /> Method 2: Local Command Line
+                  </span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(`python scripts/extract_speaker_clips.py --enroll "speaker_samples/${targetProfile?.name || 'speaker'}.wav" --name "${targetProfile?.name || 'Speaker'}"`);
@@ -1084,17 +1205,20 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                     {copiedCode ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
+                <p className="text-[11px] text-slate-400">
+                  Run directly on your local machine or server with Python 3:
+                </p>
                 <pre className="p-2.5 bg-slate-900 rounded-lg text-emerald-300 font-mono text-[11px] overflow-x-auto select-all">
                   python scripts/extract_speaker_clips.py --enroll "speaker_samples/{targetProfile?.name || 'speaker'}.wav" --name "{targetProfile?.name || 'Speaker'}"
                 </pre>
               </div>
 
               <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-1">
-                <span className="font-bold text-indigo-300 flex items-center gap-1">
-                  <Sparkles size={12} /> Auto-Enrollment during Transcription
+                <span className="font-bold text-indigo-300 flex items-center gap-1 text-xs">
+                  <Sparkles size={12} /> Automatic Diarization Matching
                 </span>
-                <p className="text-[11px] text-slate-300">
-                  When spaces are transcribed, the pipeline automatically clusters speech turns. Any speaker identified with high confidence updates the exponential moving average (EMA) embedding in <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Once enrolled, new Twitter Spaces transcribed by Deepgram or Whisper will automatically compute cosine similarity against this 192-dim vector and label speech turns accurately.
                 </p>
               </div>
             </div>
