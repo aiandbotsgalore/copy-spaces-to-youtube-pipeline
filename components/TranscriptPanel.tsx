@@ -213,16 +213,16 @@ function formatSeconds(sec: number): string {
 }
 
 const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
-  indigo:  { bg: 'bg-indigo-500/10',  text: 'text-indigo-300',  border: 'border-indigo-500/30',  badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',  dot: 'bg-indigo-400',  avatar: 'bg-indigo-600 text-white'  },
-  purple:  { bg: 'bg-purple-500/10',  text: 'text-purple-300',  border: 'border-purple-500/30',  badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',  dot: 'bg-purple-400',  avatar: 'bg-purple-600 text-white'  },
-  emerald: { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
-  sky:     { bg: 'bg-sky-500/10',     text: 'text-sky-300',     border: 'border-sky-500/30',     badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',             dot: 'bg-sky-400',     avatar: 'bg-sky-600 text-white'     },
-  amber:   { bg: 'bg-amber-500/10',   text: 'text-amber-300',   border: 'border-amber-500/30',   badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',       dot: 'bg-amber-400',   avatar: 'bg-amber-600 text-white'   },
-  rose:    { bg: 'bg-rose-500/10',    text: 'text-rose-300',    border: 'border-rose-500/30',    badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',           dot: 'bg-rose-400',    avatar: 'bg-rose-600 text-white'    },
-  cyan:    { bg: 'bg-cyan-500/10',    text: 'text-cyan-300',    border: 'border-cyan-500/30',    badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',           dot: 'bg-cyan-400',    avatar: 'bg-cyan-600 text-white'    },
-  fuchsia: { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-300', border: 'border-fuchsia-500/30', badge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', dot: 'bg-fuchsia-400', avatar: 'bg-fuchsia-600 text-white' },
-  teal:    { bg: 'bg-teal-500/10',    text: 'text-teal-300',    border: 'border-teal-500/30',    badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40',           dot: 'bg-teal-400',    avatar: 'bg-teal-600 text-white'    },
-  orange:  { bg: 'bg-orange-500/10',  text: 'text-orange-300',  border: 'border-orange-500/30',  badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40',    dot: 'bg-orange-400',  avatar: 'bg-orange-600 text-white'  },
+  indigo:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
+  purple:  { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  emerald: { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
+  sky:     { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
+  amber:   { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
+  rose:    { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
+  cyan:    { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
+  fuchsia: { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
+  teal:    { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
+  orange:  { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
 };
 
 const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
@@ -236,22 +236,34 @@ const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
 ];
 
 const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
-  'A': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
-  'B': { bg: 'bg-sky-500/10',     text: 'text-sky-300',     border: 'border-sky-500/30',     badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',             dot: 'bg-sky-400',     avatar: 'bg-sky-600 text-white'     },
-  'C': { bg: 'bg-purple-500/10',  text: 'text-purple-300',  border: 'border-purple-500/30',  badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',    dot: 'bg-purple-400',  avatar: 'bg-purple-600 text-white'  },
-  'D': { bg: 'bg-amber-500/10',   text: 'text-amber-300',   border: 'border-amber-500/30',   badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',       dot: 'bg-amber-400',   avatar: 'bg-amber-600 text-white'   },
-  'E': { bg: 'bg-rose-500/10',    text: 'text-rose-300',    border: 'border-rose-500/30',    badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',           dot: 'bg-rose-400',    avatar: 'bg-rose-600 text-white'    },
-  'F': { bg: 'bg-cyan-500/10',    text: 'text-cyan-300',    border: 'border-cyan-500/30',    badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',           dot: 'bg-cyan-400',    avatar: 'bg-cyan-600 text-white'    },
-  'G': { bg: 'bg-violet-500/10',  text: 'text-violet-300',  border: 'border-violet-500/30',  badge: 'bg-violet-500/20 text-violet-300 border-violet-500/40',    dot: 'bg-violet-400',  avatar: 'bg-violet-600 text-white'  },
-  'H': { bg: 'bg-teal-500/10',    text: 'text-teal-300',    border: 'border-teal-500/30',    badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40',           dot: 'bg-teal-400',    avatar: 'bg-teal-600 text-white'    },
-  'I': { bg: 'bg-indigo-500/10',  text: 'text-indigo-300',  border: 'border-indigo-500/30',  badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',    dot: 'bg-indigo-400',  avatar: 'bg-indigo-600 text-white'  },
-  'J': { bg: 'bg-orange-500/10',  text: 'text-orange-300',  border: 'border-orange-500/30',  badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40',    dot: 'bg-orange-400',  avatar: 'bg-orange-600 text-white'  },
-  'K': { bg: 'bg-pink-500/10',    text: 'text-pink-300',    border: 'border-pink-500/30',    badge: 'bg-pink-500/20 text-pink-300 border-pink-500/40',           dot: 'bg-pink-400',    avatar: 'bg-pink-600 text-white'    },
-  'L': { bg: 'bg-lime-500/10',    text: 'text-lime-300',    border: 'border-lime-500/30',    badge: 'bg-lime-500/20 text-lime-300 border-lime-500/40',           dot: 'bg-lime-400',    avatar: 'bg-lime-600 text-white'    },
-  'M': { bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-300', border: 'border-fuchsia-500/30', badge: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', dot: 'bg-fuchsia-400', avatar: 'bg-fuchsia-600 text-white' },
-  'N': { bg: 'bg-yellow-500/10',  text: 'text-yellow-300',  border: 'border-yellow-500/30',  badge: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40',    dot: 'bg-yellow-400',  avatar: 'bg-yellow-600 text-white'  },
-  'O': { bg: 'bg-blue-500/10',    text: 'text-blue-300',    border: 'border-blue-500/30',    badge: 'bg-blue-500/20 text-blue-300 border-blue-500/40',           dot: 'bg-blue-400',    avatar: 'bg-blue-600 text-white'    },
-  'P': { bg: 'bg-emerald-500/10', text: 'text-emerald-300', border: 'border-emerald-500/30', badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', avatar: 'bg-emerald-600 text-white' },
+  // Direct digit mappings for Deepgram "Speaker 0", "Speaker 1", etc.
+  '0': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
+  '1': { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
+  '2': { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  '3': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
+  '4': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
+  '5': { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
+  '6': { bg: 'bg-violet-950/70',  text: 'text-violet-100',  border: 'border-violet-400/60',  badge: 'bg-violet-600/35 text-violet-100 border border-violet-400/70 font-bold shadow-sm',    dot: 'bg-violet-400 ring-2 ring-violet-400/40',  avatar: 'bg-violet-600 text-white font-bold ring-2 ring-white/20'  },
+  '7': { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
+  '8': { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
+  '9': { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
+  // Letter mappings
+  'A': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
+  'B': { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
+  'C': { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  'D': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
+  'E': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
+  'F': { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
+  'G': { bg: 'bg-violet-950/70',  text: 'text-violet-100',  border: 'border-violet-400/60',  badge: 'bg-violet-600/35 text-violet-100 border border-violet-400/70 font-bold shadow-sm',    dot: 'bg-violet-400 ring-2 ring-violet-400/40',  avatar: 'bg-violet-600 text-white font-bold ring-2 ring-white/20'  },
+  'H': { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
+  'I': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
+  'J': { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
+  'K': { bg: 'bg-pink-950/70',    text: 'text-pink-100',    border: 'border-pink-400/60',    badge: 'bg-pink-600/35 text-pink-100 border border-pink-400/70 font-bold shadow-sm',           dot: 'bg-pink-400 ring-2 ring-pink-400/40',    avatar: 'bg-pink-600 text-white font-bold ring-2 ring-white/20'    },
+  'L': { bg: 'bg-lime-950/70',    text: 'text-lime-100',    border: 'border-lime-400/60',    badge: 'bg-lime-600/35 text-lime-100 border border-lime-400/70 font-bold shadow-sm',           dot: 'bg-lime-400 ring-2 ring-lime-400/40',    avatar: 'bg-lime-600 text-white font-bold ring-2 ring-white/20'    },
+  'M': { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
+  'N': { bg: 'bg-yellow-950/70',  text: 'text-yellow-100',  border: 'border-yellow-400/60',  badge: 'bg-yellow-600/35 text-yellow-100 border border-yellow-400/70 font-bold shadow-sm',    dot: 'bg-yellow-400 ring-2 ring-yellow-400/40',  avatar: 'bg-yellow-600 text-white font-bold ring-2 ring-white/20'  },
+  'O': { bg: 'bg-blue-950/70',    text: 'text-blue-100',    border: 'border-blue-400/60',    badge: 'bg-blue-600/35 text-blue-100 border border-blue-400/70 font-bold shadow-sm',           dot: 'bg-blue-400 ring-2 ring-blue-400/40',    avatar: 'bg-blue-600 text-white font-bold ring-2 ring-white/20'    },
+  'P': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
 };
 
 function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
@@ -450,8 +462,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
 
   const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
-  const [editingSpeakerKey, setEditingSpeakerKey] = useState<string | null>(null);
-  const [editingSpeakerVal, setEditingSpeakerVal] = useState('');
+  const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number } | null>(null);
+  const [quickRenameVal, setQuickRenameVal] = useState('');
+  const [quickRenameAddToSaved, setQuickRenameAddToSaved] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
 
   const [savedSpeakers, setSavedSpeakers] = useState<SavedSpeaker[]>(() => {
@@ -596,7 +609,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       } catch {}
       return next;
     });
-    setEditingSpeakerKey(null);
   };
 
   const resetAllSpeakerNames = () => {
@@ -665,7 +677,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       const savedOffset = localStorage.getItem(`spk_offset_${release.id}_p${pNum}`) || localStorage.getItem(`spk_offset_${release.id}`);
       setTimeOffsetSec(savedOffset ? parseFloat(savedOffset) : 0);
     } catch { setTimeOffsetSec(0); }
-    setEditingSpeakerKey(null);
+    setQuickRenameTarget(null);
     setSaveGitHubSuccess('');
     setSaveGitHubError('');
 
@@ -863,6 +875,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     utterances.forEach(u => s.add(u.speaker));
     return Array.from(s);
   }, [utterances]);
+
+  const openQuickRename = (rawSpeaker: string, currentName: string) => {
+    const turns = speakerStats.find(st => st.rawSpeaker === rawSpeaker)?.count || 0;
+    setQuickRenameTarget({ rawSpeaker, currentName, turnCount: turns });
+    setQuickRenameVal(speakerMap[rawSpeaker] || currentName);
+    setQuickRenameAddToSaved(false);
+  };
+
+  const handleApplyQuickRename = () => {
+    if (!quickRenameTarget) return;
+    const finalVal = quickRenameVal.trim();
+    saveSpeakerRename(quickRenameTarget.rawSpeaker, finalVal);
+    if (quickRenameAddToSaved && finalVal) {
+      quickSaveToPermanent(finalVal);
+    }
+    setQuickRenameTarget(null);
+  };
 
   const filteredUtterances = useMemo(() => utterances.filter(u => {
     if (speakerFilter !== 'ALL' && u.speaker !== speakerFilter) return false;
@@ -1928,7 +1957,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         {filteredUtterances.map((utterance) => {
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
-                          const isEditingThisSpeaker = editingSpeakerKey === utterance.rawSpeaker;
                           const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
                           return (
@@ -1936,7 +1964,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               id={`utterance-card-${utterance.id}`}
                               key={utterance.id}
                               onClick={() => handlePlayUtterance(utterance.startSec)}
-                              style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
                               className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
                                   ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
@@ -1944,8 +1971,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               }`}
                             >
                               {/* Avatar */}
-                              <div onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
-                                className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer`}
+                              <div
+                                onClick={e => { e.stopPropagation(); openQuickRename(utterance.rawSpeaker, utterance.speaker); }}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer hover:ring-2 hover:ring-indigo-400`}
                                 title={`Click to rename ${utterance.speaker}`}>
                                 {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
                               </div>
@@ -1955,50 +1983,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                                   <div className="flex items-center gap-2 relative">
 
-                                    {/* Speaker tag / inline editor */}
-                                    {isEditingThisSpeaker ? (
-                                      <div className="relative flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                                        <input type="text" autoFocus value={editingSpeakerVal}
-                                          onChange={e => setEditingSpeakerVal(e.target.value)}
-                                          onKeyDown={e => { if (e.key === 'Enter') saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); if (e.key === 'Escape') setEditingSpeakerKey(null); }}
-                                          placeholder={utterance.rawSpeaker}
-                                          className="px-2.5 py-1 text-xs font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white focus:outline-none w-44 shadow-lg shadow-indigo-500/20" />
-                                        <button onClick={() => saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal)} className="p-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md"><Check size={11} /></button>
-                                        <button onClick={() => setEditingSpeakerKey(null)} className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-md"><X size={11} /></button>
-                                        {/* Quick-Pick Popover */}
-                                        <div className="absolute left-0 top-full mt-2 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-40 p-2 space-y-1">
-                                          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                                            <span className="flex items-center gap-1"><Star size={10} className="text-amber-400 fill-amber-400" /> Saved Speakers</span>
-                                            <button onClick={() => setShowSavedSpeakersModal(true)} className="text-indigo-400 hover:text-indigo-300 font-normal lowercase cursor-pointer">manage</button>
-                                          </div>
-                                          <div className="max-h-48 overflow-y-auto space-y-0.5 pt-1">
-                                            {savedSpeakers.filter(s => !editingSpeakerVal.trim() || s.name.toLowerCase().includes(editingSpeakerVal.toLowerCase())).map(s => (
-                                              <button key={s.id || s.name} onClick={() => saveSpeakerRename(utterance.rawSpeaker, s.name)}
-                                                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-left text-xs transition-colors cursor-pointer">
-                                                <div className="flex items-center gap-2">
-                                                  <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
-                                                  <span className="font-semibold text-slate-200 group-hover:text-white">{s.name}</span>
-                                                </div>
-                                                {s.role && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">{s.role}</span>}
-                                              </button>
-                                            ))}
-                                          </div>
-                                          {editingSpeakerVal.trim() && !savedSpeakers.some(s => s.name.toLowerCase() === editingSpeakerVal.trim().toLowerCase()) && (
-                                            <button onClick={() => { quickSaveToPermanent(editingSpeakerVal); saveSpeakerRename(utterance.rawSpeaker, editingSpeakerVal); }}
-                                              className="w-full mt-1 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-[11px] font-semibold border border-indigo-500/30 cursor-pointer">
-                                              <Plus size={12} /> Save "{editingSpeakerVal}" as Permanent
-                                            </button>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <button onClick={e => { e.stopPropagation(); setEditingSpeakerKey(utterance.rawSpeaker); setEditingSpeakerVal(utterance.speaker); }}
-                                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge} hover:ring-1 hover:ring-indigo-400/60 transition-all cursor-pointer group/tag`}>
-                                        {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
-                                        <span>{utterance.speaker}</span>
-                                        <Pencil size={10} className="opacity-40 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-300" />
-                                      </button>
-                                    )}
+                                    {/* Speaker Tag */}
+                                    <button
+                                      type="button"
+                                      onClick={e => { e.stopPropagation(); openQuickRename(utterance.rawSpeaker, utterance.speaker); }}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge} hover:ring-2 hover:ring-indigo-400/60 hover:brightness-110 transition-all cursor-pointer group/tag shadow-sm`}
+                                      title={`Click to rename ${utterance.speaker} across this episode`}
+                                    >
+                                      {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
+                                      <span>{utterance.speaker}</span>
+                                      <Pencil size={10} className="opacity-50 group-hover/tag:opacity-100 transition-opacity ml-0.5 text-slate-200" />
+                                    </button>
 
                                     {/* Timestamp seek button */}
                                     <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
@@ -2048,81 +2043,155 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         </div>
       )}
 
-      {/* ── Rename Speakers Modal ── */}
-      {showRenameModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      {/* ── Quick Rename Single Speaker Modal ── */}
+      {quickRenameTarget && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"><Users size={16} /></div>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+                  <Pencil size={18} />
+                </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Rename Episode Speakers</h3>
-                  <p className="text-[11px] text-slate-400">Click a saved speaker chip or type a custom name</p>
+                  <h3 className="text-base font-bold text-white">Rename Speaker</h3>
+                  <p className="text-xs text-slate-400">
+                    Voice tag: <span className="font-mono text-slate-200 font-bold">{quickRenameTarget.rawSpeaker}</span>
+                    {quickRenameTarget.turnCount !== undefined ? ` • ${quickRenameTarget.turnCount} turns in this episode` : ''}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setShowRenameModal(false)} className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"><X size={16} /></button>
+              <button
+                type="button"
+                onClick={() => setQuickRenameTarget(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
             </div>
 
+            {/* Input and preview */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Speaker Display Name:
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  autoFocus
+                  value={quickRenameVal}
+                  onChange={e => setQuickRenameVal(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleApplyQuickRename();
+                    if (e.key === 'Escape') setQuickRenameTarget(null);
+                  }}
+                  placeholder="e.g. Angela, Logan, Rick Doty…"
+                  className="w-full px-4 py-2.5 text-sm font-bold bg-slate-950 border-2 border-indigo-500 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 shadow-inner"
+                />
+                {quickRenameVal && (
+                  <button
+                    type="button"
+                    onClick={() => setQuickRenameVal('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Renaming will immediately update all turns by <strong className="text-indigo-300">{quickRenameTarget.rawSpeaker}</strong> across this entire episode.
+              </p>
+            </div>
+
+            {/* One-click Saved Speakers Quick Pick */}
             {savedSpeakers.length > 0 && (
-              <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Star size={10} className="text-amber-400 fill-amber-400" /> Quick-Pick:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {savedSpeakers.map(s => (
-                    <button key={s.id || s.name}
-                      onClick={() => { const u = speakerStats.find(st => !speakerMap[st.rawSpeaker] && st.displayName !== s.name); if (u) saveSpeakerRename(u.rawSpeaker, s.name); }}
-                      className="inline-flex items-center gap-1 px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-xs text-slate-200 hover:text-white transition-colors cursor-pointer">
-                      <span>{s.avatarEmoji || '🎙️'}</span><span className="font-semibold">{s.name}</span>
-                    </button>
-                  ))}
+              <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Star size={12} className="text-amber-400 fill-amber-400" /> Quick-Pick Saved Speaker:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { setQuickRenameTarget(null); setShowSavedSpeakersModal(true); }}
+                    className="text-[11px] text-indigo-400 hover:text-indigo-300 underline cursor-pointer"
+                  >
+                    Manage List
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {savedSpeakers.map(s => {
+                    const isSelected = quickRenameVal.trim().toLowerCase() === s.name.toLowerCase();
+                    return (
+                      <button
+                        key={s.id || s.name}
+                        type="button"
+                        onClick={() => setQuickRenameVal(s.name)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white border-indigo-400 ring-2 ring-indigo-400/50 scale-105 shadow-md'
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border-slate-700/80 hover:border-slate-600'
+                        }`}
+                      >
+                        <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
+                        <span>{s.name}</span>
+                        {s.role && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 font-normal">{s.role}</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-              {speakerStats.map(({ rawSpeaker, displayName, count }) => {
-                const theme = getSpeakerTheme(displayName, savedSpeakers);
-                return (
-                  <div key={rawSpeaker} className="flex items-center justify-between gap-3 p-3 bg-slate-950 border border-slate-800 rounded-xl">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge}`}>
-                        {theme.emoji ? <span>{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
-                        {rawSpeaker}
-                      </span>
-                      <span className="text-[10px] text-slate-500">({count} turns)</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <input type="text" placeholder={rawSpeaker} value={speakerMap[rawSpeaker] || ''} onChange={e => saveSpeakerRename(rawSpeaker, e.target.value)}
-                        className="px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-lg text-white placeholder-slate-600 focus:outline-none w-44" />
-                      {speakerMap[rawSpeaker] && (
-                        <button onClick={() => quickSaveToPermanent(speakerMap[rawSpeaker])}
-                          className="p-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-500/20 rounded-lg transition-colors border border-amber-500/20">
-                          <Star size={12} className="fill-amber-400/40" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Permanent directory checkbox */}
+            {quickRenameVal.trim() && !savedSpeakers.some(s => s.name.toLowerCase() === quickRenameVal.trim().toLowerCase()) && (
+              <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer p-2 rounded-xl bg-slate-950/50 border border-slate-800 hover:border-slate-700 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={quickRenameAddToSaved}
+                  onChange={e => setQuickRenameAddToSaved(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-900 cursor-pointer"
+                />
+                <span>Also add <strong className="text-white font-bold">"{quickRenameVal.trim()}"</strong> to Permanent Saved Speakers</span>
+              </label>
+            )}
 
-            <div className="flex items-center justify-between pt-3 border-t border-slate-800 gap-2">
-              <button onClick={resetAllSpeakerNames} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors cursor-pointer">
-                <RotateCcw size={12} /> Reset
-              </button>
-              <div className="flex items-center gap-2">
-                <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && timeOffsetSec === 0)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-lg shadow-emerald-600/20">
-                  {savingGitHub ? <Loader size={12} className="animate-spin" /> : <Save size={12} />}
-                  {savingGitHub ? 'Saving…' : 'Save to GitHub'}
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+              {quickRenameTarget.currentName !== quickRenameTarget.rawSpeaker ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    saveSpeakerRename(quickRenameTarget.rawSpeaker, '');
+                    setQuickRenameTarget(null);
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-rose-400 transition-colors cursor-pointer"
+                >
+                  <RotateCcw size={12} /> Reset to Original
                 </button>
-                <button onClick={() => setShowRenameModal(false)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer">Done</button>
+              ) : <div />}
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setQuickRenameTarget(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyQuickRename}
+                  disabled={!quickRenameVal.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/25 cursor-pointer hover:scale-105"
+                >
+                  <Check size={14} /> Update All Turns
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
 
       {/* ── Saved Speakers Modal ── */}
       {showSavedSpeakersModal && (
