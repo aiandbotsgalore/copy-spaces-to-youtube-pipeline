@@ -484,25 +484,30 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const hasCredentials = !!(config.githubToken && owner && repo);
 
   const effectiveReleases = useMemo((): Release[] => {
-    if (releases.length > 0) return releases;
-    if (!globalIndex || globalIndex.length === 0) return [];
-    return globalIndex.map(ep => ({
-      id: ep.release_id,
-      tag_name: ep.release_tag,
-      name: ep.title,
-      body: null,
-      published_at: ep.published_at,
-      html_url: '',
-      assets: ep.audio_url ? [{
+    let list: Release[] = [];
+    if (releases.length > 0) {
+      list = releases;
+    } else if (globalIndex && globalIndex.length > 0) {
+      list = globalIndex.map(ep => ({
         id: ep.release_id,
-        name: `${ep.release_tag}.mp3`,
-        browser_download_url: ep.audio_url,
-        size: 0,
-        content_type: 'audio/mpeg'
-      }] : [],
-      draft: false,
-      prerelease: false,
-    }));
+        tag_name: ep.release_tag,
+        name: ep.title,
+        body: (ep as any).body || null,
+        published_at: ep.published_at,
+        html_url: '',
+        assets: ep.audio_url ? [{
+          id: ep.release_id,
+          name: `${ep.release_tag}.mp3`,
+          browser_download_url: ep.audio_url,
+          size: 0,
+          content_type: 'audio/mpeg'
+        }] : [],
+        draft: false,
+        prerelease: false,
+        episode_date: (ep as any).episode_date,
+      }));
+    }
+    return sortReleasesByRecordedDate(list, 'desc');
   }, [releases, globalIndex]);
 
   const selectedRelease = useMemo(() => effectiveReleases.find(r => r.id === selectedId), [effectiveReleases, selectedId]);
