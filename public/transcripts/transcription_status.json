@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-28T23:08:15.508471+00:00",
+  "last_updated": "2026-09-28T23:35:30.656999+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 503,
-  "untranscribed_count": 289,
-  "percent_complete": 63.5,
+  "transcribed_count": 513,
+  "untranscribed_count": 279,
+  "percent_complete": 64.8,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1lPKqBmpNVmGb",
-      "name": "Reptilians on a motherfukkin plane",
-      "date": "Jul 5, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlagZDAgKL",
-      "name": "Quantifying consciousness & love. Are they even REAL?",
-      "date": "Jul 5, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZnaWzVJw",
-      "name": "Lumeniferous Ether",
-      "date": "Jul 1, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpkYOjeGO",
-      "name": "SHUT UP ABOUT THE SUN!",
-      "date": "Jun 29, 2023"
-    },
-    {
-      "tag": "20260216_1dRJZMNEdgDGB",
-      "name": "music kinda?",
-      "date": "Jun 28, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRaODMEKX",
-      "name": "UFO Music Concert - LIVE Space",
-      "date": "Jun 25, 2023"
-    },
-    {
-      "tag": "20260217_1nAJErLWEWvxL",
-      "name": "Bring the good vibes",
-      "date": "Jun 24, 2023"
-    },
-    {
-      "tag": "20260217_1OdJrzVArwQJX",
-      "name": "Alien insight",
-      "date": "Jun 23, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZXanOkxQ",
-      "name": "The Majestic Majestic - CIA Whistleblowers Welcome",
-      "date": "Jun 22, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErAyWkkGL",
-      "name": "Bad Boys Fo Lyfe",
-      "date": "Jun 21, 2023"
-    },
     {
       "tag": "20260218_1YqJDopAgwVGV",
       "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
@@ -119,6 +69,56 @@
       "tag": "20260216_1BdGYyQEOZyGX",
       "name": "Logan plays \ud83c\udfb8",
       "date": "Jun 12, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgLQLrpwxL",
+      "name": "#ufotwitter IN THE FLESH Party w/ Logan and friends",
+      "date": "Jun 11, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRABkNdgKl",
+      "name": "Hang sesh",
+      "date": "Jun 10, 2023"
+    },
+    {
+      "tag": "20260217_1MYGNgkVAgZJw",
+      "name": "Let's spread love",
+      "date": "Jun 10, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnpQvqWmGO",
+      "name": "Underground ufo club. Stay away from the corporates.",
+      "date": "Jun 9, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBqNLwXMKN",
+      "name": "Real people",
+      "date": "Jun 9, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBVyOLwGb",
+      "name": "UFO STORIES\ud83d\udc7d\ud83d\udef8",
+      "date": "Jun 7, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmXkNpXxE",
+      "name": "Wake UP \ud83d\udc7d\ud83d\udef8",
+      "date": "Jun 7, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErdMaVAGL",
+      "name": "\ud83c\udfb8 + \ud83d\udc7d",
+      "date": "Jun 6, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLngjYnYGm",
+      "name": "Lacey",
+      "date": "Jun 6, 2023"
+    },
+    {
+      "tag": "20260216_1BRKjZQojkoKw",
+      "name": "I Am Elon Musk's Song",
+      "date": "Jun 4, 2023"
     }
   ]
 }
