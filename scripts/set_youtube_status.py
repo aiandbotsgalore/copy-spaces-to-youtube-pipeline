@@ -26,12 +26,13 @@ def main():
     status = args.status.upper().strip()
 
     gh_token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("GITHUB_REPOSITORY") or os.environ.get("REPO") or "aiandbotsgalore/copy-spaces-to-youtube-pipeline"
     env = os.environ.copy()
     if gh_token:
         env["GH_TOKEN"] = gh_token
 
-    print(f"[*] Fetching release notes for tag '{tag}'...")
-    view_cmd = ["gh", "release", "view", tag, "--json", "body"]
+    print(f"[*] Fetching release notes for tag '{tag}' in repo '{repo}'...")
+    view_cmd = ["gh", "release", "view", tag, "--repo", repo, "--json", "body"]
     res = subprocess.run(view_cmd, capture_output=True, text=True, env=env)
 
     if res.returncode != 0:
@@ -57,7 +58,7 @@ def main():
         f.write(new_body)
 
     try:
-        edit_cmd = ["gh", "release", "edit", tag, "--notes-file", notes_file]
+        edit_cmd = ["gh", "release", "edit", tag, "--repo", repo, "--notes-file", notes_file]
         edit_res = subprocess.run(edit_cmd, capture_output=True, text=True, env=env)
         if edit_res.returncode != 0:
             print(f"[🛑] Error updating release: {edit_res.stderr.strip()}", file=sys.stderr)
