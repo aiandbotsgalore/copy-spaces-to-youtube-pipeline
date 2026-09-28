@@ -117,7 +117,38 @@ else
 fi
 echo "--- End duplicate check ---"
 
-# 5. Prepare Work Directory
+# 5. Live Broadcast Check
+# Automated ingest must only process concluded broadcasts/replays.
+# Live stream capture will only proceed if RECORD_LIVE is explicitly set to true.
+RECORD_LIVE="${RECORD_LIVE:-false}"
+echo "Checking live stream status..."
+LIVE_STATUS=$(yt-dlp --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
+echo "Live status: $LIVE_STATUS (RECORD_LIVE=$RECORD_LIVE)"
+
+if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" != "true" ]]; then
+    echo "::warning::Space is currently broadcasting live. Automated live ingestion is disabled."
+    echo "::notice::To record an in-progress Space, trigger this workflow manually from GitHub Actions or the web app with 'Record Live Stream' enabled."
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+        echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        echo "space_id=${SPACE_ID:-}" >> "$GITHUB_OUTPUT"
+    fi
+    exit 0
+fi
+
+if [[ "$LIVE_STATUS" == "is_upcoming" && "$RECORD_LIVE" != "true" ]]; then
+    echo "::warning::Space is scheduled/upcoming. Ingestion deferred until broadcast completes."
+    if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+        echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        echo "space_id=${SPACE_ID:-}" >> "$GITHUB_OUTPUT"
+    fi
+    exit 0
+fi
+
+if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" == "true" ]]; then
+    echo "🔴 Manual live capture requested: proceeding to record live broadcast."
+fi
+
+# 6. Prepare Work Directory
 mkdir -p "$WORK_DIR"
 
 # 6. Download and Convert

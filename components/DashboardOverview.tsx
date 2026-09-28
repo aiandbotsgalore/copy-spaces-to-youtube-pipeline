@@ -28,6 +28,7 @@ function formatDate(iso: string): string {
 
 const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   const [url, setUrl] = useState('');
+  const [recordLive, setRecordLive] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState<'run' | 'queue' | null>(null);
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
@@ -88,9 +89,23 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     setNotice(null);
     try {
       if (action === 'run') {
-        await dispatchWorkflow(config.githubToken, config.ownerName, config.repoName, 'ingest.yml', { space_url: trimmed });
+        await dispatchWorkflow(
+          config.githubToken,
+          config.ownerName,
+          config.repoName,
+          'ingest.yml',
+          {
+            space_url: trimmed,
+            ...(recordLive ? { record_live: 'true' } : {}),
+          }
+        );
         trackDispatch(trimmed);
-        setNotice({ kind: 'success', message: 'Ingest started — tracking below.' });
+        setNotice({
+          kind: 'success',
+          message: recordLive
+            ? 'Workflow dispatched: capturing active live stream.'
+            : 'Ingest started — tracking below.',
+        });
       } else {
         await appendLineToRepositoryTextFile(
           config.githubToken, config.ownerName, config.repoName,
@@ -100,6 +115,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       }
       setUrl('');
       setConfirming(false);
+      setRecordLive(false);
     } catch (error) {
       setNotice({ kind: 'error', message: friendlyGitHubError(error, action) });
     } finally {
@@ -190,26 +206,69 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
               <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Confirm submission</p>
               <p className="text-sm text-white font-mono break-all">{url.trim()}</p>
             </div>
+
+            <div className={`p-3 rounded-lg border transition-all ${
+              recordLive
+                ? 'bg-rose-500/10 border-rose-500/30 ring-1 ring-rose-500/20'
+                : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
+            }`}>
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={recordLive}
+                  onChange={e => setRecordLive(e.target.checked)}
+                  disabled={submitting !== null}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-900 text-rose-500 focus:ring-rose-500/20 focus:ring-offset-0 cursor-pointer"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <Radio size={13} className={recordLive ? "text-rose-400 animate-pulse" : "text-slate-500"} />
+                    <span className={`text-xs font-semibold ${recordLive ? 'text-rose-300' : 'text-slate-300'}`}>
+                      Record live broadcast (Space is currently in progress)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                    Automated pipelines ignore live streams to prevent runner hangs. Check this only to manually record an ongoing live stream.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-3">
               <button
                 onClick={() => handleConfirm('run')}
                 disabled={submitting !== null}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                  recordLive ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'
+                }`}
               >
-                {submitting === 'run' ? <Loader size={15} className="animate-spin" /> : <Play size={15} />}
-                {submitting === 'run' ? 'Starting…' : 'Run Now'}
+                {submitting === 'run' ? (
+                  <Loader size={15} className="animate-spin" />
+                ) : recordLive ? (
+                  <Radio size={15} className="animate-pulse" />
+                ) : (
+                  <Play size={15} />
+                )}
+                {submitting === 'run'
+                  ? (recordLive ? 'Connecting to Stream…' : 'Starting…')
+                  : (recordLive ? 'Record Live Now' : 'Run Now')}
               </button>
               <button
                 onClick={() => handleConfirm('queue')}
-                disabled={submitting !== null}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-50 text-slate-200 text-sm font-medium rounded-lg transition-colors"
+                disabled={submitting !== null || recordLive}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-sm font-medium rounded-lg transition-colors"
               >
                 {submitting === 'queue' ? <Loader size={15} className="animate-spin" /> : <ListPlus size={15} />}
                 {submitting === 'queue' ? 'Adding…' : 'Add to Queue'}
               </button>
             </div>
+            {recordLive && (
+              <p className="text-[11px] text-amber-400/90 text-center">
+                Live streams cannot be added to the queue for automated processing.
+              </p>
+            )}
             <button
-              onClick={() => { setConfirming(false); setNotice(null); }}
+              onClick={() => { setConfirming(false); setRecordLive(false); setNotice(null); }}
               disabled={submitting !== null}
               className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
             >

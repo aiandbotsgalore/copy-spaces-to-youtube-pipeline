@@ -11,6 +11,11 @@ on:
         description: 'Space/Audio URL (Twitter, YouTube, Clubhouse, LinkedIn, etc.)'
         required: false
         type: string
+      record_live:
+        description: 'Record live stream (allow capturing in-progress Space)'
+        required: false
+        type: boolean
+        default: false
 
 # Prevent race conditions during RSS deployment
 concurrency:
@@ -56,6 +61,7 @@ jobs:
         id: process
         env:
           MANUAL_URL: ${{ inputs.space_url }}
+          RECORD_LIVE: ${{ inputs.record_live }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: bash ./scripts/ingest.sh

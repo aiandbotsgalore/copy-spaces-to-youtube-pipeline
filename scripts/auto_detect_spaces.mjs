@@ -207,22 +207,28 @@ async function run() {
 
   if (newSpaces.length === 0) {
     console.log('\nAll discovered Spaces are already archived. Nothing to do.');
-    recordStepSummary(HANDLES, [], alreadyArchivedSpaces, [], fetchFailures);
+    recordStepSummary(HANDLES, [], alreadyArchivedSpaces, [], [], fetchFailures, []);
     process.exit(0);
   }
 
   // Dispatch ingestion for each new, available Space
   const dispatched = [];
   const unavailableSpaces = [];
+  const liveDeferredSpaces = [];
 
   for (const space of newSpaces) {
-    console.log(`\n🔎 Checking availability: ${space.url}`);
+    console.log(`\n🔎 Checking availability & broadcast status: ${space.url}`);
     let isAvailable = true;
+    let liveStatus = 'unknown';
+
     try {
-      execSync(`yt-dlp --simulate --quiet --no-warnings "${space.url}"`, {
-        stdio: 'pipe',
-        timeout: 25000
-      });
+      const output = execSync(`yt-dlp --print live_status --no-warnings "${space.url}"`, {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 25000,
+        encoding: 'utf-8'
+      }).trim();
+      const lines = output.split('\n').map(l => l.trim()).filter(Boolean);
+      liveStatus = lines[lines.length - 1] || 'unknown';
     } catch {
       isAvailable = false;
       unavailableSpaces.push(space);
@@ -230,7 +236,18 @@ async function run() {
     }
 
     if (isAvailable) {
-      console.log(`🚀 Dispatching ingest.yml for ${space.url}...`);
+      if (liveStatus === 'is_live') {
+        console.log(`   🔴 Space ${space.spaceId} is currently BROADCASTING LIVE.`);
+        console.log(`   ⏩ Automated live ingestion is disabled. Replay will be ingested automatically once concluded.`);
+        liveDeferredSpaces.push(space);
+        continue;
+      }
+      if (liveStatus === 'is_upcoming') {
+        console.log(`   ⏰ Space ${space.spaceId} is scheduled/upcoming — skipping.`);
+        continue;
+      }
+
+      console.log(`🚀 Dispatching ingest.yml for ${space.url} (status: ${liveStatus})...`);
       try {
         execSync(`gh workflow run ingest.yml -f space_url="${space.url}"`, {
           encoding: 'utf-8',
@@ -244,11 +261,11 @@ async function run() {
     }
   }
 
-  recordStepSummary(HANDLES, newSpaces, alreadyArchivedSpaces, dispatched, unavailableSpaces, fetchFailures);
-  console.log(`\n✨ Done. Dispatched ${dispatched.length} new Space(s).`);
+  recordStepSummary(HANDLES, newSpaces, alreadyArchivedSpaces, dispatched, unavailableSpaces, fetchFailures, liveDeferredSpaces);
+  console.log(`\n✨ Done. Dispatched ${dispatched.length} new Space(s), ${liveDeferredSpaces.length} live broadcast(s) deferred.`);
 }
 
-function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], unavailableSpaces = [], fetchFailures = []) {
+function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], unavailableSpaces = [], fetchFailures = [], liveDeferredSpaces = []) {
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryFile) return;
 
@@ -258,6 +275,7 @@ function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], 
     `- **Handles monitored:** ${handles.map(h => `@${h}`).join(', ')}`,
     `- **Timestamp:** ${new Date().toISOString()}`,
     `- **New Spaces Dispatched:** ${dispatched.length}`,
+    `- **Live Deferred (Awaiting Replay):** ${liveDeferredSpaces.length}`,
     `- **Already Archived:** ${archivedSpaces.length}`,
     `- **Expired / Unavailable:** ${unavailableSpaces.length}`,
     `- **Fetch Failures:** ${fetchFailures.length}`,
@@ -268,6 +286,14 @@ function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], 
     lines.push('## 🚨 Fetch Failures (xactions could not read these handles)');
     for (const h of fetchFailures) {
       lines.push(`- @${h} — check xactions compatibility or X rate limiting`);
+    }
+    lines.push('');
+  }
+
+  if (liveDeferredSpaces.length > 0) {
+    lines.push('## 🔴 Live Broadcasts in Progress (Automated Ingestion Deferred)');
+    for (const s of liveDeferredSpaces) {
+      lines.push(`- **[${s.spaceId}](${s.url})** (via @${s.foundVia}) — Currently broadcasting live. Automated capture deferred until replay is ready.`);
     }
     lines.push('');
   }
