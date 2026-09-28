@@ -26,6 +26,7 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     outputs:
       mp3_path: ${{ steps.process.outputs.mp3_path }}
       release_tag: ${{ steps.process.outputs.release_tag }}
@@ -110,6 +111,7 @@ jobs:
             METADATA::DURATION::${{ steps.duration.outputs.duration }}
             METADATA::SOURCE_ID::${{ steps.process.outputs.space_id }}
             METADATA::EPISODE_DATE::${{ steps.process.outputs.episode_date }}
+            METADATA::YOUTUBE_STATUS::UNLISTED
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

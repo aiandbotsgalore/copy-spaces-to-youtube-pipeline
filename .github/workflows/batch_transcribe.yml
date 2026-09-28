@@ -83,7 +83,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/transcripts/transcripts_search_index.json public/transcripts/transcription_status.json || true
+          git rm --cached public/transcripts/transcripts_search_index.json 2>/dev/null || true
+          git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json || true
           git commit -m "chore(transcripts): batch update transcripts index and status [skip ci]" || echo "No changes to commit"
           git pull --rebase origin master || true
           git push origin master || echo "Push skipped or already up to date"

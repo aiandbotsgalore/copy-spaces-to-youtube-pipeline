@@ -196,11 +196,28 @@ def main():
     yt_items = []
     archive_items = []
     over_limit_episodes = []
+    unlisted_episodes = []
 
     for rel in sorted_releases:
         dt = extract_recorded_datetime(rel)
         rfc822 = dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
         body = rel.get("body", "") or ""
+
+        # Check YouTube Approval Status
+        # Default policy:
+        # - Any release explicitly tagged METADATA::YOUTUBE_STATUS::UNLISTED (or DRAFT/PENDING) is held back.
+        # - Any release explicitly tagged METADATA::YOUTUBE_STATUS::APPROVED is included in podcast.xml.
+        # - Releases without a tag: legacy releases stay in the feed unless STRICT_YOUTUBE_APPROVAL is set.
+        yt_status_match = re.search(r"METADATA::YOUTUBE(?:_STATUS)?::([A-Za-z0-9_-]+)", body)
+        yt_status = yt_status_match.group(1).upper() if yt_status_match else None
+
+        strict_approval = os.environ.get("STRICT_YOUTUBE_APPROVAL", "false").lower() in ("true", "1", "yes")
+        if yt_status == "APPROVED":
+            is_yt_approved = True
+        elif yt_status in ("UNLISTED", "DRAFT", "PENDING", "NO", "FALSE"):
+            is_yt_approved = False
+        else:
+            is_yt_approved = not strict_approval
 
         # Support 1 to 3+ digit hour durations (e.g. 137:50:27, 432:59:33)
         dur_match = re.search(r"METADATA::DURATION::(\d+:\d{2}:\d{2})", body)
@@ -286,13 +303,15 @@ def main():
 
             archive_items.append(item_xml)
 
-            # In multi-part assets, each part duration is bounded; for single assets check dur_seconds
-            if not is_multi and dur_seconds > MAX_YOUTUBE_DURATION_SECONDS:
+            # Only approved episodes within 12 hours enter the YouTube podcast.xml feed
+            if not is_yt_approved:
+                unlisted_episodes.append((rel["name"], yt_status or "UNLISTED"))
+            elif not is_multi and dur_seconds > MAX_YOUTUBE_DURATION_SECONDS:
                 over_limit_episodes.append((rel["name"], duration))
             else:
                 yt_items.append(item_xml)
 
-    # 1. podcast.xml (YouTube safe: strictly <= 11h 58m)
+    # 1. podcast.xml (YouTube safe: strictly <= 11h 58m and approved)
     yt_rss = build_channel_xml(
         title=podcast_title,
         link=pages_url,
@@ -324,9 +343,10 @@ def main():
     with open("releases.json", "w", encoding="utf-8") as f:
         json.dump(releases, f)
 
-    print(f"Generated podcast.xml: {len(yt_items)} YouTube-compatible episodes (<= 11h 58m)")
+    print(f"Generated podcast.xml: {len(yt_items)} YouTube-approved episodes (<= 11h 58m)")
     print(f"Generated podcast_archive.xml: {len(archive_items)} total episodes")
-    print(f"Excluded from YouTube feed: {len(over_limit_episodes)} marathon episodes (> 11h 58m)")
+    print(f"Held back from YouTube (Unlisted / Pending Approval): {len(unlisted_episodes)} episodes")
+    print(f"Excluded from YouTube (> 11h 58m marathon): {len(over_limit_episodes)} episodes")
 
 
 if __name__ == "__main__":

@@ -125,6 +125,7 @@ echo "Starting download..."
 yt-dlp \
     --retries 5 \
     --fragment-retries 5 \
+    --socket-timeout 30 \
     --no-playlist \
     --restrict-filenames \
     --extract-audio \

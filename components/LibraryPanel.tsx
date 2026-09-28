@@ -688,6 +688,26 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                                 <FileText size={10} /> View Transcript{isMultiPart ? ` (${parts.length} Parts)` : ''}
                               </button>
                             )}
+                            {(() => {
+                              const ytMatch = release.body ? /METADATA::YOUTUBE(?:_STATUS)?::([A-Za-z0-9_-]+)/i.exec(release.body) : null;
+                              const isApproved = ytMatch && ytMatch[1].toUpperCase() === 'APPROVED';
+                              const isUnlisted = ytMatch && ['UNLISTED', 'DRAFT', 'PENDING', 'NO'].includes(ytMatch[1].toUpperCase());
+                              return isApproved ? (
+                                <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded font-medium" title="Approved for YouTube feed (podcast.xml)">
+                                  YouTube: Approved
+                                </span>
+                              ) : isUnlisted ? (
+                                <a
+                                  href={`https://github.com/${owner}/${repo}/actions/workflows/manage_youtube_approval.yml`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-400/90 border border-amber-500/30 rounded font-medium transition-colors"
+                                  title="Unlisted (held back from YouTube). Click to approve in GitHub Actions."
+                                >
+                                  YouTube: Unlisted <ExternalLink size={9} />
+                                </a>
+                              ) : null;
+                            })()}
                           </div>
                           {sourceId && (
                             <p className="text-[10px] text-slate-700 mt-0.5 font-mono truncate">ID: {sourceId}</p>
