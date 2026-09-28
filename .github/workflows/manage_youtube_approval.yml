@@ -1,5 +1,5 @@
 name: Manage YouTube Approval
-run-name: YouTube Status -> ${{ inputs.status }} for ${{ inputs.release_tag }}
+run-name: "YouTube Status: ${{ inputs.status }} for ${{ inputs.release_tag }}"
 
 on:
   workflow_dispatch:
@@ -28,47 +28,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Update Release Metadata
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.release_tag }}
-          STATUS: ${{ inputs.status }}
         run: |
-          echo "Fetching release notes for $TAG..."
-          BODY=$(gh release view "$TAG" --json body -q .body)
-          
-          if [ -z "$BODY" ]; then
-            echo "::error::Release $TAG not found or has empty notes."
-            exit 1
-          fi
-
-          echo "Current body preview:"
-          echo "$BODY" | tail -n 5
-
-          # Replace existing METADATA::YOUTUBE tag if present, otherwise append
-          if echo "$BODY" | grep -qE "METADATA::YOUTUBE(_STATUS)?::"; then
-            python3 -c "
-import os, re
-tag = os.environ['TAG']
-status = os.environ['STATUS']
-body = os.environ['BODY']
-updated = re.sub(r'METADATA::YOUTUBE(?:_STATUS)?::[A-Za-z0-9_-]+', f'METADATA::YOUTUBE_STATUS::{status}', body)
-with open('updated_notes.txt', 'w', encoding='utf-8') as f:
-    f.write(updated)
-"
-          else
-            python3 -c "
-import os
-status = os.environ['STATUS']
-body = os.environ['BODY']
-updated = body.rstrip() + f'\nMETADATA::YOUTUBE_STATUS::{status}\n'
-with open('updated_notes.txt', 'w', encoding='utf-8') as f:
-    f.write(updated)
-"
-          fi
-
-          gh release edit "$TAG" --notes-file updated_notes.txt
-          echo "[✓] Successfully updated release $TAG with METADATA::YOUTUBE_STATUS::${STATUS}."
+          python scripts/set_youtube_status.py --tag "${{ inputs.release_tag }}" --status "${{ inputs.status }}"
 
       - name: Trigger RSS Update and Deployment
         env:
