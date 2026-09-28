@@ -1,6 +1,20 @@
-name: Update RSS Feed
+name: Update RSS Feed & Deploy Web App
 
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'components/**'
+      - 'utils/**'
+      - 'hooks/**'
+      - 'contexts/**'
+      - 'App.tsx'
+      - 'index.html'
+      - 'vite.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
   release:
     types: [published]
   schedule:
@@ -22,6 +36,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies & Build Web App
+        run: |
+          npm ci
+          npm run build
 
       - name: Sync Clips Catalog & Generate RSS Feeds
         env:
@@ -49,8 +74,10 @@ jobs:
             fi
           done
 
-      - name: Deploy to Pages
+      - name: Assemble Site & Deploy to Pages
         run: |
+          mkdir -p site
+          cp -r dist/* site/
           mkdir -p site/clips site/transcripts
           cp podcast.xml site/
           [ -f podcast_archive.xml ] && cp podcast_archive.xml site/ || true
@@ -59,7 +86,7 @@ jobs:
           [ -f artwork.jpg ] && cp artwork.jpg site/ || true
           [ -f public/clips/clips_catalog.json ] && cp public/clips/clips_catalog.json site/clips/ || true
           [ -f public/transcripts/transcription_status.json ] && cp public/transcripts/transcription_status.json site/transcripts/ || true
-          [ -f public/transcripts/transcripts_search_index.json ] && cp public/transcripts/transcripts_search_index.json site/transcripts/ || true
+          [ -f public/transcripts/transcripts_summary_index.json ] && cp public/transcripts/transcripts_summary_index.json site/transcripts/ || true
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
