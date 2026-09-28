@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-28T23:35:30.656999+00:00",
+  "last_updated": "2026-09-28T23:57:29.918846+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 513,
-  "untranscribed_count": 279,
-  "percent_complete": 64.8,
+  "transcribed_count": 523,
+  "untranscribed_count": 269,
+  "percent_complete": 66.0,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1YqJDopAgwVGV",
-      "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
-      "date": "Jun 18, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLnyRroqGm",
-      "name": "after party",
-      "date": "Jun 18, 2023"
-    },
-    {
-      "tag": "20260216_1jMKgLXZgaPGL",
-      "name": "Cyber Stalking & harassment- Jalissa",
-      "date": "Jun 18, 2023"
-    },
-    {
-      "tag": "20260216_1dRJZMZylwrGB",
-      "name": "Born to \ud83d\udc7d",
-      "date": "Jun 16, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRlDjwRKX",
-      "name": "The Disclosure Train Never Stops / NO \ud83d\ude4c needed",
-      "date": "Jun 15, 2023"
-    },
-    {
-      "tag": "20260216_1eaJbrzDezZJX",
-      "name": "Bro Co-hoe Space",
-      "date": "Jun 15, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmeYRXLGE",
-      "name": "Logan+Guy Melt your brains\ud83c\udfb8\ud83c\udfb6\ud83d\ude08",
-      "date": "Jun 14, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvyaLkmRJB",
-      "name": "Logan Is Disclosure lol With Rick Doty",
-      "date": "Jun 14, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlareLomKL",
-      "name": "Gravity after party",
-      "date": "Jun 13, 2023"
-    },
-    {
-      "tag": "20260216_1BdGYyQEOZyGX",
-      "name": "Logan plays \ud83c\udfb8",
-      "date": "Jun 12, 2023"
-    },
     {
       "tag": "20260216_1jMJgLQLrpwxL",
       "name": "#ufotwitter IN THE FLESH Party w/ Logan and friends",
@@ -119,6 +69,56 @@
       "tag": "20260216_1BRKjZQojkoKw",
       "name": "I Am Elon Musk's Song",
       "date": "Jun 4, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRABjnQRJl",
+      "name": "Friday Evening Phenomenon",
+      "date": "Jun 3, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNQjXPXKj",
+      "name": "UFO \ud83d\udc7d + \ud83c\udfb8\ud83c\udfb8",
+      "date": "Jun 2, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqNPgjpJN",
+      "name": "[not a show.]*test*",
+      "date": "Jun 2, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRABnodvJl",
+      "name": "Its Closing time",
+      "date": "Jun 1, 2023"
+    },
+    {
+      "tag": "20260216_1DXxyvpWDzvKM",
+      "name": "UFO Experiencer Party Time Space",
+      "date": "May 31, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmRAvnaxE",
+      "name": "Sally & Logan Sing the Blues(waiting for Sally)",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260217_1kvJpmRAbmOxE",
+      "name": "Beware the crash \ud83d\udc7d\ud83c\udfb8",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260216_1BRKjZqnPypKw",
+      "name": "Sally & Logan Sing the Blues \ud83d\udc99(Waiting on Sally)",
+      "date": "May 30, 2023"
+    },
+    {
+      "tag": "20260218_1yNGaNpBMkvJj",
+      "name": "MUSICK HOUR w/ FRED ROGERSS",
+      "date": "May 29, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlaNrqnRKL",
+      "name": "Sunday night",
+      "date": "May 29, 2023"
     }
   ]
 }
