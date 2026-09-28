@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-28T17:57:41.132950+00:00",
+  "last_updated": "2026-09-28T23:08:15.508471+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 490,
-  "untranscribed_count": 302,
-  "percent_complete": 61.9,
+  "transcribed_count": 503,
+  "untranscribed_count": 289,
+  "percent_complete": 63.5,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,71 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260926_1mGPaZNvDjgJN",
-      "name": "House_of_Tupa_2026-09-27_20_06",
-      "date": "Sep 26, 2026"
-    },
-    {
-      "tag": "20260926_1OGwbnVyavLKB",
-      "name": "Monkey_Island",
-      "date": "Sep 26, 2026"
-    },
-    {
-      "tag": "20260926_1DGleVWzYrdJL",
-      "name": "Fuck_anyone_named_Kimball",
-      "date": "Sep 26, 2026"
-    },
-    {
-      "tag": "20260218_1YqxoAARONAGv",
-      "name": "UFO & Guitars \ud83d\udc7d\ud83c\udfb8",
-      "date": "Jul 21, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLnnrDwyGm",
-      "name": "We Love Diana Pasulka",
-      "date": "Jul 20, 2023"
-    },
-    {
-      "tag": "20260218_1yNxaNNOYEdKj",
-      "name": "Heather speaks the gospel",
-      "date": "Jul 19, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRRmjjbKX",
-      "name": "The Cube vs Orb",
-      "date": "Jul 18, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmmDovPxE",
-      "name": "bat and Elle",
-      "date": "Jul 12, 2023"
-    },
-    {
-      "tag": "20260216_1gqGvylrEznKB",
-      "name": "UFO's: After Sunrise \ud83d\udd06 (deleting this space)",
-      "date": "Jul 11, 2023"
-    },
-    {
-      "tag": "20260218_1zqKVPBljVYJB",
-      "name": "casual paranormal chit chat",
-      "date": "Jul 8, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaNYXLWqJj",
-      "name": "Time Travel is real-McDonnell Douglas -Reverse Engineering \ud83d\udc7d\ud83d\udef8",
-      "date": "Jul 6, 2023"
-    },
-    {
-      "tag": "20260217_1MYGNgnjwEPJw",
-      "name": "empty",
-      "date": "Jul 6, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlPdBPdGZ",
-      "name": "Exo-Biospheric-Organisms Leak \ud83d\udc7d\ud83d\udef8 + MIB?",
-      "date": "Jul 6, 2023"
-    },
     {
       "tag": "20260217_1lPKqBmpNVmGb",
       "name": "Reptilians on a motherfukkin plane",
@@ -119,6 +54,71 @@
       "tag": "20260217_1nAJErLWEWvxL",
       "name": "Bring the good vibes",
       "date": "Jun 24, 2023"
+    },
+    {
+      "tag": "20260217_1OdJrzVArwQJX",
+      "name": "Alien insight",
+      "date": "Jun 23, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZXanOkxQ",
+      "name": "The Majestic Majestic - CIA Whistleblowers Welcome",
+      "date": "Jun 22, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErAyWkkGL",
+      "name": "Bad Boys Fo Lyfe",
+      "date": "Jun 21, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDopAgwVGV",
+      "name": "Jalissa- \"The Woman\" @lilithufo -Stalker, extortionist, Conwoman",
+      "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnyRroqGm",
+      "name": "after party",
+      "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgLXZgaPGL",
+      "name": "Cyber Stalking & harassment- Jalissa",
+      "date": "Jun 18, 2023"
+    },
+    {
+      "tag": "20260216_1dRJZMZylwrGB",
+      "name": "Born to \ud83d\udc7d",
+      "date": "Jun 16, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRlDjwRKX",
+      "name": "The Disclosure Train Never Stops / NO \ud83d\ude4c needed",
+      "date": "Jun 15, 2023"
+    },
+    {
+      "tag": "20260216_1eaJbrzDezZJX",
+      "name": "Bro Co-hoe Space",
+      "date": "Jun 15, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmeYRXLGE",
+      "name": "Logan+Guy Melt your brains\ud83c\udfb8\ud83c\udfb6\ud83d\ude08",
+      "date": "Jun 14, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyaLkmRJB",
+      "name": "Logan Is Disclosure lol With Rick Doty",
+      "date": "Jun 14, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlareLomKL",
+      "name": "Gravity after party",
+      "date": "Jun 13, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyQEOZyGX",
+      "name": "Logan plays \ud83c\udfb8",
+      "date": "Jun 12, 2023"
     }
   ]
 }
