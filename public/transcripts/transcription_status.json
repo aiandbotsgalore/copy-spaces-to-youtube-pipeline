@@ -1,7 +1,7 @@
 {
-  "last_updated": "2026-09-29T10:27:12.259160+00:00",
-  "total_episodes_with_audio": 791,
-  "transcribed_count": 635,
+  "last_updated": "2026-09-29T17:30:35.665968+00:00",
+  "total_episodes_with_audio": 792,
+  "transcribed_count": 636,
   "untranscribed_count": 156,
   "percent_complete": 80.3,
   "auto_chain_active": false,
@@ -22,14 +22,14 @@
       "attempts": 3,
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
       "last_attempt": "2026-09-29T10:23:43.658681+00:00"
+    },
+    "20260217_1LyxBqjygQkJN": {
+      "attempts": 1,
+      "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
+      "last_attempt": "2026-09-29T17:23:37.240708+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyJAVogXlyxb",
-      "name": "TUPACABRA BDAY Radio: Taking Song Requests\ud83c\udfb8\ud83d\udc7d\u26a1\ud83c\udf89\ud83d\udc40\ud83c\udfb5\ud83c\udfb6",
-      "date": "Feb 26, 2023"
-    },
     {
       "tag": "20260217_1LyxBqjygQkJN",
       "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
@@ -124,6 +124,11 @@
       "tag": "20260217_1OdKrzNyemqKX",
       "name": "MC & E are both Awesome \ud83d\udcab",
       "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDojrQODxV",
+      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
+      "date": "Jan 30, 2023"
     }
   ]
 }
