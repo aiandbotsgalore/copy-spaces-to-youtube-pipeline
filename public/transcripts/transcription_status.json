@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T01:27:22.572319+00:00",
+  "last_updated": "2026-09-29T01:48:11.487762+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 553,
-  "untranscribed_count": 239,
-  "percent_complete": 69.8,
+  "transcribed_count": 563,
+  "untranscribed_count": 229,
+  "percent_complete": 71.1,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoKMZEWjYpGQ",
-      "name": "Decoding the Unseen:A session with Dr. Mishlove",
-      "date": "May 18, 2023"
-    },
-    {
-      "tag": "20260217_1mnGeRvdlBWJX",
-      "name": "Afterparty",
-      "date": "May 18, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqAqrybJN",
-      "name": "dammit",
-      "date": "May 18, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBqAaBjnKN",
-      "name": "unified fields and hypothetical technology",
-      "date": "May 17, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlpokZBGZ",
-      "name": "Decoding the Unseen: A Session with Dr. Jeffrey Mishlove",
-      "date": "May 17, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAWqzjzJl",
-      "name": "*TEST*",
-      "date": "May 16, 2023"
-    },
-    {
-      "tag": "20260217_1vAGRAWNVmVKl",
-      "name": "Happy Mother's Day! \ud83d\udc9d\ud83d\udc90",
-      "date": "May 14, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLnrVAvPGm",
-      "name": "103.5 The Fahhcks Rocks",
-      "date": "May 13, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlpmbdeGZ",
-      "name": "Witching Hour",
-      "date": "May 10, 2023"
-    },
-    {
-      "tag": "20260216_1djGXlpjAQoGZ",
-      "name": "Astrotheology",
-      "date": "May 9, 2023"
-    },
     {
       "tag": "20260217_1kvKpmOPpkgGE",
       "name": "solar system soiree",
@@ -119,6 +69,56 @@
       "tag": "20260218_1ZkKzXkzrwdJv",
       "name": "Missy Explains It All",
       "date": "Apr 28, 2023"
+    },
+    {
+      "tag": "20260218_1yNxaNOjomQKj",
+      "name": "Casual chat",
+      "date": "Apr 27, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvynLnelJB",
+      "name": "I Love You",
+      "date": "Apr 27, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnMdvwmGm",
+      "name": "Is Elon Musk A Martian? \ud83d\udef8",
+      "date": "Apr 26, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErQpPLbGL",
+      "name": "\ud83d\udc7dFearless Monkey League: The Great Unknown",
+      "date": "Apr 24, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZVXMwkxQ",
+      "name": "Sunday Morning Church",
+      "date": "Apr 23, 2023"
+    },
+    {
+      "tag": "20260216_1djxXlnpwyBxZ",
+      "name": "Friday Night UFO Homiez",
+      "date": "Apr 22, 2023"
+    },
+    {
+      "tag": "20260216_1dRKZMgLqBQxB",
+      "name": "underwater acoustic",
+      "date": "Apr 22, 2023"
+    },
+    {
+      "tag": "20260218_1ypJddYrlWjJW",
+      "name": "GreenStreet \ud83d\udc7d\ud83d\udcb2\ud83d\udc0d\ud83e\udd22",
+      "date": "Apr 20, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkNqEOYKN",
+      "name": "\ud83d\udc7dSpace Gas",
+      "date": "Apr 20, 2023"
+    },
+    {
+      "tag": "20260217_1RDGlaWmjVMJL",
+      "name": "Game of #UFO Thrones: \ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83e\udd24",
+      "date": "Apr 20, 2023"
     }
   ]
 }
