@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T00:24:11.954446+00:00",
+  "last_updated": "2026-09-29T00:42:54.039426+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 533,
-  "untranscribed_count": 259,
-  "percent_complete": 67.3,
+  "transcribed_count": 543,
+  "untranscribed_count": 249,
+  "percent_complete": 68.6,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1vAxRABjnQRJl",
-      "name": "Friday Evening Phenomenon",
-      "date": "Jun 3, 2023"
-    },
-    {
-      "tag": "20260218_1yNxaNQjXPXKj",
-      "name": "UFO \ud83d\udc7d + \ud83c\udfb8\ud83c\udfb8",
-      "date": "Jun 2, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqNPgjpJN",
-      "name": "[not a show.]*test*",
-      "date": "Jun 2, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRABnodvJl",
-      "name": "Its Closing time",
-      "date": "Jun 1, 2023"
-    },
-    {
-      "tag": "20260216_1DXxyvpWDzvKM",
-      "name": "UFO Experiencer Party Time Space",
-      "date": "May 31, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmRAvnaxE",
-      "name": "Sally & Logan Sing the Blues(waiting for Sally)",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmRAbmOxE",
-      "name": "Beware the crash \ud83d\udc7d\ud83c\udfb8",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260216_1BRKjZqnPypKw",
-      "name": "Sally & Logan Sing the Blues \ud83d\udc99(Waiting on Sally)",
-      "date": "May 30, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaNpBMkvJj",
-      "name": "MUSICK HOUR w/ FRED ROGERSS",
-      "date": "May 29, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlaNrqnRKL",
-      "name": "Sunday night",
-      "date": "May 29, 2023"
-    },
     {
       "tag": "20260217_1OwxWwddjwqxQ",
       "name": "ingo goes Mormon",
@@ -119,6 +69,56 @@
       "tag": "20260217_1RDxlavzrPzKL",
       "name": "Guitar Jamming & gutter nuggets the band",
       "date": "May 19, 2023"
+    },
+    {
+      "tag": "20260218_1yoKMZEWjYpGQ",
+      "name": "Decoding the Unseen:A session with Dr. Mishlove",
+      "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1mnGeRvdlBWJX",
+      "name": "Afterparty",
+      "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqAqrybJN",
+      "name": "dammit",
+      "date": "May 18, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBqAaBjnKN",
+      "name": "unified fields and hypothetical technology",
+      "date": "May 17, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpokZBGZ",
+      "name": "Decoding the Unseen: A Session with Dr. Jeffrey Mishlove",
+      "date": "May 17, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAWqzjzJl",
+      "name": "*TEST*",
+      "date": "May 16, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRAWNVmVKl",
+      "name": "Happy Mother's Day! \ud83d\udc9d\ud83d\udc90",
+      "date": "May 14, 2023"
+    },
+    {
+      "tag": "20260217_1lDxLnrVAvPGm",
+      "name": "103.5 The Fahhcks Rocks",
+      "date": "May 13, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpmbdeGZ",
+      "name": "Witching Hour",
+      "date": "May 10, 2023"
+    },
+    {
+      "tag": "20260216_1djGXlpjAQoGZ",
+      "name": "Astrotheology",
+      "date": "May 9, 2023"
     }
   ]
 }
