@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T02:16:29.418809+00:00",
+  "last_updated": "2026-09-29T02:31:58.712753+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 573,
-  "untranscribed_count": 219,
-  "percent_complete": 72.3,
+  "transcribed_count": 583,
+  "untranscribed_count": 209,
+  "percent_complete": 73.6,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yNxaNOjomQKj",
-      "name": "Casual chat",
-      "date": "Apr 27, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvynLnelJB",
-      "name": "I Love You",
-      "date": "Apr 27, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLnMdvwmGm",
-      "name": "Is Elon Musk A Martian? \ud83d\udef8",
-      "date": "Apr 26, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErQpPLbGL",
-      "name": "\ud83d\udc7dFearless Monkey League: The Great Unknown",
-      "date": "Apr 24, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZVXMwkxQ",
-      "name": "Sunday Morning Church",
-      "date": "Apr 23, 2023"
-    },
-    {
-      "tag": "20260216_1djxXlnpwyBxZ",
-      "name": "Friday Night UFO Homiez",
-      "date": "Apr 22, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZMgLqBQxB",
-      "name": "underwater acoustic",
-      "date": "Apr 22, 2023"
-    },
-    {
-      "tag": "20260218_1ypJddYrlWjJW",
-      "name": "GreenStreet \ud83d\udc7d\ud83d\udcb2\ud83d\udc0d\ud83e\udd22",
-      "date": "Apr 20, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPkNqEOYKN",
-      "name": "\ud83d\udc7dSpace Gas",
-      "date": "Apr 20, 2023"
-    },
-    {
-      "tag": "20260217_1RDGlaWmjVMJL",
-      "name": "Game of #UFO Thrones: \ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83e\udd24",
-      "date": "Apr 20, 2023"
-    },
     {
       "tag": "20260218_1ZkKzXNWqnDJv",
       "name": "part 2",
@@ -119,6 +69,56 @@
       "tag": "20260217_1LyxBqrAYMWJN",
       "name": "Drugs & Sex",
       "date": "Apr 10, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzZAjVeKX",
+      "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
+      "date": "Apr 9, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZrEmoeJw",
+      "name": "the great beyond",
+      "date": "Apr 8, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrpwgMQKX",
+      "name": "Time & Space. Perception & Reality",
+      "date": "Apr 6, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDodaEDOxV",
+      "name": "Ai",
+      "date": "Apr 5, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkmVNqmKN",
+      "name": "boredom",
+      "date": "Apr 5, 2023"
+    },
+    {
+      "tag": "20260217_1OyKAVNRDvLGb",
+      "name": "sorry Ai",
+      "date": "Apr 5, 2023"
+    },
+    {
+      "tag": "20260218_1yNGaNkjbqNJj",
+      "name": "DREAM ANALYSIS & DISCUSSION",
+      "date": "Apr 3, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqremqyJN",
+      "name": "\ud83c\udfb5\ud83c\udfb5Sunday Funday Request Line\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5",
+      "date": "Apr 3, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgLdkDjgGL",
+      "name": "I\u2019m here to talk about the. flying. saucers.\ud83d\udc7d\ud83d\udef8\ud83d\udc7e",
+      "date": "Apr 2, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyMqePLGX",
+      "name": "zzzzzzzzzzZZZzzZZZ",
+      "date": "Apr 2, 2023"
     }
   ]
 }
