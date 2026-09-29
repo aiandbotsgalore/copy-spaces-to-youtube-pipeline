@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-28T23:57:29.918846+00:00",
+  "last_updated": "2026-09-29T00:24:11.954446+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 523,
-  "untranscribed_count": 269,
-  "percent_complete": 66.0,
+  "transcribed_count": 533,
+  "untranscribed_count": 259,
+  "percent_complete": 67.3,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLQLrpwxL",
-      "name": "#ufotwitter IN THE FLESH Party w/ Logan and friends",
-      "date": "Jun 11, 2023"
-    },
-    {
-      "tag": "20260217_1vAGRABkNdgKl",
-      "name": "Hang sesh",
-      "date": "Jun 10, 2023"
-    },
-    {
-      "tag": "20260217_1MYGNgkVAgZJw",
-      "name": "Let's spread love",
-      "date": "Jun 10, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpQvqWmGO",
-      "name": "Underground ufo club. Stay away from the corporates.",
-      "date": "Jun 9, 2023"
-    },
-    {
-      "tag": "20260217_1LyGBqNLwXMKN",
-      "name": "Real people",
-      "date": "Jun 9, 2023"
-    },
-    {
-      "tag": "20260217_1lPKqBVyOLwGb",
-      "name": "UFO STORIES\ud83d\udc7d\ud83d\udef8",
-      "date": "Jun 7, 2023"
-    },
-    {
-      "tag": "20260217_1kvJpmXkNpXxE",
-      "name": "Wake UP \ud83d\udc7d\ud83d\udef8",
-      "date": "Jun 7, 2023"
-    },
-    {
-      "tag": "20260217_1nAKErdMaVAGL",
-      "name": "\ud83c\udfb8 + \ud83d\udc7d",
-      "date": "Jun 6, 2023"
-    },
-    {
-      "tag": "20260217_1lDxLngjYnYGm",
-      "name": "Lacey",
-      "date": "Jun 6, 2023"
-    },
-    {
-      "tag": "20260216_1BRKjZQojkoKw",
-      "name": "I Am Elon Musk's Song",
-      "date": "Jun 4, 2023"
-    },
     {
       "tag": "20260217_1vAxRABjnQRJl",
       "name": "Friday Evening Phenomenon",
@@ -119,6 +69,56 @@
       "tag": "20260217_1RDxlaNrqnRKL",
       "name": "Sunday night",
       "date": "May 29, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwddjwqxQ",
+      "name": "ingo goes Mormon",
+      "date": "May 28, 2023"
+    },
+    {
+      "tag": "20260216_1djxXlRpRnRxZ",
+      "name": "The Way-Fastball",
+      "date": "May 28, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyeQrNoGX",
+      "name": "Direct Line Inn  \ud83d\udc7d+\ud83c\udfb8",
+      "date": "May 28, 2023"
+    },
+    {
+      "tag": "20260217_1mrGmkrnEkBxy",
+      "name": "\ud83c\udfafAmy, Taylor & Aura's",
+      "date": "May 27, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmRQvYwGE",
+      "name": "TGIF",
+      "date": "May 26, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvygdypBJB",
+      "name": "Wild On \ud83d\udc26\ud83d\udca6\ud83d\udca6",
+      "date": "May 24, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRAqRAwaKl",
+      "name": "Sex and Candy \ud83c\udf6d\ud83c\udf6c",
+      "date": "May 23, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgYPjkmKj",
+      "name": "Blame Mellow Demon",
+      "date": "May 22, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDonzmQDxV",
+      "name": "\ud83c\udfb6 Saturday morning \ud83c\udfb6",
+      "date": "May 20, 2023"
+    },
+    {
+      "tag": "20260217_1RDxlavzrPzKL",
+      "name": "Guitar Jamming & gutter nuggets the band",
+      "date": "May 19, 2023"
     }
   ]
 }
