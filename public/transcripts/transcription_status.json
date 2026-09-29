@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T03:06:58.141253+00:00",
+  "last_updated": "2026-09-29T03:33:57.923978+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 593,
-  "untranscribed_count": 199,
-  "percent_complete": 74.9,
+  "transcribed_count": 603,
+  "untranscribed_count": 189,
+  "percent_complete": 76.1,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OdKrzZAjVeKX",
-      "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
-      "date": "Apr 9, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZrEmoeJw",
-      "name": "the great beyond",
-      "date": "Apr 8, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrpwgMQKX",
-      "name": "Time & Space. Perception & Reality",
-      "date": "Apr 6, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDodaEDOxV",
-      "name": "Ai",
-      "date": "Apr 5, 2023"
-    },
-    {
-      "tag": "20260217_1rmGPkmVNqmKN",
-      "name": "boredom",
-      "date": "Apr 5, 2023"
-    },
-    {
-      "tag": "20260217_1OyKAVNRDvLGb",
-      "name": "sorry Ai",
-      "date": "Apr 5, 2023"
-    },
-    {
-      "tag": "20260218_1yNGaNkjbqNJj",
-      "name": "DREAM ANALYSIS & DISCUSSION",
-      "date": "Apr 3, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqremqyJN",
-      "name": "\ud83c\udfb5\ud83c\udfb5Sunday Funday Request Line\ud83c\udfb5\ud83c\udfb5\ud83c\udfb5",
-      "date": "Apr 3, 2023"
-    },
-    {
-      "tag": "20260216_1jMKgLdkDjgGL",
-      "name": "I\u2019m here to talk about the. flying. saucers.\ud83d\udc7d\ud83d\udef8\ud83d\udc7e",
-      "date": "Apr 2, 2023"
-    },
-    {
-      "tag": "20260216_1BdGYyMqePLGX",
-      "name": "zzzzzzzzzzZZZzzZZZ",
-      "date": "Apr 2, 2023"
-    },
     {
       "tag": "20260217_1nAKErWreNgGL",
       "name": "\ud83c\udfb5Music Hour\ud83c\udfb5-ALIEN DISCLOSURE IS HERE #UFO",
@@ -119,6 +69,56 @@
       "tag": "20260218_1ZkKzXONwPLJv",
       "name": "Sabbbath Saturday",
       "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260217_1lPKqBwnPMdGb",
+      "name": "FRED ROGERS EATS A$$ on St. Patties",
+      "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260216_1DXxyvOEqedKM",
+      "name": "\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6\ud83c\udfb6",
+      "date": "Mar 18, 2023"
+    },
+    {
+      "tag": "20260217_1rmxPkqPOqZJN",
+      "name": "Artificial Imagination",
+      "date": "Mar 17, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyOYXVOJB",
+      "name": "jammmin + Philip K dick",
+      "date": "Mar 17, 2023"
+    },
+    {
+      "tag": "20260218_1zqKVPRkQjPJB",
+      "name": "Heph GPT- KC Protocols",
+      "date": "Mar 15, 2023"
+    },
+    {
+      "tag": "20260218_1vOGwMOPWoExB",
+      "name": "Fred rogers backdoor",
+      "date": "Mar 15, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgmRgOXKj",
+      "name": "SEX Magick / Healing the Rift & Raising Your Frequency with love",
+      "date": "Mar 13, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkqdWMVKN",
+      "name": "Angels \ud83d\ude07 & Demons  \ud83d\ude08",
+      "date": "Mar 13, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyOzLdOJB",
+      "name": "space the final frontier",
+      "date": "Mar 13, 2023"
+    },
+    {
+      "tag": "20260217_1vAGRANakQYKl",
+      "name": "Friends Feeling Friendly",
+      "date": "Mar 12, 2023"
     }
   ]
 }
