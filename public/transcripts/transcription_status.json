@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T17:30:35.665968+00:00",
-  "total_episodes_with_audio": 792,
+  "last_updated": "2026-09-29T21:48:25.221086+00:00",
+  "total_episodes_with_audio": 793,
   "transcribed_count": 636,
-  "untranscribed_count": 156,
-  "percent_complete": 80.3,
+  "untranscribed_count": 157,
+  "percent_complete": 80.2,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -23,13 +23,18 @@
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
       "last_attempt": "2026-09-29T10:23:43.658681+00:00"
     },
-    "20260217_1LyxBqjygQkJN": {
+    "20260911_1pKkOXdbeRNKj": {
       "attempts": 1,
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
-      "last_attempt": "2026-09-29T17:23:37.240708+00:00"
+      "last_attempt": "2026-09-29T21:42:44.669576+00:00"
     }
   },
   "next_in_queue": [
+    {
+      "tag": "20260911_1pKkOXdbeRNKj",
+      "name": "Being_positive_+",
+      "date": "Sep 11, 2026"
+    },
     {
       "tag": "20260217_1LyxBqjygQkJN",
       "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
@@ -124,11 +129,6 @@
       "tag": "20260217_1OdKrzNyemqKX",
       "name": "MC & E are both Awesome \ud83d\udcab",
       "date": "Feb 2, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDojrQODxV",
-      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
-      "date": "Jan 30, 2023"
     }
   ]
 }
