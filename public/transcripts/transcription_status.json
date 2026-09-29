@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T05:00:26.642580+00:00",
+  "last_updated": "2026-09-29T05:17:57.228265+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 633,
-  "untranscribed_count": 159,
-  "percent_complete": 79.9,
+  "transcribed_count": 636,
+  "untranscribed_count": 156,
+  "percent_complete": 80.3,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -17,24 +17,14 @@
       "attempts": 1,
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
       "last_attempt": "2026-09-28T17:54:28.887814+00:00"
+    },
+    "20260217_1OyJAVogXlyxb": {
+      "attempts": 1,
+      "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
+      "last_attempt": "2026-09-29T05:12:38.240810+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OwxWwARDEmxQ",
-      "name": "Honor",
-      "date": "Mar 1, 2023"
-    },
-    {
-      "tag": "20260216_1jMJgLoNrwXxL",
-      "name": "[closing in 5 minutes]",
-      "date": "Mar 1, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDoXkWWLxV",
-      "name": "Welcome to Hell",
-      "date": "Feb 27, 2023"
-    },
     {
       "tag": "20260217_1OyJAVogXlyxb",
       "name": "TUPACABRA BDAY Radio: Taking Song Requests\ud83c\udfb8\ud83d\udc7d\u26a1\ud83c\udf89\ud83d\udc40\ud83c\udfb5\ud83c\udfb6",
@@ -119,6 +109,21 @@
       "tag": "20260218_1lPKqBYLOdYGb",
       "name": "#UFOtwitter Experiencer Night",
       "date": "Feb 5, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrlpmzQKX",
+      "name": "#TwitterSpace Etiquette",
+      "date": "Feb 3, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmqkMdQGE",
+      "name": "9/11 WTC Tower 1 & 2 & 3",
+      "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzNyemqKX",
+      "name": "MC & E are both Awesome \ud83d\udcab",
+      "date": "Feb 2, 2023"
     }
   ]
 }
