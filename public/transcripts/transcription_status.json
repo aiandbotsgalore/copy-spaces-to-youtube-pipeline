@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T02:31:58.712753+00:00",
+  "last_updated": "2026-09-29T03:06:58.141253+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 583,
-  "untranscribed_count": 209,
-  "percent_complete": 73.6,
+  "transcribed_count": 593,
+  "untranscribed_count": 199,
+  "percent_complete": 74.9,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1ZkKzXNWqnDJv",
-      "name": "part 2",
-      "date": "Apr 18, 2023"
-    },
-    {
-      "tag": "20260218_1ZkJzXNnBOvKv",
-      "name": "UFO Homies \ud83d\udc7d\ud83d\udef8\u26a0\ufe0f",
-      "date": "Apr 18, 2023"
-    },
-    {
-      "tag": "20260217_1mnxeRoPeeLKX",
-      "name": "\ud83d\udc7dBOB LAZAR: LIAR? DISCLOSURE HERO? \ud83d\udef8\ud83c\udf15",
-      "date": "Apr 17, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzXNzlbDJv",
-      "name": "What in the world?!? Opinions & thoughts the kind & adult way.\u2764\ufe0f\ud83d\udc7d",
-      "date": "Apr 16, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpZoPajGO",
-      "name": "Quiet silence",
-      "date": "Apr 16, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAEomXDJl",
-      "name": "How to win at life & maybe ufo talk.",
-      "date": "Apr 15, 2023"
-    },
-    {
-      "tag": "20260217_1nAJErQOAlYxL",
-      "name": "\ud83d\udc7dShift Happens: After Dark \ud83c\udf06\ud83c\udf15\ud83d\udef8",
-      "date": "Apr 14, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpXpdEDGE",
-      "name": "Dark Psychology: How naturally manipulative is the human mind? \ud83e\udd96",
-      "date": "Apr 12, 2023"
-    },
-    {
-      "tag": "20260217_1mrGmkRQyLgxy",
-      "name": "Are ghosts real??",
-      "date": "Apr 11, 2023"
-    },
-    {
-      "tag": "20260217_1LyxBqrAYMWJN",
-      "name": "Drugs & Sex",
-      "date": "Apr 10, 2023"
-    },
     {
       "tag": "20260217_1OdKrzZAjVeKX",
       "name": "HAPPY BIRTHDAY KIMBALL!!\ud83e\udd73\ud83c\udf89\ud83c\udf88\ud83c\udf82",
@@ -119,6 +69,56 @@
       "tag": "20260216_1BdGYyMqePLGX",
       "name": "zzzzzzzzzzZZZzzZZZ",
       "date": "Apr 2, 2023"
+    },
+    {
+      "tag": "20260217_1nAKErWreNgGL",
+      "name": "\ud83c\udfb5Music Hour\ud83c\udfb5-ALIEN DISCLOSURE IS HERE #UFO",
+      "date": "Apr 1, 2023"
+    },
+    {
+      "tag": "20260217_1MYxNgjdMaVKw",
+      "name": "Dating Game-Connor \u2764\ufe0f\ud83d\udc7d\ud83e\udd75[replay]",
+      "date": "Mar 30, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgWEqLXKj",
+      "name": "casual chatter",
+      "date": "Mar 29, 2023"
+    },
+    {
+      "tag": "20260218_1vOxwMNeLvDGB",
+      "name": "GOD! Change your life now! (Super Casual)",
+      "date": "Mar 27, 2023"
+    },
+    {
+      "tag": "20260218_1YqJDoLDkWEGV",
+      "name": "Sunday night lounge",
+      "date": "Mar 27, 2023"
+    },
+    {
+      "tag": "20260216_1BdxYyMkdmyxX",
+      "name": "Connor needs a UFO Waifu",
+      "date": "Mar 25, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqRmEqEJN",
+      "name": "Tayler talks religion AGAIN what a coincidence? \ud83d\udca1\ud83d\udd6f\ufe0f\ud83d\udcd6",
+      "date": "Mar 24, 2023"
+    },
+    {
+      "tag": "20260216_1gqxvyOQWbzJB",
+      "name": "Something something (UFO casual talk)",
+      "date": "Mar 21, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqEdVYjJN",
+      "name": "Drama Free Love and Music",
+      "date": "Mar 20, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXONwPLJv",
+      "name": "Sabbbath Saturday",
+      "date": "Mar 18, 2023"
     }
   ]
 }
