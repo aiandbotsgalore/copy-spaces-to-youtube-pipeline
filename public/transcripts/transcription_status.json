@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T00:42:54.039426+00:00",
+  "last_updated": "2026-09-29T01:27:22.572319+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 543,
-  "untranscribed_count": 249,
-  "percent_complete": 68.6,
+  "transcribed_count": 553,
+  "untranscribed_count": 239,
+  "percent_complete": 69.8,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OwxWwddjwqxQ",
-      "name": "ingo goes Mormon",
-      "date": "May 28, 2023"
-    },
-    {
-      "tag": "20260216_1djxXlRpRnRxZ",
-      "name": "The Way-Fastball",
-      "date": "May 28, 2023"
-    },
-    {
-      "tag": "20260216_1BdGYyeQrNoGX",
-      "name": "Direct Line Inn  \ud83d\udc7d+\ud83c\udfb8",
-      "date": "May 28, 2023"
-    },
-    {
-      "tag": "20260217_1mrGmkrnEkBxy",
-      "name": "\ud83c\udfafAmy, Taylor & Aura's",
-      "date": "May 27, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmRQvYwGE",
-      "name": "TGIF",
-      "date": "May 26, 2023"
-    },
-    {
-      "tag": "20260216_1gqxvygdypBJB",
-      "name": "Wild On \ud83d\udc26\ud83d\udca6\ud83d\udca6",
-      "date": "May 24, 2023"
-    },
-    {
-      "tag": "20260217_1vAGRAqRAwaKl",
-      "name": "Sex and Candy \ud83c\udf6d\ud83c\udf6c",
-      "date": "May 23, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgYPjkmKj",
-      "name": "Blame Mellow Demon",
-      "date": "May 22, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDonzmQDxV",
-      "name": "\ud83c\udfb6 Saturday morning \ud83c\udfb6",
-      "date": "May 20, 2023"
-    },
-    {
-      "tag": "20260217_1RDxlavzrPzKL",
-      "name": "Guitar Jamming & gutter nuggets the band",
-      "date": "May 19, 2023"
-    },
     {
       "tag": "20260218_1yoKMZEWjYpGQ",
       "name": "Decoding the Unseen:A session with Dr. Mishlove",
@@ -119,6 +69,56 @@
       "tag": "20260216_1djGXlpjAQoGZ",
       "name": "Astrotheology",
       "date": "May 9, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmOPpkgGE",
+      "name": "solar system soiree",
+      "date": "May 8, 2023"
+    },
+    {
+      "tag": "20260218_1zqJVPOPBYDKB",
+      "name": "All Mysteries Revealed for One Low Price",
+      "date": "May 6, 2023"
+    },
+    {
+      "tag": "20260218_1YqGoArRgrkxv",
+      "name": "STONER MEGALITH  \ud83d\udef8",
+      "date": "May 5, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAyyXEZJl",
+      "name": "What's the biggest mystery? + Philosophical discussion",
+      "date": "May 3, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzRZwkAKX",
+      "name": "pre skin walker",
+      "date": "May 3, 2023"
+    },
+    {
+      "tag": "20260218_1YpJkgVnpZNJj",
+      "name": "Are We Aliens? Who Created Us? Philosophical debates \ud83d\udc7b\ud83d\udef8\ud83d\udc7e\ud83d\udc7d\ud83d\udd25\ud83d\udca5\ud83d\udd2b",
+      "date": "May 1, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpyeeeyGE",
+      "name": "\ud83d\udef8UFO Video/Photo\ud83d\udc7d",
+      "date": "Apr 30, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpyorEyGE",
+      "name": "SHOW ME THE $$$",
+      "date": "Apr 29, 2023"
+    },
+    {
+      "tag": "20260216_1dRKZMOkjbvxB",
+      "name": "ckcjjfjfjdf",
+      "date": "Apr 29, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXkzrwdJv",
+      "name": "Missy Explains It All",
+      "date": "Apr 28, 2023"
     }
   ]
 }
