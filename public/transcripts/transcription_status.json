@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-29T01:48:11.487762+00:00",
+  "last_updated": "2026-09-29T02:16:29.418809+00:00",
   "total_episodes_with_audio": 792,
-  "transcribed_count": 563,
-  "untranscribed_count": 229,
-  "percent_complete": 71.1,
+  "transcribed_count": 573,
+  "untranscribed_count": 219,
+  "percent_complete": 72.3,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -20,56 +20,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1kvKpmOPpkgGE",
-      "name": "solar system soiree",
-      "date": "May 8, 2023"
-    },
-    {
-      "tag": "20260218_1zqJVPOPBYDKB",
-      "name": "All Mysteries Revealed for One Low Price",
-      "date": "May 6, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoArRgrkxv",
-      "name": "STONER MEGALITH  \ud83d\udef8",
-      "date": "May 5, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAyyXEZJl",
-      "name": "What's the biggest mystery? + Philosophical discussion",
-      "date": "May 3, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzRZwkAKX",
-      "name": "pre skin walker",
-      "date": "May 3, 2023"
-    },
-    {
-      "tag": "20260218_1YpJkgVnpZNJj",
-      "name": "Are We Aliens? Who Created Us? Philosophical debates \ud83d\udc7b\ud83d\udef8\ud83d\udc7e\ud83d\udc7d\ud83d\udd25\ud83d\udca5\ud83d\udd2b",
-      "date": "May 1, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpyeeeyGE",
-      "name": "\ud83d\udef8UFO Video/Photo\ud83d\udc7d",
-      "date": "Apr 30, 2023"
-    },
-    {
-      "tag": "20260217_1PlJQpyorEyGE",
-      "name": "SHOW ME THE $$$",
-      "date": "Apr 29, 2023"
-    },
-    {
-      "tag": "20260216_1dRKZMOkjbvxB",
-      "name": "ckcjjfjfjdf",
-      "date": "Apr 29, 2023"
-    },
-    {
-      "tag": "20260218_1ZkKzXkzrwdJv",
-      "name": "Missy Explains It All",
-      "date": "Apr 28, 2023"
-    },
     {
       "tag": "20260218_1yNxaNOjomQKj",
       "name": "Casual chat",
@@ -119,6 +69,56 @@
       "tag": "20260217_1RDGlaWmjVMJL",
       "name": "Game of #UFO Thrones: \ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83d\udca4\ud83e\udd24",
       "date": "Apr 20, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXNWqnDJv",
+      "name": "part 2",
+      "date": "Apr 18, 2023"
+    },
+    {
+      "tag": "20260218_1ZkJzXNnBOvKv",
+      "name": "UFO Homies \ud83d\udc7d\ud83d\udef8\u26a0\ufe0f",
+      "date": "Apr 18, 2023"
+    },
+    {
+      "tag": "20260217_1mnxeRoPeeLKX",
+      "name": "\ud83d\udc7dBOB LAZAR: LIAR? DISCLOSURE HERO? \ud83d\udef8\ud83c\udf15",
+      "date": "Apr 17, 2023"
+    },
+    {
+      "tag": "20260218_1ZkKzXNzlbDJv",
+      "name": "What in the world?!? Opinions & thoughts the kind & adult way.\u2764\ufe0f\ud83d\udc7d",
+      "date": "Apr 16, 2023"
+    },
+    {
+      "tag": "20260217_1MnxnpZoPajGO",
+      "name": "Quiet silence",
+      "date": "Apr 16, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAEomXDJl",
+      "name": "How to win at life & maybe ufo talk.",
+      "date": "Apr 15, 2023"
+    },
+    {
+      "tag": "20260217_1nAJErQOAlYxL",
+      "name": "\ud83d\udc7dShift Happens: After Dark \ud83c\udf06\ud83c\udf15\ud83d\udef8",
+      "date": "Apr 14, 2023"
+    },
+    {
+      "tag": "20260217_1PlJQpXpdEDGE",
+      "name": "Dark Psychology: How naturally manipulative is the human mind? \ud83e\udd96",
+      "date": "Apr 12, 2023"
+    },
+    {
+      "tag": "20260217_1mrGmkRQyLgxy",
+      "name": "Are ghosts real??",
+      "date": "Apr 11, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqrAYMWJN",
+      "name": "Drugs & Sex",
+      "date": "Apr 10, 2023"
     }
   ]
 }
