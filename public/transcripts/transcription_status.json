@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-09-30T07:52:40.362744+00:00",
-  "total_episodes_with_audio": 793,
+  "last_updated": "2026-09-30T14:45:33.018465+00:00",
+  "total_episodes_with_audio": 794,
   "transcribed_count": 636,
-  "untranscribed_count": 157,
-  "percent_complete": 80.2,
+  "untranscribed_count": 158,
+  "percent_complete": 80.1,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -27,13 +27,18 @@
       "attempts": 3,
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
       "last_attempt": "2026-09-30T07:46:49.855633+00:00"
+    },
+    "20260929_1pJdRDOYAwqKW": {
+      "attempts": 1,
+      "last_error": "Deepgram Authentication Failed: Invalid API key",
+      "last_attempt": "2026-09-30T14:41:13.713809+00:00"
     }
   },
   "next_in_queue": [
     {
-      "tag": "20260911_1pKkOXdbeRNKj",
-      "name": "Being_positive_+",
-      "date": "Sep 11, 2026"
+      "tag": "20260929_1pJdRDOYAwqKW",
+      "name": "The_stargate_is_YOU.",
+      "date": "Sep 29, 2026"
     },
     {
       "tag": "20260217_1LyxBqjygQkJN",
