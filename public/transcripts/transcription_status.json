@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-30T01:00:19.457595+00:00",
+  "last_updated": "2026-09-30T07:52:40.362744+00:00",
   "total_episodes_with_audio": 793,
   "transcribed_count": 636,
   "untranscribed_count": 157,
@@ -24,9 +24,9 @@
       "last_attempt": "2026-09-29T10:23:43.658681+00:00"
     },
     "20260911_1pKkOXdbeRNKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "Deepgram Insufficient Credits: Spend limit or zero balance",
-      "last_attempt": "2026-09-30T00:56:23.106017+00:00"
+      "last_attempt": "2026-09-30T07:46:49.855633+00:00"
     }
   },
   "next_in_queue": [
