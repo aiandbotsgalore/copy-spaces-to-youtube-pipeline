@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-02T10:18:34.971448+00:00",
-  "total_episodes_with_audio": 798,
+  "last_updated": "2026-10-02T17:16:08.655519+00:00",
+  "total_episodes_with_audio": 799,
   "transcribed_count": 636,
-  "untranscribed_count": 162,
-  "percent_complete": 79.7,
+  "untranscribed_count": 163,
+  "percent_complete": 79.6,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
@@ -32,13 +32,18 @@
       "attempts": 3,
       "last_error": "Deepgram Authentication Failed: Invalid API key",
       "last_attempt": "2026-10-02T10:11:47.844638+00:00"
+    },
+    "20261001_1DGLdZrOXYYGm": {
+      "attempts": 1,
+      "last_error": "Deepgram Authentication Failed: Invalid API key",
+      "last_attempt": "2026-10-02T17:08:42.390548+00:00"
     }
   },
   "next_in_queue": [
     {
-      "tag": "20261001_1RJZzBmAWOXJB",
-      "name": "Wake_n_Bake_2026-10-01_16_51",
-      "date": "Oct 1, 2026"
+      "tag": "20261002_1DGleVvgMPqJL",
+      "name": "Wake_n_Bake",
+      "date": "Oct 2, 2026"
     },
     {
       "tag": "20261001_1DGLdZrOXYYGm",
