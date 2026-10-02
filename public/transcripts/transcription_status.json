@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-02T17:16:08.655519+00:00",
+  "last_updated": "2026-10-02T21:42:57.580664+00:00",
   "total_episodes_with_audio": 799,
   "transcribed_count": 636,
   "untranscribed_count": 163,
@@ -33,10 +33,10 @@
       "last_error": "Deepgram Authentication Failed: Invalid API key",
       "last_attempt": "2026-10-02T10:11:47.844638+00:00"
     },
-    "20261001_1DGLdZrOXYYGm": {
+    "20261002_1DGleVvgMPqJL": {
       "attempts": 1,
       "last_error": "Deepgram Authentication Failed: Invalid API key",
-      "last_attempt": "2026-10-02T17:08:42.390548+00:00"
+      "last_attempt": "2026-10-02T21:38:28.875108+00:00"
     }
   },
   "next_in_queue": [
