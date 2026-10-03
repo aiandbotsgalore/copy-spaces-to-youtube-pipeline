@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-09-28T20:36:32.876167+00:00",
-  "total_episodes_with_audio": 792,
-  "transcribed_count": 493,
-  "untranscribed_count": 299,
-  "percent_complete": 62.2,
-  "auto_chain_active": true,
+  "last_updated": "2026-10-03T00:27:32.328683+00:00",
+  "total_episodes_with_audio": 799,
+  "transcribed_count": 638,
+  "untranscribed_count": 161,
+  "percent_complete": 79.8,
+  "auto_chain_active": false,
   "is_queue_complete": false,
-  "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com.",
+  "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
       "attempts": 9,
@@ -41,104 +41,104 @@
   },
   "next_in_queue": [
     {
-      "tag": "20260218_1YqxoAARONAGv",
-      "name": "UFO & Guitars \ud83d\udc7d\ud83c\udfb8",
-      "date": "Jul 21, 2023"
+      "tag": "20261001_1DGLdZrOXYYGm",
+      "name": "REPTILIAN_WATCHPARTY_-_@davidgrusch_on_@joeroganhq_NOW",
+      "date": "Oct 1, 2026"
     },
     {
-      "tag": "20260217_1lDxLnnrDwyGm",
-      "name": "We Love Diana Pasulka",
-      "date": "Jul 20, 2023"
+      "tag": "20260930_1lJQRWLvWVzxE",
+      "name": "The_Social_Cost_of_Taking_a_Suicide_Threat_Seriously",
+      "date": "Sep 30, 2026"
     },
     {
-      "tag": "20260218_1yNxaNNOYEdKj",
-      "name": "Heather speaks the gospel",
-      "date": "Jul 19, 2023"
+      "tag": "20260929_1pJdRDOYAwqKW",
+      "name": "The_stargate_is_YOU.",
+      "date": "Sep 29, 2026"
     },
     {
-      "tag": "20260217_1mnxeRRmjjbKX",
-      "name": "The Cube vs Orb",
-      "date": "Jul 18, 2023"
+      "tag": "20260927_1kKzDPkMkqrJv",
+      "name": "LADIES_NIGHT",
+      "date": "Sep 27, 2026"
     },
     {
-      "tag": "20260217_1kvJpmmDovPxE",
-      "name": "bat and Elle",
-      "date": "Jul 12, 2023"
+      "tag": "20260217_1LyxBqjygQkJN",
+      "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
+      "date": "Feb 25, 2023"
     },
     {
-      "tag": "20260216_1gqGvylrEznKB",
-      "name": "UFO's: After Sunrise \ud83d\udd06 (deleting this space)",
-      "date": "Jul 11, 2023"
+      "tag": "20260217_1MYxNgLpWpRKw",
+      "name": "internet sucks & #ViralRabbi is going down",
+      "date": "Feb 24, 2023"
     },
     {
-      "tag": "20260218_1zqKVPBljVYJB",
-      "name": "casual paranormal chit chat",
-      "date": "Jul 8, 2023"
+      "tag": "20260218_1yoJMZelXQDxQ",
+      "name": "Tuesday(casual chat)",
+      "date": "Feb 21, 2023"
     },
     {
-      "tag": "20260218_1yNGaNYXLWqJj",
-      "name": "Time Travel is real-McDonnell Douglas -Reverse Engineering \ud83d\udc7d\ud83d\udef8",
-      "date": "Jul 6, 2023"
+      "tag": "20260217_1MnxnpLWdbjGO",
+      "name": "UFO-Shane Wins Top Troll via Disqualification",
+      "date": "Feb 20, 2023"
     },
     {
-      "tag": "20260217_1MYGNgnjwEPJw",
-      "name": "empty",
-      "date": "Jul 6, 2023"
+      "tag": "20260218_1vOxwMYLEjWGB",
+      "name": "Popcorn ?",
+      "date": "Feb 19, 2023"
     },
     {
-      "tag": "20260216_1djGXlPdBPdGZ",
-      "name": "Exo-Biospheric-Organisms Leak \ud83d\udc7d\ud83d\udef8 + MIB?",
-      "date": "Jul 6, 2023"
+      "tag": "20260216_1eaKbrPMkMoKX",
+      "name": "Ask Your Neighbour If They\u2019re A Reptilian Today, It\u2019s Free & Safe",
+      "date": "Feb 19, 2023"
     },
     {
-      "tag": "20260217_1lPKqBmpNVmGb",
-      "name": "Reptilians on a motherfukkin plane",
-      "date": "Jul 5, 2023"
+      "tag": "20260217_1lPJqBZERklxb",
+      "name": "Personal Phenomena Stories \ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
+      "date": "Feb 18, 2023"
     },
     {
-      "tag": "20260217_1RDxlagZDAgKL",
-      "name": "Quantifying consciousness & love. Are they even REAL?",
-      "date": "Jul 5, 2023"
+      "tag": "20260216_1BdxYyPjDpQxX",
+      "name": "FRIDAY SEGSE GREASE-The Gloves Come Off\ud83d\udca9\ud83d\udca9 HAWT \ud83d\udd25",
+      "date": "Feb 17, 2023"
     },
     {
-      "tag": "20260216_1BRJjZnaWzVJw",
-      "name": "Lumeniferous Ether",
-      "date": "Jul 1, 2023"
+      "tag": "20260217_1mnxeRWavYqKX",
+      "name": "CARL THE CRUSHER INTERVIEW ft. UFO-Shane\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25",
+      "date": "Feb 15, 2023"
     },
     {
-      "tag": "20260217_1MnxnpkYOjeGO",
-      "name": "SHUT UP ABOUT THE SUN!",
-      "date": "Jun 29, 2023"
+      "tag": "20260216_1BRJjZVqPmwJw",
+      "name": "GRAVITY AMPLIFIERS & MICHAEL PADILLA & MAX LOGAN! \ud83c\udfb8\u26a1",
+      "date": "Feb 15, 2023"
     },
     {
-      "tag": "20260216_1dRJZMNEdgDGB",
-      "name": "music kinda?",
-      "date": "Jun 28, 2023"
+      "tag": "20260218_1ynJOaNzkyrKR",
+      "name": "Pyramids of GIZA w/ @Third Eye Seeks #Ancient #History",
+      "date": "Feb 11, 2023"
     },
     {
-      "tag": "20260217_1mnxeRaODMEKX",
-      "name": "UFO Music Concert - LIVE Space",
-      "date": "Jun 25, 2023"
+      "tag": "20260216_1jMJgLZymayxL",
+      "name": "\ud83d\udce1 frequencies *Must be >= Thetan level 4",
+      "date": "Feb 11, 2023"
     },
     {
-      "tag": "20260217_1nAJErLWEWvxL",
-      "name": "Bring the good vibes",
-      "date": "Jun 24, 2023"
+      "tag": "20260217_1rmGPkrBwpqKN",
+      "name": "Mystery",
+      "date": "Feb 10, 2023"
     },
     {
-      "tag": "20260217_1OdJrzVArwQJX",
-      "name": "Alien insight",
-      "date": "Jun 23, 2023"
+      "tag": "20260216_1eaKbrRBYpQKX",
+      "name": "Cocaine? The True Turkish Delight?",
+      "date": "Feb 10, 2023"
     },
     {
-      "tag": "20260218_1yoJMZXanOkxQ",
-      "name": "The Majestic Majestic - CIA Whistleblowers Welcome",
-      "date": "Jun 22, 2023"
+      "tag": "20260217_1OdJrzekvMvJX",
+      "name": "\ud83d\udef8Kingdom of Nigh",
+      "date": "Feb 9, 2023"
     },
     {
-      "tag": "20260217_1nAKErAyWkkGL",
-      "name": "Bad Boys Fo Lyfe",
-      "date": "Jun 21, 2023"
+      "tag": "20260218_1lPKqBYLOdYGb",
+      "name": "#UFOtwitter Experiencer Night",
+      "date": "Feb 5, 2023"
     }
   ]
 }

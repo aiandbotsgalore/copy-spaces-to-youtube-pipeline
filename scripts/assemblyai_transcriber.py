@@ -33,6 +33,13 @@ from collections import defaultdict
 import requests
 import assemblyai as aai
 
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
+
 
 def find_ffmpeg() -> str:
     """Finds ffmpeg executable across Linux, macOS, and Windows environments."""
