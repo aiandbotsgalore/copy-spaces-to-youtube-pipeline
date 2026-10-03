@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
+import JSZip from 'jszip';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
@@ -605,6 +606,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [selectedGlobalTag, setSelectedGlobalTag] = useState<string>('ALL');
   const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
+  const [speakerZipLoading, setSpeakerZipLoading] = useState(false);
+  const [speakerZipProgress, setSpeakerZipProgress] = useState<{
+    current: number;
+    total: number;
+    currentTitle: string;
+    percent: number;
+  } | null>(null);
+  const [speakerZipError, setSpeakerZipError] = useState<string | null>(null);
+  const [speakerZipSuccess, setSpeakerZipSuccess] = useState<string | null>(null);
 
   const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
   const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number } | null>(null);
@@ -1222,6 +1232,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         episodeCount: data.episodes.size,
       }))
       .sort((a, b) => {
+        if (a.name.toLowerCase() === 'angela') return -1;
+        if (b.name.toLowerCase() === 'angela') return 1;
         const aIsGeneric = /^Speaker\s*\d+$/i.test(a.name);
         const bIsGeneric = /^Speaker\s*\d+$/i.test(b.name);
         if (aIsGeneric && !bIsGeneric) return 1;
@@ -1229,6 +1241,25 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
       });
   }, [globalIndex, summaryIndex]);
+
+  const selectedSpeakerEpisodeCount = useMemo(() => {
+    if (selectedGlobalSpeaker === 'ALL') return 0;
+    const lower = selectedGlobalSpeaker.toLowerCase();
+    if (summaryIndex && summaryIndex.length > 0) {
+      return summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === lower)).length;
+    }
+    if (globalIndex && globalIndex.length > 0) {
+      return globalIndex.filter(ep => ep.segments && ep.segments.some(seg => seg.speaker.toLowerCase() === lower)).length;
+    }
+    return 0;
+  }, [selectedGlobalSpeaker, summaryIndex, globalIndex]);
+
+  const angelaEpisodeCount = useMemo(() => {
+    if (summaryIndex && summaryIndex.length > 0) {
+      return summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === 'angela')).length;
+    }
+    return 19;
+  }, [summaryIndex]);
 
   // Determine if any global filter is active (search query, selected speaker, or selected episode)
   const isGlobalFilteringActive = Boolean(
@@ -1474,6 +1505,195 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     a.href = url; a.download = filename; a.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
+
+  const handleDownloadSpeakerZip = useCallback(async (targetSpeaker?: string) => {
+    const spk = (targetSpeaker || selectedGlobalSpeaker).trim();
+    if (!spk || spk === 'ALL') return;
+
+    setSpeakerZipLoading(true);
+    setSpeakerZipError(null);
+    setSpeakerZipSuccess(null);
+    setSpeakerZipProgress({
+      current: 0,
+      total: 0,
+      currentTitle: `Locating all spaces featuring ${spk}…`,
+      percent: 5,
+    });
+
+    try {
+      const speakerLower = spk.toLowerCase();
+      let matchedEps: { release_tag: string; title: string; published_at?: string; audio_url?: string }[] = [];
+
+      if (summaryIndex && summaryIndex.length > 0) {
+        matchedEps = summaryIndex
+          .filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === speakerLower))
+          .map(ep => ({
+            release_tag: ep.release_tag,
+            title: ep.title,
+            published_at: ep.published_at,
+            audio_url: ep.audio_url,
+          }));
+      }
+
+      if (matchedEps.length === 0 && globalIndex && globalIndex.length > 0) {
+        matchedEps = globalIndex
+          .filter(ep => ep.segments && ep.segments.some(seg => seg.speaker.toLowerCase() === speakerLower))
+          .map(ep => ({
+            release_tag: ep.release_tag,
+            title: ep.title,
+            published_at: ep.published_at,
+            audio_url: ep.audio_url,
+          }));
+      }
+
+      if (matchedEps.length === 0) {
+        throw new Error(`No recorded spaces found featuring speaker "${spk}".`);
+      }
+
+      const totalCount = matchedEps.length;
+      const zip = new JSZip();
+      const folderName = `Transcripts_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+      const zipFolder = zip.folder(folderName) || zip;
+      const jsonFolder = zipFolder.folder('raw_json');
+
+      const allQuotes: string[] = [
+        `================================================================================`,
+        `ALL DIALOGUE SPOKEN BY: ${spk.toUpperCase()}`,
+        `Extracted from ${totalCount} Twitter Space Episodes`,
+        `Export Date: ${new Date().toLocaleString()}`,
+        `================================================================================\n`,
+      ];
+
+      const indexTable: string[] = [
+        `================================================================================`,
+        `INDEX OF SPACES FEATURING ${spk.toUpperCase()}`,
+        `Total Episodes: ${totalCount}`,
+        `Generated: ${new Date().toLocaleString()}`,
+        `================================================================================\n`,
+      ];
+
+      for (let i = 0; i < totalCount; i++) {
+        const ep = matchedEps[i];
+        const progressPct = 10 + Math.round((i / totalCount) * 80);
+        setSpeakerZipProgress({
+          current: i + 1,
+          total: totalCount,
+          currentTitle: `[${i + 1}/${totalCount}] Processing "${ep.title}"…`,
+          percent: progressPct,
+        });
+
+        // 1. Get segments
+        let segments: SearchIndexSegment[] = [];
+        if (EPISODE_SEGMENTS_CACHE.has(ep.release_tag)) {
+          segments = EPISODE_SEGMENTS_CACHE.get(ep.release_tag)!;
+        } else {
+          const rawText = await fetchSingleEpisodeTranscript(ep.release_tag, owner, repo);
+          if (rawText) {
+            try {
+              const parsed = JSON.parse(rawText);
+              segments = Array.isArray(parsed.segments) ? parsed.segments : [];
+              if (segments.length > 0) {
+                EPISODE_SEGMENTS_CACHE.set(ep.release_tag, segments);
+              }
+              if (jsonFolder) {
+                jsonFolder.file(`${ep.release_tag}.json`, rawText);
+              }
+            } catch {}
+          }
+        }
+
+        let formattedTranscript = '';
+        let speakerTurnCount = 0;
+
+        if (segments.length > 0) {
+          const header = [
+            `================================================================================`,
+            `Title: ${ep.title}`,
+            `Release Tag: ${ep.release_tag}`,
+            ep.published_at ? `Date: ${new Date(ep.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}` : '',
+            ep.audio_url ? `Audio URL: ${ep.audio_url}` : '',
+            `Featuring Speaker: ${spk}`,
+            `Total Spoken Turns: ${segments.length}`,
+            `================================================================================\n`,
+          ].filter(Boolean).join('\n');
+
+          const bodyLines: string[] = [];
+          for (const seg of segments) {
+            const timeLabel = formatSeconds(seg.start);
+            const isTarget = seg.speaker?.toLowerCase() === speakerLower;
+            if (isTarget) speakerTurnCount++;
+
+            bodyLines.push(`[${timeLabel}] ${seg.speaker || 'Unknown'}:`);
+            bodyLines.push(`${seg.text}\n`);
+
+            if (isTarget) {
+              allQuotes.push(`[${ep.title}] [${timeLabel}]:\n${seg.text}\n`);
+            }
+          }
+
+          formattedTranscript = `${header}\n${bodyLines.join('\n')}`;
+          indexTable.push(`${i + 1}. [${ep.release_tag}] ${ep.title} — ${speakerTurnCount} turns by ${spk} (${segments.length} total turns)`);
+        } else {
+          const rel = releases.find(r => r.tag_name === ep.release_tag);
+          if (rel) {
+            const asset = pickTranscriptAsset(rel);
+            if (asset) {
+              try {
+                formattedTranscript = await fetchReleaseAssetText(config.githubToken, asset, owner, repo, ep.release_tag);
+              } catch {}
+            }
+          }
+          if (!formattedTranscript) {
+            formattedTranscript = `Title: ${ep.title}\nRelease: ${ep.release_tag}\nNote: Transcript could not be retrieved.\n`;
+          }
+          indexTable.push(`${i + 1}. [${ep.release_tag}] ${ep.title}`);
+        }
+
+        const safeTitle = (ep.title || ep.release_tag)
+          .replace(/[^a-zA-Z0-9_\- ]/g, '')
+          .trim()
+          .replace(/\s+/g, '_')
+          .slice(0, 80);
+        zipFolder.file(`${ep.release_tag}_${safeTitle}.txt`, formattedTranscript);
+      }
+
+      zipFolder.file(`00_INDEX_ALL_${spk.toUpperCase()}_SPACES.txt`, indexTable.join('\n'));
+      zipFolder.file(`00_ALL_${spk.toUpperCase()}_DIALOGUE.txt`, allQuotes.join('\n'));
+
+      setSpeakerZipProgress({
+        current: totalCount,
+        total: totalCount,
+        currentTitle: `Generating and compressing ZIP archive…`,
+        percent: 92,
+      });
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
+        setSpeakerZipProgress(prev => prev ? {
+          ...prev,
+          percent: Math.min(99, 92 + Math.round(meta.percent * 0.07)),
+        } : null);
+      });
+
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const downloadAnchor = document.createElement('a');
+      const zipFileName = `Transcripts_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}_(${totalCount}_Spaces).zip`;
+      downloadAnchor.href = downloadUrl;
+      downloadAnchor.download = zipFileName;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 3000);
+
+      setSpeakerZipSuccess(`Downloaded ${zipFileName} containing all ${totalCount} transcripts!`);
+      setSpeakerZipProgress(null);
+    } catch (err: any) {
+      console.error('Error generating speaker ZIP:', err);
+      setSpeakerZipError(err.message || 'Failed to download zip file');
+      setSpeakerZipProgress(null);
+    } finally {
+      setSpeakerZipLoading(false);
+    }
+  }, [selectedGlobalSpeaker, summaryIndex, globalIndex, owner, repo, releases, config.githubToken]);
 
   const handleSaveToGitHub = async () => {
     if (!selectedRelease || !hasCredentials || !utterances.length) return;
@@ -1754,12 +1974,145 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </option>
                         {allArchiveSpeakers.map(spk => (
                           <option key={spk.name} value={spk.name} className="bg-slate-900 text-white">
-                            {spk.name} ({spk.episodeCount} space{spk.episodeCount !== 1 ? 's' : ''}{spk.count > 0 ? `, ${spk.count} turns` : ''})
+                            {spk.name.toLowerCase() === 'angela' ? `⭐ ${spk.name}` : spk.name} ({spk.episodeCount} space{spk.episodeCount !== 1 ? 's' : ''}{spk.count > 0 ? `, ${spk.count} turns` : ''})
                           </option>
                         ))}
                       </select>
                     </div>
+
+                    {/* Speaker ZIP Download Action Button */}
+                    {selectedGlobalSpeaker !== 'ALL' && (
+                      <button
+                        onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
+                        disabled={speakerZipLoading}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+                        title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
+                      >
+                        <Download size={13} className={speakerZipLoading ? 'animate-bounce' : ''} />
+                        <span>
+                          {speakerZipLoading
+                            ? 'Creating ZIP…'
+                            : `Download ${selectedSpeakerEpisodeCount} Spaces (.zip)`}
+                        </span>
+                      </button>
+                    )}
                   </div>
+
+                  {/* Quick Speaker Selector & Angela Quick Actions */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs border-t border-slate-800/60 mt-1">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-0.5 max-w-full">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
+                        <Users size={11} className="text-emerald-400" /> Featured Speaker:
+                      </span>
+                      <button
+                        onClick={() => {
+                          setSelectedGlobalSpeaker(selectedGlobalSpeaker === 'Angela' ? 'ALL' : 'Angela');
+                          if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                        }}
+                        className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 transition-all cursor-pointer border ${
+                          selectedGlobalSpeaker === 'Angela'
+                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
+                            : 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/50 hover:text-white'
+                        }`}
+                        title="Filter all spaces featuring Angela"
+                      >
+                        <span>⭐ Angela</span>
+                        <span className="text-[10px] opacity-80">({angelaEpisodeCount} spaces)</span>
+                      </button>
+                      <button
+                        onClick={() => handleDownloadSpeakerZip('Angela')}
+                        disabled={speakerZipLoading}
+                        className="px-2.5 py-1 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors cursor-pointer shadow-sm"
+                        title="Directly download all Angela transcripts as a single ZIP file"
+                      >
+                        <Download size={11} className="text-emerald-400" />
+                        <span>Download Angela ({angelaEpisodeCount} Spaces .zip)</span>
+                      </button>
+                    </div>
+
+                    {selectedGlobalSpeaker !== 'ALL' && (
+                      <button
+                        onClick={() => setSelectedGlobalSpeaker('ALL')}
+                        className="text-[11px] text-slate-400 hover:text-slate-200 underline ml-auto"
+                      >
+                        Reset speaker filter
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Smart Banner if searching for 'angela' while not filtered to Angela */}
+                  {search.trim().toLowerCase().includes('angela') && selectedGlobalSpeaker !== 'Angela' && (
+                    <div className="flex items-center justify-between p-2.5 px-3.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-sm gap-2">
+                      <div className="flex items-center gap-2">
+                        <Users size={13} className="text-emerald-400 flex-shrink-0" />
+                        <span>Looking for <strong>Angela</strong>? Filter all {angelaEpisodeCount} spaces featuring her and download the complete transcript archive.</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setSelectedGlobalSpeaker('Angela');
+                            if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                          }}
+                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg text-xs cursor-pointer transition-colors"
+                        >
+                          Select Angela
+                        </button>
+                        <button
+                          onClick={() => handleDownloadSpeakerZip('Angela')}
+                          disabled={speakerZipLoading}
+                          className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1"
+                        >
+                          <Download size={11} />
+                          Download Zip
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Speaker Zip Progress Status Bar */}
+                  {speakerZipProgress && (
+                    <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-200 shadow-lg space-y-2">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span className="flex items-center gap-2">
+                          <Loader size={13} className="animate-spin text-emerald-400" />
+                          <span>{speakerZipProgress.currentTitle}</span>
+                        </span>
+                        <span className="text-emerald-400 font-mono">{speakerZipProgress.percent}%</span>
+                      </div>
+                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-full transition-all duration-200"
+                          style={{ width: `${speakerZipProgress.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Speaker Zip Success Banner */}
+                  {speakerZipSuccess && (
+                    <div className="flex items-center justify-between p-3 bg-emerald-950/60 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-md">
+                      <span className="flex items-center gap-2 font-medium">
+                        <CheckCircle2 size={14} className="text-emerald-400" />
+                        <span>{speakerZipSuccess}</span>
+                      </span>
+                      <button onClick={() => setSpeakerZipSuccess(null)} className="text-emerald-400 hover:text-white p-1">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Speaker Zip Error Banner */}
+                  {speakerZipError && (
+                    <div className="flex items-center justify-between p-3 bg-red-950/60 border border-red-500/30 rounded-xl text-xs text-red-200 shadow-md">
+                      <span className="flex items-center gap-2 font-medium">
+                        <AlertCircle size={14} className="text-red-400" />
+                        <span>{speakerZipError}</span>
+                      </span>
+                      <button onClick={() => setSpeakerZipError(null)} className="text-red-400 hover:text-white p-1">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Episode Match Pills (if multiple episodes have results) */}
                   {isGlobalFilteringActive && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
@@ -1843,6 +2196,88 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             >
                               🔍 {topic}
                             </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Featured Speaker Archive & Bulk Downloads */}
+                      <div className="bg-slate-900/60 border border-emerald-500/30 rounded-2xl p-5 shadow-lg space-y-3.5">
+                        <div className="flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <Users size={14} className="text-emerald-400" />
+                            <span>Featured Speaker Archive & Bulk Downloads</span>
+                          </div>
+                          <span className="text-[11px] text-slate-400 normal-case font-normal">
+                            Filter dialogue or download complete collections as a ZIP archive
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                          {/* Angela Highlight Card */}
+                          <div className="p-3.5 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-2 hover:border-emerald-400 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-emerald-100 text-sm flex items-center gap-1.5">
+                                <span>⭐ Angela</span>
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md">
+                                {angelaEpisodeCount} spaces
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400">
+                              Browse all conversations featuring Angela or download all {angelaEpisodeCount} complete transcripts in one ZIP archive.
+                            </p>
+                            <div className="flex items-center gap-2 pt-1">
+                              <button
+                                onClick={() => {
+                                  setSelectedGlobalSpeaker('Angela');
+                                  if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                                }}
+                                className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold text-center cursor-pointer transition-colors"
+                              >
+                                View Turns
+                              </button>
+                              <button
+                                onClick={() => handleDownloadSpeakerZip('Angela')}
+                                disabled={speakerZipLoading}
+                                className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-sm"
+                              >
+                                <Download size={11} />
+                                <span>Download .zip</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Top Other Speakers */}
+                          {allArchiveSpeakers.filter(s => s.name.toLowerCase() !== 'angela' && !/^Speaker\s*\d+$/i.test(s.name)).slice(0, 2).map(spk => (
+                            <div key={spk.name} className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2 hover:border-slate-700 transition-colors">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-200 text-sm truncate">{spk.name}</span>
+                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md">
+                                  {spk.episodeCount} spaces
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-400 truncate">
+                                Spoken turns across {spk.episodeCount} archived spaces.
+                              </p>
+                              <div className="flex items-center gap-2 pt-1">
+                                <button
+                                  onClick={() => {
+                                    setSelectedGlobalSpeaker(spk.name);
+                                    if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                                  }}
+                                  className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold text-center cursor-pointer transition-colors"
+                                >
+                                  View Turns
+                                </button>
+                                <button
+                                  onClick={() => handleDownloadSpeakerZip(spk.name)}
+                                  disabled={speakerZipLoading}
+                                  className="flex-1 py-1.5 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Download size={11} />
+                                  <span>Download .zip</span>
+                                </button>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -1973,16 +2408,33 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={() => {
-                            setSearch('');
-                            setSelectedGlobalSpeaker('ALL');
-                            setSelectedGlobalTag('ALL');
-                          }}
-                          className="text-xs text-indigo-400 hover:text-white underline cursor-pointer ml-auto flex-shrink-0"
-                        >
-                          Clear all filters
-                        </button>
+                        <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+                          {selectedGlobalSpeaker !== 'ALL' && (
+                            <button
+                              onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
+                              disabled={speakerZipLoading}
+                              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                              title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
+                            >
+                              <Download size={12} className={speakerZipLoading ? 'animate-bounce' : ''} />
+                              <span>
+                                {speakerZipLoading
+                                  ? 'Creating ZIP…'
+                                  : `Download All ${selectedSpeakerEpisodeCount} Transcripts (.zip)`}
+                              </span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setSearch('');
+                              setSelectedGlobalSpeaker('ALL');
+                              setSelectedGlobalTag('ALL');
+                            }}
+                            className="text-xs text-indigo-400 hover:text-white underline cursor-pointer"
+                          >
+                            Clear all filters
+                          </button>
+                        </div>
                       </div>
 
                       {globalSearchResults.map((res, idx) => {
