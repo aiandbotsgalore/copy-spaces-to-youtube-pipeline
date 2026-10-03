@@ -7,21 +7,18 @@ on:
       limit:
         description: 'Number of untranscribed episodes to process (e.g. 5, 10, 25)'
         required: false
-        default: '10'
+        default: '5'
         type: string
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
         required: false
-        default: false
+        default: true
         type: boolean
       missing_clips:
         description: 'Process transcribed episodes that are missing highlight clips'
         required: false
         default: false
         type: boolean
-  schedule:
-    # Continuously transcribes batches of untranscribed episodes with watchdog every 2 hours
-    - cron: '0 */2 * * *'
 
 concurrency:
   group: batch-transcribe
@@ -95,18 +92,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
-
-      - name: Auto-Chain Next Batch
-        if: always() && steps.transcribe_step.outputs.has_more == 'true' && steps.transcribe_step.outputs.success_count != '0' && inputs.dry_run != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "================================================================="
-          echo " Auto-chaining next batch: ${{ steps.transcribe_step.outputs.remaining_count }} untranscribed episodes remaining in queue"
-          echo "================================================================="
-          sleep 5
-          CLIPS_FLAG=""
-          if [ "${{ inputs.missing_clips }}" = "true" ]; then
-            CLIPS_FLAG="-f missing_clips=true"
-          fi
-          gh workflow run batch_transcribe.yml --ref master -f limit="${{ inputs.limit || '10' }}" $CLIPS_FLAG

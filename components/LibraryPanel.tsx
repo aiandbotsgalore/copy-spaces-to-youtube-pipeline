@@ -213,8 +213,6 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     }
   };
 
-  const [batchTranscribing, setBatchTranscribing] = useState(false);
-  const [batchMessage, setBatchMessage] = useState('');
   const [transcriptionStatus, setTranscriptionStatus] = useState<any>(null);
 
   const loadStatusManifest = useCallback(async () => {
@@ -240,26 +238,6 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   useEffect(() => {
     loadStatusManifest();
   }, [loadStatusManifest]);
-
-  const handleEnsureQueueRunning = async () => {
-    setBatchTranscribing(true);
-    setBatchMessage('');
-    try {
-      await dispatchWorkflow(
-        config.githubToken,
-        owner,
-        repo,
-        'batch_transcribe.yml',
-        { limit: '10' }
-      );
-      setBatchMessage('Autonomous queue verified! AssemblyAI Universal-3.5 Pro is continuously processing backlog episodes in order from newest to oldest.');
-      setTimeout(() => loadStatusManifest(), 4000);
-    } catch (e) {
-      setBatchMessage(`Notice: ${(e as Error).message}`);
-    } finally {
-      setBatchTranscribing(false);
-    }
-  };
 
   function durationToSecs(body: string | null): number {
     const dur = parseDuration(body);
@@ -516,32 +494,16 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                 </span>
                 <div>
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                    Autonomous Transcription Pipeline
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      {untranscribedCount === 0 ? '100% COMPLETE' : 'ACTIVE BY DEFAULT'}
+                    Transcription Pipeline
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      ON-DEMAND &amp; NEW SPACES
                     </span>
                   </h4>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {untranscribedCount === 0
-                      ? 'All episodes in the library have been transcribed with full diarization and highlight clips.'
-                      : 'All episodes are transcribed automatically from newest to oldest via AssemblyAI Universal-3.5 Pro cloud audio intelligence with auto-workarounds. Batches self-chain continuously until 100% complete.'}
+                    New spaces are transcribed automatically upon ingestion. Archive backlog episodes remain preserved and can be transcribed individually on demand to protect your API budget.
                   </p>
                 </div>
               </div>
-
-              {untranscribedCount > 0 && (
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={handleEnsureQueueRunning}
-                    disabled={batchTranscribing || !hasCredentials}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-indigo-600/30 hover:bg-indigo-600 disabled:opacity-50 text-indigo-200 hover:text-white border border-indigo-500/30 rounded-lg transition-all cursor-pointer shadow-sm"
-                    title="Ensure the cloud batch queue is running right now"
-                  >
-                    {batchTranscribing ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    {batchTranscribing ? 'Verifying Queue…' : 'Sync / Ensure Active'}
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Visual Progress Bar */}
@@ -561,12 +523,6 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                 />
               </div>
             </div>
-
-            {batchMessage && (
-              <p className={`text-xs mt-2.5 font-medium ${batchMessage.startsWith('Error') || batchMessage.startsWith('Notice') ? 'text-amber-400' : 'text-emerald-400'}`}>
-                {batchMessage}
-              </p>
-            )}
 
             {untranscribedCount > 0 && transcriptionStatus?.next_in_queue && transcriptionStatus.next_in_queue.length > 0 && (
               <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center gap-2 text-[11px] text-slate-400 overflow-x-auto">
