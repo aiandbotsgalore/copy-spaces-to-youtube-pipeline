@@ -281,6 +281,7 @@ def main():
     # 1. Generate lightweight summary index (~80 KB) for instant page load
     summary = []
     for ep in index:
+        spks = sorted(list(set(s.get("speaker", "").strip() for s in ep.get("segments", []) if s.get("speaker", "").strip())))
         summary.append({
             "release_id": ep["release_id"],
             "release_tag": ep["release_tag"],
@@ -290,6 +291,7 @@ def main():
             "audio_url": ep.get("audio_url", ""),
             "segment_count": ep.get("segment_count", len(ep.get("segments", []))),
             "body": ep.get("body", ""),
+            "speakers": spks,
         })
 
     with open(SUMMARY_INDEX_PATH, "w", encoding="utf-8") as f:
