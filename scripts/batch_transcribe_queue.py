@@ -265,11 +265,11 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
     for item in history.values():
         err = item.get("last_error", "")
         err_l = err.lower()
-        if "deepgram_api_key" in err_l or "deepgram authentication" in err_l:
-            fatal_error = "Deepgram API key is missing or invalid. Please add DEEPGRAM_API_KEY to your GitHub Secrets."
+        if "assemblyai_api_key" in err_l or "assemblyai authentication" in err_l or "deepgram_api_key" in err_l:
+            fatal_error = "AssemblyAI API key is missing or invalid. Please add ASSEMBLYAI_API_KEY to your GitHub Secrets."
             break
-        elif "insufficient" in err_l or "spend limit" in err_l or "funds" in err_l:
-            fatal_error = "Transcription service credits or spend limit reached. Please check your credit balance in console.deepgram.com."
+        elif "insufficient" in err_l or "spend limit" in err_l or "funds" in err_l or "credit" in err_l:
+            fatal_error = "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com."
             break
 
     data = {
@@ -362,9 +362,9 @@ def main():
         print("\n[✓] Dry-run complete. Exiting without dispatching transcription jobs.")
         sys.exit(0)
 
-    # Execute Deepgram transcription for each item in the batch sequentially
+    # Execute AssemblyAI transcription for each item in the batch sequentially
     print("\n" + "=" * 65)
-    print("           STARTING DEEPGRAM CLOUD TRANSCRIPTION BATCH          ")
+    print("          STARTING ASSEMBLYAI CLOUD TRANSCRIPTION BATCH         ")
     print("=" * 65)
 
     success_count = 0
@@ -375,7 +375,7 @@ def main():
         name = item["name"]
         print(f"\n>>> [{idx}/{len(to_process)}] Transcribing: {tag} ({name})...")
 
-        cmd = [sys.executable, "scripts/deepgram_transcriber.py", "--release-tag", tag]
+        cmd = [sys.executable, "scripts/assemblyai_transcriber.py", "--release-tag", tag]
         start_time = time.time()
         try:
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -389,12 +389,12 @@ def main():
             else:
                 combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
                 error_summary = f"Process exited with code {res.returncode}"
-                if "DEEPGRAM_API_KEY environment variable is not set" in combined_output:
-                    error_summary = "DEEPGRAM_API_KEY environment variable is not set"
-                elif "Deepgram Authentication Failed" in combined_output:
-                    error_summary = "Deepgram Authentication Failed: Invalid API key"
-                elif "Deepgram Insufficient Credits" in combined_output or "INSUFFICIENT_FUNDS" in combined_output:
-                    error_summary = "Deepgram Insufficient Credits: Spend limit or zero balance"
+                if "ASSEMBLYAI_API_KEY environment variable is not set" in combined_output or "DEEPGRAM_API_KEY environment variable is not set" in combined_output:
+                    error_summary = "ASSEMBLYAI_API_KEY environment variable is not set"
+                elif "AssemblyAI Authentication Failed" in combined_output or "Unauthorized" in combined_output or "authentication" in combined_output.lower():
+                    error_summary = "AssemblyAI Authentication Failed: Invalid API key"
+                elif "Insufficient Credits" in combined_output or "credit" in combined_output.lower():
+                    error_summary = "AssemblyAI Insufficient Credits: Spend limit or zero balance"
                 elif res.stderr.strip():
                     non_empty = [l.strip() for l in res.stderr.strip().splitlines() if l.strip()]
                     if non_empty:
@@ -408,9 +408,9 @@ def main():
 
                 failed_items.append({"tag": tag, "error": error_summary})
 
-                if "DEEPGRAM_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary:
+                if "ASSEMBLYAI_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary:
                     print("\n" + "!" * 65)
-                    print(f"[🛑] FATAL DEEPGRAM INFRASTRUCTURE ERROR: {error_summary}")
+                    print(f"[🛑] FATAL ASSEMBLYAI INFRASTRUCTURE ERROR: {error_summary}")
                     print("     Halting remaining batch queue immediately to prevent wasted runs.")
                     print("!" * 65 + "\n")
                     break

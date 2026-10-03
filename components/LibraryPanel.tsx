@@ -252,7 +252,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         'batch_transcribe.yml',
         { limit: '10' }
       );
-      setBatchMessage('Autonomous queue verified! Deepgram Nova-2 is continuously processing backlog episodes in order from newest to oldest.');
+      setBatchMessage('Autonomous queue verified! AssemblyAI Universal-3.5 Pro is continuously processing backlog episodes in order from newest to oldest.');
       setTimeout(() => loadStatusManifest(), 4000);
     } catch (e) {
       setBatchMessage(`Notice: ${(e as Error).message}`);
@@ -524,7 +524,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   <p className="text-xs text-slate-400 mt-0.5">
                     {untranscribedCount === 0
                       ? 'All episodes in the library have been transcribed with full diarization and highlight clips.'
-                      : 'All episodes are transcribed automatically from newest to oldest via Deepgram Nova-2 cloud audio intelligence with 2GB auto-workaround. Batches self-chain continuously until 100% complete.'}
+                      : 'All episodes are transcribed automatically from newest to oldest via AssemblyAI Universal-3.5 Pro cloud audio intelligence with auto-workarounds. Batches self-chain continuously until 100% complete.'}
                   </p>
                 </div>
               </div>
@@ -590,14 +590,14 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   <p className="text-xs text-red-400/90 mt-0.5">
                     {transcriptionStatus.fatal_error}
                   </p>
-                  {transcriptionStatus.fatal_error.toLowerCase().includes('deepgram') && (
+                  {(transcriptionStatus.fatal_error.toLowerCase().includes('assemblyai') || transcriptionStatus.fatal_error.toLowerCase().includes('deepgram')) && (
                     <a
-                      href="https://console.deepgram.com"
+                      href="https://www.assemblyai.com/dashboard/api-keys"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-red-300 hover:text-red-200 underline mt-1.5 font-medium"
                     >
-                      Open Deepgram Console <ExternalLink size={11} />
+                      Open AssemblyAI Dashboard <ExternalLink size={11} />
                     </a>
                   )}
                   {transcriptionStatus.fatal_error.toLowerCase().includes('modal') && (

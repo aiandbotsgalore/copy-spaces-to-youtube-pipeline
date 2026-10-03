@@ -88,6 +88,7 @@ export interface EpisodeSummary {
   audio_url: string;
   segment_count: number;
   body?: string;
+  speakers?: string[];
 }
 
 export interface GlobalSearchResult {
@@ -1157,37 +1158,110 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const deferredSearch = useDeferredValue(search);
 
-  // All matches for text query across all episodes (without tag or speaker filter)
-  const globalAllTextMatches = useMemo((): GlobalSearchResult[] => {
-    if (!globalIndex || !deferredSearch.trim()) return [];
-    const terms = deferredSearch.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) return [];
-    const results: GlobalSearchResult[] = [];
+  // All distinct speakers across the entire archive (from globalIndex or summaryIndex)
+  const allArchiveSpeakers = useMemo(() => {
+    const speakerMap = new Map<string, { count: number; episodes: Set<string> }>();
 
-    for (const ep of globalIndex) {
-      for (let i = 0; i < ep.segments.length; i++) {
-        const seg = ep.segments[i];
-        const searchTarget = seg._search ?? `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase();
-        if (terms.every(term => searchTarget.includes(term))) {
-          results.push({
-            release_id: ep.release_id,
-            release_tag: ep.release_tag,
-            title: ep.title,
-            published_at: ep.published_at,
-            audio_url: ep.audio_url,
-            segment: seg,
-            segmentIndex: i,
-          });
+    if (globalIndex && globalIndex.length > 0) {
+      for (const ep of globalIndex) {
+        for (const seg of ep.segments) {
+          const spk = seg.speaker?.trim();
+          if (spk) {
+            const entry = speakerMap.get(spk) || { count: 0, episodes: new Set<string>() };
+            entry.count += 1;
+            entry.episodes.add(ep.release_tag);
+            speakerMap.set(spk, entry);
+          }
+        }
+      }
+    } else if (summaryIndex && summaryIndex.length > 0) {
+      for (const ep of summaryIndex) {
+        if (ep.speakers && Array.isArray(ep.speakers)) {
+          for (const spk of ep.speakers) {
+            const trimmed = spk.trim();
+            if (trimmed) {
+              const entry = speakerMap.get(trimmed) || { count: 0, episodes: new Set<string>() };
+              entry.episodes.add(ep.release_tag);
+              speakerMap.set(trimmed, entry);
+            }
+          }
         }
       }
     }
-    return results;
-  }, [globalIndex, deferredSearch]);
 
-  // Episode match counts across all text matches (preserved even when an episode is selected)
+    return Array.from(speakerMap.entries())
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        episodeCount: data.episodes.size,
+      }))
+      .sort((a, b) => {
+        const aIsGeneric = /^Speaker\s*\d+$/i.test(a.name);
+        const bIsGeneric = /^Speaker\s*\d+$/i.test(b.name);
+        if (aIsGeneric && !bIsGeneric) return 1;
+        if (!aIsGeneric && bIsGeneric) return -1;
+        return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      });
+  }, [globalIndex, summaryIndex]);
+
+  // Determine if any global filter is active (search query, selected speaker, or selected episode)
+  const isGlobalFilteringActive = Boolean(
+    deferredSearch.trim() || selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL'
+  );
+
+  // Auto-trigger globalIndex load when user selects a speaker filter if not yet loaded
+  useEffect(() => {
+    if (selectedGlobalSpeaker !== 'ALL' && !globalIndex && !globalIndexLoading) {
+      loadGlobalIndex();
+    }
+  }, [selectedGlobalSpeaker, globalIndex, globalIndexLoading, loadGlobalIndex]);
+
+  // All matches for current criteria across all episodes (text query + speaker filter, before episode tag filtering)
+  const globalAllMatches = useMemo((): GlobalSearchResult[] => {
+    if (!globalIndex) return [];
+    const query = deferredSearch.trim().toLowerCase();
+    const terms = query ? query.split(/\s+/).filter(Boolean) : [];
+    const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
+    const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
+
+    // If no search term, no speaker selected, and no episode tag selected, idle
+    if (!terms.length && !speakerFilter && !tagFilter) return [];
+
+    const results: GlobalSearchResult[] = [];
+
+    for (const ep of globalIndex) {
+      if (tagFilter && ep.release_tag !== tagFilter) {
+        continue;
+      }
+      for (let i = 0; i < ep.segments.length; i++) {
+        const seg = ep.segments[i];
+        if (speakerFilter && seg.speaker !== speakerFilter) {
+          continue;
+        }
+        if (terms.length > 0) {
+          const searchTarget = seg._search ?? `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase();
+          if (!terms.every(term => searchTarget.includes(term))) {
+            continue;
+          }
+        }
+        results.push({
+          release_id: ep.release_id,
+          release_tag: ep.release_tag,
+          title: ep.title,
+          published_at: ep.published_at,
+          audio_url: ep.audio_url,
+          segment: seg,
+          segmentIndex: i,
+        });
+      }
+    }
+    return results;
+  }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag]);
+
+  // Episode match counts across all matches (shows which episodes have matches for the selected criteria)
   const globalResultEpisodeCounts = useMemo(() => {
     const counts = new Map<string, { tag: string; title: string; count: number }>();
-    globalAllTextMatches.forEach(r => {
+    globalAllMatches.forEach(r => {
       const existing = counts.get(r.release_tag);
       if (existing) {
         existing.count += 1;
@@ -1196,43 +1270,26 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     });
     return Array.from(counts.values());
-  }, [globalAllTextMatches]);
+  }, [globalAllMatches]);
 
-  // Matches filtered by episode tag (if selected)
-  const globalTagMatches = useMemo((): GlobalSearchResult[] => {
-    if (selectedGlobalTag === 'ALL') return globalAllTextMatches;
-    return globalAllTextMatches.filter(r => r.release_tag === selectedGlobalTag);
-  }, [globalAllTextMatches, selectedGlobalTag]);
+  const [globalDisplayLimit, setGlobalDisplayLimit] = useState<number>(200);
 
-  // Speaker options derived from the tag-filtered matches (preserved even when a speaker is selected)
-  const globalResultSpeakers = useMemo(() => {
-    const set = new Set<string>();
-    globalTagMatches.forEach(r => {
-      if (r.segment.speaker) set.add(r.segment.speaker);
-    });
-    return Array.from(set).sort();
-  }, [globalTagMatches]);
-
-  // Final filtered results after speaker filter, capped at 300
-  const globalSearchResults = useMemo((): GlobalSearchResult[] => {
-    const filtered = selectedGlobalSpeaker === 'ALL'
-      ? globalTagMatches
-      : globalTagMatches.filter(r => r.segment.speaker === selectedGlobalSpeaker);
-    return filtered.slice(0, 300);
-  }, [globalTagMatches, selectedGlobalSpeaker]);
-
-  // Auto-reset filters if current selection is no longer valid
+  // Reset display limit when query or filters change
   useEffect(() => {
-    if (selectedGlobalTag !== 'ALL' && !globalResultEpisodeCounts.some(e => e.tag === selectedGlobalTag)) {
+    setGlobalDisplayLimit(200);
+  }, [deferredSearch, selectedGlobalSpeaker, selectedGlobalTag]);
+
+  // Final paginated / sliced results for DOM performance
+  const globalSearchResults = useMemo((): GlobalSearchResult[] => {
+    return globalAllMatches.slice(0, globalDisplayLimit);
+  }, [globalAllMatches, globalDisplayLimit]);
+
+  // Auto-reset episode tag filter if it's no longer present in matching episodes
+  useEffect(() => {
+    if (selectedGlobalTag !== 'ALL' && globalResultEpisodeCounts.length > 0 && !globalResultEpisodeCounts.some(e => e.tag === selectedGlobalTag)) {
       setSelectedGlobalTag('ALL');
     }
   }, [globalResultEpisodeCounts, selectedGlobalTag]);
-
-  useEffect(() => {
-    if (selectedGlobalSpeaker !== 'ALL' && !globalResultSpeakers.includes(selectedGlobalSpeaker)) {
-      setSelectedGlobalSpeaker('ALL');
-    }
-  }, [globalResultSpeakers, selectedGlobalSpeaker]);
 
   const handlePlayGlobalResult = (res: GlobalSearchResult) => {
     if (!res.audio_url) return;
@@ -1583,9 +1640,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <Loader size={12} className="animate-spin" /> Loading transcript database…
                         </span>
                       )}
-                      {search && !globalIndexLoading && (
+                      {isGlobalFilteringActive && !globalIndexLoading && (
                         <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm">
-                          {globalSearchResults.length}{globalSearchResults.length >= 300 ? '+' : ''} match{globalSearchResults.length !== 1 ? 'es' : ''}
+                          {globalAllMatches.length.toLocaleString()} match{globalAllMatches.length !== 1 ? 'es' : ''}
                           {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
                         </span>
                       )}
@@ -1618,11 +1675,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     {/* Episode filter */}
                     {((summaryIndex && summaryIndex.length > 0) || (globalIndex && globalIndex.length > 0)) && (
                       <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
-                        <Radio size={12} className="text-indigo-400" />
+                        <Radio size={12} className="text-indigo-400 flex-shrink-0" />
                         <select
                           value={selectedGlobalTag}
                           onChange={e => setSelectedGlobalTag(e.target.value)}
                           className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
+                          title="Filter by episode"
                         >
                           <option value="ALL" className="bg-slate-900 text-white">All Episodes ({(summaryIndex || globalIndex)?.length || 241})</option>
                           {(summaryIndex || globalIndex || []).map(ep => (
@@ -1634,31 +1692,37 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
                     )}
 
-                    {/* Speaker filter */}
-                    {(globalResultSpeakers.length > 0 || selectedGlobalSpeaker !== 'ALL') && (
-                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
-                        <Users size={12} className="text-emerald-400" />
-                        <select
-                          value={selectedGlobalSpeaker}
-                          onChange={e => setSelectedGlobalSpeaker(e.target.value)}
-                          className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[150px] truncate"
-                        >
-                          <option value="ALL" className="bg-slate-900 text-white">All Speakers {globalResultSpeakers.length > 0 ? `(${globalResultSpeakers.length})` : ''}</option>
-                          {globalResultSpeakers.map(spk => (
-                            <option key={spk} value={spk} className="bg-slate-900 text-white">
-                              {spk}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                    {/* Speaker filter — Always visible and accessible */}
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                      <Users size={12} className="text-emerald-400 flex-shrink-0" />
+                      <select
+                        value={selectedGlobalSpeaker}
+                        onChange={e => {
+                          setSelectedGlobalSpeaker(e.target.value);
+                          if (!globalIndex && !globalIndexLoading) {
+                            loadGlobalIndex();
+                          }
+                        }}
+                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
+                        title="Filter by speaker across all episodes"
+                      >
+                        <option value="ALL" className="bg-slate-900 text-white">
+                          All Speakers {allArchiveSpeakers.length > 0 ? `(${allArchiveSpeakers.length})` : ''}
+                        </option>
+                        {allArchiveSpeakers.map(spk => (
+                          <option key={spk.name} value={spk.name} className="bg-slate-900 text-white">
+                            {spk.name} ({spk.episodeCount} space{spk.episodeCount !== 1 ? 's' : ''}{spk.count > 0 ? `, ${spk.count} turns` : ''})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   {/* Episode Match Pills (if multiple episodes have results) */}
-                  {search.trim() && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
+                  {isGlobalFilteringActive && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 text-xs">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
-                        Episodes:
+                        Episodes ({globalResultEpisodeCounts.length}):
                       </span>
                       <button
                         onClick={() => setSelectedGlobalTag('ALL')}
@@ -1668,7 +1732,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             : 'bg-slate-800 text-slate-400 hover:text-white'
                         }`}
                       >
-                        All ({globalAllTextMatches.length})
+                        All ({globalAllMatches.length})
                       </button>
                       {globalResultEpisodeCounts.map(ep => (
                         <button
@@ -1709,7 +1773,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   )}
 
                   {/* Empty Search State: Discovery & Topics */}
-                  {!search.trim() && (
+                  {!isGlobalFilteringActive && (
                     <div className="max-w-4xl mx-auto space-y-8 py-6">
                       <div className="text-center space-y-3">
                         <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 shadow-xl shadow-indigo-500/5">
@@ -1717,7 +1781,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                         <h3 className="text-xl font-bold text-white tracking-tight">Global Transcript Search</h3>
                         <p className="text-xs text-slate-400 max-w-lg mx-auto leading-relaxed">
-                          Search across all {summaryIndex?.length || globalIndex?.length || 241} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 359134).toLocaleString()} transcribed and diarized speaker turns. Click any result to listen or jump into the full transcript.
+                          Search across all {summaryIndex?.length || globalIndex?.length || 241} recorded Twitter Spaces with over {(totalGlobalSegments > 0 ? totalGlobalSegments : 359134).toLocaleString()} transcribed and diarized speaker turns. Filter by any speaker or keyword, and click any turn to listen with live audio sync.
                         </p>
                       </div>
 
@@ -1783,33 +1847,100 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
-                  {/* Active Search: 0 matches */}
-                  {search.trim() && globalSearchResults.length === 0 && !globalIndexLoading && (
-                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
-                      <Search size={36} className="mb-3 text-slate-600" />
-                      <p className="text-sm font-semibold text-slate-300">
-                        No turns match "{search}" across all {summaryIndex?.length || globalIndex?.length || 241} transcripts.
+                  {/* Loading State when globalIndex is still fetching */}
+                  {isGlobalFilteringActive && globalIndexLoading && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto space-y-3">
+                      <Loader size={32} className="animate-spin text-indigo-400" />
+                      <p className="text-sm font-semibold text-slate-200">
+                        Loading dialogue segments…
                       </p>
-                      <p className="text-xs text-slate-500 mt-1.5">
-                        Try checking spelling or searching for a different keyword.
+                      <p className="text-xs text-slate-400">
+                        Searching across all recorded Twitter Spaces{selectedGlobalSpeaker !== 'ALL' ? ` for "${selectedGlobalSpeaker}"` : ''}…
                       </p>
-                      <button
-                        onClick={() => setSearch('')}
-                        className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-                      >
-                        Clear Search
-                      </button>
                     </div>
                   )}
 
-                  {/* Active Search: Results List */}
-                  {search.trim() && globalSearchResults.length > 0 && (
+                  {/* Active Filtering: 0 matches */}
+                  {isGlobalFilteringActive && !globalIndexLoading && globalSearchResults.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
+                      <Search size={36} className="mb-3 text-slate-600" />
+                      <p className="text-sm font-semibold text-slate-300">
+                        {selectedGlobalSpeaker !== 'ALL' && search.trim()
+                          ? `No turns match "${search}" spoken by ${selectedGlobalSpeaker}.`
+                          : selectedGlobalSpeaker !== 'ALL'
+                          ? `No turns found for speaker "${selectedGlobalSpeaker}".`
+                          : `No turns match "${search}" across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts.`}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1.5">
+                        Try clearing filters or checking spelling.
+                      </p>
+                      <div className="flex items-center gap-2 mt-4 flex-wrap justify-center">
+                        {search && (
+                          <button
+                            onClick={() => setSearch('')}
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            Clear Search Term
+                          </button>
+                        )}
+                        {selectedGlobalSpeaker !== 'ALL' && (
+                          <button
+                            onClick={() => setSelectedGlobalSpeaker('ALL')}
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            Reset Speaker Filter
+                          </button>
+                        )}
+                        {selectedGlobalTag !== 'ALL' && (
+                          <button
+                            onClick={() => setSelectedGlobalTag('ALL')}
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            All Episodes
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Active Filtering: Results List */}
+                  {isGlobalFilteringActive && globalSearchResults.length > 0 && (
                     <div className="max-w-4xl mx-auto space-y-3.5 pb-24">
-                      {globalSearchResults.length >= 300 && (
-                        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-xs flex items-center justify-between">
-                          <span>Showing top 300 matches. Select an episode filter above to narrow down results.</span>
+                      {/* Summary Banner */}
+                      <div className="flex items-center justify-between p-3.5 bg-indigo-950/40 border border-indigo-500/20 rounded-2xl text-xs text-indigo-200 shadow-md flex-wrap gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-white">
+                            Showing {globalSearchResults.length.toLocaleString()} of {globalAllMatches.length.toLocaleString()} spoken turns
+                          </span>
+                          {selectedGlobalSpeaker !== 'ALL' && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-medium">
+                              <Users size={10} /> {selectedGlobalSpeaker}
+                            </span>
+                          )}
+                          {search.trim() && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-medium">
+                              <Search size={10} /> "{search.trim()}"
+                            </span>
+                          )}
+                          {selectedGlobalTag !== 'ALL' ? (
+                            <span className="text-slate-400">in selected episode</span>
+                          ) : (
+                            <span className="text-slate-400">
+                              across {globalResultEpisodeCounts.length} episode{globalResultEpisodeCounts.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
                         </div>
-                      )}
+                        <button
+                          onClick={() => {
+                            setSearch('');
+                            setSelectedGlobalSpeaker('ALL');
+                            setSelectedGlobalTag('ALL');
+                          }}
+                          className="text-xs text-indigo-400 hover:text-white underline cursor-pointer ml-auto flex-shrink-0"
+                        >
+                          Clear all filters
+                        </button>
+                      </div>
 
                       {globalSearchResults.map((res, idx) => {
                         const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
@@ -1965,6 +2096,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           </div>
                         );
                       })}
+
+                      {/* Load More Button */}
+                      {globalAllMatches.length > globalSearchResults.length && (
+                        <div className="pt-4 pb-12 flex flex-col items-center justify-center gap-2">
+                          <p className="text-xs text-slate-400">
+                            Showing {globalSearchResults.length.toLocaleString()} of {globalAllMatches.length.toLocaleString()} turns
+                          </p>
+                          <button
+                            onClick={() => setGlobalDisplayLimit(prev => prev + 200)}
+                            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/30 hover:scale-105 cursor-pointer flex items-center gap-2"
+                          >
+                            <span>Load More Turns (+200)</span>
+                            <ChevronDown size={14} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
