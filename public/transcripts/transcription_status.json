@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-03T01:28:29.993516+00:00",
+  "last_updated": "2026-10-03T01:51:29.690150+00:00",
   "total_episodes_with_audio": 799,
-  "transcribed_count": 646,
-  "untranscribed_count": 153,
-  "percent_complete": 80.9,
+  "transcribed_count": 650,
+  "untranscribed_count": 149,
+  "percent_complete": 81.4,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
@@ -40,26 +40,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1vOxwMYLEjWGB",
-      "name": "Popcorn ?",
-      "date": "Feb 19, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrPMkMoKX",
-      "name": "Ask Your Neighbour If They\u2019re A Reptilian Today, It\u2019s Free & Safe",
-      "date": "Feb 19, 2023"
-    },
-    {
-      "tag": "20260217_1lPJqBZERklxb",
-      "name": "Personal Phenomena Stories \ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
-      "date": "Feb 18, 2023"
-    },
-    {
-      "tag": "20260216_1BdxYyPjDpQxX",
-      "name": "FRIDAY SEGSE GREASE-The Gloves Come Off\ud83d\udca9\ud83d\udca9 HAWT \ud83d\udd25",
-      "date": "Feb 17, 2023"
-    },
     {
       "tag": "20260217_1mnxeRWavYqKX",
       "name": "CARL THE CRUSHER INTERVIEW ft. UFO-Shane\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25",
@@ -139,6 +119,26 @@
       "tag": "20260216_1DXGyvLywNWJM",
       "name": "UFOs and shizzz + Stuff: Paranormal Poo...p",
       "date": "Jan 21, 2023"
+    },
+    {
+      "tag": "20260218_1YpKkgeeApjKj",
+      "name": "Apollo 20: The Secret Mission to the Moon 4 Aliens",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmVdQEoGE",
+      "name": "Unearthing the Secrets of the Ancients:Lost Civilizations & UFOs",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwqqLkQxQ",
+      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260220_1djGXlYkooRGZ",
+      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
+      "date": "Jan 19, 2023"
     }
   ]
 }
