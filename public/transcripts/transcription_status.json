@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-03T00:27:32.328683+00:00",
+  "last_updated": "2026-10-03T00:53:31.625294+00:00",
   "total_episodes_with_audio": 799,
-  "transcribed_count": 638,
-  "untranscribed_count": 161,
-  "percent_complete": 79.8,
+  "transcribed_count": 642,
+  "untranscribed_count": 157,
+  "percent_complete": 80.4,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
@@ -40,26 +40,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20261001_1DGLdZrOXYYGm",
-      "name": "REPTILIAN_WATCHPARTY_-_@davidgrusch_on_@joeroganhq_NOW",
-      "date": "Oct 1, 2026"
-    },
-    {
-      "tag": "20260930_1lJQRWLvWVzxE",
-      "name": "The_Social_Cost_of_Taking_a_Suicide_Threat_Seriously",
-      "date": "Sep 30, 2026"
-    },
-    {
-      "tag": "20260929_1pJdRDOYAwqKW",
-      "name": "The_stargate_is_YOU.",
-      "date": "Sep 29, 2026"
-    },
-    {
-      "tag": "20260927_1kKzDPkMkqrJv",
-      "name": "LADIES_NIGHT",
-      "date": "Sep 27, 2026"
-    },
     {
       "tag": "20260217_1LyxBqjygQkJN",
       "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
@@ -139,6 +119,26 @@
       "tag": "20260218_1lPKqBYLOdYGb",
       "name": "#UFOtwitter Experiencer Night",
       "date": "Feb 5, 2023"
+    },
+    {
+      "tag": "20260216_1eaKbrlpmzQKX",
+      "name": "#TwitterSpace Etiquette",
+      "date": "Feb 3, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmqkMdQGE",
+      "name": "9/11 WTC Tower 1 & 2 & 3",
+      "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260217_1OdKrzNyemqKX",
+      "name": "MC & E are both Awesome \ud83d\udcab",
+      "date": "Feb 2, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDojrQODxV",
+      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
+      "date": "Jan 30, 2023"
     }
   ]
 }
