@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-03T00:53:31.625294+00:00",
+  "last_updated": "2026-10-03T01:28:29.993516+00:00",
   "total_episodes_with_audio": 799,
-  "transcribed_count": 642,
-  "untranscribed_count": 157,
-  "percent_complete": 80.4,
+  "transcribed_count": 646,
+  "untranscribed_count": 153,
+  "percent_complete": 80.9,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
@@ -40,26 +40,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1LyxBqjygQkJN",
-      "name": "||Fearless Monkey League||\ud83d\ude4a\ud83d\ude49\ud83d\ude48 NOTHING GOES \ud83c\udf89\ud83c\udf89\ud83c\udf89Legal MaDMAn",
-      "date": "Feb 25, 2023"
-    },
-    {
-      "tag": "20260217_1MYxNgLpWpRKw",
-      "name": "internet sucks & #ViralRabbi is going down",
-      "date": "Feb 24, 2023"
-    },
-    {
-      "tag": "20260218_1yoJMZelXQDxQ",
-      "name": "Tuesday(casual chat)",
-      "date": "Feb 21, 2023"
-    },
-    {
-      "tag": "20260217_1MnxnpLWdbjGO",
-      "name": "UFO-Shane Wins Top Troll via Disqualification",
-      "date": "Feb 20, 2023"
-    },
     {
       "tag": "20260218_1vOxwMYLEjWGB",
       "name": "Popcorn ?",
@@ -139,6 +119,26 @@
       "tag": "20260218_1YqKDojrQODxV",
       "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
       "date": "Jan 30, 2023"
+    },
+    {
+      "tag": "20260220_1MnxnpXBMwVGO",
+      "name": "Saturday Theoretical Paranormal Space",
+      "date": "Jan 28, 2023"
+    },
+    {
+      "tag": "20260218_1YqGoAXoRYkxv",
+      "name": "Good Morning UFO \ud83d\udc7d",
+      "date": "Jan 26, 2023"
+    },
+    {
+      "tag": "20260217_1LyGBqDopyzKN",
+      "name": "Kartott and the alien cigarette smoker.",
+      "date": "Jan 25, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyvLywNWJM",
+      "name": "UFOs and shizzz + Stuff: Paranormal Poo...p",
+      "date": "Jan 21, 2023"
     }
   ]
 }
