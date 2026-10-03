@@ -103,54 +103,57 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         </button>
 
         {expanded && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-4 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                <Activity size={13} className="text-indigo-400" /> Pipeline Diagnostics
-              </span>
-              <button onClick={() => setExpanded(false)} className="text-slate-400 hover:text-white text-xs">
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="space-y-2 text-[11px]">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">GitHub Authentication</span>
-                <span className={`font-semibold ${tokenValid ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {tokenChecking ? 'Checking…' : tokenValid ? `@${tokenUser}` : 'Disconnected'}
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setExpanded(false)} />
+            <div className="absolute left-0 bottom-full mb-3 w-80 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-4 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Activity size={13} className="text-indigo-400" /> Pipeline Diagnostics
                 </span>
+                <button onClick={() => setExpanded(false)} className="text-slate-400 hover:text-white text-xs cursor-pointer">
+                  <X size={14} />
+                </button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">API Rate Limit</span>
-                <span className="font-mono text-slate-200">
-                  {rateLimit ? `${rateLimit.remaining} / ${rateLimit.limit}` : 'Nominal'}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Active Workflows</span>
-                <span className={`font-semibold ${activeRuns.length > 0 ? 'text-amber-400' : 'text-slate-300'}`}>
-                  {activeRuns.length > 0 ? `${activeRuns.length} running` : 'Idle'}
-                </span>
-              </div>
-
-              {failedRuns.length > 0 && (
-                <div className="p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300">
-                  <p className="font-bold">Latest Failed Run:</p>
-                  <p className="truncate">{failedRuns[0].name} ({new Date(failedRuns[0].created_at).toLocaleTimeString()})</p>
-                  <a
-                    href={failedRuns[0].html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] text-rose-400 underline mt-1 font-bold"
-                  >
-                    View Failure Log <ExternalLink size={10} />
-                  </a>
+              <div className="space-y-2 text-[11px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">GitHub Authentication</span>
+                  <span className={`font-semibold ${tokenValid ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {tokenChecking ? 'Checking…' : tokenValid ? `@${tokenUser}` : 'Disconnected'}
+                  </span>
                 </div>
-              )}
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">API Rate Limit</span>
+                  <span className="font-mono text-slate-200">
+                    {rateLimit ? `${rateLimit.remaining} / ${rateLimit.limit}` : 'Nominal'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Active Workflows</span>
+                  <span className={`font-semibold ${activeRuns.length > 0 ? 'text-amber-400' : 'text-slate-300'}`}>
+                    {activeRuns.length > 0 ? `${activeRuns.length} running` : 'Idle'}
+                  </span>
+                </div>
+
+                {failedRuns.length > 0 && (
+                  <div className="p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300">
+                    <p className="font-bold">Latest Failed Run:</p>
+                    <p className="truncate">{failedRuns[0].name} ({new Date(failedRuns[0].created_at).toLocaleTimeString()})</p>
+                    <a
+                      href={failedRuns[0].html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[10px] text-rose-400 underline mt-1 font-bold"
+                    >
+                      View Failure Log <ExternalLink size={10} />
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     );
