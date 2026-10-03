@@ -92,14 +92,25 @@ def extract_space_id(tag: str) -> str:
 def main():
     print("[*] Starting episode transcript Markdown exporter...")
 
-    if not SEARCH_INDEX_PATH.exists():
-        print(f"[!] Error: {SEARCH_INDEX_PATH} not found.")
+    episodes = []
+    if SEARCH_INDEX_PATH.exists():
+        with open(SEARCH_INDEX_PATH, "r", encoding="utf-8") as f:
+            episodes = json.load(f)
+    else:
+        episodes_dir = ROOT_DIR / "public" / "transcripts" / "episodes"
+        if episodes_dir.exists():
+            for p in episodes_dir.glob("*.json"):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        episodes.append(json.load(f))
+                except Exception:
+                    pass
+
+    if not episodes:
+        print(f"[!] Error: No transcripts found in {SEARCH_INDEX_PATH} or {ROOT_DIR / 'public' / 'transcripts' / 'episodes'}.")
         return
 
-    with open(SEARCH_INDEX_PATH, "r", encoding="utf-8") as f:
-        episodes = json.load(f)
-
-    print(f"[*] Loaded {len(episodes)} episodes from search index.")
+    print(f"[*] Loaded {len(episodes)} episodes.")
     rss_meta = load_rss_metadata()
     print(f"[*] Loaded RSS metadata for {len(rss_meta)} episodes.")
 

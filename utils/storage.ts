@@ -71,11 +71,8 @@ export function loadConfig(): Partial<StorableConfig> {
       enableDiscordWebhook?: boolean;
       enableScheduledMonitoring?: boolean;
     };
-    if (rest.repoName === 'my-spaces-archive' || !rest.repoName) {
-      rest.repoName = 'copy-spaces-to-youtube-pipeline';
-    }
-    if (!rest.ownerName) {
-      rest.ownerName = 'aiandbotsgalore';
+    if (rest.repoName === 'my-spaces-archive') {
+      rest.repoName = '';
     }
     return rest;
   } catch {

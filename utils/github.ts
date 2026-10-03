@@ -381,7 +381,31 @@ export async function getWorkflowRuns(token: string, owner: string, repo: string
   return data.workflow_runs || [];
 }
 
-export async function getReleases(token: string, owner: string, repo: string): Promise<Release[]> {
+interface ReleasesCacheEntry {
+  data: Release[];
+  timestamp: number;
+}
+const RELEASES_CACHE = new Map<string, ReleasesCacheEntry>();
+const RELEASES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+export function clearReleasesCache(owner?: string, repo?: string): void {
+  if (owner && repo) {
+    RELEASES_CACHE.delete(`${owner}/${repo}`);
+  } else {
+    RELEASES_CACHE.clear();
+  }
+}
+
+export async function getReleases(token: string, owner: string, repo: string, forceRefresh = false): Promise<Release[]> {
+  const cacheKey = `${owner}/${repo}`;
+  const now = Date.now();
+  if (!forceRefresh) {
+    const cached = RELEASES_CACHE.get(cacheKey);
+    if (cached && (now - cached.timestamp < RELEASES_CACHE_TTL_MS)) {
+      return cached.data;
+    }
+  }
+
   const all: Release[] = [];
   let page = 1;
   while (true) {
@@ -398,7 +422,9 @@ export async function getReleases(token: string, owner: string, repo: string): P
     page++;
   }
   const filtered = all.filter(r => !r.draft && !r.prerelease);
-  return sortReleasesByRecordedDate(filtered, 'desc');
+  const sorted = sortReleasesByRecordedDate(filtered, 'desc');
+  RELEASES_CACHE.set(cacheKey, { data: sorted, timestamp: Date.now() });
+  return sorted;
 }
 
 export async function dispatchWorkflow(
@@ -418,6 +444,7 @@ export async function dispatchWorkflow(
   if (!res.ok) {
     throw await githubError(res, 'Failed to dispatch workflow.');
   }
+  clearReleasesCache(owner, repo);
 }
 
 export async function deleteRelease(token: string, owner: string, repo: string, releaseId: number): Promise<void> {
@@ -427,6 +454,7 @@ export async function deleteRelease(token: string, owner: string, repo: string, 
     const err = await res.json().catch(() => ({}));
     throw new Error((err as { message?: string }).message || `Failed to delete release ${releaseId}.`);
   }
+  clearReleasesCache(owner, repo);
 }
 
 export async function uploadReleaseAsset(

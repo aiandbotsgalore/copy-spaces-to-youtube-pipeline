@@ -63,7 +63,18 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
 
   useEffect(() => { loadReleases(); }, [loadReleases]);
 
-  const recent = sortReleasesByRecordedDate(releases).slice(0, 4);
+  const recent: Release[] = sortReleasesByRecordedDate<Release>(releases).slice(0, 4);
+
+  const handlePlay = (rel: Release) => {
+    const mp3 = rel.assets?.find(a => a.name.endsWith('.mp3'));
+    if (!mp3) return;
+    play({
+      id: rel.id,
+      title: rel.name || rel.tag_name,
+      audioUrl: mp3.browser_download_url,
+      durationLabel: parseDuration(rel.body),
+    });
+  };
 
   const handleCopyRss = () => {
     navigator.clipboard.writeText(rssUrl).then(() => {

@@ -155,10 +155,10 @@ def main():
         except Exception:
             pass
 
-    podcast_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
-    podcast_desc = os.environ.get("PODCAST_DESC") or meta.get("podcastDescription") or "Logan Black's X-Space Podcast Archive"
-    podcast_author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
-    podcast_email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
+    podcast_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Twitter Spaces Archive"
+    podcast_desc = os.environ.get("PODCAST_DESC") or meta.get("podcastDescription") or "Twitter Spaces Podcast Archive"
+    podcast_author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Spaces Host"
+    podcast_email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "spaces@example.com"
 
     if os.path.exists("artwork.png"):
         image_url = f"{pages_url}artwork.png"
@@ -242,7 +242,7 @@ def main():
         title = title_match.group(1).strip() if title_match else rel.get("name", "Unknown")
         host = host_match.group(1).strip() if host_match else ""
         if not host or host.lower() in ("unknown", "none", ""):
-            host = "Logan Black"
+            host = podcast_author
         listeners = listeners_match.group(1).strip() if listeners_match else "0"
         recorded = recorded_match.group(1).strip() if recorded_match else ""
         source = source_match.group(1).strip() if source_match else ""

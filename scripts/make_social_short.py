@@ -27,11 +27,29 @@ import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
-try:
-    import imageio_ffmpeg
-    FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
-except ImportError:
-    FFMPEG_EXE = "ffmpeg"
+import shutil
+
+def find_ffmpeg() -> str:
+    """Finds ffmpeg executable across Linux, macOS, and Windows environments."""
+    cand = shutil.which("ffmpeg")
+    if cand:
+        return cand
+    for p in [
+        r"C:\Program Files\ShareX\ffmpeg.exe",
+        r"C:\Users\Logan\Downloads\ytdlp-gui-windows-64\ffmpeg.exe",
+        r"C:\Users\Logan\Documents\twitterspacedownloader\ffmpeg.exe",
+    ]:
+        if os.path.exists(p):
+            return p
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        pass
+    return "ffmpeg"
+
+
+FFMPEG_EXE = find_ffmpeg()
 
 
 def sanitize_filename(name: str) -> str:

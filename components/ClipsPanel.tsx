@@ -343,7 +343,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     const found = new Set(clips.map(c => normalizeCategory(c.category)));
     const ordered = CANONICAL_CATEGORY_ORDER.filter(cat => cat === 'ALL' || found.has(cat));
     found.forEach(cat => {
-      if (!ordered.includes(cat)) ordered.push(cat);
+      if (!ordered.includes(cat as any)) ordered.push(cat as any);
     });
     return ordered;
   }, [clips]);
@@ -435,7 +435,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   }, [clips, selectedCategory, selectedEpisode, selectedSpeaker, onlyTopRated, search, sortBy]);
 
   // Grouped by Episode (sorted chronologically by true air date)
-  const groupedClips = useMemo(() => {
+  const groupedClips = useMemo((): Record<string, ClipItem[]> => {
     const groups: Record<string, ClipItem[]> = {};
     filteredClips.forEach(c => {
       const epKey = c.episode || 'Unknown Space';
@@ -447,7 +447,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       const tB = clipsB.length > 0 ? getClipRecordedDate(clipsB[0]).timestampMs : 0;
       return tB - tA;
     });
-    return Object.fromEntries(sortedEntries);
+    return Object.fromEntries(sortedEntries) as Record<string, ClipItem[]>;
   }, [filteredClips]);
 
   const getAudioUrl = (clip: ClipItem): string => {
@@ -891,7 +891,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       {/* VIEW MODE 1: Grouped by Space Episode (Accordion) */}
       {!loading && viewMode === 'grouped' && (
         <div className="space-y-4">
-          {Object.entries(groupedClips).map(([epName, epClips]) => {
+          {(Object.entries(groupedClips) as [string, ClipItem[]][]).map(([epName, epClips]) => {
             const isExpanded = expandedEpisodes[epName] !== false; // default open
             const isPlayingThisEpisode = activeClip && activeClip.episode === epName && isPlaying;
 

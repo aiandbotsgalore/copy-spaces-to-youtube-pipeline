@@ -1,7 +1,7 @@
 import { EnhancedConfig } from '../types';
 import { GitHubApiError } from './github';
 
-export type SubmitAction = 'run' | 'queue';
+export type SubmitAction = 'run' | 'queue' | string;
 
 export function validateSubmission(url: string, config: EnhancedConfig): string | null {
   if (!url.trim()) return 'Enter a Space or audio URL first.';

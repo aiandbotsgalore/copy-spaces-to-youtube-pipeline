@@ -366,36 +366,9 @@ export function getUtteranceWords(source: WordTimingSource): UtteranceWord[] {
   return result;
 }
 
-async function fetchSearchIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<SearchIndexEpisode[]> {
-  const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
-  const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
-  const urls = [
-    `${base}/transcripts/transcripts_search_index.json`,
-    '/transcripts/transcripts_search_index.json',
-    './transcripts/transcripts_search_index.json',
-    pathBase ? `${pathBase}/transcripts/transcripts_search_index.json` : '',
-    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_search_index.json`,
-  ].filter(Boolean);
+const EPISODE_SEGMENTS_CACHE = new Map<string, SearchIndexSegment[]>();
 
-  let lastErr: unknown = null;
-  for (const url of Array.from(new Set(urls))) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const contentType = res.headers.get('content-type') || '';
-        if (contentType.includes('text/html')) {
-          continue;
-        }
-        return await res.json();
-      }
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw lastErr || new Error('Failed to load transcripts search index');
-}
-
-async function fetchSummaryIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<EpisodeSummary[]> {
+export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<EpisodeSummary[]> {
   const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
   const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
   const urls = [
@@ -403,7 +376,7 @@ async function fetchSummaryIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-
     '/transcripts/transcripts_summary_index.json',
     './transcripts/transcripts_summary_index.json',
     pathBase ? `${pathBase}/transcripts/transcripts_summary_index.json` : '',
-    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_summary_index.json`,
+    (owner && repo) ? `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_summary_index.json` : '',
   ].filter(Boolean);
 
   let lastErr: unknown = null;
@@ -424,7 +397,7 @@ async function fetchSummaryIndex(owner = 'aiandbotsgalore', repo = 'copy-spaces-
   throw lastErr || new Error('Failed to load transcripts summary index');
 }
 
-async function fetchSingleEpisodeTranscript(releaseTag: string, owner = 'aiandbotsgalore', repo = 'copy-spaces-to-youtube-pipeline'): Promise<string | null> {
+export async function fetchSingleEpisodeTranscript(releaseTag: string, owner?: string, repo?: string): Promise<string | null> {
   const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
   const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
   const urls = [
@@ -432,7 +405,7 @@ async function fetchSingleEpisodeTranscript(releaseTag: string, owner = 'aiandbo
     `/transcripts/episodes/${releaseTag}.json`,
     `./transcripts/episodes/${releaseTag}.json`,
     pathBase ? `${pathBase}/transcripts/episodes/${releaseTag}.json` : '',
-    `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/episodes/${releaseTag}.json`,
+    (owner && repo) ? `https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/episodes/${releaseTag}.json` : '',
   ].filter(Boolean);
 
   for (const url of Array.from(new Set(urls))) {
@@ -449,6 +422,35 @@ async function fetchSingleEpisodeTranscript(releaseTag: string, owner = 'aiandbo
     }
   }
   return null;
+}
+
+export async function getEpisodeSegments(releaseTag: string, owner?: string, repo?: string): Promise<SearchIndexSegment[]> {
+  if (EPISODE_SEGMENTS_CACHE.has(releaseTag)) {
+    return EPISODE_SEGMENTS_CACHE.get(releaseTag)!;
+  }
+  const text = await fetchSingleEpisodeTranscript(releaseTag, owner, repo);
+  if (!text) return [];
+  try {
+    const data = JSON.parse(text);
+    const segs: SearchIndexSegment[] = Array.isArray(data.segments) ? data.segments : [];
+    EPISODE_SEGMENTS_CACHE.set(releaseTag, segs);
+    return segs;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchSearchIndex(owner?: string, repo?: string): Promise<SearchIndexEpisode[]> {
+  const summaries = await fetchSummaryIndex(owner, repo);
+  return summaries.map(ep => ({
+    release_id: ep.release_id,
+    release_tag: ep.release_tag,
+    title: ep.title,
+    published_at: ep.published_at,
+    audio_url: ep.audio_url,
+    segment_count: ep.segment_count,
+    segments: EPISODE_SEGMENTS_CACHE.get(ep.release_tag) || [],
+  }));
 }
 
 function parseTranscriptData(rawContent: string): ParsedUtterance[] {
@@ -721,7 +723,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setGlobalIndexLoading(true);
     setGlobalIndexError('');
     try {
-      const data = await fetchSearchIndex(owner || 'aiandbotsgalore', repo || 'copy-spaces-to-youtube-pipeline');
+      const data = await fetchSearchIndex(owner, repo);
       setGlobalIndex(data);
     } catch (e) {
       setGlobalIndexError((e as Error).message);
@@ -730,11 +732,34 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   }, [globalIndex, globalIndexLoading, owner, repo]);
 
+  const loadSegmentsForEpisodes = useCallback(async (tags: string[]) => {
+    const needed = tags.filter(tag => !EPISODE_SEGMENTS_CACHE.has(tag));
+    if (needed.length > 0) {
+      setGlobalIndexLoading(true);
+      try {
+        await Promise.all(needed.map(async (tag) => {
+          await getEpisodeSegments(tag, owner, repo);
+        }));
+      } finally {
+        setGlobalIndexLoading(false);
+      }
+    }
+    setGlobalIndex(prev => {
+      if (!prev) return prev;
+      return prev.map(ep => {
+        if (tags.includes(ep.release_tag) && (!ep.segments || ep.segments.length === 0)) {
+          return { ...ep, segments: EPISODE_SEGMENTS_CACHE.get(ep.release_tag) || [] };
+        }
+        return ep;
+      });
+    });
+  }, [owner, repo]);
+
   const loadSummaryIndex = useCallback(async () => {
     if (summaryIndex || summaryLoading) return;
     setSummaryLoading(true);
     try {
-      const data = await fetchSummaryIndex(owner || 'aiandbotsgalore', repo || 'copy-spaces-to-youtube-pipeline');
+      const data = await fetchSummaryIndex(owner, repo);
       setSummaryIndex(data);
     } catch (e) {
       console.warn('Failed to load summary index, will fallback to global index if needed:', e);
@@ -904,7 +929,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       let indexSource = globalIndex;
       if (!indexSource) {
         try {
-          const data = await fetchSearchIndex();
+          const data = await fetchSearchIndex(owner, repo);
           setGlobalIndex(data);
           indexSource = data;
         } catch { /* ignore fallback load error */ }
@@ -960,7 +985,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       let indexSource = globalIndex;
       if (!indexSource) {
         try {
-          const data = await fetchSearchIndex();
+          const data = await fetchSearchIndex(owner, repo);
           setGlobalIndex(data);
           indexSource = data;
         } catch { /* ignore fallback load error */ }
@@ -1158,11 +1183,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const deferredSearch = useDeferredValue(search);
 
-  // All distinct speakers across the entire archive (from globalIndex or summaryIndex)
+  // All distinct speakers across the entire archive (from summaryIndex or loaded segments)
   const allArchiveSpeakers = useMemo(() => {
     const speakerMap = new Map<string, { count: number; episodes: Set<string> }>();
+    const hasLoadedSegments = Boolean(globalIndex && globalIndex.some(ep => ep.segments && ep.segments.length > 0));
 
-    if (globalIndex && globalIndex.length > 0) {
+    if (hasLoadedSegments && globalIndex) {
       for (const ep of globalIndex) {
         for (const seg of ep.segments) {
           const spk = seg.speaker?.trim();
@@ -1209,12 +1235,29 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     deferredSearch.trim() || selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL'
   );
 
-  // Auto-trigger globalIndex load when user selects a speaker filter if not yet loaded
+  // Auto-trigger globalIndex load and fetch episode segments on demand
   useEffect(() => {
-    if (selectedGlobalSpeaker !== 'ALL' && !globalIndex && !globalIndexLoading) {
+    if ((selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL' || searchScope === 'all') && !globalIndex && !globalIndexLoading) {
       loadGlobalIndex();
     }
-  }, [selectedGlobalSpeaker, globalIndex, globalIndexLoading, loadGlobalIndex]);
+  }, [selectedGlobalSpeaker, selectedGlobalTag, searchScope, globalIndex, globalIndexLoading, loadGlobalIndex]);
+
+  useEffect(() => {
+    if (selectedGlobalSpeaker !== 'ALL' && summaryIndex && summaryIndex.length > 0) {
+      const matchingTags = summaryIndex
+        .filter(ep => ep.speakers && ep.speakers.includes(selectedGlobalSpeaker))
+        .map(ep => ep.release_tag);
+      if (matchingTags.length > 0) {
+        loadSegmentsForEpisodes(matchingTags);
+      }
+    }
+  }, [selectedGlobalSpeaker, summaryIndex, loadSegmentsForEpisodes]);
+
+  useEffect(() => {
+    if (selectedGlobalTag !== 'ALL') {
+      loadSegmentsForEpisodes([selectedGlobalTag]);
+    }
+  }, [selectedGlobalTag, loadSegmentsForEpisodes]);
 
   // All matches for current criteria across all episodes (text query + speaker filter, before episode tag filtering)
   const globalAllMatches = useMemo((): GlobalSearchResult[] => {

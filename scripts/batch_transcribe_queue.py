@@ -265,7 +265,7 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
     for item in history.values():
         err = item.get("last_error", "")
         err_l = err.lower()
-        if "assemblyai_api_key" in err_l or "assemblyai authentication" in err_l or "deepgram_api_key" in err_l:
+        if "assemblyai_api_key" in err_l or "assemblyai authentication" in err_l:
             fatal_error = "AssemblyAI API key is missing or invalid. Please add ASSEMBLYAI_API_KEY to your GitHub Secrets."
             break
         elif "insufficient" in err_l or "spend limit" in err_l or "funds" in err_l or "credit" in err_l:
@@ -389,7 +389,7 @@ def main():
             else:
                 combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
                 error_summary = f"Process exited with code {res.returncode}"
-                if "ASSEMBLYAI_API_KEY environment variable is not set" in combined_output or "DEEPGRAM_API_KEY environment variable is not set" in combined_output:
+                if "ASSEMBLYAI_API_KEY environment variable is not set" in combined_output:
                     error_summary = "ASSEMBLYAI_API_KEY environment variable is not set"
                 elif "AssemblyAI Authentication Failed" in combined_output or "Unauthorized" in combined_output or "authentication" in combined_output.lower():
                     error_summary = "AssemblyAI Authentication Failed: Invalid API key"

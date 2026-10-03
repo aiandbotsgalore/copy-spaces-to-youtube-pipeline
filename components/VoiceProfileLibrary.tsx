@@ -620,7 +620,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   // Filter & Sort Profiles
   const profileList = useMemo(() => {
-    let list = Object.values(catalog.profiles || {});
+    let list: VoiceProfile[] = Object.values<VoiceProfile>(catalog.profiles || {});
 
     // Search filter
     if (search.trim()) {
@@ -661,7 +661,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   // Statistics
   const stats = useMemo(() => {
-    const all = Object.values(catalog.profiles || {});
+    const all: VoiceProfile[] = Object.values<VoiceProfile>(catalog.profiles || {});
     const enrolled = all.filter(p => p.embedding && p.embedding.length === 192);
     const pending = all.length - enrolled.length;
     return {
@@ -675,7 +675,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   // Pairwise Cosine Similarity for Vocal Confusion Analysis
   const confusionPairs = useMemo(() => {
-    const list = Object.values(catalog.profiles || {}).filter(p => p.embedding && p.embedding.length === 192);
+    const list: VoiceProfile[] = Object.values<VoiceProfile>(catalog.profiles || {}).filter(p => p.embedding && p.embedding.length === 192);
     const pairs: Array<{
       speakerA: string;
       speakerB: string;
@@ -1210,7 +1210,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               </div>
               <h4 className="text-sm font-bold text-white">Conversational Heuristics</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                In <code className="text-emerald-300">deepgram_transcriber.py</code>, registered names seed zero-API self-introduction and vocative address parsers (*"I'm Angela"*, *"Thanks for hosting, Logan"*).
+                In <code className="text-emerald-300">assemblyai_transcriber.py</code>, registered names seed zero-API self-introduction and vocative address parsers (*"I'm Angela"*, *"Thanks for hosting, Logan"*).
               </p>
             </div>
 

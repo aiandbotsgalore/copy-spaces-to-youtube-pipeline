@@ -47,9 +47,9 @@ def main():
         except Exception:
             pass
 
-    author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Logan Black"
-    email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "loganblack0@gmail.com"
-    base_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Logan Black's X-Space"
+    author = os.environ.get("PODCAST_AUTHOR") or meta.get("authorName") or "Spaces Host"
+    email = os.environ.get("PODCAST_EMAIL") or meta.get("email") or "spaces@example.com"
+    base_title = os.environ.get("PODCAST_TITLE") or meta.get("podcastTitle") or "Twitter Spaces Archive"
     clips_title = f"{base_title} Best Clips & Highlights"
 
     if os.path.exists("artwork.png"):
@@ -177,7 +177,7 @@ def main():
         pub_date_str = pub_dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
         # Rich description
-        speakers = ", ".join(c.get("speakers", [])) if c.get("speakers") else "Logan Black"
+        speakers = ", ".join(c.get("speakers", [])) if c.get("speakers") else author
         reason = c.get("reason", "")
         snippet = c.get("transcript_snippet", "")
         ep_title = c.get("episode", "")

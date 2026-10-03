@@ -31,13 +31,27 @@ from typing import List, Dict, Any, Optional
 import requests
 import shutil
 
-FFMPEG_EXE = shutil.which("ffmpeg") or "ffmpeg"
-if not shutil.which("ffmpeg"):
+def find_ffmpeg() -> str:
+    """Finds ffmpeg executable across Linux, macOS, and Windows environments."""
+    cand = shutil.which("ffmpeg")
+    if cand:
+        return cand
+    for p in [
+        r"C:\Program Files\ShareX\ffmpeg.exe",
+        r"C:\Users\Logan\Downloads\ytdlp-gui-windows-64\ffmpeg.exe",
+        r"C:\Users\Logan\Documents\twitterspacedownloader\ffmpeg.exe",
+    ]:
+        if os.path.exists(p):
+            return p
     try:
         import imageio_ffmpeg
-        FFMPEG_EXE = imageio_ffmpeg.get_ffmpeg_exe()
+        return imageio_ffmpeg.get_ffmpeg_exe()
     except Exception:
-        FFMPEG_EXE = "ffmpeg"
+        pass
+    return "ffmpeg"
+
+
+FFMPEG_EXE = find_ffmpeg()
 
 
 def sanitize_filename(name: str) -> str:
