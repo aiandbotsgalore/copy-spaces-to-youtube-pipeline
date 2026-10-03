@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-03T01:51:29.690150+00:00",
+  "last_updated": "2026-10-03T02:14:21.382838+00:00",
   "total_episodes_with_audio": 799,
-  "transcribed_count": 650,
-  "untranscribed_count": 149,
-  "percent_complete": 81.4,
+  "transcribed_count": 654,
+  "untranscribed_count": 145,
+  "percent_complete": 81.9,
   "auto_chain_active": false,
   "is_queue_complete": false,
   "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
@@ -40,26 +40,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mnxeRWavYqKX",
-      "name": "CARL THE CRUSHER INTERVIEW ft. UFO-Shane\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25\ud83d\udd25",
-      "date": "Feb 15, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZVqPmwJw",
-      "name": "GRAVITY AMPLIFIERS & MICHAEL PADILLA & MAX LOGAN! \ud83c\udfb8\u26a1",
-      "date": "Feb 15, 2023"
-    },
-    {
-      "tag": "20260218_1ynJOaNzkyrKR",
-      "name": "Pyramids of GIZA w/ @Third Eye Seeks #Ancient #History",
-      "date": "Feb 11, 2023"
-    },
-    {
-      "tag": "20260216_1jMJgLZymayxL",
-      "name": "\ud83d\udce1 frequencies *Must be >= Thetan level 4",
-      "date": "Feb 11, 2023"
-    },
     {
       "tag": "20260217_1rmGPkrBwpqKN",
       "name": "Mystery",
@@ -139,6 +119,26 @@
       "tag": "20260220_1djGXlYkooRGZ",
       "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
       "date": "Jan 19, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZRlQoeJw",
+      "name": "Space broken?",
+      "date": "Jan 19, 2023"
+    },
+    {
+      "tag": "20260218_1YpJkgeaVDEJj",
+      "name": "BIGELOW SECRETS",
+      "date": "Jan 18, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAzQrkYJl",
+      "name": "Messages from the future? [Open Discussion]",
+      "date": "Jan 15, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqbXnRPJN",
+      "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
+      "date": "Jan 15, 2023"
     }
   ]
 }
