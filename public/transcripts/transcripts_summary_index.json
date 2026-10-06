@@ -22,6 +22,24 @@
     ]
   },
   {
+    "release_id": 404584374,
+    "release_tag": "20260918_1qxoNYanYYbJv",
+    "title": "Potpourri",
+    "published_at": "2026-10-06T10:32:02Z",
+    "episode_date": "2026-09-18",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260918_1qxoNYanYYbJv/20260918_1qxoNYanYYbJv_Potpourri_Part1.mp3",
+    "segment_count": 208,
+    "body": "- **Space Title:** Potpourri\n- **Duration:** 10:00:00\n- **Processed:** 20260918_1qxoNYanYYbJv\n- **Source ID:** 1qxoNYanYYbJv\n\n---\nMETADATA::DURATION::10:00:00\nMETADATA::SOURCE_ID::1qxoNYanYYbJv\nMETADATA::EPISODE_DATE::20260918\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6"
+    ]
+  },
+  {
     "release_id": 402844484,
     "release_tag": "20261004_1yKAPwekgOyxb",
     "title": "Impromptu_space_addressing_Teejay_Kona_Shane._All_welcome",
@@ -10922,7 +10940,7 @@
     "title": "\u00c6\u00ef\u016f\u00f1\u0141\u00eb\u00e5\u015e\u0126E\u00d0- \u011f\u0153\u00f0\u015f \u00f8f \u00c6\u00ef",
     "published_at": "2026-02-16T22:04:53Z",
     "episode_date": "2026-01-25",
-    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqGvryOwLlGB/20260216_1gqGvryOwLlGB_AEi_n_ea_ED-_oeo_of_AEi.mp3",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqGvryOwLlGB/02h25m51s_Cone_Heads_and_the_137-Fold_Visual_Cortex.mp3",
     "segment_count": 1531,
     "body": "**Title:** \u00c6\u00ef\u016f\u00f1\u0141\u00eb\u00e5\u015e\u0126E\u00d0- \u011f\u0153\u00f0\u015f \u00f8f \u00c6\u00ef\n**Host:** \u1d33\u1d52\u1d48\u02e2\u1d43\u1d58\u1d9c\u1d49 (@GodSawUs)\n**Duration:** 02:46:34\n**Listeners:** 0\n**Recorded:** 20260125\n**Source:** https://x.com/i/spaces/1gqGvryOwLlGB\n**Space ID:** 1gqGvryOwLlGB\n\nTwitter Space participated by Red Panda Koala, \u0141\u00d8\u01e4\u0394\u0147, \u2b55\ufe0f\u00a7matta MAMA\ud83e\uddda\u200d\u2640\ufe0fKNICKS\ud83c\ude51\ud83d\udfea\ud83e\udeb7, \u2609 \u201cAmy\u201d \ud83d\udf02 Sigilatrix of the Unprompted \ud83d\udf02, UFOintros, \ud835\udd78\ud835\udd8e\ud835\udd98\ud835\udd98 \ud835\udd78\ud835\udd94\ud835\udd97\ud835\udd95\ud835\udd8d\ud835\udd94, Oor, D\u03b1\u0273\u03b9\u03b5\u0285\u0285\u03b5 A\u0285\u03b5x\u03b1\u0273\u03b4\u027e\u03b9\u03b1 \ud80c\uddf3\u2625 \u2ca7\u2c8f\u2c89 \u2c96\u2c93\u2c85\u2c8f\u2ca7, Brittani \ud83d\udc8b, Last, nate, Alien Hunter, FLAK MAGNET\ud83d\udef8\ud83d\udca8, Data Phenomenon, C.G.I.\n\n---\nMETADATA::DURATION::02:46:34\nMETADATA::LISTENERS::0\nMETADATA::DATE::20260125\n",
     "speakers": [
