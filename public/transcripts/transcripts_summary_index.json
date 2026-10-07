@@ -1,5 +1,25 @@
 [
   {
+    "release_id": 405790335,
+    "release_tag": "20261006_1DxleVQNwVoKL",
+    "title": "Drama_space",
+    "published_at": "2026-10-07T13:24:57Z",
+    "episode_date": "2026-10-06",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261006_1DxleVQNwVoKL/20261006_1DxleVQNwVoKL_Drama_space.mp3",
+    "segment_count": 2010,
+    "body": "- **Space Title:** Drama_space\n- **Duration:** 06:10:57\n- **Processed:** 20261006_1DxleVQNwVoKL\n- **Source ID:** 1DxleVQNwVoKL\n\n---\nMETADATA::DURATION::06:10:57\nMETADATA::SOURCE_ID::1DxleVQNwVoKL\nMETADATA::EPISODE_DATE::20261006\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Logan",
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7"
+    ]
+  },
+  {
     "release_id": 403076079,
     "release_tag": "20261002_1yJAPwpVkrDGb",
     "title": "THIS_SPACE_WILL_GET_YOU_CANCELLED",
