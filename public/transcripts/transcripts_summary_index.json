@@ -1,5 +1,27 @@
 [
   {
+    "release_id": 406300302,
+    "release_tag": "20261007_1aKbdEzoBPrJX",
+    "title": "Lin_Sucks_2026-10-08_00_25",
+    "published_at": "2026-10-08T01:07:59Z",
+    "episode_date": "2026-10-07",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261007_1aKbdEzoBPrJX/20261007_1aKbdEzoBPrJX_Lin_Sucks_2026-10-08_00_25.mp3",
+    "segment_count": 99,
+    "body": "- **Space Title:** Lin_Sucks_2026-10-08_00_25\n- **Duration:** 00:41:48\n- **Processed:** 20261007_1aKbdEzoBPrJX\n- **Source ID:** 1aKbdEzoBPrJX\n\n---\nMETADATA::DURATION::00:41:48\nMETADATA::SOURCE_ID::1aKbdEzoBPrJX\nMETADATA::EPISODE_DATE::20261007\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Lana",
+      "Mary",
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8"
+    ]
+  },
+  {
     "release_id": 405790335,
     "release_tag": "20261006_1DxleVQNwVoKL",
     "title": "Drama_space",
