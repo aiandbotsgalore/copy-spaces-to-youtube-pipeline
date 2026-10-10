@@ -1,5 +1,20 @@
 [
   {
+    "release_id": 409239990,
+    "release_tag": "20261010_1PKqrNXPoXQGb",
+    "title": "never_give_an_inch",
+    "published_at": "2026-10-10T22:19:53Z",
+    "episode_date": "2026-10-10",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261010_1PKqrNXPoXQGb/20261010_1PKqrNXPoXQGb_never_give_an_inch.mp3",
+    "segment_count": 50,
+    "body": "- **Space Title:** never_give_an_inch\n- **Duration:** 00:25:28\n- **Processed:** 20261010_1PKqrNXPoXQGb\n- **Source ID:** 1PKqrNXPoXQGb\n\n---\nMETADATA::DURATION::00:25:28\nMETADATA::SOURCE_ID::1PKqrNXPoXQGb\nMETADATA::EPISODE_DATE::20261010\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3"
+    ]
+  },
+  {
     "release_id": 408676745,
     "release_tag": "20261010_1yJAPwERerLGb",
     "title": "WHITE_GIRL_WITCHCRAFT_2026-10-10_05_07",
