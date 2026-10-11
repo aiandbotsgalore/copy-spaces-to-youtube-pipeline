@@ -33,11 +33,23 @@ function workflowShortName(name: string): string {
 }
 
 function StatusBadge({ status, conclusion }: { status: string; conclusion: string | null }) {
-  if (status === 'in_progress' || status === 'queued' || status === 'waiting') {
+  if (
+    status === 'in_progress' ||
+    status === 'queued' ||
+    status === 'waiting' ||
+    status === 'pending' ||
+    status === 'requested'
+  ) {
     return (
       <span className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[10px] font-semibold rounded-full">
         <Loader size={10} className="animate-spin" />
-        {status === 'queued' ? 'Queued' : status === 'waiting' ? 'Waiting' : 'Running'}
+        {status === 'queued'
+          ? 'Queued'
+          : status === 'waiting'
+          ? 'Waiting'
+          : status === 'pending' || status === 'requested'
+          ? 'Pending'
+          : 'Running'}
       </span>
     );
   }
@@ -220,7 +232,7 @@ const RunHistory: React.FC<Props> = ({ config }) => {
                       {workflowShortName(run.name)}
                     </span>
                     <span className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors truncate">
-                      {run.head_commit?.message?.split('\n')[0] || run.name}
+                      {run.display_title || run.head_commit?.message?.split('\n')[0] || run.name}
                     </span>
                     <StatusBadge status={run.status} conclusion={run.conclusion} />
                   </div>

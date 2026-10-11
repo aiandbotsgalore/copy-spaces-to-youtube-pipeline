@@ -6,7 +6,13 @@ import { getWorkflowRuns } from '../utils/github';
 export const RUN_POLL_INTERVAL_MS = 15000;
 
 export function isActiveRun(run: WorkflowRun): boolean {
-  return run.status === 'in_progress' || run.status === 'queued' || run.status === 'waiting';
+  return (
+    run.status === 'in_progress' ||
+    run.status === 'queued' ||
+    run.status === 'waiting' ||
+    run.status === 'pending' ||
+    run.status === 'requested'
+  );
 }
 
 interface UseWorkflowRunsResult {

@@ -168,10 +168,20 @@ if [[ -n "${MANUAL_URL:-}" ]]; then
     TARGET_URL="$MANUAL_URL"
 else
     if [[ ! -f "$QUEUE_FILE" ]]; then
-        echo "::error::Queue file $QUEUE_FILE not found!"
-        exit 1
+        echo "::notice::Queue file $QUEUE_FILE not found — nothing to ingest."
+        if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
     fi
-    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]')
+    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]' || true)
+    if [[ -z "$TARGET_URL" ]]; then
+        echo "::notice::Queue file $QUEUE_FILE is empty — nothing to ingest."
+        if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
+    fi
 fi
 
 # 2. Validate URL
@@ -300,7 +310,12 @@ mkdir -p "$WORK_DIR"
 
 # 6. Download and Convert
 echo "Starting download..."
+CONCURRENT_ARGS=()
+if [[ "$LIVE_STATUS" != "is_live" ]]; then
+    CONCURRENT_ARGS=(--concurrent-fragments 8)
+fi
 yt-dlp \
+    "${CONCURRENT_ARGS[@]}" \
     --retries 5 \
     --fragment-retries 5 \
     --socket-timeout 30 \

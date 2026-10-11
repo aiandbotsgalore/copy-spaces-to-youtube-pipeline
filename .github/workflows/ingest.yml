@@ -1,7 +1,11 @@
 name: Ingest Space
+run-name: Ingest ${{ inputs.release_tag || inputs.space_url || 'Queue' }}
 
 on:
   push:
+    branches:
+      - master
+      - main
     paths:
       - 'batch_queue.txt'
       - 'space_queue.txt'
@@ -21,11 +25,6 @@ on:
         required: false
         type: string
 
-# Prevent race conditions during RSS deployment
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: write
   pages: write
@@ -36,6 +35,9 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    concurrency:
+      group: ingest-${{ inputs.release_tag || inputs.space_url || github.run_id }}
+      cancel-in-progress: false
     outputs:
       mp3_path: ${{ steps.process.outputs.mp3_path }}
       release_tag: ${{ steps.process.outputs.release_tag }}
@@ -185,6 +187,9 @@ jobs:
     needs: ingest
     if: needs.ingest.result == 'success' && needs.ingest.outputs.already_exists != 'true'
     runs-on: ubuntu-latest
+    concurrency:
+      group: rss-update
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

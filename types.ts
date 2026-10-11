@@ -39,13 +39,16 @@ export interface GitHubUser {
 export interface WorkflowRun {
   id: number;
   name: string;
+  display_title?: string;
+  event?: string;
+  head_branch?: string;
   status: string;
   conclusion: string | null;
   created_at: string;
   updated_at: string;
   html_url: string;
   path: string;
-  head_commit: { message: string };
+  head_commit: { message: string } | null;
 }
 
 export interface ReleaseAsset {

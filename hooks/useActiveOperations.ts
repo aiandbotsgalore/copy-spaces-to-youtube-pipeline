@@ -28,10 +28,10 @@ function isIngestRun(run: WorkflowRun): boolean {
 }
 
 function resolveStatus(run: WorkflowRun): OperationStatus {
-  if (isActiveRun(run)) return 'in_progress';
+  if (isActiveRun(run) || run.status !== 'completed') return 'in_progress';
   if (run.conclusion === 'success') return 'success';
   if (run.conclusion === 'failure') return 'failure';
-  // cancelled/skipped/null conclusion on a non-active run — treat as failure
+  // cancelled/skipped/null conclusion on a completed run — treat as failure
   // for tracker purposes rather than leaving it stuck in a false "running" state.
   return 'failure';
 }
@@ -83,7 +83,11 @@ export function useActiveOperations(config: EnhancedConfig) {
 
       if (!op.matchedRun) {
         const candidate = ingestRuns
-          .filter(r => new Date(r.created_at).getTime() >= op.dispatchedAt - 5000)
+          .filter(
+            r =>
+              (!r.event || r.event === 'workflow_dispatch') &&
+              new Date(r.created_at).getTime() >= op.dispatchedAt - 5000
+          )
           .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
 
         if (candidate) {

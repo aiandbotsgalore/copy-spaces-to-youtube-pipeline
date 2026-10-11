@@ -275,7 +275,8 @@ export const PipelineHealthWidget: React.FC<Props> = ({
             </span>
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            The latest execution of <strong className="text-white">{failedRuns[0].name}</strong> failed in GitHub Actions. Check logs for missing API tokens (e.g., DEEPGRAM_API_KEY) or transient download timeouts.
+            The latest execution of <strong className="text-white">{failedRuns[0].display_title || failedRuns[0].name}</strong>
+            {failedRuns[0].head_branch ? ` (${failedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL, or missing ASSEMBLYAI_API_KEY).
           </p>
           <div className="flex items-center gap-2 pt-1">
             <a

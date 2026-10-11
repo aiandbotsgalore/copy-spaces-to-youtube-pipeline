@@ -151,9 +151,13 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
   const pythonScript = buildPythonRSSScript();
 
   return `name: Ingest Space
+run-name: Ingest \${{ inputs.release_tag || inputs.space_url || 'Queue' }}
 
 on:
   push:
+    branches:
+      - master
+      - main
     paths:
       - 'batch_queue.txt'
       - 'space_queue.txt'
@@ -173,11 +177,6 @@ on:
         required: false
         type: string
 
-# Prevent race conditions during RSS deployment
-concurrency:
-  group: \${{ github.workflow }}-\${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: write
   pages: write
@@ -186,6 +185,9 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ingest-\${{ inputs.release_tag || inputs.space_url || github.run_id }}
+      cancel-in-progress: false
     outputs:
       mp3_path: \${{ steps.process.outputs.mp3_path }}
       release_tag: \${{ steps.process.outputs.release_tag }}
@@ -279,6 +281,9 @@ ${slackStep}${discordStep}
     needs: ingest
     if: needs.ingest.result == 'success' && needs.ingest.outputs.already_exists != 'true'
     runs-on: ubuntu-latest
+    concurrency:
+      group: rss-update
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: \${{ steps.deployment.outputs.page_url }}
@@ -392,10 +397,20 @@ if [[ -n "\${MANUAL_URL:-}" ]]; then
     TARGET_URL="$MANUAL_URL"
 else
     if [[ ! -f "$QUEUE_FILE" ]]; then
-        echo "::error::Queue file $QUEUE_FILE not found!"
-        exit 1
+        echo "::notice::Queue file $QUEUE_FILE not found — nothing to ingest."
+        if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
     fi
-    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]')
+    TARGET_URL=$(grep -v '^[[:space:]]*$' "$QUEUE_FILE" | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]' || true)
+    if [[ -z "$TARGET_URL" ]]; then
+        echo "::notice::Queue file $QUEUE_FILE is empty — nothing to ingest."
+        if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
+    fi
 fi
 
 # 2. Validate URL
