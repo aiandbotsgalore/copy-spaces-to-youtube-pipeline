@@ -5,12 +5,17 @@ import {
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
   Save, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
-  Globe, Radio, Layers, ArrowRight, Headphones
+  Globe, Radio, Layers, ArrowRight, Headphones, Scissors, Film, HardDriveDownload,
+  Database, Tag, BarChart3, ShieldAlert
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
 import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import { AudioSlicerModal, SlicerTurnTarget } from './AudioSlicerModal';
+import { useMontage } from '../contexts/MontageContext';
+import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
+import { SearchWorkerClient } from '../utils/searchWorker';
 
 interface Props {
   config: EnhancedConfig;
@@ -62,6 +67,19 @@ export interface SavedSpeaker {
   role?: string;
 }
 
+export interface ExtractedClip {
+  id: string;
+  filename: string;
+  title: string;
+  quote: string;
+  space_tag?: string;
+  space_title?: string;
+  timestamp?: string;
+  size_bytes?: number;
+  format?: string;
+  url: string;
+}
+
 export interface SearchIndexSegment {
   start: number;
   end: number | null;
@@ -101,6 +119,81 @@ export interface GlobalSearchResult {
   segment: SearchIndexSegment;
   segmentIndex: number;
 }
+
+export interface ThematicCategory {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  keywords: string[];
+}
+
+export const THEMATIC_CATEGORIES: ThematicCategory[] = [
+  {
+    id: 'ALL',
+    name: 'All Categories',
+    emoji: '📋',
+    description: 'All transcribed turns',
+    keywords: [],
+  },
+  {
+    id: 'DOXXING',
+    name: 'Doxxing Admissions',
+    emoji: '🎯',
+    description: 'Admissions of releasing personal info, front door photos, addresses',
+    keywords: ['dox', 'doxx', 'doxed', 'doxxing', 'front door', 'address', 'phone number', 'personal info', 'infiltrat', 'second device', 'screenshot'],
+  },
+  {
+    id: 'LEGAL',
+    name: 'Lawsuits & Bankruptcy',
+    emoji: '⚖️',
+    description: 'Threats to bankrupt, sue, drag through court, cease and desist',
+    keywords: ['lawsuit', 'bankrupt', 'sue', 'court', 'attorney', 'cease and desist', 'damages', 'out of pocket', 'slap them with', 'powerpoint'],
+  },
+  {
+    id: 'AUTHORITIES',
+    name: 'Police, IC3 & CPS',
+    emoji: '🚔',
+    description: 'Law enforcement reports, federal filings, IC3, CPS, well checks',
+    keywords: ['police', 'cop', 'ic3', 'cps', 'well check', 'investigat', 'federal', 'fbi', 'report', 'vital records'],
+  },
+  {
+    id: 'SEXUAL_AI',
+    name: 'AI Deepfakes & Predators',
+    emoji: '⚠️',
+    description: 'Accusations of generating AI porn, platforming predators, deepfakes of minors',
+    keywords: ['predator', 'ai porn', 'deepfake', 'pedophile', 'nudes', 'minor', 'porn', 'fucking porn', 'sexual'],
+  },
+  {
+    id: 'HAREM_CULT',
+    name: 'AI Harem & Manipulation',
+    emoji: '🕸️',
+    description: 'Accusations of running an AI harem, triangulating women, psychological ops',
+    keywords: ['harem', 'triangulat', 'impressionable', 'cult', 'manipulat', 'validation', 'back channels', 'proxy', 'psychological operations'],
+  },
+  {
+    id: 'MILITARY_CIA',
+    name: 'CIA & Military Claims',
+    emoji: '🎖️',
+    description: 'Claims of Green Beret family, Fort Bragg, CIA adoption, intelligence operations',
+    keywords: ['cia', 'fort bragg', 'green beret', 'maggard', 'trafficking', 'military', 'kidnapped', 'vital records', 'rockefeller', 'secret forces'],
+  },
+];
+
+export interface MentionTarget {
+  id: string;
+  name: string;
+  keywords: string[];
+}
+
+export const MENTION_TARGETS: MentionTarget[] = [
+  { id: 'ALL', name: 'All Subjects', keywords: [] },
+  { id: 'LOGAN', name: '🎯 Logan / Logan Black', keywords: ['logan', 'logan black', 'black', 'logey'] },
+  { id: 'SAV', name: '🎯 Savannah / Sav', keywords: ['sav', 'savannah'] },
+  { id: 'SHANE', name: '🎯 Shane', keywords: ['shane'] },
+  { id: 'CARLOS_GABE', name: '🎯 Carlos / Gabe', keywords: ['carlos', 'gabe'] },
+  { id: 'AUTHORITIES', name: '🎯 Police / Lawsuits', keywords: ['police', 'cop', 'lawsuit', 'ic3', 'cps', 'bankrupt'] },
+];
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -200,6 +293,11 @@ function pickTranscriptAsset(release: Release, partNum = 1): Release['assets'][n
   }
 
   return [...textAssets].sort((a, b) => transcriptAssetScore(b, release.tag_name) - transcriptAssetScore(a, release.tag_name))[0];
+}
+
+function pickAudioMp3Asset(release?: Release | null): Release['assets'][number] | undefined {
+  if (!release?.assets) return undefined;
+  return release.assets.find(a => /\.(mp3|m4a|wav|aac)$/i.test(a.name));
 }
 
 function parseTranscriptMetadata(rawContent: string): TranscriptMetadata {
@@ -604,8 +702,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [globalIndexError, setGlobalIndexError] = useState('');
   const [summaryIndex, setSummaryIndex] = useState<EpisodeSummary[] | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const searchWorkerRef = useRef<SearchWorkerClient | null>(null);
+  const [workerSearchResults, setWorkerSearchResults] = useState<GlobalSearchResult[] | null>(null);
+  const [workerSearching, setWorkerSearching] = useState(false);
   const [selectedGlobalTag, setSelectedGlobalTag] = useState<string>('ALL');
   const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedMentionTarget, setSelectedMentionTarget] = useState<string>('ALL');
+  const [slicerTarget, setSlicerTarget] = useState<SlicerTurnTarget | null>(null);
+  const [isSlicerOpen, setIsSlicerOpen] = useState(false);
+  const [isCurrentAudioCached, setIsCurrentAudioCached] = useState(false);
+  const [isCachingCurrentAudio, setIsCachingCurrentAudio] = useState(false);
+  const [currentAudioCachePct, setCurrentAudioCachePct] = useState(0);
   const [speakerZipLoading, setSpeakerZipLoading] = useState(false);
   const [speakerZipProgress, setSpeakerZipProgress] = useState<{
     current: number;
@@ -615,6 +723,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   } | null>(null);
   const [speakerZipError, setSpeakerZipError] = useState<string | null>(null);
   const [speakerZipSuccess, setSpeakerZipSuccess] = useState<string | null>(null);
+
+  // Extracted Audio Clips Archive state (Angela & featured speakers)
+  const [extractedAudioClips, setExtractedAudioClips] = useState<ExtractedClip[]>([]);
+  const [audioZipLoading, setAudioZipLoading] = useState(false);
+  const [audioZipProgress, setAudioZipProgress] = useState<{
+    current: number;
+    total: number;
+    currentTitle: string;
+    percent: number;
+  } | null>(null);
+  const [audioZipError, setAudioZipError] = useState<string | null>(null);
+  const [audioZipSuccess, setAudioZipSuccess] = useState<string | null>(null);
+  const [activeResultsView, setActiveResultsView] = useState<'turns' | 'clips'>('turns');
 
   const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
   const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number } | null>(null);
@@ -647,6 +768,53 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
+  const { addClip } = useMontage();
+
+  const openQuickSlicer = (target: SlicerTurnTarget) => {
+    setSlicerTarget(target);
+    setIsSlicerOpen(true);
+  };
+
+  const handleAddTurnToMontage = (speaker: string, text: string, startSec: number, endSec: number | null, audioUrl?: string, title?: string, tag?: string) => {
+    const cleanQuoteSlug = text
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 5)
+      .join(' ');
+
+    const lower = text.toLowerCase();
+    let cat: 'insult' | 'character' | 'abuse' | 'sexual' | 'criminal' | 'threat' | 'other' = 'character';
+    let sev = 7;
+    if (lower.includes('police') || lower.includes('cop') || lower.includes('ic3') || lower.includes('lawsuit') || lower.includes('court') || lower.includes('bankrupt')) {
+      cat = lower.includes('lawsuit') || lower.includes('bankrupt') ? 'threat' : 'criminal';
+      sev = 9;
+    } else if (lower.includes('predator') || lower.includes('porn') || lower.includes('deepfake') || lower.includes('nude') || lower.includes('minor')) {
+      cat = 'sexual';
+      sev = 10;
+    } else if (lower.includes('harem') || lower.includes('triangulat') || lower.includes('trauma') || lower.includes('manipulat')) {
+      cat = 'abuse';
+      sev = 8;
+    } else if (lower.includes('dox') || lower.includes('address') || lower.includes('phone') || lower.includes('front door')) {
+      cat = 'threat';
+      sev = 9;
+    }
+
+    addClip({
+      title: `${speaker}: "${cleanQuoteSlug}…"`,
+      quote: text,
+      speaker,
+      sourceTitle: title || 'Space Episode',
+      sourceTag: tag,
+      audioUrl,
+      startSec,
+      endSec: endSec !== null && endSec > startSec ? endSec : startSec + 12,
+      category: cat,
+      severity: sev,
+    });
+  };
+
+
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
   const hasCredentials = !!(config.githubToken && owner && repo);
@@ -703,6 +871,40 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
   const mp3Asset = useMemo(() => activePart?.mp3Asset ?? selectedRelease?.assets.find(a => a.name.endsWith('.mp3')) ?? null, [activePart, selectedRelease]);
   const isCurrentEpisodePlaying = current?.id === selectedRelease?.id && (activePart?.mp3Asset ? current?.audioUrl === activePart.mp3Asset.browser_download_url : true) && isPlaying;
+
+  useEffect(() => {
+    const url = mp3Asset?.browser_download_url;
+    if (url) {
+      isAudioCached(url).then(setIsCurrentAudioCached);
+    } else {
+      setIsCurrentAudioCached(false);
+    }
+  }, [mp3Asset]);
+
+  const handleToggleCacheCurrentAudio = async () => {
+    const url = mp3Asset?.browser_download_url;
+    if (!url) {
+      alert('No audio stream URL found for this episode.');
+      return;
+    }
+
+    if (isCurrentAudioCached) {
+      await removeCachedAudio(url);
+      setIsCurrentAudioCached(false);
+    } else {
+      setIsCachingCurrentAudio(true);
+      setCurrentAudioCachePct(0);
+      try {
+        await cacheAudioFile(url, (p) => setCurrentAudioCachePct(p.percent));
+        setIsCurrentAudioCached(true);
+      } catch (err: any) {
+        alert(`Failed to cache audio: ${err.message || 'Stream error'}`);
+      } finally {
+        setIsCachingCurrentAudio(false);
+      }
+    }
+  };
+
 
   const addOrUpdatePermanentSpeaker = (speaker: SavedSpeaker) => {
     setSavedSpeakers(prev => {
@@ -1168,12 +1370,68 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const filteredUtterances = useMemo(() => utterances.filter(u => {
     if (speakerFilter !== 'ALL' && u.speaker !== speakerFilter) return false;
+
+    if (selectedCategory !== 'ALL') {
+      const cat = THEMATIC_CATEGORIES.find(c => c.id === selectedCategory);
+      if (cat && cat.keywords.length > 0) {
+        const textLower = u.text.toLowerCase();
+        if (!cat.keywords.some(kw => textLower.includes(kw))) return false;
+      }
+    }
+
+    if (selectedMentionTarget !== 'ALL') {
+      const target = MENTION_TARGETS.find(t => t.id === selectedMentionTarget);
+      if (target && target.keywords.length > 0) {
+        const textLower = u.text.toLowerCase();
+        if (!target.keywords.some(kw => textLower.includes(kw))) return false;
+      }
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       return u.text.toLowerCase().includes(q) || u.speaker.toLowerCase().includes(q);
     }
     return true;
-  }), [utterances, speakerFilter, search]);
+  }), [utterances, speakerFilter, search, selectedCategory, selectedMentionTarget]);
+
+  // Dynamic Conversation & Confrontation Heatmap across the active episode timeline
+  const conversationHeatmap = useMemo(() => {
+    if (!utterances.length) return [];
+    const maxTime = Math.max(...utterances.map(u => u.startSec), 1);
+    const numBuckets = 50;
+    const bucketDuration = maxTime / numBuckets;
+
+    const buckets = Array.from({ length: numBuckets }, (_, i) => ({
+      index: i,
+      startSec: i * bucketDuration,
+      endSec: (i + 1) * bucketDuration,
+      label: formatSeconds(i * bucketDuration),
+      count: 0,
+      mentionCount: 0,
+      speakers: new Set<string>(),
+    }));
+
+    const mentionKeywords = selectedMentionTarget !== 'ALL'
+      ? (MENTION_TARGETS.find(t => t.id === selectedMentionTarget)?.keywords || ['logan'])
+      : ['logan', 'lawsuit', 'dox', 'police', 'predator', 'court', 'bankrupt'];
+
+    utterances.forEach(u => {
+      const bIdx = Math.min(numBuckets - 1, Math.floor(u.startSec / bucketDuration));
+      buckets[bIdx].count += 1;
+      buckets[bIdx].speakers.add(u.speaker);
+      const lower = u.text.toLowerCase();
+      if (mentionKeywords.some(kw => lower.includes(kw))) {
+        buckets[bIdx].mentionCount += 1;
+      }
+    });
+
+    const maxCount = Math.max(...buckets.map(b => b.count), 1);
+    return buckets.map(b => ({
+      ...b,
+      density: b.count / maxCount,
+      isHot: b.mentionCount > 0,
+    }));
+  }, [utterances, selectedMentionTarget]);
 
   const matchCount = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -1261,17 +1519,28 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return 19;
   }, [summaryIndex]);
 
-  // Determine if any global filter is active (search query, selected speaker, or selected episode)
+  const filteredClips = useMemo(() => {
+    if (!extractedAudioClips.length) return [];
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return extractedAudioClips;
+    const terms = q.split(/\s+/).filter(Boolean);
+    return extractedAudioClips.filter(c => {
+      const target = `${c.title} ${c.quote} ${c.space_title || ''} ${c.filename}`.toLowerCase();
+      return terms.every(term => target.includes(term));
+    });
+  }, [extractedAudioClips, deferredSearch]);
+
+  // Determine if any global filter is active (search query, selected speaker, selected category, mention target, or selected episode)
   const isGlobalFilteringActive = Boolean(
-    deferredSearch.trim() || selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL'
+    deferredSearch.trim() || selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL' || selectedCategory !== 'ALL' || selectedMentionTarget !== 'ALL'
   );
 
   // Auto-trigger globalIndex load and fetch episode segments on demand
   useEffect(() => {
-    if ((selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL' || searchScope === 'all') && !globalIndex && !globalIndexLoading) {
+    if ((selectedGlobalSpeaker !== 'ALL' || selectedGlobalTag !== 'ALL' || selectedCategory !== 'ALL' || selectedMentionTarget !== 'ALL' || searchScope === 'all') && !globalIndex && !globalIndexLoading) {
       loadGlobalIndex();
     }
-  }, [selectedGlobalSpeaker, selectedGlobalTag, searchScope, globalIndex, globalIndexLoading, loadGlobalIndex]);
+  }, [selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget, searchScope, globalIndex, globalIndexLoading, loadGlobalIndex]);
 
   useEffect(() => {
     if (selectedGlobalSpeaker !== 'ALL' && summaryIndex && summaryIndex.length > 0) {
@@ -1290,16 +1559,79 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   }, [selectedGlobalTag, loadSegmentsForEpisodes]);
 
-  // All matches for current criteria across all episodes (text query + speaker filter, before episode tag filtering)
-  const globalAllMatches = useMemo((): GlobalSearchResult[] => {
+  // Initialize background Search Worker
+  useEffect(() => {
+    searchWorkerRef.current = new SearchWorkerClient();
+    return () => {
+      searchWorkerRef.current?.terminate();
+      searchWorkerRef.current = null;
+    };
+  }, []);
+
+  // Ship loaded globalIndex to Web Worker
+  useEffect(() => {
+    if (globalIndex && searchWorkerRef.current) {
+      searchWorkerRef.current.index(globalIndex);
+    }
+  }, [globalIndex]);
+
+  // Execute search queries off-thread in background Web Worker
+  useEffect(() => {
+    if (!globalIndex) {
+      setWorkerSearchResults(null);
+      setWorkerSearching(false);
+      return;
+    }
+
+    if (!searchWorkerRef.current || !searchWorkerRef.current.isAvailable()) {
+      setWorkerSearchResults(null);
+      return;
+    }
+
+    const query = deferredSearch.trim();
+    const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
+    const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
+    const isCategoryFilter = selectedCategory !== 'ALL';
+    const isMentionFilter = selectedMentionTarget !== 'ALL';
+
+    if (!query && !speakerFilter && !tagFilter && !isCategoryFilter && !isMentionFilter) {
+      setWorkerSearchResults([]);
+      setWorkerSearching(false);
+      return;
+    }
+
+    setWorkerSearching(true);
+    const catObj = isCategoryFilter ? THEMATIC_CATEGORIES.find(c => c.id === selectedCategory) : null;
+    const mentionObj = isMentionFilter ? MENTION_TARGETS.find(t => t.id === selectedMentionTarget) : null;
+
+    searchWorkerRef.current.search({
+      query,
+      speakerFilter,
+      tagFilter,
+      categoryKeywords: catObj?.keywords || [],
+      mentionKeywords: mentionObj?.keywords || [],
+      mentionId: mentionObj?.id,
+    }).then((results) => {
+      setWorkerSearchResults(results as GlobalSearchResult[]);
+      setWorkerSearching(false);
+    });
+  }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
+
+  // Synchronous fallback search only if Web Worker is unavailable
+  const syncFallbackMatches = useMemo((): GlobalSearchResult[] => {
+    if (workerSearchResults !== null) return [];
     if (!globalIndex) return [];
     const query = deferredSearch.trim().toLowerCase();
     const terms = query ? query.split(/\s+/).filter(Boolean) : [];
     const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
     const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
+    const isCategoryFilter = selectedCategory !== 'ALL';
+    const isMentionFilter = selectedMentionTarget !== 'ALL';
 
-    // If no search term, no speaker selected, and no episode tag selected, idle
-    if (!terms.length && !speakerFilter && !tagFilter) return [];
+    if (!terms.length && !speakerFilter && !tagFilter && !isCategoryFilter && !isMentionFilter) return [];
+
+    const catObj = isCategoryFilter ? THEMATIC_CATEGORIES.find(c => c.id === selectedCategory) : null;
+    const mentionObj = isMentionFilter ? MENTION_TARGETS.find(t => t.id === selectedMentionTarget) : null;
 
     const results: GlobalSearchResult[] = [];
 
@@ -1312,12 +1644,31 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         if (speakerFilter && seg.speaker !== speakerFilter) {
           continue;
         }
+
+        const segTextLower = (seg.text || '').toLowerCase();
+
+        // Thematic Category Filter
+        if (catObj && catObj.keywords.length > 0) {
+          const matchesCat = catObj.keywords.some(kw => segTextLower.includes(kw));
+          if (!matchesCat) continue;
+        }
+
+        // Relational Mention Filter
+        if (mentionObj && mentionObj.keywords.length > 0) {
+          const isDirectArgue = ep.release_tag.includes('loganSavDeaconAngelaArgue');
+          const matchesMention = mentionObj.keywords.some(kw => segTextLower.includes(kw)) ||
+            (mentionObj.id === 'LOGAN' && isDirectArgue && seg.speaker.toLowerCase() === 'angela');
+          if (!matchesMention) continue;
+        }
+
+        // Query terms
         if (terms.length > 0) {
           const searchTarget = seg._search ?? `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase();
           if (!terms.every(term => searchTarget.includes(term))) {
             continue;
           }
         }
+
         results.push({
           release_id: ep.release_id,
           release_tag: ep.release_tag,
@@ -1330,7 +1681,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     }
     return results;
-  }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag]);
+  }, [workerSearchResults, globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
+
+  // All matches for current criteria across all episodes (prefers worker, falls back gracefully)
+  const globalAllMatches = workerSearchResults !== null ? workerSearchResults : syncFallbackMatches;
 
   // Episode match counts across all matches (shows which episodes have matches for the selected criteria)
   const globalResultEpisodeCounts = useMemo(() => {
@@ -1351,7 +1705,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   // Reset display limit when query or filters change
   useEffect(() => {
     setGlobalDisplayLimit(200);
-  }, [deferredSearch, selectedGlobalSpeaker, selectedGlobalTag]);
+  }, [deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
   // Final paginated / sliced results for DOM performance
   const globalSearchResults = useMemo((): GlobalSearchResult[] => {
@@ -1695,6 +2049,160 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   }, [selectedGlobalSpeaker, summaryIndex, globalIndex, owner, repo, releases, config.githubToken]);
 
+  // Load extracted audio clips manifest on mount
+  useEffect(() => {
+    let isMounted = true;
+    fetch('./clips/angela/manifest.json')
+      .then(res => res.ok ? res.json() : [])
+      .then((data: ExtractedClip[]) => {
+        if (isMounted && Array.isArray(data)) {
+          setExtractedAudioClips(data);
+        }
+      })
+      .catch(err => {
+        console.warn('Could not load audio clips manifest:', err);
+      });
+    return () => { isMounted = false; };
+  }, []);
+
+  const handleDownloadSingleClip = useCallback((clip: ExtractedClip) => {
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = `./${clip.url}`;
+    downloadAnchor.download = clip.filename;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+  }, []);
+
+  const handlePlayClipAudio = useCallback((clip: ExtractedClip) => {
+    const clipNum = parseInt(clip.id.replace(/\D/g, ''), 10) || 1;
+    const nowPlaying: NowPlayingEpisode = {
+      id: 999000 + clipNum,
+      title: `⭐ [Audio Clip] ${clip.title}`,
+      audioUrl: `./${clip.url}`,
+    };
+    play(nowPlaying, 0);
+  }, [play]);
+
+  const handleDownloadSpeakerAudioZip = useCallback(async (targetSpeaker: string = 'Angela') => {
+    const spk = (targetSpeaker || selectedGlobalSpeaker).trim();
+    setAudioZipLoading(true);
+    setAudioZipError(null);
+    setAudioZipSuccess(null);
+    setAudioZipProgress({
+      current: 1,
+      total: 47,
+      currentTitle: `Preparing Angela audio clips archive (47 clips: 35 .wav cuts + 12 quotes)...`,
+      percent: 25,
+    });
+
+    try {
+      const staticZipUrl = './clips/Angela_All_Audio_Clips.zip';
+      const headCheck = await fetch(staticZipUrl, { method: 'HEAD' });
+      if (headCheck.ok) {
+        setAudioZipProgress({
+          current: 47,
+          total: 47,
+          currentTitle: 'Starting direct download: Angela_All_Audio_Clips_(47_Clips).zip (38.6 MB)...',
+          percent: 95,
+        });
+
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.href = staticZipUrl;
+        downloadAnchor.download = `Angela_All_Audio_Clips_(47_Clips).zip`;
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        document.body.removeChild(downloadAnchor);
+
+        setAudioZipSuccess(`Downloaded Angela_All_Audio_Clips_(47_Clips).zip containing all 47 master audio clips (38.6 MB)!`);
+        setTimeout(() => setAudioZipProgress(null), 3000);
+        return;
+      }
+
+      // Fallback: Dynamic JSZip generation
+      const zip = new JSZip();
+      const folderName = `Audio_Clips_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+      const zipFolder = zip.folder(folderName) || zip;
+      const clipsToDownload = extractedAudioClips.length > 0 ? extractedAudioClips : [];
+
+      let done = 0;
+      for (const clip of clipsToDownload) {
+        done++;
+        setAudioZipProgress({
+          current: done,
+          total: clipsToDownload.length,
+          currentTitle: `[${done}/${clipsToDownload.length}] Adding "${clip.filename}"...`,
+          percent: 15 + Math.round((done / clipsToDownload.length) * 70),
+        });
+        try {
+          const fileRes = await fetch(`./${clip.url}`);
+          if (fileRes.ok) {
+            const blobData = await fileRes.blob();
+            zipFolder.file(clip.filename, blobData);
+          }
+        } catch (fErr) {
+          console.warn(`Failed to add clip ${clip.filename}:`, fErr);
+        }
+      }
+
+      setAudioZipProgress({
+        current: clipsToDownload.length,
+        total: clipsToDownload.length,
+        currentTitle: 'Compressing archive…',
+        percent: 90,
+      });
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
+        setAudioZipProgress(prev => prev ? {
+          ...prev,
+          percent: Math.min(99, 90 + Math.round(meta.percent * 0.09)),
+        } : null);
+      });
+
+      const dUrl = URL.createObjectURL(zipBlob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.href = dUrl;
+      downloadAnchor.download = `Audio_Clips_${spk}_(${clipsToDownload.length}_Clips).zip`;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      document.body.removeChild(downloadAnchor);
+      setTimeout(() => URL.revokeObjectURL(dUrl), 4000);
+
+      setAudioZipSuccess(`Downloaded Audio_Clips_${spk} (${clipsToDownload.length} clips)!`);
+      setTimeout(() => setAudioZipProgress(null), 3000);
+    } catch (err: any) {
+      console.error('Error downloading audio clips ZIP:', err);
+      setAudioZipError(err.message || 'Failed to download audio clips');
+      setAudioZipProgress(null);
+    } finally {
+      setAudioZipLoading(false);
+    }
+  }, [selectedGlobalSpeaker, extractedAudioClips]);
+
+  const getMatchingExtractedClip = useCallback((res: GlobalSearchResult): ExtractedClip | null => {
+    if (!extractedAudioClips.length || !res.segment.text) return null;
+    const textNorm = res.segment.text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+    const tag = res.release_tag;
+
+    for (const clip of extractedAudioClips) {
+      if (clip.space_tag && tag && clip.space_tag === tag) {
+        const qNorm = clip.quote.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').trim();
+        const words = qNorm.split(/\s+/).filter(w => w.length > 3);
+        if (words.length > 0) {
+          const matchCount = words.filter(w => textNorm.includes(w)).length;
+          if (matchCount >= Math.min(3, Math.ceil(words.length * 0.5))) {
+            return clip;
+          }
+        }
+      }
+      const qClean = clip.quote.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').slice(0, 30);
+      if (qClean.length > 10 && textNorm.includes(qClean)) {
+        return clip;
+      }
+    }
+    return null;
+  }, [extractedAudioClips]);
+
   const handleSaveToGitHub = async () => {
     if (!selectedRelease || !hasCredentials || !utterances.length) return;
     setSavingGitHub(true);
@@ -1904,9 +2412,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </span>
                       )}
                       {isGlobalFilteringActive && !globalIndexLoading && (
-                        <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm">
+                        <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm inline-flex items-center gap-1.5">
                           {globalAllMatches.length.toLocaleString()} match{globalAllMatches.length !== 1 ? 'es' : ''}
                           {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
+                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[10px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
+                            ⚡ 60fps Worker
+                          </span>
                         </span>
                       )}
                     </div>
@@ -1924,7 +2435,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
                       />
-                      {search && (
+                      {workerSearching && (
+                        <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-indigo-950/90 border border-indigo-500/40 rounded text-[10px] text-indigo-300 font-mono shadow-sm pointer-events-none">
+                          <Loader size={10} className="animate-spin text-indigo-400" />
+                          <span>off-thread…</span>
+                        </div>
+                      )}
+                      {search && !workerSearching && (
                         <button
                           onClick={() => setSearch('')}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
@@ -1980,21 +2497,59 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </select>
                     </div>
 
-                    {/* Speaker ZIP Download Action Button */}
-                    {selectedGlobalSpeaker !== 'ALL' && (
-                      <button
-                        onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
-                        disabled={speakerZipLoading}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
-                        title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
+                    {/* Target Mention Filter (e.g. Angela talking about Logan) */}
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                      <ShieldAlert size={12} className="text-amber-400 flex-shrink-0" />
+                      <select
+                        value={selectedMentionTarget}
+                        onChange={e => {
+                          setSelectedMentionTarget(e.target.value);
+                          if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                        }}
+                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[175px] truncate"
+                        title="Filter speaker turns mentioning a specific person or topic"
                       >
-                        <Download size={13} className={speakerZipLoading ? 'animate-bounce' : ''} />
-                        <span>
-                          {speakerZipLoading
-                            ? 'Creating ZIP…'
-                            : `Download ${selectedSpeakerEpisodeCount} Spaces (.zip)`}
-                        </span>
-                      </button>
+                        {MENTION_TARGETS.map(m => (
+                          <option key={m.id} value={m.id} className="bg-slate-900 text-white">
+                            {m.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Speaker ZIP Download Action Buttons */}
+                    {selectedGlobalSpeaker !== 'ALL' && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
+                          disabled={speakerZipLoading}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                          title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
+                        >
+                          <FileText size={12} className={speakerZipLoading ? 'animate-bounce text-emerald-400' : 'text-emerald-400'} />
+                          <span>
+                            {speakerZipLoading
+                              ? 'Creating ZIP…'
+                              : `Download ${selectedSpeakerEpisodeCount} Spaces (.zip)`}
+                          </span>
+                        </button>
+                        {selectedGlobalSpeaker.toLowerCase() === 'angela' && (
+                          <button
+                            onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                            disabled={audioZipLoading}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+                            title="Download all 47 master audio clips of Angela (.wav & .mp3, 38.6 MB) in one ZIP archive"
+                          >
+                            <Headphones size={13} className={audioZipLoading ? 'animate-bounce' : ''} />
+                            <span>
+                              {audioZipLoading ? 'Downloading…' : 'Download Audio Clips (.zip)'}
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-emerald-800/80 text-[10px] rounded-full text-emerald-200 font-mono">
+                              47 clips
+                            </span>
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -2025,8 +2580,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         className="px-2.5 py-1 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors cursor-pointer shadow-sm"
                         title="Directly download all Angela transcripts as a single ZIP file"
                       >
-                        <Download size={11} className="text-emerald-400" />
+                        <FileText size={11} className="text-emerald-400" />
                         <span>Download Angela ({angelaEpisodeCount} Spaces .zip)</span>
+                      </button>
+                      <button
+                        onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                        disabled={audioZipLoading}
+                        className="px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/80 hover:text-white transition-all cursor-pointer shadow-sm"
+                        title="Directly download all 47 master audio clips of Angela as a single ZIP archive (.wav & .mp3)"
+                      >
+                        <Headphones size={11} className="text-emerald-400" />
+                        <span>Download Audio Clips (47 Clips .zip)</span>
                       </button>
                     </div>
 
@@ -2040,12 +2604,48 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
                   </div>
 
+                  {/* Thematic Category Dossier Chips */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/60 mt-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                      <Tag size={10} className="text-indigo-400" /> Dossier Themes:
+                    </span>
+                    {THEMATIC_CATEGORIES.map(cat => {
+                      const isSelected = selectedCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            setSelectedCategory(isSelected ? 'ALL' : cat.id);
+                            if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border ${
+                            isSelected
+                              ? 'bg-indigo-600 border-indigo-400 text-white shadow-md ring-1 ring-indigo-300'
+                              : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
+                          }`}
+                          title={`Filter quotes in theme: ${cat.name}`}
+                        >
+                          <span>{cat.emoji}</span>
+                          <span>{cat.name}</span>
+                        </button>
+                      );
+                    })}
+                    {selectedCategory !== 'ALL' && (
+                      <button
+                        onClick={() => setSelectedCategory('ALL')}
+                        className="text-[10px] text-slate-500 hover:text-slate-300 underline ml-1 cursor-pointer"
+                      >
+                        Clear theme
+                      </button>
+                    )}
+                  </div>
+
                   {/* Smart Banner if searching for 'angela' while not filtered to Angela */}
                   {search.trim().toLowerCase().includes('angela') && selectedGlobalSpeaker !== 'Angela' && (
                     <div className="flex items-center justify-between p-2.5 px-3.5 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-sm gap-2">
                       <div className="flex items-center gap-2">
                         <Users size={13} className="text-emerald-400 flex-shrink-0" />
-                        <span>Looking for <strong>Angela</strong>? Filter all {angelaEpisodeCount} spaces featuring her and download the complete transcript archive.</span>
+                        <span>Looking for <strong>Angela</strong>? Filter all {angelaEpisodeCount} spaces featuring her and download transcripts or audio clips.</span>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
@@ -2060,10 +2660,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <button
                           onClick={() => handleDownloadSpeakerZip('Angela')}
                           disabled={speakerZipLoading}
-                          className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1 border border-slate-700"
                         >
-                          <Download size={11} />
-                          Download Zip
+                          <FileText size={11} className="text-emerald-400" />
+                          Transcripts .zip
+                        </button>
+                        <button
+                          onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                          disabled={audioZipLoading}
+                          className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-semibold rounded-lg text-xs cursor-pointer transition-colors flex items-center gap-1 shadow-sm"
+                        >
+                          <Headphones size={11} />
+                          Audio Clips .zip
                         </button>
                       </div>
                     </div>
@@ -2114,8 +2722,99 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
+                  {/* Audio Zip Progress Status Bar */}
+                  {audioZipProgress && (
+                    <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-200 shadow-lg space-y-2">
+                      <div className="flex items-center justify-between font-semibold">
+                        <span className="flex items-center gap-2">
+                          <Loader size={13} className="animate-spin text-emerald-400" />
+                          <span>{audioZipProgress.currentTitle}</span>
+                        </span>
+                        <span className="text-emerald-400 font-mono">{audioZipProgress.percent}%</span>
+                      </div>
+                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-300"
+                          style={{ width: `${audioZipProgress.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Audio Zip Success Banner */}
+                  {audioZipSuccess && (
+                    <div className="flex items-center justify-between p-3 bg-emerald-950/60 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-md">
+                      <span className="flex items-center gap-2 font-medium">
+                        <CheckCircle2 size={14} className="text-emerald-400" />
+                        <span>{audioZipSuccess}</span>
+                      </span>
+                      <button onClick={() => setAudioZipSuccess(null)} className="text-emerald-400 hover:text-white p-1">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Audio Zip Error Banner */}
+                  {audioZipError && (
+                    <div className="flex items-center justify-between p-3 bg-red-950/60 border border-red-500/30 rounded-xl text-xs text-red-200 shadow-md">
+                      <span className="flex items-center gap-2 font-medium">
+                        <AlertCircle size={14} className="text-red-400" />
+                        <span>{audioZipError}</span>
+                      </span>
+                      <button onClick={() => setAudioZipError(null)} className="text-red-400 hover:text-white p-1">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Results View Mode Toggle (All Spoken Turns vs Master Audio Clips Archive) */}
+                  {selectedGlobalSpeaker.toLowerCase() === 'angela' && extractedAudioClips.length > 0 && (
+                    <div className="flex items-center justify-between gap-3 p-2 bg-slate-950/80 border border-emerald-500/30 rounded-xl flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                          <Layers size={11} className="text-emerald-400" /> Mode:
+                        </span>
+                        <button
+                          onClick={() => setActiveResultsView('turns')}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeResultsView === 'turns'
+                              ? 'bg-slate-800 border border-slate-700 text-white shadow-sm ring-1 ring-slate-600'
+                              : 'bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          <FileText size={11} />
+                          <span>All Spoken Turns ({globalAllMatches.length.toLocaleString()})</span>
+                        </button>
+                        <button
+                          onClick={() => setActiveResultsView('clips')}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                            activeResultsView === 'clips'
+                              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 border border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
+                              : 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/50 hover:text-white'
+                          }`}
+                        >
+                          <Headphones size={11} className="text-emerald-300" />
+                          <span>Angela Audio Clips Archive ({extractedAudioClips.length} Master Cuts)</span>
+                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[10px] rounded-full text-emerald-200 font-mono">
+                            38.6 MB
+                          </span>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                        disabled={audioZipLoading}
+                        className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap ml-auto"
+                        title="Download all 47 master audio clips of Angela as a single ZIP archive (.wav & .mp3, 38.6 MB)"
+                      >
+                        <Download size={11} className={audioZipLoading ? 'animate-bounce' : ''} />
+                        <span>Download All Audio Clips (.zip)</span>
+                      </button>
+                    </div>
+                  )}
+
                   {/* Episode Match Pills (if multiple episodes have results) */}
-                  {isGlobalFilteringActive && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
+                  {isGlobalFilteringActive && activeResultsView === 'turns' && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 text-xs">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
                         Episodes ({globalResultEpisodeCounts.length}):
@@ -2213,35 +2912,50 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                           {/* Angela Highlight Card */}
-                          <div className="p-3.5 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-2 hover:border-emerald-400 transition-colors">
+                          <div className="p-3.5 bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-950 border border-emerald-500/40 rounded-xl space-y-2.5 hover:border-emerald-400 transition-colors shadow-md">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-emerald-100 text-sm flex items-center gap-1.5">
                                 <span>⭐ Angela</span>
                               </span>
-                              <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md">
-                                {angelaEpisodeCount} spaces
-                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md">
+                                  {angelaEpisodeCount} spaces
+                                </span>
+                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-md flex items-center gap-1">
+                                  <Headphones size={10} /> 47 clips
+                                </span>
+                              </div>
                             </div>
                             <p className="text-[11px] text-slate-400">
-                              Browse all conversations featuring Angela or download all {angelaEpisodeCount} complete transcripts in one ZIP archive.
+                              Browse all conversations featuring Angela, download all {angelaEpisodeCount} complete transcripts, or download all 47 master audio clips (.wav & .mp3) in one ZIP archive.
                             </p>
-                            <div className="flex items-center gap-2 pt-1">
+                            <div className="flex items-center gap-2 pt-1 flex-wrap">
                               <button
                                 onClick={() => {
                                   setSelectedGlobalSpeaker('Angela');
                                   if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
                                 }}
-                                className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold text-center cursor-pointer transition-colors"
+                                className="flex-1 min-w-[70px] py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold text-center cursor-pointer transition-colors"
                               >
                                 View Turns
                               </button>
                               <button
                                 onClick={() => handleDownloadSpeakerZip('Angela')}
                                 disabled={speakerZipLoading}
-                                className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-sm"
+                                className="flex-1 min-w-[90px] py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                title="Download all text transcripts in one ZIP"
                               >
-                                <Download size={11} />
-                                <span>Download .zip</span>
+                                <FileText size={11} className="text-emerald-400" />
+                                <span>Transcripts</span>
+                              </button>
+                              <button
+                                onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                                disabled={audioZipLoading}
+                                className="flex-1 min-w-[100px] py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-sm"
+                                title="Download all 47 master audio clips of Angela in one ZIP"
+                              >
+                                <Headphones size={11} />
+                                <span>Audio Clips</span>
                               </button>
                             </div>
                           </div>
@@ -2408,21 +3122,38 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+                        <div className="flex items-center gap-2 ml-auto flex-shrink-0 flex-wrap">
                           {selectedGlobalSpeaker !== 'ALL' && (
-                            <button
-                              onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
-                              disabled={speakerZipLoading}
-                              className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
-                              title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
-                            >
-                              <Download size={12} className={speakerZipLoading ? 'animate-bounce' : ''} />
-                              <span>
-                                {speakerZipLoading
-                                  ? 'Creating ZIP…'
-                                  : `Download All ${selectedSpeakerEpisodeCount} Transcripts (.zip)`}
-                              </span>
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
+                                disabled={speakerZipLoading}
+                                className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                                title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
+                              >
+                                <FileText size={12} className={speakerZipLoading ? 'animate-bounce text-emerald-400' : 'text-emerald-400'} />
+                                <span>
+                                  {speakerZipLoading
+                                    ? 'Creating ZIP…'
+                                    : `Download All ${selectedSpeakerEpisodeCount} Transcripts (.zip)`}
+                                </span>
+                              </button>
+                              {selectedGlobalSpeaker.toLowerCase() === 'angela' && (
+                                <button
+                                  onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                                  disabled={audioZipLoading}
+                                  className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                                  title="Download all 47 master audio clips of Angela in one ZIP archive (.wav & .mp3, 38.6 MB)"
+                                >
+                                  <Headphones size={12} className={audioZipLoading ? 'animate-bounce' : ''} />
+                                  <span>
+                                    {audioZipLoading
+                                      ? 'Downloading Audio ZIP…'
+                                      : 'Download All 47 Audio Clips (.zip)'}
+                                  </span>
+                                </button>
+                              )}
+                            </>
                           )}
                           <button
                             onClick={() => {
@@ -2437,110 +3168,301 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                       </div>
 
-                      {globalSearchResults.map((res, idx) => {
-                        const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
-                        const effectiveGlobalTime = currentTime - audioSeekOffsetSec;
-                        const isPlayingThis = current?.id === res.release_id && isPlaying &&
-                          effectiveGlobalTime >= res.segment.start &&
-                          effectiveGlobalTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
-                        const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
+                      {activeResultsView === 'clips' && selectedGlobalSpeaker.toLowerCase() === 'angela' ? (
+                        <div className="space-y-3">
+                          <div className="p-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-950 border border-emerald-500/40 rounded-2xl shadow-lg flex items-center justify-between flex-wrap gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="p-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg">
+                                  <Headphones size={18} />
+                                </span>
+                                <h3 className="font-bold text-white text-base">Angela Maggard — Master Audio Clips Archive</h3>
+                                <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold rounded-full">
+                                  {filteredClips.length} Clips
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-300 max-w-2xl">
+                                Extracted high-fidelity audio cuts ({filteredClips.filter(c => c.format === 'wav').length} lossless WAV space cuts + {filteredClips.filter(c => c.format === 'mp3').length} producer MP3 quote drops). Total archive size: 38.6 MB.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                onClick={() => handleDownloadSpeakerAudioZip('Angela')}
+                                disabled={audioZipLoading}
+                                className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-md cursor-pointer transition-all"
+                                title="Download complete zip of all 47 audio clips"
+                              >
+                                <Download size={14} className={audioZipLoading ? 'animate-bounce' : ''} />
+                                <span>{audioZipLoading ? 'Downloading…' : 'Download All Clips (.zip)'}</span>
+                              </button>
+                              <button
+                                onClick={() => handleDownloadSpeakerZip('Angela')}
+                                disabled={speakerZipLoading}
+                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                                title="Download complete zip of all 19 text transcripts"
+                              >
+                                <FileText size={13} className="text-emerald-400" />
+                                <span>Download Transcripts (.zip)</span>
+                              </button>
+                            </div>
+                          </div>
 
-                        let searchWordIndex = -1;
-                        let searchWords: UtteranceWord[] = [];
-                        if (isPlayingThis) {
-                          searchWords = getUtteranceWords({
-                            text: res.segment.text,
-                            startSec: res.segment.start,
-                            endSec: res.segment.end,
-                            words: (res.segment as any).words,
-                          });
-                          for (let wI = 0; wI < searchWords.length; wI++) {
-                            const wObj = searchWords[wI];
-                            const nextStart = wI < searchWords.length - 1 ? searchWords[wI + 1].start : (wObj.end + 0.8);
-                            if (effectiveGlobalTime >= wObj.start && effectiveGlobalTime < nextStart) {
-                              searchWordIndex = wI;
-                              break;
+                          <div className="grid grid-cols-1 gap-3">
+                            {filteredClips.map((clip, cIdx) => {
+                              const isPlayingThisClip = current?.audioUrl === `./${clip.url}` && isPlaying;
+                              return (
+                                <div
+                                  key={clip.id}
+                                  className={`p-4 rounded-2xl border transition-all ${
+                                    isPlayingThisClip
+                                      ? 'bg-emerald-950/40 border-emerald-500/80 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/40'
+                                      : 'bg-slate-900/60 border-slate-800 hover:border-emerald-500/40 hover:bg-slate-900'
+                                  }`}
+                                >
+                                  <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-mono text-[11px] font-bold border border-emerald-500/30">
+                                        #{String(cIdx + 1).padStart(2, '0')}
+                                      </span>
+                                      <span className="font-semibold text-slate-200 text-xs truncate max-w-md">
+                                        {clip.title}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[10px] font-bold uppercase">
+                                        {clip.format} • {Math.round((clip.size_bytes || 0) / 1024)} KB
+                                      </span>
+                                      {clip.timestamp && (
+                                        <span className="text-[11px] text-slate-500 font-mono">
+                                          ⏱ {clip.timestamp}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 ml-auto">
+                                      <button
+                                        onClick={() => handlePlayClipAudio(clip)}
+                                        className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                                          isPlayingThisClip
+                                            ? 'bg-emerald-500 text-white shadow'
+                                            : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30'
+                                        }`}
+                                      >
+                                        {isPlayingThisClip ? <Pause size={11} /> : <Play size={11} className="translate-x-0.5" />}
+                                        <span>{isPlayingThisClip ? 'Pause' : 'Play'}</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleDownloadSingleClip(clip)}
+                                        className="flex items-center gap-1 px-3 py-1 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-slate-700 cursor-pointer shadow-sm"
+                                        title={`Download ${clip.filename}`}
+                                      >
+                                        <Download size={11} />
+                                        <span>Download .{clip.format}</span>
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          addClip({
+                                            title: clip.title,
+                                            quote: clip.quote || clip.title,
+                                            speaker: 'Angela',
+                                            sourceTitle: clip.space_title || 'Angela Space Audio Clip',
+                                            sourceTag: clip.space_tag,
+                                            audioUrl: `./${clip.url}`,
+                                            startSec: 0,
+                                            endSec: 30,
+                                            category: 'threat',
+                                            severity: 9,
+                                          });
+                                        }}
+                                        className="flex items-center gap-1 px-3 py-1 bg-purple-500/20 hover:bg-purple-600 text-purple-300 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-purple-500/40 cursor-pointer shadow-sm"
+                                        title="Add clip into Montage Reel"
+                                      >
+                                        <Film size={11} className="text-purple-400" />
+                                        <span>+ Reel</span>
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <p className="text-sm text-slate-100 font-medium italic leading-relaxed pl-2 border-l-2 border-emerald-500/60 my-2">
+                                    "{clip.quote}"
+                                  </p>
+
+                                  {clip.space_title && (
+                                    <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-2">
+                                      <Radio size={11} className="text-emerald-400" />
+                                      <span>From Space: <strong className="text-slate-300">{clip.space_title}</strong></span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {globalSearchResults.map((res, idx) => {
+                          const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
+                          const matchedClip = getMatchingExtractedClip(res);
+                          const effectiveGlobalTime = currentTime - audioSeekOffsetSec;
+                          const isPlayingThis = (current?.id === res.release_id || (matchedClip && current?.audioUrl === `./${matchedClip.url}`)) && isPlaying &&
+                            ((matchedClip && current?.audioUrl === `./${matchedClip.url}`) || (effectiveGlobalTime >= res.segment.start &&
+                            effectiveGlobalTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30)));
+                          const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
+
+                          let searchWordIndex = -1;
+                          let searchWords: UtteranceWord[] = [];
+                          if (isPlayingThis) {
+                            searchWords = getUtteranceWords({
+                              text: res.segment.text,
+                              startSec: res.segment.start,
+                              endSec: res.segment.end,
+                              words: (res.segment as any).words,
+                            });
+                            for (let wI = 0; wI < searchWords.length; wI++) {
+                              const wObj = searchWords[wI];
+                              const nextStart = wI < searchWords.length - 1 ? searchWords[wI + 1].start : (wObj.end + 0.8);
+                              if (effectiveGlobalTime >= wObj.start && effectiveGlobalTime < nextStart) {
+                                searchWordIndex = wI;
+                                break;
+                              }
+                            }
+                            if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= res.segment.start && effectiveGlobalTime < searchWords[0].start) {
+                              searchWordIndex = 0;
+                            }
+                            if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= searchWords[searchWords.length - 1].start) {
+                              searchWordIndex = searchWords.length - 1;
                             }
                           }
-                          if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= res.segment.start && effectiveGlobalTime < searchWords[0].start) {
-                            searchWordIndex = 0;
-                          }
-                          if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= searchWords[searchWords.length - 1].start) {
-                            searchWordIndex = searchWords.length - 1;
-                          }
-                        }
 
-                        return (
-                          <div
-                            key={`${res.release_tag}-${res.segmentIndex}-${idx}`}
-                            style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
-                            className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all relative ${
-                              isPlayingThis
-                                ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
-                                : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
-                            }`}
-                          >
-                            {/* Speaker Avatar */}
+                          return (
                             <div
-                              className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 ${theme.avatar}`}
-                              title={res.segment.speaker}
+                              key={`${res.release_tag}-${res.segmentIndex}-${idx}`}
+                              style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
+                              className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all relative ${
+                                isPlayingThis
+                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                  : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
+                              }`}
                             >
-                              {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  {/* Episode badge */}
-                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-800/90 text-slate-300 text-[11px] font-semibold border border-slate-700/60 max-w-xs truncate">
-                                    <Radio size={10} className="text-indigo-400 flex-shrink-0" />
-                                    <span className="truncate">{res.title}</span>
-                                  </span>
-
-                                  {/* Speaker pill */}
-                                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge}`}>
-                                    {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
-                                    <span>{res.segment.speaker}</span>
-                                  </span>
-
-                                  {/* Timestamp seek button */}
-                                  <button
-                                    onClick={() => handlePlayGlobalResult(res)}
-                                    className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer"
-                                    title="Seek to timestamp"
-                                  >
-                                    <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
-                                    <span>{formatSeconds(res.segment.start)}</span>
-                                    {res.segment.end !== null && <span className="text-slate-500 font-normal"> – {formatSeconds(res.segment.end)}</span>}
-                                  </button>
-                                </div>
-
-                                {/* Action buttons */}
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    onClick={() => handlePlayGlobalResult(res)}
-                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                                      isPlayingThis
-                                        ? 'bg-indigo-500 text-white shadow'
-                                        : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30'
-                                    }`}
-                                    title="Listen to this moment"
-                                  >
-                                    {isPlayingThis ? <Pause size={11} /> : <Play size={11} className="translate-x-0.5" />}
-                                    <span>{isPlayingThis ? 'Pause' : 'Play'}</span>
-                                  </button>
-
-                                  <button
-                                    onClick={() => handleOpenInFullTranscript(res)}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-slate-700 cursor-pointer"
-                                    title="Open this episode's full transcript at this moment"
-                                  >
-                                    <FileText size={11} />
-                                    <span>Open Transcript</span>
-                                  </button>
-                                </div>
+                              {/* Speaker Avatar */}
+                              <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 ${theme.avatar}`}
+                                title={res.segment.speaker}
+                              >
+                                {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
                               </div>
+
+                              {/* Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {/* Episode badge */}
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-800/90 text-slate-300 text-[11px] font-semibold border border-slate-700/60 max-w-xs truncate">
+                                      <Radio size={10} className="text-indigo-400 flex-shrink-0" />
+                                      <span className="truncate">{res.title}</span>
+                                    </span>
+
+                                    {/* Speaker pill */}
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs font-semibold ${theme.badge}`}>
+                                      {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
+                                      <span>{res.segment.speaker}</span>
+                                    </span>
+
+                                    {/* Verified Audio Clip Badge */}
+                                    {matchedClip && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-[10px] font-bold text-emerald-300 shadow-sm" title={`Verified extracted audio clip: ${matchedClip.filename}`}>
+                                        <Sparkles size={9} className="text-emerald-400" />
+                                        <span>Audio Clip ({matchedClip.format?.toUpperCase()})</span>
+                                      </span>
+                                    )}
+
+                                    {/* Timestamp seek button */}
+                                    <button
+                                      onClick={() => handlePlayGlobalResult(res)}
+                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer"
+                                      title="Seek to timestamp"
+                                    >
+                                      <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
+                                      <span>{formatSeconds(res.segment.start)}</span>
+                                      {res.segment.end !== null && <span className="text-slate-500 font-normal"> – {formatSeconds(res.segment.end)}</span>}
+                                    </button>
+                                  </div>
+
+                                  {/* Action buttons */}
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    {matchedClip && (
+                                      <button
+                                        onClick={() => handleDownloadSingleClip(matchedClip)}
+                                        className="flex items-center gap-1 px-2.5 py-1 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-emerald-500/40 cursor-pointer shadow-sm"
+                                        title={`Download extracted audio clip: ${matchedClip.filename}`}
+                                      >
+                                        <Download size={11} className="text-emerald-400" />
+                                        <span>Download Clip ({matchedClip.format?.toUpperCase()})</span>
+                                      </button>
+                                    )}
+
+                                    <button
+                                      onClick={() => {
+                                        if (matchedClip) {
+                                          handlePlayClipAudio(matchedClip);
+                                        } else {
+                                          handlePlayGlobalResult(res);
+                                        }
+                                      }}
+                                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                                        isPlayingThis
+                                          ? 'bg-indigo-500 text-white shadow'
+                                          : 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30'
+                                      }`}
+                                      title={matchedClip ? `Listen to isolated audio clip: ${matchedClip.title}` : "Listen to this moment"}
+                                    >
+                                      {isPlayingThis ? <Pause size={11} /> : <Play size={11} className="translate-x-0.5" />}
+                                      <span>{isPlayingThis ? 'Pause' : 'Play'}</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleOpenInFullTranscript(res)}
+                                      className="flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-slate-700 cursor-pointer"
+                                      title="Open this episode's full transcript at this moment"
+                                    >
+                                      <FileText size={11} />
+                                      <span>Open Transcript</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => openQuickSlicer({
+                                        speaker: res.segment.speaker,
+                                        quote: res.segment.text,
+                                        sourceTitle: res.title,
+                                        sourceTag: res.release_tag,
+                                        audioUrl: res.audio_url,
+                                        startSec: res.segment.start,
+                                        endSec: res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 15,
+                                        words: (res.segment as any).words,
+                                      })}
+                                      className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-amber-500/30 cursor-pointer"
+                                      title="Fine-tune boundaries and slice audio clip"
+                                    >
+                                      <Scissors size={11} className="text-amber-400" />
+                                      <span>Slice</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleAddTurnToMontage(
+                                        res.segment.speaker,
+                                        res.segment.text,
+                                        res.segment.start,
+                                        res.segment.end,
+                                        res.audio_url,
+                                        res.title,
+                                        res.release_tag
+                                      )}
+                                      className="flex items-center gap-1 px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-purple-500/30 cursor-pointer"
+                                      title="Add turn directly to Montage Reel Builder"
+                                    >
+                                      <Film size={11} className="text-purple-400" />
+                                      <span>+ Reel</span>
+                                    </button>
+                                  </div>
+                                </div>
 
                               {/* Highlighted text */}
                               {isPlayingThis ? (
@@ -2607,8 +3529,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           </button>
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
+                </div>
+              )}
                 </div>
               </div>
             ) : (
@@ -2648,6 +3572,40 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
 
                     <div className="flex items-center gap-2 flex-wrap">
+                      {mp3Asset && (
+                        <button
+                          onClick={handleToggleCacheCurrentAudio}
+                          disabled={isCachingCurrentAudio}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border cursor-pointer shadow-sm ${
+                            isCurrentAudioCached
+                              ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300 hover:bg-rose-950/40 hover:text-rose-300 hover:border-rose-500/40'
+                              : 'bg-indigo-600/20 border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30 hover:text-white'
+                          }`}
+                          title={
+                            isCurrentAudioCached
+                              ? 'Audio cached in browser storage (0ms seek latency). Click to purge cache.'
+                              : 'Cache full MP3 into browser CacheStorage for instant offline scrubbing'
+                          }
+                        >
+                          {isCachingCurrentAudio ? (
+                            <>
+                              <Loader size={12} className="animate-spin text-indigo-400" />
+                              <span>Caching {currentAudioCachePct}%…</span>
+                            </>
+                          ) : isCurrentAudioCached ? (
+                            <>
+                              <CheckCircle2 size={12} className="text-emerald-400" />
+                              <span>Audio Cached (0ms)</span>
+                            </>
+                          ) : (
+                            <>
+                              <HardDriveDownload size={12} className="text-indigo-400" />
+                              <span>Cache Audio</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+
                       <button onClick={() => setShowSavedSpeakersModal(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-lg transition-colors border border-amber-500/30 cursor-pointer shadow-sm">
                         <Star size={12} className="text-amber-400 fill-amber-400/30" /> Saved Speakers ({savedSpeakers.length})
@@ -2934,6 +3892,50 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                     {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
                       <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
+                        {/* Dynamic Episode Confrontation & Density Heatmap */}
+                        {conversationHeatmap.length > 0 && (
+                          <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-sm mb-4">
+                            <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                              <div className="flex items-center gap-2">
+                                <BarChart3 size={13} className="text-indigo-400" />
+                                <span className="font-semibold text-slate-200">Episode Timeline Heatmap</span>
+                                <span className="text-[10px] text-slate-500">({utterances.length} turns mapped)</span>
+                              </div>
+                              <div className="flex items-center gap-3 text-[11px]">
+                                <span className="flex items-center gap-1.5 text-slate-400">
+                                  <span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block" /> Speech Density
+                                </span>
+                                <span className="flex items-center gap-1.5 text-rose-400 font-medium">
+                                  <span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" /> Confrontation / Mentions
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-end gap-[3px] h-10 w-full bg-slate-950/70 p-1.5 rounded-xl border border-slate-800/80 overflow-hidden">
+                              {conversationHeatmap.map((bucket) => {
+                                const heightPct = Math.max(18, Math.round(bucket.density * 100));
+                                return (
+                                  <button
+                                    key={bucket.index}
+                                    type="button"
+                                    onClick={() => handlePlayUtterance(bucket.startSec)}
+                                    className={`flex-1 rounded-sm transition-all hover:scale-y-110 hover:brightness-125 cursor-pointer relative group ${
+                                      bucket.isHot
+                                        ? 'bg-rose-500 hover:bg-rose-400 shadow-sm shadow-rose-500/50'
+                                        : bucket.density > 0.6
+                                        ? 'bg-indigo-500 hover:bg-indigo-400'
+                                        : bucket.density > 0.2
+                                        ? 'bg-indigo-700/60 hover:bg-indigo-600'
+                                        : 'bg-slate-800/60 hover:bg-slate-700'
+                                    }`}
+                                    style={{ height: `${heightPct}%` }}
+                                    title={`Seek to ${bucket.label} (${bucket.count} turns${bucket.mentionCount > 0 ? `, ${bucket.mentionCount} mentions` : ''})`}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
                         {filteredUtterances.map((utterance) => {
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
@@ -3019,7 +4021,50 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                     )}
                                   </div>
 
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <button
+                                      type="button"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        openQuickSlicer({
+                                          speaker: utterance.speaker,
+                                          quote: utterance.text,
+                                          sourceTitle: selectedRelease?.name || 'Space Episode',
+                                          sourceTag: selectedRelease?.tag_name || '',
+                                          audioUrl: mp3Asset?.browser_download_url,
+                                          startSec: utterance.startSec,
+                                          endSec: utterance.endSec !== null && utterance.endSec > utterance.startSec ? utterance.endSec : utterance.startSec + 15,
+                                          words: utterance.words,
+                                        });
+                                      }}
+                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-white border border-amber-500/30 cursor-pointer"
+                                      title="Fine-tune boundaries and slice audio clip"
+                                    >
+                                      <Scissors size={10} className="text-amber-400" />
+                                      <span>Slice</span>
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        handleAddTurnToMontage(
+                                          utterance.speaker,
+                                          utterance.text,
+                                          utterance.startSec,
+                                          utterance.endSec,
+                                          mp3Asset?.browser_download_url,
+                                          selectedRelease?.name,
+                                          selectedRelease?.tag_name
+                                        );
+                                      }}
+                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 cursor-pointer"
+                                      title="Add turn to Montage Reel Builder"
+                                    >
+                                      <Film size={10} className="text-purple-400" />
+                                      <span>+ Reel</span>
+                                    </button>
+
                                     {typeof utterance.confidence === 'number' && (
                                       <span className={`text-[10px] font-mono ${utterance.confidence >= 0.9 ? 'text-emerald-500' : utterance.confidence >= 0.75 ? 'text-amber-500' : 'text-rose-400'}`}
                                         title="Confidence score">{(utterance.confidence * 100).toFixed(0)}%</span>
@@ -3304,6 +4349,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           </div>
         </div>
       )}
+
+      {/* Interactive In-Browser Audio Slicer Modal */}
+      <AudioSlicerModal
+        isOpen={isSlicerOpen}
+        onClose={() => setIsSlicerOpen(false)}
+        target={slicerTarget}
+      />
     </div>
   );
 };

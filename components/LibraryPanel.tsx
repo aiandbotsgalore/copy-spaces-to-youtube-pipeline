@@ -86,7 +86,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
-  const hasCredentials = !!(config.githubToken && owner && repo);
+  const hasCredentials = !!(owner && repo);
 
   const fetchLibrary = useCallback(async () => {
     if (!hasCredentials) return;

@@ -43,14 +43,18 @@ function setupProxyMiddlewares(middlewares: any) {
       return;
     }
     try {
-      let body = '';
-      req.on('data', (chunk: any) => { body += chunk; });
+      const chunks: Buffer[] = [];
+      req.on('data', (chunk: any) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
       req.on('end', async () => {
         try {
+          const binaryBody = Buffer.concat(chunks);
           const uploadUrl = `https://uploads.github.com/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${encodeURIComponent(name)}`;
           const headers: Record<string, string> = {
             'User-Agent': 'SpacePipe-Asset-Proxy',
-            'Content-Type': req.headers['content-type'] || 'text/plain; charset=utf-8',
+            'Content-Type': req.headers['content-type'] || 'application/octet-stream',
+            'Content-Length': String(binaryBody.length),
             Accept: 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28',
           };
@@ -58,7 +62,7 @@ function setupProxyMiddlewares(middlewares: any) {
           const upstreamRes = await fetch(uploadUrl, {
             method: 'POST',
             headers,
-            body,
+            body: binaryBody,
           });
           res.statusCode = upstreamRes.status;
           const respText = await upstreamRes.text();

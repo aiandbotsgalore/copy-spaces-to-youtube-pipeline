@@ -168,6 +168,10 @@ on:
         required: false
         type: boolean
         default: false
+      release_tag:
+        description: 'Existing Release Tag for a pre-staged local audio upload (skips yt-dlp)'
+        required: false
+        type: string
 
 # Prevent race conditions during RSS deployment
 concurrency:
@@ -212,6 +216,7 @@ jobs:
         id: process
         env:
           MANUAL_URL: \${{ inputs.space_url }}
+          MANUAL_RELEASE_TAG: \${{ inputs.release_tag }}
           RECORD_LIVE: \${{ inputs.record_live }}
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: \${{ github.repository }}
@@ -227,7 +232,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
       - name: Dequeue Processed Item
-        if: success() && inputs.space_url == ''
+        if: success() && inputs.space_url == '' && inputs.release_tag == ''
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -243,7 +248,7 @@ jobs:
 
 
       - name: Create Release
-        if: success() && steps.process.outputs.already_exists != 'true'
+        if: success() && steps.process.outputs.already_exists != 'true' && inputs.release_tag == ''
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # v2.2.1
         with:
           tag_name: \${{ steps.process.outputs.release_tag }}

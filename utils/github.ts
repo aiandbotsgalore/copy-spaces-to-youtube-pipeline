@@ -68,16 +68,18 @@ async function ghFetch(token: string, path: string, options: RequestInit = {}) {
   const url = path.startsWith('http') ? path : `${BASE}${path}`;
   const method = (options.method || 'GET').toUpperCase();
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
     ...(options.headers as Record<string, string> || {}),
   };
+  if (token && token.trim()) {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
+  }
   if (options.body && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const cacheKey = `${token.slice(-6)}:${url}`;
+  const cacheKey = `${(token || 'anon').slice(-6)}:${url}`;
   const isGet = method === 'GET';
 
   if (isGet && ETAG_CACHE.has(cacheKey)) {
@@ -457,15 +459,96 @@ export async function deleteRelease(token: string, owner: string, repo: string, 
   clearReleasesCache(owner, repo);
 }
 
+export async function createOrUpdateRelease(
+  token: string,
+  owner: string,
+  repo: string,
+  options: {
+    tag_name: string;
+    name: string;
+    body: string;
+    draft?: boolean;
+    prerelease?: boolean;
+  }
+): Promise<Release> {
+  const encodedOwner = encodeURIComponent(owner);
+  const encodedRepo = encodeURIComponent(repo);
+  const createRes = await ghFetch(token, `/repos/${encodedOwner}/${encodedRepo}/releases`, {
+    method: 'POST',
+    body: JSON.stringify({
+      tag_name: options.tag_name,
+      name: options.name,
+      body: options.body,
+      draft: options.draft ?? false,
+      prerelease: options.prerelease ?? false,
+      make_latest: 'true',
+    }),
+  });
+  assertNotRateLimited(createRes);
+
+  if (createRes.ok) {
+    clearReleasesCache(owner, repo);
+    return createRes.json();
+  }
+
+  // If tag already exists (422), fetch existing release by tag and update it
+  if (createRes.status === 422) {
+    const getRes = await ghFetch(
+      token,
+      `/repos/${encodedOwner}/${encodedRepo}/releases/tags/${encodeURIComponent(options.tag_name)}`
+    );
+    assertNotRateLimited(getRes);
+    if (getRes.ok) {
+      const existing = await getRes.json() as Release;
+      const patchRes = await ghFetch(
+        token,
+        `/repos/${encodedOwner}/${encodedRepo}/releases/${existing.id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: options.name,
+            body: options.body,
+            draft: options.draft ?? false,
+            prerelease: options.prerelease ?? false,
+          }),
+        }
+      );
+      assertNotRateLimited(patchRes);
+      if (patchRes.ok) {
+        clearReleasesCache(owner, repo);
+        return patchRes.json();
+      }
+      return existing;
+    }
+  }
+
+  throw await githubError(createRes, 'Failed to create GitHub Release.');
+}
+
 export async function uploadReleaseAsset(
   token: string,
   owner: string,
   repo: string,
   releaseId: number,
   assetName: string,
-  content: string,
-  contentType: string = 'text/plain; charset=utf-8'
+  content: string | Blob | ArrayBuffer | Uint8Array,
+  contentType: string = 'text/plain; charset=utf-8',
+  existingAssets?: ReleaseAsset[]
 ): Promise<void> {
+  // Delete any conflicting asset with the same name first so re-uploads succeed cleanly
+  if (existingAssets && existingAssets.length > 0) {
+    const conflict = existingAssets.find(a => a.name === assetName);
+    if (conflict) {
+      try {
+        await ghFetch(token, `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases/assets/${conflict.id}`, {
+          method: 'DELETE',
+        });
+      } catch (e) {
+        console.warn(`Could not delete existing release asset ${assetName}:`, e);
+      }
+    }
+  }
+
   const isLocal = typeof window !== 'undefined' && (
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1' ||
@@ -481,10 +564,18 @@ export async function uploadReleaseAsset(
           Authorization: `Bearer ${token}`,
           'Content-Type': contentType,
         },
-        body: content,
+        body: content as BodyInit,
       });
-      if (res.ok) return;
+      if (res.ok) {
+        clearReleasesCache(owner, repo);
+        return;
+      }
+      const errData = await res.json().catch(() => ({})) as { message?: string };
+      if (res.status === 401 || res.status === 403 || res.status === 422) {
+        throw new GitHubApiError(errData.message || `Failed to upload ${assetName} (${res.status}).`, res.status);
+      }
     } catch (e) {
+      if (e instanceof GitHubApiError) throw e;
       console.warn('Local proxy upload error, falling back:', e);
     }
   }
@@ -498,13 +589,14 @@ export async function uploadReleaseAsset(
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
     },
-    body: content,
+    body: content as BodyInit,
   });
   assertNotRateLimited(res);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { message?: string }).message || `Failed to upload ${assetName} to release.`);
+    throw new GitHubApiError((err as { message?: string }).message || `Failed to upload ${assetName} to release.`, res.status);
   }
+  clearReleasesCache(owner, repo);
 }
 
 export async function updateReleaseTranscriptAssets(

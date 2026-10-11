@@ -1210,7 +1210,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               </div>
               <h4 className="text-sm font-bold text-white">Conversational Heuristics</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                In <code className="text-emerald-300">assemblyai_transcriber.py</code>, registered names seed zero-API self-introduction and vocative address parsers (*"I'm Angela"*, *"Thanks for hosting, Logan"*).
+                In <code className="text-emerald-300">transcribe_and_diarize.py</code>, registered names seed zero-API self-introduction and vocative address parsers (*"I'm Angela"*, *"Thanks for hosting, Logan"*).
               </p>
             </div>
 

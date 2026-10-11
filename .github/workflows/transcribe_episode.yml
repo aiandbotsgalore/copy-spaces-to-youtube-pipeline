@@ -57,7 +57,7 @@ jobs:
           if [ "${{ inputs.force }}" != "false" ]; then
             FORCE_ARG="--force"
           fi
-          python scripts/assemblyai_transcriber.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
+          python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
 
       - name: Rebuild Transcripts Search Index
         if: always() && steps.transcribe_step.outcome == 'success'

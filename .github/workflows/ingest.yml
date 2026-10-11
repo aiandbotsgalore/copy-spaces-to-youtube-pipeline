@@ -16,6 +16,10 @@ on:
         required: false
         type: boolean
         default: false
+      release_tag:
+        description: 'Existing Release Tag for a pre-staged local audio upload (skips yt-dlp)'
+        required: false
+        type: string
 
 # Prevent race conditions during RSS deployment
 concurrency:
@@ -61,6 +65,7 @@ jobs:
         id: process
         env:
           MANUAL_URL: ${{ inputs.space_url }}
+          MANUAL_RELEASE_TAG: ${{ inputs.release_tag }}
           RECORD_LIVE: ${{ inputs.record_live }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -76,7 +81,7 @@ jobs:
           echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
       - name: Dequeue Processed Item
-        if: success() && inputs.space_url == ''
+        if: success() && inputs.space_url == '' && inputs.release_tag == ''
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -94,7 +99,7 @@ jobs:
 
 
       - name: Create Release
-        if: success() && steps.process.outputs.already_exists != 'true'
+        if: success() && steps.process.outputs.already_exists != 'true' && inputs.release_tag == ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.process.outputs.release_tag }}
@@ -120,6 +125,52 @@ jobs:
             METADATA::YOUTUBE_STATUS::UNLISTED
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Finalize Staged Local Upload Release
+        if: success() && steps.process.outputs.already_exists != 'true' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          REL_TAG: ${{ steps.process.outputs.release_tag }}
+          DURATION: ${{ steps.duration.outputs.duration }}
+          NEEDS_UPLOAD: ${{ steps.process.outputs.needs_release_upload }}
+        run: |
+          python3 - <<'PYEOF'
+          import os, re, json, urllib.request
+          token = os.environ["GH_TOKEN"]
+          repo = os.environ["REPO"]
+          tag = os.environ["REL_TAG"]
+          dur = os.environ.get("DURATION", "00:00:00")
+          headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "User-Agent": "SpacePipe-Ingest"
+          }
+          url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
+          with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30.0) as r:
+            rel = json.loads(r.read())
+          body = rel.get("body") or ""
+          if dur and dur != "00:00:00":
+            if "METADATA::DURATION::" in body:
+              body = re.sub(r"METADATA::DURATION::\S+", f"METADATA::DURATION::{dur}", body)
+            else:
+              body = body.rstrip() + f"\nMETADATA::DURATION::{dur}\n"
+            body = re.sub(r"\*\*Duration:\*\*\s*\S+", f"**Duration:** {dur}", body)
+            patch_url = f"https://api.github.com/repos/{repo}/releases/{rel['id']}"
+            patch_req = urllib.request.Request(
+              patch_url,
+              data=json.dumps({"body": body}).encode("utf-8"),
+              headers=headers,
+              method="PATCH"
+            )
+            urllib.request.urlopen(patch_req, timeout=30.0).read()
+            print(f"Updated staged release {tag} duration to {dur}")
+          PYEOF
+          if [[ "$NEEDS_UPLOAD" == "true" ]]; then
+            echo "Uploading normalized/split MP3 assets to release $REL_TAG..."
+            gh release upload "$REL_TAG" work/*.mp3 --clobber
+          fi
 
       - name: Trigger GPU Transcription on Local Runner
         if: success() && steps.process.outputs.already_exists != 'true'

@@ -45,10 +45,11 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
   const hasCredentials = !!(config.githubToken && owner && repo);
+  const hasRepo = !!(owner && repo);
   const rssUrl = owner && repo ? `https://${owner}.github.io/${repo}/podcast.xml` : '';
 
   const loadReleases = useCallback(async () => {
-    if (!hasCredentials) return;
+    if (!hasRepo) return;
     setReleasesLoading(true);
     setReleasesError('');
     try {
@@ -59,7 +60,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     } finally {
       setReleasesLoading(false);
     }
-  }, [config.githubToken, owner, repo, hasCredentials]);
+  }, [config.githubToken, owner, repo, hasRepo]);
 
   useEffect(() => { loadReleases(); }, [loadReleases]);
 

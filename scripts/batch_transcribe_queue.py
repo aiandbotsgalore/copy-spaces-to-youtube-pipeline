@@ -375,7 +375,7 @@ def main():
         name = item["name"]
         print(f"\n>>> [{idx}/{len(to_process)}] Transcribing: {tag} ({name})...")
 
-        cmd = [sys.executable, "scripts/assemblyai_transcriber.py", "--release-tag", tag]
+        cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag]
         start_time = time.time()
         try:
             res = subprocess.run(cmd, capture_output=True, text=True)

@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
+import { MontageProvider } from './contexts/MontageContext';
+import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { saveConfig, loadConfig, loadStoredToken, saveToken } from './utils/storage';
@@ -106,11 +108,11 @@ class PanelErrorBoundary extends (Component as any) {
 }
 
 const DEFAULT_CONFIG: EnhancedConfig = {
-  repoName: 'spaces-pipeline',
-  ownerName: '',
-  podcastTitle: 'My Space Archive',
+  repoName: 'copy-spaces-to-youtube-pipeline',
+  ownerName: 'aiandbotsgalore',
+  podcastTitle: "Logan Black's X-Space",
   podcastDescription: 'Curated audio and transcripts archive of Twitter Spaces',
-  authorName: 'Archive Curator',
+  authorName: 'Logan Black',
   email: 'curator@example.com',
   imageUrl: '',
   githubToken: '',
@@ -324,7 +326,8 @@ export default function App() {
 
   return (
     <PlayerProvider>
-    <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
+      <MontageProvider>
+        <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-64 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0">
         {/* Logo */}
@@ -746,7 +749,9 @@ export default function App() {
         </PanelErrorBoundary>
       </main>
       <PlayerBar />
+      <MontageReelDrawer />
     </div>
+    </MontageProvider>
     </PlayerProvider>
   );
 }

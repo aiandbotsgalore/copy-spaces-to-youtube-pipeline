@@ -134,7 +134,11 @@ Transcript:
 {transcript_text}
 """
 
-    models_to_try = ["google/gemini-2.5-flash", "openai/gpt-4o-mini"]
+    models_to_try = [
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "google/gemma-4-31b-it:free",
+        "openrouter/free"
+    ]
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
@@ -142,16 +146,20 @@ Transcript:
 
     for model_name in models_to_try:
         try:
-            print(f"[*] Analyzing highlights with OpenRouter ({model_name})...", flush=True)
+            print(f"[*] Analyzing highlights with OpenRouter Free ({model_name})...", flush=True)
             payload = {
                 "model": model_name,
                 "messages": [{"role": "user", "content": prompt}],
-                "response_format": {"type": "json_object"}
+                "max_tokens": 1500
             }
             resp = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=90)
             if resp.status_code == 200:
                 data = resp.json()
                 content = data["choices"][0]["message"]["content"]
+                if "```" in content:
+                    m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                    if m:
+                        content = m.group(1).strip()
                 parsed = json.loads(content)
                 raw_clips = parsed.get("clips") or []
                 clean_clips = []
@@ -168,7 +176,7 @@ Transcript:
                             "transcript_snippet": str(c.get("transcript_snippet", ""))
                         })
                 if clean_clips:
-                    print(f"[✓] OpenRouter ({model_name}) extracted {len(clean_clips)} moments!", flush=True)
+                    print(f"[✓] OpenRouter Free ({model_name}) extracted {len(clean_clips)} moments!", flush=True)
                     return clean_clips
             else:
                 print(f"[!] OpenRouter notice ({resp.status_code}): {resp.text[:150]}", flush=True)
@@ -271,67 +279,78 @@ def call_gemini_highlight_discovery(
     limit: int = 5,
     category_filter: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Uses OpenRouter or Gemini Flash to identify the top entertaining clips."""
-    # 1. Try OpenRouter first if available
+    """Uses Free Cohere API or OpenRouter Free models to identify the top entertaining clips."""
+    # 1. Try Cohere Free API first if available
+    cohere_key = os.environ.get("COHERE_API_KEY")
+    if cohere_key:
+        filter_instruction = ""
+        if category_filter and category_filter.lower() != "all":
+            filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+        prompt = f"""You are an expert audio podcast producer and viral clip curator.
+Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
+Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
+Each clip should be 20 to 90 seconds long.
+{filter_instruction}
+
+Return ONLY a valid JSON object with a single "clips" array containing dictionaries with keys:
+"title", "category", "start_seconds", "end_seconds", "speakers", "viral_score", "reason", "transcript_snippet".
+
+Transcript:
+{transcript_text}"""
+
+        for cohere_model in ["command-r-plus-08-2024", "command-r-08-2024"]:
+            try:
+                print(f"[*] Analyzing highlights with Cohere Free ({cohere_model})...", flush=True)
+                resp = requests.post(
+                    "https://api.cohere.com/v2/chat",
+                    headers={
+                        "Authorization": f"Bearer {cohere_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": cohere_model,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "temperature": 0.3
+                    },
+                    timeout=90
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    content_items = data.get("message", {}).get("content", [])
+                    content = "".join(c.get("text", "") for c in content_items if isinstance(c, dict)).strip()
+                    if "```" in content:
+                        m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                        if m:
+                            content = m.group(1).strip()
+                    parsed = json.loads(content)
+                    raw_clips = parsed.get("clips") or []
+                    clean_clips = []
+                    for c in raw_clips:
+                        if "start_seconds" in c and "end_seconds" in c and float(c["end_seconds"]) > float(c["start_seconds"]):
+                            clean_clips.append({
+                                "title": str(c.get("title", "Highlight Clip")),
+                                "category": normalize_category(str(c.get("category", "Humor & Banter"))),
+                                "start_seconds": float(c["start_seconds"]),
+                                "end_seconds": float(c["end_seconds"]),
+                                "speakers": list(c.get("speakers", [])),
+                                "viral_score": int(c.get("viral_score", 8)),
+                                "reason": str(c.get("reason", "Entertaining dialogue")),
+                                "transcript_snippet": str(c.get("transcript_snippet", ""))
+                            })
+                    if clean_clips:
+                        print(f"[✓] Cohere Free ({cohere_model}) extracted {len(clean_clips)} moments!", flush=True)
+                        return clean_clips
+                else:
+                    print(f"[!] Cohere notice ({resp.status_code}): {resp.text[:150]}", flush=True)
+            except Exception as e:
+                print(f"[!] Cohere error with {cohere_model}: {e}", flush=True)
+
+    # 2. Try OpenRouter Free models if available
     if os.environ.get("OPENROUTER_API_KEY"):
         or_clips = call_openrouter_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
         if or_clips:
             return or_clips
-
-    # 2. Try Google Gemini Client if available
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    if api_key:
-        try:
-            from google import genai
-            from pydantic import BaseModel, Field
-
-            class HighlightClip(BaseModel):
-                title: str = Field(description="Catchy title")
-                category: str = Field(description="Must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'")
-                start_seconds: float
-                end_seconds: float
-                speakers: List[str]
-                viral_score: int
-                reason: str
-                transcript_snippet: str
-
-            class HighlightDiscoveryResult(BaseModel):
-                clips: List[HighlightClip]
-
-            client = genai.Client(api_key=api_key)
-            filter_instruction = ""
-            if category_filter and category_filter.lower() != "all":
-                filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
-
-            prompt = f"""
-You are an expert audio podcast producer and viral clip curator.
-Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
-Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
-{filter_instruction}
-Transcript:
-{transcript_text}
-"""
-            for model_name in ["gemini-2.5-flash-lite", "gemini-2.5-flash"]:
-                try:
-                    print(f"[*] Analyzing with Gemini ({model_name})...", flush=True)
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                        config={
-                            "response_mime_type": "application/json",
-                            "response_json_schema": HighlightDiscoveryResult.model_json_schema()
-                        }
-                    )
-                    parsed = HighlightDiscoveryResult.model_validate_json(response.text)
-                    return [{**c.model_dump(), "category": normalize_category(c.category)} for c in parsed.clips]
-                except Exception as e:
-                    err_str = str(e)
-                    print(f"[!] {model_name} notice: {e}", flush=True)
-                    if "CONSUMER_SUSPENDED" in err_str or "PERMISSION_DENIED" in err_str or "403" in err_str:
-                        print(f"[!] Gemini direct API key suspended or permission denied. Trying fallbacks...", flush=True)
-                        break
-        except Exception as e:
-            print(f"[!] Direct Gemini exception: {e}", flush=True)
 
     return []
 
