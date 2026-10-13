@@ -74,6 +74,19 @@ ANGELA_SCRIPT_SOURCES/
 └── 📁 scratch/                                 <-- Analysis scratchpads and candidate transcript tests
 ```
 
+### Additional Primary Evidence Archives (Parent Folder)
+The parent directory `C:\Users\Logan\Downloads\sav\angela\evidence` contains 71 primary evidence files organized into 8 clean functional categories (with all 64 redundant duplicate files safely segregated into `_DUPLICATES_AND_REDUNDANT_COPIES/`):
+- `01_PRIMARY_EVIDENCE_DMS_AND_CHATS/` (`Sav Testimony.txt` [**CRITICAL PRIMARY EVIDENCE**: Sav's direct first-person testimony on Lin image, welfare check, family contacts, and screenshot leaks], Discord HTML/PDF exports, raw text messages, Angela-Sav DM logs)
+- `02_COURT_LEGAL_AND_BACKGROUND_RECORDS/` (Court records, Intelius report, background dossier PDFs)
+- `03_TWEET_AND_SOCIAL_ARCHIVES/` (599 tweets CSV, posts CSV, master evidence spreadsheets)
+- `04_RECORDED_CALLS_AND_CONFRONTATIONS/` (Deacon/Angela/Sav/Logan fight transcripts, Ocean call, fallout logs)
+- `05_SPACES_TRANSCRIPTS/` (24 deduplicated Space transcripts where Angela spoke or co-hosted)
+- `06_RESEARCH_NOTES_AND_ANALYSIS/` (1.1MB full dialogue compilation, relationship history, clip indices)
+- `07_EARLIER_SCRIPT_DRAFTS/` (Historical early drafts for reference)
+- `08_AI_STUDIO_LOGS_AND_CHAT_HISTORIES/` (AI Studio and Gemini prompt logs)
+- Master Index: [`EVIDENCE_ORGANIZATION_INDEX.md`](file:///C:/Users/Logan/Downloads/sav/angela/evidence/EVIDENCE_ORGANIZATION_INDEX.md)
+```
+
 ---
 
 ## 4. Absolute Evidentiary Rules & Red Lines (DO NOT VIOLATE)
@@ -139,6 +152,10 @@ The presentation is organized into 10 cohesive scenes:
 ## 6. Audio Production & Assembly Workflow
 
 The assembly system is designed around ElevenLabs voice generation and automated FFmpeg / Python timeline stitching.
+
+> [!IMPORTANT]
+> **TOKEN CONSERVATION & MEDIA HANDLING RULE:**  
+> **Do NOT upload, ingest, or attempt to read binary audio/media files (`.wav`, `.mp3`) into your LLM context.** Ingesting media wastes tokens. All that Codex needs are the **text transcripts**, **timecodes**, **manifests**, and the **filesystem path locations** of where the audio lives. All audio measurements, slicing, and timeline stitching are executed locally on disk via Python scripts (`scripts/prepare_assembly.py`, `scripts/cut_special_clips.py`) without consuming context tokens.
 
 ### 6.1 Narration Generation Protocol
 - **Script Source:** [`LOGAN_NARRATION_SCRIPT.md`](file:///C:/Users/Logan/Downloads/sav/angela/evidence/ANGELA_SCRIPT_SOURCES/LOGAN_NARRATION_SCRIPT.md)

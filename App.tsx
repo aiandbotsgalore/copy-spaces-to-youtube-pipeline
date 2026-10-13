@@ -3,7 +3,7 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Loader2
+  Film, Loader2
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
@@ -20,6 +20,7 @@ const SubmitSpacePanel = React.lazy(() => import('./components/SubmitSpacePanel'
 const LibraryPanel = React.lazy(() => import('./components/LibraryPanel'));
 const TranscriptPanel = React.lazy(() => import('./components/TranscriptPanel'));
 const ClipsPanel = React.lazy(() => import('./components/ClipsPanel').then(m => ({ default: m.ClipsPanel })));
+const MontageStudio = React.lazy(() => import('./components/MontageStudio'));
 const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
 const RunHistory = React.lazy(() => import('./components/RunHistory'));
 const RSSPreview = React.lazy(() => import('./components/RSSPreview'));
@@ -201,6 +202,7 @@ type Panel =
   | 'library'
   | 'transcripts'
   | 'clips'
+  | 'montage'
   | 'voice-profiles'
   | `file:${string}`;
 
@@ -382,6 +384,14 @@ export default function App() {
                 active={activePanel === 'clips'}
                 onClick={() => setActivePanel('clips')}
                 badge="AI"
+                badgeColor="bg-amber-500/20 text-amber-400"
+              />
+              <NavItem
+                icon={<Film size={15} />}
+                label="Montage Studio"
+                active={activePanel === 'montage'}
+                onClick={() => setActivePanel('montage')}
+                badge="Studio"
                 badgeColor="bg-amber-500/20 text-amber-400"
               />
               <NavItem
@@ -734,6 +744,10 @@ export default function App() {
 
         {activePanel === 'clips' && (
           <ClipsPanel config={config} />
+        )}
+
+        {activePanel === 'montage' && (
+          <MontageStudio config={config} />
         )}
 
         {activePanel === 'voice-profiles' && (

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
-import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers } from '../utils/wavEncoder';
+import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 
 export interface MontageClipItem {
@@ -9,12 +9,18 @@ export interface MontageClipItem {
   speaker: string;
   sourceTitle: string;
   sourceTag?: string;
+  sourceDate?: string;
   audioUrl?: string;
   startSec: number;
   endSec: number;
-  category?: 'insult' | 'character' | 'abuse' | 'sexual' | 'criminal' | 'threat' | 'other';
+  category?: string;
   severity?: number; // 1-10
+  quoteId?: string; // e.g. AQ-0002, D02, R02
+  status?: 'EXISTS' | 'READY_FOR_EXTRACTION' | 'SOURCE_NOT_AVAILABLE';
+  isExcluded?: boolean;
 }
+
+export type AutoCuratorMode = 'escalation' | 'chronological' | 'target_fit';
 
 interface MontageContextType {
   clips: MontageClipItem[];
@@ -25,14 +31,23 @@ interface MontageContextType {
   addClip: (clip: Omit<MontageClipItem, 'id'> & { id?: string }) => void;
   removeClip: (id: string) => void;
   moveClip: (id: string, direction: 'up' | 'down') => void;
+  reorderClips: (startIndex: number, endIndex: number) => void;
+  nudgeClipStart: (id: string, deltaSec: number) => void;
+  nudgeClipEnd: (id: string, deltaSec: number) => void;
   clearClips: () => void;
   gapSeconds: number;
   setGapSeconds: (sec: number) => void;
+  targetDurationSec: number;
+  setTargetDurationSec: (sec: number) => void;
   normalizeAudio: boolean;
   setNormalizeAudio: (val: boolean) => void;
   antiClickFades: boolean;
   setAntiClickFades: (val: boolean) => void;
-  sortByEscalation: () => void;
+  blacklistedQuoteIds: string[];
+  toggleBlacklist: (quoteIdOrText: string) => void;
+  isBlacklisted: (quoteIdOrText: string) => boolean;
+  autoCurate: (mode: AutoCuratorMode, availablePool: MontageClipItem[], customTargetSec?: number) => void;
+  sortByEscalation?: () => void;
   isAuditioning: boolean;
   currentAuditionIndex: number;
   startAudition: () => void;
@@ -47,21 +62,37 @@ interface MontageContextType {
 
 const MontageContext = createContext<MontageContextType | null>(null);
 
-const STORAGE_KEY = 'spacepipe_montage_clips_v1';
-const GAP_KEY = 'spacepipe_montage_gap_v1';
-const NORMALIZE_KEY = 'spacepipe_montage_norm_v1';
-const ANTICLICK_KEY = 'spacepipe_montage_anticlick_v1';
+const STORAGE_KEY = 'spacepipe_montage_clips_v2';
+const GAP_KEY = 'spacepipe_montage_gap_v2';
+const TARGET_DURATION_KEY = 'spacepipe_montage_target_dur_v2';
+const NORMALIZE_KEY = 'spacepipe_montage_norm_v2';
+const ANTICLICK_KEY = 'spacepipe_montage_anticlick_v2';
+const BLACKLIST_KEY = 'spacepipe_montage_blacklist_v2';
 
-// Preset category rank for escalating arc:
-// 1. insults -> 2. character -> 3. abuse -> 4. sexual/predatory -> 5. criminal/threat
-const CATEGORY_ESCALATION_WEIGHT: Record<string, number> = {
-  insult: 10,
-  character: 20,
-  abuse: 30,
-  sexual: 40,
-  criminal: 50,
-  threat: 60,
-  other: 25,
+// Editorial Rule: Hard exclusion string that must never appear in auto-montage sequences
+export const HARD_EXCLUDE_PHRASE = 'defended him relentlessly';
+
+/**
+ * Editorial Priority & Escalation Weights:
+ * 1. Background / Context (10-20)
+ * 2. Core Allegations / Direct Accusations (30-40)
+ * 3. Retaliation / Scorched Earth / Disclosures / Legal (50-60)
+ */
+export const getCategoryEscalationWeight = (cat?: string): number => {
+  const c = (cat || '').toLowerCase();
+  if (c.includes('retaliation') || c.includes('scorched') || c.includes('threat') || c.includes('doxx') || c.includes('lawsuit')) {
+    return 60;
+  }
+  if (c.includes('allegation') || c.includes('predator') || c.includes('abuse') || c.includes('nude') || c.includes('criminal')) {
+    return 40;
+  }
+  if (c.includes('evidence') || c.includes('method') || c.includes('dossier') || c.includes('archive') || c.includes('recording')) {
+    return 30;
+  }
+  if (c.includes('friend') || c.includes('alliance') || c.includes('context') || c.includes('self-definition') || c.includes('history')) {
+    return 15;
+  }
+  return 25;
 };
 
 export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -77,9 +108,18 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [gapSeconds, setGapSecondsState] = useState<number>(() => {
     try {
       const saved = localStorage.getItem(GAP_KEY);
-      return saved ? parseFloat(saved) : 0.5;
+      return saved ? parseFloat(saved) : 0.35;
     } catch {
-      return 0.5;
+      return 0.35;
+    }
+  });
+
+  const [targetDurationSec, setTargetDurationSecState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(TARGET_DURATION_KEY);
+      return saved ? parseFloat(saved) : 90;
+    } catch {
+      return 90;
     }
   });
 
@@ -101,6 +141,18 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
+  const [blacklistedQuoteIds, setBlacklistedQuoteIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(BLACKLIST_KEY);
+      const parsed = saved ? JSON.parse(saved) : [];
+      // Always ensure the hard excluded phrase/ID is in blacklist
+      if (!parsed.includes('AQ-0269')) parsed.push('AQ-0269');
+      return parsed;
+    } catch {
+      return ['AQ-0269'];
+    }
+  });
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAuditioning, setIsAuditioning] = useState(false);
   const [currentAuditionIndex, setCurrentAuditionIndex] = useState(0);
@@ -119,10 +171,23 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [clips]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(BLACKLIST_KEY, JSON.stringify(blacklistedQuoteIds));
+    } catch {}
+  }, [blacklistedQuoteIds]);
+
   const setGapSeconds = (sec: number) => {
     setGapSecondsState(sec);
     try {
       localStorage.setItem(GAP_KEY, String(sec));
+    } catch {}
+  };
+
+  const setTargetDurationSec = (sec: number) => {
+    setTargetDurationSecState(sec);
+    try {
+      localStorage.setItem(TARGET_DURATION_KEY, String(sec));
     } catch {}
   };
 
@@ -140,6 +205,23 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch {}
   };
 
+  const toggleBlacklist = useCallback((key: string) => {
+    setBlacklistedQuoteIds(prev => {
+      if (prev.includes(key)) {
+        return prev.filter(k => k !== key);
+      } else {
+        return [...prev, key];
+      }
+    });
+  }, []);
+
+  const isBlacklisted = useCallback((key: string) => {
+    if (!key) return false;
+    const lower = key.toLowerCase();
+    if (lower.includes(HARD_EXCLUDE_PHRASE.toLowerCase())) return true;
+    return blacklistedQuoteIds.includes(key);
+  }, [blacklistedQuoteIds]);
+
   const openDrawer = () => setIsDrawerOpen(true);
   const closeDrawer = () => setIsDrawerOpen(false);
   const toggleDrawer = () => setIsDrawerOpen(prev => !prev);
@@ -147,8 +229,10 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const addClip = useCallback((clipData: Omit<MontageClipItem, 'id'> & { id?: string }) => {
     const newId = clipData.id || `montage_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     setClips(prev => {
-      // Check if duplicate
-      if (prev.some(c => c.id === newId)) return prev;
+      // Check if duplicate ID or matching identical quote
+      if (prev.some(c => c.id === newId || (clipData.quote && c.quote === clipData.quote))) {
+        return prev;
+      }
       return [...prev, { ...clipData, id: newId }];
     });
     setIsDrawerOpen(true);
@@ -172,25 +256,118 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, []);
 
+  const reorderClips = useCallback((startIndex: number, endIndex: number) => {
+    setClips(prev => {
+      if (startIndex < 0 || startIndex >= prev.length || endIndex < 0 || endIndex >= prev.length) {
+        return prev;
+      }
+      const next = [...prev];
+      const [removed] = next.splice(startIndex, 1);
+      next.splice(endIndex, 0, removed);
+      return next;
+    });
+  }, []);
+
+  // Fine-tune nudge micro-controls (+/- 0.1s and +/- 0.5s)
+  const nudgeClipStart = useCallback((id: string, deltaSec: number) => {
+    setClips(prev =>
+      prev.map(c => {
+        if (c.id !== id) return c;
+        const newStart = Math.max(0, parseFloat((c.startSec + deltaSec).toFixed(2)));
+        if (newStart >= c.endSec - 0.2) return c; // maintain min 0.2s duration
+        return { ...c, startSec: newStart };
+      })
+    );
+  }, []);
+
+  const nudgeClipEnd = useCallback((id: string, deltaSec: number) => {
+    setClips(prev =>
+      prev.map(c => {
+        if (c.id !== id) return c;
+        const newEnd = Math.max(c.startSec + 0.2, parseFloat((c.endSec + deltaSec).toFixed(2)));
+        return { ...c, endSec: newEnd };
+      })
+    );
+  }, []);
+
   const clearClips = useCallback(() => {
     stopAudition();
     setClips([]);
   }, []);
 
-  const sortByEscalation = useCallback(() => {
-    setClips(prev => {
-      return [...prev].sort((a, b) => {
-        const catA = CATEGORY_ESCALATION_WEIGHT[a.category || 'other'] || 25;
-        const catB = CATEGORY_ESCALATION_WEIGHT[b.category || 'other'] || 25;
-        if (catA !== catB) return catA - catB;
-        const sevA = a.severity || 5;
-        const sevB = b.severity || 5;
-        return sevA - sevB;
-      });
-    });
-  }, []);
+  /**
+   * Auto-Curator Modes:
+   * - Dramatic Escalation: Context/Background -> Core Allegations -> Retaliation/Disclosures
+   * - Chronological Arc: Sorts by source recording date and timestamp
+   * - Target Duration Fit: Greedily selects highest-priority non-excluded clips to fit target window
+   */
+  const autoCurate = useCallback((
+    mode: AutoCuratorMode,
+    availablePool: MontageClipItem[],
+    customTargetSec?: number
+  ) => {
+    stopAudition();
+    const targetSec = customTargetSec || targetDurationSec;
 
-  // Audition playback engine
+    // Filter out blacklisted and hard-excluded clips
+    const validPool = availablePool.filter(c => {
+      if (c.quote && c.quote.toLowerCase().includes(HARD_EXCLUDE_PHRASE.toLowerCase())) return false;
+      if (c.quoteId && isBlacklisted(c.quoteId)) return false;
+      if (c.id && isBlacklisted(c.id)) return false;
+      if (c.isExcluded) return false;
+      return true;
+    });
+
+    if (validPool.length === 0) return;
+
+    let selected: MontageClipItem[] = [];
+
+    if (mode === 'escalation') {
+      // Sort by narrative escalation weight, then severity
+      selected = [...validPool].sort((a, b) => {
+        const weightA = getCategoryEscalationWeight(a.category);
+        const weightB = getCategoryEscalationWeight(b.category);
+        if (weightA !== weightB) return weightA - weightB;
+        return (b.severity || 5) - (a.severity || 5);
+      });
+    } else if (mode === 'chronological') {
+      // Sort by sourceDate (YYYY-MM-DD) and startSec
+      selected = [...validPool].sort((a, b) => {
+        const dateA = a.sourceDate || '2026-09-01';
+        const dateB = b.sourceDate || '2026-09-01';
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
+        return a.startSec - b.startSec;
+      });
+    } else if (mode === 'target_fit') {
+      // Prioritize high-impact consequential quotes (Direct Allegation & Retaliation)
+      const ranked = [...validPool].sort((a, b) => {
+        const weightA = getCategoryEscalationWeight(a.category);
+        const weightB = getCategoryEscalationWeight(b.category);
+        if (weightA !== weightB) return weightB - weightA;
+        return (b.severity || 5) - (a.severity || 5);
+      });
+
+      // Fit into targetSec with gap buffer
+      let accumulatedSec = 0;
+      for (const item of ranked) {
+        const dur = Math.max(0.5, item.endSec - item.startSec);
+        const nextTotal = accumulatedSec + dur + (selected.length > 0 ? gapSeconds : 0);
+        if (nextTotal <= targetSec + 2.0) { // allow small 2s tolerance
+          selected.push(item);
+          accumulatedSec = nextTotal;
+        }
+      }
+
+      // Re-order selected items for a natural narrative flow (Context -> Accusation -> Retaliation)
+      selected.sort((a, b) => getCategoryEscalationWeight(a.category) - getCategoryEscalationWeight(b.category));
+    }
+
+    // Set curated timeline items
+    setClips(selected);
+    setIsDrawerOpen(true);
+  }, [gapSeconds, targetDurationSec, isBlacklisted]);
+
+  // Audition playback engine (streaming & gapless with silence pause)
   const stopAudition = useCallback(() => {
     if (auditionAudioRef.current) {
       auditionAudioRef.current.pause();
@@ -212,7 +389,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurrentAuditionIndex(index);
     const clip = clips[index];
     if (!clip.audioUrl) {
-      // Skip if no audio
+      // Skip if no audio stream
       auditionTimerRef.current = window.setTimeout(() => {
         playClipAtIndex(index + 1);
       }, gapSeconds * 1000);
@@ -230,20 +407,17 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     audio.src = urlToPlay;
     audio.currentTime = Math.max(0, clip.startSec);
 
-    const durationSec = Math.max(1, clip.endSec - clip.startSec);
-
     audio.oncanplay = () => {
       audio.play().catch(e => {
         console.warn('Playback error during audition:', e);
       });
     };
 
-    // Monitor when clip slice ends
     const checkEnd = () => {
       if (audio.currentTime >= clip.endSec) {
         audio.pause();
         audio.removeEventListener('timeupdate', checkEnd);
-        // Pause for gap, then next
+        // Inter-clip silence pause
         auditionTimerRef.current = window.setTimeout(() => {
           playClipAtIndex(index + 1);
         }, gapSeconds * 1000);
@@ -252,7 +426,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     audio.addEventListener('timeupdate', checkEnd);
 
     audio.onerror = () => {
-      console.warn('Audio error on clip', clip.title);
+      console.warn('Audio stream error on clip', clip.title);
       auditionTimerRef.current = window.setTimeout(() => {
         playClipAtIndex(index + 1);
       }, gapSeconds * 1000);
@@ -275,7 +449,6 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     playClipAtIndex(index);
   }, [playClipAtIndex]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (auditionAudioRef.current) {
@@ -287,11 +460,11 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // One-click master WAV export with browser-native Web Audio API stitching
+  // Multi-format Master WAV export via Web Audio API with broadcast loudness matching
   const exportStitchedWav = async () => {
     if (clips.length === 0) return;
     setIsExporting(true);
-    setExportProgress('Initializing audio engine…');
+    setExportProgress('Initializing Web Audio engine…');
 
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -311,7 +484,6 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuf);
 
         // Slice sub-clip if boundaries specified
-        const sliceDuration = c.endSec - c.startSec;
         let finalClipBuffer = fullAudioBuffer;
         if (c.startSec > 0 || (c.endSec > 0 && c.endSec < fullAudioBuffer.duration)) {
           finalClipBuffer = sliceAudioBuffer(audioCtx, fullAudioBuffer, c.startSec, c.endSec);
@@ -319,43 +491,44 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         decodedBuffers.push(finalClipBuffer);
       }
 
-      setExportProgress('Mastering audio (loudness normalization & anti-pop micro-fades)…');
+      setExportProgress('Mastering audio (loudness normalization ~-16 LUFS & anti-click micro-fades)…');
       const masterBuffer = stitchAudioBuffers(audioCtx, decodedBuffers, {
         gapSec: gapSeconds,
         normalizePeak: normalizeAudio,
+        targetLufs: -16.0,
         targetPeakDb: -1.0,
         antiClickFades: antiClickFades,
-        fadeMs: 12,
+        fadeMs: 18,
       });
 
-      setExportProgress('Encoding lossless 16-bit PCM WAV…');
+      setExportProgress('Encoding lossless 16-bit PCM broadcast WAV…');
       const wavBlob = audioBufferToWav(masterBuffer);
 
-      // Trigger download
       const downloadUrl = URL.createObjectURL(wavBlob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `Master_Montage_Escalation_${clips.length}_Clips.wav`;
+      a.download = `Montage_Studio_Master_${clips.length}_Clips.wav`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(downloadUrl);
 
-      setExportProgress('Done!');
+      setExportProgress('Master export complete!');
       setTimeout(() => setIsExporting(false), 1200);
     } catch (err: any) {
       console.error('Failed to export montage WAV:', err);
-      alert(`Export Error: ${err.message || 'Could not fetch or decode audio clip data. Ensure audio URLs allow access.'}`);
+      alert(`Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`);
       setIsExporting(false);
     }
   };
 
   const exportManifestJson = () => {
     const data = {
-      project: 'SpacePipe Investigation Montage Reel',
+      project: 'SpacePipe Investigative Audio Montage Studio',
       created_at: new Date().toISOString(),
       total_clips: clips.length,
       gap_seconds: gapSeconds,
+      target_duration_seconds: targetDurationSec,
       normalize_audio: normalizeAudio,
       anti_click_fades: antiClickFades,
       clips,
@@ -364,11 +537,16 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Montage_Reel_Manifest.json';
+    a.download = 'Montage_Studio_Recipe.json';
     a.click();
     URL.revokeObjectURL(url);
   };
 
+  /**
+   * DAW / Audacity Label Track Export:
+   * Generates a standard labels.txt marker track mapping quote text,
+   * speaker name, and exact timeline timestamps for Audacity / Reaper / Pro Tools.
+   */
   const exportAudacityLabels = () => {
     let currentMarkerTime = 0;
     const lines: string[] = [];
@@ -377,7 +555,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const dur = Math.max(0.5, c.endSec - c.startSec);
       const start = currentMarkerTime;
       const end = currentMarkerTime + dur;
-      const label = `#${idx + 1} [${c.speaker}] ${c.quote.slice(0, 50).replace(/\t/g, ' ')}`;
+      const cleanQuote = (c.quote || c.title).slice(0, 70).replace(/\t/g, ' ').replace(/\n/g, ' ');
+      const label = `#${idx + 1} [${c.speaker}] ${cleanQuote}`;
       lines.push(`${start.toFixed(6)}\t${end.toFixed(6)}\t${label}`);
       currentMarkerTime = end + gapSeconds;
     });
@@ -386,7 +565,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Montage_Audacity_Labels.txt';
+    a.download = 'Montage_Audacity_labels.txt';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -402,14 +581,23 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addClip,
         removeClip,
         moveClip,
+        reorderClips,
+        nudgeClipStart,
+        nudgeClipEnd,
         clearClips,
         gapSeconds,
         setGapSeconds,
+        targetDurationSec,
+        setTargetDurationSec,
         normalizeAudio,
         setNormalizeAudio,
         antiClickFades,
         setAntiClickFades,
-        sortByEscalation,
+        blacklistedQuoteIds,
+        toggleBlacklist,
+        isBlacklisted,
+        autoCurate,
+        sortByEscalation: () => autoCurate('escalation', clips),
         isAuditioning,
         currentAuditionIndex,
         startAudition,
