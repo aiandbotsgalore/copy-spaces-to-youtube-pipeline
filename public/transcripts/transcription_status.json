@@ -6,7 +6,7 @@
   "percent_complete": 81.9,
   "auto_chain_active": false,
   "is_queue_complete": false,
-  "fatal_error": "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com.",
+  "fatal_error": null,
   "failed_episodes": {
     "20260905_1qxvvedveWWxB": {
       "attempts": 9,

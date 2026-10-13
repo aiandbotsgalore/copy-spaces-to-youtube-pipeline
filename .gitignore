@@ -56,4 +56,6 @@ scratch/
 parallel_queue_state.json
 releases.json
 podcast*.xml
+*.zip
+*.lnk
 

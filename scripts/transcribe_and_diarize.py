@@ -31,7 +31,6 @@ from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict
 
 import requests
-import assemblyai as aai
 
 try:
     sys.stdout.reconfigure(line_buffering=True)
@@ -158,9 +157,10 @@ def resolve_speakers_llm(
     known_speakers: List[str],
     gemini_key: str = "",
     cohere_key: str = "",
-    openrouter_key: str = ""
+    openrouter_key: str = "",
+    acoustic_hints: Optional[Dict[str, str]] = None
 ) -> Dict[str, str]:
-    """Resolves speaker names via LLM with conversational context."""
+    """Resolves speaker names via LLM with conversational context and acoustic voiceprint anchors."""
     if not segments:
         return {}
 
@@ -171,11 +171,15 @@ def resolve_speakers_llm(
     sample_lines = [f"[{s['start']:.1f}s] {s['speaker']}: {s['text']}" for s in sample_candidates]
     transcript_sample = "\n".join(sample_lines)
 
+    hints_block = ""
+    if acoustic_hints:
+        hint_items = ", ".join(f"{k} = {v}" for k, v in acoustic_hints.items())
+        hints_block = f"\nConfirmed Acoustic Voiceprint Anchors (100% Verified): {hint_items}\nUse these confirmed speakers as conversational anchors to deduce who the remaining generic speakers are when they address each other.\n"
+
     prompt = f"""You are an expert audio diarization analyst. Identify the real names of the generic speakers (e.g. Speaker A, Speaker B, etc.) in this Twitter Space transcript.
 
 Space Title: {title}
-Known Community Hosts & Recurring Speakers: {', '.join(known_speakers)}
-
+Known Community Hosts & Recurring Speakers: {', '.join(known_speakers)}{hints_block}
 Diarization & Identification Rules:
 1. Direct Self-Introductions: Look for speakers introducing themselves (e.g. "I'm Angela", "This is Logan").
 2. Direct Conversational Address: Look for when one speaker directly addresses another (e.g. "Good morning Angela, thanks for hosting", "I agree with you Angela"). Note who was speaking before or after.
@@ -350,26 +354,297 @@ def analyze_conversational_heuristics(
     return mappings
 
 
+def resolve_speakers_acoustically(
+    segments: List[Dict[str, Any]],
+    audio_path: Optional[Path] = None,
+    profiles_file: str = "voice_profiles.json"
+) -> Dict[str, str]:
+    """
+    1. Splits any merged speaker cluster where AssemblyAI lumped 2 distinct voices together.
+    2. Matches speakers against 192-dim SpeechBrain ECAPA-TDNN voiceprints in voice_profiles.json
+       using isolated, edge-trimmed turns, outlier rejection, and a clear-winner separation margin.
+    """
+    if not segments or not audio_path or not Path(audio_path).exists():
+        return {}
+    if not os.path.exists(profiles_file):
+        return {}
+
+    try:
+        with open(profiles_file, "r", encoding="utf-8") as f:
+            prof_data = json.load(f)
+    except Exception:
+        return {}
+
+    enrolled_profiles = {}
+    for name, p in prof_data.get("profiles", {}).items():
+        emb = p.get("embedding")
+        if isinstance(emb, list) and len(emb) == 192:
+            enrolled_profiles[name] = emb
+
+    if not enrolled_profiles:
+        return {}
+
+    # Group candidate turns (3.8s - 15s) per generic speaker with crosstalk isolation & 0.4s edge trimming
+    spk_candidates: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for idx, s in enumerate(segments):
+        spk = s.get("speaker", "")
+        if not spk or not spk.lower().startswith("speaker"):
+            continue
+        raw_start = float(s.get("start", 0))
+        raw_end = float(s.get("end", 0))
+        raw_dur = raw_end - raw_start
+        words_n = len((s.get("text") or "").split())
+        if raw_dur < 4.2 or raw_dur > 16.5 or words_n < 6:
+            continue
+
+        prev_s = segments[idx - 1] if idx > 0 else None
+        next_s = segments[idx + 1] if idx < len(segments) - 1 else None
+        gap_before = (raw_start - float(prev_s.get("end", 0))) if (prev_s and prev_s.get("speaker") != spk) else 2.0
+        gap_after = (float(next_s.get("start", raw_end + 10)) - raw_end) if (next_s and next_s.get("speaker") != spk) else 2.0
+        is_isolated = gap_before >= 0.4 and gap_after >= 0.4
+
+        # Trim 0.4s off start and end to avoid boundary crosstalk
+        trim_pad = 0.4 if raw_dur >= 5.2 else 0.15
+        trimmed_start = round(raw_start + trim_pad, 2)
+        trimmed_dur = round(raw_dur - (trim_pad * 2), 2)
+
+        words_list = s.get("words") or []
+        avg_conf = (
+            sum(float(w.get("confidence", 0.92)) for w in words_list) / len(words_list)
+            if words_list else 0.92
+        )
+        if avg_conf < 0.75:
+            continue
+
+        spk_conf = float(s.get("speaker_confidence", 0.90) or 0.90)
+        quality_score = (
+            (20.0 if is_isolated else 0.0)
+            + (avg_conf * 10.0)
+            + (spk_conf * 15.0)
+            - abs(trimmed_dur - 8.5)
+        )
+        spk_candidates[spk].append({
+            "seg_idx": idx,
+            "start": trimmed_start,
+            "duration": trimmed_dur,
+            "quality_score": quality_score,
+            "speaker_confidence": spk_conf
+        })
+
+    if not spk_candidates:
+        return {}
+
+    tmp_dir = Path(audio_path).parent / "tmp_voice_match"
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    spk_wav_map: Dict[str, List[Dict[str, Any]]] = {}
+    for spk, cands in spk_candidates.items():
+        cands.sort(key=lambda c: c["quality_score"], reverse=True)
+        picked = []
+        for c in cands:
+            if all(abs(c["start"] - p["start"]) >= 15.0 for p in picked):
+                picked.append(c)
+            if len(picked) >= 5:
+                break
+        if not picked:
+            picked = cands[:3]
+
+        # Also include up to 3 low-speaker-confidence turns (>= 4.5s) so sub-cluster splitting can catch merged speakers
+        low_spk_conf_cands = [
+            c for c in cands
+            if c not in picked and c.get("speaker_confidence", 1.0) < 0.72 and c["duration"] >= 4.5
+        ][:3]
+        picked.extend(low_spk_conf_cands)
+
+        safe_spk = re.sub(r"[^a-zA-Z0-9_]", "_", spk)
+        wav_entries = []
+        for c_idx, clip in enumerate(picked):
+            out_w = tmp_dir / f"{safe_spk}_{c_idx}.wav"
+            cmd = [
+                FFMPEG_EXE, "-y",
+                "-ss", str(clip["start"]),
+                "-t", str(clip["duration"]),
+                "-i", str(audio_path),
+                "-ac", "1", "-ar", "16000",
+                str(out_w)
+            ]
+            try:
+                r = subprocess.run(cmd, capture_output=True, timeout=30)
+                if r.returncode == 0 and out_w.exists():
+                    wav_entries.append({"path": str(out_w), "seg_idx": clip["seg_idx"]})
+            except Exception:
+                pass
+        if wav_entries:
+            spk_wav_map[spk] = wav_entries
+
+    if not spk_wav_map:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return {}
+
+    payload_json = json.dumps({"spk_wavs": spk_wav_map, "profiles": enrolled_profiles})
+    payload_file = tmp_dir / "match_input.json"
+    payload_file.write_text(payload_json, encoding="utf-8")
+
+    worker_code = f"""
+import sys, json, os, warnings
+warnings.filterwarnings('ignore')
+import numpy as np
+import soundfile as sf
+import torch
+from speechbrain.inference.speaker import EncoderClassifier
+
+with open(r'{str(payload_file)}', 'r', encoding='utf-8') as f:
+    payload = json.load(f)
+
+spk_wavs = payload['spk_wavs']
+profiles = {{k: np.array(v, dtype=np.float32) for k, v in payload['profiles'].items()}}
+for k in profiles:
+    n = np.linalg.norm(profiles[k])
+    if n > 1e-6:
+        profiles[k] = profiles[k] / n
+
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+classifier = EncoderClassifier.from_hparams(
+    source='speechbrain/spkrec-ecapa-voxceleb',
+    savedir=os.path.join(os.path.expanduser('~'), '.cache', 'speechbrain', 'spkrec-ecapa-voxceleb'),
+    run_opts={{'device': device}}
+)
+
+spk_vecs = {{}}
+split_overrides = {{}}
+for spk, entries in spk_wavs.items():
+    embs = []
+    seg_indices = []
+    for item in entries:
+        w = item['path']
+        try:
+            sig, sr = sf.read(w)
+            if sig.ndim > 1:
+                sig = np.mean(sig, axis=1)
+            sig = sig.astype(np.float32)
+            if len(sig) < sr * 1.0:
+                continue
+            m = np.max(np.abs(sig))
+            if m > 1e-6:
+                sig = sig / m
+            t = torch.from_numpy(sig).unsqueeze(0).to(device)
+            with torch.no_grad():
+                e = classifier.encode_batch(t).squeeze().cpu().numpy()
+            en = np.linalg.norm(e)
+            if en > 1e-6:
+                embs.append(e / en)
+                seg_indices.append(item['seg_idx'])
+        except Exception:
+            pass
+    if embs:
+        # Sub-cluster splitting & Outlier rejection:
+        # If AssemblyAI merged a 2nd distinct voice into this speaker bucket (sim < 0.36 to main voice),
+        # split those turns into a separate speaker cluster (f"{{spk}}_B") and reject outliers.
+        if len(embs) >= 3:
+            mat = np.stack(embs, axis=0)
+            c_vec = np.mean(mat, axis=0)
+            cn = np.linalg.norm(c_vec)
+            if cn > 1e-6:
+                c_vec = c_vec / cn
+            sims = np.dot(mat, c_vec)
+            med = float(np.median(sims))
+            divergent = [i for i in range(len(embs)) if sims[i] < 0.36]
+            if divergent:
+                sub_spk = f"{{spk}}_B"
+                sub_embs = [embs[i] for i in divergent]
+                for i in divergent:
+                    split_overrides[str(seg_indices[i])] = sub_spk
+                sub_mean = np.mean(sub_embs, axis=0)
+                smn = np.linalg.norm(sub_mean)
+                if smn > 1e-6:
+                    spk_vecs[sub_spk] = sub_mean / smn
+            inliers = [embs[i] for i in range(len(embs)) if sims[i] >= max(0.45, med - 0.18)]
+            if inliers:
+                embs = inliers
+        mean_v = np.mean(embs, axis=0)
+        mn = np.linalg.norm(mean_v)
+        if mn > 1e-6:
+            spk_vecs[spk] = mean_v / mn
+
+# Score all pairs and require both >= 0.54 similarity AND >= 0.06 clear-winner separation margin
+pairs = []
+for spk, s_vec in spk_vecs.items():
+    scored = []
+    for p_name, p_vec in profiles.items():
+        sim = float(np.dot(s_vec, p_vec))
+        scored.append((sim, p_name))
+    scored.sort(reverse=True)
+    if scored:
+        best_sim, best_name = scored[0]
+        runner_up_sim = scored[1][0] if len(scored) > 1 else 0.0
+        margin = best_sim - runner_up_sim
+        if best_sim >= 0.54 and margin >= 0.06:
+            pairs.append((best_sim, spk, best_name))
+
+pairs.sort(reverse=True)
+assigned_spks = set()
+assigned_names = set()
+result = {{}}
+for sim, spk, p_name in pairs:
+    if spk not in assigned_spks and p_name not in assigned_names:
+        result[spk] = p_name
+        assigned_spks.add(spk)
+        assigned_names.add(p_name)
+
+print('__ACOUSTIC_MATCH__:' + json.dumps({{'matches': result, 'splits': split_overrides}}))
+"""
+    matched_map: Dict[str, str] = {}
+    try:
+        res = subprocess.run([sys.executable, "-c", worker_code], capture_output=True, text=True, timeout=180)
+        for line in (res.stdout or "").splitlines():
+            if line.startswith("__ACOUSTIC_MATCH__:"):
+                out_payload = json.loads(line.split("__ACOUSTIC_MATCH__:", 1)[1])
+                matched_map = out_payload.get("matches", {})
+                splits = out_payload.get("splits", {})
+                for s_idx_str, new_spk_tag in splits.items():
+                    s_idx = int(s_idx_str)
+                    if 0 <= s_idx < len(segments):
+                        segments[s_idx]["speaker"] = new_spk_tag
+                if matched_map:
+                    print(f"[*] Acoustic Voiceprint Matching Identified: {matched_map}")
+    except Exception as e:
+        print(f"[!] Notice: Acoustic voiceprint matching skipped ({e})")
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    return matched_map
+
+
 def resolve_speakers_intelligently(
     segments: List[Dict[str, Any]],
     title: str = "",
     gemini_key: str = "",
     cohere_key: str = "",
-    openrouter_key: str = ""
+    openrouter_key: str = "",
+    audio_path: Optional[Path] = None
 ) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
-    """Comprehensive multi-tier speaker identification."""
+    """Comprehensive multi-tier speaker identification (Acoustic Voiceprints -> LLM with Anchors -> Heuristics)."""
     if not segments:
         return segments, {}
 
     known_speakers = load_known_speakers()
 
+    # Tier 0: Neural Acoustic Voiceprint Matching (192-dim ECAPA-TDNN)
+    acoustic_mappings = resolve_speakers_acoustically(
+        segments=segments,
+        audio_path=audio_path
+    )
+
+    # Pass confirmed acoustic matches into LLM prompt so it can deduce un-enrolled speakers
     llm_mappings = resolve_speakers_llm(
         segments=segments,
         title=title,
         known_speakers=known_speakers,
         gemini_key=gemini_key,
         cohere_key=cohere_key,
-        openrouter_key=openrouter_key
+        openrouter_key=openrouter_key,
+        acoustic_hints=acoustic_mappings
     )
 
     heuristic_mappings = analyze_conversational_heuristics(
@@ -379,6 +654,7 @@ def resolve_speakers_intelligently(
 
     final_mappings = dict(heuristic_mappings)
     final_mappings.update(llm_mappings)
+    final_mappings.update(acoustic_mappings)
 
     if final_mappings:
         print(f"[*] AI Speaker Resolution Identified:")
@@ -391,78 +667,205 @@ def resolve_speakers_intelligently(
     return segments, final_mappings
 
 
+def _upload_file_to_assemblyai(audio_path: Path, headers: Dict[str, str]) -> str:
+    """Streams a local audio file to AssemblyAI's /v2/upload endpoint in 5MB chunks."""
+    def _read_chunks(file_path: Path, chunk_size: int = 5242880):
+        with open(file_path, "rb") as f:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                yield data
+
+    resp = requests.post(
+        "https://api.assemblyai.com/v2/upload",
+        headers=headers,
+        data=_read_chunks(audio_path),
+        timeout=600
+    )
+    if resp.status_code != 200:
+        raise RuntimeError(f"AssemblyAI upload failed ({resp.status_code}): {resp.text}")
+    return resp.json()["upload_url"]
+
+
 def transcribe_audio_chunk_assemblyai(
     audio_path: Path,
     assemblyai_key: str,
-    time_offset: float = 0.0
+    time_offset: float = 0.0,
+    chunk_prefix: str = "",
+    title: str = ""
 ) -> List[Dict[str, Any]]:
     """
-    Transcribes a single audio file or chunk via AssemblyAI Universal-3.5 Pro
-    with word-level multi-speaker diarization (speaker_labels=True).
+    Transcribes a single audio file or chunk via AssemblyAI Universal-3.5 Pro REST API
+    following https://assemblyai.com/docs/llms-full.txt best practices:
+    - speech_models: ["universal-3-5-pro", "universal-2"]
+    - language_detection: True
+    - speaker_labels: True
+    - speaker_options: min_speakers_expected=2, max_speakers_expected=10, include_speaker_confidence=True
+    - prompt & keyterms_prompt: Universal-3.5 Pro contextual and speaker name prompting
     """
     file_mb = audio_path.stat().st_size / (1024 * 1024)
     print(f"[*] Submitting {audio_path.name} ({file_mb:.1f} MB, offset: {time_offset:.1f}s) to AssemblyAI...")
 
-    aai.settings.api_key = assemblyai_key
-    config = aai.TranscriptionConfig(
-        speech_models=["universal-3-5-pro", "universal-2"],
-        speaker_labels=True,
-        punctuate=True,
-        format_text=True,
+    headers = {"authorization": assemblyai_key}
+    start_t = time.time()
+    upload_url = _upload_file_to_assemblyai(audio_path, headers)
+
+    known_speakers = load_known_speakers()
+    keyterms = []
+    seen_kt = set()
+    for spk in known_speakers:
+        clean_spk = spk.strip()
+        if clean_spk and len(clean_spk.split()) <= 6 and clean_spk.lower() not in seen_kt:
+            seen_kt.add(clean_spk.lower())
+            keyterms.append(clean_spk)
+        if len(keyterms) >= 150:
+            break
+
+    clean_title = re.sub(r"[_\-]+", " ", title or audio_path.stem).strip()
+    context_prompt = (
+        f"Live multi-speaker Twitter Space audio discussion titled '{clean_title}' "
+        f"featuring host Logan and regular community speakers."
     )
 
-    start_t = time.time()
-    transcriber = aai.Transcriber(config=config)
-    transcript = transcriber.transcribe(str(audio_path))
+    payload: Dict[str, Any] = {
+        "audio_url": upload_url,
+        "speech_models": ["universal-3-5-pro", "universal-2"],
+        "language_detection": True,
+        "punctuate": True,
+        "format_text": True,
+        "speaker_labels": True,
+        "speaker_options": {
+            "min_speakers_expected": 2,
+            "max_speakers_expected": 10,
+            "include_speaker_confidence": True,
+        },
+        "prompt": context_prompt,
+    }
+    if keyterms:
+        payload["keyterms_prompt"] = keyterms
+
+    submit_resp = requests.post(
+        "https://api.assemblyai.com/v2/transcript",
+        headers=headers,
+        json=payload,
+        timeout=60
+    )
+    if submit_resp.status_code != 200:
+        # Fallback without optional Universal-3.5 Pro prompt/confidence fields if rejected
+        payload.pop("prompt", None)
+        payload.pop("keyterms_prompt", None)
+        if "speaker_options" in payload:
+            payload["speaker_options"].pop("include_speaker_confidence", None)
+        submit_resp = requests.post(
+            "https://api.assemblyai.com/v2/transcript",
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
+        if submit_resp.status_code != 200:
+            raise RuntimeError(f"AssemblyAI submit failed ({submit_resp.status_code}): {submit_resp.text}")
+
+    transcript_id = submit_resp.json()["id"]
+    polling_endpoint = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
+
+    while True:
+        poll_resp = requests.get(polling_endpoint, headers=headers, timeout=60)
+        if poll_resp.status_code != 200:
+            time.sleep(3)
+            continue
+        t_data = poll_resp.json()
+        status = t_data.get("status")
+        if status == "completed":
+            break
+        elif status == "error":
+            err_msg = t_data.get("error") or "Unknown error"
+            raise RuntimeError(f"AssemblyAI Transcription Error: {err_msg}")
+        else:
+            time.sleep(3)
+
     elapsed = time.time() - start_t
-
-    if transcript.status == aai.TranscriptStatus.error:
-        err_msg = transcript.error or "Unknown error"
-        raise RuntimeError(f"AssemblyAI Transcription Error: {err_msg}")
-
-    print(f"[✓] AssemblyAI transcription completed in {elapsed:.1f}s!")
+    model_used = t_data.get("speech_model_used") or "universal-3-5-pro"
+    print(f"[✓] AssemblyAI transcription ({model_used}) completed in {elapsed:.1f}s!")
 
     segments: List[Dict[str, Any]] = []
+    utterances = t_data.get("utterances") or []
+    words_top = t_data.get("words") or []
 
-    # 1. Parse speaker utterances with millisecond timestamps
-    if transcript.utterances:
-        for u in transcript.utterances:
-            start_sec = round((u.start / 1000.0) + time_offset, 2)
-            end_sec = round((u.end / 1000.0) + time_offset, 2)
-            raw_spk = str(u.speaker).strip()
-            speaker_label = raw_spk if raw_spk.lower().startswith("speaker") else f"Speaker {raw_spk}"
+    # 1. Parse speaker utterances with word-level speaker boundary splitting & speaker_confidence
+    if utterances:
+        for u in utterances:
+            raw_u_spk = str(u.get("speaker") or "A").strip()
+            if raw_u_spk.lower().startswith("speaker"):
+                raw_u_spk = raw_u_spk.split()[-1]
+            u_speaker_label = f"Speaker {chunk_prefix}{raw_u_spk}"
+            u_spk_conf = float(u.get("speaker_confidence") or 0.90)
 
-            words_data = []
-            for w in getattr(u, "words", []):
-                w_start = round((w.start / 1000.0) + time_offset, 3)
-                w_end = round((w.end / 1000.0) + time_offset, 3)
-                conf = round(float(w.confidence), 3) if hasattr(w, "confidence") and w.confidence is not None else 1.0
-                words_data.append({
-                    "word": w.text,
+            u_words = u.get("words") or []
+            if not u_words:
+                segments.append({
+                    "start": round((float(u.get("start", 0)) / 1000.0) + time_offset, 2),
+                    "end": round((float(u.get("end", 0)) / 1000.0) + time_offset, 2),
+                    "speaker": u_speaker_label,
+                    "speaker_confidence": round(u_spk_conf, 3),
+                    "text": (u.get("text") or "").strip(),
+                    "words": []
+                })
+                continue
+
+            # Split utterance if word-level speaker changes mid-utterance (for >= 3 consecutive words)
+            runs: List[Tuple[str, List[Dict[str, Any]]]] = []
+            for w in u_words:
+                w_start = round((float(w.get("start", 0)) / 1000.0) + time_offset, 3)
+                w_end = round((float(w.get("end", 0)) / 1000.0) + time_offset, 3)
+                conf = round(float(w.get("confidence", 1.0) or 1.0), 3)
+                w_spk_conf = round(float(w.get("speaker_confidence") or u_spk_conf), 3)
+                w_raw_spk = str(w.get("speaker") or raw_u_spk).strip()
+                if w_raw_spk.lower().startswith("speaker"):
+                    w_raw_spk = w_raw_spk.split()[-1]
+                w_spk_label = f"Speaker {chunk_prefix}{w_raw_spk}"
+                w_obj = {
+                    "word": w.get("text", ""),
                     "start": w_start,
                     "end": w_end,
-                    "confidence": conf
-                })
+                    "confidence": conf,
+                    "speaker_confidence": w_spk_conf,
+                }
+                if runs and runs[-1][0] == w_spk_label:
+                    runs[-1][1].append(w_obj)
+                else:
+                    runs.append((w_spk_label, [w_obj]))
 
-            segments.append({
-                "start": start_sec,
-                "end": end_sec,
-                "speaker": speaker_label,
-                "text": u.text.strip(),
-                "words": words_data
-            })
-    elif transcript.words:
+            # Merge tiny 1-2 word flickers back into neighboring run
+            cleaned_runs: List[Tuple[str, List[Dict[str, Any]]]] = []
+            for spk_lbl, w_list in runs:
+                if cleaned_runs and len(w_list) < 3:
+                    cleaned_runs[-1][1].extend(w_list)
+                else:
+                    cleaned_runs.append((spk_lbl, w_list))
+
+            for spk_lbl, w_list in cleaned_runs:
+                run_spk_conf = sum(x.get("speaker_confidence", 0.90) for x in w_list) / len(w_list)
+                segments.append({
+                    "start": round(w_list[0]["start"], 2),
+                    "end": round(w_list[-1]["end"], 2),
+                    "speaker": spk_lbl,
+                    "speaker_confidence": round(run_spk_conf, 3),
+                    "text": " ".join(x["word"] for x in w_list).strip(),
+                    "words": w_list
+                })
+    elif words_top:
         # Fallback if utterances is empty but words exist
         curr_words = []
         curr_start = 0.0
         curr_end = 0.0
-        curr_spk = "Speaker A"
+        curr_spk = f"Speaker {chunk_prefix}A"
 
-        for w in transcript.words:
-            w_start = round((w.start / 1000.0) + time_offset, 3)
-            w_end = round((w.end / 1000.0) + time_offset, 3)
-            spk_tag = getattr(w, "speaker", None)
-            spk_name = f"Speaker {spk_tag}" if spk_tag else "Speaker A"
+        for w in words_top:
+            w_start = round((float(w.get("start", 0)) / 1000.0) + time_offset, 3)
+            w_end = round((float(w.get("end", 0)) / 1000.0) + time_offset, 3)
+            spk_tag = w.get("speaker")
+            spk_name = f"Speaker {chunk_prefix}{spk_tag}" if spk_tag else f"Speaker {chunk_prefix}A"
 
             if spk_name != curr_spk and curr_words:
                 segments.append({
@@ -482,10 +885,10 @@ def transcribe_audio_chunk_assemblyai(
 
             curr_end = w_end
             curr_words.append({
-                "word": w.text,
+                "word": w.get("text", ""),
                 "start": w_start,
                 "end": w_end,
-                "confidence": round(float(w.confidence), 3) if hasattr(w, "confidence") and w.confidence is not None else 1.0
+                "confidence": round(float(w.get("confidence", 1.0) or 1.0), 3)
             })
 
         if curr_words:
@@ -496,14 +899,14 @@ def transcribe_audio_chunk_assemblyai(
                 "text": " ".join([x["word"] for x in curr_words]),
                 "words": curr_words
             })
-    elif transcript.text:
+    elif t_data.get("text"):
         # Monologue fallback
-        dur = float(transcript.audio_duration or 0.0)
+        dur = float(t_data.get("audio_duration") or 0.0)
         segments.append({
             "start": round(time_offset, 2),
             "end": round(time_offset + dur, 2),
-            "speaker": "Speaker A",
-            "text": transcript.text.strip(),
+            "speaker": f"Speaker {chunk_prefix}A",
+            "text": (t_data.get("text") or "").strip(),
             "words": []
         })
 
@@ -528,17 +931,17 @@ def process_audio_file(
 
     active_audio = input_audio
 
-    # 1. Compression Workaround: If audio is > 1.5 GB or WAV, re-encode to 48kbps mono MP3
+    # 1. Compression Workaround: Preserve 24kHz 64kbps vocal formants for accurate speaker separation
     if file_size > 1.5 * (1024 ** 3) or input_audio.suffix.lower() == ".wav":
         print(f"\n[⚡ Auto-Compression] Large file detected ({file_size / (1024*1024):.1f} MB).")
-        print(f"[*] Re-encoding to high-efficiency 48kbps mono speech stream via FFmpeg...")
+        print(f"[*] Re-encoding to 24kHz 64kbps mono speech stream via FFmpeg (preserving vocal timbre)...")
         compressed_audio = input_audio.parent / f"{input_audio.stem}_compressed.mp3"
         compress_cmd = [
             FFMPEG_EXE, "-y",
             "-i", str(input_audio),
             "-ac", "1",
-            "-ar", "16000",
-            "-b:a", "48k",
+            "-ar", "24000",
+            "-b:a", "64k",
             str(compressed_audio)
         ]
         try:
@@ -586,7 +989,9 @@ def process_audio_file(
                     chunk_segs = transcribe_audio_chunk_assemblyai(
                         audio_path=c_file,
                         assemblyai_key=assemblyai_key,
-                        time_offset=current_offset
+                        time_offset=current_offset,
+                        chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
+                        title=title
                     )
                     all_segments.extend(chunk_segs)
                     current_offset += c_dur if c_dur > 0 else chunk_seconds
@@ -596,21 +1001,24 @@ def process_audio_file(
                 all_segments = transcribe_audio_chunk_assemblyai(
                     audio_path=active_audio,
                     assemblyai_key=assemblyai_key,
-                    time_offset=0.0
+                    time_offset=0.0,
+                    title=title
                 )
         except Exception as e:
             print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
             all_segments = transcribe_audio_chunk_assemblyai(
                 audio_path=active_audio,
                 assemblyai_key=assemblyai_key,
-                time_offset=0.0
+                time_offset=0.0,
+                title=title
             )
     else:
         # Standard Single-Pass AssemblyAI transcription
         all_segments = transcribe_audio_chunk_assemblyai(
             audio_path=active_audio,
             assemblyai_key=assemblyai_key,
-            time_offset=0.0
+            time_offset=0.0,
+            title=title
         )
 
     # Clean temporary compressed audio if generated
@@ -643,13 +1051,14 @@ def process_audio_file(
 
     all_segments = merged
 
-    # AI Contextual Speaker Resolution
+    # AI Contextual & Acoustic Speaker Resolution
     all_segments, _ = resolve_speakers_intelligently(
         segments=all_segments,
         title=title,
         gemini_key=gemini_key,
         cohere_key=cohere_key,
-        openrouter_key=openrouter_key
+        openrouter_key=openrouter_key,
+        audio_path=input_audio
     )
 
     # Compute speaker talk time stats

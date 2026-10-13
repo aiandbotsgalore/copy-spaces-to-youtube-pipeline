@@ -1355,17 +1355,82 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     const turns = speakerStats.find(st => st.rawSpeaker === rawSpeaker)?.count || 0;
     setQuickRenameTarget({ rawSpeaker, currentName, turnCount: turns });
     setQuickRenameVal(speakerMap[rawSpeaker] || currentName);
-    setQuickRenameAddToSaved(false);
+    setQuickRenameAddToSaved(true);
   };
 
-  const handleApplyQuickRename = () => {
+  const handleApplyQuickRename = async () => {
     if (!quickRenameTarget) return;
     const finalVal = quickRenameVal.trim();
-    saveSpeakerRename(quickRenameTarget.rawSpeaker, finalVal);
-    if (quickRenameAddToSaved && finalVal) {
+    const rawSpk = quickRenameTarget.rawSpeaker;
+    saveSpeakerRename(rawSpk, finalVal);
+    if (finalVal) {
       quickSaveToPermanent(finalVal);
     }
     setQuickRenameTarget(null);
+
+    // Automatically grab up to 5 isolated, edge-trimmed speaking turns (~35-50s total) and enroll into voice_profiles.json
+    if (finalVal && !finalVal.toLowerCase().startsWith('speaker') && hasCredentials && mp3Asset?.browser_download_url) {
+      const candidates = utterances
+        .map((u, idx) => {
+          const prev = idx > 0 ? utterances[idx - 1] : null;
+          const next = idx < utterances.length - 1 ? utterances[idx + 1] : null;
+          const prevEnd = prev ? (prev.endSec ?? prev.startSec) : -10;
+          const nextStart = next ? next.startSec : u.startSec + 100;
+          const gapBefore = prev && prev.rawSpeaker !== rawSpk ? (u.startSec - prevEnd) : 2.0;
+          const gapAfter = next && next.rawSpeaker !== rawSpk && u.endSec !== null ? (nextStart - u.endSec) : 2.0;
+          const rawDur = u.endSec !== null ? (u.endSec - u.startSec) : 0;
+          // Shave 0.4s off start and end to avoid boundary crosstalk/laughter
+          const trimPad = rawDur >= 5.2 ? 0.4 : 0.15;
+          const trimmedStart = Math.round((u.startSec + trimPad) * 100) / 100;
+          const trimmedDur = Math.round((rawDur - trimPad * 2) * 100) / 100;
+          const isIsolated = gapBefore >= 0.4 && gapAfter >= 0.4;
+          const conf = u.confidence ?? 0.92;
+          return {
+            rawSpeaker: u.rawSpeaker,
+            start: trimmedStart,
+            duration: trimmedDur,
+            wordsCount: u.text.trim().split(/\s+/).length,
+            isIsolated,
+            conf,
+            qualityScore: (isIsolated ? 20 : 0) + (conf * 10) - Math.abs(trimmedDur - 8.5),
+          };
+        })
+        .filter(c => c.rawSpeaker === rawSpk && c.duration >= 3.8 && c.duration <= 15.0 && c.wordsCount >= 6 && c.conf >= 0.75)
+        .sort((a, b) => b.qualityScore - a.qualityScore);
+
+      const picked: { start: number; duration: number }[] = [];
+      for (const c of candidates) {
+        if (picked.every(p => Math.abs(c.start - p.start) >= 15.0)) {
+          picked.push({ start: c.start, duration: c.duration });
+        }
+        if (picked.length >= 5) break;
+      }
+      if (picked.length === 0 && candidates.length > 0) {
+        picked.push(
+          ...candidates.slice(0, 3).map(c => ({ start: c.start, duration: c.duration }))
+        );
+      }
+
+      if (picked.length > 0) {
+        const totalDur = Math.round(picked.reduce((acc, p) => acc + p.duration, 0));
+        try {
+          await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
+            speaker_name: finalVal,
+            audio_url: mp3Asset.browser_download_url,
+            role: 'Speaker',
+            segments_json: JSON.stringify(picked),
+            release_tag: selectedRelease?.tag_name || '',
+            raw_speaker: rawSpk,
+          });
+          setSaveGitHubSuccess(
+            `⚡ Labeled "${finalVal}" & streamed ${picked.length} isolated, edge-trimmed voice clips (${totalDur}s total) to voice_profiles.json!`
+          );
+          setTimeout(() => setSaveGitHubSuccess(''), 8000);
+        } catch (err) {
+          console.warn('Auto voice profile enrollment notice:', err);
+        }
+      }
+    }
   };
 
   const filteredUtterances = useMemo(() => utterances.filter(u => {

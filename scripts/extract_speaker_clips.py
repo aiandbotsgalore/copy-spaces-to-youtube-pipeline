@@ -165,33 +165,37 @@ def process_episode(
 
 
 def enroll_clip_to_profiles(clip_path: str, speaker_name: str, profiles_file: str = "voice_profiles.json"):
-    """Enrolls an extracted audio clip into voice_profiles.json using ECAPA-TDNN."""
-    if not os.path.exists(clip_path):
-        print(f"[!] Clip file not found: {clip_path}")
+    """Enrolls one or more extracted audio clips into voice_profiles.json using ECAPA-TDNN."""
+    clip_paths = []
+    if os.path.isdir(clip_path):
+        clip_paths = sorted([
+            os.path.join(clip_path, f)
+            for f in os.listdir(clip_path)
+            if f.lower().endswith(".wav")
+        ])
+    elif "," in clip_path:
+        clip_paths = [p.strip() for p in clip_path.split(",") if os.path.exists(p.strip())]
+    elif os.path.exists(clip_path):
+        clip_paths = [clip_path]
+
+    if not clip_paths:
+        print(f"[!] No valid clip files found for: {clip_path}")
         sys.exit(1)
 
-    print(f"[*] Enrolling '{speaker_name}' from clip: {clip_path}")
+    print(f"[*] Enrolling '{speaker_name}' from {len(clip_paths)} audio sample(s): {clip_paths}")
 
+    clips_json_str = json.dumps(clip_paths)
     worker_code = f"""
-import sys, json, os, warnings
+import sys, json, os, shutil, warnings
 warnings.filterwarnings('ignore')
 import numpy as np
 import soundfile as sf
 import torch
 from speechbrain.inference.speaker import EncoderClassifier
 
-clip_path = r'{clip_path}'
+clip_paths = json.loads(r'''{clips_json_str}''')
 speaker_name = r'{speaker_name}'
 profiles_file = r'{profiles_file}'
-
-audio_data, sr = sf.read(clip_path)
-if audio_data.ndim > 1:
-    audio_data = np.mean(audio_data, axis=1)
-audio_data = audio_data.astype(np.float32)
-
-max_val = np.max(np.abs(audio_data))
-if max_val > 1e-6:
-    audio_data = audio_data / max_val
 
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 classifier = EncoderClassifier.from_hparams(
@@ -200,14 +204,51 @@ classifier = EncoderClassifier.from_hparams(
     run_opts={{'device': device}}
 )
 
-t = torch.from_numpy(audio_data).unsqueeze(0).to(device)
-with torch.no_grad():
-    emb = classifier.encode_batch(t).squeeze().cpu().numpy()
+embeddings = []
+for cp in clip_paths:
+    try:
+        audio_data, sr = sf.read(cp)
+        if audio_data.ndim > 1:
+            audio_data = np.mean(audio_data, axis=1)
+        audio_data = audio_data.astype(np.float32)
+        if len(audio_data) < sr * 1.0:
+            continue
+        max_val = np.max(np.abs(audio_data))
+        if max_val > 1e-6:
+            audio_data = audio_data / max_val
+        t = torch.from_numpy(audio_data).unsqueeze(0).to(device)
+        with torch.no_grad():
+            emb = classifier.encode_batch(t).squeeze().cpu().numpy()
+        norm = np.linalg.norm(emb)
+        if norm > 1e-6:
+            emb = emb / norm
+            embeddings.append(emb)
+    except Exception as e:
+        print(f'Warning on clip {{cp}}: {{e}}')
 
-norm = np.linalg.norm(emb)
-if norm > 1e-6:
-    emb = emb / norm
-emb_list = [float(x) for x in emb]
+if not embeddings:
+    sys.exit(1)
+
+if len(embeddings) >= 3:
+    emb_mat = np.stack(embeddings, axis=0)
+    raw_centroid = np.mean(emb_mat, axis=0)
+    rc_norm = np.linalg.norm(raw_centroid)
+    if rc_norm > 1e-6:
+        raw_centroid = raw_centroid / rc_norm
+    sims = np.dot(emb_mat, raw_centroid)
+    med_sim = float(np.median(sims))
+    inliers = [embeddings[i] for i in range(len(embeddings)) if sims[i] >= max(0.45, med_sim - 0.18)]
+    if inliers:
+        dropped = len(embeddings) - len(inliers)
+        if dropped > 0:
+            print(f'[*] Filtered out {{dropped}} acoustic outlier clip(s) before averaging.')
+        embeddings = inliers
+
+batch_mean = np.mean(embeddings, axis=0)
+batch_norm = np.linalg.norm(batch_mean)
+if batch_norm > 1e-6:
+    batch_mean = batch_mean / batch_norm
+new_samples_n = len(embeddings)
 
 data = {{'version': '2.0-neural', 'embedding_model': 'speechbrain/spkrec-ecapa-voxceleb', 'embedding_dim': 192, 'profiles': {{}}}}
 if os.path.exists(profiles_file):
@@ -222,18 +263,18 @@ existing_profile = data['profiles'].get(speaker_name, {{}})
 old_count = existing_profile.get('sample_count', 0)
 old_emb = existing_profile.get('embedding', [])
 
-if old_count > 0 and len(old_emb) == 192:
+if old_count > 0 and isinstance(old_emb, list) and len(old_emb) == 192:
     old_vec = np.array(old_emb, dtype=np.float32)
-    new_count = old_count + 1
-    weighted_sum = (old_vec * float(old_count)) + emb
+    new_count = old_count + new_samples_n
+    weighted_sum = (old_vec * float(old_count)) + (batch_mean * float(new_samples_n))
     norm_merged = np.linalg.norm(weighted_sum)
     if norm_merged > 1e-6:
         weighted_sum = weighted_sum / norm_merged
     final_emb = [float(x) for x in weighted_sum]
     sample_count = new_count
 else:
-    final_emb = emb_list
-    sample_count = max(1, old_count + 1)
+    final_emb = [float(x) for x in batch_mean]
+    sample_count = new_samples_n
 
 profile_entry = dict(existing_profile)
 profile_entry.update({{
@@ -246,6 +287,9 @@ data['profiles'][speaker_name] = profile_entry
 with open(profiles_file, 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2)
 
+if os.path.exists('public'):
+    shutil.copyfile(profiles_file, 'public/voice_profiles.json')
+
 print('__ENROLL_SUCCESS__')
 """
     res = subprocess.run([sys.executable, "-c", worker_code], capture_output=True, text=True, encoding="utf-8")
@@ -253,8 +297,8 @@ print('__ENROLL_SUCCESS__')
         print(f"[!] Enrollment failed:\n{res.stderr}\n{res.stdout}")
         sys.exit(1)
 
-    print(f"[✓] Successfully enrolled '{speaker_name}' into {profiles_file}!")
-    print(f"    Future Spaces transcribed with batch_transcriber will automatically identify {speaker_name}.")
+    print(f"[✓] Successfully enrolled '{speaker_name}' ({len(clip_paths)} clip(s)) into {profiles_file}!")
+    print(f"    Future Spaces transcribed with transcribe_and_diarize.py will automatically identify {speaker_name}.")
 
 
 def main():

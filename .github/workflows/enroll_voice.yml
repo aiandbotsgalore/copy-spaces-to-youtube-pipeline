@@ -8,13 +8,28 @@ on:
         required: true
         type: string
       audio_url:
-        description: 'Direct URL to an audio sample (.wav, .mp3, .m4a)'
+        description: 'Direct URL to an audio sample or episode MP3 (.wav, .mp3, .m4a)'
         required: true
         type: string
       role:
         description: 'Speaker Role (Host, Co-Host, Special Guest, Speaker)'
         required: false
         default: 'Speaker'
+        type: string
+      segments_json:
+        description: 'Optional JSON array of [{"start": sec, "duration": sec}] turns to slice and average'
+        required: false
+        default: ''
+        type: string
+      release_tag:
+        description: 'Optional episode release_tag to permanently update speaker label in transcript JSON'
+        required: false
+        default: ''
+        type: string
+      raw_speaker:
+        description: 'Optional original speaker ID (e.g. Speaker 2) to permanently rename in episode JSON'
+        required: false
+        default: ''
         type: string
 
 permissions:
@@ -43,46 +58,120 @@ jobs:
           pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
           pip install speechbrain soundfile requests
 
-      - name: Prepare Sample Audio
+      - name: Prepare Sample Audio Clips (Fast HTTP Byte-Range Streaming)
+        env:
+          AUDIO_SRC: ${{ inputs.audio_url }}
+          SEGMENTS_JSON: ${{ inputs.segments_json }}
         run: |
-          mkdir -p speaker_samples/downloaded
-          SRC="${{ inputs.audio_url }}"
-          if [[ "$SRC" =~ ^https?:// ]]; then
-            echo "Downloading audio from URL: $SRC"
-            curl -L "$SRC" -o "speaker_samples/downloaded/input_raw"
-          elif [ -f "$SRC" ]; then
-            echo "Using file directly from repository: $SRC"
-            cp "$SRC" "speaker_samples/downloaded/input_raw"
-          else
-            echo "Error: Audio source not found: $SRC"
-            exit 1
-          fi
-          # Convert to 16kHz mono WAV for optimal SpeechBrain ECAPA embedding extraction
-          ffmpeg -i "speaker_samples/downloaded/input_raw" -ar 16000 -ac 1 "speaker_samples/downloaded/sample.wav" -y
+          mkdir -p speaker_samples/downloaded/clips
+          python -c "
+          import os, json, subprocess, shutil
+          src = os.environ.get('AUDIO_SRC', '').strip()
+          segs_raw = os.environ.get('SEGMENTS_JSON', '').strip()
+          clips_dir = 'speaker_samples/downloaded/clips'
+          extracted = 0
 
-      - name: Enroll Audio Clip into voice_profiles.json
+          # 1. Fast Path: Stream only the exact 5 clip byte-ranges directly via FFmpeg HTTP Range Requests
+          if segs_raw and src.startswith('http'):
+              try:
+                  segs = json.loads(segs_raw)
+                  for idx, s in enumerate(segs[:8], 1):
+                      st = float(s.get('start', 0))
+                      dur = float(s.get('duration', 8))
+                      out_w = f'{clips_dir}/clip_{idx:02d}.wav'
+                      r = subprocess.run(
+                          ['ffmpeg', '-y', '-ss', str(st), '-t', str(dur), '-i', src, '-ar', '16000', '-ac', '1', out_w],
+                          capture_output=True, timeout=45
+                      )
+                      if r.returncode == 0 and os.path.exists(out_w) and os.path.getsize(out_w) > 4000:
+                          extracted += 1
+                  if extracted > 0:
+                      print(f'[✓] Stream-sliced {extracted} clip(s) directly via HTTP byte-range without downloading full MP3!')
+              except Exception as e:
+                  print('Direct stream slice notice:', e)
+
+          # 2. Fallback: Download file if local path or no segments provided
+          if extracted == 0:
+              raw_in = 'speaker_samples/downloaded/input_raw'
+              if src.startswith('http'):
+                  subprocess.run(['curl', '-L', src, '-o', raw_in], check=True)
+              elif os.path.exists(src):
+                  shutil.copyfile(src, raw_in)
+              else:
+                  raise FileNotFoundError(f'Audio source not found: {src}')
+
+              if segs_raw:
+                  try:
+                      segs = json.loads(segs_raw)
+                      for idx, s in enumerate(segs[:8], 1):
+                          st = float(s.get('start', 0))
+                          dur = float(s.get('duration', 8))
+                          out_w = f'{clips_dir}/clip_{idx:02d}.wav'
+                          subprocess.run(['ffmpeg', '-y', '-ss', str(st), '-t', str(dur), '-i', raw_in, '-ar', '16000', '-ac', '1', out_w], check=True)
+                          extracted += 1
+                  except Exception as e:
+                      print('Local segment slice fallback:', e)
+              if extracted == 0:
+                  subprocess.run(['ffmpeg', '-y', '-i', raw_in, '-t', '45', '-ar', '16000', '-ac', '1', f'{clips_dir}/clip_01.wav'], check=True)
+          "
+
+      - name: Enroll Audio Clips into voice_profiles.json
         run: |
-          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/sample.wav" --name "${{ inputs.speaker_name }}"
+          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/clips" --name "${{ inputs.speaker_name }}"
 
-      - name: Update Role in voice_profiles.json & Sync to Web App
+      - name: Update Role & Permanently Relabel Episode Transcript
+        env:
+          SPK_NAME: ${{ inputs.speaker_name }}
+          SPK_ROLE: ${{ inputs.role }}
+          REL_TAG: ${{ inputs.release_tag }}
+          RAW_SPK: ${{ inputs.raw_speaker }}
         run: |
           python -c "
           import json, shutil, os
-          with open('voice_profiles.json', 'r') as f:
+          name = os.environ.get('SPK_NAME', '').strip()
+          role = os.environ.get('SPK_ROLE', 'Speaker').strip()
+          rel_tag = os.environ.get('REL_TAG', '').strip()
+          raw_spk = os.environ.get('RAW_SPK', '').strip()
+
+          with open('voice_profiles.json', 'r', encoding='utf-8') as f:
               data = json.load(f)
           data.setdefault('profiles', {})
-          name = '${{ inputs.speaker_name }}'.strip()
           if name in data['profiles']:
-              data['profiles'][name]['role'] = '${{ inputs.role }}'.strip()
-          with open('voice_profiles.json', 'w') as f:
+              data['profiles'][name]['role'] = role
+          with open('voice_profiles.json', 'w', encoding='utf-8') as f:
               json.dump(data, f, indent=2)
-          if os.path.exists('public/voice_profiles.json'):
+          if os.path.exists('public'):
               shutil.copyfile('voice_profiles.json', 'public/voice_profiles.json')
+
+          if rel_tag and raw_spk and name:
+              ep_path = f'public/transcripts/episodes/{rel_tag}.json'
+              if os.path.exists(ep_path):
+                  with open(ep_path, 'r', encoding='utf-8') as f:
+                      ep = json.load(f)
+                  changed = False
+                  for seg in ep.get('segments', []):
+                      if seg.get('speaker') == raw_spk or seg.get('raw_speaker') == raw_spk:
+                          seg['speaker'] = name
+                          changed = True
+                  if changed:
+                      spks = sorted(list({s.get('speaker', '') for s in ep.get('segments', []) if s.get('speaker')}))
+                      ep['speakers'] = spks
+                      with open(ep_path, 'w', encoding='utf-8') as f:
+                          json.dump(ep, f, ensure_ascii=False, indent=2)
+                      sum_path = 'public/transcripts/transcripts_summary_index.json'
+                      if os.path.exists(sum_path):
+                          with open(sum_path, 'r', encoding='utf-8') as f:
+                              sum_data = json.load(f)
+                          for item in sum_data:
+                              if item.get('release_tag') == rel_tag:
+                                  item['speakers'] = spks
+                          with open(sum_path, 'w', encoding='utf-8') as f:
+                              json.dump(sum_data, f, ensure_ascii=False, indent=2)
           "
 
-      - name: Commit and Push Updated voice_profiles.json
+      - name: Commit and Push Updated voice_profiles.json & Episode Transcript
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add voice_profiles.json public/voice_profiles.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "feat(voice): enroll neural embedding for '${{ inputs.speaker_name }}'" && git push origin master)
+          git add voice_profiles.json public/voice_profiles.json public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
+          git diff --quiet && git diff --staged --quiet || (git pull --rebase origin master && git commit -m "feat(voice): enroll multi-sample neural voiceprint for '${{ inputs.speaker_name }}'" && git push origin master)
