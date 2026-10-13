@@ -1,5 +1,27 @@
 [
   {
+    "release_id": 411859943,
+    "release_tag": "20261013_1dJrPrBZRRnKX",
+    "title": "You_re_Likely_to_Reach_Apotheoses",
+    "published_at": "2026-10-13T15:59:58Z",
+    "episode_date": "2026-10-13",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261013_1dJrPrBZRRnKX/20261013_1dJrPrBZRRnKX_You_re_Likely_to_Reach_Apotheoses.mp3",
+    "segment_count": 715,
+    "body": "- **Space Title:** You_re_Likely_to_Reach_Apotheoses\n- **Duration:** 04:00:27\n- **Processed:** 20261013_1dJrPrBZRRnKX\n- **Source ID:** 1dJrPrBZRRnKX\n\n---\nMETADATA::DURATION::04:00:27\nMETADATA::SOURCE_ID::1dJrPrBZRRnKX\nMETADATA::EPISODE_DATE::20261013\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Angela",
+      "Logan",
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8"
+    ]
+  },
+  {
     "release_id": 411066161,
     "release_tag": "20261012_1yxBePojzaWJN",
     "title": "Who_or_What_has_Ruined_UFO_X_Spaces",
