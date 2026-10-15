@@ -27,6 +27,7 @@ dist-ssr
 findings.md
 progress.md
 task_plan.md
+task_prompt.md
 
 # Python cache
 __pycache__/

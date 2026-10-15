@@ -8,6 +8,8 @@ const CACHE_NAME = 'spacepipe-audio-cache-v1';
 // In-memory mapping of cached remote URLs to local Blob URLs for rapid playback
 const activeBlobUrls = new Map<string, string>();
 
+import { toFetchableUrl } from './audioUrl';
+
 export async function isAudioCached(url: string): Promise<boolean> {
   if (!url || typeof window === 'undefined' || !('caches' in window)) return false;
   try {
@@ -38,7 +40,8 @@ export async function cacheAudioFile(
     return blobUrl;
   }
 
-  const response = await fetch(url, { mode: 'cors' });
+  // Cross-origin GitHub assets go through the local proxy (no CORS headers upstream); the cache key stays the original URL.
+  const response = await fetch(toFetchableUrl(url), { mode: 'cors' });
   if (!response.ok) {
     throw new Error(`Failed to fetch audio stream: ${response.status} ${response.statusText}`);
   }

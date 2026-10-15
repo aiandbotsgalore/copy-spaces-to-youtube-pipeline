@@ -44,9 +44,130 @@ export interface WorkerSearchResult {
   segmentIndex: number;
 }
 
+export type {
+  SearchQueryAST,
+} from './transcriptSearch';
+
+export {
+  parseGoogleQuery,
+  escapeRegex,
+  evaluateTurnMatch,
+  hasActiveQuery,
+  highlightTranscriptMatches,
+  renderTranscriptMatch,
+} from './transcriptSearch';
+
 const WORKER_SCRIPT = `
 let episodes = [];
 let currentSearchId = 0;
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&');
+}
+
+function parseGoogleQuery(query) {
+  var trimmed = (query || '').trim();
+  var ast = {
+    exactPhrases: [],
+    mustTerms: [],
+    excludedTerms: [],
+    excludedPhrases: [],
+    orGroups: []
+  };
+
+  if (!trimmed) return ast;
+
+  var excludedPhraseRegex = /-"([^"]+)"/g;
+  var match;
+  while ((match = excludedPhraseRegex.exec(trimmed)) !== null) {
+    if (match[1].trim()) ast.excludedPhrases.push(match[1].trim().toLowerCase());
+  }
+
+  var exactPhraseRegex = /(?<!-)"([^"]+)"/g;
+  while ((match = exactPhraseRegex.exec(trimmed)) !== null) {
+    if (match[1].trim()) ast.exactPhrases.push(match[1].trim().toLowerCase());
+  }
+
+  var unquoted = trimmed
+    .replace(/-"[^"]+"/g, ' ')
+    .replace(/"[^"]+"/g, ' ')
+    .trim();
+
+  var orSplit = unquoted.split(/\\s+OR\\s+|\\s*\\|\\s*/i);
+  if (orSplit.length > 1) {
+    ast.orGroups.push(
+      orSplit
+        .map(function(part) { return part.trim().toLowerCase(); })
+        .filter(function(part) { return part.length > 0; })
+    );
+    return ast;
+  }
+
+  var tokens = unquoted.split(/\\s+/).filter(Boolean);
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+    if (token.indexOf('-') === 0 && token.length > 1) {
+      ast.excludedTerms.push(token.slice(1).toLowerCase());
+    } else {
+      ast.mustTerms.push(token.toLowerCase());
+    }
+  }
+
+  return ast;
+}
+
+function hasActiveQuery(ast) {
+  return (
+    ast.exactPhrases.length > 0 ||
+    ast.mustTerms.length > 0 ||
+    ast.excludedTerms.length > 0 ||
+    ast.excludedPhrases.length > 0 ||
+    ast.orGroups.length > 0
+  );
+}
+
+function evaluateTurnMatch(text, ast) {
+  var normalizedText = text.toLowerCase();
+
+  for (var i = 0; i < ast.excludedPhrases.length; i++) {
+    var rx = new RegExp('\\\\b' + escapeRegex(ast.excludedPhrases[i]).replace(/\\s+/g, '[\\\\s,.:;!?\"\\\'\\\\-–—]+') + '\\\\b', 'i');
+    if (rx.test(normalizedText)) return false;
+  }
+
+  for (var j = 0; j < ast.excludedTerms.length; j++) {
+    var term = ast.excludedTerms[j];
+    var leadingBoundary = /^\\w/.test(term) ? '\\\\b' : '';
+    var trailingBoundary = /\\w$/.test(term) ? '\\\\b' : '';
+    var rxTerm = new RegExp(leadingBoundary + escapeRegex(term) + trailingBoundary, 'i');
+    if (rxTerm.test(normalizedText)) return false;
+  }
+
+  for (var k = 0; k < ast.exactPhrases.length; k++) {
+    var rxPhrase = new RegExp('\\\\b' + escapeRegex(ast.exactPhrases[k]).replace(/\\s+/g, '[\\\\s,.:;!?\"\\\'\\\\-–—]+') + '\\\\b', 'i');
+    if (!rxPhrase.test(normalizedText)) return false;
+  }
+
+  for (var m = 0; m < ast.orGroups.length; m++) {
+    var group = ast.orGroups[m];
+    var matchedAny = group.some(function(term) {
+      var leading = /^\\w/.test(term) ? '\\\\b' : '';
+      var trailing = /\\w$/.test(term) ? '\\\\b' : '';
+      var rxOr = new RegExp(leading + escapeRegex(term).replace(/\\s+/g, '[\\\\s,.:;!?\"\\\'\\\\-–—]+') + trailing, 'i');
+      return rxOr.test(normalizedText);
+    });
+    if (!matchedAny) return false;
+  }
+
+  for (var n = 0; n < ast.mustTerms.length; n++) {
+    var mTerm = ast.mustTerms[n];
+    var mLeading = /^\\w/.test(mTerm) ? '\\\\b' : '';
+    var mTrailing = /\\w$/.test(mTerm) ? '\\\\b' : '';
+    var rxMust = new RegExp(mLeading + escapeRegex(mTerm) + mTrailing, 'i');
+    if (!rxMust.test(normalizedText)) return false;
+  }
+
+  return true;
+}
 
 self.onmessage = function(e) {
   const data = e.data;
@@ -62,8 +183,8 @@ self.onmessage = function(e) {
     const searchId = data.id;
     currentSearchId = searchId;
 
-    const query = (data.query || '').trim().toLowerCase();
-    const terms = query ? query.split(/\\s+/).filter(Boolean) : [];
+    const ast = parseGoogleQuery(data.query || '');
+    const queryActive = hasActiveQuery(ast);
     const speakerFilter = data.speakerFilter;
     const tagFilter = data.tagFilter;
     const catKeywords = data.categoryKeywords || [];
@@ -71,7 +192,7 @@ self.onmessage = function(e) {
     const mentionId = data.mentionId;
 
     // Fast exit if no filters active
-    if (!terms.length && !speakerFilter && !tagFilter && !catKeywords.length && !mentionKeywords.length) {
+    if (!queryActive && !speakerFilter && !tagFilter && !catKeywords.length && !mentionKeywords.length) {
       self.postMessage({ type: 'RESULTS', id: searchId, results: [] });
       return;
     }
@@ -125,17 +246,12 @@ self.onmessage = function(e) {
           if (!matchesMention) continue;
         }
 
-        // Full-Text Multi-term Query matching
-        if (terms.length > 0) {
-          const searchTarget = seg._search || (seg.speaker + ' ' + (seg.text || '')).toLowerCase();
-          let allMatch = true;
-          for (let t = 0; t < terms.length; t++) {
-            if (searchTarget.indexOf(terms[t]) === -1) {
-              allMatch = false;
-              break;
-            }
+        // Full-Text Google Search Query matching
+        if (queryActive) {
+          const searchTarget = seg._search || ((seg.speaker ? seg.speaker + ': ' : '') + (seg.text || ''));
+          if (!evaluateTurnMatch(searchTarget, ast)) {
+            continue;
           }
-          if (!allMatch) continue;
         }
 
         results.push({

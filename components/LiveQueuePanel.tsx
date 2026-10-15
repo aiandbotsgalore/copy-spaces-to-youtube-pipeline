@@ -64,13 +64,13 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-sky-500/15 border border-sky-500/20 rounded-xl">
-              <List size={18} className="text-sky-400" />
+            <div className="p-2 bg-slate-500/15 border border-slate-500/20 rounded-xl">
+              <List size={18} className="text-slate-300" />
             </div>
             <h2 className="text-2xl font-bold text-white">Batch Queue</h2>
           </div>
           <p className="text-slate-400 text-sm">
-            Live contents of <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">batch_queue.txt</code> in your repo —
+            Live contents of <code className="text-slate-300 bg-slate-800 px-1 rounded text-xs">batch_queue.txt</code> in your repo —
             processed in order, top to bottom, by the scheduled monitor workflow.
           </p>
         </div>
@@ -86,24 +86,24 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
 
       {!hasCredentials && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><AlertCircle size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">GitHub connection required</p>
-          <p className="text-slate-600 text-xs mt-1">Connect your account and configure your repo to view the live queue.</p>
+          <p className="text-slate-500 text-xs mt-1">Connect your account and configure your repo to view the live queue.</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl mb-4">
-          <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl mb-4">
+          <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+          <p className="text-sm text-rose-400">{error}</p>
         </div>
       )}
 
       {loaded && urls.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><List size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><List size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">Queue is empty</p>
-          <p className="text-slate-600 text-xs mt-1">Use "Add to Queue" from Command Center or Submit New Space.</p>
+          <p className="text-slate-500 text-xs mt-1">Use "Add to Queue" from Command Center or Submit New Space.</p>
         </div>
       )}
 
@@ -113,10 +113,10 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
             const platform = detectPlatform(url);
             return (
               <div key={`${url}-${i}`} className="flex items-center gap-3 p-3.5 bg-slate-900 border border-slate-800 rounded-xl">
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-[10px] font-bold text-slate-400">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-[11px] font-bold text-slate-400">
                   {i + 1}
                 </span>
-                <span className={`flex-shrink-0 flex items-center gap-1 text-[10px] font-medium ${platform.color}`}>
+                <span className={`flex-shrink-0 flex items-center gap-1 text-[11px] font-medium ${platform.color}`}>
                   {platform.icon} {platform.label}
                 </span>
                 <span className="flex-1 min-w-0 text-sm text-slate-300 font-mono truncate">{url}</span>
@@ -126,9 +126,9 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
         </div>
       )}
 
-      <p className="mt-6 text-[11px] text-slate-600">
+      <p className="mt-6 text-[11px] text-slate-500">
         Reordering or removing individual entries isn't supported yet — edit{' '}
-        <code className="text-slate-500">batch_queue.txt</code> directly on GitHub for now.
+        <code className="text-slate-400">batch_queue.txt</code> directly on GitHub for now.
       </p>
     </div>
   );

@@ -10,13 +10,13 @@ interface Props {
 function detectPlatform(url: string): { label: string; icon: React.ReactNode; color: string } {
   const u = url.toLowerCase();
   if (u.includes('twitter.com') || u.includes('x.com'))
-    return { label: 'Twitter/X', icon: <span className="font-bold text-xs">𝕏</span>, color: 'text-sky-400' };
+    return { label: 'Twitter/X', icon: <span className="font-bold text-xs">𝕏</span>, color: 'text-slate-300' };
   if (u.includes('youtube.com') || u.includes('youtu.be'))
-    return { label: 'YouTube', icon: <Youtube size={13} />, color: 'text-red-400' };
+    return { label: 'YouTube', icon: <Youtube size={13} />, color: 'text-rose-400' };
   if (u.includes('clubhouse.com'))
     return { label: 'Clubhouse', icon: <Mic2 size={13} />, color: 'text-green-400' };
   if (u.includes('linkedin.com'))
-    return { label: 'LinkedIn', icon: <Linkedin size={13} />, color: 'text-blue-400' };
+    return { label: 'LinkedIn', icon: <Linkedin size={13} />, color: 'text-slate-300' };
   if (u.startsWith('http'))
     return { label: 'URL', icon: <Globe size={13} />, color: 'text-slate-400' };
   return { label: '', icon: null, color: '' };
@@ -87,9 +87,9 @@ const BatchUrlEditor: React.FC<Props> = ({ config, onChange }) => {
 
         {urls.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-slate-800 rounded-xl">
-            <Globe size={32} className="text-slate-700 mb-3" />
-            <p className="text-slate-500 text-sm">No URLs in queue yet</p>
-            <p className="text-slate-600 text-xs mt-1">Add a URL above to get started</p>
+            <Globe size={32} className="text-slate-500 mb-3" />
+            <p className="text-slate-400 text-sm">No URLs in queue yet</p>
+            <p className="text-slate-500 text-xs mt-1">Add a URL above to get started</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -97,7 +97,7 @@ const BatchUrlEditor: React.FC<Props> = ({ config, onChange }) => {
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{urls.length} URL{urls.length !== 1 ? 's' : ''} queued</span>
               <button
                 onClick={() => onChange({ batchUrls: [] })}
-                className="text-xs text-slate-600 hover:text-red-400 transition-colors"
+                className="text-xs text-slate-500 hover:text-rose-400 transition-colors"
               >
                 Clear all
               </button>
@@ -108,24 +108,24 @@ const BatchUrlEditor: React.FC<Props> = ({ config, onChange }) => {
               const isValid = url.startsWith('http');
               return (
                 <div key={i} className="flex items-center gap-3 p-3 bg-slate-900 border border-slate-800 rounded-lg group">
-                  <span className="text-slate-600 text-xs w-5 text-right flex-shrink-0">{i + 1}</span>
+                  <span className="text-slate-500 text-xs w-5 text-right flex-shrink-0">{i + 1}</span>
                   <div className={`flex-shrink-0 ${platform.color}`}>
                     {platform.icon}
                   </div>
                   <input
                     value={url}
                     onChange={e => updateUrl(i, e.target.value)}
-                    className={`flex-1 min-w-0 bg-transparent text-xs font-mono focus:outline-none ${isValid ? 'text-slate-300' : 'text-red-400'}`}
+                    className={`flex-1 min-w-0 bg-transparent text-xs font-mono focus:outline-none ${isValid ? 'text-slate-300' : 'text-rose-400'}`}
                   />
                   {platform.label && (
-                    <span className={`text-[10px] ${platform.color} flex-shrink-0 hidden sm:block`}>{platform.label}</span>
+                    <span className={`text-[11px] ${platform.color} flex-shrink-0 hidden sm:block`}>{platform.label}</span>
                   )}
                   {!isValid && url.trim() && (
-                    <span className="text-[10px] text-red-400 flex-shrink-0">Invalid URL</span>
+                    <span className="text-[11px] text-rose-400 flex-shrink-0">Invalid URL</span>
                   )}
                   <button
                     onClick={() => removeUrl(i)}
-                    className="flex-shrink-0 p-1 text-slate-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all rounded"
+                    className="flex-shrink-0 p-1 text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all rounded"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -135,7 +135,7 @@ const BatchUrlEditor: React.FC<Props> = ({ config, onChange }) => {
           </div>
         )}
 
-        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl text-xs text-slate-500 space-y-1">
+        <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl text-xs text-slate-400 space-y-1">
           <p className="font-medium text-slate-400">How batch processing works:</p>
           <p>1. URLs are saved to <code className="bg-slate-800 px-1 rounded text-slate-400">batch_queue.txt</code> in your repo.</p>
           <p>2. The monitor workflow runs on your configured schedule and promotes URLs one at a time.</p>

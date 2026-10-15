@@ -279,7 +279,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           <h2 className="text-2xl font-bold text-white mb-2">Episode Library</h2>
           <p className="text-slate-400 text-sm">
             All archived episodes from{' '}
-            <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
+            <code className="text-slate-300 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -314,38 +314,38 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
       {!hasCredentials && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><AlertCircle size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">GitHub connection required</p>
-          <p className="text-slate-600 text-xs mt-1">Connect your account and configure the repo to browse your library.</p>
+          <p className="text-slate-500 text-xs mt-1">Connect your account and configure the repo to browse your library.</p>
         </div>
       )}
 
       {hasCredentials && !loaded && loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Loader size={28} className="text-slate-500 animate-spin mb-4" />
+          <Loader size={28} className="text-slate-400 animate-spin mb-4" />
           <p className="text-slate-400 text-sm">Fetching releases…</p>
         </div>
       )}
 
       {hasCredentials && !loaded && !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Library size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><Library size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">Click "Load Library" to fetch your episodes</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl mb-4">
-          <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl mb-4">
+          <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+          <p className="text-sm text-rose-400">{error}</p>
         </div>
       )}
 
       {loaded && releases.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Music size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><Music size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">No episodes yet</p>
-          <p className="text-slate-600 text-xs mt-1">Episodes appear here after your first successful ingest run.</p>
+          <p className="text-slate-500 text-xs mt-1">Episodes appear here after your first successful ingest run.</p>
         </div>
       )}
 
@@ -362,9 +362,9 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           </div>
 
           {deleteError && (
-            <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-400">{deleteError}</p>
+            <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+              <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+              <p className="text-sm text-rose-400">{deleteError}</p>
             </div>
           )}
 
@@ -375,10 +375,10 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   {group.key}
                 </p>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-amber-400/60">{group.releases.length} copies</span>
+                  <span className="text-[11px] text-amber-400/60">{group.releases.length} copies</span>
                   <button
                     onClick={() => selectAllInGroup(group)}
-                    className="text-[10px] text-amber-400/80 hover:text-amber-300 underline"
+                    className="text-[11px] text-amber-400/80 hover:text-amber-300 underline"
                   >
                     select all older
                   </button>
@@ -392,37 +392,37 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   return (
                     <div
                       key={release.id}
-                      className={`flex items-center gap-3 px-4 py-3 transition-colors ${isChecked ? 'bg-red-500/5' : 'bg-slate-900'}`}
+                      className={`flex items-center gap-3 px-4 py-3 transition-colors ${isChecked ? 'bg-rose-500/5' : 'bg-slate-900'}`}
                     >
                       <input
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => toggleSelect(release.id)}
                         disabled={deleting}
-                        className="w-4 h-4 rounded accent-red-500 cursor-pointer flex-shrink-0"
+                        className="w-4 h-4 rounded accent-rose-500 cursor-pointer flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm text-white truncate">{release.name || release.tag_name}</span>
                           {isNewest && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-medium">newest · keep</span>
+                            <span className="text-[11px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-medium">newest · keep</span>
                           )}
                           {isChecked && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded font-medium">marked for deletion</span>
+                            <span className="text-[11px] px-1.5 py-0.5 bg-rose-500/20 text-rose-400 rounded font-medium">marked for deletion</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           {episodeDateDisplay(release) && (
-                            <span className="text-xs text-slate-500">{episodeDateDisplay(release)}</span>
+                            <span className="text-xs text-slate-400">{episodeDateDisplay(release)}</span>
                           )}
-                          {mp3 && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
+                          {mp3 && <span className="text-xs text-slate-500">· {formatSize(mp3.size)}</span>}
                         </div>
                       </div>
                       <a
                         href={release.html_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 text-slate-600 hover:text-slate-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
+                        className="p-1.5 text-slate-500 hover:text-slate-400 hover:bg-slate-800 rounded-lg transition-colors flex-shrink-0"
                       >
                         <ExternalLink size={13} />
                       </a>
@@ -437,12 +437,12 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           <div className="sticky bottom-0 bg-slate-950/95 backdrop-blur border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
             {deleting ? (
               <div className="flex items-center gap-3 flex-1">
-                <Loader size={16} className="text-red-400 animate-spin flex-shrink-0" />
+                <Loader size={16} className="text-rose-400 animate-spin flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm text-red-400 font-medium">Deleting… {deleteProgress.done}/{deleteProgress.total}</p>
+                  <p className="text-sm text-rose-400 font-medium">Deleting… {deleteProgress.done}/{deleteProgress.total}</p>
                   <div className="mt-1.5 h-1.5 bg-slate-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-red-500 rounded-full transition-all"
+                      className="h-full bg-rose-500 rounded-full transition-all"
                       style={{ width: `${deleteProgress.total ? (deleteProgress.done / deleteProgress.total) * 100 : 0}%` }}
                     />
                   </div>
@@ -456,7 +456,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                 <button
                   onClick={handleBulkDelete}
                   disabled={selected.size === 0}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-rose-600 hover:bg-rose-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                 >
                   <Trash2 size={14} />
                   Delete {selected.size > 0 ? selected.size : ''} Release{selected.size !== 1 ? 's' : ''}
@@ -479,13 +479,13 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
             ].map(s => (
               <div key={s.label} className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-center">
                 <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wide mt-0.5">{s.label}</p>
+                <p className="text-[11px] text-slate-400 uppercase tracking-wide mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
 
           {/* Autonomous Transcription Pipeline Status Banner */}
-          <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 rounded-xl">
+          <div className="p-4 bg-slate-900 border border-indigo-500/30 rounded-xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2.5">
                 <span className="relative flex h-3 w-3">
@@ -495,7 +495,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                 <div>
                   <h4 className="text-sm font-bold text-white flex items-center gap-2">
                     Transcription Pipeline
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-mono font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-mono font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                       ON-DEMAND &amp; NEW SPACES
                     </span>
                   </h4>
@@ -518,7 +518,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
               </div>
               <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/50">
                 <div
-                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-2 rounded-full transition-all duration-500"
+                  className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${releases.length > 0 ? Math.min(100, Math.max(2, (txtCount / releases.length) * 100)) : 0}%` }}
                 />
               </div>
@@ -526,24 +526,24 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
             {untranscribedCount > 0 && transcriptionStatus?.next_in_queue && transcriptionStatus.next_in_queue.length > 0 && (
               <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center gap-2 text-[11px] text-slate-400 overflow-x-auto">
-                <span className="text-slate-500 uppercase tracking-wider text-[10px] font-bold flex-shrink-0">Next in Queue:</span>
+                <span className="text-slate-400 uppercase tracking-wider text-[11px] font-bold flex-shrink-0">Next in Queue:</span>
                 {transcriptionStatus.next_in_queue.slice(0, 3).map((item: any, i: number) => (
                   <span key={item.tag} className="bg-slate-800/80 border border-slate-700/50 px-2 py-0.5 rounded text-slate-300 truncate max-w-[180px]" title={`${item.name} (${item.date})`}>
                     #{i + 1} {item.name}
                   </span>
                 ))}
                 {transcriptionStatus.next_in_queue.length > 3 && (
-                  <span className="text-slate-500 text-[10px] flex-shrink-0">+{untranscribedCount - 3} more</span>
+                  <span className="text-slate-400 text-[11px] flex-shrink-0">+{untranscribedCount - 3} more</span>
                 )}
               </div>
             )}
 
             {transcriptionStatus?.fatal_error && (
-              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-start gap-2.5">
-                <AlertCircle size={15} className="text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="mt-3 p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg flex items-start gap-2.5">
+                <AlertCircle size={15} className="text-rose-400 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-red-300">Cloud Transcription Notice</p>
-                  <p className="text-xs text-red-400/90 mt-0.5">
+                  <p className="text-xs font-semibold text-rose-300">Cloud Transcription Notice</p>
+                  <p className="text-xs text-rose-400/90 mt-0.5">
                     {transcriptionStatus.fatal_error}
                   </p>
                   {(transcriptionStatus.fatal_error.toLowerCase().includes('assemblyai') || transcriptionStatus.fatal_error.toLowerCase().includes('deepgram')) && (
@@ -551,7 +551,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                       href="https://www.assemblyai.com/dashboard/api-keys"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-red-300 hover:text-red-200 underline mt-1.5 font-medium"
+                      className="inline-flex items-center gap-1 text-[11px] text-rose-300 hover:text-rose-200 underline mt-1.5 font-medium"
                     >
                       Open AssemblyAI Dashboard <ExternalLink size={11} />
                     </a>
@@ -561,7 +561,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                       href="https://modal.com/settings/billing"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-red-300 hover:text-red-200 underline mt-1.5 font-medium"
+                      className="inline-flex items-center gap-1 text-[11px] text-rose-300 hover:text-rose-200 underline mt-1.5 font-medium"
                     >
                       Open Modal Billing Settings <ExternalLink size={11} />
                     </a>
@@ -594,7 +594,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   className={`px-2.5 py-1 text-xs rounded-md font-medium transition-colors ${
                     sort === opt.value
                       ? 'bg-indigo-600 text-white'
-                      : 'text-slate-500 hover:text-slate-300'
+                      : 'text-slate-400 hover:text-slate-300'
                   }`}
                 >
                   {opt.label}
@@ -632,13 +632,13 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                           <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                            {epDate && <span className="text-xs text-slate-500">{epDate}</span>}
-                            {duration && <span className="text-xs text-slate-500">· {duration}</span>}
-                            {mp3 && !isMultiPart && <span className="text-xs text-slate-600">· {formatSize(mp3.size)}</span>}
+                            {epDate && <span className="text-xs text-slate-400">{epDate}</span>}
+                            {duration && <span className="text-xs text-slate-400">· {duration}</span>}
+                            {mp3 && !isMultiPart && <span className="text-xs text-slate-500">· {formatSize(mp3.size)}</span>}
                             {txt && (
                               <button
                                 onClick={() => onOpenTranscript?.(release.id)}
-                                className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 rounded font-medium transition-colors cursor-pointer"
+                                className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 rounded font-medium transition-colors cursor-pointer"
                                 title="Open interactive transcript and sync audio"
                               >
                                 <FileText size={10} /> View Transcript{isMultiPart ? ` (${parts.length} Parts)` : ''}
@@ -649,7 +649,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                               const isApproved = ytMatch && ytMatch[1].toUpperCase() === 'APPROVED';
                               const isUnlisted = ytMatch && ['UNLISTED', 'DRAFT', 'PENDING', 'NO'].includes(ytMatch[1].toUpperCase());
                               return isApproved ? (
-                                <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded font-medium" title="Approved for YouTube feed (podcast.xml)">
+                                <span className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 rounded font-medium" title="Approved for YouTube feed (podcast.xml)">
                                   YouTube: Approved
                                 </span>
                               ) : isUnlisted ? (
@@ -657,7 +657,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                                   href={`https://github.com/${owner}/${repo}/actions/workflows/manage_youtube_approval.yml`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-400/90 border border-amber-500/30 rounded font-medium transition-colors"
+                                  className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-400/90 border border-amber-500/30 rounded font-medium transition-colors"
                                   title="Unlisted (held back from YouTube). Click to approve in GitHub Actions."
                                 >
                                   YouTube: Unlisted <ExternalLink size={9} />
@@ -666,11 +666,11 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                             })()}
                           </div>
                           {sourceId && (
-                            <p className="text-[10px] text-slate-700 mt-0.5 font-mono truncate">ID: {sourceId}</p>
+                            <p className="text-[11px] text-slate-500 mt-0.5 font-mono truncate">ID: {sourceId}</p>
                           )}
                           {isMultiPart && (
                             <div className="flex items-center gap-1.5 flex-wrap mt-2.5 pt-2 border-t border-slate-800/60">
-                              <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Parts:</span>
+                              <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Parts:</span>
                               {parts.map(p => {
                                 const isThisPartPlaying = current?.id === release.id && current?.audioUrl === p.mp3Asset?.browser_download_url && isPlaying;
                                 return (
@@ -684,14 +684,14 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                                     })}
                                     className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-all border cursor-pointer ${
                                       isThisPartPlaying
-                                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/25'
+                                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md'
                                         : 'bg-slate-800/90 hover:bg-indigo-600/20 text-indigo-300 border-slate-700 hover:border-indigo-500/40'
                                     }`}
                                     title={p.mp3Asset ? `Play ${p.label}` : `No audio file for ${p.label}`}
                                   >
                                     {isThisPartPlaying ? <Music size={11} className="animate-pulse text-white" /> : <Play size={11} />}
                                     <span className="font-semibold">{p.label}</span>
-                                    {p.mp3Asset && <span className="text-[10px] opacity-75 font-mono">({formatSize(p.mp3Asset.size)})</span>}
+                                    {p.mp3Asset && <span className="text-[11px] opacity-75 font-mono">({formatSize(p.mp3Asset.size)})</span>}
                                   </button>
                                 );
                               })}
@@ -703,7 +703,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                             href={release.html_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
                             title="View release on GitHub"
                           >
                             <ExternalLink size={13} />
@@ -711,7 +711,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           {mp3 && (
                             <a
                               href={mp3.browser_download_url}
-                              className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
                               title="Download MP3"
                             >
                               <Download size={13} />
@@ -741,7 +741,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           <button
                             onClick={() => setConfirmRerun(release.id)}
                             disabled={dispatching === release.id}
-                            className="flex items-center gap-1 px-2 py-0.5 text-[10px] text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors disabled:opacity-50"
+                            className="flex items-center gap-1 px-2 py-0.5 text-[11px] text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors disabled:opacity-50"
                           >
                             {dispatching === release.id
                               ? <Loader size={9} className="animate-spin" />
@@ -751,13 +751,13 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                         )}
                         {!txt && mp3 && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium">
+                            <span className="text-[11px] text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium">
                               Queued for Auto-Transcription
                             </span>
                             <button
                               onClick={() => handleTranscribe(release)}
                               disabled={dispatching === release.id}
-                              className="flex items-center gap-1 px-2 py-0.5 text-[10px] text-indigo-300 hover:text-white bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/30 rounded transition-colors disabled:opacity-50 cursor-pointer"
+                              className="flex items-center gap-1 px-2 py-0.5 text-[11px] text-indigo-300 hover:text-white bg-indigo-600/30 hover:bg-indigo-600 border border-indigo-500/30 rounded transition-colors disabled:opacity-50 cursor-pointer"
                               title="Prioritize this episode immediately out of order"
                             >
                               {dispatching === release.id
@@ -768,7 +768,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                           </div>
                         )}
                         {dispatchMsg[release.id] && (
-                          <span className={`text-[10px] ${dispatchMsg[release.id].includes('dispatched') ? 'text-emerald-400' : 'text-red-400'}`}>
+                          <span className={`text-[11px] ${dispatchMsg[release.id].includes('dispatched') ? 'text-emerald-400' : 'text-rose-400'}`}>
                             {dispatchMsg[release.id].includes('dispatched')
                               ? <CheckCircle size={9} className="inline mr-1" />
                               : null}
@@ -784,7 +784,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           </div>
 
           {filtered.length === 0 && search && (
-            <p className="text-center text-slate-600 text-sm py-8">No episodes match "{search}"</p>
+            <p className="text-center text-slate-500 text-sm py-8">No episodes match "{search}"</p>
           )}
         </div>
       )}

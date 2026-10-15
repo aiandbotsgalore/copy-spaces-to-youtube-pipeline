@@ -80,38 +80,17 @@ const CANONICAL_CATEGORY_ORDER = [
 const getCategoryColor = (cat: string) => {
   const canonical = normalizeCategory(cat);
   const c = canonical.toLowerCase();
-  if (c.includes('humor') || c.includes('banter')) {
-    return {
-      badge: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-      pill: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
-      icon: '🔥'
-    };
-  }
-  if (c.includes('story') || c.includes('wild')) {
-    return {
-      badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-      pill: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-      icon: '🛸'
-    };
-  }
-  if (c.includes('rant')) {
-    return {
-      badge: 'bg-rose-500/15 text-rose-300 border-rose-500/30',
-      pill: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
-      icon: '⚡'
-    };
-  }
-  if (c.includes('quote') || c.includes('golden')) {
-    return {
-      badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-      pill: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
-      icon: '💬'
-    };
-  }
+  const dot =
+    c.includes('rant') ? 'bg-rose-400'
+    : c.includes('humor') || c.includes('banter') ? 'bg-amber-400'
+    : c.includes('story') || c.includes('wild') ? 'bg-indigo-400'
+    : c.includes('quote') || c.includes('golden') ? 'bg-slate-400'
+    : 'bg-emerald-400';
   return {
-    badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-    pill: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    icon: '✨'
+    badge: 'bg-slate-800 text-slate-300 border-transparent',
+    pill: 'text-slate-300 bg-slate-800 border-transparent',
+    dot,
+    icon: ''
   };
 };
 
@@ -599,7 +578,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       />
 
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-transparent p-5 rounded-2xl border border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 p-5 rounded-xl border border-slate-800">
         <div>
           <div className="flex items-center gap-3 mb-1.5 flex-wrap">
             <div className="p-2 bg-amber-500/20 border border-amber-500/30 rounded-xl text-amber-400">
@@ -626,7 +605,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               setCopiedRss(true);
               setTimeout(() => setCopiedRss(false), 2500);
             }}
-            className="flex items-center gap-2 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:text-amber-200 text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm"
             title="Copy dedicated Clips RSS feed URL for YouTube Studio Podcasts"
           >
             {copiedRss ? <Check size={14} className="text-emerald-400" /> : <Radio size={14} className="text-amber-400" />}
@@ -635,7 +614,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           <button
             onClick={loadClips}
             disabled={loading}
-            className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer shadow-sm"
+            className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-all cursor-pointer shadow-sm"
             title="Refresh clip library from GitHub Releases"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin text-indigo-400' : ''} />
@@ -645,7 +624,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       </div>
 
       {/* Search, Filter & View Controls Bar */}
-      <div className="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 backdrop-blur-sm">
+      <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 backdrop-blur-sm">
         {/* Row 1: Search + View Modes + Sort */}
         <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
           {/* Search Bar */}
@@ -676,7 +655,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 onClick={() => setViewMode('grouped')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                   viewMode === 'grouped'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
                 title="Group by Space Episode (Accordion)"
@@ -688,7 +667,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 onClick={() => setViewMode('grid')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                   viewMode === 'grid'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
                 title="Grid Cards View"
@@ -700,7 +679,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 onClick={() => setViewMode('list')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                   viewMode === 'list'
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-white'
                 }`}
                 title="Compact List / Tracklist View"
@@ -711,7 +690,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-300">
               <ArrowUpDown size={13} className="text-indigo-400 flex-shrink-0" />
               <select
                 value={sortBy}
@@ -739,14 +718,14 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl font-medium transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer ${
                   isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
+                    ? 'bg-indigo-600 text-white shadow-lg font-semibold'
                     : 'bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800/80'
                 }`}
               >
-                <span>{cat === 'ALL' ? '🌐 All Moments' : `${color.icon} ${cat}`}</span>
-                <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold ${
+                <span>{cat === 'ALL' ? 'All moments' : cat}</span>
+                <span className={`px-1.5 py-0.2 rounded-md text-[11px] font-bold ${
                   isSelected ? 'bg-indigo-800 text-indigo-100' : 'bg-slate-800 text-slate-400'
                 }`}>
                   {count}
@@ -758,13 +737,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
         {/* Row 3: Space Episode Selector + Speaker Filter + Top Rated Toggle */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
-          <span className="flex items-center gap-1 text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
+          <span className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
             <SlidersHorizontal size={11} /> Filters:
           </span>
 
           {/* Episode Select */}
           <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
-            <Radio size={12} className="text-sky-400 flex-shrink-0" />
+            <Radio size={12} className="text-slate-300 flex-shrink-0" />
             <select
               value={selectedEpisode}
               onChange={e => setSelectedEpisode(e.target.value)}
@@ -807,7 +786,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
             }`}
           >
-            <Star size={12} className={onlyTopRated ? 'text-amber-400 fill-amber-400' : 'text-slate-500'} />
+            <Star size={12} className={onlyTopRated ? 'text-amber-400 fill-amber-400' : 'text-slate-400'} />
             <span>9-10 Viral Only</span>
           </button>
 
@@ -817,11 +796,11 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ml-auto ${
               autoNext
                 ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                : 'bg-slate-950 text-slate-500 border-slate-800 hover:text-slate-400'
+                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
             }`}
             title="Automatically play the next clip when one finishes"
           >
-            <Repeat size={12} className={autoNext ? 'text-indigo-400' : 'text-slate-500'} />
+            <Repeat size={12} className={autoNext ? 'text-indigo-400' : 'text-slate-400'} />
             <span>Autoplay Next: {autoNext ? 'ON' : 'OFF'}</span>
           </button>
 
@@ -838,7 +817,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       </div>
 
       {/* Results Count Bar */}
-      <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+      <div className="flex items-center justify-between text-xs text-slate-400 px-1">
         <span>
           Showing <strong className="text-white">{filteredClips.length}</strong> of {clips.length} highlight moments
           {selectedEpisode !== 'ALL' && ` in "${formatEpisodeTitle(selectedEpisode)}"`}
@@ -854,7 +833,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-24 bg-slate-900/30 border border-slate-800/80 rounded-2xl">
+        <div className="text-center py-24 bg-slate-900/30 border border-slate-800/80 rounded-xl">
           <RefreshCw size={28} className="animate-spin text-amber-400 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-white mb-1">Loading Highlight Clips...</h3>
           <p className="text-xs text-slate-400">Aggregating curated moments from GitHub Releases and local catalog</p>
@@ -863,7 +842,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
       {/* Empty State */}
       {!loading && filteredClips.length === 0 && (
-        <div className="text-center py-20 bg-slate-900/40 border border-slate-800 rounded-2xl p-8 max-w-md mx-auto">
+        <div className="text-center py-20 bg-slate-900/40 border border-slate-800 rounded-xl p-8 max-w-md mx-auto">
           <Sparkles size={36} className="text-amber-400/70 mx-auto mb-3" />
           <h3 className="text-base font-bold text-white mb-1">No Moments Found</h3>
           <p className="text-xs text-slate-400 mb-4 leading-relaxed">
@@ -880,7 +859,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 setSelectedSpeaker('ALL');
                 setOnlyTopRated(false);
               }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md shadow-indigo-600/30 cursor-pointer"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-all shadow-md cursor-pointer"
             >
               Reset All Filters
             </button>
@@ -898,7 +877,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             return (
               <div
                 key={epName}
-                className="bg-slate-900/50 border border-slate-800/90 rounded-2xl overflow-hidden transition-all shadow-sm"
+                className="bg-slate-900/50 border border-slate-800/90 rounded-xl overflow-hidden transition-all shadow-sm"
               >
                 {/* Episode Accordion Header */}
                 <div className="flex items-center justify-between p-4 bg-slate-900/80 hover:bg-slate-850/90 transition-colors border-b border-slate-800/60 flex-wrap sm:flex-nowrap gap-3">
@@ -912,14 +891,14 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     >
                       {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                     </button>
-                    <div className="p-2 bg-sky-500/10 border border-sky-500/20 rounded-xl text-sky-400 flex-shrink-0">
+                    <div className="p-2 bg-slate-500/10 border border-slate-500/20 rounded-xl text-slate-300 flex-shrink-0">
                       <Radio size={16} />
                     </div>
                     <div className="min-w-0">
                       <h2 className="text-sm sm:text-base font-bold text-white truncate flex items-center gap-2">
                         <span>{formatEpisodeTitle(epName)}</span>
                         {isPlayingThisEpisode && (
-                          <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                          <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                             <Volume2 size={11} className="animate-bounce" /> Playing
                           </span>
                         )}
@@ -945,7 +924,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                           handlePlayClip(epClips[0]);
                         }
                       }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold transition-all shadow-sm shadow-indigo-600/20 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer"
                       title="Play all clips from this Space sequentially"
                     >
                       <Play size={12} className="translate-x-0.2" />
@@ -975,10 +954,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
       {/* VIEW MODE 3: Compact Tracklist / Table View */}
       {!loading && viewMode === 'list' && (
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="py-3 px-4 w-12 text-center">#</th>
                   <th className="py-3 px-4">Highlight Moment</th>
@@ -1009,7 +988,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                           onClick={() => handlePlayClip(clip)}
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
                             isThisPlaying
-                              ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
+                              ? 'bg-amber-500 text-slate-950 shadow-md'
                               : 'bg-slate-800 group-hover:bg-indigo-600 text-slate-300 group-hover:text-white'
                           }`}
                           title={isThisPlaying ? 'Pause' : 'Play'}
@@ -1030,18 +1009,18 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
                       {/* Episode */}
                       <td className="py-3 px-4 hidden md:table-cell max-w-xs truncate">
-                        <span className="truncate block font-medium text-sky-400" title={formatEpisodeTitle(clip.episode)}>
+                        <span className="truncate block font-medium text-slate-300" title={formatEpisodeTitle(clip.episode)}>
                           {formatEpisodeTitle(clip.episode)}
                         </span>
-                        <span className="text-[10px] text-amber-400/80 block">
+                        <span className="text-[11px] text-amber-400/80 block">
                           📅 {getClipRecordedDate(clip).displayDate}
                         </span>
                       </td>
 
                       {/* Category */}
                       <td className="py-3 px-4 hidden sm:table-cell whitespace-nowrap">
-                        <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${catColor.badge}`}>
-                          {catColor.icon} {normalizeCategory(clip.category)}
+                        <span className={`px-2 py-0.5 text-[11px] font-semibold rounded-md border ${catColor.badge}`}>
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle ${catColor.dot}`} aria-hidden="true" />{normalizeCategory(clip.category)}
                         </span>
                       </td>
 
@@ -1095,13 +1074,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       {/* PERSISTENT PRO AUDIO DOCK (Sticky at bottom when any clip is active) */}
       {activeClip && (
         <div className="fixed bottom-4 left-4 right-4 max-w-5xl mx-auto z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
-          <div className="p-3.5 sm:p-4 bg-slate-950/95 border border-indigo-500/40 rounded-2xl shadow-2xl shadow-black/80 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div className="p-3.5 sm:p-4 bg-slate-950/95 border border-indigo-500/40 rounded-xl shadow-2xl shadow-black/80 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
             {/* Left: Info & Soundwave */}
             <div className="flex items-center gap-3 min-w-0 w-full md:w-auto">
               <div className="relative">
                 <button
                   onClick={() => handlePlayClip(activeClip)}
-                  className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-600/40 cursor-pointer transition-all hover:scale-105 active:scale-95"
+                  className="w-11 h-11 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg cursor-pointer transition-all hover:scale-105 active:scale-95"
                   title={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? <Pause size={20} /> : <Play size={20} className="translate-x-0.5" />}
@@ -1116,12 +1095,12 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   <h4 className="text-xs sm:text-sm font-bold text-white truncate max-w-[280px]">
                     {activeClip.title}
                   </h4>
-                  <span className={`hidden sm:inline-block px-2 py-0.2 text-[9px] font-bold uppercase rounded-md border ${getCategoryColor(activeClip.category).badge}`}>
+                  <span className={`hidden sm:inline-block px-2 py-0.2 text-[11px] font-bold uppercase rounded-md border ${getCategoryColor(activeClip.category).badge}`}>
                     {normalizeCategory(activeClip.category)}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sky-400 font-medium">{formatEpisodeTitle(activeClip.episode)}</span>
+                  <span className="text-slate-300 font-medium">{formatEpisodeTitle(activeClip.episode)}</span>
                   <span>•</span>
                   <span className="font-mono text-slate-300">
                     {formatSec(currentTime)} / {formatSec(duration || activeClip.duration || 0)}
@@ -1149,7 +1128,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   title="Skip back 15s"
                 >
                   <RotateCcw size={15} />
-                  <span className="text-[8px] font-bold absolute -bottom-1 -right-0.5 text-indigo-300">15</span>
+                  <span className="text-[11px] font-bold absolute -bottom-1 -right-0.5 text-indigo-300">15</span>
                 </button>
 
                 {/* Ahead 15s */}
@@ -1159,7 +1138,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   title="Skip ahead 15s"
                 >
                   <RotateCw size={15} />
-                  <span className="text-[8px] font-bold absolute -bottom-1 -right-0.5 text-indigo-300">15</span>
+                  <span className="text-[11px] font-bold absolute -bottom-1 -right-0.5 text-indigo-300">15</span>
                 </button>
 
                 {/* Next */}
@@ -1174,7 +1153,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 {/* Speed toggle */}
                 <button
                   onClick={handleCycleClipSpeed}
-                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-850 text-indigo-300 border border-slate-800 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                  className="px-2 py-0.5 bg-slate-900 hover:bg-slate-850 text-indigo-300 border border-slate-800 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                   title="Cycle Playback Speed"
                 >
                   <Gauge size={10} />
@@ -1184,7 +1163,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
               {/* Progress Bar */}
               <div className="w-full flex items-center gap-2">
-                <span className="text-[10px] font-mono text-slate-400 min-w-[32px] text-right">
+                <span className="text-[11px] font-mono text-slate-400 min-w-[32px] text-right">
                   {formatSec(currentTime)}
                 </span>
                 <input
@@ -1199,7 +1178,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   }}
                   className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
                 />
-                <span className="text-[10px] font-mono text-slate-400 min-w-[32px]">
+                <span className="text-[11px] font-mono text-slate-400 min-w-[32px]">
                   {formatSec(duration || activeClip.duration || 0)}
                 </span>
               </div>
@@ -1261,21 +1240,21 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     return (
       <div
         key={`${clip.title}-${idx}`}
-        className={`p-5 rounded-2xl border transition-all flex flex-col justify-between relative group ${
+        className={`p-5 rounded-xl border transition-all flex flex-col justify-between relative group ${
           isThisPlaying
-            ? 'bg-slate-900/95 border-indigo-500/70 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/50'
+            ? 'bg-slate-900/95 border-indigo-500/70 shadow-xl ring-1 ring-indigo-500/50'
             : 'bg-slate-900/70 border-slate-800/90 hover:border-slate-700 hover:bg-slate-850/80'
         }`}
       >
         <div>
           {/* Top Row: Category + Stars */}
           <div className="flex items-center justify-between gap-2 mb-2.5">
-            <span className={`px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border ${catColor.badge}`}>
-              {catColor.icon} {normalizeCategory(clip.category)}
+            <span className={`px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md border ${catColor.badge}`}>
+              <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle ${catColor.dot}`} aria-hidden="true" />{normalizeCategory(clip.category)}
             </span>
             <div className="flex items-center gap-1 text-amber-400 text-xs" title={`Viral Score: ${clip.viral_score}/10`}>
               {'⭐'.repeat(starsCount)}
-              <span className="text-[10px] font-bold text-slate-400 ml-1">
+              <span className="text-[11px] font-bold text-slate-400 ml-1">
                 {clip.viral_score}/10
               </span>
             </div>
@@ -1283,14 +1262,14 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
           {/* Space Episode Banner (if not grouped) */}
           {viewMode !== 'grouped' && clip.episode && (
-            <div className="flex items-center justify-between gap-1.5 text-[11px] font-medium text-sky-400 bg-sky-950/40 border border-sky-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-full">
+            <div className="flex items-center justify-between gap-1.5 text-[11px] font-medium text-slate-300 bg-slate-950/40 border border-slate-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-full">
               <div className="flex items-center gap-1.5 truncate">
-                <Radio size={12} className="flex-shrink-0 text-sky-400" />
+                <Radio size={12} className="flex-shrink-0 text-slate-300" />
                 <span className="truncate" title={formatEpisodeTitle(clip.episode)}>
                   {formatEpisodeTitle(clip.episode)}
                 </span>
               </div>
-              <span className="text-[10px] text-amber-400/90 flex-shrink-0 font-normal">
+              <span className="text-[11px] text-amber-400/90 flex-shrink-0 font-normal">
                 📅 {getClipRecordedDate(clip).displayDate}
               </span>
             </div>
@@ -1323,7 +1302,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
         {/* Bottom Metadata & Playback Controls */}
         <div>
-          <div className="flex items-center gap-3 text-[11px] text-slate-500 mb-3.5 flex-wrap">
+          <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3.5 flex-wrap">
             <span className="flex items-center gap-1 font-mono text-slate-400">
               <Clock size={11} />
               {clip.duration ? `${clip.duration.toFixed(0)}s` : 'Clip'}
@@ -1339,10 +1318,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800/70">
             <button
               onClick={() => handlePlayClip(clip)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-md ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-md ${
                 isThisPlaying
-                  ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20 hover:scale-[1.02]'
+                  ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                  : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-[1.02]'
               }`}
             >
               {isThisPlaying ? <Pause size={14} /> : <Play size={14} className="translate-x-0.2" />}

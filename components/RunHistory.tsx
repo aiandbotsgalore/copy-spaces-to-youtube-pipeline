@@ -41,7 +41,7 @@ function StatusBadge({ status, conclusion }: { status: string; conclusion: strin
     status === 'requested'
   ) {
     return (
-      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[10px] font-semibold rounded-full">
+      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[11px] font-semibold rounded-full">
         <Loader size={10} className="animate-spin" />
         {status === 'queued'
           ? 'Queued'
@@ -55,34 +55,34 @@ function StatusBadge({ status, conclusion }: { status: string; conclusion: strin
   }
   if (conclusion === 'success') {
     return (
-      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/15 text-emerald-400 text-[10px] font-semibold rounded-full">
+      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/15 text-emerald-400 text-[11px] font-semibold rounded-full">
         <CheckCircle size={10} /> Success
       </span>
     );
   }
   if (conclusion === 'failure') {
     return (
-      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/15 text-red-400 text-[10px] font-semibold rounded-full">
+      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/15 text-rose-400 text-[11px] font-semibold rounded-full">
         <XCircle size={10} /> Failed
       </span>
     );
   }
   if (conclusion === 'cancelled') {
     return (
-      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-400 text-[10px] font-semibold rounded-full">
+      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-400 text-[11px] font-semibold rounded-full">
         <XCircle size={10} /> Cancelled
       </span>
     );
   }
   if (conclusion === 'skipped') {
     return (
-      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-400 text-[10px] font-semibold rounded-full">
+      <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-700 text-slate-400 text-[11px] font-semibold rounded-full">
         Skipped
       </span>
     );
   }
   return (
-    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 text-slate-500 text-[10px] font-semibold rounded-full">
+    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 text-slate-400 text-[11px] font-semibold rounded-full">
       <Clock size={10} /> {status}
     </span>
   );
@@ -117,20 +117,20 @@ const RunHistory: React.FC<Props> = ({ config }) => {
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-2xl font-bold text-white">Run History</h2>
             {isLive && (
-              <span className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/15 text-red-400 text-[10px] font-bold rounded-full animate-pulse">
+              <span className="flex items-center gap-1.5 px-2 py-0.5 bg-rose-500/15 text-rose-400 text-[11px] font-bold rounded-full animate-pulse">
                 <Radio size={9} /> LIVE
               </span>
             )}
             {activeCount > 0 && (
-              <span className="px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[10px] font-semibold rounded-full">
+              <span className="px-2 py-0.5 bg-amber-500/15 text-amber-400 text-[11px] font-semibold rounded-full">
                 {activeCount} active
               </span>
             )}
           </div>
           <p className="text-slate-400 text-sm">
             GitHub Actions runs for{' '}
-            <code className="text-sky-400 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
-            {isLive && <span className="ml-2 text-slate-600 text-xs">· auto-refreshing every {RUN_POLL_INTERVAL_MS / 1000}s</span>}
+            <code className="text-slate-300 bg-slate-800 px-1 rounded text-xs">{config.ownerName}/{config.repoName}</code>
+            {isLive && <span className="ml-2 text-slate-500 text-xs">· auto-refreshing every {RUN_POLL_INTERVAL_MS / 1000}s</span>}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -158,31 +158,31 @@ const RunHistory: React.FC<Props> = ({ config }) => {
 
       {!hasCredentials && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><AlertCircle size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><AlertCircle size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">GitHub connection required</p>
-          <p className="text-slate-600 text-xs mt-1">Connect your account and configure your repo to view run history.</p>
+          <p className="text-slate-500 text-xs mt-1">Connect your account and configure your repo to view run history.</p>
         </div>
       )}
 
       {hasCredentials && !loaded && !loading && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Play size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><Play size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">Click "Load Runs" to fetch workflow history</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl mb-4">
-          <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl mb-4">
+          <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+          <p className="text-sm text-rose-400">{error}</p>
         </div>
       )}
 
       {loaded && runs.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4"><Clock size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-800 rounded-xl mb-4"><Clock size={28} className="text-slate-400" /></div>
           <p className="text-slate-400 text-sm font-medium">No workflow runs found</p>
-          <p className="text-slate-600 text-xs mt-1">Runs appear here after your first ingest.</p>
+          <p className="text-slate-500 text-xs mt-1">Runs appear here after your first ingest.</p>
         </div>
       )}
 
@@ -192,7 +192,7 @@ const RunHistory: React.FC<Props> = ({ config }) => {
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === 'all' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-900 text-slate-500 border border-slate-800 hover:text-slate-300'}`}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === 'all' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-300'}`}
             >
               All ({runs.length})
             </button>
@@ -200,7 +200,7 @@ const RunHistory: React.FC<Props> = ({ config }) => {
               <button
                 key={wfName}
                 onClick={() => setFilter(wfName)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === wfName ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-900 text-slate-500 border border-slate-800 hover:text-slate-300'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${filter === wfName ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-300'}`}
               >
                 {wfName} ({runs.filter(r => workflowShortName(r.name) === wfName).length})
               </button>
@@ -222,13 +222,13 @@ const RunHistory: React.FC<Props> = ({ config }) => {
               >
                 <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
                   {run.conclusion === 'success' && <CheckCircle size={20} className="text-emerald-400" />}
-                  {run.conclusion === 'failure' && <XCircle size={20} className="text-red-400" />}
-                  {(run.conclusion === 'cancelled' || run.conclusion === 'skipped') && <XCircle size={20} className="text-slate-500" />}
+                  {run.conclusion === 'failure' && <XCircle size={20} className="text-rose-400" />}
+                  {(run.conclusion === 'cancelled' || run.conclusion === 'skipped') && <XCircle size={20} className="text-slate-400" />}
                   {(!run.conclusion || isActiveRun(run)) && <Loader size={20} className="text-amber-400 animate-spin" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${workflowBadgeColor(run.name)}`}>
+                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${workflowBadgeColor(run.name)}`}>
                       {workflowShortName(run.name)}
                     </span>
                     <span className="text-sm font-semibold text-white group-hover:text-indigo-300 transition-colors truncate">
@@ -236,9 +236,9 @@ const RunHistory: React.FC<Props> = ({ config }) => {
                     </span>
                     <StatusBadge status={run.status} conclusion={run.conclusion} />
                   </div>
-                  <p className="text-xs text-slate-500">{timeAgo(run.created_at)}</p>
+                  <p className="text-xs text-slate-400">{timeAgo(run.created_at)}</p>
                 </div>
-                <ExternalLink size={14} className="flex-shrink-0 text-slate-700 group-hover:text-slate-400 transition-colors" />
+                <ExternalLink size={14} className="flex-shrink-0 text-slate-500 group-hover:text-slate-400 transition-colors" />
               </a>
             ))}
           </div>

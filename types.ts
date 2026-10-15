@@ -30,6 +30,13 @@ export interface EnhancedConfig extends PipelineConfig {
   scheduledCron: string;
 }
 
+export interface ConfigProfile {
+  id: string;
+  name: string;
+  config: EnhancedConfig;
+  updatedAt: number;
+}
+
 export interface GitHubUser {
   login: string;
   name: string;
@@ -98,10 +105,35 @@ export interface VoiceProfile {
   sample_audio_url?: string;
 }
 
+export interface DeadLetterJob {
+  id: string;
+  workflow: string;
+  runId?: number;
+  speakerName?: string;
+  audioUrl?: string;
+  failedAt: number;
+  attempts: number;
+  rootCause: string;
+  logUrl?: string;
+  diagnosticDetails?: string;
+  status: 'quarantined' | 'retrying' | 'resolved';
+}
+
+export interface WorkflowDiagnostic {
+  runId: number;
+  workflowName: string;
+  status: 'running' | 'healed' | 'quarantined' | 'failed' | 'success';
+  healAttempts?: number;
+  healedAt?: number;
+  reason?: string;
+  logUrl?: string;
+}
+
 export interface VoiceProfilesCatalog {
   version: string;
   updated_at: string;
   embedding_model: string;
   embedding_dim: number;
   profiles: Record<string, VoiceProfile>;
+  dlq?: DeadLetterJob[];
 }

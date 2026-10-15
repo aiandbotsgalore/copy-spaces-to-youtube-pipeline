@@ -308,7 +308,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
           disabled={isLoading}
           className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             mode === 'url'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+              ? 'bg-indigo-600 text-white shadow-lg'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
           }`}
         >
@@ -324,7 +324,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
           disabled={isLoading}
           className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             mode === 'file'
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+              ? 'bg-indigo-600 text-white shadow-lg'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
           }`}
         >
@@ -355,9 +355,9 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   placeholder="https://x.com/i/spaces/..."
                   disabled={isLoading}
                   autoComplete="url"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono placeholder:text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60 transition-colors"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60 transition-colors"
                 />
-                <p className="mt-2 text-[11px] text-slate-500">
+                <p className="mt-2 text-[11px] text-slate-400">
                   Supports X Spaces and other audio URLs handled by your ingest workflow.
                 </p>
               </div>
@@ -377,7 +377,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <Radio size={14} className={recordLive ? 'text-rose-400 animate-pulse' : 'text-slate-500'} />
+                      <Radio size={14} className={recordLive ? 'text-rose-400 animate-pulse' : 'text-slate-400'} />
                       <span className={`text-xs font-semibold ${recordLive ? 'text-rose-300' : 'text-slate-300'}`}>
                         Record Live Broadcast (Space currently in progress)
                       </span>
@@ -433,14 +433,14 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
               <section className={`flex flex-col p-5 border rounded-xl transition-all ${
                 recordLive
                   ? 'bg-slate-900/40 border-slate-800 opacity-60'
-                  : 'bg-sky-500/[0.05] border-sky-500/20'
+                  : 'bg-slate-500/[0.05] border-slate-500/20'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <ListPlus size={16} className="text-sky-400" />
+                  <ListPlus size={16} className="text-slate-300" />
                   <h3 className="text-sm font-semibold text-white">Add to Queue</h3>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed mb-4 flex-1">
-                  Adds this Space to the bottom of <code className="text-sky-400">batch_queue.txt</code> without removing existing URLs.
+                  Adds this Space to the bottom of <code className="text-slate-300">batch_queue.txt</code> without removing existing URLs.
                 </p>
                 {recordLive && (
                   <p className="text-[11px] text-amber-400/90 mb-3">
@@ -451,7 +451,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   type="button"
                   onClick={() => void submitUrl('queue')}
                   disabled={isLoading || recordLive}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-slate-900"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-900"
                 >
                   {activeAction === 'queue' ? <Loader size={16} className="animate-spin" /> : <ListPlus size={16} />}
                   {activeAction === 'queue' ? 'Adding…' : 'Add to Queue'}
@@ -500,13 +500,13 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                         : 'border-slate-700/80 bg-slate-950/60 hover:border-indigo-500/50 hover:bg-slate-950'
                     }`}
                   >
-                    <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl mb-3 text-indigo-400">
+                    <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-3 text-indigo-400">
                       <UploadCloud size={26} />
                     </div>
                     <p className="text-sm font-semibold text-slate-200 mb-1">
                       Click to browse or drag and drop an audio file
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-400">
                       Supports MP3, M4A, WAV, FLAC, OGG, AAC, MP4 (up to 2 GB via GitHub Releases)
                     </p>
                   </div>
@@ -557,7 +557,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
                     2. Episode Metadata
                   </label>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-slate-400">
                     Required for RSS feed, Library sorting &amp; AI Speaker Diarization
                   </span>
                 </div>
@@ -578,7 +578,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                       }}
                       placeholder="e.g. Late Night Debrief on Space Operations"
                       disabled={isLoading}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
 
@@ -616,10 +616,10 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                     }}
                     placeholder="e.g. Logan Black, Angela, Rick Doty"
                     disabled={isLoading}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                   <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    <span className="text-[10px] text-slate-500 mr-1">Quick toggle:</span>
+                    <span className="text-[11px] text-slate-400 mr-1">Quick toggle:</span>
                     {KNOWN_SPEAKER_CHIPS.map(spk => {
                       const active = meta.speakers
                         .split(',')
@@ -646,7 +646,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
 
                 <div className="space-y-1.5">
                   <label htmlFor="local-desc" className="block text-xs font-semibold text-slate-300">
-                    Description / Episode Notes <span className="text-slate-500 font-normal">(Optional)</span>
+                    Description / Episode Notes <span className="text-slate-400 font-normal">(Optional)</span>
                   </label>
                   <textarea
                     id="local-desc"
@@ -655,7 +655,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                     onChange={e => setMeta(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Add context, topics discussed, or show notes for the podcast RSS feed..."
                     disabled={isLoading}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 transition-colors resize-y"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 transition-colors resize-y"
                   />
                 </div>
 
@@ -668,7 +668,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                         {stagedPreview.releaseTag}
                       </code>
                     </div>
-                    <div className="text-[11px] text-slate-500 font-mono truncate max-w-xs">
+                    <div className="text-[11px] text-slate-400 font-mono truncate max-w-xs">
                       {stagedPreview.assetName}
                     </div>
                   </div>
@@ -704,7 +704,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                 type="button"
                 onClick={() => void submitLocalUpload()}
                 disabled={isLoading || !selectedFile}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-indigo-500/20 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {activeAction === 'upload' ? (
                   <Loader size={16} className="animate-spin" />
@@ -725,14 +725,14 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
             className={`flex items-start gap-3 p-4 border rounded-xl ${
               notice.kind === 'success'
                 ? 'bg-emerald-500/10 border-emerald-500/30'
-                : 'bg-red-500/10 border-red-500/30'
+                : 'bg-rose-500/10 border-rose-500/30'
             }`}
           >
             {notice.kind === 'success'
               ? <CheckCircle size={17} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-              : <AlertCircle size={17} className="text-red-400 flex-shrink-0 mt-0.5" />}
+              : <AlertCircle size={17} className="text-rose-400 flex-shrink-0 mt-0.5" />}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm ${notice.kind === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+              <p className={`text-sm ${notice.kind === 'success' ? 'text-emerald-300' : 'text-rose-300'}`}>
                 {notice.message}
               </p>
               {notice.kind === 'success' && (notice.action === 'run' || notice.action === 'upload') && (

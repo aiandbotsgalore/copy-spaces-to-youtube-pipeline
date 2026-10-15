@@ -6,8 +6,9 @@ import {
   Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText,
   UploadCloud, Music, FileAudio
 } from 'lucide-react';
-import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release } from '../types';
+import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release, DeadLetterJob } from '../types';
 import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
+import { loadDeadLetterQueue, saveDeadLetterQueue, removeFromDeadLetterQueue } from '../utils/storage';
 
 interface Props {
   config: EnhancedConfig;
@@ -90,11 +91,11 @@ const COLOR_OPTIONS = [
   { id: 'indigo',  label: 'Indigo',   badge: 'bg-indigo-600/30 text-indigo-200 border-indigo-500/50',  dot: 'bg-indigo-400' },
   { id: 'rose',    label: 'Rose',     badge: 'bg-rose-600/30 text-rose-200 border-rose-500/50',        dot: 'bg-rose-400' },
   { id: 'emerald', label: 'Emerald',  badge: 'bg-emerald-600/30 text-emerald-200 border-emerald-500/50', dot: 'bg-emerald-400' },
-  { id: 'sky',     label: 'Sky Blue', badge: 'bg-sky-600/30 text-sky-200 border-sky-500/50',          dot: 'bg-sky-400' },
-  { id: 'purple',  label: 'Purple',   badge: 'bg-purple-600/30 text-purple-200 border-purple-500/50',  dot: 'bg-purple-400' },
+  { id: 'sky',     label: 'Sky Blue', badge: 'bg-slate-600/30 text-slate-300 border-slate-500/50',          dot: 'bg-slate-400' },
+  { id: 'purple',  label: 'Purple',   badge: 'bg-indigo-600/30 text-indigo-200 border-indigo-500/50',  dot: 'bg-indigo-400' },
   { id: 'amber',   label: 'Amber',    badge: 'bg-amber-600/30 text-amber-200 border-amber-500/50',    dot: 'bg-amber-400' },
-  { id: 'cyan',    label: 'Cyan',     badge: 'bg-cyan-600/30 text-cyan-200 border-cyan-500/50',        dot: 'bg-cyan-400' },
-  { id: 'orange',  label: 'Orange',   badge: 'bg-orange-600/30 text-orange-200 border-orange-500/50',  dot: 'bg-orange-400' },
+  { id: 'cyan',    label: 'Cyan',     badge: 'bg-slate-600/30 text-slate-300 border-slate-500/50',        dot: 'bg-slate-400' },
+  { id: 'orange',  label: 'Orange',   badge: 'bg-amber-600/30 text-amber-200 border-amber-500/50',  dot: 'bg-amber-400' },
 ];
 
 const ROLE_OPTIONS = ['Host', 'Co-Host', 'Special Guest', 'Speaker', 'Community Contributor'];
@@ -110,6 +111,8 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   const [savingGitHub, setSavingGitHub] = useState(false);
   const [enrollingCloud, setEnrollingCloud] = useState(false);
+  const [retryingDlqId, setRetryingDlqId] = useState<string | null>(null);
+  const [dlqList, setDlqList] = useState<DeadLetterJob[]>(() => loadDeadLetterQueue());
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
 
@@ -211,6 +214,20 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         };
       }
     });
+
+    if (merged.dlq && Array.isArray(merged.dlq)) {
+      const stored = loadDeadLetterQueue();
+      const combined = [...stored];
+      merged.dlq.forEach(rj => {
+        if (!combined.some(c => c.id === rj.id)) {
+          combined.push(rj);
+        }
+      });
+      saveDeadLetterQueue(combined);
+      setDlqList(combined);
+    } else {
+      setDlqList(loadDeadLetterQueue());
+    }
 
     setCatalog(merged);
     setLoading(false);
@@ -524,16 +541,16 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       delete nextCatalog.profiles[targetProfile.name];
     }
 
-    const existing = targetProfile || nextCatalog.profiles[trimmedName] || {};
+    const existing = targetProfile || nextCatalog.profiles[trimmedName];
 
     nextCatalog.profiles[trimmedName] = {
-      ...existing,
+      ...(existing || {}),
       name: trimmedName,
       role: formRole,
       color: formColor,
       avatar_emoji: formEmoji,
       notes: formNotes,
-      sample_audio_url: formAudioUrl || existing.sample_audio_url,
+      sample_audio_url: formAudioUrl || existing?.sample_audio_url,
       last_updated: new Date().toISOString(),
     };
 
@@ -616,6 +633,40 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     saveCatalogLocal(nextCatalog);
     setStatusMsg({ type: 'success', text: `Profile for "${name}" deleted.` });
     setTimeout(() => setStatusMsg(null), 4000);
+  };
+
+  // DLQ Retry and Dismiss
+  const handleRetryDlq = async (job: DeadLetterJob) => {
+    if (!job.speakerName) return;
+    if (!hasGitHub) {
+      setStatusMsg({ type: 'error', text: 'GitHub Token, Owner, and Repo must be configured in Settings to retry cloud enrollment.' });
+      return;
+    }
+    setRetryingDlqId(job.id);
+    setStatusMsg({ type: 'success', text: `⚡ Retrying enrollment for "${job.speakerName}" with audio pre-flight sanitization and VAD fallback...` });
+    try {
+      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
+        speaker_name: job.speakerName,
+        audio_url: job.audioUrl || '',
+        role: 'Speaker',
+      });
+      removeFromDeadLetterQueue(job.id);
+      setDlqList(prev => prev.filter(j => j.id !== job.id));
+      setStatusMsg({
+        type: 'success',
+        text: `⚡ Remediation dispatch sent for "${job.speakerName}". Cloud runner will apply 16kHz PCM, VAD active speech check, and -16 LUFS normalization.`
+      });
+      setTimeout(() => setStatusMsg(null), 10000);
+    } catch (e) {
+      setStatusMsg({ type: 'error', text: `Failed to retry enrollment: ${(e as Error).message}` });
+    } finally {
+      setRetryingDlqId(null);
+    }
+  };
+
+  const handleDismissDlq = (id: string) => {
+    removeFromDeadLetterQueue(id);
+    setDlqList(prev => prev.filter(j => j.id !== id));
   };
 
   // Filter & Sort Profiles
@@ -791,7 +842,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950 text-slate-200">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 text-slate-200">
       {/* ── Page Header ── */}
       <div className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 py-6 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -801,7 +852,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 <AudioWaveform size={22} />
               </div>
               <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">Voice Profile Library</h1>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 Acoustic Diarization
               </span>
             </div>
@@ -814,7 +865,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg transition-all hover:scale-105 cursor-pointer"
             >
               <Plus size={15} /> Add Speaker Profile
             </button>
@@ -823,7 +874,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               onClick={handleSaveToGitHub}
               disabled={savingGitHub || !hasGitHub}
               title={hasGitHub ? 'Commit voice_profiles.json directly to master branch' : 'Configure GitHub Token to commit'}
-              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 border border-emerald-500/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm"
             >
               {savingGitHub ? <Loader size={14} className="animate-spin" /> : <Save size={14} />}
               {savingGitHub ? 'Committing…' : 'Sync to GitHub'}
@@ -831,7 +882,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
             <button
               onClick={() => setModalMode('SEPARATION_MATRIX')}
-              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
               <Sparkles size={14} className="text-indigo-400" />
               <span>Acoustic Auditor</span>
@@ -842,7 +893,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
             <button
               onClick={() => setModalMode('DIARIZATION_INFO')}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold border border-slate-800 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold border border-slate-800 transition-colors cursor-pointer"
             >
               <HelpCircle size={14} className="text-indigo-400" /> Pipeline Guide
             </button>
@@ -882,50 +933,123 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       <div className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
         {/* ── Key Metrics Bar ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
+          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-bold uppercase tracking-wider">Known Speakers</span>
               <Users size={16} className="text-indigo-400" />
             </div>
             <div className="text-2xl font-black text-white">{stats.total}</div>
-            <p className="text-[10px] text-slate-500">Registered across catalog</p>
+            <p className="text-[11px] text-slate-400">Registered across catalog</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
+          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-bold uppercase tracking-wider">Neural Vectors</span>
               <Sparkles size={16} className="text-emerald-400" />
             </div>
             <div className="text-2xl font-black text-emerald-400">{stats.enrolled}</div>
-            <p className="text-[10px] text-slate-500">192-dim ECAPA enrolled</p>
+            <p className="text-[11px] text-slate-400">192-dim ECAPA enrolled</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
+          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-bold uppercase tracking-wider">Pending Samples</span>
               <Mic size={16} className="text-amber-400" />
             </div>
             <div className="text-2xl font-black text-amber-400">{stats.pending}</div>
-            <p className="text-[10px] text-slate-500">Awaiting audio clips</p>
+            <p className="text-[11px] text-slate-400">Awaiting audio clips</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
+          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
             <div className="flex items-center justify-between text-slate-400">
               <span className="text-[11px] font-bold uppercase tracking-wider">Pipeline Model</span>
-              <Layers size={16} className="text-sky-400" />
+              <Layers size={16} className="text-slate-300" />
             </div>
             <div className="text-sm font-bold text-slate-200 truncate" title={stats.model}>
               ECAPA-TDNN
             </div>
-            <p className="text-[10px] text-slate-500">192-dimensional embeddings</p>
+            <p className="text-[11px] text-slate-400">192-dimensional embeddings</p>
           </div>
         </div>
 
+        {/* ── Dead-Letter Queue (DLQ) Quarantined Enrollments ── */}
+        {dlqList.length > 0 && (
+          <div className="p-4 bg-rose-950/20 border border-rose-500/30 rounded-xl space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle size={16} className="text-rose-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Dead-Letter Queue ({dlqList.length} Quarantined Enrollment{dlqList.length !== 1 ? 's' : ''})
+                </h3>
+              </div>
+              <span className="text-[11px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded font-mono font-semibold">
+                Quarantined After 3 Failed Remediation Cycles
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              The following voice enrollment requests encountered fatal audio pre-flight or speech extraction rejections. Review root-cause logs below or trigger auto-remediation.
+            </p>
+            <div className="space-y-2">
+              {dlqList.map(job => (
+                <div key={job.id} className="p-3 bg-slate-900/80 border border-slate-800 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-white text-sm">{job.speakerName || 'Unknown Speaker'}</span>
+                      <span className="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">
+                        Run #{job.runId || 'N/A'}
+                      </span>
+                      <span className="text-[11px] text-slate-500">
+                        {new Date(job.failedAt).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-rose-300 text-[11px] leading-relaxed">
+                      <span className="text-slate-400 font-semibold">Root Cause: </span>
+                      {job.rootCause}
+                    </p>
+                    {job.audioUrl && (
+                      <p className="text-[10px] text-slate-500 truncate max-w-lg font-mono">
+                        Source: {job.audioUrl}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+                    {job.logUrl && (
+                      <a
+                        href={job.logUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        [View Failure Log] <ExternalLink size={11} />
+                      </a>
+                    )}
+                    <button
+                      onClick={() => handleRetryDlq(job)}
+                      disabled={retryingDlqId === job.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      {retryingDlqId === job.id ? <Loader size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      <span>Retry Enrollment</span>
+                    </button>
+                    <button
+                      onClick={() => handleDismissDlq(job.id)}
+                      className="text-xs text-slate-400 hover:text-white px-2 py-1.5 rounded bg-slate-800/80 hover:bg-slate-700 transition-colors cursor-pointer"
+                      title="Dismiss from DLQ"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Search & Filter Controls ── */}
-        <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+        <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-[280px]">
             <div className="relative flex-1 max-w-sm">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search speaker name, role, notes…"
@@ -971,7 +1095,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
           <div className="flex items-center gap-3">
             {/* Role dropdown */}
-            <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5">
+            <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5">
               <Filter size={12} className="text-slate-400" />
               <select
                 value={roleFilter}
@@ -986,8 +1110,8 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             </div>
 
             {/* Sort by */}
-            <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5">
-              <span className="text-[11px] text-slate-500 font-medium">Sort:</span>
+            <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5">
+              <span className="text-[11px] text-slate-400 font-medium">Sort:</span>
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as any)}
@@ -1003,15 +1127,15 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
         {/* ── Profiles Grid ── */}
         {profileList.length === 0 ? (
-          <div className="py-20 text-center space-y-3 bg-slate-900/30 border border-slate-800/80 rounded-3xl p-8 max-w-lg mx-auto">
-            <AudioWaveform size={36} className="mx-auto text-slate-600" />
+          <div className="py-20 text-center space-y-3 bg-slate-900/30 border border-slate-800/80 rounded-xl p-8 max-w-lg mx-auto">
+            <AudioWaveform size={36} className="mx-auto text-slate-500" />
             <h3 className="text-base font-bold text-white">No voice profiles found</h3>
             <p className="text-xs text-slate-400">
               {search ? `No profiles match "${search}". Try clearing your filters.` : 'Add your first recurring host or speaker profile to begin automatic diarization.'}
             </p>
             <button
               onClick={handleOpenCreate}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer"
+              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md cursor-pointer"
             >
               <Plus size={14} /> Add Profile
             </button>
@@ -1025,23 +1149,23 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               return (
                 <div
                   key={profile.name}
-                  className="bg-slate-900/70 border border-slate-800/90 hover:border-slate-700/90 rounded-2xl p-5 shadow-lg space-y-4 transition-all hover:shadow-indigo-500/5 group flex flex-col justify-between"
+                  className="bg-slate-900/70 border border-slate-800/90 hover:border-slate-700/90 rounded-xl p-5 shadow-lg space-y-4 transition-all group flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     {/* Card Header: Avatar, Name, Role */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-md border ${colorTheme.badge} flex-shrink-0 group-hover:scale-105 transition-transform`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-md border ${colorTheme.badge} flex-shrink-0 group-hover:scale-105 transition-transform`}>
                           {profile.avatar_emoji || '🎙️'}
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-base font-bold text-white truncate tracking-tight">{profile.name}</h3>
                           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold border border-slate-700">
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold border border-slate-700">
                               {profile.role || 'Speaker'}
                             </span>
                             {profile.sample_count !== undefined && (
-                              <span className="text-[10px] text-slate-500 font-mono">
+                              <span className="text-[11px] text-slate-400 font-mono">
                                 {profile.sample_count} sample{profile.sample_count !== 1 ? 's' : ''}
                               </span>
                             )}
@@ -1089,7 +1213,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[11px] text-slate-400 font-mono">
                           {hasEmbedding ? 'Unit Norm (1.00)' : 'Awaiting Clip'}
                         </span>
                       </div>
@@ -1113,14 +1237,14 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                               );
                             })}
                           </div>
-                          <div className="flex justify-between text-[9px] font-mono text-slate-500 px-0.5">
+                          <div className="flex justify-between text-[11px] font-mono text-slate-400 px-0.5">
                             <span>Dim 0</span>
                             <span>Acoustic Fingerprint (ECAPA-TDNN)</span>
                             <span>Dim 192</span>
                           </div>
                         </div>
                       ) : (
-                        <div className="py-2 text-center text-[11px] text-slate-500">
+                        <div className="py-2 text-center text-[11px] text-slate-400">
                           Attach an audio clip to enroll acoustic vector
                         </div>
                       )}
@@ -1140,7 +1264,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                           </div>
                           <button
                             onClick={() => setModalMode('SEPARATION_MATRIX')}
-                            className="text-[10px] underline font-semibold hover:text-white flex-shrink-0 cursor-pointer"
+                            className="text-[11px] underline font-semibold hover:text-white flex-shrink-0 cursor-pointer"
                           >
                             Inspect
                           </button>
@@ -1151,7 +1275,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
                   {/* Card Footer: Last Updated & Quick Action */}
                   <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs mt-2">
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[11px] text-slate-400">
                       {profile.last_updated ? `Updated ${new Date(profile.last_updated).toLocaleDateString()}` : 'Preset'}
                     </span>
                     <button
@@ -1171,7 +1295,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         )}
 
         {/* ── Diarization Pipeline Integration Hub Section ── */}
-        <div className="mt-12 bg-slate-900/60 border border-slate-800/90 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+        <div className="mt-12 bg-slate-900/60 border border-slate-800/90 rounded-xl p-6 md:p-8 shadow-xl space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -1186,7 +1310,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setModalMode('RAW_JSON')}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 cursor-pointer transition-colors"
               >
                 <FileText size={13} /> View Catalog JSON
               </button>
@@ -1194,7 +1318,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl space-y-2">
+            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
               <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-sm">
                 1
               </div>
@@ -1204,7 +1328,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               </p>
             </div>
 
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl space-y-2">
+            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-sm">
                 2
               </div>
@@ -1214,8 +1338,8 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               </p>
             </div>
 
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold text-sm">
+            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-sm">
                 3
               </div>
               <h4 className="text-sm font-bold text-white">Full-Context LLM Consensus</h4>
@@ -1235,7 +1359,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 <select
                   value={selectedEpisodeId || ''}
                   onChange={e => setSelectedEpisodeId(Number(e.target.value) || null)}
-                  className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 max-w-md truncate cursor-pointer"
+                  className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-indigo-500 max-w-md truncate cursor-pointer"
                 >
                   <option value="">Select an episode to inspect…</option>
                   {episodes.map(ep => (
@@ -1248,7 +1372,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 <button
                   onClick={handleTestDiarization}
                   disabled={!selectedEpisodeId || testingDiarization}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-md"
                 >
                   {testingDiarization ? <Loader size={13} className="animate-spin" /> : <Sparkles size={13} className="text-amber-400" />}
                   {testingDiarization ? 'Matching…' : 'Simulate Match'}
@@ -1257,7 +1381,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 {selectedEpisodeId && onOpenTranscript && (
                   <button
                     onClick={() => onOpenTranscript(selectedEpisodeId)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-slate-700 cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg border border-slate-700 cursor-pointer"
                   >
                     Open in Transcripts <ArrowRight size={13} />
                   </button>
@@ -1285,7 +1409,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       {/* ── Create / Edit Profile Modal ── */}
       {(modalMode === 'CREATE' || modalMode === 'EDIT') && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
@@ -1315,7 +1439,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   placeholder="e.g. Angela, Logan, Rick Doty…"
                   value={formName}
                   onChange={e => setFormName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs font-semibold bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
+                  className="w-full px-3.5 py-2 text-xs font-semibold bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
                 />
               </div>
 
@@ -1326,7 +1450,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   <select
                     value={formRole}
                     onChange={e => setFormRole(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     {ROLE_OPTIONS.map(r => (
                       <option key={r} value={r} className="bg-slate-900 text-white">{r}</option>
@@ -1339,7 +1463,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   <select
                     value={formColor}
                     onChange={e => setFormColor(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
                   >
                     {COLOR_OPTIONS.map(c => (
                       <option key={c.id} value={c.id} className="bg-slate-900 text-white">{c.label}</option>
@@ -1375,7 +1499,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   placeholder="e.g. Host on tech spaces. Lower register, clear articulation."
                   value={formNotes}
                   onChange={e => setFormNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
                 />
               </div>
 
@@ -1438,7 +1562,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                         <span className="text-xs font-bold text-slate-200">
                           Click to browse or drag &amp; drop audio sample
                         </span>
-                        <span className="text-[10px] text-slate-400 mt-0.5">
+                        <span className="text-[11px] text-slate-400 mt-0.5">
                           Direct from your computer: WAV, MP3, M4A, OGG (3s – 15s clean monologue recommended)
                         </span>
                       </label>
@@ -1451,7 +1575,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs font-bold text-white truncate">{localAudioFile.name}</p>
-                              <p className="text-[10px] text-slate-400">
+                              <p className="text-[11px] text-slate-400">
                                 {(localAudioFile.size / 1024).toFixed(1)} KB • {localAudioFile.type || 'audio file'}
                               </p>
                             </div>
@@ -1473,7 +1597,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                         {/* Audio Player Preview */}
                         {localAudioPreviewUrl && (
                           <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
+                            <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
                               <Volume2 size={11} className="text-indigo-400" /> Listen to Audio Sample
                             </span>
                             <audio
@@ -1504,7 +1628,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                                 <Sparkles size={13} className={audioPreCheck.qualityLevel === 'error' ? 'text-rose-400' : audioPreCheck.qualityLevel === 'warning' ? 'text-amber-400' : 'text-emerald-400'} />
                                 Pre-Flight Quality Check
                               </span>
-                              <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold ${
+                              <span className={`text-[11px] uppercase font-mono px-2 py-0.5 rounded font-bold ${
                                 audioPreCheck.qualityLevel === 'excellent' ? 'bg-emerald-500/20 text-emerald-300' :
                                 audioPreCheck.qualityLevel === 'good' ? 'bg-indigo-500/20 text-indigo-300' :
                                 audioPreCheck.qualityLevel === 'warning' ? 'bg-amber-500/20 text-amber-300' :
@@ -1514,17 +1638,17 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                            <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
                               <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[9px]">DURATION</span>
+                                <span className="text-slate-400 block text-[11px]">DURATION</span>
                                 <span className="font-bold text-white">{audioPreCheck.duration.toFixed(1)}s</span>
                               </div>
                               <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[9px]">PEAK LEVEL</span>
+                                <span className="text-slate-400 block text-[11px]">PEAK LEVEL</span>
                                 <span className="font-bold text-white">{audioPreCheck.peakDb.toFixed(1)} dBFS</span>
                               </div>
                               <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[9px]">SAMPLE RATE</span>
+                                <span className="text-slate-400 block text-[11px]">SAMPLE RATE</span>
                                 <span className="font-bold text-white">{audioPreCheck.sampleRate / 1000} kHz</span>
                               </div>
                             </div>
@@ -1542,7 +1666,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
                         {/* Action: Upload & Cloud Enroll */}
                         <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-                          <p className="text-[10px] text-slate-400 max-w-xs leading-relaxed">
+                          <p className="text-[11px] text-slate-400 max-w-xs leading-relaxed">
                             Uploads file directly to <code className="text-indigo-300 font-mono">speaker_samples/</code> and triggers cloud enrollment.
                           </p>
                           <button
@@ -1550,7 +1674,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             onClick={handleUploadFromComputerAndEnroll}
                             disabled={uploadingAudio || !hasGitHub || !formName.trim()}
                             title={!hasGitHub ? 'Configure GitHub Token in Settings' : 'Upload file to repo and enroll'}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
                           >
                             {uploadingAudio ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
                             {uploadingAudio ? 'Uploading…' : 'Upload & Enroll'}
@@ -1566,7 +1690,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                       placeholder="e.g. https://domain.com/sample.wav or speaker_samples/Angela/clip_01.wav"
                       value={formAudioUrl}
                       onChange={e => setFormAudioUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
+                      className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
                     />
                     {formAudioUrl.trim().startsWith('http') && (
                       <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-2">
@@ -1584,7 +1708,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             onClick={handleCloudEnroll}
                             disabled={enrollingCloud || !hasGitHub || !formName.trim()}
                             title={!hasGitHub ? 'Configure GitHub Token in Settings first' : 'Dispatch enroll_voice.yml workflow'}
-                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
                           >
                             {enrollingCloud ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
                             {enrollingCloud ? 'Dispatching…' : 'Enroll in Cloud'}
@@ -1601,7 +1725,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               <button
                 type="button"
                 onClick={() => setModalMode(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -1609,7 +1733,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 type="button"
                 onClick={handleSaveForm}
                 disabled={!formName.trim()}
-                className="flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/25 cursor-pointer hover:scale-105"
+                className="flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all shadow-lg cursor-pointer hover:scale-105"
               >
                 <Check size={14} /> Save Profile
               </button>
@@ -1621,7 +1745,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       {/* ── CLI Enrollment Guide Modal ── */}
       {modalMode === 'CLI_GUIDE' && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
@@ -1651,13 +1775,13 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
                     <Sparkles size={13} className="text-indigo-400" /> Method 1: 1-Click Cloud Runner (Recommended)
                   </span>
-                  <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Local Setup</span>
+                  <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Local Setup</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Provide any direct link to a voice clip (.wav, .mp3, .m4a) in the profile editor, or run the <strong className="text-slate-200">Enroll Voice Profile</strong> action in GitHub. The cloud runner loads PyTorch &amp; SpeechBrain ECAPA-TDNN, extracts the 192-dim vector, and commits to <code className="text-indigo-300 font-mono">voice_profiles.json</code> automatically.
                 </p>
                 <div className="pt-1 flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-slate-400">Workflow: .github/workflows/enroll_voice.yml</span>
+                  <span className="text-[11px] font-mono text-slate-400">Workflow: .github/workflows/enroll_voice.yml</span>
                   <button
                     onClick={() => {
                       setModalMode(null);
@@ -1709,7 +1833,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             <div className="flex justify-end pt-3 border-t border-slate-800">
               <button
                 onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
               >
                 Done
               </button>
@@ -1721,7 +1845,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       {/* ── Raw JSON Viewer Modal ── */}
       {modalMode === 'RAW_JSON' && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-indigo-400" />
@@ -1764,7 +1888,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       {/* ── Pipeline Architecture Guide Modal ── */}
       {modalMode === 'DIARIZATION_INFO' && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HelpCircle size={18} className="text-amber-400" />
@@ -1798,7 +1922,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               </div>
 
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                <h5 className="font-bold text-purple-400">3. Conversational Heuristics & LLM Consensus</h5>
+                <h5 className="font-bold text-indigo-400">3. Conversational Heuristics & LLM Consensus</h5>
                 <p className="text-slate-400">
                   Direct vocative address rules and self-introductions in the text are cross-referenced with your registered Voice Profile Library to guarantee accurate identification even in challenging audio environments.
                 </p>
@@ -1808,7 +1932,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             <div className="flex justify-end pt-2 border-t border-slate-800">
               <button
                 onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
               >
                 Got It
               </button>
@@ -1820,7 +1944,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       {/* ── Separation Matrix & Quality Auditor Modal ── */}
       {modalMode === 'SEPARATION_MATRIX' && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-3xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
@@ -1843,15 +1967,15 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Total Enrolled Voices</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400">Total Enrolled Voices</span>
                   <p className="text-xl font-black text-white">{stats.enrolled}</p>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Evaluated Pairs</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400">Evaluated Pairs</span>
                   <p className="text-xl font-black text-indigo-400">{confusionPairs.length}</p>
                 </div>
                 <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">High Overlap Risks (&gt;75%)</span>
+                  <span className="text-[11px] uppercase font-bold text-slate-400">High Overlap Risks (&gt;75%)</span>
                   <p className={`text-xl font-black ${confusionPairs.filter(p => p.risk === 'high').length > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                     {confusionPairs.filter(p => p.risk === 'high').length}
                   </p>
@@ -1874,7 +1998,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Pairwise Similarity Scores</h4>
                 {confusionPairs.length === 0 ? (
-                  <p className="p-4 text-center text-slate-500 bg-slate-950 rounded-xl border border-slate-800">
+                  <p className="p-4 text-center text-slate-400 bg-slate-950 rounded-xl border border-slate-800">
                     At least 2 enrolled voice profiles with 192-dim vectors are required to calculate acoustic separation.
                   </p>
                 ) : (
@@ -1889,10 +2013,10 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                         }`}
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <span className="font-mono text-xs font-bold text-slate-500">#{idx + 1}</span>
+                          <span className="font-mono text-xs font-bold text-slate-400">#{idx + 1}</span>
                           <div>
                             <span className="font-bold text-white text-xs">{pair.speakerA}</span>
-                            <span className="text-slate-500 mx-2">↔</span>
+                            <span className="text-slate-400 mx-2">↔</span>
                             <span className="font-bold text-white text-xs">{pair.speakerB}</span>
                           </div>
                         </div>
@@ -1914,7 +2038,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             {(pair.similarity * 100).toFixed(1)}%
                           </span>
 
-                          <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+                          <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                             pair.risk === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
                             pair.risk === 'moderate' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
                             'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
@@ -1932,7 +2056,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             <div className="flex justify-end pt-3 border-t border-slate-800">
               <button
                 onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
               >
                 Close Auditor
               </button>

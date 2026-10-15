@@ -3,16 +3,18 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, List, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Loader2
+  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { MontageProvider } from './contexts/MontageContext';
+import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
-import { saveConfig, loadConfig, loadStoredToken, saveToken } from './utils/storage';
+import { loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
+import { exportPipelineZip } from './utils/exportZip';
 
 // Code-split / Lazy-loaded Panels
 const DashboardOverview = React.lazy(() => import('./components/DashboardOverview'));
@@ -20,6 +22,7 @@ const SubmitSpacePanel = React.lazy(() => import('./components/SubmitSpacePanel'
 const LibraryPanel = React.lazy(() => import('./components/LibraryPanel'));
 const TranscriptPanel = React.lazy(() => import('./components/TranscriptPanel'));
 const ClipsPanel = React.lazy(() => import('./components/ClipsPanel').then(m => ({ default: m.ClipsPanel })));
+const MontageStudio = React.lazy(() => import('./components/MontageStudio'));
 const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
 const RunHistory = React.lazy(() => import('./components/RunHistory'));
 const RSSPreview = React.lazy(() => import('./components/RSSPreview'));
@@ -50,7 +53,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class PanelErrorBoundary extends (Component as any) {
+class PanelErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -79,7 +82,7 @@ class PanelErrorBoundary extends (Component as any) {
     if (this.state.hasError) {
       return (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-950 text-slate-200">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
+          <div className="w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-4">
             <Flame size={28} />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Panel Error</h2>
@@ -89,13 +92,13 @@ class PanelErrorBoundary extends (Component as any) {
           <div className="flex gap-3">
             <button
               onClick={this.reset}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg transition-all cursor-pointer"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-lg transition-all cursor-pointer"
             >
               Try Again
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition-all cursor-pointer"
             >
               Reload Application
             </button>
@@ -105,48 +108,6 @@ class PanelErrorBoundary extends (Component as any) {
     }
     return this.props.children;
   }
-}
-
-const DEFAULT_CONFIG: EnhancedConfig = {
-  repoName: 'copy-spaces-to-youtube-pipeline',
-  ownerName: 'aiandbotsgalore',
-  podcastTitle: "Logan Black's X-Space",
-  podcastDescription: 'Curated audio and transcripts archive of Twitter Spaces',
-  authorName: 'Logan Black',
-  email: 'curator@example.com',
-  imageUrl: '',
-  githubToken: '',
-  artworkDataUrl: '',
-  platforms: ['twitter', 'youtube', 'clubhouse', 'linkedin'],
-  batchUrls: [],
-  enableTranscription: true,
-  enableSlackWebhook: false,
-  slackWebhookUrl: '',
-  enableDiscordWebhook: false,
-  discordWebhookUrl: '',
-  enableScheduledMonitoring: false,
-  scheduledCron: '0 */2 * * *',
-};
-
-function buildInitialConfig(): EnhancedConfig {
-  const stored = loadConfig();
-  const storedToken = loadStoredToken();
-  return {
-    ...DEFAULT_CONFIG,
-    ...stored,
-    repoName: stored.repoName || DEFAULT_CONFIG.repoName,
-    ownerName: stored.ownerName || DEFAULT_CONFIG.ownerName,
-    podcastTitle: stored.podcastTitle || DEFAULT_CONFIG.podcastTitle,
-    podcastDescription: stored.podcastDescription || DEFAULT_CONFIG.podcastDescription,
-    authorName: stored.authorName || DEFAULT_CONFIG.authorName,
-    email: stored.email || DEFAULT_CONFIG.email,
-    githubToken: storedToken,
-    artworkDataUrl: '',
-    enableTranscription: true,
-    enableSlackWebhook: false,
-    enableDiscordWebhook: false,
-    enableScheduledMonitoring: false,
-  };
 }
 
 const STATIC_FILES: PipelineFile[] = [
@@ -166,7 +127,7 @@ const STATIC_FILES: PipelineFile[] = [
   },
   {
     path: 'batch_queue.txt',
-    name: 'Batch Queue',
+    name: 'batch_queue.txt',
     language: 'text',
     content: generateQueueFile,
     description: 'Multi-URL queue file — one URL per line',
@@ -201,6 +162,7 @@ type Panel =
   | 'library'
   | 'transcripts'
   | 'clips'
+  | 'montage'
   | 'voice-profiles'
   | `file:${string}`;
 
@@ -218,17 +180,17 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
     onClick={onClick}
     className={`w-full flex items-center justify-between group px-3 py-2 text-sm font-medium rounded-lg transition-all ${
       active
-        ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/20'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+        ? 'bg-indigo-500/15 text-indigo-300'
+        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
     }`}
   >
     <div className="flex items-center gap-3 min-w-0">
-      <span className={active ? 'text-indigo-400' : 'text-slate-600 group-hover:text-slate-400'}>{icon}</span>
+      <span className={active ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-400'}>{icon}</span>
       <span className="truncate">{label}</span>
     </div>
     <div className="flex items-center gap-1.5 flex-shrink-0">
       {badge && (
-        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
+        <span className={`text-[11px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
           {badge}
         </span>
       )}
@@ -237,56 +199,56 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
   </button>
 );
 
-export default function App() {
-  const [config, setConfig] = useState<EnhancedConfig>(buildInitialConfig);
+function AppContent() {
+  const {
+    config,
+    updateConfig,
+    validationErrors,
+    profiles,
+    activeProfileId,
+    saveCurrentAsProfile,
+    loadProfile,
+    deleteProfile,
+  } = useConfig();
   const [activePanel, setActivePanel] = useState<Panel>('dashboard');
   const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | null>(null);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [newProfileName, setNewProfileName] = useState('');
+  const [isExportingZip, setIsExportingZip] = useState(false);
 
-  // Always reset feature toggles to sensible defaults on mount
+  // Panels that live in the collapsed "Settings & Pipeline" group: open it so the active item is visible.
   useEffect(() => {
-    setConfig(c => ({
-      ...c,
-      enableTranscription: true,
-      enableSlackWebhook: false,
-      enableDiscordWebhook: false,
-      enableScheduledMonitoring: false,
-    }));
+    if (
+      activePanel === 'run-history' ||
+      activePanel === 'rss-preview' ||
+      activePanel === 'config' ||
+      activePanel === 'features' ||
+      activePanel === 'deploy' ||
+      activePanel === 'github' ||
+      activePanel.startsWith('file:')
+    ) {
+      setSettingsExpanded(true);
+    }
+  }, [activePanel]);
 
-    // Auto-restore and validate stored GitHub token permanently
+  // Auto-restore and validate stored GitHub token permanently on mount
+  useEffect(() => {
     const storedToken = loadStoredToken();
     if (storedToken) {
       validateToken(storedToken)
         .then(u => {
           setGithubUser(u);
-          setConfig(c => ({
-            ...c,
+          updateConfig({
             githubToken: storedToken,
-            ownerName: c.ownerName || u.login,
-          }));
+            ownerName: config.ownerName || u.login,
+          });
         })
         .catch(err => {
           console.warn('Stored GitHub token could not be verified on mount:', err);
         });
     }
   }, []);
-
-  // Debounced config save to localStorage on every change
-  useEffect(() => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      saveConfig(config);
-    }, 500);
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    };
-  }, [config]);
-
-  const updateConfig = (updates: Partial<EnhancedConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
-  };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -306,13 +268,24 @@ export default function App() {
     ? [...STATIC_FILES, monitorFile]
     : STATIC_FILES;
 
+  const handleExportZip = async () => {
+    try {
+      setIsExportingZip(true);
+      await exportPipelineZip(allFiles, config);
+    } catch (err) {
+      console.error('Failed to export zip:', err);
+    } finally {
+      setIsExportingZip(false);
+    }
+  };
+
   const activeFile = activePanel.startsWith('file:')
     ? allFiles.find(f => `file:${f.path}` === activePanel)
     : null;
 
   const fileIcon = (name: string) => {
     if (name.includes('Workflow') || name.includes('Monitor')) return <FolderGit2 size={15} />;
-    if (name === 'Batch Queue' || name === 'Documentation') return <FileText size={15} />;
+    if (name === 'batch_queue.txt' || name === 'Documentation') return <FileText size={15} />;
     if (name === 'Test Workflow') return <FlaskConical size={15} />;
     return <Terminal size={15} />;
   };
@@ -338,7 +311,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="font-bold text-base tracking-tight text-white leading-none">SpacePipe Gen</h1>
-              <p className="text-[10px] text-slate-600 mt-0.5">Audio Pipeline Generator</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Audio Pipeline Generator</p>
             </div>
           </div>
         </div>
@@ -348,7 +321,7 @@ export default function App() {
 
           {/* TIER 1 — STUDIO / DAILY OPERATIONS */}
           <div>
-            <p className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600">🎙️ Studio</p>
+            <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">🎙️ Studio</p>
             <div className="space-y-1">
               <NavItem
                 icon={<LayoutDashboard size={15} />}
@@ -358,8 +331,8 @@ export default function App() {
               />
               <NavItem
                 icon={<PlusCircle size={15} />}
-                label="Submit New Space"
-                active={activePanel === 'submit-space'}
+                label="Ingest"
+                active={activePanel === 'submit-space' || activePanel === 'live-queue'}
                 onClick={() => setActivePanel('submit-space')}
               />
               <NavItem
@@ -373,42 +346,24 @@ export default function App() {
                 label="Transcripts"
                 active={activePanel === 'transcripts'}
                 onClick={() => setActivePanel('transcripts')}
-                badge={config.enableTranscription ? 'on' : undefined}
-                badgeColor="bg-amber-500/20 text-amber-400"
               />
               <NavItem
                 icon={<Flame size={15} />}
                 label="Best Clips"
                 active={activePanel === 'clips'}
                 onClick={() => setActivePanel('clips')}
-                badge="AI"
-                badgeColor="bg-amber-500/20 text-amber-400"
+              />
+              <NavItem
+                icon={<Film size={15} />}
+                label="Montage Studio"
+                active={activePanel === 'montage'}
+                onClick={() => setActivePanel('montage')}
               />
               <NavItem
                 icon={<AudioWaveform size={15} />}
                 label="Voice Profiles"
                 active={activePanel === 'voice-profiles'}
                 onClick={() => setActivePanel('voice-profiles')}
-                badge="AI"
-                badgeColor="bg-indigo-500/20 text-indigo-400"
-              />
-              <NavItem
-                icon={<History size={15} />}
-                label="Run History"
-                active={activePanel === 'run-history'}
-                onClick={() => setActivePanel('run-history')}
-              />
-              <NavItem
-                icon={<Eye size={15} />}
-                label="RSS Feed Preview"
-                active={activePanel === 'rss-preview'}
-                onClick={() => setActivePanel('rss-preview')}
-              />
-              <NavItem
-                icon={<List size={15} />}
-                label="Batch Queue"
-                active={activePanel === 'live-queue'}
-                onClick={() => setActivePanel('live-queue')}
               />
             </div>
           </div>
@@ -417,13 +372,25 @@ export default function App() {
           <div>
             <button
               onClick={() => setSettingsExpanded(e => !e)}
-              className="w-full flex items-center justify-between px-3 mb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-400 transition-colors"
+              className="w-full flex items-center justify-between px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-400 transition-colors"
             >
               <span>⚙️ Settings &amp; Pipeline</span>
               <ChevronDown size={12} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
             </button>
             {settingsExpanded && (
               <div className="space-y-1">
+                <NavItem
+                  icon={<History size={15} />}
+                  label="Run History"
+                  active={activePanel === 'run-history'}
+                  onClick={() => setActivePanel('run-history')}
+                />
+                <NavItem
+                  icon={<Eye size={15} />}
+                  label="RSS Feed Preview"
+                  active={activePanel === 'rss-preview'}
+                  onClick={() => setActivePanel('rss-preview')}
+                />
                 <NavItem
                   icon={<Settings size={15} />}
                   label="Configuration"
@@ -452,10 +419,21 @@ export default function App() {
                   active={activePanel === 'github'}
                   onClick={() => setActivePanel('github')}
                   badge={githubUser ? githubUser.login.slice(0, 10) : 'Connect'}
-                  badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}
+                  badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}
                 />
 
-                <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-700">Generated Code Files</p>
+                <div className="flex items-center justify-between px-3 pt-3 pb-1">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Generated Code Files</p>
+                  <button
+                    onClick={handleExportZip}
+                    disabled={isExportingZip}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition-colors"
+                    title="Download all pipeline files as a ZIP archive"
+                  >
+                    <Archive size={12} />
+                    {isExportingZip ? 'Zipping...' : '.ZIP'}
+                  </button>
+                </div>
                 {allFiles.map(file => (
                   <NavItem
                     key={file.path}
@@ -478,7 +456,7 @@ export default function App() {
           />
         </div>
 
-        <div className="px-4 py-2 border-t border-slate-800/40 text-[10px] text-slate-700 text-center">
+        <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-500 text-center">
           Generated files comply with DevOps strict mode
         </div>
       </aside>
@@ -500,10 +478,6 @@ export default function App() {
           />
         )}
 
-        {activePanel === 'live-queue' && (
-          <LiveQueuePanel config={config} />
-        )}
-
         {activePanel === 'github' && (
           <GitHubConnect
             token={config.githubToken}
@@ -521,18 +495,105 @@ export default function App() {
 
         {activePanel === 'config' && (
           <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">Pipeline Configuration</h2>
-              <p className="text-slate-400 text-sm">
-                Fill in your repository details and podcast metadata. All values are injected into the generated workflow files.
-              </p>
+            <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Pipeline Configuration</h2>
+                <p className="text-slate-400 text-sm">
+                  Fill in your repository details and podcast metadata. All values are injected into the generated workflow files.
+                </p>
+              </div>
+
+              {/* Profiles & Zip Actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportZip}
+                  disabled={isExportingZip}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-md transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <Archive size={14} />
+                  {isExportingZip ? 'Packaging...' : 'Export ZIP'}
+                </button>
+              </div>
+            </div>
+
+            {/* Validation Banner */}
+            {validationErrors.length > 0 ? (
+              <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs space-y-1.5">
+                <div className="flex items-center gap-2 font-semibold">
+                  <AlertCircle size={15} className="text-amber-400 flex-shrink-0" />
+                  <span>Configuration Warnings ({validationErrors.length})</span>
+                </div>
+                <ul className="list-disc pl-5 space-y-0.5 text-amber-200/80">
+                  {validationErrors.map((err, idx) => (
+                    <li key={idx}><strong>{err.field}:</strong> {err.message}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="mb-6 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-400 flex-shrink-0" />
+                <span>Configuration parameters pass validation checks.</span>
+              </div>
+            )}
+
+            {/* Profile Management Bar */}
+            <div className="mb-8 p-4 bg-slate-900 border border-slate-800 rounded-xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <Bookmark size={16} className="text-indigo-400 flex-shrink-0" />
+                <span className="text-xs font-semibold text-slate-300 whitespace-nowrap">Saved Profiles:</span>
+                <select
+                  value={activeProfileId || ''}
+                  onChange={(e) => {
+                    if (e.target.value) loadProfile(e.target.value);
+                  }}
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="">Default / Current Working Session</option>
+                  {profiles.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {activeProfileId && (
+                  <button
+                    onClick={() => deleteProfile(activeProfileId)}
+                    className="text-xs text-rose-400 hover:text-rose-300 px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 rounded border border-rose-500/20"
+                    title="Delete profile"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="New profile name..."
+                  value={newProfileName}
+                  onChange={(e) => setNewProfileName(e.target.value)}
+                  className="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
+                <button
+                  onClick={() => {
+                    if (newProfileName.trim()) {
+                      saveCurrentAsProfile(newProfileName.trim());
+                      setNewProfileName('');
+                    }
+                  }}
+                  disabled={!newProfileName.trim()}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-medium rounded-lg transition-colors border border-slate-700"
+                >
+                  Save Preset
+                </button>
+              </div>
             </div>
 
             <div className="grid gap-8">
               {/* Repository Details */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                  <Github size={16} className="text-slate-500" />
+                  <Github size={16} className="text-slate-400" />
                   <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Repository Details</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -546,7 +607,7 @@ export default function App() {
                       onChange={handleInput}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
-                    <p className="text-[10px] text-slate-600">Your GitHub username</p>
+                    <p className="text-[11px] text-slate-500">Your GitHub username</p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-400">Repository Name</label>
@@ -558,7 +619,7 @@ export default function App() {
                       onChange={handleInput}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                     />
-                    <p className="text-[10px] text-slate-600">New or existing repo name</p>
+                    <p className="text-[11px] text-slate-500">New or existing repo name</p>
                   </div>
                 </div>
               </section>
@@ -566,7 +627,7 @@ export default function App() {
               {/* Podcast Metadata */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                  <Mic2 size={16} className="text-slate-500" />
+                  <Mic2 size={16} className="text-slate-400" />
                   <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Podcast Metadata</h3>
                 </div>
                 <div className="grid gap-4">
@@ -614,7 +675,7 @@ export default function App() {
                         onChange={handleInput}
                         className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
                       />
-                      <p className="text-[10px] text-slate-600">Used for iTunes owner verification</p>
+                      <p className="text-[11px] text-slate-500">Used for iTunes owner verification</p>
                     </div>
                   </div>
                 </div>
@@ -623,7 +684,7 @@ export default function App() {
               {/* Artwork */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                  <BookOpen size={16} className="text-slate-500" />
+                  <BookOpen size={16} className="text-slate-400" />
                   <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Artwork</h3>
                 </div>
                 <ArtworkUpload config={config} onChange={updateConfig} />
@@ -632,22 +693,22 @@ export default function App() {
               {/* Platform support note */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                  <Clock size={16} className="text-slate-500" />
+                  <Clock size={16} className="text-slate-400" />
                   <h3 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Supported Platforms</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { name: 'Twitter / X Spaces', color: 'text-sky-400' },
-                    { name: 'YouTube', color: 'text-red-400' },
+                    { name: 'Twitter / X Spaces', color: 'text-slate-300' },
+                    { name: 'YouTube', color: 'text-rose-400' },
                     { name: 'Clubhouse', color: 'text-green-400' },
-                    { name: 'LinkedIn Audio', color: 'text-blue-400' },
-                    { name: 'SoundCloud', color: 'text-orange-400' },
-                    { name: 'Twitch VODs', color: 'text-purple-400' },
+                    { name: 'LinkedIn Audio', color: 'text-slate-300' },
+                    { name: 'SoundCloud', color: 'text-amber-400' },
+                    { name: 'Twitch VODs', color: 'text-indigo-400' },
                     { name: 'Any yt-dlp URL', color: 'text-slate-400' },
-                    { name: '1000+ more...', color: 'text-slate-600' },
+                    { name: '1000+ more...', color: 'text-slate-500' },
                   ].map(p => (
                     <div key={p.name} className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg">
-                      <span className={`text-[10px] font-medium ${p.color}`}>{p.name}</span>
+                      <span className={`text-[11px] font-medium ${p.color}`}>{p.name}</span>
                     </div>
                   ))}
                 </div>
@@ -657,14 +718,14 @@ export default function App() {
               <div className="flex flex-wrap gap-3 pt-2">
                 <button
                   onClick={() => setActivePanel('features')}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-all"
                 >
                   <Zap size={15} />
                   Configure Features
                 </button>
                 <button
                   onClick={() => setActivePanel('file:.github/workflows/ingest.yml')}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-lg transition-all active:scale-95"
                 >
                   <FolderGit2 size={15} />
                   View Generated Files
@@ -687,7 +748,7 @@ export default function App() {
             <header className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-white">{activeFile.name}</h2>
-                <p className="text-xs text-slate-500 mt-0.5">{activeFile.path}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{activeFile.path}</p>
               </div>
             </header>
             <div className="flex-1 p-4 md:p-6 overflow-hidden">
@@ -704,11 +765,39 @@ export default function App() {
           <RunHistory config={config} />
         )}
 
-        {activePanel === 'submit-space' && (
-          <SubmitSpacePanel
-            config={config}
-            onViewRunHistory={() => setActivePanel('run-history')}
-          />
+        {(activePanel === 'submit-space' || activePanel === 'live-queue') && (
+          <div className="flex-1 min-h-0 flex flex-col">
+            <div role="tablist" aria-label="Ingest" className="flex-shrink-0 flex items-center gap-1 px-6 md:px-12 pt-4 border-b border-slate-800/80">
+              {([
+                ['submit-space', 'Submit a Space'],
+                ['live-queue', 'Queue'],
+              ] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={activePanel === id}
+                  onClick={() => setActivePanel(id)}
+                  className={`px-4 py-2 text-xs font-semibold rounded-t-lg border-b-2 -mb-px transition-colors cursor-pointer ${
+                    activePanel === id
+                      ? 'text-indigo-300 border-indigo-400'
+                      : 'text-slate-400 border-transparent hover:text-slate-300'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {activePanel === 'submit-space' ? (
+                <SubmitSpacePanel
+                  config={config}
+                  onViewRunHistory={() => setActivePanel('run-history')}
+                />
+              ) : (
+                <LiveQueuePanel config={config} />
+              )}
+            </div>
+          </div>
         )}
 
         {activePanel === 'deploy' && (
@@ -736,6 +825,10 @@ export default function App() {
           <ClipsPanel config={config} />
         )}
 
+        {activePanel === 'montage' && (
+          <MontageStudio config={config} />
+        )}
+
         {activePanel === 'voice-profiles' && (
           <VoiceProfileLibrary
             config={config}
@@ -749,9 +842,17 @@ export default function App() {
         </PanelErrorBoundary>
       </main>
       <PlayerBar />
-      <MontageReelDrawer />
+      <MontageReelDrawer isHidden={activePanel === 'montage'} />
     </div>
     </MontageProvider>
     </PlayerProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ConfigProvider>
+      <AppContent />
+    </ConfigProvider>
   );
 }

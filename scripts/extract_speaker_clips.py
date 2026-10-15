@@ -164,29 +164,109 @@ def process_episode(
     print(f"Output directory: {os.path.abspath(output_dir)}")
 
 
+def sanitize_and_prepare_clip(
+    src_path: str,
+    dst_path: str,
+    target_sr: int = 16000,
+    apply_loudnorm: bool = False,
+    apply_vad: bool = False,
+) -> bool:
+    """
+    Auto-Remediation pass:
+    - Normalizes audio to 16-bit mono PCM WAV at target sample rate (16kHz or 48kHz).
+    - If apply_vad=True: applies silenceremove filter to extract continuous active speech (min 3.0s).
+    - If apply_loudnorm=True: applies EBU R128 (-16 LUFS) normalization for low-SNR inputs.
+    """
+    filters = []
+    if apply_vad:
+        # silenceremove: removes leading and internal dead silences (>0.4s below -38dB)
+        filters.append("silenceremove=start_periods=1:start_duration=0.1:start_threshold=-38dB:detection=peak,areverse,silenceremove=start_periods=1:start_duration=0.1:start_threshold=-38dB:detection=peak,areverse")
+    if apply_loudnorm:
+        # loudnorm -16 LUFS with -1.5 dBTP true peak
+        filters.append("loudnorm=I=-16:TP=-1.5:LRA=11")
+
+    cmd = [
+        FFMPEG_EXE,
+        "-y",
+        "-i", src_path,
+        "-vn",
+        "-ac", "1",
+        "-ar", str(target_sr),
+        "-c:a", "pcm_s16le",
+    ]
+    if filters:
+        cmd.extend(["-af", ",".join(filters)])
+    cmd.append(dst_path)
+
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0 or not os.path.exists(dst_path):
+        return False
+
+    # Check resulting active duration: must have at least 1.0s (preferably >= 3.0s)
+    try:
+        probe_cmd = [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", dst_path
+        ]
+        p_res = subprocess.run(probe_cmd, capture_output=True, text=True)
+        dur = float(p_res.stdout.strip() or 0)
+        return dur >= 1.0
+    except Exception:
+        return os.path.getsize(dst_path) > 8000
+
+
 def enroll_clip_to_profiles(clip_path: str, speaker_name: str, profiles_file: str = "voice_profiles.json"):
-    """Enrolls one or more extracted audio clips into voice_profiles.json using ECAPA-TDNN."""
-    clip_paths = []
+    """
+    Enrolls audio clips into voice_profiles.json using ECAPA-TDNN with self-healing:
+    1. Pre-flight & Sanitization (16kHz mono PCM).
+    2. VAD & speech filter if initial audio is degraded.
+    3. EBU R128 loudnorm (-16 LUFS) remediation if low SNR.
+    4. Transient network exponential backoff (1s -> 2s -> 4s) with jitter.
+    """
+    raw_clip_paths = []
     if os.path.isdir(clip_path):
-        clip_paths = sorted([
+        raw_clip_paths = sorted([
             os.path.join(clip_path, f)
             for f in os.listdir(clip_path)
-            if f.lower().endswith(".wav")
+            if f.lower().endswith((".wav", ".mp3", ".m4a", ".aac", ".ogg"))
         ])
     elif "," in clip_path:
-        clip_paths = [p.strip() for p in clip_path.split(",") if os.path.exists(p.strip())]
+        raw_clip_paths = [p.strip() for p in clip_path.split(",") if os.path.exists(p.strip())]
     elif os.path.exists(clip_path):
-        clip_paths = [clip_path]
+        raw_clip_paths = [clip_path]
 
-    if not clip_paths:
-        print(f"[!] No valid clip files found for: {clip_path}")
+    if not raw_clip_paths:
+        print(f"[!] No valid audio files found for: {clip_path}")
         sys.exit(1)
 
-    print(f"[*] Enrolling '{speaker_name}' from {len(clip_paths)} audio sample(s): {clip_paths}")
+    print(f"[*] Pre-flight inspection for '{speaker_name}' across {len(raw_clip_paths)} clip(s)...")
+
+    # Pass 1: Standard sanitization (16kHz mono PCM)
+    sanitized_dir = os.path.join(os.path.dirname(raw_clip_paths[0]), "_sanitized")
+    os.makedirs(sanitized_dir, exist_ok=True)
+    sanitized_clips = []
+    for idx, cp in enumerate(raw_clip_paths):
+        out_sanitized = os.path.join(sanitized_dir, f"sanitized_{idx:02d}.wav")
+        if sanitize_and_prepare_clip(cp, out_sanitized, target_sr=16000, apply_loudnorm=False, apply_vad=False):
+            sanitized_clips.append(out_sanitized)
+
+    if not sanitized_clips:
+        print("[!] Pass 1 failed (format/header invalid). Attempting Pass 2: Auto-remediation with loudnorm & VAD filter...")
+        for idx, cp in enumerate(raw_clip_paths):
+            out_sanitized = os.path.join(sanitized_dir, f"vad_norm_{idx:02d}.wav")
+            if sanitize_and_prepare_clip(cp, out_sanitized, target_sr=16000, apply_loudnorm=True, apply_vad=True):
+                sanitized_clips.append(out_sanitized)
+
+    if not sanitized_clips:
+        print(f"[!] Critical Error: All audio clips failed pre-flight format validation and VAD filter.")
+        sys.exit(1)
+
+    clip_paths = sanitized_clips
+    print(f"[*] Enrolling '{speaker_name}' from {len(clip_paths)} sanitized sample(s): {clip_paths}")
 
     clips_json_str = json.dumps(clip_paths)
     worker_code = f"""
-import sys, json, os, shutil, warnings
+import sys, json, os, shutil, warnings, time, random
 warnings.filterwarnings('ignore')
 import numpy as np
 import soundfile as sf
@@ -197,12 +277,27 @@ clip_paths = json.loads(r'''{clips_json_str}''')
 speaker_name = r'{speaker_name}'
 profiles_file = r'{profiles_file}'
 
+# Transient API & Model Loading with Exponential Backoff (1s -> 2s -> 4s) with jitter
+classifier = None
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-classifier = EncoderClassifier.from_hparams(
-    source='speechbrain/spkrec-ecapa-voxceleb',
-    savedir=os.path.join(os.path.expanduser('~'), '.cache', 'speechbrain', 'spkrec-ecapa-voxceleb'),
-    run_opts={{'device': device}}
-)
+cache_dir = os.path.join(os.path.expanduser('~'), '.cache', 'speechbrain', 'spkrec-ecapa-voxceleb')
+
+for attempt in range(1, 4):
+    try:
+        classifier = EncoderClassifier.from_hparams(
+            source='speechbrain/spkrec-ecapa-voxceleb',
+            savedir=cache_dir,
+            run_opts={{'device': device}}
+        )
+        break
+    except Exception as e:
+        delay = (2 ** (attempt - 1)) + random.uniform(0.1, 0.4)
+        print(f'[*] Transient network/model load issue (attempt {{attempt}}/3): {{e}}. Backing off for {{delay:.2f}}s...')
+        time.sleep(delay)
+
+if classifier is None:
+    print('[!] Model initialization failed after 3 transient retries.')
+    sys.exit(2)
 
 embeddings = []
 for cp in clip_paths:
@@ -211,6 +306,12 @@ for cp in clip_paths:
         if audio_data.ndim > 1:
             audio_data = np.mean(audio_data, axis=1)
         audio_data = audio_data.astype(np.float32)
+
+        # SNR / RMS energy check: if too quiet (< -40dB), auto-normalize
+        rms = np.sqrt(np.mean(audio_data ** 2) + 1e-9)
+        if rms < 0.01:
+            audio_data = audio_data / (rms / 0.1)
+
         if len(audio_data) < sr * 1.0:
             continue
         max_val = np.max(np.abs(audio_data))
@@ -227,7 +328,8 @@ for cp in clip_paths:
         print(f'Warning on clip {{cp}}: {{e}}')
 
 if not embeddings:
-    sys.exit(1)
+    print('[!] No embeddings could be extracted from audio sample.')
+    sys.exit(3)
 
 if len(embeddings) >= 3:
     emb_mat = np.stack(embeddings, axis=0)
@@ -280,9 +382,14 @@ profile_entry = dict(existing_profile)
 profile_entry.update({{
     'name': speaker_name,
     'sample_count': sample_count,
-    'embedding': final_emb
+    'embedding': final_emb,
+    'last_updated': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 }})
 data['profiles'][speaker_name] = profile_entry
+
+# Clear any past DLQ entries for this speaker upon successful enrollment
+if 'dlq' in data:
+    data['dlq'] = [job for job in data['dlq'] if job.get('speakerName') != speaker_name]
 
 with open(profiles_file, 'w', encoding='utf-8') as f:
     json.dump(data, f, indent=2)
@@ -294,8 +401,8 @@ print('__ENROLL_SUCCESS__')
 """
     res = subprocess.run([sys.executable, "-c", worker_code], capture_output=True, text=True, encoding="utf-8")
     if res.returncode != 0 or "__ENROLL_SUCCESS__" not in res.stdout:
-        print(f"[!] Enrollment failed:\n{res.stderr}\n{res.stdout}")
-        sys.exit(1)
+        print(f"[!] Enrollment worker failed with exit code {res.returncode}:\n{res.stderr}\n{res.stdout}")
+        sys.exit(res.returncode if res.returncode != 0 else 1)
 
     print(f"[✓] Successfully enrolled '{speaker_name}' ({len(clip_paths)} clip(s)) into {profiles_file}!")
     print(f"    Future Spaces transcribed with transcribe_and_diarize.py will automatically identify {speaker_name}.")

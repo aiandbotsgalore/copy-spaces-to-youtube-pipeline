@@ -103,10 +103,14 @@ export function sliceAudioBuffer(
  * Applies a raised-cosine micro-fade (fade-in and fade-out) to eliminate
  * digital clicks and pops at slice boundaries.
  */
+/**
+ * Applies a raised-cosine micro-fade (fade-in and fade-out) to eliminate
+ * digital clicks and pops at slice boundaries.
+ */
 export function applyAntiClickFades(
   audioCtx: AudioContext,
   buffer: AudioBuffer,
-  fadeMs: number = 12
+  fadeMs: number = 18
 ): AudioBuffer {
   const sampleRate = buffer.sampleRate;
   const fadeSamples = Math.max(1, Math.floor((fadeMs / 1000) * sampleRate));
@@ -140,6 +144,75 @@ export function applyAntiClickFades(
 }
 
 /**
+ * Normalizes an AudioBuffer to broadcast standard loudness (~-16 LUFS / -1.0 dB True Peak).
+ * Levels speech across different recording setups and mic distances while preventing clipping.
+ */
+export function normalizeBroadcastLoudness(
+  audioCtx: AudioContext,
+  buffer: AudioBuffer,
+  targetLufs: number = -16.0,
+  peakCeilingDb: number = -1.0
+): AudioBuffer {
+  const numChannels = buffer.numberOfChannels;
+  const length = buffer.length;
+  const sampleRate = buffer.sampleRate;
+
+  if (length === 0) return buffer;
+
+  // Calculate RMS energy across all channels to estimate perceived loudness
+  let sumSquares = 0;
+  let sampleCount = 0;
+  let peakAmp = 0;
+
+  for (let c = 0; c < numChannels; c++) {
+    const data = buffer.getChannelData(c);
+    for (let i = 0; i < length; i++) {
+      const val = data[i];
+      const abs = Math.abs(val);
+      if (abs > peakAmp) peakAmp = abs;
+      sumSquares += val * val;
+      sampleCount++;
+    }
+  }
+
+  if (peakAmp <= 0.0001 || sampleCount === 0) return buffer; // Silence
+
+  const rms = Math.sqrt(sumSquares / sampleCount);
+  // Estimated speech LUFS ~ 20 * log10(rms) - 0.7 dB
+  const estimatedCurrentLufs = 20 * Math.log10(Math.max(0.00001, rms)) - 0.7;
+  const loudnessGainDb = targetLufs - estimatedCurrentLufs;
+
+  // Clamp gain boost to reasonable range (-18dB to +14dB) to prevent noise explosion
+  const clampedGainDb = Math.max(-18, Math.min(14, loudnessGainDb));
+  let gain = Math.pow(10, clampedGainDb / 20);
+
+  // Peak limiter check against peak ceiling (-1.0 dBFS)
+  const peakCeilingAmp = Math.pow(10, peakCeilingDb / 20); // ~0.891
+  if (peakAmp * gain > peakCeilingAmp) {
+    gain = peakCeilingAmp / peakAmp;
+  }
+
+  const normalizedBuffer = audioCtx.createBuffer(numChannels, length, sampleRate);
+
+  for (let c = 0; c < numChannels; c++) {
+    const src = buffer.getChannelData(c);
+    const dst = normalizedBuffer.getChannelData(c);
+    for (let i = 0; i < length; i++) {
+      // Apply gain with soft saturation limiting above ceiling
+      let s = src[i] * gain;
+      if (s > peakCeilingAmp) {
+        s = peakCeilingAmp + (1 - peakCeilingAmp) * Math.tanh((s - peakCeilingAmp) / (1 - peakCeilingAmp));
+      } else if (s < -peakCeilingAmp) {
+        s = -peakCeilingAmp + (1 - peakCeilingAmp) * Math.tanh((s + peakCeilingAmp) / (1 - peakCeilingAmp));
+      }
+      dst[i] = Math.max(-1, Math.min(1, s));
+    }
+  }
+
+  return normalizedBuffer;
+}
+
+/**
  * Normalizes an AudioBuffer to target peak dBFS (e.g. -1.0 dBFS).
  * Caps the maximum gain boost to avoid amplifying background room noise.
  */
@@ -149,57 +222,29 @@ export function normalizeAudioBuffer(
   targetPeakDb: number = -1.0,
   maxBoostDb: number = 9.5
 ): AudioBuffer {
-  const numChannels = buffer.numberOfChannels;
-  const length = buffer.length;
-  const sampleRate = buffer.sampleRate;
-
-  // Find peak amplitude across all channels
-  let peak = 0;
-  for (let c = 0; c < numChannels; c++) {
-    const data = buffer.getChannelData(c);
-    for (let i = 0; i < length; i++) {
-      const abs = Math.abs(data[i]);
-      if (abs > peak) peak = abs;
-    }
-  }
-
-  if (peak <= 0.0001) return buffer; // Silence
-
-  const targetAmp = Math.pow(10, targetPeakDb / 20);
-  const maxGain = Math.pow(10, maxBoostDb / 20);
-  const rawGain = targetAmp / peak;
-  const gain = Math.min(rawGain, maxGain);
-
-  const normalizedBuffer = audioCtx.createBuffer(numChannels, length, sampleRate);
-
-  for (let c = 0; c < numChannels; c++) {
-    const src = buffer.getChannelData(c);
-    const dst = normalizedBuffer.getChannelData(c);
-    for (let i = 0; i < length; i++) {
-      dst[i] = Math.max(-1, Math.min(1, src[i] * gain));
-    }
-  }
-
-  return normalizedBuffer;
+  return normalizeBroadcastLoudness(audioCtx, buffer, -16.0, targetPeakDb);
 }
 
 export interface StitchOptions {
   gapSec?: number;
+  /** Per-join silence in seconds (length n-1). Takes precedence over gapSec for the joins it covers. */
+  gapsSec?: number[];
   normalizePeak?: boolean;
   targetPeakDb?: number; // default -1.0 dBFS
+  targetLufs?: number; // default -16.0 LUFS
   antiClickFades?: boolean;
-  fadeMs?: number; // default 12ms
+  fadeMs?: number; // default 18ms
 }
 
 /**
  * Stitches multiple AudioBuffers sequentially into one master AudioBuffer
- * with a configurable gap (in seconds), optional loudness normalization,
+ * with a configurable gap (in seconds), optional broadcast loudness normalization,
  * and anti-click micro-fades between each clip.
  */
 export function stitchAudioBuffers(
   audioCtx: AudioContext,
   buffers: AudioBuffer[],
-  optionsOrGap: number | StitchOptions = 0.5
+  optionsOrGap: number | StitchOptions = 0.35
 ): AudioBuffer {
   if (buffers.length === 0) {
     return audioCtx.createBuffer(2, audioCtx.sampleRate, audioCtx.sampleRate);
@@ -209,20 +254,21 @@ export function stitchAudioBuffers(
     ? { gapSec: optionsOrGap }
     : optionsOrGap;
 
-  const gapSec = options.gapSec ?? 0.5;
+  const gapSec = options.gapSec ?? 0.35;
   const shouldNormalize = options.normalizePeak ?? true;
   const targetPeakDb = options.targetPeakDb ?? -1.0;
+  const targetLufs = options.targetLufs ?? -16.0;
   const shouldFade = options.antiClickFades ?? true;
-  const fadeMs = options.fadeMs ?? 12;
+  const fadeMs = options.fadeMs ?? 18;
 
-  // Process each clip with anti-click fades and loudness normalization
+  // Process each clip with anti-click fades and broadcast loudness normalization
   const processedBuffers: AudioBuffer[] = buffers.map(buf => {
     let current = buf;
     if (shouldFade) {
       current = applyAntiClickFades(audioCtx, current, fadeMs);
     }
     if (shouldNormalize) {
-      current = normalizeAudioBuffer(audioCtx, current, targetPeakDb);
+      current = normalizeBroadcastLoudness(audioCtx, current, targetLufs, targetPeakDb);
     }
     return current;
   });
@@ -233,14 +279,17 @@ export function stitchAudioBuffers(
 
   const sampleRate = processedBuffers[0].sampleRate;
   const numChannels = Math.max(...processedBuffers.map(b => b.numberOfChannels));
-  const gapSamples = Math.floor(gapSec * sampleRate);
+  const gapSamplesAt = (joinIndex: number): number => {
+    const g = options.gapsSec && options.gapsSec[joinIndex] !== undefined ? options.gapsSec[joinIndex] : gapSec;
+    return Math.max(0, Math.floor(g * sampleRate));
+  };
 
   // Compute total sample length
   let totalLength = 0;
   for (let i = 0; i < processedBuffers.length; i++) {
     totalLength += processedBuffers[i].length;
     if (i < processedBuffers.length - 1) {
-      totalLength += gapSamples;
+      totalLength += gapSamplesAt(i);
     }
   }
 
@@ -261,7 +310,7 @@ export function stitchAudioBuffers(
 
       if (i < processedBuffers.length - 1) {
         // Gap is already zero-filled in new Float32Array
-        currentOffset += gapSamples;
+        currentOffset += gapSamplesAt(i);
       }
     }
   }

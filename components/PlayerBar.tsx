@@ -65,11 +65,11 @@ const PlayerBar: React.FC = () => {
             </p>
             <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
               <span>{formatTime(currentTime)}</span>
-              <span className="text-slate-600">/</span>
+              <span className="text-slate-500">/</span>
               <span>{formatTime(duration)}</span>
               {current.durationLabel && (
                 <>
-                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-500">•</span>
                   <span className="text-indigo-300/80">{current.durationLabel}</span>
                 </>
               )}
@@ -89,7 +89,7 @@ const PlayerBar: React.FC = () => {
               aria-label="Skip back 15 seconds"
             >
               <RotateCcw size={16} />
-              <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-slate-400 group-hover:text-indigo-300">
+              <span className="absolute -bottom-1 -right-0.5 text-[11px] font-bold text-slate-400 group-hover:text-indigo-300">
                 15
               </span>
             </button>
@@ -97,7 +97,7 @@ const PlayerBar: React.FC = () => {
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 rounded-full text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-105 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 rounded-full text-white shadow-lg transition-all hover:scale-105 cursor-pointer"
               aria-label={isPlaying ? 'Pause' : 'Play (Space)'}
               title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
             >
@@ -112,7 +112,7 @@ const PlayerBar: React.FC = () => {
               aria-label="Skip ahead 15 seconds"
             >
               <RotateCw size={16} />
-              <span className="absolute -bottom-1 -right-0.5 text-[8px] font-bold text-slate-400 group-hover:text-indigo-300">
+              <span className="absolute -bottom-1 -right-0.5 text-[11px] font-bold text-slate-400 group-hover:text-indigo-300">
                 15
               </span>
             </button>
@@ -153,7 +153,7 @@ const PlayerBar: React.FC = () => {
 
           {/* Time Scrubber */}
           <div className="w-full flex items-center gap-2.5">
-            <span className="text-[10px] text-slate-500 w-12 text-right tabular-nums flex-shrink-0">
+            <span className="text-[11px] text-slate-400 w-12 text-right tabular-nums flex-shrink-0">
               {formatTime(currentTime)}
             </span>
             <input
@@ -166,7 +166,7 @@ const PlayerBar: React.FC = () => {
               className="flex-1 h-1.5 accent-indigo-500 hover:accent-indigo-400 bg-slate-800 rounded-lg cursor-pointer transition-all"
               aria-label="Seek time"
             />
-            <span className="text-[10px] text-slate-500 w-12 tabular-nums flex-shrink-0">
+            <span className="text-[11px] text-slate-400 w-12 tabular-nums flex-shrink-0">
               {formatTime(duration)}
             </span>
           </div>
@@ -187,7 +187,7 @@ const PlayerBar: React.FC = () => {
               aria-label="Toggle mute"
             >
               {isMuted || volume === 0 ? (
-                <VolumeX size={16} className="text-red-400" />
+                <VolumeX size={16} className="text-rose-400" />
               ) : volume < 0.5 ? (
                 <Volume1 size={16} />
               ) : (
@@ -230,7 +230,7 @@ const PlayerBar: React.FC = () => {
           {/* Close Player */}
           <button
             onClick={close}
-            className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
             aria-label="Close player"
             title="Close Player"
           >

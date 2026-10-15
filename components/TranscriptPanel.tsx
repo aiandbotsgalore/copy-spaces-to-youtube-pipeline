@@ -15,7 +15,13 @@ import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dat
 import { AudioSlicerModal, SlicerTurnTarget } from './AudioSlicerModal';
 import { useMontage } from '../contexts/MontageContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
-import { SearchWorkerClient } from '../utils/searchWorker';
+import {
+  SearchWorkerClient,
+  parseGoogleQuery,
+  evaluateTurnMatch,
+  hasActiveQuery,
+  renderTranscriptMatch,
+} from '../utils/searchWorker';
 
 interface Props {
   config: EnhancedConfig;
@@ -332,15 +338,15 @@ function formatSeconds(sec: number): string {
 
 const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
   indigo:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  purple:  { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  purple:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
   emerald: { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  sky:     { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
+  sky:     { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
   amber:   { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
   rose:    { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  cyan:    { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
-  fuchsia: { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
-  teal:    { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
-  orange:  { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
+  cyan:    { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
+  fuchsia: { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
+  teal:    { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
+  orange:  { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
 };
 
 const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
@@ -356,31 +362,31 @@ const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
 const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
   // Direct digit mappings for Deepgram "Speaker 0", "Speaker 1", etc.
   '0': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  '1': { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
-  '2': { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  '1': { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
+  '2': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
   '3': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
   '4': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  '5': { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
-  '6': { bg: 'bg-violet-950/70',  text: 'text-violet-100',  border: 'border-violet-400/60',  badge: 'bg-violet-600/35 text-violet-100 border border-violet-400/70 font-bold shadow-sm',    dot: 'bg-violet-400 ring-2 ring-violet-400/40',  avatar: 'bg-violet-600 text-white font-bold ring-2 ring-white/20'  },
-  '7': { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
-  '8': { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
-  '9': { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
+  '5': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
+  '6': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
+  '7': { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
+  '8': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
+  '9': { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
   // Letter mappings
   'A': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  'B': { bg: 'bg-sky-950/70',     text: 'text-sky-100',     border: 'border-sky-400/60',     badge: 'bg-sky-600/35 text-sky-100 border border-sky-400/70 font-bold shadow-sm',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',     avatar: 'bg-sky-600 text-white font-bold ring-2 ring-white/20'     },
-  'C': { bg: 'bg-purple-950/70',  text: 'text-purple-100',  border: 'border-purple-400/60',  badge: 'bg-purple-600/35 text-purple-100 border border-purple-400/70 font-bold shadow-sm',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-purple-600 text-white font-bold ring-2 ring-white/20'  },
+  'B': { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
+  'C': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
   'D': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
   'E': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  'F': { bg: 'bg-cyan-950/70',    text: 'text-cyan-100',    border: 'border-cyan-400/60',    badge: 'bg-cyan-600/35 text-cyan-100 border border-cyan-400/70 font-bold shadow-sm',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',    avatar: 'bg-cyan-600 text-white font-bold ring-2 ring-white/20'    },
-  'G': { bg: 'bg-violet-950/70',  text: 'text-violet-100',  border: 'border-violet-400/60',  badge: 'bg-violet-600/35 text-violet-100 border border-violet-400/70 font-bold shadow-sm',    dot: 'bg-violet-400 ring-2 ring-violet-400/40',  avatar: 'bg-violet-600 text-white font-bold ring-2 ring-white/20'  },
-  'H': { bg: 'bg-teal-950/70',    text: 'text-teal-100',    border: 'border-teal-400/60',    badge: 'bg-teal-600/35 text-teal-100 border border-teal-400/70 font-bold shadow-sm',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',    avatar: 'bg-teal-600 text-white font-bold ring-2 ring-white/20'    },
+  'F': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
+  'G': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
+  'H': { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
   'I': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  'J': { bg: 'bg-orange-950/70',  text: 'text-orange-100',  border: 'border-orange-400/60',  badge: 'bg-orange-600/35 text-orange-100 border border-orange-400/70 font-bold shadow-sm',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',  avatar: 'bg-orange-600 text-white font-bold ring-2 ring-white/20'  },
-  'K': { bg: 'bg-pink-950/70',    text: 'text-pink-100',    border: 'border-pink-400/60',    badge: 'bg-pink-600/35 text-pink-100 border border-pink-400/70 font-bold shadow-sm',           dot: 'bg-pink-400 ring-2 ring-pink-400/40',    avatar: 'bg-pink-600 text-white font-bold ring-2 ring-white/20'    },
+  'J': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
+  'K': { bg: 'bg-indigo-950/70',    text: 'text-indigo-100',    border: 'border-indigo-400/60',    badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',           dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',    avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'    },
   'L': { bg: 'bg-lime-950/70',    text: 'text-lime-100',    border: 'border-lime-400/60',    badge: 'bg-lime-600/35 text-lime-100 border border-lime-400/70 font-bold shadow-sm',           dot: 'bg-lime-400 ring-2 ring-lime-400/40',    avatar: 'bg-lime-600 text-white font-bold ring-2 ring-white/20'    },
-  'M': { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-100', border: 'border-fuchsia-400/60', badge: 'bg-fuchsia-600/35 text-fuchsia-100 border border-fuchsia-400/70 font-bold shadow-sm', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-fuchsia-600 text-white font-bold ring-2 ring-white/20' },
-  'N': { bg: 'bg-yellow-950/70',  text: 'text-yellow-100',  border: 'border-yellow-400/60',  badge: 'bg-yellow-600/35 text-yellow-100 border border-yellow-400/70 font-bold shadow-sm',    dot: 'bg-yellow-400 ring-2 ring-yellow-400/40',  avatar: 'bg-yellow-600 text-white font-bold ring-2 ring-white/20'  },
-  'O': { bg: 'bg-blue-950/70',    text: 'text-blue-100',    border: 'border-blue-400/60',    badge: 'bg-blue-600/35 text-blue-100 border border-blue-400/70 font-bold shadow-sm',           dot: 'bg-blue-400 ring-2 ring-blue-400/40',    avatar: 'bg-blue-600 text-white font-bold ring-2 ring-white/20'    },
+  'M': { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
+  'N': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
+  'O': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
   'P': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
 };
 
@@ -405,17 +411,7 @@ const POPULAR_SEARCH_TOPICS = [
 ];
 
 function highlightMatch(text: string, query: string): React.ReactNode {
-  if (!query.trim()) return text;
-  const words = Array.from(new Set(query.trim().split(/\s+/).filter(Boolean))).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  if (!words.length) return text;
-  const regex = new RegExp(`(${words.join('|')})`, 'gi');
-  const wordSet = new Set(query.trim().toLowerCase().split(/\s+/).filter(Boolean));
-  const parts = text.split(regex);
-  return parts.map((p, i) =>
-    wordSet.has(p.toLowerCase())
-      ? <mark key={i} className="bg-amber-400/30 text-amber-200 rounded px-0.5 font-medium">{p}</mark>
-      : p
-  );
+  return renderTranscriptMatch(text, query);
 }
 
 export interface WordTimingSource {
@@ -607,7 +603,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
                 };
               })
               .filter((w: UtteranceWord | null): w is UtteranceWord => w !== null);
-            if (parsedWords.length === 0) parsedWords = undefined;
+            if (parsedWords && parsedWords.length === 0) parsedWords = undefined;
           }
           const wordCount = parsedWords ? parsedWords.length : text.split(/\s+/).filter(Boolean).length;
           return {
@@ -988,10 +984,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [loadSummaryIndex]);
 
   useEffect(() => {
-    if ((searchScope === 'all' || (search.trim() && searchScope === 'all')) && !globalIndex && !globalIndexLoading) {
+    if (searchScope === 'all' && !globalIndex && !globalIndexLoading) {
       loadGlobalIndex();
     }
-  }, [searchScope, search, globalIndex, globalIndexLoading, loadGlobalIndex]);
+  }, [searchScope, globalIndex, globalIndexLoading, loadGlobalIndex]);
 
   useEffect(() => {
     if (selectedId) {
@@ -1433,6 +1429,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   };
 
+  const searchAst = useMemo(() => parseGoogleQuery(search), [search]);
+  const hasActiveSearch = useMemo(() => hasActiveQuery(searchAst), [searchAst]);
+
   const filteredUtterances = useMemo(() => utterances.filter(u => {
     if (speakerFilter !== 'ALL' && u.speaker !== speakerFilter) return false;
 
@@ -1452,12 +1451,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     }
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      return u.text.toLowerCase().includes(q) || u.speaker.toLowerCase().includes(q);
+    if (hasActiveSearch) {
+      const searchTarget = `${u.speaker}: ${u.text}`;
+      if (!evaluateTurnMatch(searchTarget, searchAst)) return false;
     }
     return true;
-  }), [utterances, speakerFilter, search, selectedCategory, selectedMentionTarget]);
+  }), [utterances, speakerFilter, hasActiveSearch, searchAst, selectedCategory, selectedMentionTarget]);
 
   // Dynamic Conversation & Confrontation Heatmap across the active episode timeline
   const conversationHeatmap = useMemo(() => {
@@ -1499,10 +1498,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [utterances, selectedMentionTarget]);
 
   const matchCount = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return 0;
-    return utterances.filter(u => u.text.toLowerCase().includes(q) || u.speaker.toLowerCase().includes(q)).length;
-  }, [search, utterances]);
+    if (!hasActiveSearch) return 0;
+    return utterances.filter(u => evaluateTurnMatch(`${u.speaker}: ${u.text}`, searchAst)).length;
+  }, [hasActiveSearch, searchAst, utterances]);
 
   const totalGlobalSegments = useMemo(() => {
     if (summaryIndex && summaryIndex.length > 0) {
@@ -1516,24 +1514,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const deferredSearch = useDeferredValue(search);
 
-  // All distinct speakers across the entire archive (from summaryIndex or loaded segments)
+  // All distinct speakers across the entire archive (from summaryIndex + loaded segments)
   const allArchiveSpeakers = useMemo(() => {
     const speakerMap = new Map<string, { count: number; episodes: Set<string> }>();
-    const hasLoadedSegments = Boolean(globalIndex && globalIndex.some(ep => ep.segments && ep.segments.length > 0));
 
-    if (hasLoadedSegments && globalIndex) {
-      for (const ep of globalIndex) {
-        for (const seg of ep.segments) {
-          const spk = seg.speaker?.trim();
-          if (spk) {
-            const entry = speakerMap.get(spk) || { count: 0, episodes: new Set<string>() };
-            entry.count += 1;
-            entry.episodes.add(ep.release_tag);
-            speakerMap.set(spk, entry);
-          }
-        }
-      }
-    } else if (summaryIndex && summaryIndex.length > 0) {
+    // 1. Always seed all distinct speakers and their episode presence from summaryIndex (entire archive)
+    if (summaryIndex && summaryIndex.length > 0) {
       for (const ep of summaryIndex) {
         if (ep.speakers && Array.isArray(ep.speakers)) {
           for (const spk of ep.speakers) {
@@ -1542,6 +1528,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               const entry = speakerMap.get(trimmed) || { count: 0, episodes: new Set<string>() };
               entry.episodes.add(ep.release_tag);
               speakerMap.set(trimmed, entry);
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Count turns and track any dynamic speakers from any currently loaded segments
+    if (globalIndex && globalIndex.length > 0) {
+      for (const ep of globalIndex) {
+        if (ep.segments && ep.segments.length > 0) {
+          for (const seg of ep.segments) {
+            const spk = seg.speaker?.trim();
+            if (spk) {
+              const entry = speakerMap.get(spk) || { count: 0, episodes: new Set<string>() };
+              entry.count += 1;
+              entry.episodes.add(ep.release_tag);
+              speakerMap.set(spk, entry);
             }
           }
         }
@@ -1609,8 +1612,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   useEffect(() => {
     if (selectedGlobalSpeaker !== 'ALL' && summaryIndex && summaryIndex.length > 0) {
+      const targetSpeakerLower = selectedGlobalSpeaker.trim().toLowerCase();
       const matchingTags = summaryIndex
-        .filter(ep => ep.speakers && ep.speakers.includes(selectedGlobalSpeaker))
+        .filter(ep => ep.speakers && ep.speakers.some(s => s.trim().toLowerCase() === targetSpeakerLower))
         .map(ep => ep.release_tag);
       if (matchingTags.length > 0) {
         loadSegmentsForEpisodes(matchingTags);
@@ -1682,18 +1686,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     });
   }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
+  const deferredSearchAst = useMemo(() => parseGoogleQuery(deferredSearch), [deferredSearch]);
+  const hasActiveDeferredSearch = useMemo(() => hasActiveQuery(deferredSearchAst), [deferredSearchAst]);
+
   // Synchronous fallback search only if Web Worker is unavailable
   const syncFallbackMatches = useMemo((): GlobalSearchResult[] => {
     if (workerSearchResults !== null) return [];
     if (!globalIndex) return [];
-    const query = deferredSearch.trim().toLowerCase();
-    const terms = query ? query.split(/\s+/).filter(Boolean) : [];
     const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
     const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
     const isCategoryFilter = selectedCategory !== 'ALL';
     const isMentionFilter = selectedMentionTarget !== 'ALL';
 
-    if (!terms.length && !speakerFilter && !tagFilter && !isCategoryFilter && !isMentionFilter) return [];
+    if (!hasActiveDeferredSearch && !speakerFilter && !tagFilter && !isCategoryFilter && !isMentionFilter) return [];
 
     const catObj = isCategoryFilter ? THEMATIC_CATEGORIES.find(c => c.id === selectedCategory) : null;
     const mentionObj = isMentionFilter ? MENTION_TARGETS.find(t => t.id === selectedMentionTarget) : null;
@@ -1726,10 +1731,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           if (!matchesMention) continue;
         }
 
-        // Query terms
-        if (terms.length > 0) {
-          const searchTarget = seg._search ?? `${seg.speaker || ''} ${seg.text || ''}`.toLowerCase();
-          if (!terms.every(term => searchTarget.includes(term))) {
+        // Google Search Query terms
+        if (hasActiveDeferredSearch) {
+          const searchTarget = seg._search ?? `${seg.speaker ? seg.speaker + ': ' : ''}${seg.text || ''}`;
+          if (!evaluateTurnMatch(searchTarget, deferredSearchAst)) {
             continue;
           }
         }
@@ -1746,7 +1751,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     }
     return results;
-  }, [workerSearchResults, globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
+  }, [workerSearchResults, globalIndex, hasActiveDeferredSearch, deferredSearchAst, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
   // All matches for current criteria across all episodes (prefers worker, falls back gracefully)
   const globalAllMatches = workerSearchResults !== null ? workerSearchResults : syncFallbackMatches;
@@ -2312,7 +2317,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           </p>
           {/* Diagnostic sync readout — only shown while playing */}
           {isPlaying && (
-            <div className="mt-3 flex items-center gap-4 text-[10px] font-mono text-emerald-400 bg-emerald-950/30 px-3 py-1.5 rounded border border-emerald-900/50">
+            <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-emerald-400 bg-emerald-950/30 px-3 py-1.5 rounded border border-emerald-900/50">
               <span title="Current audio element time">Audio: {currentTime.toFixed(2)}s ({formatSeconds(currentTime)})</span>
               <span className="text-emerald-700">|</span>
               <span title="Currently highlighted segment">
@@ -2334,7 +2339,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       </div>
 
       {!hasCredentials && (
-        <div className="mx-4 md:mx-10 my-2 px-3.5 py-2 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between gap-3 text-xs text-indigo-300 flex-shrink-0">
+        <div className="mx-4 md:mx-10 my-2 px-3.5 py-2 bg-indigo-950/40 border border-indigo-500/30 rounded-lg flex items-center justify-between gap-3 text-xs text-indigo-300 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Globe size={14} className="text-indigo-400 flex-shrink-0" />
             <span>Viewing local transcript archive ({effectiveReleases.length} episodes). Connect your GitHub Token in settings to sync live releases and save changes.</span>
@@ -2343,10 +2348,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       )}
 
       {hasCredentials && error && (
-        <div className="mx-4 md:mx-10 my-2 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs flex-shrink-0">
-          <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
+        <div className="mx-4 md:mx-10 my-2 flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex-shrink-0">
+          <AlertCircle size={14} className="text-rose-400 flex-shrink-0" />
           <span className="flex-1">{error}</span>
-          <button onClick={fetchReleases} className="text-xs text-red-200 underline hover:text-white cursor-pointer">Retry</button>
+          <button onClick={fetchReleases} className="text-xs text-rose-200 underline hover:text-white cursor-pointer">Retry</button>
         </div>
       )}
 
@@ -2359,9 +2364,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
       {effectiveReleases.length === 0 && !summaryLoading && !globalIndexLoading && (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-          <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl mb-4"><FileText size={28} className="text-slate-500" /></div>
+          <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl mb-4"><FileText size={28} className="text-slate-400" /></div>
           <p className="text-slate-300 text-sm font-medium">No Transcripts or Episodes Found</p>
-          <p className="text-slate-500 text-xs mt-1 max-w-sm">Connect your GitHub Personal Access Token or ensure transcripts_summary_index.json is loaded.</p>
+          <p className="text-slate-400 text-xs mt-1 max-w-sm">Connect your GitHub Personal Access Token or ensure transcripts_summary_index.json is loaded.</p>
         </div>
       )}
 
@@ -2379,13 +2384,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 }}
                 className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
                   searchScope === 'all'
-                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg shadow-indigo-600/15 text-white ring-1 ring-indigo-500/40'
+                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg text-white ring-1 ring-indigo-500/40'
                     : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                   }`}>
                     <Globe size={16} />
                   </div>
@@ -2393,12 +2398,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold truncate">Search All Transcripts</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 truncate">
+                    <p className="text-[11px] text-slate-400 truncate">
                       {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
                     </p>
                   </div>
                 </div>
-                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-600'} />
+                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-500'} />
               </button>
             </div>
 
@@ -2412,16 +2417,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               return (
                 <button key={release.id} onClick={() => { setSearchScope('current'); loadTranscript(release); }}
                   className={`w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
-                  <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500 group-hover:text-slate-300'}`}>
+                  <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
                     {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-[10px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
+                      <span className="text-[11px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
                       {hasTxt
-                        ? <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[9px] font-medium">Transcript Ready</span>
-                        : <span className="px-1.5 py-0.5 bg-slate-800 text-slate-500 rounded text-[9px]">Audio Only</span>}
+                        ? <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[11px] font-medium">Transcript Ready</span>
+                        : <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded text-[11px]">Audio Only</span>}
                     </div>
                   </div>
                 </button>
@@ -2441,11 +2446,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
                         <button
                           onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all cursor-pointer"
                         >
                           <Globe size={13} />
                           <span>All Transcripts</span>
-                          <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[10px] font-semibold ml-0.5">
+                          <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[11px] font-semibold ml-0.5">
                             {summaryIndex ? summaryIndex.length : (globalIndex ? globalIndex.length : 241)}
                           </span>
                         </button>
@@ -2480,7 +2485,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm inline-flex items-center gap-1.5">
                           {globalAllMatches.length.toLocaleString()} match{globalAllMatches.length !== 1 ? 'es' : ''}
                           {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
-                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[10px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
+                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[11px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
                             ⚡ 60fps Worker
                           </span>
                         </span>
@@ -2501,7 +2506,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
                       />
                       {workerSearching && (
-                        <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-indigo-950/90 border border-indigo-500/40 rounded text-[10px] text-indigo-300 font-mono shadow-sm pointer-events-none">
+                        <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-indigo-950/90 border border-indigo-500/40 rounded text-[11px] text-indigo-300 font-mono shadow-sm pointer-events-none">
                           <Loader size={10} className="animate-spin text-indigo-400" />
                           <span>off-thread…</span>
                         </div>
@@ -2509,7 +2514,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       {search && !workerSearching && (
                         <button
                           onClick={() => setSearch('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
                           title="Clear search"
                         >
                           <X size={14} />
@@ -2519,7 +2524,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                     {/* Episode filter */}
                     {((summaryIndex && summaryIndex.length > 0) || (globalIndex && globalIndex.length > 0)) && (
-                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
                         <Radio size={12} className="text-indigo-400 flex-shrink-0" />
                         <select
                           value={selectedGlobalTag}
@@ -2538,7 +2543,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
 
                     {/* Speaker filter — Always visible and accessible */}
-                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
                       <Users size={12} className="text-emerald-400 flex-shrink-0" />
                       <select
                         value={selectedGlobalSpeaker}
@@ -2563,7 +2568,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
 
                     {/* Target Mention Filter (e.g. Angela talking about Logan) */}
-                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 shadow-sm">
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
                       <ShieldAlert size={12} className="text-amber-400 flex-shrink-0" />
                       <select
                         value={selectedMentionTarget}
@@ -2588,7 +2593,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <button
                           onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
                           disabled={speakerZipLoading}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap"
                           title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
                         >
                           <FileText size={12} className={speakerZipLoading ? 'animate-bounce text-emerald-400' : 'text-emerald-400'} />
@@ -2602,14 +2607,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <button
                             onClick={() => handleDownloadSpeakerAudioZip('Angela')}
                             disabled={audioZipLoading}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
                             title="Download all 47 master audio clips of Angela (.wav & .mp3, 38.6 MB) in one ZIP archive"
                           >
                             <Headphones size={13} className={audioZipLoading ? 'animate-bounce' : ''} />
                             <span>
                               {audioZipLoading ? 'Downloading…' : 'Download Audio Clips (.zip)'}
                             </span>
-                            <span className="px-1.5 py-0.5 bg-emerald-800/80 text-[10px] rounded-full text-emerald-200 font-mono">
+                            <span className="px-1.5 py-0.5 bg-emerald-800/80 text-[11px] rounded-full text-emerald-200 font-mono">
                               47 clips
                             </span>
                           </button>
@@ -2621,7 +2626,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   {/* Quick Speaker Selector & Angela Quick Actions */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs border-t border-slate-800/60 mt-1">
                     <div className="flex items-center gap-2 overflow-x-auto pb-0.5 max-w-full">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
                         <Users size={11} className="text-emerald-400" /> Featured Speaker:
                       </span>
                       <button
@@ -2629,7 +2634,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           setSelectedGlobalSpeaker(selectedGlobalSpeaker === 'Angela' ? 'ALL' : 'Angela');
                           if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
                         }}
-                        className={`px-3 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 transition-all cursor-pointer border ${
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 transition-all cursor-pointer border ${
                           selectedGlobalSpeaker === 'Angela'
                             ? 'bg-emerald-600 border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
                             : 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/50 hover:text-white'
@@ -2637,12 +2642,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         title="Filter all spaces featuring Angela"
                       >
                         <span>⭐ Angela</span>
-                        <span className="text-[10px] opacity-80">({angelaEpisodeCount} spaces)</span>
+                        <span className="text-[11px] opacity-80">({angelaEpisodeCount} spaces)</span>
                       </button>
                       <button
                         onClick={() => handleDownloadSpeakerZip('Angela')}
                         disabled={speakerZipLoading}
-                        className="px-2.5 py-1 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors cursor-pointer shadow-sm"
+                        className="px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors cursor-pointer shadow-sm"
                         title="Directly download all Angela transcripts as a single ZIP file"
                       >
                         <FileText size={11} className="text-emerald-400" />
@@ -2651,7 +2656,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <button
                         onClick={() => handleDownloadSpeakerAudioZip('Angela')}
                         disabled={audioZipLoading}
-                        className="px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/80 hover:text-white transition-all cursor-pointer shadow-sm"
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/80 hover:text-white transition-all cursor-pointer shadow-sm"
                         title="Directly download all 47 master audio clips of Angela as a single ZIP archive (.wav & .mp3)"
                       >
                         <Headphones size={11} className="text-emerald-400" />
@@ -2671,7 +2676,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   {/* Thematic Category Dossier Chips */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/60 mt-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
                       <Tag size={10} className="text-indigo-400" /> Dossier Themes:
                     </span>
                     {THEMATIC_CATEGORIES.map(cat => {
@@ -2698,7 +2703,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     {selectedCategory !== 'ALL' && (
                       <button
                         onClick={() => setSelectedCategory('ALL')}
-                        className="text-[10px] text-slate-500 hover:text-slate-300 underline ml-1 cursor-pointer"
+                        className="text-[11px] text-slate-400 hover:text-slate-300 underline ml-1 cursor-pointer"
                       >
                         Clear theme
                       </button>
@@ -2776,12 +2781,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   {/* Speaker Zip Error Banner */}
                   {speakerZipError && (
-                    <div className="flex items-center justify-between p-3 bg-red-950/60 border border-red-500/30 rounded-xl text-xs text-red-200 shadow-md">
+                    <div className="flex items-center justify-between p-3 bg-rose-950/60 border border-rose-500/30 rounded-xl text-xs text-rose-200 shadow-md">
                       <span className="flex items-center gap-2 font-medium">
-                        <AlertCircle size={14} className="text-red-400" />
+                        <AlertCircle size={14} className="text-rose-400" />
                         <span>{speakerZipError}</span>
                       </span>
-                      <button onClick={() => setSpeakerZipError(null)} className="text-red-400 hover:text-white p-1">
+                      <button onClick={() => setSpeakerZipError(null)} className="text-rose-400 hover:text-white p-1">
                         <X size={13} />
                       </button>
                     </div>
@@ -2799,7 +2804,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
                       <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                         <div
-                          className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-300"
+                          className="bg-emerald-500 h-full transition-all duration-300"
                           style={{ width: `${audioZipProgress.percent}%` }}
                         />
                       </div>
@@ -2821,12 +2826,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   {/* Audio Zip Error Banner */}
                   {audioZipError && (
-                    <div className="flex items-center justify-between p-3 bg-red-950/60 border border-red-500/30 rounded-xl text-xs text-red-200 shadow-md">
+                    <div className="flex items-center justify-between p-3 bg-rose-950/60 border border-rose-500/30 rounded-xl text-xs text-rose-200 shadow-md">
                       <span className="flex items-center gap-2 font-medium">
-                        <AlertCircle size={14} className="text-red-400" />
+                        <AlertCircle size={14} className="text-rose-400" />
                         <span>{audioZipError}</span>
                       </span>
-                      <button onClick={() => setAudioZipError(null)} className="text-red-400 hover:text-white p-1">
+                      <button onClick={() => setAudioZipError(null)} className="text-rose-400 hover:text-white p-1">
                         <X size={13} />
                       </button>
                     </div>
@@ -2836,7 +2841,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   {selectedGlobalSpeaker.toLowerCase() === 'angela' && extractedAudioClips.length > 0 && (
                     <div className="flex items-center justify-between gap-3 p-2 bg-slate-950/80 border border-emerald-500/30 rounded-xl flex-wrap">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                           <Layers size={11} className="text-emerald-400" /> Mode:
                         </span>
                         <button
@@ -2854,13 +2859,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           onClick={() => setActiveResultsView('clips')}
                           className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                             activeResultsView === 'clips'
-                              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 border border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
+                              ? 'bg-emerald-600 border border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
                               : 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/50 hover:text-white'
                           }`}
                         >
                           <Headphones size={11} className="text-emerald-300" />
                           <span>Angela Audio Clips Archive ({extractedAudioClips.length} Master Cuts)</span>
-                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[10px] rounded-full text-emerald-200 font-mono">
+                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[11px] rounded-full text-emerald-200 font-mono">
                             38.6 MB
                           </span>
                         </button>
@@ -2881,7 +2886,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   {/* Episode Match Pills (if multiple episodes have results) */}
                   {isGlobalFilteringActive && activeResultsView === 'turns' && (globalResultEpisodeCounts.length > 1 || selectedGlobalTag !== 'ALL') && (
                     <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 text-xs">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0">
                         Episodes ({globalResultEpisodeCounts.length}):
                       </span>
                       <button
@@ -2913,10 +2918,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </div>
 
                 {/* Global Feed Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
                   {globalIndexError && (
-                    <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg space-y-2">
-                      <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load search index</p>
+                    <div className="max-w-2xl mx-auto p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs shadow-lg space-y-2">
+                      <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-rose-400" /> Could not load search index</p>
                       <p className="opacity-90 pl-6">{globalIndexError}</p>
                       <div className="pl-6 pt-1">
                         <button
@@ -2924,7 +2929,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             setGlobalIndex(null);
                             loadGlobalIndex();
                           }}
-                          className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                          className="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors"
                         >
                           Retry Loading Index
                         </button>
@@ -2936,7 +2941,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   {!isGlobalFilteringActive && (
                     <div className="max-w-4xl mx-auto space-y-8 py-6">
                       <div className="text-center space-y-3">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 shadow-xl shadow-indigo-500/5">
+                        <div className="w-14 h-14 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto text-indigo-400 shadow-xl">
                           <Globe size={26} />
                         </div>
                         <h3 className="text-xl font-bold text-white tracking-tight">Global Transcript Search</h3>
@@ -2946,7 +2951,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
 
                       {/* Popular topics */}
-                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 shadow-lg space-y-3">
+                      <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-lg space-y-3">
                         <div className="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
                           <Sparkles size={13} className="text-amber-400" />
                           <span>Suggested Searches & Highlights</span>
@@ -2956,7 +2961,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             <button
                               key={topic}
                               onClick={() => setSearch(topic)}
-                              className="px-3 py-1.5 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 hover:border-indigo-500/40 rounded-xl text-xs text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105"
+                              className="px-3 py-1.5 bg-slate-950 hover:bg-indigo-600/20 border border-slate-800 hover:border-indigo-500/40 rounded-lg text-xs text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105"
                             >
                               🔍 {topic}
                             </button>
@@ -2965,7 +2970,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
 
                       {/* Featured Speaker Archive & Bulk Downloads */}
-                      <div className="bg-slate-900/60 border border-emerald-500/30 rounded-2xl p-5 shadow-lg space-y-3.5">
+                      <div className="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-5 shadow-lg space-y-3.5">
                         <div className="flex items-center justify-between text-xs font-bold text-slate-300 uppercase tracking-wider flex-wrap gap-2">
                           <div className="flex items-center gap-2">
                             <Users size={14} className="text-emerald-400" />
@@ -2977,7 +2982,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                           {/* Angela Highlight Card */}
-                          <div className="p-3.5 bg-gradient-to-br from-emerald-950/50 via-slate-900 to-slate-950 border border-emerald-500/40 rounded-xl space-y-2.5 hover:border-emerald-400 transition-colors shadow-md">
+                          <div className="p-3.5 bg-slate-900 border border-emerald-500/40 rounded-xl space-y-2.5 hover:border-emerald-400 transition-colors shadow-md">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-emerald-100 text-sm flex items-center gap-1.5">
                                 <span>⭐ Angela</span>
@@ -2986,7 +2991,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md">
                                   {angelaEpisodeCount} spaces
                                 </span>
-                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-md flex items-center gap-1">
+                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-md flex items-center gap-1">
                                   <Headphones size={10} /> 47 clips
                                 </span>
                               </div>
@@ -3067,7 +3072,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                             Indexed Space Library ({summaryIndex?.length || globalIndex?.length || 241} Episodes)
                           </span>
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-[11px] text-slate-400">
                             {totalGlobalSegments.toLocaleString()} total spoken turns
                           </span>
                         </div>
@@ -3090,13 +3095,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 <h4 className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
                                   {ep.title || ep.release_tag}
                                 </h4>
-                                <p className="text-[10px] text-slate-400 mt-1 flex items-center gap-2">
+                                <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-2">
                                   <span>{getEpisodeRecordedDate({ tag_name: ep.release_tag, name: ep.title, published_at: ep.published_at }).displayDate}</span>
                                   <span>•</span>
                                   <span className="text-indigo-400 font-medium">{(ep.segment_count || (ep as any).segments?.length || 0).toLocaleString()} turns</span>
                                 </p>
                               </div>
-                              <ArrowRight size={13} className="text-slate-600 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-1" />
+                              <ArrowRight size={13} className="text-slate-500 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-1" />
                             </div>
                           ))}
                         </div>
@@ -3119,8 +3124,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                   {/* Active Filtering: 0 matches */}
                   {isGlobalFilteringActive && !globalIndexLoading && globalSearchResults.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
-                      <Search size={36} className="mb-3 text-slate-600" />
+                    <div className="flex flex-col items-center justify-center py-24 text-center text-slate-400 max-w-md mx-auto">
+                      <Search size={36} className="mb-3 text-slate-500" />
                       <p className="text-sm font-semibold text-slate-300">
                         {selectedGlobalSpeaker !== 'ALL' && search.trim()
                           ? `No turns match "${search}" spoken by ${selectedGlobalSpeaker}.`
@@ -3128,14 +3133,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           ? `No turns found for speaker "${selectedGlobalSpeaker}".`
                           : `No turns match "${search}" across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts.`}
                       </p>
-                      <p className="text-xs text-slate-500 mt-1.5">
+                      <p className="text-xs text-slate-400 mt-1.5">
                         Try clearing filters or checking spelling.
                       </p>
                       <div className="flex items-center gap-2 mt-4 flex-wrap justify-center">
                         {search && (
                           <button
                             onClick={() => setSearch('')}
-                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                           >
                             Clear Search Term
                           </button>
@@ -3143,7 +3148,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         {selectedGlobalSpeaker !== 'ALL' && (
                           <button
                             onClick={() => setSelectedGlobalSpeaker('ALL')}
-                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                           >
                             Reset Speaker Filter
                           </button>
@@ -3151,7 +3156,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         {selectedGlobalTag !== 'ALL' && (
                           <button
                             onClick={() => setSelectedGlobalTag('ALL')}
-                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                            className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                           >
                             All Episodes
                           </button>
@@ -3164,7 +3169,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   {isGlobalFilteringActive && globalSearchResults.length > 0 && (
                     <div className="max-w-4xl mx-auto space-y-3.5 pb-24">
                       {/* Summary Banner */}
-                      <div className="flex items-center justify-between p-3.5 bg-indigo-950/40 border border-indigo-500/20 rounded-2xl text-xs text-indigo-200 shadow-md flex-wrap gap-2">
+                      <div className="flex items-center justify-between p-3.5 bg-indigo-950/40 border border-indigo-500/20 rounded-xl text-xs text-indigo-200 shadow-md flex-wrap gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-white">
                             Showing {globalSearchResults.length.toLocaleString()} of {globalAllMatches.length.toLocaleString()} spoken turns
@@ -3193,7 +3198,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               <button
                                 onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
                                 disabled={speakerZipLoading}
-                                className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                                className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
                                 title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
                               >
                                 <FileText size={12} className={speakerZipLoading ? 'animate-bounce text-emerald-400' : 'text-emerald-400'} />
@@ -3207,7 +3212,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 <button
                                   onClick={() => handleDownloadSpeakerAudioZip('Angela')}
                                   disabled={audioZipLoading}
-                                  className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+                                  className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
                                   title="Download all 47 master audio clips of Angela in one ZIP archive (.wav & .mp3, 38.6 MB)"
                                 >
                                   <Headphones size={12} className={audioZipLoading ? 'animate-bounce' : ''} />
@@ -3235,7 +3240,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                       {activeResultsView === 'clips' && selectedGlobalSpeaker.toLowerCase() === 'angela' ? (
                         <div className="space-y-3">
-                          <div className="p-4 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-slate-950 border border-emerald-500/40 rounded-2xl shadow-lg flex items-center justify-between flex-wrap gap-3">
+                          <div className="p-4 bg-slate-900 border border-emerald-500/40 rounded-xl shadow-lg flex items-center justify-between flex-wrap gap-3">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 <span className="p-1.5 bg-emerald-500/20 text-emerald-300 rounded-lg">
@@ -3254,7 +3259,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               <button
                                 onClick={() => handleDownloadSpeakerAudioZip('Angela')}
                                 disabled={audioZipLoading}
-                                className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-semibold rounded-xl text-xs flex items-center gap-2 shadow-md cursor-pointer transition-all"
+                                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold rounded-lg text-xs flex items-center gap-2 shadow-md cursor-pointer transition-all"
                                 title="Download complete zip of all 47 audio clips"
                               >
                                 <Download size={14} className={audioZipLoading ? 'animate-bounce' : ''} />
@@ -3263,7 +3268,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               <button
                                 onClick={() => handleDownloadSpeakerZip('Angela')}
                                 disabled={speakerZipLoading}
-                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                                className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
                                 title="Download complete zip of all 19 text transcripts"
                               >
                                 <FileText size={13} className="text-emerald-400" />
@@ -3278,9 +3283,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               return (
                                 <div
                                   key={clip.id}
-                                  className={`p-4 rounded-2xl border transition-all ${
+                                  className={`p-4 rounded-xl border transition-all ${
                                     isPlayingThisClip
-                                      ? 'bg-emerald-950/40 border-emerald-500/80 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/40'
+                                      ? 'bg-emerald-950/40 border-emerald-500/80 shadow-xl ring-1 ring-emerald-500/40'
                                       : 'bg-slate-900/60 border-slate-800 hover:border-emerald-500/40 hover:bg-slate-900'
                                   }`}
                                 >
@@ -3292,11 +3297,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       <span className="font-semibold text-slate-200 text-xs truncate max-w-md">
                                         {clip.title}
                                       </span>
-                                      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[10px] font-bold uppercase">
+                                      <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[11px] font-bold uppercase">
                                         {clip.format} • {Math.round((clip.size_bytes || 0) / 1024)} KB
                                       </span>
                                       {clip.timestamp && (
-                                        <span className="text-[11px] text-slate-500 font-mono">
+                                        <span className="text-[11px] text-slate-400 font-mono">
                                           ⏱ {clip.timestamp}
                                         </span>
                                       )}
@@ -3337,10 +3342,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                             severity: 9,
                                           });
                                         }}
-                                        className="flex items-center gap-1 px-3 py-1 bg-purple-500/20 hover:bg-purple-600 text-purple-300 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-purple-500/40 cursor-pointer shadow-sm"
+                                        className="flex items-center gap-1 px-3 py-1 bg-indigo-500/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold transition-colors border border-indigo-500/40 cursor-pointer shadow-sm"
                                         title="Add clip into Montage Reel"
                                       >
-                                        <Film size={11} className="text-purple-400" />
+                                        <Film size={11} className="text-indigo-400" />
                                         <span>+ Reel</span>
                                       </button>
                                     </div>
@@ -3401,9 +3406,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             <div
                               key={`${res.release_tag}-${res.segmentIndex}-${idx}`}
                               style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
-                              className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all relative ${
+                              className={`group flex items-start gap-3.5 p-4 rounded-xl border transition-all relative ${
                                 isPlayingThis
-                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
                               }`}
                             >
@@ -3433,7 +3438,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                                     {/* Verified Audio Clip Badge */}
                                     {matchedClip && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-[10px] font-bold text-emerald-300 shadow-sm" title={`Verified extracted audio clip: ${matchedClip.filename}`}>
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-[11px] font-bold text-emerald-300 shadow-sm" title={`Verified extracted audio clip: ${matchedClip.filename}`}>
                                         <Sparkles size={9} className="text-emerald-400" />
                                         <span>Audio Clip ({matchedClip.format?.toUpperCase()})</span>
                                       </span>
@@ -3447,7 +3452,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                     >
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{formatSeconds(res.segment.start)}</span>
-                                      {res.segment.end !== null && <span className="text-slate-500 font-normal"> – {formatSeconds(res.segment.end)}</span>}
+                                      {res.segment.end !== null && <span className="text-slate-400 font-normal"> – {formatSeconds(res.segment.end)}</span>}
                                     </button>
                                   </div>
 
@@ -3520,10 +3525,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                         res.title,
                                         res.release_tag
                                       )}
-                                      className="flex items-center gap-1 px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-purple-500/30 cursor-pointer"
+                                      className="flex items-center gap-1 px-2.5 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-white rounded-lg text-xs font-medium transition-colors border border-indigo-500/30 cursor-pointer"
                                       title="Add turn directly to Montage Reel Builder"
                                     >
-                                      <Film size={11} className="text-purple-400" />
+                                      <Film size={11} className="text-indigo-400" />
                                       <span>+ Reel</span>
                                     </button>
                                   </div>
@@ -3555,7 +3560,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                           }}
                                           className={`cursor-pointer transition-all duration-75 rounded px-1 -mx-0.5 py-0.5 ${
                                             isActiveWord
-                                              ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/50 ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
+                                              ? 'bg-indigo-500 text-white font-bold shadow-md ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
                                               : isPastWord
                                               ? 'text-slate-100 font-medium hover:text-white hover:bg-slate-800/60'
                                               : 'text-slate-400 font-normal hover:text-slate-200 hover:bg-slate-800/40'
@@ -3587,7 +3592,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           </p>
                           <button
                             onClick={() => setGlobalDisplayLimit(prev => prev + 200)}
-                            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/30 hover:scale-105 cursor-pointer flex items-center gap-2"
+                            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg hover:scale-105 cursor-pointer flex items-center gap-2"
                           >
                             <span>Load More Turns (+200)</span>
                             <ChevronDown size={14} />
@@ -3603,11 +3608,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             ) : (
               !selectedRelease ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-                  <ChevronDown size={28} className="text-slate-700 mb-3 rotate-90" />
-                  <p className="text-slate-500 text-sm mb-3">Select an episode from the sidebar to view its transcript</p>
+                  <ChevronDown size={28} className="text-slate-500 mb-3 rotate-90" />
+                  <p className="text-slate-400 text-sm mb-3">Select an episode from the sidebar to view its transcript</p>
                   <button
                     onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer transition-all hover:scale-105"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg cursor-pointer transition-all hover:scale-105"
                   >
                     <Globe size={13} /> Or Search All Transcripts
                   </button>
@@ -3619,7 +3624,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="flex items-center gap-3 min-w-0">
                       {mp3Asset && (
                         <button onClick={handlePlayEpisodeToggle}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white shadow-indigo-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105 shadow-indigo-600/20'}`}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105'}`}
                           title={isCurrentEpisodePlaying ? 'Pause Audio' : 'Play Episode Audio'}>
                           {isCurrentEpisodePlaying ? <Pause size={16} /> : <Play size={16} className="translate-x-0.5" />}
                         </button>
@@ -3630,7 +3635,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <span className="text-slate-300 font-medium">{getEpisodeRecordedDate(selectedRelease).displayDate}</span>
                           {utterances.length > 0 && <><span>•</span><span className="text-indigo-400 font-medium">{utterances.length} turns</span></>}
                           {speakerStats.length > 0 && <><span>•</span><span className="text-emerald-400">{speakerStats.length} speaker{speakerStats.length > 1 ? 's' : ''}</span></>}
-                          {transcriptMetadata.model && <><span>•</span><span className="text-cyan-400" title="Speech-to-text model">{transcriptMetadata.model}</span></>}
+                          {transcriptMetadata.model && <><span>•</span><span className="text-slate-300" title="Speech-to-text model">{transcriptMetadata.model}</span></>}
                           {transcriptMetadata.language && <><span>•</span><span className="text-slate-400 uppercase">{transcriptMetadata.language}</span></>}
                         </p>
                       </div>
@@ -3702,7 +3707,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <Download size={12} /> .json
                       </button>
                       <a href={selectedRelease.html_url} target="_blank" rel="noopener noreferrer"
-                        className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
+                        className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
                         <ExternalLink size={13} />
                       </a>
                     </div>
@@ -3714,8 +3719,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
                   {saveGitHubError && (
-                    <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 text-xs">
-                      <AlertCircle size={15} className="text-red-400 flex-shrink-0" /><span>{saveGitHubError}</span>
+                    <div className="mx-4 md:mx-6 mt-3 flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs">
+                      <AlertCircle size={15} className="text-rose-400 flex-shrink-0" /><span>{saveGitHubError}</span>
                     </div>
                   )}
 
@@ -3740,11 +3745,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
 
                       <div className="relative flex-1 max-w-sm">
-                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input type="text" placeholder="Search this episode text or speaker…" value={search} onChange={e => setSearch(e.target.value)}
                           className="w-full pl-8 pr-7 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors" />
                         {search && (
-                          <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white p-0.5 cursor-pointer">
+                          <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 cursor-pointer">
                             <X size={12} />
                           </button>
                         )}
@@ -3755,7 +3760,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     <div className="flex items-center gap-3">
                       {uniqueDisplaySpeakers.length > 1 && (
                         <div className="flex items-center gap-1.5">
-                          <SlidersHorizontal size={12} className="text-slate-500" />
+                          <SlidersHorizontal size={12} className="text-slate-400" />
                           <select value={speakerFilter} onChange={e => setSpeakerFilter(e.target.value)}
                             className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
                             <option value="ALL">All Speakers ({uniqueDisplaySpeakers.length})</option>
@@ -3767,7 +3772,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       {/* Audio Playback Seek Sync (fixes VBR audio seeking lead/lag without changing transcript text) */}
                       <div className="flex items-center gap-1.5 bg-slate-950 border border-indigo-500/30 rounded-lg px-2.5 py-1"
                         title="Calibrate audio playback seek offset (e.g. +15s if audio plays 15s before text)">
-                        <Headphones size={12} className={audioSeekOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
+                        <Headphones size={12} className={audioSeekOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-400'} />
                         <span className="text-[11px] text-slate-400 font-medium">Audio Seek:</span>
                         <input type="number" value={audioSeekOffsetSec} step="0.5"
                           onChange={e => { const n = Number.parseFloat(e.target.value); setAndSaveAudioSeekOffset(Number.isFinite(n) ? n : 0); }}
@@ -3776,21 +3781,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <span className="text-[11px] text-slate-400 font-mono">s</span>
                         <div className="flex items-center gap-0.5 ml-1">
                           <button onClick={() => setAndSaveAudioSeekOffset(0)}
-                            className={`px-1.5 py-0.5 text-[10px] font-semibold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 0 ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700'}`}
+                            className={`px-1.5 py-0.5 text-[11px] font-semibold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 0 ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700'}`}
                             title="Exact 0s seek">0s</button>
                           <button onClick={() => setAndSaveAudioSeekOffset(15)}
-                            className={`px-1.5 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 15 ? 'bg-indigo-600 text-white ring-1 ring-indigo-400' : 'text-amber-300 hover:text-white bg-indigo-950/60 border border-indigo-500/40 hover:bg-indigo-900'}`}
+                            className={`px-1.5 py-0.5 text-[11px] font-bold rounded transition-colors cursor-pointer ${audioSeekOffsetSec === 15 ? 'bg-indigo-600 text-white ring-1 ring-indigo-400' : 'text-amber-300 hover:text-white bg-indigo-950/60 border border-indigo-500/40 hover:bg-indigo-900'}`}
                             title="Compensate for 15s audio lead (+15s)">+15s</button>
                           <button onClick={() => setAndSaveAudioSeekOffset(p => Number((p - 1).toFixed(1)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek back -1.0s">-1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek back -1.0s">-1s</button>
                           <button onClick={() => setAndSaveAudioSeekOffset(p => Number((p + 1).toFixed(1)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek forward +1.0s">+1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Nudge seek forward +1.0s">+1s</button>
                         </div>
                       </div>
 
                       {/* Sync Offset Control */}
                       <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1">
-                        <Clock size={12} className={timeOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-500'} />
+                        <Clock size={12} className={timeOffsetSec !== 0 ? 'text-indigo-400' : 'text-slate-400'} />
                         <span className="text-[11px] text-slate-400 font-medium">Sync:</span>
                         <input type="number" value={timeOffsetSec} step="0.1"
                           onChange={e => { const n = Number.parseFloat(e.target.value); setAndSaveTimeOffset(Number.isFinite(n) ? n : 0); }}
@@ -3799,22 +3804,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <span className="text-[11px] text-slate-400 font-mono">s</span>
                         <div className="flex items-center gap-0.5 ml-1">
                           <button onClick={() => setAndSaveTimeOffset(p => Number((p - 1).toFixed(3)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s earlier">-1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s earlier">-1s</button>
                           <button onClick={() => setAndSaveTimeOffset(p => Number((p - 0.1).toFixed(3)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s earlier">-0.1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s earlier">-0.1s</button>
                           <button onClick={() => setAndSaveTimeOffset(p => Number((p + 0.1).toFixed(3)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s later">+0.1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 0.1s later">+0.1s</button>
                           <button onClick={() => setAndSaveTimeOffset(p => Number((p + 1).toFixed(3)))}
-                            className="px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s later">+1s</button>
+                            className="px-1.5 py-0.5 text-[11px] font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors cursor-pointer" title="Shift transcript 1s later">+1s</button>
                           {timeOffsetSec !== 0 && (
                             <button onClick={() => setAndSaveTimeOffset(0)}
-                              className="px-1.5 py-0.5 text-[10px] font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded transition-colors cursor-pointer ml-0.5">Reset</button>
+                              className="px-1.5 py-0.5 text-[11px] font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded transition-colors cursor-pointer ml-0.5">Reset</button>
                           )}
                         </div>
                       </div>
 
                       <button onClick={() => setAutoScroll(!autoScroll)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-500 border-slate-800'}`}>
+                        className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-400 border-slate-800'}`}>
                         <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
                       </button>
                     </div>
@@ -3843,17 +3848,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 }}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                                    ? 'bg-indigo-600 text-white shadow-md'
                                     : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
                                 }`}
                               >
                                 <span>{part.label}</span>
                                 {hasTranscript ? (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}`}>
+                                  <span className={`text-[11px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}`}>
                                     Transcript
                                   </span>
                                 ) : (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'}`}>
+                                  <span className={`text-[11px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'}`}>
                                     Audio Only
                                   </span>
                                 )}
@@ -3865,7 +3870,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       {activePart?.mp3Asset && (
                         <div className="flex items-center gap-2 text-xs text-slate-400">
                           <span>Active Audio: <span className="font-mono text-slate-300">{activePart.label}</span></span>
-                          <span className="text-slate-600">·</span>
+                          <span className="text-slate-500">·</span>
                           <span className="font-mono text-slate-400">{formatSize(activePart.mp3Asset.size)}</span>
                         </div>
                       )}
@@ -3873,7 +3878,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   )}
 
                   {/* Transcript Feed */}
-                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-b from-slate-950 via-slate-950/95 to-slate-950">
+                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
                     {transcriptLoading && (
                       <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
                         <Loader size={26} className="animate-spin text-indigo-400" />
@@ -3882,15 +3887,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
 
                     {transcriptError && (
-                      <div className="max-w-2xl mx-auto p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs shadow-lg">
-                        <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-red-400" /> Could not load transcript</p>
+                      <div className="max-w-2xl mx-auto p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs shadow-lg">
+                        <p className="font-semibold flex items-center gap-2"><AlertCircle size={15} className="text-rose-400" /> Could not load transcript</p>
                         <p className="mt-1 opacity-90 pl-6">{transcriptError}</p>
                       </div>
                     )}
 
                     {!transcriptLoading && !transcriptError && !transcriptRaw && (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 max-w-md mx-auto py-20">
-                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl shadow-indigo-500/5">
+                        <div className="w-16 h-16 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400 shadow-xl">
                           {activePart?.mp3Asset ? <Headphones size={28} /> : <Sparkles size={28} />}
                         </div>
                         <h4 className="text-base font-bold text-white mb-1.5">
@@ -3902,7 +3907,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             : 'This episode has audio published and is queued in the automatic transcription pipeline. You can also prioritize it right now to process it immediately.'}
                         </p>
                         {transcribeSuccess ? (
-                          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
+                          <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs mb-4 text-left w-full shadow-lg">
                             <p className="font-semibold flex items-center gap-1.5"><Check size={14} /> Job Dispatched</p>
                             <p className="mt-1 opacity-90">{transcribeSuccess}</p>
                           </div>
@@ -3911,14 +3916,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             {activePart?.mp3Asset && (
                               <button
                                 onClick={handlePlayEpisodeToggle}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-lg transition-all hover:scale-105 cursor-pointer"
                               >
                                 {isCurrentEpisodePlaying ? <Pause size={14} /> : <Play size={14} />}
                                 {isCurrentEpisodePlaying ? `Pause ${activePart.label}` : `Play ${activePart.label} Audio`}
                               </button>
                             )}
                             <button onClick={handleGenerateTranscript} disabled={transcribing}
-                              className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl border border-slate-700 shadow-md transition-all hover:scale-105 cursor-pointer">
+                              className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg border border-slate-700 shadow-md transition-all hover:scale-105 cursor-pointer">
                               {transcribing ? <Loader size={14} className="animate-spin" /> : <Sparkles size={14} className="text-amber-400" />}
                               {transcribing ? 'Dispatching priority job…' : (episodeParts.length > 1 && activePart ? `⚡ Prioritize ${activePart.label}` : '⚡ Prioritize This Episode')}
                             </button>
@@ -3928,8 +3933,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
 
                     {!transcriptLoading && !transcriptError && transcriptRaw && filteredUtterances.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-24 text-center text-slate-500 max-w-md mx-auto">
-                        <Search size={32} className="mb-3 text-slate-600" />
+                      <div className="flex flex-col items-center justify-center py-24 text-center text-slate-400 max-w-md mx-auto">
+                        <Search size={32} className="mb-3 text-slate-500" />
                         <p className="text-sm font-medium text-slate-300">
                           {search ? `No speaker turns match "${search}" in this episode.` : 'No speaker turns match your filters.'}
                         </p>
@@ -3937,12 +3942,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <div className="flex items-center gap-3 mt-4">
                             <button
                               onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer transition-all hover:scale-105"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg cursor-pointer transition-all hover:scale-105"
                             >
                               <Globe size={13} /> Search All {summaryIndex?.length || globalIndex?.length || 241} Transcripts for "{search}"
                             </button>
                             <button onClick={() => { setSearch(''); setSpeakerFilter('ALL'); }}
-                              className="text-xs text-slate-500 hover:text-slate-300 underline cursor-pointer">
+                              className="text-xs text-slate-400 hover:text-slate-300 underline cursor-pointer">
                               Clear search
                             </button>
                           </div>
@@ -3959,12 +3964,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
                         {/* Dynamic Episode Confrontation & Density Heatmap */}
                         {conversationHeatmap.length > 0 && (
-                          <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-sm mb-4">
+                          <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm mb-4">
                             <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
                               <div className="flex items-center gap-2">
                                 <BarChart3 size={13} className="text-indigo-400" />
                                 <span className="font-semibold text-slate-200">Episode Timeline Heatmap</span>
-                                <span className="text-[10px] text-slate-500">({utterances.length} turns mapped)</span>
+                                <span className="text-[11px] text-slate-400">({utterances.length} turns mapped)</span>
                               </div>
                               <div className="flex items-center gap-3 text-[11px]">
                                 <span className="flex items-center gap-1.5 text-slate-400">
@@ -3985,7 +3990,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                     onClick={() => handlePlayUtterance(bucket.startSec)}
                                     className={`flex-1 rounded-sm transition-all hover:scale-y-110 hover:brightness-125 cursor-pointer relative group ${
                                       bucket.isHot
-                                        ? 'bg-rose-500 hover:bg-rose-400 shadow-sm shadow-rose-500/50'
+                                        ? 'bg-rose-500 hover:bg-rose-400 shadow-sm'
                                         : bucket.density > 0.6
                                         ? 'bg-indigo-500 hover:bg-indigo-400'
                                         : bucket.density > 0.2
@@ -4032,9 +4037,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               id={`utterance-card-${utterance.id}`}
                               key={utterance.id}
                               onClick={() => handlePlayUtterance(utterance.startSec)}
-                              className={`group flex items-start gap-3.5 p-4 rounded-2xl border transition-all cursor-pointer relative ${
+                              className={`group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
-                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl shadow-indigo-500/10 ring-1 ring-indigo-500/40'
+                                  ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
                               }`}
                             >
@@ -4068,7 +4073,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{utterance.startLabel}</span>
-                                      {utterance.endLabel && <span className="text-slate-500 font-normal"> – {utterance.endLabel}</span>}
+                                      {utterance.endLabel && <span className="text-slate-400 font-normal"> – {utterance.endLabel}</span>}
                                     </button>
 
                                     {/* 1-click audio seek sync calibration */}
@@ -4078,7 +4083,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                           const diff = Math.round((currentTime - utterance.startSec) * 10) / 10;
                                           setAndSaveAudioSeekOffset(diff);
                                         }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 cursor-pointer"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[11px] font-mono px-1.5 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 cursor-pointer"
                                         title={`Align audio playback seek to this turn (${Math.round((currentTime - utterance.startSec) * 10) / 10 > 0 ? `+${Math.round((currentTime - utterance.startSec) * 10) / 10}s` : `${Math.round((currentTime - utterance.startSec) * 10) / 10}s`} offset)`}>
                                         <Clock size={10} className="text-indigo-400" />
                                         Sync audio ({Math.round((currentTime - utterance.startSec) * 10) / 10 > 0 ? `+${Math.round((currentTime - utterance.startSec) * 10) / 10}s` : `${Math.round((currentTime - utterance.startSec) * 10) / 10}s`})
@@ -4102,7 +4107,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                           words: utterance.words,
                                         });
                                       }}
-                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-white border border-amber-500/30 cursor-pointer"
+                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-white border border-amber-500/30 cursor-pointer"
                                       title="Fine-tune boundaries and slice audio clip"
                                     >
                                       <Scissors size={10} className="text-amber-400" />
@@ -4123,19 +4128,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                           selectedRelease?.tag_name
                                         );
                                       }}
-                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 cursor-pointer"
+                                      className="opacity-70 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-white border border-indigo-500/30 cursor-pointer"
                                       title="Add turn to Montage Reel Builder"
                                     >
-                                      <Film size={10} className="text-purple-400" />
+                                      <Film size={10} className="text-indigo-400" />
                                       <span>+ Reel</span>
                                     </button>
 
                                     {typeof utterance.confidence === 'number' && (
-                                      <span className={`text-[10px] font-mono ${utterance.confidence >= 0.9 ? 'text-emerald-500' : utterance.confidence >= 0.75 ? 'text-amber-500' : 'text-rose-400'}`}
+                                      <span className={`text-[11px] font-mono ${utterance.confidence >= 0.9 ? 'text-emerald-500' : utterance.confidence >= 0.75 ? 'text-amber-500' : 'text-rose-400'}`}
                                         title="Confidence score">{(utterance.confidence * 100).toFixed(0)}%</span>
                                     )}
                                     {isPlayingThisUtterance && (
-                                      <span className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
+                                      <span className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/15 px-2.5 py-0.5 rounded-full border border-indigo-500/30 animate-pulse">
                                         <Volume2 size={11} /> Speaking Now
                                       </span>
                                     )}
@@ -4156,7 +4161,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                             }}
                                             className={`cursor-pointer transition-all duration-75 rounded px-1 -mx-0.5 py-0.5 ${
                                               isActiveWord
-                                                ? 'bg-indigo-500 text-white font-bold shadow-md shadow-indigo-500/50 ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
+                                                ? 'bg-indigo-500 text-white font-bold shadow-md ring-1 ring-indigo-300/60 scale-[1.03] inline-block z-10'
                                                 : isPastWord
                                                 ? 'text-slate-100 font-medium hover:text-white hover:bg-slate-800/60'
                                                 : 'text-slate-400 font-normal hover:text-slate-200 hover:bg-slate-800/40'
@@ -4192,7 +4197,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       {/* ── Quick Rename Single Speaker Modal ── */}
       {quickRenameTarget && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -4232,7 +4237,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     if (e.key === 'Escape') setQuickRenameTarget(null);
                   }}
                   placeholder="e.g. Angela, Logan, Rick Doty…"
-                  className="w-full px-4 py-2.5 text-sm font-bold bg-slate-950 border-2 border-indigo-500 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 shadow-inner"
+                  className="w-full px-4 py-2.5 text-sm font-bold bg-slate-950 border-2 border-indigo-500 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 shadow-inner"
                 />
                 {quickRenameVal && (
                   <button
@@ -4280,7 +4285,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       >
                         <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
                         <span>{s.name}</span>
-                        {s.role && <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 font-normal">{s.role}</span>}
+                        {s.role && <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 font-normal">{s.role}</span>}
                       </button>
                     );
                   })}
@@ -4320,7 +4325,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 <button
                   type="button"
                   onClick={() => setQuickRenameTarget(null)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -4328,7 +4333,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   type="button"
                   onClick={handleApplyQuickRename}
                   disabled={!quickRenameVal.trim()}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/25 cursor-pointer hover:scale-105"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all shadow-lg cursor-pointer hover:scale-105"
                 >
                   <Check size={14} /> Update All Turns
                 </button>
@@ -4342,7 +4347,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       {/* ── Saved Speakers Modal ── */}
       {showSavedSpeakersModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20"><Star size={18} className="fill-amber-400/40" /></div>
@@ -4351,7 +4356,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   <p className="text-xs text-slate-400">These profiles appear as quick-pick options on every space</p>
                 </div>
               </div>
-              <button onClick={() => setShowSavedSpeakersModal(false)} className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"><X size={16} /></button>
+              <button onClick={() => setShowSavedSpeakersModal(false)} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"><X size={16} /></button>
             </div>
 
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -4364,12 +4369,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-white">{s.name}</span>
-                          {s.role && <span className="px-2 py-0.5 text-[10px] rounded-full bg-slate-800 text-slate-300 font-medium border border-slate-700">{s.role}</span>}
+                          {s.role && <span className="px-2 py-0.5 text-[11px] rounded-full bg-slate-800 text-slate-300 font-medium border border-slate-700">{s.role}</span>}
                         </div>
-                        <span className="text-[10px] text-slate-500 capitalize">{s.color || 'indigo'} theme</span>
+                        <span className="text-[11px] text-slate-400 capitalize">{s.color || 'indigo'} theme</span>
                       </div>
                     </div>
-                    <button onClick={() => deletePermanentSpeaker(s.id || s.name)} className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"><Trash2 size={14} /></button>
+                    <button onClick={() => deletePermanentSpeaker(s.id || s.name)} className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"><Trash2 size={14} /></button>
                   </div>
                 );
               })}
@@ -4393,7 +4398,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </select>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                <span className="text-[10px] text-slate-500 font-medium">Emoji:</span>
+                <span className="text-[11px] text-slate-400 font-medium">Emoji:</span>
                 {['🎙️', '👩‍🎨', '⚡', '🛸', '🎧', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️'].map(emoji => (
                   <button key={emoji} type="button" onClick={() => setNewSpeakerEmoji(emoji)}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${newSpeakerEmoji === emoji ? 'bg-indigo-600 text-white scale-110 shadow' : 'bg-slate-900 hover:bg-slate-800'}`}>
@@ -4403,7 +4408,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               </div>
               <button onClick={() => { if (newSpeakerName.trim()) { addOrUpdatePermanentSpeaker({ id: newSpeakerName.trim().toLowerCase().replace(/\s+/g, '-'), name: newSpeakerName.trim(), avatarEmoji: newSpeakerEmoji, color: newSpeakerColor, role: newSpeakerRole }); setNewSpeakerName(''); } }}
                 disabled={!newSpeakerName.trim()}
-                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-indigo-600/20">
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-lg">
                 <Plus size={13} /> Add to Permanent Directory
               </button>
             </div>

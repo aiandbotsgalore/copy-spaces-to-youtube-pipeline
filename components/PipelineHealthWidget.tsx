@@ -3,9 +3,10 @@ import {
   ShieldCheck, AlertCircle, CheckCircle2, Clock, RefreshCw,
   ExternalLink, Loader, Activity, Key, Server, Check, X, AlertTriangle
 } from 'lucide-react';
-import { EnhancedConfig, WorkflowRun } from '../types';
+import { EnhancedConfig, WorkflowRun, DeadLetterJob } from '../types';
 import { useWorkflowRuns, isActiveRun } from '../hooks/useWorkflowRuns';
 import { getCachedRateLimit, onRateLimitChange, GitHubRateLimitInfo, validateToken } from '../utils/github';
+import { loadHealedRunIds, loadDeadLetterQueue, removeFromDeadLetterQueue, markRunHealed } from '../utils/storage';
 
 interface Props {
   config: EnhancedConfig;
@@ -24,6 +25,13 @@ export const PipelineHealthWidget: React.FC<Props> = ({
   const [tokenUser, setTokenUser] = useState<string | null>(null);
   const [tokenChecking, setTokenChecking] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [dismissedRunId, setDismissedRunId] = useState<number | null>(() => {
+    try {
+      return Number(localStorage.getItem('spacepipe_dismissed_failed_run')) || null;
+    } catch {
+      return null;
+    }
+  });
 
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
@@ -55,15 +63,37 @@ export const PipelineHealthWidget: React.FC<Props> = ({
       .finally(() => setTokenChecking(false));
   }, [config.githubToken, hasToken]);
 
+  // Retrieve healed run IDs and Dead-Letter Queue items
+  const healedRunIds = loadHealedRunIds();
+  const dlqJobs = loadDeadLetterQueue();
+
   // Evaluate recent failures (last 10 runs)
   const recentRuns = runs.slice(0, 10);
   const activeRuns = recentRuns.filter(r => isActiveRun(r));
   const failedRuns = recentRuns.filter(r => r.conclusion === 'failure');
+
+  // Auto-Clear: A failed run is considered auto-healed if:
+  // 1. Its ID is recorded in healed runs list, OR
+  // 2. A subsequent run of the same workflow succeeded after the failure.
+  const unacknowledgedFailedRuns = failedRuns.filter(r => {
+    if (r.id === dismissedRunId) return false;
+    if (healedRunIds.includes(r.id)) return false;
+    const newerSuccess = recentRuns.find(
+      other => other.name === r.name && other.conclusion === 'success' && new Date(other.created_at) > new Date(r.created_at)
+    );
+    if (newerSuccess) {
+      markRunHealed(r.id);
+      return false;
+    }
+    return true;
+  });
+
   const successfulRuns = recentRuns.filter(r => r.conclusion === 'success');
+  const recentEnrollments = recentRuns.filter(r => r.name.toLowerCase().includes('enroll') && r.conclusion === 'success');
 
   // Overall Health Assessment
-  const isHealthy = hasToken && tokenValid && failedRuns.length === 0 && (rateLimit ? rateLimit.remaining > 50 : true);
-  const isWarning = (hasToken && failedRuns.length > 0) || (rateLimit ? rateLimit.remaining <= 100 : false);
+  const isHealthy = hasToken && tokenValid && unacknowledgedFailedRuns.length === 0 && (rateLimit ? rateLimit.remaining > 50 : true);
+  const isWarning = (hasToken && (unacknowledgedFailedRuns.length > 0 || dlqJobs.length > 0)) || (rateLimit ? rateLimit.remaining <= 100 : false);
   const isCritical = !hasToken || tokenValid === false;
 
   const handleManualRefresh = () => {
@@ -80,6 +110,14 @@ export const PipelineHealthWidget: React.FC<Props> = ({
     const mins = Math.floor(diff / 60);
     const secs = diff % 60;
     return `${mins}m ${secs}s`;
+  };
+
+  const getStatusText = () => {
+    if (isCritical) return 'Pipeline Alert';
+    if (unacknowledgedFailedRuns.length > 0) return `${unacknowledgedFailedRuns.length} Failed Run`;
+    if (dlqJobs.length > 0) return `${dlqJobs.length} Quarantined (DLQ)`;
+    if (recentEnrollments.length > 0) return 'Healthy / Enrolled';
+    return 'Pipeline Healthy';
   };
 
   if (compact) {
@@ -99,13 +137,13 @@ export const PipelineHealthWidget: React.FC<Props> = ({
           <span className={`w-2 h-2 rounded-full ${
             isCritical ? 'bg-rose-500 animate-pulse' : isWarning ? 'bg-amber-400' : 'bg-emerald-400'
           }`} />
-          <span>{isCritical ? 'Pipeline Alert' : isWarning ? `${failedRuns.length} Failed Run` : 'Pipeline Healthy'}</span>
+          <span>{getStatusText()}</span>
         </button>
 
         {expanded && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setExpanded(false)} />
-            <div className="absolute left-0 bottom-full mb-3 w-80 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-4 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute left-0 bottom-full mb-3 w-80 max-w-[calc(100vw-2rem)] bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl p-4 z-50 space-y-3 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span className="text-xs font-bold text-white flex items-center gap-1.5">
                   <Activity size={13} className="text-indigo-400" /> Pipeline Diagnostics
@@ -137,18 +175,84 @@ export const PipelineHealthWidget: React.FC<Props> = ({
                   </span>
                 </div>
 
-                {failedRuns.length > 0 && (
-                  <div className="p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300">
-                    <p className="font-bold">Latest Failed Run:</p>
-                    <p className="truncate">{failedRuns[0].name} ({new Date(failedRuns[0].created_at).toLocaleTimeString()})</p>
-                    <a
-                      href={failedRuns[0].html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] text-rose-400 underline mt-1 font-bold"
-                    >
-                      View Failure Log <ExternalLink size={10} />
-                    </a>
+                {dlqJobs.length > 0 && (
+                  <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 rounded-lg text-rose-300 space-y-1.5">
+                    <div className="flex items-center justify-between font-bold text-rose-200">
+                      <span>Dead-Letter Queue ({dlqJobs.length})</span>
+                      <span className="text-[10px] bg-rose-500/30 px-1.5 py-0.5 rounded font-mono">Quarantined</span>
+                    </div>
+                    {dlqJobs.slice(0, 3).map((job) => (
+                      <div key={job.id} className="border-t border-rose-500/20 pt-1.5 text-[10px] space-y-0.5">
+                        <div className="flex justify-between font-semibold text-white">
+                          <span>{job.speakerName || job.workflow}</span>
+                          <span className="text-slate-400 font-normal">{new Date(job.failedAt).toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-rose-300/90 leading-tight">Root Cause: {job.rootCause}</p>
+                        <div className="flex items-center justify-between pt-0.5">
+                          {job.logUrl && (
+                            <a
+                              href={job.logUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] text-rose-400 hover:text-rose-200 underline font-bold"
+                            >
+                              [View Failure Log] <ExternalLink size={9} />
+                            </a>
+                          )}
+                          <button
+                            onClick={() => removeFromDeadLetterQueue(job.id)}
+                            className="text-[10px] text-slate-400 hover:text-white"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {unacknowledgedFailedRuns.length > 0 && (
+                  <div className="p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-bold">Latest Failed Run:</p>
+                      <button
+                        onClick={() => {
+                          const id = unacknowledgedFailedRuns[0].id;
+                          markRunHealed(id);
+                          setDismissedRunId(id);
+                          try {
+                            localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
+                          } catch {}
+                        }}
+                        className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                    <p className="truncate">{unacknowledgedFailedRuns[0].name} ({new Date(unacknowledgedFailedRuns[0].created_at).toLocaleTimeString()})</p>
+                    <div className="flex items-center justify-between pt-0.5">
+                      <a
+                        href={unacknowledgedFailedRuns[0].html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-rose-400 underline font-bold"
+                      >
+                        [View Failure Log] <ExternalLink size={10} />
+                      </a>
+                      <button
+                        onClick={() => {
+                          const id = unacknowledgedFailedRuns[0].id;
+                          markRunHealed(id);
+                          setDismissedRunId(id);
+                          try {
+                            localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
+                          } catch {}
+                        }}
+                        className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+                      >
+                        ✓ Mark Healed
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -161,7 +265,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
 
   // Full Widget Mode (for Dashboard)
   return (
-    <div className="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-5 shadow-lg space-y-4">
+    <div className="bg-slate-900/80 border border-slate-800/90 rounded-xl p-5 shadow-lg space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
           <div className={`p-2 rounded-xl border ${
@@ -174,12 +278,12 @@ export const PipelineHealthWidget: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-white tracking-tight">Pipeline Health &amp; Telemetry</h3>
-              <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
+              <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                 isCritical ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
                 isWarning ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
                 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
               }`}>
-                {isCritical ? 'Attention Required' : isWarning ? 'Degraded Performance' : 'Optimal'}
+                {isCritical ? 'Attention Required' : isWarning ? 'Degraded Performance' : recentEnrollments.length > 0 ? 'Healthy / Enrolled' : 'Optimal'}
               </span>
             </div>
             <p className="text-xs text-slate-400">Continuous monitoring of GitHub token validity, rate quotas, and cloud workflow executions</p>
@@ -189,7 +293,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         <button
           onClick={handleManualRefresh}
           disabled={runsLoading || tokenChecking}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
         >
           <RefreshCw size={12} className={runsLoading || tokenChecking ? 'animate-spin' : ''} />
           <span>Refresh</span>
@@ -201,7 +305,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         {/* Token Status */}
         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">GitHub Auth</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">GitHub Auth</span>
             <Key size={13} className={tokenValid ? 'text-emerald-400' : 'text-rose-400'} />
           </div>
           <div className="flex items-center gap-1.5">
@@ -213,7 +317,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
               <span className="text-xs font-bold text-rose-400">Token Invalid / Missing</span>
             )}
           </div>
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[11px] text-slate-400">
             {tokenValid ? 'Full workflow dispatch scopes' : (
               <button onClick={onNavigateToGitHub} className="text-indigo-400 hover:underline cursor-pointer">
                 Connect GitHub Token →
@@ -225,17 +329,17 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         {/* API Rate Limit */}
         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">GitHub API Quota</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">GitHub API Quota</span>
             <Server size={13} className="text-indigo-400" />
           </div>
           <div className="text-xs font-bold text-white font-mono">
             {rateLimit ? (
-              <span>{rateLimit.remaining} <span className="text-slate-500 text-[10px]">/ {rateLimit.limit} reqs</span></span>
+              <span>{rateLimit.remaining} <span className="text-slate-400 text-[11px]">/ {rateLimit.limit} reqs</span></span>
             ) : (
               <span>5,000 reqs / hr</span>
             )}
           </div>
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[11px] text-slate-400">
             {rateLimit ? `Reset in ${formatResetTime(rateLimit.reset)}` : 'ETag caching active (304 saves quota)'}
           </p>
         </div>
@@ -243,50 +347,134 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         {/* Workflow Executions */}
         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Workflow Runs</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">Workflow Runs</span>
             <Activity size={13} className={activeRuns.length > 0 ? 'text-amber-400 animate-spin' : 'text-emerald-400'} />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-white">
               {activeRuns.length > 0 ? `${activeRuns.length} In-Flight` : `${successfulRuns.length} Succeeded`}
             </span>
-            {failedRuns.length > 0 && (
-              <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded font-bold">
-                {failedRuns.length} Failed
+            {unacknowledgedFailedRuns.length > 0 && (
+              <span className="text-[11px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded font-bold">
+                {unacknowledgedFailedRuns.length} Failed
+              </span>
+            )}
+            {unacknowledgedFailedRuns.length === 0 && recentEnrollments.length > 0 && (
+              <span className="text-[11px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-bold">
+                Healthy / Enrolled
               </span>
             )}
           </div>
-          <p className="text-[10px] text-slate-500">
+          <p className="text-[11px] text-slate-400">
             {hasRepo ? `${owner}/${repo}` : 'Repository not configured'}
           </p>
         </div>
       </div>
 
+      {/* Dead-Letter Queue (DLQ) Quarantined Jobs */}
+      {dlqJobs.length > 0 && (
+        <div className="p-4 bg-rose-950/25 border border-rose-500/35 rounded-xl space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
+              <AlertTriangle size={15} className="text-rose-400" />
+              <span>Dead-Letter Queue ({dlqJobs.length} Quarantined)</span>
+            </div>
+            <span className="text-[10px] bg-rose-500/30 text-rose-200 border border-rose-500/40 px-2 py-0.5 rounded font-mono uppercase font-bold">
+              Quarantined After 3 Failed Remediation Attempts
+            </span>
+          </div>
+          <div className="space-y-2">
+            {dlqJobs.map((job) => (
+              <div key={job.id} className="p-3 bg-slate-950/70 border border-rose-500/20 rounded-lg text-xs space-y-1.5">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white">{job.speakerName || job.workflow}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">Run #{job.runId || 'N/A'}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">{new Date(job.failedAt).toLocaleString()}</span>
+                </div>
+                <p className="text-rose-300/90 text-[11px] leading-relaxed">
+                  <strong className="text-rose-200 font-semibold">Root Cause:</strong> {job.rootCause}
+                </p>
+                <div className="flex items-center justify-between pt-1">
+                  {job.logUrl && (
+                    <a
+                      href={job.logUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] text-rose-400 hover:text-rose-200 underline font-bold"
+                    >
+                      [View Failure Log] <ExternalLink size={11} />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => removeFromDeadLetterQueue(job.id)}
+                    className="text-[11px] text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+                  >
+                    Dismiss from DLQ
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Actionable Error Remediation (If any failures detected) */}
-      {failedRuns.length > 0 && (
+      {unacknowledgedFailedRuns.length > 0 && (
         <div className="p-3.5 bg-rose-950/30 border border-rose-500/30 rounded-xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-rose-200 flex items-center gap-1.5">
               <AlertTriangle size={14} className="text-rose-400" />
-              Workflow Execution Failure Detected ({failedRuns[0].name})
+              Workflow Execution Failure Detected ({unacknowledgedFailedRuns[0].name})
             </span>
-            <span className="text-[10px] text-slate-400 font-mono">
-              {new Date(failedRuns[0].created_at).toLocaleString()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-slate-400 font-mono">
+                {new Date(unacknowledgedFailedRuns[0].created_at).toLocaleString()}
+              </span>
+              <button
+                onClick={() => {
+                  const id = unacknowledgedFailedRuns[0].id;
+                  markRunHealed(id);
+                  setDismissedRunId(id);
+                  try {
+                    localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
+                  } catch {}
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer"
+                title="Dismiss this failure alert"
+              >
+                <X size={13} />
+              </button>
+            </div>
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            The latest execution of <strong className="text-white">{failedRuns[0].display_title || failedRuns[0].name}</strong>
-            {failedRuns[0].head_branch ? ` (${failedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL, or missing ASSEMBLYAI_API_KEY).
+            The latest execution of <strong className="text-white">{unacknowledgedFailedRuns[0].display_title || unacknowledgedFailedRuns[0].name}</strong>
+            {unacknowledgedFailedRuns[0].head_branch ? ` (${unacknowledgedFailedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL, or missing ASSEMBLYAI_API_KEY).
           </p>
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
             <a
-              href={failedRuns[0].html_url}
+              href={unacknowledgedFailedRuns[0].html_url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
             >
-              Inspect GitHub Action Logs <ExternalLink size={12} />
+              [View Failure Log] <ExternalLink size={12} />
             </a>
+            <button
+              onClick={() => {
+                const id = unacknowledgedFailedRuns[0].id;
+                markRunHealed(id);
+                setDismissedRunId(id);
+                try {
+                  localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
+                } catch {}
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              title="Acknowledge and clear this failure badge"
+            >
+              <Check size={12} className="text-emerald-400" /> Mark as Healed &amp; Clear Alert
+            </button>
             {hasRepo && (
               <a
                 href={`https://github.com/${owner}/${repo}/settings/secrets/actions`}
