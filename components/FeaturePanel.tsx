@@ -21,17 +21,17 @@ const ToggleRow: React.FC<ToggleRowProps> = ({ enabled, onToggle, icon, title, d
   <div className={`p-5 rounded-xl border transition-colors ${enabled ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-slate-900 border-slate-800'}`}>
     <div className="flex items-start justify-between gap-4">
       <div className="flex items-start gap-3 flex-1 min-w-0">
-        <div className={`p-2 rounded-lg mt-0.5 ${enabled ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-500'}`}>
+        <div className={`p-2 rounded-lg mt-0.5 ${enabled ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-semibold text-white">{title}</span>
             {badge && (
-              <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-medium">{badge}</span>
+              <span className="text-[11px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded font-medium">{badge}</span>
             )}
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+          <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
         </div>
       </div>
       <button
@@ -69,12 +69,12 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
               <Info size={13} className="text-indigo-400 mt-0.5 flex-shrink-0" />
               <div className="space-y-1.5">
                 <p className="text-xs text-indigo-300 font-medium">Automated Pipeline Active</p>
-                <p className="text-[10px] text-slate-400">Audio is transcribed with Faster-Whisper (large-v3-turbo) with diarization and speaker identification.</p>
+                <p className="text-[11px] text-slate-400">Audio is transcribed with Faster-Whisper (large-v3-turbo) with diarization and speaker identification.</p>
               </div>
             </div>
             <div className="flex items-start gap-2 p-3 bg-slate-800/60 border border-slate-700 rounded-lg">
-              <Info size={13} className="text-slate-500 mt-0.5 flex-shrink-0" />
-              <div className="text-[10px] text-slate-500 space-y-0.5">
+              <Info size={13} className="text-slate-400 mt-0.5 flex-shrink-0" />
+              <div className="text-[11px] text-slate-400 space-y-0.5">
                 <p>Transcript format: <code className="text-slate-400">[00:00:01 - 00:00:06] Speaker: text here</code></p>
                 <p>Biometric matching: <code className="text-slate-400">ECAPA-TDNN (Logan, Oor enrolled)</code></p>
                 <p>Output assets: <code className="text-slate-400">.txt</code>, <code className="text-slate-400">.srt</code>, and <code className="text-slate-400">.json</code> attached to each GitHub Release.</p>
@@ -99,7 +99,7 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
               onChange={e => onChange({ slackWebhookUrl: e.target.value })}
               className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 transition-colors"
             />
-            <p className="text-[10px] text-slate-600">
+            <p className="text-[11px] text-slate-500">
               This is for your reference only. The actual value must be set as <code className="bg-slate-800 px-1 rounded text-slate-400">SLACK_WEBHOOK_URL</code> in your repo's Secrets.
             </p>
           </div>
@@ -121,7 +121,7 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
               onChange={e => onChange({ discordWebhookUrl: e.target.value })}
               className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-indigo-500 transition-colors"
             />
-            <p className="text-[10px] text-slate-600">
+            <p className="text-[11px] text-slate-500">
               Set as <code className="bg-slate-800 px-1 rounded text-slate-400">DISCORD_WEBHOOK_URL</code> in your repo's Secrets.
             </p>
           </div>
@@ -153,10 +153,10 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
                 <button
                   key={p.value}
                   onClick={() => onChange({ scheduledCron: p.value })}
-                  className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                  className={`px-2 py-1 text-[11px] rounded border transition-colors ${
                     config.scheduledCron === p.value
                       ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-400'
-                      : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-300'
                   }`}
                 >
                   {p.label}
@@ -167,8 +167,8 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
         </ToggleRow>
 
         <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl flex items-start gap-3">
-          <Zap size={16} className="text-slate-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-slate-500">
+          <Zap size={16} className="text-slate-400 mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-slate-400">
             All enabled features are automatically reflected in the generated workflow YAML. Click <strong className="text-slate-400">Pipeline Files → Workflow</strong> to preview the output.
           </p>
         </div>

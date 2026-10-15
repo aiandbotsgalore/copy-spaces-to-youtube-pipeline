@@ -483,7 +483,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col text-slate-100">
+      <div className="bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col text-slate-100">
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-3">
@@ -513,13 +513,13 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
         {/* Body */}
         <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
           {/* Waveform Visualizer Box */}
-          <div className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-2.5">
+          <div className="p-4 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <Music size={13} className="text-emerald-400" />
                 <span className="font-semibold text-slate-200">Waveform Amplitude Peaks</span>
                 {isDecodingWaveform && (
-                  <span className="flex items-center gap-1 text-[10px] text-indigo-400">
+                  <span className="flex items-center gap-1 text-[11px] text-indigo-400">
                     <Loader2 size={11} className="animate-spin" /> Decoding audio…
                   </span>
                 )}
@@ -545,7 +545,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
                 onPointerUp={handleCanvasPointerUp}
                 className="w-full h-full block"
               />
-              <div className="absolute bottom-1 right-2 pointer-events-none text-[9px] font-mono text-slate-500">
+              <div className="absolute bottom-1 right-2 pointer-events-none text-[11px] font-mono text-slate-400">
                 Drag IN/OUT tabs or click to scrub
               </div>
             </div>
@@ -578,12 +578,12 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
                   Trim Silence (-0.3s)
                 </button>
               </div>
-              <span className="text-[10px] text-slate-500 italic">Click any word below to snap</span>
+              <span className="text-[11px] text-slate-400 italic">Click any word below to snap</span>
             </div>
           </div>
 
           {/* Quote display with clickable word-snapping pills */}
-          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
               Exact Verbatim Dialogue {target.words && target.words.length > 0 ? '(Click Word to Snap)' : ''}
             </span>
@@ -616,7 +616,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
           {/* Time Boundary Inputs */}
           <div className="grid grid-cols-2 gap-4">
             {/* Start boundary */}
-            <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800 space-y-2">
+            <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-emerald-400">Clip Start</span>
                 <span className="font-mono text-slate-400">{formatTime(startSec)}</span>
@@ -628,7 +628,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
                   min="0"
                   value={startSec}
                   onChange={e => setStartSec(Math.max(0, parseFloat(e.target.value) || 0))}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-emerald-500"
                 />
               </div>
               <div className="flex gap-1 pt-1">
@@ -646,7 +646,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
             </div>
 
             {/* End boundary */}
-            <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800 space-y-2">
+            <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-rose-400">Clip End</span>
                 <span className="font-mono text-slate-400">{formatTime(endSec)}</span>
@@ -658,7 +658,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
                   min="0"
                   value={endSec}
                   onChange={e => setEndSec(Math.max(startSec + 0.5, parseFloat(e.target.value) || 0))}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm font-mono text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
               <div className="flex gap-1 pt-1">
@@ -677,7 +677,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
           </div>
 
           {/* Duration Indicator */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-indigo-950/30 border border-indigo-500/30 rounded-xl text-xs">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-indigo-950/30 border border-indigo-500/30 rounded-lg text-xs">
             <span className="text-indigo-300 font-semibold flex items-center gap-1.5">
               <Clock size={14} /> Total Clip Duration:
             </span>
@@ -693,7 +693,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value as any)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none"
               >
                 <option value="insult">Insult / Ridicule</option>
                 <option value="character">Character Attack</option>
@@ -725,9 +725,9 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
         <div className="p-5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between gap-3 flex-wrap">
           <button
             onClick={togglePlaySlice}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               isPlayingSlice
-                ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20'
+                ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg'
                 : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
             }`}
           >
@@ -739,7 +739,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
             <button
               onClick={handleDownloadWav}
               disabled={isExporting}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition-colors cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white rounded-lg text-xs font-semibold border border-slate-700 transition-colors cursor-pointer shadow-sm"
               title="Export sub-clip directly as lossless WAV"
             >
               {isExporting ? (
@@ -754,7 +754,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
             <button
               onClick={handleAddToMontage}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg transition-all cursor-pointer hover:scale-105 active:scale-95"
             >
               <Plus size={14} />
               <span>Add to Montage Reel</span>

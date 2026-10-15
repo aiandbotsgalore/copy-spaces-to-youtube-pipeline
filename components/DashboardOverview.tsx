@@ -190,7 +190,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       <section className="p-5 md:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Zap size={16} className="text-indigo-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wide">Quick Ingest</h3>
+          <h3 className="text-sm font-semibold text-slate-100">Quick ingest</h3>
         </div>
 
         {!confirming ? (
@@ -202,7 +202,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
               onKeyDown={e => { if (e.key === 'Enter') handlePresubmit(); }}
               placeholder="https://x.com/i/spaces/..."
               disabled={!hasCredentials}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono placeholder:text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 transition-colors mb-3"
+              className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 transition-colors mb-3"
             />
             <button
               onClick={handlePresubmit}
@@ -215,7 +215,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
         ) : (
           <div className="space-y-4">
             <div className="p-4 bg-slate-950 border border-slate-800 rounded-lg">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Confirm submission</p>
+              <p className="text-[11px] text-slate-400 uppercase tracking-wide mb-1">Confirm submission</p>
               <p className="text-sm text-white font-mono break-all">{url.trim()}</p>
             </div>
 
@@ -234,7 +234,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <Radio size={13} className={recordLive ? "text-rose-400 animate-pulse" : "text-slate-500"} />
+                    <Radio size={13} className={recordLive ? "text-rose-400 animate-pulse" : "text-slate-400"} />
                     <span className={`text-xs font-semibold ${recordLive ? 'text-rose-300' : 'text-slate-300'}`}>
                       Record live broadcast (Space is currently in progress)
                     </span>
@@ -282,7 +282,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
             <button
               onClick={() => { setConfirming(false); setRecordLive(false); setNotice(null); }}
               disabled={submitting !== null}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
             >
               Cancel
             </button>
@@ -291,12 +291,12 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
 
         {notice && (
           <div className={`mt-4 flex items-start gap-2 p-3 border rounded-lg ${
-            notice.kind === 'success' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'
+            notice.kind === 'success' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'
           }`}>
             {notice.kind === 'success'
               ? <CheckCircle size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-              : <AlertCircle size={14} className="text-red-400 flex-shrink-0 mt-0.5" />}
-            <p className={`text-xs ${notice.kind === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>{notice.message}</p>
+              : <AlertCircle size={14} className="text-rose-400 flex-shrink-0 mt-0.5" />}
+            <p className={`text-xs ${notice.kind === 'success' ? 'text-emerald-300' : 'text-rose-300'}`}>{notice.message}</p>
           </div>
         )}
 
@@ -311,7 +311,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => onNavigate('live-queue')}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-0.5"
+              className="text-xs text-slate-400 hover:text-slate-300 transition-colors flex items-center gap-0.5"
             >
               View queue <ChevronRight size={11} />
             </button>
@@ -333,19 +333,19 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
         <section className="mb-6 space-y-2">
           <div className="flex items-center gap-2 px-1">
             <Radio size={13} className="text-amber-400" />
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Active Operations</h3>
+            <h3 className="text-sm font-semibold text-slate-200">Active operations</h3>
           </div>
           {operations.map(op => (
             <div key={op.id} className="flex items-center gap-3 p-3.5 bg-slate-900 border border-slate-800 rounded-xl">
               <div className="flex-shrink-0 w-7 h-7 flex items-center justify-center">
                 {op.status === 'success' && <CheckCircle size={18} className="text-emerald-400" />}
-                {op.status === 'failure' && <XCircle size={18} className="text-red-400" />}
-                {op.status === 'not_found' && <AlertCircle size={18} className="text-slate-500" />}
+                {op.status === 'failure' && <XCircle size={18} className="text-rose-400" />}
+                {op.status === 'not_found' && <AlertCircle size={18} className="text-slate-400" />}
                 {(op.status === 'dispatching' || op.status === 'in_progress') && <Loader size={18} className="text-amber-400 animate-spin" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate font-mono">{op.url}</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-400">
                   {op.status === 'dispatching' && 'Waiting for GitHub to register the run…'}
                   {op.status === 'in_progress' && 'Running…'}
                   {op.status === 'success' && 'Completed successfully'}
@@ -358,7 +358,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
                   href={op.matchedRun.html_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0 p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                  className="flex-shrink-0 p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
                   title="View on GitHub"
                 >
                   <ExternalLink size={13} />
@@ -367,7 +367,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
               {(op.status === 'success' || op.status === 'failure' || op.status === 'not_found') && (
                 <button
                   onClick={() => dismissOperation(op.id)}
-                  className="flex-shrink-0 text-xs text-slate-600 hover:text-slate-400 transition-colors px-1"
+                  className="flex-shrink-0 text-xs text-slate-500 hover:text-slate-400 transition-colors px-1"
                 >
                   Dismiss
                 </button>
@@ -381,18 +381,18 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       <section className="grid sm:grid-cols-3 gap-3 mb-6">
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
-            <Github size={13} className="text-slate-500" />
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide">Repository</p>
+            <Github size={13} className="text-slate-400" />
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide">Repository</p>
           </div>
           <p className="text-sm font-semibold text-white truncate">{config.ownerName || '—'}/{config.repoName || '—'}</p>
         </div>
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
-            <Library size={13} className="text-slate-500" />
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide">Published Episodes</p>
+            <Library size={13} className="text-slate-400" />
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide">Published Episodes</p>
           </div>
           <p className="text-sm font-semibold text-white">
-            {releasesLoading ? <Loader size={14} className="animate-spin text-slate-500" /> : releases.length}
+            {releasesLoading ? <Loader size={14} className="animate-spin text-slate-400" /> : releases.length}
           </p>
         </div>
         <button
@@ -401,8 +401,8 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
           className="p-4 bg-slate-900 border border-slate-800 rounded-xl text-left hover:border-slate-700 disabled:opacity-50 transition-colors"
         >
           <div className="flex items-center gap-2 mb-2">
-            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} className="text-slate-500" />}
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide">RSS Feed URL</p>
+            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} className="text-slate-400" />}
+            <p className="text-[11px] text-slate-400 uppercase tracking-wide">RSS Feed URL</p>
           </div>
           <p className="text-sm font-semibold text-white">{copied ? 'Copied!' : 'Copy link'}</p>
         </button>
@@ -411,23 +411,23 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       {/* Recent Episodes Showcase */}
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Recent Episodes</h3>
-          <button onClick={() => onNavigate('library')} className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors">
+          <h3 className="text-sm font-semibold text-slate-200">Recent episodes</h3>
+          <button onClick={() => onNavigate('library')} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300 transition-colors">
             View all <ChevronRight size={12} />
           </button>
         </div>
 
         {releasesError && (
-          <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-            <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-            <p className="text-sm text-red-400">{releasesError}</p>
+          <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
+            <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
+            <p className="text-sm text-rose-400">{releasesError}</p>
           </div>
         )}
 
         {!releasesLoading && !releasesError && recent.length === 0 && hasCredentials && (
           <div className="flex flex-col items-center justify-center py-12 text-center bg-slate-900 border border-slate-800 rounded-xl">
             <p className="text-slate-400 text-sm font-medium">No episodes yet</p>
-            <p className="text-slate-600 text-xs mt-1">Run your first ingest above to get started.</p>
+            <p className="text-slate-500 text-xs mt-1">Run your first ingest above to get started.</p>
           </div>
         )}
 
@@ -450,11 +450,11 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
                     <p className="text-sm font-semibold text-white truncate">{release.name || release.tag_name}</p>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       <span className="text-xs text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
-                      {duration && <span className="text-xs text-slate-500">· {duration}</span>}
+                      {duration && <span className="text-xs text-slate-400">· {duration}</span>}
                       {txt && (
                         <button
                           onClick={() => onNavigate('transcripts')}
-                          className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 bg-amber-500/15 text-amber-400 rounded font-medium hover:bg-amber-500/25 transition-colors"
+                          className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded-md font-medium hover:bg-slate-700 transition-colors"
                         >
                           <FileText size={9} /> Transcript
                         </button>

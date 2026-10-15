@@ -227,6 +227,8 @@ export function normalizeAudioBuffer(
 
 export interface StitchOptions {
   gapSec?: number;
+  /** Per-join silence in seconds (length n-1). Takes precedence over gapSec for the joins it covers. */
+  gapsSec?: number[];
   normalizePeak?: boolean;
   targetPeakDb?: number; // default -1.0 dBFS
   targetLufs?: number; // default -16.0 LUFS
@@ -277,14 +279,17 @@ export function stitchAudioBuffers(
 
   const sampleRate = processedBuffers[0].sampleRate;
   const numChannels = Math.max(...processedBuffers.map(b => b.numberOfChannels));
-  const gapSamples = Math.floor(gapSec * sampleRate);
+  const gapSamplesAt = (joinIndex: number): number => {
+    const g = options.gapsSec && options.gapsSec[joinIndex] !== undefined ? options.gapsSec[joinIndex] : gapSec;
+    return Math.max(0, Math.floor(g * sampleRate));
+  };
 
   // Compute total sample length
   let totalLength = 0;
   for (let i = 0; i < processedBuffers.length; i++) {
     totalLength += processedBuffers[i].length;
     if (i < processedBuffers.length - 1) {
-      totalLength += gapSamples;
+      totalLength += gapSamplesAt(i);
     }
   }
 
@@ -305,7 +310,7 @@ export function stitchAudioBuffers(
 
       if (i < processedBuffers.length - 1) {
         // Gap is already zero-filled in new Float32Array
-        currentOffset += gapSamples;
+        currentOffset += gapSamplesAt(i);
       }
     }
   }

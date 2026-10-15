@@ -1,6 +1,9 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import { createDirectorMiddleware } from './server/directorMiddleware';
+import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
 
 function setupProxyMiddlewares(middlewares: any) {
   middlewares.use('/api/fetch-asset', async (req: any, res: any) => {
@@ -82,6 +85,9 @@ function setupProxyMiddlewares(middlewares: any) {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  // AI Prompt Director API. Reads .env.local per request (server-side only; the key never reaches the client bundle).
+  const director = createDirectorMiddleware({ getEnv: () => loadEnv(mode, '.', '') });
+  const audioProxy = createAudioProxy({ allowRemote: () => loadEnv(mode, '.', '').DIRECTOR_ALLOW_REMOTE === '1' });
   return {
     base: './',
     server: {
@@ -91,6 +97,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      tailwindcss(),
       {
         name: 'github-asset-proxy',
         configureServer(server) {
@@ -98,6 +105,17 @@ export default defineConfig(({ mode }) => {
         },
         configurePreviewServer(server) {
           setupProxyMiddlewares(server.middlewares);
+        },
+      },
+      {
+        name: 'montage-director',
+        configureServer(server) {
+          server.middlewares.use('/api/montage/direct', director);
+          server.middlewares.use(AUDIO_PROXY_PATH, audioProxy);
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use('/api/montage/direct', director);
+          server.middlewares.use(AUDIO_PROXY_PATH, audioProxy);
         },
       }
     ],
@@ -111,6 +129,8 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
+      copyPublicDir: false,
+      emptyOutDir: false,
       chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {

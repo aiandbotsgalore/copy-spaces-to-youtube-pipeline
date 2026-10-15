@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
+import { buildPlayablePlan } from '../utils/sequencePlan';
+import { createSequencePlayer, getSharedAudioContext } from '../utils/sequencePlayer';
+import type { SequencePlayer } from '../utils/sequencePlayer';
+import { mapLimit, probeFileDuration, reconcileWindow } from '../utils/clipProbe';
+import { toFetchableUrl } from '../utils/audioUrl';
+import type { DirectorProvenance } from '../utils/directorTypes';
+
+/** localStorage key holding the last natural-language prompt given to the Director (for the manifest). */
+export const DIRECTOR_LAST_PROMPT_KEY = 'spacepipe_director_last_prompt_v1';
+const HISTORY_DEPTH = 20;
 
 export interface MontageClipItem {
   id: string;
@@ -18,6 +28,25 @@ export interface MontageClipItem {
   quoteId?: string; // e.g. AQ-0002, D02, R02
   status?: 'EXISTS' | 'READY_FOR_EXTRACTION' | 'SOURCE_NOT_AVAILABLE';
   isExcluded?: boolean;
+  // Trim / Director bookkeeping. All optional so previously saved timelines still load.
+  origStartSec?: number;
+  origEndSec?: number;
+  /** Real probed duration of the audio file. */
+  sourceDurationSec?: number;
+  /** Original episode-relative window when the asset turned out to be a pre-cut clip (metadata only). */
+  episodeStartSec?: number;
+  episodeEndSec?: number;
+  windowVerified?: boolean;
+  /** Manifest/audit clips that only carry a placeholder window (e.g. 0-30); resolved to the whole file once probed. */
+  windowPlaceholder?: boolean;
+  /** Silence after this clip; falls back to the global gap when undefined. */
+  gapAfterSec?: number;
+  directorNote?: string;
+  tensionScore?: number;
+  locked?: boolean;
+  trimBasis?: 'segment' | 'silence' | 'estimated' | 'manual';
+  keptText?: string;
+  director?: DirectorProvenance;
 }
 
 export type AutoCuratorMode = 'escalation' | 'chronological' | 'target_fit';
@@ -35,6 +64,20 @@ interface MontageContextType {
   nudgeClipStart: (id: string, deltaSec: number) => void;
   nudgeClipEnd: (id: string, deltaSec: number) => void;
   clearClips: () => void;
+  /** Replace the whole timeline (used by the Director). Stops audition; undoable. */
+  replaceClips: (next: MontageClipItem[]) => void;
+  updateClip: (id: string, patch: Partial<MontageClipItem>) => void;
+  /** undefined restores the global gap for that clip. */
+  setClipGap: (id: string, gapSec: number | undefined) => void;
+  toggleClipLock: (id: string) => void;
+  resetClipTrim: (id: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  /** Clip ids whose audio file could not be probed (404, blocked, unreadable). */
+  unverifiableClipIds: string[];
+  auditionStatus: string;
   gapSeconds: number;
   setGapSeconds: (sec: number) => void;
   targetDurationSec: number;
@@ -50,14 +93,22 @@ interface MontageContextType {
   sortByEscalation?: () => void;
   isAuditioning: boolean;
   currentAuditionIndex: number;
+  auditionProgress: AuditionProgress | null;
   startAudition: () => void;
   stopAudition: () => void;
   skipAudition: (index: number) => void;
+  insertClipAt: (clipData: Omit<MontageClipItem, 'id'> & { id?: string }, index: number) => void;
   exportStitchedWav: () => Promise<void>;
   exportManifestJson: () => void;
   exportAudacityLabels: () => void;
   isExporting: boolean;
   exportProgress: string;
+}
+
+export interface AuditionProgress {
+  timelineIndex: number;
+  clipProgress: number; // 0.0 to 1.0
+  elapsedSec: number;
 }
 
 const MontageContext = createContext<MontageContextType | null>(null);
@@ -156,11 +207,22 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAuditioning, setIsAuditioning] = useState(false);
   const [currentAuditionIndex, setCurrentAuditionIndex] = useState(0);
+  const [auditionProgress, setAuditionProgress] = useState<AuditionProgress | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState('');
 
-  const auditionAudioRef = useRef<HTMLAudioElement | null>(null);
-  const auditionTimerRef = useRef<number | null>(null);
+  const playerRef = useRef<SequencePlayer | null>(null);
+  const [auditionStatus, setAuditionStatus] = useState('');
+  const [unverifiableClipIds, setUnverifiableClipIds] = useState<string[]>([]);
+  const unverifiableRef = useRef<Set<string>>(new Set());
+  const probingRef = useRef<Set<string>>(new Set());
+
+  // Undo / redo (structural history of the timeline)
+  const historyRef = useRef<{ past: MontageClipItem[][]; future: MontageClipItem[][] }>({ past: [], future: [] });
+  const lastClipsRef = useRef<MontageClipItem[]>(clips);
+  const suppressHistoryRef = useRef(false);
+  const lastPushAtRef = useRef(0);
+  const [, setHistoryTick] = useState(0);
 
   // Save to localStorage
   useEffect(() => {
@@ -176,6 +238,55 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       localStorage.setItem(BLACKLIST_KEY, JSON.stringify(blacklistedQuoteIds));
     } catch {}
   }, [blacklistedQuoteIds]);
+
+  useEffect(() => {
+    if (lastClipsRef.current === clips) return;
+    if (suppressHistoryRef.current) {
+      suppressHistoryRef.current = false;
+      lastClipsRef.current = clips;
+      return;
+    }
+    const h = historyRef.current;
+    const now = Date.now();
+    // Rapid-fire edits (nudge buttons) collapse into a single undo step.
+    if (now - lastPushAtRef.current > 600 || h.past.length === 0) {
+      h.past.push(lastClipsRef.current);
+      if (h.past.length > HISTORY_DEPTH) h.past.shift();
+    }
+    lastPushAtRef.current = now;
+    h.future = [];
+    lastClipsRef.current = clips;
+    setHistoryTick(t => t + 1);
+  }, [clips]);
+
+  // Probe real audio durations and normalise windows (also migrates older saved timelines).
+  useEffect(() => {
+    const pending = clips.filter(
+      c => c.audioUrl && !c.windowVerified && !unverifiableRef.current.has(c.id) && !probingRef.current.has(c.id)
+    );
+    if (pending.length === 0) return;
+    pending.forEach(c => probingRef.current.add(c.id));
+    void mapLimit(pending, 4, async (c: MontageClipItem) => {
+      const dur = await probeFileDuration(c.audioUrl as string);
+      probingRef.current.delete(c.id);
+      if (dur == null) {
+        unverifiableRef.current.add(c.id);
+        setUnverifiableClipIds(Array.from(unverifiableRef.current));
+        return;
+      }
+      setClips(prev => {
+        let changed = false;
+        const next = prev.map(x => {
+          if (x.id !== c.id || x.windowVerified) return x;
+          changed = true;
+          return reconcileWindow(x, dur);
+        });
+        if (!changed) return prev;
+        suppressHistoryRef.current = true;
+        return next;
+      });
+    });
+  }, [clips]);
 
   const setGapSeconds = (sec: number) => {
     setGapSecondsState(sec);
@@ -238,6 +349,20 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsDrawerOpen(true);
   }, []);
 
+  const insertClipAt = useCallback((clipData: Omit<MontageClipItem, 'id'> & { id?: string }, index: number) => {
+    const newId = clipData.id || `montage_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    setClips(prev => {
+      if (prev.some(c => c.id === newId || (clipData.quote && c.quote === clipData.quote))) {
+        return prev;
+      }
+      const next = [...prev];
+      const targetIdx = Math.max(0, Math.min(next.length, index));
+      next.splice(targetIdx, 0, { ...clipData, id: newId });
+      return next;
+    });
+    setIsDrawerOpen(true);
+  }, []);
+
   const removeClip = useCallback((id: string) => {
     setClips(prev => prev.filter(c => c.id !== id));
   }, []);
@@ -275,7 +400,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (c.id !== id) return c;
         const newStart = Math.max(0, parseFloat((c.startSec + deltaSec).toFixed(2)));
         if (newStart >= c.endSec - 0.2) return c; // maintain min 0.2s duration
-        return { ...c, startSec: newStart };
+        return { ...c, startSec: newStart, origStartSec: c.origStartSec ?? c.startSec, origEndSec: c.origEndSec ?? c.endSec, trimBasis: 'manual' as const };
       })
     );
   }, []);
@@ -285,7 +410,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(c => {
         if (c.id !== id) return c;
         const newEnd = Math.max(c.startSec + 0.2, parseFloat((c.endSec + deltaSec).toFixed(2)));
-        return { ...c, endSec: newEnd };
+        return { ...c, endSec: newEnd, origStartSec: c.origStartSec ?? c.startSec, origEndSec: c.origEndSec ?? c.endSec, trimBasis: 'manual' as const };
       })
     );
   }, []);
@@ -367,133 +492,217 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setIsDrawerOpen(true);
   }, [gapSeconds, targetDurationSec, isBlacklisted]);
 
-  // Audition playback engine (streaming & gapless with silence pause)
+  // Audition: sample-accurate Web Audio scheduling over the same plan that export and labels use.
   const stopAudition = useCallback(() => {
-    if (auditionAudioRef.current) {
-      auditionAudioRef.current.pause();
-      auditionAudioRef.current.src = '';
-    }
-    if (auditionTimerRef.current) {
-      clearTimeout(auditionTimerRef.current);
-      auditionTimerRef.current = null;
-    }
+    playerRef.current?.stop();
+    playerRef.current = null;
+    setAuditionStatus('');
     setIsAuditioning(false);
+    setAuditionProgress(null);
   }, []);
 
-  const playClipAtIndex = useCallback(async (index: number) => {
-    if (index >= clips.length) {
-      stopAudition();
+  const startAuditionFrom = useCallback((timelineIndex: number) => {
+    playerRef.current?.stop();
+    playerRef.current = null;
+    const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
+    if (plan.items.length === 0) {
+      setIsAuditioning(false);
+      setAuditionProgress(null);
+      setAuditionStatus('No clips with audio to audition.');
       return;
     }
-
-    setCurrentAuditionIndex(index);
-    const clip = clips[index];
-    if (!clip.audioUrl) {
-      // Skip if no audio stream
-      auditionTimerRef.current = window.setTimeout(() => {
-        playClipAtIndex(index + 1);
-      }, gapSeconds * 1000);
+    const planStart = sourceIndex.findIndex(si => si >= timelineIndex);
+    if (planStart < 0) {
+      setIsAuditioning(false);
+      setAuditionProgress(null);
       return;
     }
-
-    let urlToPlay = clip.audioUrl;
-    const cached = await getCachedAudioUrl(clip.audioUrl);
-    if (cached) urlToPlay = cached;
-
-    if (!auditionAudioRef.current) {
-      auditionAudioRef.current = new Audio();
-    }
-    const audio = auditionAudioRef.current;
-    audio.src = urlToPlay;
-    audio.currentTime = Math.max(0, clip.startSec);
-
-    audio.oncanplay = () => {
-      audio.play().catch(e => {
-        console.warn('Playback error during audition:', e);
-      });
-    };
-
-    const checkEnd = () => {
-      if (audio.currentTime >= clip.endSec) {
-        audio.pause();
-        audio.removeEventListener('timeupdate', checkEnd);
-        // Inter-clip silence pause
-        auditionTimerRef.current = window.setTimeout(() => {
-          playClipAtIndex(index + 1);
-        }, gapSeconds * 1000);
-      }
-    };
-    audio.addEventListener('timeupdate', checkEnd);
-
-    audio.onerror = () => {
-      console.warn('Audio stream error on clip', clip.title);
-      auditionTimerRef.current = window.setTimeout(() => {
-        playClipAtIndex(index + 1);
-      }, gapSeconds * 1000);
-    };
-  }, [clips, gapSeconds, stopAudition]);
+    const player: SequencePlayer = createSequencePlayer({
+      plan,
+      fadeMs: antiClickFades ? 18 : 0,
+      resolveUrl: async (u: string) => (await getCachedAudioUrl(u)) || u,
+      callbacks: {
+        onIndex: planIndex => setCurrentAuditionIndex(sourceIndex[planIndex] ?? 0),
+        onProgress: (planIndex, clipProgress, elapsedSec) => {
+          const tIdx = sourceIndex[planIndex] ?? 0;
+          setAuditionProgress({ timelineIndex: tIdx, clipProgress, elapsedSec });
+        },
+        onEnd: () => {
+          if (playerRef.current === player) {
+            playerRef.current = null;
+            setIsAuditioning(false);
+            setAuditionProgress(null);
+          }
+        },
+        onStatus: msg => setAuditionStatus(msg),
+        onError: msg => setAuditionStatus(msg),
+      },
+    });
+    playerRef.current = player;
+    setAuditionStatus('');
+    setCurrentAuditionIndex(sourceIndex[planStart]);
+    setAuditionProgress({ timelineIndex: sourceIndex[planStart] ?? 0, clipProgress: 0, elapsedSec: 0 });
+    setIsAuditioning(true);
+    player.start(planStart).catch(err => {
+      console.warn('Audition failed:', err);
+      setAuditionStatus('Audition failed: ' + (err?.message || 'unknown error'));
+      setIsAuditioning(false);
+    });
+  }, [clips, gapSeconds, antiClickFades]);
 
   const startAudition = useCallback(() => {
     if (clips.length === 0) return;
-    setIsAuditioning(true);
-    playClipAtIndex(0);
-  }, [clips, playClipAtIndex]);
+    startAuditionFrom(0);
+  }, [clips, startAuditionFrom]);
 
   const skipAudition = useCallback((index: number) => {
-    if (auditionAudioRef.current) {
-      auditionAudioRef.current.pause();
-    }
-    if (auditionTimerRef.current) {
-      clearTimeout(auditionTimerRef.current);
-    }
-    playClipAtIndex(index);
-  }, [playClipAtIndex]);
+    startAuditionFrom(index);
+  }, [startAuditionFrom]);
 
   useEffect(() => {
     return () => {
-      if (auditionAudioRef.current) {
-        auditionAudioRef.current.pause();
-      }
-      if (auditionTimerRef.current) {
-        clearTimeout(auditionTimerRef.current);
-      }
+      playerRef.current?.stop();
     };
   }, []);
 
-  // Multi-format Master WAV export via Web Audio API with broadcast loudness matching
+  const replaceClips = useCallback((next: MontageClipItem[]) => {
+    stopAudition();
+    setClips(next);
+  }, [stopAudition]);
+
+  const updateClip = useCallback((id: string, patch: Partial<MontageClipItem>) => {
+    setClips(prev => prev.map(c => (c.id === id ? { ...c, ...patch } : c)));
+  }, []);
+
+  const setClipGap = useCallback((id: string, gapSec: number | undefined) => {
+    setClips(prev =>
+      prev.map(c => {
+        if (c.id !== id) return c;
+        if (gapSec === undefined || !Number.isFinite(gapSec)) {
+          const { gapAfterSec: _drop, ...rest } = c;
+          return rest as MontageClipItem;
+        }
+        return { ...c, gapAfterSec: Math.min(5, Math.max(0, Math.round(gapSec * 100) / 100)) };
+      })
+    );
+  }, []);
+
+  const toggleClipLock = useCallback((id: string) => {
+    setClips(prev => prev.map(c => (c.id === id ? { ...c, locked: !c.locked } : c)));
+  }, []);
+
+  const resetClipTrim = useCallback((id: string) => {
+    setClips(prev =>
+      prev.map(c => {
+        if (c.id !== id || c.origStartSec === undefined || c.origEndSec === undefined) return c;
+        const { keptText: _k, trimBasis: _t, ...rest } = c;
+        return { ...(rest as MontageClipItem), startSec: c.origStartSec, endSec: c.origEndSec };
+      })
+    );
+  }, []);
+
+  const undo = useCallback(() => {
+    const h = historyRef.current;
+    const prev = h.past.pop();
+    if (!prev) return;
+    stopAudition();
+    h.future.push(lastClipsRef.current);
+    suppressHistoryRef.current = true;
+    setClips(prev);
+    setHistoryTick(t => t + 1);
+  }, [stopAudition]);
+
+  const redo = useCallback(() => {
+    const h = historyRef.current;
+    const next = h.future.pop();
+    if (!next) return;
+    stopAudition();
+    h.past.push(lastClipsRef.current);
+    suppressHistoryRef.current = true;
+    setClips(next);
+    setHistoryTick(t => t + 1);
+  }, [stopAudition]);
+
+  const triggerDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Master WAV export via Web Audio, driven by the same plan the audition uses (per-clip trims and gaps).
   const exportStitchedWav = async () => {
-    if (clips.length === 0) return;
+    const { plan } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
+    if (plan.items.length === 0) {
+      alert('Nothing to export: none of the clips on the timeline has audio.');
+      return;
+    }
     setIsExporting(true);
     setExportProgress('Initializing Web Audio engine…');
 
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const decodedBuffers: AudioBuffer[] = [];
-
-      for (let i = 0; i < clips.length; i++) {
-        const c = clips[i];
-        setExportProgress(`Fetching & decoding clip ${i + 1}/${clips.length}: ${c.title}…`);
-        if (!c.audioUrl) continue;
-
-        let fetchUrl = c.audioUrl;
-        const cached = await getCachedAudioUrl(c.audioUrl);
-        if (cached) fetchUrl = cached;
-
-        const res = await fetch(fetchUrl);
-        const arrayBuf = await res.arrayBuffer();
-        const fullAudioBuffer = await audioCtx.decodeAudioData(arrayBuf);
-
-        // Slice sub-clip if boundaries specified
-        let finalClipBuffer = fullAudioBuffer;
-        if (c.startSec > 0 || (c.endSec > 0 && c.endSec < fullAudioBuffer.duration)) {
-          finalClipBuffer = sliceAudioBuffer(audioCtx, fullAudioBuffer, c.startSec, c.endSec);
+      const audioCtx = getSharedAudioContext();
+      if (audioCtx.state === 'suspended') {
+        try {
+          await audioCtx.resume();
+        } catch {
+          /* ignore */
         }
-        decodedBuffers.push(finalClipBuffer);
+      }
+      const fileCache = new Map<string, AudioBuffer>(); // small LRU: the same source file often backs several clips
+      const parts: AudioBuffer[] = [];
+      const gaps: number[] = [];
+      const skipped: string[] = [];
+
+      for (let i = 0; i < plan.items.length; i++) {
+        const it = plan.items[i];
+        const c = it.clip;
+        setExportProgress(`Fetching & decoding clip ${i + 1}/${plan.items.length}: ${c.title}…`);
+        const key = c.audioUrl as string;
+        let full = fileCache.get(key);
+        if (full) {
+          fileCache.delete(key);
+        } else {
+          const fetchUrl = (await getCachedAudioUrl(key)) || key;
+          const res = await fetch(toFetchableUrl(fetchUrl));
+          if (!res.ok) throw new Error(`Could not fetch audio for "${c.title}" (HTTP ${res.status}).`);
+          full = await audioCtx.decodeAudioData(await res.arrayBuffer());
+        }
+        fileCache.set(key, full);
+        if (fileCache.size > 3) {
+          const oldest = fileCache.keys().next().value;
+          if (oldest !== undefined) fileCache.delete(oldest);
+        }
+
+        // Self-heal window bounds if clip window exceeds file duration (pre-cut clip with episode-relative timestamp)
+        let sliceStart = it.effStart;
+        let sliceEnd = it.effEnd;
+        if (!c.windowVerified && sliceStart >= full.duration - 0.02) {
+          const reconciled = reconcileWindow(c, full.duration);
+          sliceStart = reconciled.startSec;
+          sliceEnd = reconciled.endSec;
+        }
+
+        if (sliceStart >= full.duration - 0.02) {
+          skipped.push(c.title || c.id);
+          continue;
+        }
+        parts.push(sliceAudioBuffer(audioCtx, full, sliceStart, Math.min(sliceEnd, full.duration)));
+        gaps.push(it.gapAfter);
+      }
+
+      if (parts.length === 0) {
+        throw new Error('None of the clip windows fall inside their audio files. Re-check the trims.');
       }
 
       setExportProgress('Mastering audio (loudness normalization ~-16 LUFS & anti-click micro-fades)…');
-      const masterBuffer = stitchAudioBuffers(audioCtx, decodedBuffers, {
+      const masterBuffer = stitchAudioBuffers(audioCtx, parts, {
         gapSec: gapSeconds,
+        gapsSec: gaps,
         normalizePeak: normalizeAudio,
         targetLufs: -16.0,
         targetPeakDb: -1.0,
@@ -502,19 +711,14 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
 
       setExportProgress('Encoding lossless 16-bit PCM broadcast WAV…');
-      const wavBlob = audioBufferToWav(masterBuffer);
+      triggerDownload(audioBufferToWav(masterBuffer), `Montage_Studio_Master_${parts.length}_Clips.wav`);
 
-      const downloadUrl = URL.createObjectURL(wavBlob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `Montage_Studio_Master_${clips.length}_Clips.wav`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-
-      setExportProgress('Master export complete!');
-      setTimeout(() => setIsExporting(false), 1200);
+      setExportProgress(
+        skipped.length > 0
+          ? `Master export complete. Skipped ${skipped.length} clip(s) whose window is outside the audio: ${skipped.join(', ')}`
+          : 'Master export complete!'
+      );
+      setTimeout(() => setIsExporting(false), skipped.length > 0 ? 4000 : 1200);
     } catch (err: any) {
       console.error('Failed to export montage WAV:', err);
       alert(`Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`);
@@ -523,51 +727,52 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const exportManifestJson = () => {
+    const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
+    let directorPrompt: string | null = null;
+    try {
+      directorPrompt = localStorage.getItem(DIRECTOR_LAST_PROMPT_KEY);
+    } catch {}
+    const prov = clips.find(c => c.director)?.director;
+    const r2 = (n: number) => Math.round(n * 100) / 100;
     const data = {
       project: 'SpacePipe Investigative Audio Montage Studio',
       created_at: new Date().toISOString(),
       total_clips: clips.length,
       gap_seconds: gapSeconds,
+      total_runtime_sec: r2(plan.totalSec),
+      clips_runtime_sec: r2(plan.clipsSec),
+      gaps_runtime_sec: r2(plan.gapsSec),
       target_duration_seconds: targetDurationSec,
       normalize_audio: normalizeAudio,
       anti_click_fades: antiClickFades,
+      director: prov ? { prompt: directorPrompt, cut_id: prov.cutId, model: prov.model, prompt_hash: prov.promptHash } : null,
+      timeline: plan.items.map(it => ({
+        position: sourceIndex[it.index] + 1,
+        clip_id: it.clip.id,
+        timeline_start_sec: r2(it.timelineStart),
+        timeline_end_sec: r2(it.timelineEnd),
+        source_start_sec: r2(it.effStart),
+        source_end_sec: r2(it.effEnd),
+        gap_after_sec: r2(it.gapAfter),
+      })),
       clips,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Montage_Studio_Recipe.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    triggerDownload(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), 'Montage_Studio_Recipe.json');
   };
 
   /**
-   * DAW / Audacity Label Track Export:
-   * Generates a standard labels.txt marker track mapping quote text,
-   * speaker name, and exact timeline timestamps for Audacity / Reaper / Pro Tools.
+   * DAW / Audacity Label Track Export: label times come from the same plan as the audio, so they line up
+   * with the exported master (per-clip trims and gaps included).
    */
   const exportAudacityLabels = () => {
-    let currentMarkerTime = 0;
-    const lines: string[] = [];
-
-    clips.forEach((c, idx) => {
-      const dur = Math.max(0.5, c.endSec - c.startSec);
-      const start = currentMarkerTime;
-      const end = currentMarkerTime + dur;
+    const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
+    const lines = plan.items.map(it => {
+      const c = it.clip;
       const cleanQuote = (c.quote || c.title).slice(0, 70).replace(/\t/g, ' ').replace(/\n/g, ' ');
-      const label = `#${idx + 1} [${c.speaker}] ${cleanQuote}`;
-      lines.push(`${start.toFixed(6)}\t${end.toFixed(6)}\t${label}`);
-      currentMarkerTime = end + gapSeconds;
+      const label = `#${sourceIndex[it.index] + 1} [${c.speaker}] ${cleanQuote}`;
+      return `${it.timelineStart.toFixed(6)}\t${it.timelineEnd.toFixed(6)}\t${label}`;
     });
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Montage_Audacity_labels.txt';
-    a.click();
-    URL.revokeObjectURL(url);
+    triggerDownload(new Blob([lines.join('\n')], { type: 'text/plain' }), 'Montage_Audacity_labels.txt');
   };
 
   return (
@@ -585,6 +790,17 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         nudgeClipStart,
         nudgeClipEnd,
         clearClips,
+        replaceClips,
+        updateClip,
+        setClipGap,
+        toggleClipLock,
+        resetClipTrim,
+        undo,
+        redo,
+        canUndo: historyRef.current.past.length > 0,
+        canRedo: historyRef.current.future.length > 0,
+        unverifiableClipIds,
+        auditionStatus,
         gapSeconds,
         setGapSeconds,
         targetDurationSec,
@@ -600,9 +816,11 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sortByEscalation: () => autoCurate('escalation', clips),
         isAuditioning,
         currentAuditionIndex,
+        auditionProgress,
         startAudition,
         stopAudition,
         skipAudition,
+        insertClipAt,
         exportStitchedWav,
         exportManifestJson,
         exportAudacityLabels,

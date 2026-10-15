@@ -12,13 +12,16 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, config }) => {
   const content = file.content(config);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(content);
+    const cleanContent = file.language === 'bash' ? content.replace(/\r\n/g, '\n') : content;
+    navigator.clipboard.writeText(cleanContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownload = () => {
-    const blob = new Blob([content], { type: 'text/plain' });
+    const cleanContent = file.language === 'bash' ? content.replace(/\r\n/g, '\n') : content;
+    const mimeType = file.language === 'bash' ? 'text/x-shellscript;charset=utf-8' : 'text/plain;charset=utf-8';
+    const blob = new Blob([cleanContent], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -34,8 +37,8 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, config }) => {
     <div className="flex flex-col h-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 bg-slate-950 border-b border-slate-800">
         <div className="flex flex-col min-w-0">
-          <span className="font-mono text-sm font-semibold text-sky-400 truncate">{file.path}</span>
-          <span className="text-xs text-slate-500 mt-0.5">{file.description} · {lineCount} lines</span>
+          <span className="font-mono text-sm font-semibold text-slate-300 truncate">{file.path}</span>
+          <span className="text-xs text-slate-400 mt-0.5">{file.description} · {lineCount} lines</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
@@ -59,7 +62,7 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, config }) => {
           <tbody>
             {content.split('\n').map((line, i) => (
               <tr key={i} className="hover:bg-slate-800/30 transition-colors">
-                <td className="select-none w-10 px-3 py-0 text-right text-[11px] font-mono text-slate-700 border-r border-slate-800/50 sticky left-0 bg-slate-900">
+                <td className="select-none w-10 px-3 py-0 text-right text-[11px] font-mono text-slate-500 border-r border-slate-800/50 sticky left-0 bg-slate-900">
                   {i + 1}
                 </td>
                 <td className="px-4 py-0">

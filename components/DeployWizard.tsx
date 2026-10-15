@@ -40,22 +40,22 @@ const StepRow: React.FC<{ step: DeployStep }> = ({ step }) => (
   <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
     step.status === 'running' ? 'bg-indigo-500/10' :
     step.status === 'done' ? 'bg-emerald-500/5' :
-    step.status === 'error' ? 'bg-red-500/10' : 'bg-slate-900/50'
+    step.status === 'error' ? 'bg-rose-500/10' : 'bg-slate-900/50'
   }`}>
     <div className="flex-shrink-0 w-5 h-5 flex items-center justify-center">
       {step.status === 'pending' && <span className="w-2 h-2 rounded-full bg-slate-700" />}
       {step.status === 'running' && <Loader size={16} className="text-indigo-400 animate-spin" />}
       {step.status === 'done' && <CheckCircle size={16} className="text-emerald-400" />}
-      {step.status === 'error' && <XCircle size={16} className="text-red-400" />}
+      {step.status === 'error' && <XCircle size={16} className="text-rose-400" />}
     </div>
     <div className="flex-1 min-w-0">
       <span className={`text-sm ${
         step.status === 'running' ? 'text-white font-medium' :
         step.status === 'done' ? 'text-emerald-300' :
-        step.status === 'error' ? 'text-red-400' : 'text-slate-500'
+        step.status === 'error' ? 'text-rose-400' : 'text-slate-400'
       }`}>{step.label}</span>
       {step.message && (
-        <p className={`text-xs mt-0.5 ${step.status === 'error' ? 'text-red-400' : 'text-slate-500'}`}>
+        <p className={`text-xs mt-0.5 ${step.status === 'error' ? 'text-rose-400' : 'text-slate-400'}`}>
           {step.message}
         </p>
       )}
@@ -226,11 +226,11 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
 
       {!isReady ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="p-4 bg-slate-800 rounded-2xl mb-4">
-            <AlertCircle size={28} className="text-slate-500" />
+          <div className="p-4 bg-slate-800 rounded-xl mb-4">
+            <AlertCircle size={28} className="text-slate-400" />
           </div>
           <p className="text-slate-400 text-sm font-medium">Setup required</p>
-          <p className="text-slate-600 text-xs mt-2 max-w-xs">
+          <p className="text-slate-500 text-xs mt-2 max-w-xs">
             Connect your GitHub account and fill in Repository Details in the Configuration panel before deploying.
           </p>
         </div>
@@ -241,18 +241,18 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
             <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">What will be deployed</p>
               <div className="space-y-2 text-sm text-slate-400">
-                <div className="flex justify-between"><span>Repository</span><span className="text-sky-400 font-mono text-xs">{config.ownerName}/{config.repoName}</span></div>
+                <div className="flex justify-between"><span>Repository</span><span className="text-slate-300 font-mono text-xs">{config.ownerName}/{config.repoName}</span></div>
                 <div className="flex justify-between"><span>Podcast</span><span className="text-slate-300 text-right truncate max-w-48">{config.podcastTitle}</span></div>
-                <div className="flex justify-between"><span>Transcription</span><span className={config.enableTranscription ? 'text-emerald-400' : 'text-slate-600'}>{config.enableTranscription ? 'Enabled' : 'Disabled'}</span></div>
-                <div className="flex justify-between"><span>Slack alerts</span><span className={config.enableSlackWebhook ? 'text-emerald-400' : 'text-slate-600'}>{config.enableSlackWebhook ? 'Enabled' : 'Disabled'}</span></div>
-                <div className="flex justify-between"><span>Discord alerts</span><span className={config.enableDiscordWebhook ? 'text-emerald-400' : 'text-slate-600'}>{config.enableDiscordWebhook ? 'Enabled' : 'Disabled'}</span></div>
-                <div className="flex justify-between"><span>Batch monitor</span><span className={config.enableScheduledMonitoring ? 'text-emerald-400' : 'text-slate-600'}>{config.enableScheduledMonitoring ? config.scheduledCron || 'Enabled' : 'Disabled'}</span></div>
+                <div className="flex justify-between"><span>Transcription</span><span className={config.enableTranscription ? 'text-emerald-400' : 'text-slate-500'}>{config.enableTranscription ? 'Enabled' : 'Disabled'}</span></div>
+                <div className="flex justify-between"><span>Slack alerts</span><span className={config.enableSlackWebhook ? 'text-emerald-400' : 'text-slate-500'}>{config.enableSlackWebhook ? 'Enabled' : 'Disabled'}</span></div>
+                <div className="flex justify-between"><span>Discord alerts</span><span className={config.enableDiscordWebhook ? 'text-emerald-400' : 'text-slate-500'}>{config.enableDiscordWebhook ? 'Enabled' : 'Disabled'}</span></div>
+                <div className="flex justify-between"><span>Batch monitor</span><span className={config.enableScheduledMonitoring ? 'text-emerald-400' : 'text-slate-500'}>{config.enableScheduledMonitoring ? config.scheduledCron || 'Enabled' : 'Disabled'}</span></div>
                 <div className="flex justify-between"><span>Queued URLs</span><span className="text-slate-300">{config.batchUrls?.filter(u => u.trim()).length || 0}</span></div>
-                <div className="flex justify-between"><span>Artwork</span><span className={config.artworkDataUrl ? 'text-emerald-400' : 'text-slate-600'}>{config.artworkDataUrl ? 'Upload JPEG' : config.imageUrl ? 'URL (not uploaded)' : 'None'}</span></div>
+                <div className="flex justify-between"><span>Artwork</span><span className={config.artworkDataUrl ? 'text-emerald-400' : 'text-slate-500'}>{config.artworkDataUrl ? 'Upload JPEG' : config.imageUrl ? 'URL (not uploaded)' : 'None'}</span></div>
               </div>
               <button
                 onClick={() => deploy()}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-95"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg transition-all active:scale-95"
               >
                 <Rocket size={18} />
                 Deploy Pipeline
@@ -295,7 +295,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => { setDeployState('idle'); setSteps([]); }}
-                  className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-300 transition-colors"
                 >
                   <RefreshCw size={12} /> Deploy / Sync again
                 </button>
@@ -306,9 +306,9 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
           {/* Error recovery */}
           {deployState === 'error' && (
             <div className="space-y-3">
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                <p className="text-sm text-red-400 font-medium mb-1">Deployment failed</p>
-                <p className="text-xs text-slate-500">
+              <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                <p className="text-sm text-rose-400 font-medium mb-1">Deployment failed</p>
+                <p className="text-xs text-slate-400">
                   Fix the issue above, then use Resume to continue from where it stopped — completed steps will not be repeated.
                 </p>
               </div>
@@ -316,7 +316,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
                 {hasDoneSteps && (
                   <button
                     onClick={resume}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors"
                   >
                     <SkipForward size={16} />
                     Resume from failure
@@ -324,7 +324,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
                 )}
                 <button
                   onClick={() => deploy()}
-                  className={`flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-xl transition-colors ${hasDoneSteps ? '' : 'flex-1'}`}
+                  className={`flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition-colors ${hasDoneSteps ? '' : 'flex-1'}`}
                 >
                   <RefreshCw size={16} />
                   Retry from scratch

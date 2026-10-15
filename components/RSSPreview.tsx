@@ -132,11 +132,11 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
         {/* RSS URL Card */}
         <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
-            <Rss size={14} className="text-orange-400" />
+            <Rss size={14} className="text-amber-400" />
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Feed URL</span>
           </div>
           <div className="flex items-center gap-2 mb-3">
-            <code className="flex-1 min-w-0 text-xs font-mono text-sky-400 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 truncate">
+            <code className="flex-1 min-w-0 text-xs font-mono text-slate-300 bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 truncate">
               {rssUrl}
             </code>
             <button
@@ -164,20 +164,20 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
                 <CheckCircle size={12} />
                 Live feed valid · {liveEpisodes.length} episode{liveEpisodes.length !== 1 ? 's' : ''}
                 {liveTitle && liveTitle !== config.podcastTitle && (
-                  <span className="text-slate-500 ml-1">— "{liveTitle}"</span>
+                  <span className="text-slate-400 ml-1">— "{liveTitle}"</span>
                 )}
               </span>
             )}
 
             {fetchState === 'error' && (
-              <span className="flex items-center gap-1.5 text-xs text-red-400">
+              <span className="flex items-center gap-1.5 text-xs text-rose-400">
                 <AlertCircle size={12} />
                 {fetchError}
               </span>
             )}
           </div>
 
-          <p className="text-[10px] text-slate-600 mt-2">
+          <p className="text-[11px] text-slate-500 mt-2">
             Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, or any podcast directory.
           </p>
         </div>
@@ -190,15 +190,15 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
                 <img src={artwork} alt="Artwork" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Music size={28} className="text-slate-600" />
+                  <Music size={28} className="text-slate-500" />
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-400">Podcast</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-indigo-400">Podcast</p>
                 {isLiveMode && (
-                  <span className="text-[9px] px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded font-bold">LIVE</span>
+                  <span className="text-[11px] px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 rounded font-bold">LIVE</span>
                 )}
               </div>
               <h3 className="text-lg font-bold text-white leading-tight truncate">
@@ -207,7 +207,7 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
               <p className="text-sm text-slate-400 mt-0.5 truncate">
                 {config.authorName || 'Author Name'}
               </p>
-              <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+              <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                 {config.podcastDescription || 'Your podcast description will appear here.'}
               </p>
             </div>
@@ -215,7 +215,7 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
 
           <div className="px-5 pb-4 flex gap-2 flex-wrap">
             {['Apple Podcasts', 'Spotify', 'YouTube Podcasts'].map(s => (
-              <div key={s} className="px-2.5 py-1 bg-slate-800 rounded-full text-[10px] text-slate-500 font-medium">{s}</div>
+              <div key={s} className="px-2.5 py-1 bg-slate-800 rounded-full text-[11px] text-slate-400 font-medium">{s}</div>
             ))}
           </div>
 
@@ -223,13 +223,13 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
           <div className="border-t border-slate-800">
             <div className="px-5 py-3 flex items-center justify-between">
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Episodes</span>
-              <span className="text-[10px] text-slate-600">
+              <span className="text-[11px] text-slate-500">
                 {isLiveMode ? `${liveEpisodes.length} live episodes` : 'Sample preview'}
               </span>
             </div>
             <div className="divide-y divide-slate-800/50">
               {displayEpisodes.length === 0 && isLiveMode && (
-                <p className="px-5 py-4 text-xs text-slate-600 text-center italic">No episodes in the live feed yet.</p>
+                <p className="px-5 py-4 text-xs text-slate-500 text-center italic">No episodes in the live feed yet.</p>
               )}
               {displayEpisodes.map((ep, i) => (
                 <div key={ep.guid || i} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-800/30 transition-colors group">
@@ -244,14 +244,14 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{ep.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-400 mt-0.5">
                       {formatPubDate(ep.pubDate)}
                       {ep.duration && ` · ${ep.duration}`}
                       {ep.size && ` · ${ep.size}`}
                     </p>
                   </div>
                   {ep.url && (
-                    <a href={ep.url} className="p-1 text-slate-600 hover:text-slate-300 transition-colors" title="Download">
+                    <a href={ep.url} className="p-1 text-slate-500 hover:text-slate-300 transition-colors" title="Download">
                       <ExternalLink size={12} />
                     </a>
                   )}
@@ -260,7 +260,7 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
             </div>
             {!isLiveMode && (
               <div className="px-5 py-3 border-t border-slate-800/50">
-                <p className="text-[10px] text-slate-700 italic text-center">
+                <p className="text-[11px] text-slate-500 italic text-center">
                   Live episodes appear after your first ingest run · Use "Validate Live Feed" to fetch actual data
                 </p>
               </div>
@@ -286,7 +286,7 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
                 className="flex items-center justify-between px-3 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors group"
               >
                 <span className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">{p.name}</span>
-                <ExternalLink size={11} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+                <ExternalLink size={11} className="text-slate-500 group-hover:text-slate-400 transition-colors" />
               </a>
             ))}
           </div>

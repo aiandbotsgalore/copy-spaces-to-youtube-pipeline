@@ -94,11 +94,11 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
               <CheckCircle size={14} className="text-emerald-400" />
               <span className="text-sm font-medium text-emerald-400">Artwork ready</span>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               Converted to JPEG and will be deployed as <code className="bg-slate-800 px-1 rounded">artwork.jpg</code>
             </p>
           </div>
-          <button onClick={clearArtwork} className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
+          <button onClick={clearArtwork} className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -113,13 +113,13 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
           } ${converting ? 'cursor-wait opacity-70' : ''}`}
         >
           <div className="p-3 bg-slate-800 rounded-xl">
-            <ImageIcon size={24} className={converting ? 'text-indigo-400 animate-pulse' : 'text-slate-500'} />
+            <ImageIcon size={24} className={converting ? 'text-indigo-400 animate-pulse' : 'text-slate-400'} />
           </div>
           <div className="text-center">
             <p className="text-sm font-medium text-slate-300">
               {converting ? 'Converting to JPEG…' : 'Drop artwork here or click to upload'}
             </p>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               PNG, JPG, WebP — converted to JPEG automatically · Min 1400×1400px recommended
             </p>
           </div>
@@ -133,9 +133,9 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
       )}
 
       {convertError && (
-        <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-          <AlertCircle size={13} className="text-red-400 flex-shrink-0" />
-          <p className="text-xs text-red-400">{convertError}</p>
+        <div className="flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg">
+          <AlertCircle size={13} className="text-rose-400 flex-shrink-0" />
+          <p className="text-xs text-rose-400">{convertError}</p>
         </div>
       )}
 
@@ -145,7 +145,7 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 bg-slate-800" />
-            <span className="text-xs text-slate-600">or use a URL</span>
+            <span className="text-xs text-slate-500">or use a URL</span>
             <div className="h-px flex-1 bg-slate-800" />
           </div>
           <input
@@ -155,7 +155,7 @@ const ArtworkUpload: React.FC<Props> = ({ config, onChange }) => {
             onChange={e => onChange({ imageUrl: e.target.value })}
             className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
           />
-          <p className="text-[10px] text-slate-600">Must be a publicly accessible square image (min 1400×1400px).</p>
+          <p className="text-[11px] text-slate-500">Must be a publicly accessible square image (min 1400×1400px).</p>
         </div>
       )}
     </div>

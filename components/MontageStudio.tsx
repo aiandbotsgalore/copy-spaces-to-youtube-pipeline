@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Film,
   Play,
@@ -29,10 +29,27 @@ import {
   Radio,
   ExternalLink,
   ChevronRight,
-  GripVertical
+  GripVertical,
+  Lock,
+  Unlock,
+  Wand2,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
-import { useMontage, MontageClipItem, HARD_EXCLUDE_PHRASE, AutoCuratorMode } from '../contexts/MontageContext';
+import { useMontage, MontageClipItem, HARD_EXCLUDE_PHRASE, AutoCuratorMode, DIRECTOR_LAST_PROMPT_KEY } from '../contexts/MontageContext';
 import { EnhancedConfig } from '../types';
+import { PromptDirector } from './PromptDirector';
+import { TensionArc } from './TensionArc';
+import { Splitter } from './Splitter';
+import { TargetWindowGauge } from './TargetWindowGauge';
+import { VisualWaveformTrim } from './VisualWaveformTrim';
+import { SilenceGapBlock } from './SilenceGapBlock';
+import { FloatingTransportBar } from './FloatingTransportBar';
+import { buildSequencePlan } from '../utils/sequencePlan';
+import { categoryDotClass } from '../utils/uiTokens';
+import { probeFileDuration, reconcileWindow } from '../utils/clipProbe';
+import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
+import { callSortClips } from '../utils/directorClient';
 
 interface RawCatalogClip {
   title: string;
@@ -58,6 +75,10 @@ interface RawManifestClip {
   space_title?: string;
   timestamp?: string;
   url?: string;
+  speaker?: string;
+  quote_id?: string;
+  category?: string;
+  duration?: number;
 }
 
 interface AuditCueItem {
@@ -77,6 +98,27 @@ interface AuditCueItem {
   note: string;
 }
 
+const STUDIO_LAYOUT_KEY = 'spacepipe_studio_layout_v1';
+const DIRECTOR_MIN_PX = 44;
+interface StudioLayout {
+  leftPct: number;
+  directorPx: number;
+}
+const DEFAULT_LAYOUT: StudioLayout = { leftPct: 48, directorPx: 200 };
+function loadStudioLayout(): StudioLayout {
+  try {
+    const p = JSON.parse(localStorage.getItem(STUDIO_LAYOUT_KEY) || 'null');
+    const left = Number(p?.leftPct);
+    const dir = Number(p?.directorPx);
+    return {
+      leftPct: Number.isFinite(left) ? Math.min(75, Math.max(25, left)) : DEFAULT_LAYOUT.leftPct,
+      directorPx: Number.isFinite(dir) ? Math.max(DIRECTOR_MIN_PX, dir) : DEFAULT_LAYOUT.directorPx,
+    };
+  } catch {
+    return DEFAULT_LAYOUT;
+  }
+}
+
 export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config }) => {
   const {
     clips: timelineClips,
@@ -87,6 +129,17 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     nudgeClipStart,
     nudgeClipEnd,
     clearClips,
+    setClipGap,
+    toggleClipLock,
+    resetClipTrim,
+    updateClip,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    insertClipAt,
+    unverifiableClipIds,
+    auditionStatus,
     gapSeconds,
     setGapSeconds,
     targetDurationSec,
@@ -101,15 +154,57 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     autoCurate,
     isAuditioning,
     currentAuditionIndex,
+    auditionProgress,
     startAudition,
     stopAudition,
     skipAudition,
+    replaceClips,
     exportStitchedWav,
     exportManifestJson,
     exportAudacityLabels,
     isExporting,
     exportProgress,
   } = useMontage();
+
+  // Resizable layout (persisted): left/right pane split and the Director panel height
+  const [layout, setLayout] = useState<StudioLayout>(loadStudioLayout);
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : true));
+  const splitRowRef = useRef<HTMLDivElement | null>(null);
+  const leftPaneRef = useRef<HTMLElement | null>(null);
+  const directorRegionRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const on = () => setIsDesktop(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STUDIO_LAYOUT_KEY, JSON.stringify(layout));
+    } catch {
+      /* storage unavailable or full: layout simply is not remembered */
+    }
+  }, [layout]);
+
+  const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
+  /** Largest Director height that still leaves room for the arc, at least one card and the action bar. */
+  const maxDirectorPx = () => {
+    const left = leftPaneRef.current?.getBoundingClientRect();
+    const region = directorRegionRef.current?.getBoundingClientRect();
+    if (!left || !region) return 900;
+    return Math.max(DIRECTOR_MIN_PX, left.bottom - region.top - 320);
+  };
+  const setDirectorPx = (px: number) => setLayout(l => ({ ...l, directorPx: Math.round(clamp(px, DIRECTOR_MIN_PX, maxDirectorPx())) }));
+  const setLeftPct = (pct: number) => setLayout(l => ({ ...l, leftPct: Math.round(clamp(pct, 25, 75) * 10) / 10 }));
+
+  // Keep the Director height valid when the window shrinks.
+  useEffect(() => {
+    const on = () => setLayout(l => (l.directorPx > maxDirectorPx() ? { ...l, directorPx: Math.round(maxDirectorPx()) } : l));
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
 
   // All available clips from cloud catalog and local manifests
   const [availableClips, setAvailableClips] = useState<MontageClipItem[]>([]);
@@ -158,6 +253,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               audioUrl: item.audio_url || undefined,
               startSec: item.start_seconds || 0,
               endSec: item.end_seconds || (item.start_seconds ? item.start_seconds + (item.duration || 15) : 30),
+              // No real window in the audit file: the 0-30 default is a placeholder, resolved to the whole file once probed.
+              windowPlaceholder: item.start_seconds == null && item.end_seconds == null,
               category: item.category,
               severity: item.category.includes('Allegation') ? 9 : 8,
               quoteId: item.quote_id,
@@ -180,19 +277,24 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             if (!seenQuotes.has(quoteKey)) {
               seenQuotes.add(quoteKey);
               const isHardExcluded = quoteKey.includes(HARD_EXCLUDE_PHRASE.toLowerCase());
+              const clipDur = m.duration || 30;
               combined.push({
                 id: `man_${m.id}`,
                 title: m.title,
                 quote: m.quote,
-                speaker: 'Angela Maggard',
+                speaker: m.speaker || 'Angela Maggard',
                 sourceTitle: m.space_title || 'Twitter Space Archive',
                 sourceTag: m.space_tag,
                 sourceDate: m.space_tag?.startsWith('2026') ? m.space_tag.slice(0, 8).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '2026-09-18',
                 audioUrl: m.url || `clips/angela/${m.filename}`,
                 startSec: 0,
-                endSec: 30, // Lossless sliced clips play from 0s
-                category: m.title.toLowerCase().includes('predator') || m.title.toLowerCase().includes('abuse') ? 'Direct Allegation' : 'Retaliation & Disclosure',
+                endSec: clipDur,
+                sourceDurationSec: m.duration,
+                windowPlaceholder: !m.duration,
+                windowVerified: !!m.duration,
+                category: m.category || (m.title.toLowerCase().includes('predator') || m.title.toLowerCase().includes('abuse') ? 'Direct Allegation' : 'Retaliation & Disclosure'),
                 severity: 8,
+                quoteId: m.quote_id,
                 status: 'EXISTS',
                 isExcluded: isHardExcluded,
               });
@@ -248,6 +350,31 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     };
   }, []);
 
+  // Auto-reconcile timeline clips if newly extracted master audio assets became available
+  useEffect(() => {
+    if (availableClips.length === 0 || timelineClips.length === 0) return;
+    const availMap = new Map<string, MontageClipItem>(availableClips.map(c => [c.id, c]));
+    let changed = false;
+    const updated = timelineClips.map(tc => {
+      const avail = availMap.get(tc.id);
+      if (avail && avail.audioUrl && (avail.audioUrl !== tc.audioUrl || tc.status === 'READY_FOR_EXTRACTION')) {
+        changed = true;
+        return {
+          ...tc,
+          audioUrl: avail.audioUrl,
+          startSec: avail.startSec,
+          endSec: avail.endSec,
+          status: avail.status,
+          windowPlaceholder: avail.windowPlaceholder,
+        };
+      }
+      return tc;
+    });
+    if (changed) {
+      replaceClips(updated);
+    }
+  }, [availableClips, timelineClips, replaceClips]);
+
   // Filter available clips
   const filteredClips = useMemo(() => {
     return availableClips.filter(c => {
@@ -297,9 +424,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   }, [availableClips, searchQuery, selectedCategory, selectedStatusFilter, hideBlacklisted, isBlacklisted]);
 
   // Timeline runtime calculations
-  const totalClipsDuration = timelineClips.reduce((acc, c) => acc + Math.max(0.2, c.endSec - c.startSec), 0);
-  const totalGapsDuration = Math.max(0, timelineClips.length - 1) * gapSeconds;
-  const cumulativeSec = totalClipsDuration + totalGapsDuration;
+  const plan = useMemo(() => buildSequencePlan<MontageClipItem>(timelineClips, gapSeconds), [timelineClips, gapSeconds]);
+  const cumulativeSec = plan.totalSec;
   const runtimeMins = Math.floor(cumulativeSec / 60);
   const runtimeSecs = Math.round(cumulativeSec % 60);
   const formattedRuntime = `${runtimeMins}:${runtimeSecs.toString().padStart(2, '0')}`;
@@ -310,7 +436,12 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   const overflowSec = (cumulativeSec - targetDurationSec).toFixed(1);
 
   // Playback handler for solo clip auditioning in browser
-  const playSoloPreview = (clip: MontageClipItem) => {
+  const playSoloPreview = async (rawClip: MontageClipItem) => {
+    let clip = rawClip;
+    if (clip.audioUrl && !clip.windowVerified) {
+      const dur = await probeFileDuration(clip.audioUrl);
+      if (dur) clip = reconcileWindow(clip, dur);
+    }
     if (previewClipId === clip.id && isPreviewPlaying) {
       if (previewAudioRef.current) previewAudioRef.current.pause();
       setIsPreviewPlaying(false);
@@ -356,30 +487,173 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     setIsPreviewPlaying(true);
   };
 
-  // Drag and drop timeline reordering handlers
+  // Drag and drop timeline handlers (both reordering and library clip insertion)
   const handleDragStart = (idx: number) => {
     setDraggedIdx(idx);
   };
 
-  const handleDragOver = (e: React.DragEvent, idx: number) => {
+  const handleTimelineDragOver = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
+    if (e.dataTransfer.types.includes('application/spacepipe-clip')) {
+      e.dataTransfer.dropEffect = 'copy';
+    } else {
+      e.dataTransfer.dropEffect = 'move';
+    }
     setDragOverIdx(idx);
   };
 
-  const handleDrop = (targetIdx: number) => {
-    if (draggedIdx !== null && draggedIdx !== targetIdx) {
+  const handleTimelineDrop = (e: React.DragEvent, targetIdx: number) => {
+    e.preventDefault();
+    const clipData = e.dataTransfer.getData('application/spacepipe-clip');
+    if (clipData) {
+      try {
+        const parsed = JSON.parse(clipData) as MontageClipItem;
+        insertClipAt(parsed, targetIdx);
+      } catch (err) {
+        console.warn('Failed to parse dropped clip data:', err);
+      }
+    } else if (draggedIdx !== null && draggedIdx !== targetIdx) {
       reorderClips(draggedIdx, targetIdx);
     }
     setDraggedIdx(null);
     setDragOverIdx(null);
   };
 
+  const handleContainerDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes('application/spacepipe-clip')) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  };
+
+  const handleContainerDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const clipData = e.dataTransfer.getData('application/spacepipe-clip');
+    if (clipData) {
+      try {
+        const parsed = JSON.parse(clipData) as MontageClipItem;
+        addClip(parsed);
+      } catch (err) {
+        console.warn('Failed to parse dropped clip data:', err);
+      }
+    }
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
+  // AI Sort state and execution
+  const [isSorting, setIsSorting] = useState(false);
+  const [sortMsg, setSortMsg] = useState<{ kind: 'ok' | 'err' | 'info'; text: string } | null>(null);
+  const sortAbortRef = useRef<AbortController | null>(null);
+  const clipsRef = useRef(timelineClips);
+  clipsRef.current = timelineClips;
+
+  const runAiSort = async () => {
+    const movable = timelineClips.filter(c => !c.locked);
+    if (movable.length < SORT_MIN_CLIPS) {
+      setSortMsg({ kind: 'info', text: `Add at least ${SORT_MIN_CLIPS} unlocked clips to let the AI arrange them.` });
+      return;
+    }
+    if (movable.length > SORT_MAX_CLIPS) {
+      setSortMsg({ kind: 'info', text: `AI Sort works on up to ${SORT_MAX_CLIPS} unlocked clips at a time.` });
+      return;
+    }
+    let theme = '';
+    try {
+      theme = localStorage.getItem(DIRECTOR_LAST_PROMPT_KEY) || '';
+    } catch {}
+    const { items, refToId } = buildSortItems(movable);
+    const ctl = new AbortController();
+    sortAbortRef.current = ctl;
+    setIsSorting(true);
+    setSortMsg(null);
+    try {
+      const res = await callSortClips({ items, theme: theme || undefined }, ctl.signal);
+      if (res.ok === false) {
+        setSortMsg(res.code === 'ABORTED' ? { kind: 'info', text: 'AI Sort cancelled.' } : { kind: 'err', text: res.message });
+        return;
+      }
+      const idOrder = res.order.map(r => refToId[r]).filter((id): id is string => !!id);
+      const latest = clipsRef.current;
+      if (!orderChangesTimeline(latest, idOrder)) {
+        setSortMsg({ kind: 'info', text: 'The reel is already in the order the AI would pick.' });
+        return;
+      }
+      replaceClips(applySortOrder(latest, idOrder));
+      setSortMsg({ kind: 'ok', text: res.rationale || 'Timeline sequence re-ordered by AI narrative flow.' });
+    } finally {
+      setIsSorting(false);
+      if (sortAbortRef.current === ctl) sortAbortRef.current = null;
+    }
+  };
+
+  // Keyboard navigation & transport hotkeys (Space, Shift+Space, J/K/L, Arrows)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          const targetClip = timelineClips[currentAuditionIndex >= 0 ? currentAuditionIndex : 0];
+          if (targetClip) {
+            playSoloPreview(targetClip);
+          }
+        } else {
+          if (isAuditioning) {
+            stopAudition();
+          } else if (timelineClips.length > 0) {
+            startAudition();
+          }
+        }
+      } else if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        if (isAuditioning) {
+          stopAudition();
+        } else if (timelineClips.length > 0) {
+          startAudition();
+        }
+      } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (timelineClips.length > 0) {
+          const prevIdx = Math.max(0, currentAuditionIndex - 1);
+          skipAudition(prevIdx);
+        }
+      } else if (e.key === 'l' || e.key === 'L' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (timelineClips.length > 0) {
+          const nextIdx = Math.min(timelineClips.length - 1, currentAuditionIndex + 1);
+          skipAudition(nextIdx);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isAuditioning,
+    currentAuditionIndex,
+    timelineClips,
+    startAudition,
+    stopAudition,
+    skipAudition,
+  ]);
+
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 text-slate-200 overflow-hidden font-sans">
       {/* ── STUDIO HEADER / TOP METRICS BAR ── */}
       <header className="px-6 py-4 bg-slate-900/80 border-b border-indigo-500/20 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 text-indigo-400 rounded-2xl border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
+          <div className="p-2.5 bg-indigo-500/15 text-indigo-400 rounded-xl border border-indigo-500/30 shadow-lg">
             <Film size={22} />
           </div>
           <div>
@@ -387,7 +661,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                 Montage Studio &amp; Audio Documentary Curator
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-[10px] uppercase font-bold border border-indigo-500/30">
+              <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-[11px] uppercase font-bold border border-indigo-500/30">
                 Studio Edition
               </span>
             </div>
@@ -397,66 +671,23 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           </div>
         </div>
 
-        {/* Global Reel Stats & Duration Gauge */}
-        <div className="flex items-center gap-4 bg-slate-950/80 border border-slate-800 rounded-2xl px-4 py-2 text-xs">
-          <div>
-            <span className="text-[10px] uppercase font-semibold text-slate-500 block">Sequence</span>
-            <span className="font-bold text-white text-sm">
-              {timelineClips.length} <span className="text-slate-400 font-normal text-xs">clip{timelineClips.length !== 1 ? 's' : ''}</span>
-            </span>
-          </div>
-
-          <div className="h-7 w-px bg-slate-800" />
-
-          {/* Cumulative Duration & Visual Duration Gauge */}
-          <div className="flex flex-col min-w-[170px]">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <span className="text-[10px] uppercase font-semibold text-slate-400">
-                Duration: <strong className="text-white font-mono">{formattedRuntime}</strong>
-              </span>
-              <span className={`text-[10px] font-mono font-bold ${isOverflow ? 'text-rose-400' : 'text-emerald-400'}`}>
-                {isOverflow ? `+${overflowSec}s overflow` : `${Math.round(durationPct)}% of target`}
-              </span>
-            </div>
-            {/* Gauge bar */}
-            <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 rounded-full ${
-                  isOverflow
-                    ? 'bg-rose-500'
-                    : durationPct >= 85
-                    ? 'bg-emerald-400'
-                    : 'bg-indigo-500'
-                }`}
-                style={{ width: `${Math.min(100, durationPct)}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="h-7 w-px bg-slate-800" />
-
-          {/* Target Duration Selector */}
-          <div>
-            <span className="text-[10px] uppercase font-semibold text-slate-500 block">Target Window</span>
-            <select
-              value={targetDurationSec}
-              onChange={e => setTargetDurationSec(parseFloat(e.target.value))}
-              className="bg-transparent text-indigo-300 font-bold focus:outline-none cursor-pointer text-xs"
-            >
-              <option value="60" className="bg-slate-900">60s (Teaser / Short)</option>
-              <option value="90" className="bg-slate-900">90s (Standard Reel)</option>
-              <option value="120" className="bg-slate-900">120s (Extended Trailer)</option>
-              <option value="180" className="bg-slate-900">180s (3-Min Spotlight)</option>
-              <option value="300" className="bg-slate-900">300s (5-Min Scene)</option>
-            </select>
-          </div>
-        </div>
+        {/* Dynamic Target Window Fill Bar & Sequence Gauge */}
+        <TargetWindowGauge
+          currentDurationSec={cumulativeSec}
+          targetDurationSec={targetDurationSec}
+          clipCount={timelineClips.length}
+          onSelectTarget={setTargetDurationSec}
+        />
       </header>
 
       {/* ── MAIN STUDIO WORKSPACE (DUAL-PANE LAYOUT) ── */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+      <div ref={splitRowRef} className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* ── LEFT PANE: INTERACTIVE TIMELINE STUDIO ── */}
-        <section className="w-full lg:w-[48%] border-r border-slate-800/80 flex flex-col bg-slate-950 min-h-0">
+        <section
+          ref={leftPaneRef}
+          style={isDesktop ? { width: `${layout.leftPct}%` } : undefined}
+          className="w-full lg:flex-none flex flex-col bg-slate-950 min-h-0 min-w-0"
+        >
           {/* Timeline Toolbar */}
           <div className="px-5 py-3 border-b border-slate-800 bg-slate-900/60 flex items-center justify-between gap-2 flex-wrap text-xs">
             <div className="flex items-center gap-2">
@@ -467,33 +698,71 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               </span>
             </div>
 
-            {/* Auto-Curator dropdown / triggers */}
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400 flex items-center gap-1">
+            {/* Toolbar Actions: Undo, Redo, AI Sort, Auto-Curator dropdown / triggers */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Undo & Redo */}
+              <div className="flex items-center gap-0.5 border-r border-slate-800 pr-1.5 mr-1">
+                <button
+                  onClick={undo}
+                  disabled={!canUndo}
+                  className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition-colors cursor-pointer"
+                  title="Undo last change"
+                >
+                  <Undo2 size={13} />
+                </button>
+                <button
+                  onClick={redo}
+                  disabled={!canRedo}
+                  className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 transition-colors cursor-pointer"
+                  title="Redo change"
+                >
+                  <Redo2 size={13} />
+                </button>
+              </div>
+
+              {/* AI Narrative Sort */}
+              <button
+                onClick={runAiSort}
+                disabled={isSorting || timelineClips.length < SORT_MIN_CLIPS}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-900/60 to-purple-900/60 hover:from-indigo-800 hover:to-purple-800 text-indigo-200 hover:text-white border border-indigo-500/40 rounded-lg text-[11px] font-semibold transition-all disabled:opacity-30 cursor-pointer shadow-sm mr-1"
+                title={`AI Sort: Order ${timelineClips.length} clips into dramatic tension flow`}
+              >
+                {isSorting ? <Loader2 size={11} className="animate-spin text-indigo-400" /> : <Wand2 size={11} className="text-amber-400" />}
+                <span>AI Sort</span>
+              </button>
+
+              <span className="text-[11px] text-slate-400 flex items-center gap-1 ml-1">
                 <Sparkles size={12} className="text-amber-400" /> Auto-Curate:
               </span>
               <button
                 onClick={() => autoCurate('escalation', availableClips)}
-                className="px-2.5 py-1 bg-violet-950/60 hover:bg-violet-900/80 text-violet-300 hover:text-white border border-violet-500/30 rounded-xl text-[11px] font-semibold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/30 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                 title="Curate by Dramatic Escalation: Context -> Core Allegations -> Retaliation/Disclosures"
               >
                 Escalation Arc
               </button>
               <button
                 onClick={() => autoCurate('target_fit', availableClips)}
-                className="px-2.5 py-1 bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/30 rounded-xl text-[11px] font-semibold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/30 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                 title="Automatically fits highest-priority non-excluded clips into selected target length"
               >
                 Fit {targetDurationSec}s
               </button>
               <button
                 onClick={() => autoCurate('chronological', availableClips)}
-                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-[11px] font-semibold transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                 title="Sort sequence in chronological order of recording date and timestamp"
               >
                 Chronological
               </button>
 
+              <button
+                onClick={() => setLayout(DEFAULT_LAYOUT)}
+                className="px-2 py-1 text-[11px] text-slate-400 hover:text-white border border-transparent hover:border-slate-700 rounded-lg cursor-pointer ml-1"
+                title="Reset pane sizes"
+              >
+                Reset layout
+              </button>
               {timelineClips.length > 0 && (
                 <button
                   onClick={clearClips}
@@ -506,10 +775,31 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             </div>
           </div>
 
+          {/* AI Sort Feedback Banner */}
+          {sortMsg && (
+            <div
+              className={`px-4 py-2 text-xs border-b flex items-center justify-between gap-2 animate-in fade-in duration-150 ${
+                sortMsg.kind === 'ok'
+                  ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300'
+                  : sortMsg.kind === 'err'
+                  ? 'bg-rose-950/40 border-rose-500/30 text-rose-300'
+                  : 'bg-indigo-950/40 border-indigo-500/30 text-indigo-300'
+              }`}
+            >
+              <span className="leading-snug">{sortMsg.text}</span>
+              <button
+                onClick={() => setSortMsg(null)}
+                className="text-slate-400 hover:text-white p-0.5 rounded cursor-pointer flex-shrink-0"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          )}
+
           {/* Master Sequence Controls: Silence Gap, Normalization, Micro-fades */}
           <div className="px-5 py-2.5 bg-slate-900/40 border-b border-slate-800/80 flex items-center justify-between gap-3 flex-wrap text-xs">
             {/* Silence gap slider */}
-            <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-1">
+            <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1">
               <Clock size={13} className="text-indigo-400" />
               <span className="text-[11px] text-slate-400">Inter-Clip Silence:</span>
               <input
@@ -531,10 +821,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               <button
                 type="button"
                 onClick={() => setNormalizeAudio(!normalizeAudio)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   normalizeAudio
                     ? 'bg-indigo-950/70 border-indigo-500/60 text-indigo-300 shadow-sm'
-                    : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
                 title="Level all clips with broadcast gain matching (~-16 LUFS / -1.0 dB True Peak)"
               >
@@ -545,10 +835,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               <button
                 type="button"
                 onClick={() => setAntiClickFades(!antiClickFades)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                   antiClickFades
                     ? 'bg-emerald-950/70 border-emerald-500/60 text-emerald-300 shadow-sm'
-                    : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
                 title="Eliminate digital pops with 18ms raised-cosine boundary micro-fades"
               >
@@ -558,21 +848,58 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             </div>
           </div>
 
-          {/* Timeline Cards List (Scrollable) */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {/* Director: fixed, user-resizable height with its own scroll, so it can never push the timeline out of view */}
+          <div
+            ref={directorRegionRef}
+            className="flex-shrink-0 overflow-y-auto overscroll-contain"
+            style={{ height: layout.directorPx }}
+          >
+            <PromptDirector pool={availableClips} filteredPool={filteredClips} />
+          </div>
+          <Splitter
+            orientation="horizontal"
+            label="Resize Director panel"
+            valueNow={layout.directorPx}
+            onMove={y => {
+              const top = directorRegionRef.current?.getBoundingClientRect().top ?? 0;
+              setDirectorPx(y - top);
+            }}
+            onStep={d => setDirectorPx(layout.directorPx + d)}
+            onReset={() => setDirectorPx(DEFAULT_LAYOUT.directorPx)}
+          />
+          <div className="flex-shrink-0">
+            <TensionArc
+              clips={timelineClips}
+              defaultGapSec={gapSeconds}
+              currentIndex={currentAuditionIndex}
+              isPlaying={isAuditioning}
+              onSelect={i => skipAudition(i)}
+            />
+          </div>
+
+          {/* Timeline Cards List (Scrollable & Drop Target) */}
+          <div
+            onDragOver={handleContainerDragOver}
+            onDrop={handleContainerDrop}
+            className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3"
+          >
             {timelineClips.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-500">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3">
+              <div
+                onDragOver={handleContainerDragOver}
+                onDrop={handleContainerDrop}
+                className="min-h-[240px] flex flex-col items-center justify-center text-center p-8 text-slate-400 border-2 border-dashed border-slate-800/80 rounded-2xl"
+              >
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3">
                   <Film size={22} />
                 </div>
                 <h3 className="font-bold text-slate-300 text-sm mb-1">Your Sequence Timeline is Empty</h3>
-                <p className="text-xs text-slate-500 max-w-sm mb-4">
-                  Select clips from the cloud catalog on the right, or click an Auto-Curate preset above to assemble an opening documentary montage.
+                <p className="text-xs text-slate-400 max-w-sm mb-4">
+                  Drag and drop clips from the Cloud Library on the right, or click an Auto-Curate preset above to assemble an opening documentary montage.
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => autoCurate('escalation', availableClips)}
-                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+                    className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer"
                   >
                     Auto-Generate Opening Montage
                   </button>
@@ -582,42 +909,52 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               timelineClips.map((clip, idx) => {
                 const isPlayingThis = isAuditioning && currentAuditionIndex === idx;
                 const isSoloPlaying = previewClipId === clip.id && isPreviewPlaying;
-                const clipDur = Math.max(0.2, clip.endSec - clip.startSec);
+                const clipDur = plan.items[idx]?.effDur ?? Math.max(0.2, clip.endSec - clip.startSec);
+                const isUnverifiable = unverifiableClipIds.includes(clip.id);
                 const isDraggingThis = draggedIdx === idx;
                 const isDragOverThis = dragOverIdx === idx;
 
                 return (
+                  <React.Fragment key={clip.id}>
                   <div
-                    key={clip.id}
                     draggable
                     onDragStart={() => handleDragStart(idx)}
-                    onDragOver={e => handleDragOver(e, idx)}
-                    onDrop={() => handleDrop(idx)}
-                    className={`p-3.5 rounded-2xl border transition-all relative ${
+                    onDragOver={e => handleTimelineDragOver(e, idx)}
+                    onDrop={e => handleTimelineDrop(e, idx)}
+                    className={`p-3.5 rounded-xl border transition-all relative ${
                       isDraggingThis
                         ? 'opacity-40 border-dashed border-indigo-500'
                         : isDragOverThis
-                        ? 'border-indigo-400 bg-indigo-950/40 shadow-lg'
+                        ? 'border-indigo-400 bg-indigo-950/40 shadow-lg ring-2 ring-indigo-500/40'
                         : isPlayingThis
-                        ? 'bg-indigo-950/80 border-emerald-500 shadow-xl shadow-emerald-500/15 ring-2 ring-emerald-500/30'
+                        ? 'bg-indigo-950/80 border-emerald-500 shadow-xl ring-2 ring-emerald-500/30'
                         : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
                     }`}
                   >
                     {/* Top Row: Reorder grip, Rank, Category, Speaker, Controls */}
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="cursor-grab active:cursor-grabbing text-slate-500 hover:text-slate-300" title="Drag to reorder">
+                        <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-300" title="Drag to reorder">
                           <GripVertical size={14} />
                         </span>
                         <span className="w-5 h-5 rounded-md bg-slate-800 text-slate-200 font-mono text-[11px] font-bold flex items-center justify-center border border-slate-700">
                           {idx + 1}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300">
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${categoryDotClass(clip.category)}`} aria-hidden="true" />
                           {clip.category || 'Archival Quote'}
                         </span>
                         <span className="text-xs font-bold text-slate-200 truncate max-w-[140px]">
                           {clip.speaker}
                         </span>
+                        {typeof clip.tensionScore === 'number' && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-800 text-slate-300"
+                            title="Director tension score (1-10)"
+                          >
+                            T{clip.tensionScore}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1">
@@ -665,6 +1002,20 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                           <ShieldAlert size={12} />
                         </button>
 
+                        {/* Lock: the Director never changes a locked clip */}
+                        <button
+                          onClick={() => toggleClipLock(clip.id)}
+                          className={`p-1 rounded-lg text-xs transition-colors cursor-pointer ${
+                            clip.locked
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'hover:bg-slate-800 text-slate-400 hover:text-amber-300'
+                          }`}
+                          title={clip.locked ? 'Locked: the Director will not change this clip' : 'Lock this clip against Director edits'}
+                          aria-pressed={!!clip.locked}
+                        >
+                          {clip.locked ? <Lock size={12} /> : <Unlock size={12} />}
+                        </button>
+
                         {/* Delete */}
                         <button
                           onClick={() => removeClip(clip.id)}
@@ -680,86 +1031,55 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                     <p className="text-xs text-slate-300 italic font-medium leading-relaxed mb-3 line-clamp-3">
                       "{clip.quote}"
                     </p>
+                    {clip.directorNote && (
+                      <p className="text-[11px] text-indigo-300/90 mb-2">Director: {clip.directorNote}</p>
+                    )}
+                    {isUnverifiable && (
+                      <p className="text-[11px] text-amber-300 mb-2 flex items-center gap-1">
+                        <AlertTriangle size={11} /> Audio could not be loaded (missing file or unreachable URL). It will be skipped.
+                      </p>
+                    )}
 
-                    {/* Boundary Micro-Trim & Nudge Controls */}
-                    <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono">
-                      {/* Start Nudge */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-slate-500 uppercase">In:</span>
-                        <span className="text-slate-300 font-bold mr-1">{clip.startSec.toFixed(1)}s</span>
-                        <div className="inline-flex rounded-md shadow-sm">
-                          <button
-                            onClick={() => nudgeClipStart(clip.id, -0.5)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-l border border-slate-700 cursor-pointer"
-                            title="Expand start by 0.5s"
-                          >
-                            -0.5s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipStart(clip.id, -0.1)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] border-t border-b border-slate-700 cursor-pointer"
-                            title="Expand start by 0.1s"
-                          >
-                            -0.1s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipStart(clip.id, 0.1)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] border-t border-b border-slate-700 cursor-pointer"
-                            title="Trim start by 0.1s"
-                          >
-                            +0.1s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipStart(clip.id, 0.5)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-r border border-slate-700 cursor-pointer"
-                            title="Trim start by 0.5s"
-                          >
-                            +0.5s
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* End Nudge */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-[10px] text-slate-500 uppercase">Out:</span>
-                        <span className="text-slate-300 font-bold mr-1">{clip.endSec.toFixed(1)}s</span>
-                        <div className="inline-flex rounded-md shadow-sm">
-                          <button
-                            onClick={() => nudgeClipEnd(clip.id, -0.5)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-l border border-slate-700 cursor-pointer"
-                            title="Trim end by 0.5s"
-                          >
-                            -0.5s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipEnd(clip.id, -0.1)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] border-t border-b border-slate-700 cursor-pointer"
-                            title="Trim end by 0.1s"
-                          >
-                            -0.1s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipEnd(clip.id, 0.1)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] border-t border-b border-slate-700 cursor-pointer"
-                            title="Expand end by 0.1s"
-                          >
-                            +0.1s
-                          </button>
-                          <button
-                            onClick={() => nudgeClipEnd(clip.id, 0.5)}
-                            className="px-1 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded-r border border-slate-700 cursor-pointer"
-                            title="Expand end by 0.5s"
-                          >
-                            +0.5s
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="text-indigo-400 font-bold text-[11px]">
-                        Len: {clipDur.toFixed(1)}s
-                      </div>
+                    {/* Visual Waveform & Interactive Trim Scrubbing */}
+                    <div className="pt-2.5 border-t border-slate-800/80">
+                      <VisualWaveformTrim
+                        clip={clip}
+                        isPlaying={isPlayingThis}
+                        playheadProgress={auditionProgress?.timelineIndex === idx ? auditionProgress.clipProgress : 0}
+                        onTrimStart={(newStart) => {
+                          updateClip(clip.id, {
+                            startSec: newStart,
+                            origStartSec: clip.origStartSec ?? clip.startSec,
+                            origEndSec: clip.origEndSec ?? clip.endSec,
+                            trimBasis: 'manual',
+                          });
+                        }}
+                        onTrimEnd={(newEnd) => {
+                          updateClip(clip.id, {
+                            endSec: newEnd,
+                            origStartSec: clip.origStartSec ?? clip.startSec,
+                            origEndSec: clip.origEndSec ?? clip.endSec,
+                            trimBasis: 'manual',
+                          });
+                        }}
+                        onResetTrim={() => resetClipTrim(clip.id)}
+                        onSeekPreview={(timeSec) => {
+                          if (previewAudioRef.current && previewClipId === clip.id) {
+                            previewAudioRef.current.currentTime = timeSec;
+                          }
+                        }}
+                      />
                     </div>
                   </div>
+                  {idx < timelineClips.length - 1 && (
+                    <SilenceGapBlock
+                      gapSec={plan.items[idx]?.gapAfter ?? gapSeconds}
+                      isCustom={clip.gapAfterSec !== undefined}
+                      defaultGapSec={gapSeconds}
+                      onSetGap={(g) => setClipGap(clip.id, g)}
+                    />
+                  )}
+                  </React.Fragment>
                 );
               })
             )}
@@ -772,18 +1092,19 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               <button
                 onClick={isAuditioning ? stopAudition : startAudition}
                 disabled={timelineClips.length === 0}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold shadow-lg transition-all cursor-pointer disabled:opacity-30 ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold shadow-lg transition-all cursor-pointer disabled:opacity-30 ${
                   isAuditioning
-                    ? 'bg-amber-500 text-slate-950 shadow-amber-500/20'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
+                    ? 'bg-amber-500 text-slate-950'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                 }`}
               >
                 {isAuditioning ? <Pause size={14} /> : <Play size={14} />}
                 <span>{isAuditioning ? 'Pause Audition' : 'Audition Sequence'}</span>
               </button>
 
+              {auditionStatus && <span className="text-[11px] text-amber-300 max-w-[220px] truncate" title={auditionStatus}>{auditionStatus}</span>}
               {isAuditioning && (
-                <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800">
+                <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
                   <button
                     onClick={() => skipAudition(Math.max(0, currentAuditionIndex - 1))}
                     disabled={currentAuditionIndex === 0}
@@ -817,7 +1138,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                   <button
                     onClick={exportStitchedWav}
                     disabled={timelineClips.length === 0}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-600/30 cursor-pointer transition-all active:scale-95 disabled:opacity-40"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg cursor-pointer transition-all active:scale-95 disabled:opacity-40"
                     title="Render master broadcast WAV file with -16 LUFS loudness matching"
                   >
                     <Download size={13} />
@@ -827,7 +1148,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                   <button
                     onClick={exportAudacityLabels}
                     disabled={timelineClips.length === 0}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
                     title="Export Audacity / DAW label track marker file"
                   >
                     <FileText size={13} className="text-amber-400" />
@@ -837,7 +1158,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                   <button
                     onClick={exportManifestJson}
                     disabled={timelineClips.length === 0}
-                    className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
+                    className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
                     title="Export JSON recipe"
                   >
                     <span>JSON</span>
@@ -848,8 +1169,25 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           </div>
         </section>
 
+        {isDesktop && (
+          <Splitter
+            orientation="vertical"
+            label="Resize timeline and library panes"
+            valueNow={layout.leftPct}
+            onMove={x => {
+              const r = splitRowRef.current?.getBoundingClientRect();
+              if (r && r.width > 0) setLeftPct(((x - r.left) / r.width) * 100);
+            }}
+            onStep={d => {
+              const r = splitRowRef.current?.getBoundingClientRect();
+              if (r && r.width > 0) setLeftPct(layout.leftPct + (d / r.width) * 100);
+            }}
+            onReset={() => setLeftPct(DEFAULT_LAYOUT.leftPct)}
+          />
+        )}
+
         {/* ── RIGHT PANE: CLOUD CLIP BROWSER & PLAYER ── */}
-        <section className="w-full lg:w-[52%] flex flex-col bg-slate-950/80 min-h-0">
+        <section className="w-full lg:flex-1 lg:min-w-0 flex flex-col bg-slate-950/80 min-h-0">
           {/* Browser Header & Search */}
           <div className="p-4 border-b border-slate-800 bg-slate-900/40 space-y-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -882,7 +1220,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                 <button
                   onClick={() => setSelectedStatusFilter('READY_FOR_EXTRACTION')}
                   className={`px-2 py-0.5 rounded-lg font-medium cursor-pointer transition-colors ${
-                    selectedStatusFilter === 'READY_FOR_EXTRACTION' ? 'bg-cyan-600/30 text-cyan-300 font-bold' : 'text-slate-400 hover:text-slate-200'
+                    selectedStatusFilter === 'READY_FOR_EXTRACTION' ? 'bg-slate-600/30 text-slate-300 font-bold' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   READY
@@ -892,7 +1230,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
 
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
               <input
                 type="text"
                 placeholder="Search transcripts, speakers, quote IDs (e.g. D02, R02, AQ-0002), or keywords…"
@@ -938,10 +1276,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               <button
                 type="button"
                 onClick={() => setHideBlacklisted(!hideBlacklisted)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                   hideBlacklisted
                     ? 'bg-rose-950/60 border-rose-500/50 text-rose-300'
-                    : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-400'
+                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <ShieldAlert size={12} />
@@ -958,8 +1296,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                 <span className="text-xs">Loading cloud clips catalog…</span>
               </div>
             ) : filteredClips.length === 0 ? (
-              <div className="h-64 flex flex-col items-center justify-center text-center p-8 text-slate-500">
-                <Search size={24} className="text-slate-600 mb-2" />
+              <div className="h-64 flex flex-col items-center justify-center text-center p-8 text-slate-400">
+                <Search size={24} className="text-slate-500 mb-2" />
                 <p className="text-xs">No clips match your search query and filters.</p>
               </div>
             ) : (
@@ -973,7 +1311,14 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                 return (
                   <div
                     key={clip.id}
-                    className={`p-4 rounded-2xl border transition-all ${
+                    draggable={!isHardExcluded}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('application/spacepipe-clip', JSON.stringify(clip));
+                      e.dataTransfer.effectAllowed = 'copy';
+                    }}
+                    className={`p-4 rounded-xl border transition-all ${
+                      !isHardExcluded ? 'cursor-grab active:cursor-grabbing' : ''
+                    } ${
                       isExcluded
                         ? 'bg-rose-950/20 border-rose-500/30'
                         : isAlreadyInTimeline
@@ -983,7 +1328,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                   >
                     {/* Hard Exclude Editorial Alert if present */}
                     {isHardExcluded && (
-                      <div className="mb-2.5 px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2 text-rose-300 text-xs font-semibold">
+                      <div className="mb-2.5 px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center gap-2 text-rose-300 text-xs font-semibold">
                         <AlertTriangle size={14} className="flex-shrink-0" />
                         <span>MANDATORY EXCLUSION: Strictly excluded from montage sequences by Editorial Charter.</span>
                       </div>
@@ -993,14 +1338,15 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                     <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                       <div className="flex items-center gap-2">
                         {clip.quoteId && (
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono text-[10px] font-bold border border-slate-700">
+                          <span className="font-mono text-[11px] text-slate-400">
                             {clip.quoteId}
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300">
+                          <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${categoryDotClass(clip.category)}`} aria-hidden="true" />
                           {clip.category || 'Excerpt'}
                         </span>
-                        <span className="text-xs font-bold text-white">
+                        <span className="text-xs text-slate-400">
                           {clip.speaker}
                         </span>
                       </div>
@@ -1008,37 +1354,41 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                       {/* Status Badges */}
                       <div className="flex items-center gap-1.5">
                         {clip.status === 'EXISTS' && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" title="Asset exists in cloud release library">
-                            EXISTS
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Asset exists in cloud release library">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+                            In library
                           </span>
                         )}
                         {clip.status === 'READY_FOR_EXTRACTION' && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30" title="Timecode boundaries aligned for cloud slicing">
-                            READY
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Timecode boundaries aligned for cloud slicing">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true" />
+                            Ready to extract
                           </span>
                         )}
                         {clip.status === 'SOURCE_NOT_AVAILABLE' && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-rose-500/15 text-rose-300 border border-rose-500/30" title="Source recording outside available archive pool">
-                            SOURCE NOT AVAILABLE
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Source recording outside available archive pool">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
+                            Source not available
                           </span>
                         )}
                         {isExcluded && (
-                          <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-rose-500/20 text-rose-400 border border-rose-500/40">
-                            EXCLUDED
+                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
+                            Excluded
                           </span>
                         )}
                       </div>
                     </div>
 
                     {/* Quote Text */}
-                    <p className="text-xs text-slate-200 leading-relaxed italic mb-3 font-medium">
-                      "{clip.quote}"
+                    <p className="text-sm text-slate-100 leading-relaxed mb-3">
+                      &ldquo;{clip.quote}&rdquo;
                     </p>
 
                     {/* Footer: Source Space, Duration, Actions */}
                     <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap text-xs">
                       <div className="text-[11px] text-slate-400 truncate max-w-[240px]">
-                        <span className="text-slate-500">Source:</span> {clip.sourceTitle}
+                        <span className="text-slate-400">Source:</span> {clip.sourceTitle}
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -1046,10 +1396,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                         {clip.audioUrl ? (
                           <button
                             onClick={() => playSoloPreview(clip)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                               isSoloPlaying
-                                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                                ? 'bg-indigo-600 text-white border-indigo-500'
+                                : 'bg-transparent hover:bg-slate-800 text-slate-300 border-transparent'
                             }`}
                             title="Stream preview directly from cloud storage"
                           >
@@ -1057,7 +1407,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                             <span>{isSoloPlaying ? 'Pause' : 'Stream'}</span>
                           </button>
                         ) : hasFailed ? (
-                          <span className="px-2 py-1 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">
+                          <span className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-semibold">
                             Stream Offline
                           </span>
                         ) : null}
@@ -1066,10 +1416,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                         {!isHardExcluded && (
                           <button
                             onClick={() => toggleBlacklist(clip.quoteId || clip.id)}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                               isExcluded
-                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/30 hover:bg-rose-500/30'
-                                : 'bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-300 border-slate-700'
+                                ? 'bg-transparent text-rose-300 border-rose-500/40 hover:bg-rose-500/10'
+                                : 'bg-transparent hover:bg-slate-800 text-slate-300 hover:text-rose-300 border-transparent'
                             }`}
                             title="Exclude quote from automatic montage sequences"
                           >
@@ -1081,23 +1431,23 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                         <button
                           onClick={() => addClip(clip)}
                           disabled={isHardExcluded || isAlreadyInTimeline}
-                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer ${
+                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer ${
                             isAlreadyInTimeline
-                              ? 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed'
+                              ? 'bg-transparent text-emerald-400 border border-slate-800 cursor-not-allowed'
                               : isHardExcluded
-                              ? 'bg-rose-950/40 text-slate-500 border border-rose-900/30 cursor-not-allowed'
-                              : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20'
+                              ? 'bg-rose-950/40 text-slate-400 border border-rose-900/30 cursor-not-allowed'
+                              : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                           }`}
                         >
                           {isAlreadyInTimeline ? (
                             <>
                               <Check size={12} />
-                              <span>Added</span>
+                              <span>In reel</span>
                             </>
                           ) : (
                             <>
                               <Plus size={12} />
-                              <span>+ Add to Reel</span>
+                              <span>Add to reel</span>
                             </>
                           )}
                         </button>
@@ -1110,6 +1460,28 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           </div>
         </section>
       </div>
+
+      {/* ── FLOATING TRANSPORT BAR & PLAYHEAD CONTROLS ── */}
+      {timelineClips.length > 0 && (
+        <FloatingTransportBar
+          isPlaying={isAuditioning}
+          currentIndex={currentAuditionIndex}
+          totalClips={timelineClips.length}
+          currentClipTitle={timelineClips[currentAuditionIndex]?.title || timelineClips[currentAuditionIndex]?.speaker}
+          currentClipSpeaker={timelineClips[currentAuditionIndex]?.speaker}
+          elapsedSec={auditionProgress?.elapsedSec ?? 0}
+          totalSec={cumulativeSec}
+          onTogglePlay={isAuditioning ? stopAudition : startAudition}
+          onAuditionSolo={() => {
+            const clip = timelineClips[currentAuditionIndex >= 0 ? currentAuditionIndex : 0];
+            if (clip) playSoloPreview(clip);
+          }}
+          onPrev={() => skipAudition(Math.max(0, currentAuditionIndex - 1))}
+          onNext={() => skipAudition(Math.min(timelineClips.length - 1, currentAuditionIndex + 1))}
+          onReset={() => skipAudition(0)}
+          normalizeAudio={normalizeAudio}
+        />
+      )}
     </div>
   );
 };

@@ -115,11 +115,44 @@ jobs:
                   subprocess.run(['ffmpeg', '-y', '-i', raw_in, '-t', '45', '-ar', '16000', '-ac', '1', f'{clips_dir}/clip_01.wav'], check=True)
           "
 
-      - name: Enroll Audio Clips into voice_profiles.json
+      - name: Enroll Audio Clips into voice_profiles.json (with Auto-Remediation & Retry)
+        id: enroll_step
         run: |
-          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/clips" --name "${{ inputs.speaker_name }}"
+          set +e
+          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/clips" --name "${{ inputs.speaker_name }}" 2>&1 | tee enrollment.log
+          ENROLL_EXIT=${PIPESTATUS[0]}
+          echo "enroll_exit=$ENROLL_EXIT" >> $GITHUB_OUTPUT
+          if [ $ENROLL_EXIT -eq 0 ]; then
+            echo "enroll_status=success" >> $GITHUB_OUTPUT
+            echo "[✓] Voice enrollment completed on initial or internal retry pass."
+          else
+            echo "[!] Voice enrollment initial attempt exited with code $ENROLL_EXIT. Engaging Auto-Remediation Secondary Pass..."
+            # Auto-Remediation: apply 16kHz mono loudnorm + VAD to full input if stream slices failed
+            mkdir -p speaker_samples/downloaded/remediated
+            ffmpeg -y -i speaker_samples/downloaded/input_raw -vn -ac 1 -ar 16000 -c:a pcm_s16le \
+              -af "silenceremove=start_periods=1:start_duration=0.1:start_threshold=-38dB:detection=peak,loudnorm=I=-16:TP=-1.5:LRA=11" \
+              -t 30 speaker_samples/downloaded/remediated/remediated_voice.wav || true
+            
+            if [ -f speaker_samples/downloaded/remediated/remediated_voice.wav ]; then
+              echo "[*] Re-attempting enrollment with sanitized, loudnorm-filtered audio..."
+              python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/remediated/remediated_voice.wav" --name "${{ inputs.speaker_name }}" 2>&1 | tee -a enrollment.log
+              RETRY_EXIT=${PIPESTATUS[0]}
+              if [ $RETRY_EXIT -eq 0 ]; then
+                echo "enroll_status=healed" >> $GITHUB_OUTPUT
+                echo "enroll_exit=0" >> $GITHUB_OUTPUT
+                echo "[✓] Voice profile enrollment successfully HEALED on remediation pass!"
+              else
+                echo "enroll_status=failed" >> $GITHUB_OUTPUT
+                echo "enroll_exit=$RETRY_EXIT" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "enroll_status=failed" >> $GITHUB_OUTPUT
+            fi
+          fi
+          set -e
 
       - name: Update Role & Permanently Relabel Episode Transcript
+        if: steps.enroll_step.outputs.enroll_exit == '0'
         env:
           SPK_NAME: ${{ inputs.speaker_name }}
           SPK_ROLE: ${{ inputs.role }}
@@ -169,9 +202,82 @@ jobs:
                               json.dump(sum_data, f, ensure_ascii=False, indent=2)
           "
 
+      - name: Quarantine Failed Job to Dead-Letter Queue (DLQ)
+        if: steps.enroll_step.outputs.enroll_exit != '0'
+        env:
+          SPK_NAME: ${{ inputs.speaker_name }}
+          AUDIO_URL: ${{ inputs.audio_url }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          python -c "
+          import json, os, time
+          spk = os.environ.get('SPK_NAME', 'Unknown')
+          audio = os.environ.get('AUDIO_URL', '')
+          run_id = os.environ.get('RUN_ID', '0')
+          repo = os.environ.get('REPO', '')
+          server = os.environ.get('SERVER_URL', 'https://github.com')
+          log_url = f'{server}/{repo}/actions/runs/{run_id}'
+
+          root_cause = 'Unknown audio or speech extraction failure'
+          if os.path.exists('enrollment.log'):
+              with open('enrollment.log', 'r', encoding='utf-8', errors='ignore') as lf:
+                  content = lf.read()
+                  if 'All audio clips failed pre-flight' in content or 'VAD' in content:
+                      root_cause = 'Audio pre-flight rejection: failed format or no continuous active speech (VAD < 1.0s)'
+                  elif 'Model initialization failed' in content:
+                      root_cause = 'Transient API/Model download failure: HuggingFace/SpeechBrain unreachable after 3 backoffs'
+                  elif 'No embeddings could be extracted' in content:
+                      root_cause = 'Low SNR or silent audio: no usable speech vector computed'
+                  else:
+                      lines = [l.strip() for l in content.splitlines() if l.strip()]
+                      if lines:
+                          root_cause = lines[-1][:200]
+
+          dlq_entry = {
+              'id': f'dlq_voice_{run_id}',
+              'workflow': 'Enroll Voice Profile',
+              'runId': int(run_id) if run_id.isdigit() else 0,
+              'speakerName': spk,
+              'audioUrl': audio,
+              'failedAt': int(time.time() * 1000),
+              'attempts': 3,
+              'rootCause': root_cause,
+              'logUrl': log_url,
+              'status': 'quarantined'
+          }
+
+          profiles_file = 'voice_profiles.json'
+          data = {'profiles': {}, 'dlq': []}
+          if os.path.exists(profiles_file):
+              try:
+                  with open(profiles_file, 'r', encoding='utf-8') as f:
+                      data = json.load(f)
+              except Exception:
+                  pass
+          data.setdefault('dlq', [])
+          data['dlq'] = [d for d in data['dlq'] if d.get('speakerName') != spk]
+          data['dlq'].insert(0, dlq_entry)
+          with open(profiles_file, 'w', encoding='utf-8') as f:
+              json.dump(data, f, indent=2)
+          if os.path.exists('public'):
+              with open('public/voice_profiles.json', 'w', encoding='utf-8') as f:
+                  json.dump(data, f, indent=2)
+          print(f'[!] Job quarantined to DLQ: {dlq_entry}')
+          "
+
       - name: Commit and Push Updated voice_profiles.json & Episode Transcript
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add voice_profiles.json public/voice_profiles.json public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
-          git diff --quiet && git diff --staged --quiet || (git pull --rebase origin master && git commit -m "feat(voice): enroll multi-sample neural voiceprint for '${{ inputs.speaker_name }}'" && git push origin master)
+          git diff --staged --quiet || (git commit -m "feat(voice): update voice profiles and telemetry for '${{ inputs.speaker_name }}' [skip ci]" && git pull --rebase origin master && git push origin master)
+
+      - name: Assert Step Result
+        if: steps.enroll_step.outputs.enroll_exit != '0'
+        run: |
+          echo "::error title=Voice Enrollment Failed::All 3 healed fallback attempts failed. Job quarantined to Dead-Letter Queue (DLQ)."
+          exit 1
+

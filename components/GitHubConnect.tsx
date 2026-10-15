@@ -68,7 +68,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
             </div>
             <button
               onClick={handleDisconnect}
-              className="p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
               title="Disconnect"
             >
               <X size={18} />
@@ -111,7 +111,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono focus:outline-none focus:border-indigo-500 transition-colors"
               />
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-xs">
+                <div className="flex items-center gap-2 text-rose-400 text-xs">
                   <AlertCircle size={13} />
                   <span>{error}</span>
                 </div>
@@ -137,7 +137,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
 
           <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-xl space-y-3">
             <p className="text-sm font-medium text-slate-300">How to create a token:</p>
-            <ol className="text-xs text-slate-500 space-y-2 list-none">
+            <ol className="text-xs text-slate-400 space-y-2 list-none">
               <li className="flex gap-3"><span className="text-indigo-400 font-bold">1.</span> Go to GitHub Settings → Developer Settings → Personal Access Tokens</li>
               <li className="flex gap-3"><span className="text-indigo-400 font-bold">2.</span> Click "Generate new token (classic)"</li>
               <li className="flex gap-3"><span className="text-indigo-400 font-bold">3.</span> Select scopes: <code className="bg-slate-800 px-1 rounded text-slate-300">repo</code>, <code className="bg-slate-800 px-1 rounded text-slate-300">workflow</code></li>
@@ -154,7 +154,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
             </a>
           </div>
 
-          <p className="text-xs text-slate-600 text-center">
+          <p className="text-xs text-slate-500 text-center">
             Your token is only sent to the GitHub API. It is never sent to any other server.
           </p>
         </div>
