@@ -1,0 +1,61 @@
+name: Rescan Archive for Speaker
+
+on:
+  workflow_dispatch:
+    inputs:
+      speaker_name:
+        description: 'Speaker Name enrolled in voice_profiles.json (e.g. Rose, Angela, Oor)'
+        required: true
+        default: 'Rose'
+        type: string
+      batch_size:
+        description: 'Number of historical episodes to process (0 = all)'
+        required: false
+        default: '50'
+        type: string
+      min_similarity:
+        description: 'Minimum cosine similarity threshold (default: 0.54)'
+        required: false
+        default: '0.54'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  rescan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libsndfile1 curl
+
+      - name: Install Python AI Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install speechbrain soundfile requests
+
+      - name: Execute Acoustic & Conversational Archive Rescan
+        run: |
+          python scripts/rescan_archive_speakers.py \
+            --speaker "${{ inputs.speaker_name }}" \
+            --batch-size "${{ inputs.batch_size }}" \
+            --min-sim "${{ inputs.min_similarity }}"
+
+      - name: Commit and Push Updated Transcripts & Summary Index
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
+          git diff --staged --quiet || (git commit -m "chore(transcripts): rescan archive and update labels for '${{ inputs.speaker_name }}' [skip ci]" && git pull --rebase origin master && git push origin master)
