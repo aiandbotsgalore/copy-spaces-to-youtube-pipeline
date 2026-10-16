@@ -88,18 +88,26 @@ const DEFAULT_CATALOG: VoiceProfilesCatalog = {
 };
 
 const COLOR_OPTIONS = [
-  { id: 'indigo',  label: 'Indigo',   badge: 'bg-indigo-600/30 text-indigo-200 border-indigo-500/50',  dot: 'bg-indigo-400' },
-  { id: 'rose',    label: 'Rose',     badge: 'bg-rose-600/30 text-rose-200 border-rose-500/50',        dot: 'bg-rose-400' },
-  { id: 'emerald', label: 'Emerald',  badge: 'bg-emerald-600/30 text-emerald-200 border-emerald-500/50', dot: 'bg-emerald-400' },
-  { id: 'sky',     label: 'Sky Blue', badge: 'bg-slate-600/30 text-slate-300 border-slate-500/50',          dot: 'bg-slate-400' },
-  { id: 'purple',  label: 'Purple',   badge: 'bg-indigo-600/30 text-indigo-200 border-indigo-500/50',  dot: 'bg-indigo-400' },
-  { id: 'amber',   label: 'Amber',    badge: 'bg-amber-600/30 text-amber-200 border-amber-500/50',    dot: 'bg-amber-400' },
-  { id: 'cyan',    label: 'Cyan',     badge: 'bg-slate-600/30 text-slate-300 border-slate-500/50',        dot: 'bg-slate-400' },
-  { id: 'orange',  label: 'Orange',   badge: 'bg-amber-600/30 text-amber-200 border-amber-500/50',  dot: 'bg-amber-400' },
+  { id: 'indigo',  label: 'Indigo',   badge: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/60',  dot: 'bg-indigo-400' },
+  { id: 'purple',  label: 'Purple',   badge: 'bg-purple-500/20 text-purple-200 border-purple-400/60',  dot: 'bg-purple-400' },
+  { id: 'emerald', label: 'Emerald',  badge: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/60', dot: 'bg-emerald-400' },
+  { id: 'sky',     label: 'Sky Blue', badge: 'bg-sky-500/20 text-sky-200 border-sky-400/60',          dot: 'bg-sky-400' },
+  { id: 'amber',   label: 'Amber',    badge: 'bg-amber-500/20 text-amber-200 border-amber-400/60',    dot: 'bg-amber-400' },
+  { id: 'rose',    label: 'Rose',     badge: 'bg-rose-500/20 text-rose-200 border-rose-400/60',        dot: 'bg-rose-400' },
+  { id: 'cyan',    label: 'Cyan',     badge: 'bg-cyan-500/20 text-cyan-200 border-cyan-400/60',        dot: 'bg-cyan-400' },
+  { id: 'orange',  label: 'Orange',   badge: 'bg-orange-500/20 text-orange-200 border-orange-400/60',  dot: 'bg-orange-400' },
+  { id: 'teal',    label: 'Teal',     badge: 'bg-teal-500/20 text-teal-200 border-teal-400/60',        dot: 'bg-teal-400' },
+  { id: 'fuchsia', label: 'Fuchsia',  badge: 'bg-fuchsia-500/20 text-fuchsia-200 border-fuchsia-400/60',dot: 'bg-fuchsia-400' },
+  { id: 'pink',    label: 'Pink',     badge: 'bg-pink-500/20 text-pink-200 border-pink-400/60',        dot: 'bg-pink-400' },
+  { id: 'lime',    label: 'Lime',     badge: 'bg-lime-500/20 text-lime-200 border-lime-400/60',        dot: 'bg-lime-400' },
+  { id: 'violet',  label: 'Violet',   badge: 'bg-violet-500/20 text-violet-200 border-violet-400/60',  dot: 'bg-violet-400' },
+  { id: 'yellow',  label: 'Yellow',   badge: 'bg-yellow-500/20 text-yellow-200 border-yellow-400/60',  dot: 'bg-yellow-400' },
+  { id: 'blue',    label: 'Blue',     badge: 'bg-blue-500/20 text-blue-200 border-blue-400/60',        dot: 'bg-blue-400' },
+  { id: 'red',     label: 'Red',      badge: 'bg-red-500/20 text-red-200 border-red-400/60',          dot: 'bg-red-400' },
 ];
 
 const ROLE_OPTIONS = ['Host', 'Co-Host', 'Special Guest', 'Speaker', 'Community Contributor'];
-const EMOJI_OPTIONS = ['🎙️', '👩‍🎨', '⚡', '🛸', '🎧', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️', '🎯', '🚀'];
+const EMOJI_OPTIONS = ['🎙️', '🌹', '⚡', '🛸', '✨', '🧠', '👁️', '💫', '🎧', '👩‍🎨', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️', '🧸', '🎯', '🚀'];
 
 export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const [catalog, setCatalog] = useState<VoiceProfilesCatalog>(DEFAULT_CATALOG);

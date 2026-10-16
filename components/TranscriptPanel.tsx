@@ -337,71 +337,101 @@ function formatSeconds(sec: number): string {
 }
 
 const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
-  indigo:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  purple:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  emerald: { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  sky:     { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
-  amber:   { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
-  rose:    { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  cyan:    { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
-  fuchsia: { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
-  teal:    { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
-  orange:  { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
+  indigo:  { bg: 'bg-indigo-950/70',  text: 'text-indigo-200',  border: 'border-indigo-500/50',  badge: 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/60 font-bold shadow-sm shadow-indigo-950/50',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold ring-2 ring-indigo-400/40 shadow-md shadow-indigo-950/60'  },
+  purple:  { bg: 'bg-purple-950/70',  text: 'text-purple-200',  border: 'border-purple-500/50',  badge: 'bg-purple-500/20 text-purple-200 border border-purple-400/60 font-bold shadow-sm shadow-purple-950/50',  dot: 'bg-purple-400 ring-2 ring-purple-400/40',  avatar: 'bg-gradient-to-br from-purple-500 to-purple-700 text-white font-bold ring-2 ring-purple-400/40 shadow-md shadow-purple-950/60'  },
+  emerald: { bg: 'bg-emerald-950/70', text: 'text-emerald-200', border: 'border-emerald-500/50', badge: 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/60 font-bold shadow-sm shadow-emerald-950/50', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white font-bold ring-2 ring-emerald-400/40 shadow-md shadow-emerald-950/60' },
+  sky:     { bg: 'bg-sky-950/70',     text: 'text-sky-200',     border: 'border-sky-500/50',     badge: 'bg-sky-500/20 text-sky-200 border border-sky-400/60 font-bold shadow-sm shadow-sky-950/50',             dot: 'bg-sky-400 ring-2 ring-sky-400/40',         avatar: 'bg-gradient-to-br from-sky-500 to-sky-700 text-white font-bold ring-2 ring-sky-400/40 shadow-md shadow-sky-950/60'     },
+  amber:   { bg: 'bg-amber-950/70',   text: 'text-amber-200',   border: 'border-amber-500/50',   badge: 'bg-amber-500/20 text-amber-200 border border-amber-400/60 font-bold shadow-sm shadow-amber-950/50',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',     avatar: 'bg-gradient-to-br from-amber-500 to-amber-700 text-white font-bold ring-2 ring-amber-400/40 shadow-md shadow-amber-950/60'   },
+  rose:    { bg: 'bg-rose-950/70',    text: 'text-rose-200',    border: 'border-rose-500/50',    badge: 'bg-rose-500/20 text-rose-200 border border-rose-400/60 font-bold shadow-sm shadow-rose-950/50',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',       avatar: 'bg-gradient-to-br from-rose-500 to-rose-700 text-white font-bold ring-2 ring-rose-400/40 shadow-md shadow-rose-950/60'    },
+  cyan:    { bg: 'bg-cyan-950/70',    text: 'text-cyan-200',    border: 'border-cyan-500/50',    badge: 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/60 font-bold shadow-sm shadow-cyan-950/50',           dot: 'bg-cyan-400 ring-2 ring-cyan-400/40',       avatar: 'bg-gradient-to-br from-cyan-500 to-cyan-700 text-white font-bold ring-2 ring-cyan-400/40 shadow-md shadow-cyan-950/60'    },
+  fuchsia: { bg: 'bg-fuchsia-950/70', text: 'text-fuchsia-200', border: 'border-fuchsia-500/50', badge: 'bg-fuchsia-500/20 text-fuchsia-200 border border-fuchsia-400/60 font-bold shadow-sm shadow-fuchsia-950/50', dot: 'bg-fuchsia-400 ring-2 ring-fuchsia-400/40', avatar: 'bg-gradient-to-br from-fuchsia-500 to-fuchsia-700 text-white font-bold ring-2 ring-fuchsia-400/40 shadow-md shadow-fuchsia-950/60' },
+  teal:    { bg: 'bg-teal-950/70',    text: 'text-teal-200',    border: 'border-teal-500/50',    badge: 'bg-teal-500/20 text-teal-200 border border-teal-400/60 font-bold shadow-sm shadow-teal-950/50',           dot: 'bg-teal-400 ring-2 ring-teal-400/40',       avatar: 'bg-gradient-to-br from-teal-500 to-teal-700 text-white font-bold ring-2 ring-teal-400/40 shadow-md shadow-teal-950/60'    },
+  orange:  { bg: 'bg-orange-950/70',  text: 'text-orange-200',  border: 'border-orange-500/50',  badge: 'bg-orange-500/20 text-orange-200 border border-orange-400/60 font-bold shadow-sm shadow-orange-950/50',    dot: 'bg-orange-400 ring-2 ring-orange-400/40',   avatar: 'bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold ring-2 ring-orange-400/40 shadow-md shadow-orange-950/60'  },
+  pink:    { bg: 'bg-pink-950/70',    text: 'text-pink-200',    border: 'border-pink-500/50',    badge: 'bg-pink-500/20 text-pink-200 border border-pink-400/60 font-bold shadow-sm shadow-pink-950/50',           dot: 'bg-pink-400 ring-2 ring-pink-400/40',       avatar: 'bg-gradient-to-br from-pink-500 to-pink-700 text-white font-bold ring-2 ring-pink-400/40 shadow-md shadow-pink-950/60'    },
+  lime:    { bg: 'bg-lime-950/70',    text: 'text-lime-200',    border: 'border-lime-500/50',    badge: 'bg-lime-500/20 text-lime-200 border border-lime-400/60 font-bold shadow-sm shadow-lime-950/50',           dot: 'bg-lime-400 ring-2 ring-lime-400/40',       avatar: 'bg-gradient-to-br from-lime-500 to-lime-700 text-slate-900 font-bold ring-2 ring-lime-400/40 shadow-md shadow-lime-950/60'  },
+  violet:  { bg: 'bg-violet-950/70',  text: 'text-violet-200',  border: 'border-violet-500/50',  badge: 'bg-violet-500/20 text-violet-200 border border-violet-400/60 font-bold shadow-sm shadow-violet-950/50',    dot: 'bg-violet-400 ring-2 ring-violet-400/40',   avatar: 'bg-gradient-to-br from-violet-500 to-violet-700 text-white font-bold ring-2 ring-violet-400/40 shadow-md shadow-violet-950/60'  },
+  yellow:  { bg: 'bg-yellow-950/70',  text: 'text-yellow-200',  border: 'border-yellow-500/50',  badge: 'bg-yellow-500/20 text-yellow-200 border border-yellow-400/60 font-bold shadow-sm shadow-yellow-950/50',    dot: 'bg-yellow-400 ring-2 ring-yellow-400/40',   avatar: 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-slate-950 font-bold ring-2 ring-yellow-400/40 shadow-md shadow-yellow-950/60' },
+  blue:    { bg: 'bg-blue-950/70',    text: 'text-blue-200',    border: 'border-blue-500/50',    badge: 'bg-blue-500/20 text-blue-200 border border-blue-400/60 font-bold shadow-sm shadow-blue-950/50',           dot: 'bg-blue-400 ring-2 ring-blue-400/40',       avatar: 'bg-gradient-to-br from-blue-500 to-blue-700 text-white font-bold ring-2 ring-blue-400/40 shadow-md shadow-blue-950/60'    },
+  red:     { bg: 'bg-red-950/70',     text: 'text-red-200',     border: 'border-red-500/50',     badge: 'bg-red-500/20 text-red-200 border border-red-400/60 font-bold shadow-sm shadow-red-950/50',             dot: 'bg-red-400 ring-2 ring-red-400/40',         avatar: 'bg-gradient-to-br from-red-500 to-red-700 text-white font-bold ring-2 ring-red-400/40 shadow-md shadow-red-950/60'     },
 };
 
 const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
-  { id: 'angela',    name: 'Angela',    avatarEmoji: '🎙️', color: 'rose',    role: 'Host'          },
-  { id: 'logan',     name: 'Logan',     avatarEmoji: '🎙️', color: 'indigo',  role: 'Host'          },
-  { id: 'mary',      name: 'Mary',      avatarEmoji: '👩‍🎨', color: 'purple',  role: 'Co-Host'       },
-  { id: 'oor',       name: 'Oor',       avatarEmoji: '⚡',  color: 'sky',     role: 'Speaker'       },
-  { id: 'rick-doty', name: 'Rick Doty', avatarEmoji: '🛸',  color: 'emerald', role: 'Special Guest' },
-  { id: 'shane',     name: 'Shane',     avatarEmoji: '🎧',  color: 'amber',   role: 'Co-Host'       },
-  { id: 'lana',      name: 'Lana',      avatarEmoji: '🌸',  color: 'rose',    role: 'Speaker'       },
+  { id: 'logan',             name: 'Logan',             avatarEmoji: '🎙️', color: 'indigo',  role: 'Host'          },
+  { id: 'rose',              name: 'Rose',              avatarEmoji: '🌹', color: 'rose',    role: 'Special Guest' },
+  { id: 'angela',            name: 'Angela',            avatarEmoji: '🎙️', color: 'pink',    role: 'Host'          },
+  { id: 'oor',               name: 'Oor',               avatarEmoji: '⚡', color: 'sky',     role: 'Speaker'       },
+  { id: 'eric-hecker',       name: 'Eric Hecker',       avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
+  { id: 'god-sauce',         name: 'God Sauce',         avatarEmoji: '✨', color: 'amber',   role: 'Special Guest' },
+  { id: 'brian',             name: 'Brian',             avatarEmoji: '🧠', color: 'teal',    role: 'Speaker'       },
+  { id: 'conscious-culprit', name: 'ConsciousCulprit',  avatarEmoji: '👁️', color: 'purple',  role: 'Special Guest' },
+  { id: 'linn',              name: 'Linn',              avatarEmoji: '💫', color: 'cyan',    role: 'Speaker'       },
+  { id: 'teejay',            name: 'teejay',            avatarEmoji: '🎧', color: 'orange',  role: 'Speaker'       },
+  { id: 'mary',              name: 'Mary',              avatarEmoji: '👩‍🎨', color: 'violet',  role: 'Co-Host'       },
+  { id: 'shane',             name: 'Shane',             avatarEmoji: '🎧', color: 'lime',    role: 'Co-Host'       },
+  { id: 'rick-doty',         name: 'Rick Doty',         avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
+  { id: 'tom',               name: 'Tom',               avatarEmoji: '🗣️', color: 'blue',    role: 'Speaker'       },
+  { id: 'lana',              name: 'Lana',              avatarEmoji: '🌸', color: 'pink',    role: 'Speaker'       },
+  { id: 'chan',              name: 'Chan',              avatarEmoji: '💬', color: 'yellow',  role: 'Speaker'       },
+  { id: 'parr',              name: 'Parr',              avatarEmoji: '🎙️', color: 'red',     role: 'Speaker'       },
+  { id: 'dougie',            name: 'Dougie',            avatarEmoji: '🎙️', color: 'fuchsia', role: 'Speaker'       },
+  { id: 'dr-snuggles',       name: 'Dr. Snuggles',      avatarEmoji: '🧸', color: 'teal',    role: 'Speaker'       },
+  { id: 'sarah',             name: 'Sarah',             avatarEmoji: '🌟', color: 'amber',   role: 'Speaker'       },
 ];
 
-const SPEAKER_PALETTE: Record<string, { bg: string; text: string; border: string; badge: string; dot: string; avatar: string }> = {
-  // Direct digit mappings for Deepgram "Speaker 0", "Speaker 1", etc.
-  '0': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  '1': { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
-  '2': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  '3': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
-  '4': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  '5': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
-  '6': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  '7': { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
-  '8': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
-  '9': { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
-  // Letter mappings
-  'A': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-  'B': { bg: 'bg-slate-950/70',     text: 'text-slate-300',     border: 'border-slate-400/60',     badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',             dot: 'bg-slate-400 ring-2 ring-slate-400/40',     avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'     },
-  'C': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',  dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  'D': { bg: 'bg-amber-950/70',   text: 'text-amber-100',   border: 'border-amber-400/60',   badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',       dot: 'bg-amber-400 ring-2 ring-amber-400/40',   avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'   },
-  'E': { bg: 'bg-rose-950/70',    text: 'text-rose-100',    border: 'border-rose-400/60',    badge: 'bg-rose-600/35 text-rose-100 border border-rose-400/70 font-bold shadow-sm',           dot: 'bg-rose-400 ring-2 ring-rose-400/40',    avatar: 'bg-rose-600 text-white font-bold ring-2 ring-white/20'    },
-  'F': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
-  'G': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  'H': { bg: 'bg-emerald-950/70',    text: 'text-emerald-100',    border: 'border-emerald-400/60',    badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm',           dot: 'bg-emerald-400 ring-2 ring-emerald-400/40',    avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20'    },
-  'I': { bg: 'bg-indigo-950/70',  text: 'text-indigo-100',  border: 'border-indigo-400/60',  badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',    dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',  avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'  },
-  'J': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
-  'K': { bg: 'bg-indigo-950/70',    text: 'text-indigo-100',    border: 'border-indigo-400/60',    badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm',           dot: 'bg-indigo-400 ring-2 ring-indigo-400/40',    avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20'    },
-  'L': { bg: 'bg-lime-950/70',    text: 'text-lime-100',    border: 'border-lime-400/60',    badge: 'bg-lime-600/35 text-lime-100 border border-lime-400/70 font-bold shadow-sm',           dot: 'bg-lime-400 ring-2 ring-lime-400/40',    avatar: 'bg-lime-600 text-white font-bold ring-2 ring-white/20'    },
-  'M': { bg: 'bg-indigo-950/70', text: 'text-indigo-100', border: 'border-indigo-400/60', badge: 'bg-indigo-600/35 text-indigo-100 border border-indigo-400/70 font-bold shadow-sm', dot: 'bg-indigo-400 ring-2 ring-indigo-400/40', avatar: 'bg-indigo-600 text-white font-bold ring-2 ring-white/20' },
-  'N': { bg: 'bg-amber-950/70',  text: 'text-amber-100',  border: 'border-amber-400/60',  badge: 'bg-amber-600/35 text-amber-100 border border-amber-400/70 font-bold shadow-sm',    dot: 'bg-amber-400 ring-2 ring-amber-400/40',  avatar: 'bg-amber-600 text-white font-bold ring-2 ring-white/20'  },
-  'O': { bg: 'bg-slate-950/70',    text: 'text-slate-300',    border: 'border-slate-400/60',    badge: 'bg-slate-600/35 text-slate-300 border border-slate-400/70 font-bold shadow-sm',           dot: 'bg-slate-400 ring-2 ring-slate-400/40',    avatar: 'bg-slate-600 text-white font-bold ring-2 ring-white/20'    },
-  'P': { bg: 'bg-emerald-950/70', text: 'text-emerald-100', border: 'border-emerald-400/60', badge: 'bg-emerald-600/35 text-emerald-100 border border-emerald-400/70 font-bold shadow-sm', dot: 'bg-emerald-400 ring-2 ring-emerald-400/40', avatar: 'bg-emerald-600 text-white font-bold ring-2 ring-white/20' },
-};
+// High-contrast alternating palette ensuring consecutive generic speakers (1, 2, 3... or A, B, C...) have contrasting hues
+export const DYNAMIC_COLOR_ORDER = [
+  'emerald',  // 1 / B -> vibrant emerald green
+  'amber',    // 2 / C -> warm golden amber
+  'purple',   // 3 / D -> rich royal purple
+  'sky',      // 4 / E -> bright sky blue
+  'rose',     // 5 / F -> vivid coral rose
+  'teal',     // 6 / G -> luminous deep teal
+  'orange',   // 7 / H -> fiery neon orange
+  'fuchsia',  // 8 / I -> electric fuchsia magenta
+  'lime',     // 9 / J -> bright electric lime
+  'cyan',     // 10 / K -> glowing aqua cyan
+  'indigo',   // 11 / L -> deep rich indigo
+  'pink',     // 12 / M -> hot pink
+  'violet',   // 13 / N -> electric violet
+  'yellow',   // 14 / O -> sunny bright yellow
+  'blue',     // 15 / P -> classic royal blue
+  'red',      // 16 / Q -> vivid crimson red
+];
 
 function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
+  if (!displayName) {
+    return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, role: undefined };
+  }
   const match = savedSpeakers.find(s => s.name.toLowerCase() === displayName.toLowerCase());
   if (match && match.color && SPEAKER_COLOR_MAP[match.color]) {
     return { ...SPEAKER_COLOR_MAP[match.color], emoji: match.avatarEmoji, role: match.role };
   }
-  const clean = displayName.replace(/^Speaker\s+/i, '').trim();
-  const char = (clean.charAt(0) || 'A').toUpperCase();
-  if (SPEAKER_PALETTE[char]) return { ...SPEAKER_PALETTE[char], emoji: undefined, role: undefined };
+
+  // Handle "Speaker 1", "Speaker 2", "Speaker_1", etc.
+  const numMatch = displayName.match(/^Speaker[\s_]+(\d+)$/i);
+  if (numMatch) {
+    const num = parseInt(numMatch[1], 10);
+    // 1-indexed: Speaker 1 -> DYNAMIC_COLOR_ORDER[0] (emerald), Speaker 2 -> DYNAMIC_COLOR_ORDER[1] (amber), etc.
+    const colorIdx = (num > 0 ? num - 1 : 0) % DYNAMIC_COLOR_ORDER.length;
+    const colorKey = DYNAMIC_COLOR_ORDER[colorIdx];
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+  }
+
+  // Handle "Speaker A", "Speaker B", "Speaker_C", etc.
+  const letterMatch = displayName.match(/^Speaker[\s_]+([A-Z])$/i);
+  if (letterMatch) {
+    const charCode = letterMatch[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, ...
+    const colorKey = DYNAMIC_COLOR_ORDER[((charCode % DYNAMIC_COLOR_ORDER.length) + DYNAMIC_COLOR_ORDER.length) % DYNAMIC_COLOR_ORDER.length];
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+  }
+
+  // Stable deterministic hash for any other speaker name (e.g. "Dave", "Snuggles", "Sarah", "Presenter")
   let hash = 0;
-  for (let i = 0; i < displayName.length; i++) hash = (hash * 31 + displayName.charCodeAt(i)) % 16;
-  const keys = Object.keys(SPEAKER_PALETTE);
-  return { ...SPEAKER_PALETTE[keys[hash % keys.length]], emoji: undefined, role: undefined };
+  for (let i = 0; i < displayName.length; i++) {
+    hash = ((hash << 5) - hash + displayName.charCodeAt(i)) | 0;
+  }
+  const colorKey = DYNAMIC_COLOR_ORDER[Math.abs(hash) % DYNAMIC_COLOR_ORDER.length];
+  return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
 }
 
 const POPULAR_SEARCH_TOPICS = [
@@ -742,7 +772,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [savedSpeakers, setSavedSpeakers] = useState<SavedSpeaker[]>(() => {
     try {
       const stored = localStorage.getItem('spacepipe_saved_speakers');
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed: SavedSpeaker[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const existingNames = new Set(parsed.map(s => s.name.toLowerCase()));
+          const missingDefaults = DEFAULT_SAVED_SPEAKERS.filter(s => !existingNames.has(s.name.toLowerCase()));
+          return [...parsed, ...missingDefaults];
+        }
+      }
     } catch {}
     return DEFAULT_SAVED_SPEAKERS;
   });
@@ -4394,12 +4431,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   className="px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer">
                   <option value="indigo">Indigo</option><option value="purple">Purple</option><option value="emerald">Emerald</option>
                   <option value="sky">Sky Blue</option><option value="amber">Amber</option><option value="rose">Rose</option>
-                  <option value="cyan">Cyan</option><option value="teal">Teal</option><option value="orange">Orange</option><option value="fuchsia">Fuchsia</option>
+                  <option value="cyan">Cyan</option><option value="teal">Teal</option><option value="orange">Orange</option>
+                  <option value="fuchsia">Fuchsia</option><option value="pink">Pink</option><option value="lime">Lime</option>
+                  <option value="violet">Violet</option><option value="yellow">Yellow</option><option value="blue">Blue</option><option value="red">Red</option>
                 </select>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap pt-1">
                 <span className="text-[11px] text-slate-400 font-medium">Emoji:</span>
-                {['🎙️', '👩‍🎨', '⚡', '🛸', '🎧', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️'].map(emoji => (
+                {['🎙️', '🌹', '⚡', '🛸', '✨', '🧠', '👁️', '💫', '🎧', '👩‍🎨', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️', '🧸', '🌟'].map(emoji => (
                   <button key={emoji} type="button" onClick={() => setNewSpeakerEmoji(emoji)}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${newSpeakerEmoji === emoji ? 'bg-indigo-600 text-white scale-110 shadow' : 'bg-slate-900 hover:bg-slate-800'}`}>
                     {emoji}
