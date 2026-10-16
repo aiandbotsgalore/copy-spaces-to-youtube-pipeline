@@ -358,22 +358,23 @@ const SPEAKER_COLOR_MAP: Record<string, { bg: string; text: string; border: stri
 const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
   { id: 'logan',             name: 'Logan',             avatarEmoji: '🎙️', color: 'indigo',  role: 'Host'          },
   { id: 'rose',              name: 'Rose',              avatarEmoji: '🌹', color: 'rose',    role: 'Special Guest' },
-  { id: 'angela',            name: 'Angela',            avatarEmoji: '🎙️', color: 'pink',    role: 'Host'          },
+  { id: 'angela',            name: 'Angela',            avatarEmoji: '🌸', color: 'pink',    role: 'Host'          },
   { id: 'oor',               name: 'Oor',               avatarEmoji: '⚡', color: 'sky',     role: 'Speaker'       },
-  { id: 'eric-hecker',       name: 'Eric Hecker',       avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
-  { id: 'god-sauce',         name: 'God Sauce',         avatarEmoji: '✨', color: 'amber',   role: 'Special Guest' },
   { id: 'brian',             name: 'Brian',             avatarEmoji: '🧠', color: 'teal',    role: 'Speaker'       },
   { id: 'conscious-culprit', name: 'ConsciousCulprit',  avatarEmoji: '👁️', color: 'purple',  role: 'Special Guest' },
-  { id: 'linn',              name: 'Linn',              avatarEmoji: '💫', color: 'cyan',    role: 'Speaker'       },
   { id: 'teejay',            name: 'teejay',            avatarEmoji: '🎧', color: 'orange',  role: 'Speaker'       },
+  { id: 'rotary',            name: 'Rotary',            avatarEmoji: '⚙️', color: 'amber',   role: 'Speaker'       },
+  { id: 'linn',              name: 'Linn',              avatarEmoji: '💫', color: 'cyan',    role: 'Speaker'       },
+  { id: 'eric-hecker',       name: 'Eric Hecker',       avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
+  { id: 'god-sauce',         name: 'God Sauce',         avatarEmoji: '✨', color: 'amber',   role: 'Special Guest' },
   { id: 'mary',              name: 'Mary',              avatarEmoji: '👩‍🎨', color: 'violet',  role: 'Co-Host'       },
-  { id: 'shane',             name: 'Shane',             avatarEmoji: '🎧', color: 'lime',    role: 'Co-Host'       },
+  { id: 'shane',             name: 'Shane',             avatarEmoji: '🔥', color: 'lime',    role: 'Co-Host'       },
   { id: 'rick-doty',         name: 'Rick Doty',         avatarEmoji: '🛸', color: 'emerald', role: 'Special Guest' },
   { id: 'tom',               name: 'Tom',               avatarEmoji: '🗣️', color: 'blue',    role: 'Speaker'       },
-  { id: 'lana',              name: 'Lana',              avatarEmoji: '🌸', color: 'pink',    role: 'Speaker'       },
+  { id: 'lana',              name: 'Lana',              avatarEmoji: '🌺', color: 'pink',    role: 'Speaker'       },
   { id: 'chan',              name: 'Chan',              avatarEmoji: '💬', color: 'yellow',  role: 'Speaker'       },
-  { id: 'parr',              name: 'Parr',              avatarEmoji: '🎙️', color: 'red',     role: 'Speaker'       },
-  { id: 'dougie',            name: 'Dougie',            avatarEmoji: '🎙️', color: 'fuchsia', role: 'Speaker'       },
+  { id: 'parr',              name: 'Parr',              avatarEmoji: '🎯', color: 'red',     role: 'Speaker'       },
+  { id: 'dougie',            name: 'Dougie',            avatarEmoji: '💎', color: 'fuchsia', role: 'Speaker'       },
   { id: 'dr-snuggles',       name: 'Dr. Snuggles',      avatarEmoji: '🧸', color: 'teal',    role: 'Speaker'       },
   { id: 'sarah',             name: 'Sarah',             avatarEmoji: '🌟', color: 'amber',   role: 'Speaker'       },
 ];
@@ -398,17 +399,56 @@ export const DYNAMIC_COLOR_ORDER = [
   'red',      // 16 / Q -> vivid crimson red
 ];
 
+export const DIVERSE_EMOJIS = ['⚡', '🌹', '🧠', '👁️', '💫', '🎧', '⚙️', '🛸', '✨', '🔥', '⭐', '💎', '🚀', '🎯', '💡', '🌈', '🦁', '🐺', '🦊', '🐻', '🦉'];
+
+export function getAutoSpeakerColor(name: string): string {
+  if (!name) return 'indigo';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  }
+  return DYNAMIC_COLOR_ORDER[Math.abs(hash) % DYNAMIC_COLOR_ORDER.length];
+}
+
+export function getAutoSpeakerEmoji(name: string): string {
+  if (!name) return '🎙️';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+  }
+  return DIVERSE_EMOJIS[Math.abs(hash) % DIVERSE_EMOJIS.length];
+}
+
 function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
   if (!displayName) {
     return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, role: undefined };
   }
-  const match = savedSpeakers.find(s => s.name.toLowerCase() === displayName.toLowerCase());
-  if (match && match.color && SPEAKER_COLOR_MAP[match.color]) {
-    return { ...SPEAKER_COLOR_MAP[match.color], emoji: match.avatarEmoji, role: match.role };
+  const cleanName = displayName.trim();
+  const match = savedSpeakers.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
+  if (match) {
+    let colorKey = match.color;
+    let emoji = match.avatarEmoji;
+    
+    // Auto-heal legacy poisoned 'indigo' / generic '🎙️' saved entries for non-Logan speakers
+    if ((colorKey === 'indigo' || !colorKey || !SPEAKER_COLOR_MAP[colorKey]) && cleanName.toLowerCase() !== 'logan') {
+      const def = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
+      colorKey = def?.color || getAutoSpeakerColor(cleanName);
+      if (emoji === '🎙️' || !emoji) {
+        emoji = def?.avatarEmoji || getAutoSpeakerEmoji(cleanName);
+      }
+    }
+    const resolvedColor = (colorKey && SPEAKER_COLOR_MAP[colorKey]) ? colorKey : getAutoSpeakerColor(cleanName);
+    return { ...SPEAKER_COLOR_MAP[resolvedColor], emoji, role: match.role };
+  }
+
+  // Check official default speakers list
+  const defaultMatch = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
+  if (defaultMatch && defaultMatch.color && SPEAKER_COLOR_MAP[defaultMatch.color]) {
+    return { ...SPEAKER_COLOR_MAP[defaultMatch.color], emoji: defaultMatch.avatarEmoji, role: defaultMatch.role };
   }
 
   // Handle "Speaker 1", "Speaker 2", "Speaker_1", etc.
-  const numMatch = displayName.match(/^Speaker[\s_]+(\d+)$/i);
+  const numMatch = cleanName.match(/^Speaker[\s_]+(\d+)$/i);
   if (numMatch) {
     const num = parseInt(numMatch[1], 10);
     // 1-indexed: Speaker 1 -> DYNAMIC_COLOR_ORDER[0] (emerald), Speaker 2 -> DYNAMIC_COLOR_ORDER[1] (amber), etc.
@@ -418,20 +458,17 @@ function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []
   }
 
   // Handle "Speaker A", "Speaker B", "Speaker_C", etc.
-  const letterMatch = displayName.match(/^Speaker[\s_]+([A-Z])$/i);
+  const letterMatch = cleanName.match(/^Speaker[\s_]+([A-Z])$/i);
   if (letterMatch) {
     const charCode = letterMatch[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, ...
     const colorKey = DYNAMIC_COLOR_ORDER[((charCode % DYNAMIC_COLOR_ORDER.length) + DYNAMIC_COLOR_ORDER.length) % DYNAMIC_COLOR_ORDER.length];
     return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
   }
 
-  // Stable deterministic hash for any other speaker name (e.g. "Dave", "Snuggles", "Sarah", "Presenter")
-  let hash = 0;
-  for (let i = 0; i < displayName.length; i++) {
-    hash = ((hash << 5) - hash + displayName.charCodeAt(i)) | 0;
-  }
-  const colorKey = DYNAMIC_COLOR_ORDER[Math.abs(hash) % DYNAMIC_COLOR_ORDER.length];
-  return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+  // Stable deterministic hash for any other speaker name (e.g. "Rotary", "Dave", "Snuggles", "Sarah", "Presenter")
+  const colorKey = getAutoSpeakerColor(cleanName);
+  const emoji = getAutoSpeakerEmoji(cleanName);
+  return { ...SPEAKER_COLOR_MAP[colorKey], emoji, role: undefined };
 }
 
 const POPULAR_SEARCH_TOPICS = [
@@ -767,6 +804,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number } | null>(null);
   const [quickRenameVal, setQuickRenameVal] = useState('');
   const [quickRenameAddToSaved, setQuickRenameAddToSaved] = useState(false);
+  const [quickRenameColor, setQuickRenameColor] = useState('indigo');
+  const [quickRenameEmoji, setQuickRenameEmoji] = useState('🎙️');
   const [showRenameModal, setShowRenameModal] = useState(false);
 
   const [savedSpeakers, setSavedSpeakers] = useState<SavedSpeaker[]>(() => {
@@ -775,12 +814,36 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       if (stored) {
         const parsed: SavedSpeaker[] = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const existingNames = new Set(parsed.map(s => s.name.toLowerCase()));
+          const defaultMap = new Map(DEFAULT_SAVED_SPEAKERS.map(s => [s.name.toLowerCase(), s]));
+          const upgraded: SavedSpeaker[] = parsed.map(s => {
+            const cleanName = s.name.trim();
+            const def = defaultMap.get(cleanName.toLowerCase());
+            if (def) {
+              return {
+                ...s,
+                color: def.color,
+                avatarEmoji: def.avatarEmoji || s.avatarEmoji,
+                role: def.role || s.role,
+              };
+            }
+            if ((s.color === 'indigo' || !s.color || !SPEAKER_COLOR_MAP[s.color]) && cleanName.toLowerCase() !== 'logan') {
+              return {
+                ...s,
+                color: getAutoSpeakerColor(cleanName),
+                avatarEmoji: (s.avatarEmoji === '🎙️' || !s.avatarEmoji) ? getAutoSpeakerEmoji(cleanName) : s.avatarEmoji,
+              };
+            }
+            return s;
+          });
+          const existingNames = new Set(upgraded.map(s => s.name.toLowerCase()));
           const missingDefaults = DEFAULT_SAVED_SPEAKERS.filter(s => !existingNames.has(s.name.toLowerCase()));
-          return [...parsed, ...missingDefaults];
+          const fullList = [...upgraded, ...missingDefaults];
+          try { localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(fullList)); } catch {}
+          return fullList;
         }
       }
     } catch {}
+    try { localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(DEFAULT_SAVED_SPEAKERS)); } catch {}
     return DEFAULT_SAVED_SPEAKERS;
   });
   const [showSavedSpeakersModal, setShowSavedSpeakersModal] = useState(false);
@@ -957,10 +1020,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     });
   };
 
-  const quickSaveToPermanent = (name: string, emoji = '🎙️', color = 'indigo') => {
+  const quickSaveToPermanent = (name: string, emoji?: string, color?: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
-    addOrUpdatePermanentSpeaker({ id: trimmed.toLowerCase().replace(/\s+/g, '-'), name: trimmed, avatarEmoji: emoji, color, role: 'Speaker' });
+    const def = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === trimmed.toLowerCase());
+    const finalColor = color || def?.color || getAutoSpeakerColor(trimmed);
+    const finalEmoji = emoji || def?.avatarEmoji || getAutoSpeakerEmoji(trimmed);
+    addOrUpdatePermanentSpeaker({
+      id: trimmed.toLowerCase().replace(/\s+/g, '-'),
+      name: trimmed,
+      avatarEmoji: finalEmoji,
+      color: finalColor,
+      role: def?.role || 'Speaker'
+    });
   };
 
   const loadGlobalIndex = useCallback(async () => {
@@ -1386,9 +1458,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const openQuickRename = (rawSpeaker: string, currentName: string) => {
     const turns = speakerStats.find(st => st.rawSpeaker === rawSpeaker)?.count || 0;
+    const val = speakerMap[rawSpeaker] || currentName;
     setQuickRenameTarget({ rawSpeaker, currentName, turnCount: turns });
-    setQuickRenameVal(speakerMap[rawSpeaker] || currentName);
+    setQuickRenameVal(val);
     setQuickRenameAddToSaved(true);
+    const def = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === val.toLowerCase());
+    const existing = savedSpeakers.find(s => s.name.toLowerCase() === val.toLowerCase());
+    setQuickRenameColor(def?.color || existing?.color || getAutoSpeakerColor(val));
+    setQuickRenameEmoji(def?.avatarEmoji || existing?.avatarEmoji || getAutoSpeakerEmoji(val));
   };
 
   const handleApplyQuickRename = async () => {
@@ -1396,8 +1473,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     const finalVal = quickRenameVal.trim();
     const rawSpk = quickRenameTarget.rawSpeaker;
     saveSpeakerRename(rawSpk, finalVal);
-    if (finalVal) {
-      quickSaveToPermanent(finalVal);
+    if (finalVal && quickRenameAddToSaved) {
+      quickSaveToPermanent(finalVal, quickRenameEmoji, quickRenameColor);
     }
     setQuickRenameTarget(null);
 
@@ -4259,7 +4336,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             </div>
 
             {/* Input and preview */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Speaker Display Name:
               </label>
@@ -4268,7 +4345,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   type="text"
                   autoFocus
                   value={quickRenameVal}
-                  onChange={e => setQuickRenameVal(e.target.value)}
+                  onChange={e => {
+                    const newVal = e.target.value;
+                    setQuickRenameVal(newVal);
+                    const clean = newVal.trim();
+                    const def = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === clean.toLowerCase());
+                    const existing = savedSpeakers.find(s => s.name.toLowerCase() === clean.toLowerCase());
+                    if (def?.color || existing?.color) {
+                      setQuickRenameColor(def?.color || existing?.color || 'indigo');
+                    } else if (clean) {
+                      setQuickRenameColor(getAutoSpeakerColor(clean));
+                    }
+                    if (def?.avatarEmoji || existing?.avatarEmoji) {
+                      setQuickRenameEmoji(def?.avatarEmoji || existing?.avatarEmoji || '🎙️');
+                    } else if (clean) {
+                      setQuickRenameEmoji(getAutoSpeakerEmoji(clean));
+                    }
+                  }}
                   onKeyDown={e => {
                     if (e.key === 'Enter') handleApplyQuickRename();
                     if (e.key === 'Escape') setQuickRenameTarget(null);
@@ -4289,6 +4382,68 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               <p className="text-[11px] text-slate-400">
                 Renaming will immediately update all turns by <strong className="text-indigo-300">{quickRenameTarget.rawSpeaker}</strong> across this entire episode.
               </p>
+
+              {/* Live Badge Preview & Custom Color/Emoji */}
+              {(() => {
+                const displayName = quickRenameVal.trim() || quickRenameTarget.rawSpeaker;
+                const activeColor = quickRenameColor && SPEAKER_COLOR_MAP[quickRenameColor] ? quickRenameColor : getAutoSpeakerColor(displayName);
+                const theme = SPEAKER_COLOR_MAP[activeColor] || SPEAKER_COLOR_MAP.indigo;
+                const activeEmoji = quickRenameEmoji || getAutoSpeakerEmoji(displayName);
+
+                return (
+                  <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Badge Preview:</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${theme.avatar}`}>
+                          {activeEmoji}
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge}`}>
+                          <span>{activeEmoji}</span>
+                          <span>{displayName}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Color selection row */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-800/80">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold mr-1">Color:</span>
+                      {DYNAMIC_COLOR_ORDER.map(c => {
+                        const cTheme = SPEAKER_COLOR_MAP[c];
+                        const isPicked = activeColor === c;
+                        return (
+                          <button
+                            key={c}
+                            type="button"
+                            title={`Set theme to ${c}`}
+                            onClick={() => setQuickRenameColor(c)}
+                            className={`w-5 h-5 rounded-full transition-transform cursor-pointer ${cTheme.dot} ${
+                              isPicked ? 'scale-125 ring-2 ring-white shadow-md' : 'opacity-60 hover:opacity-100 hover:scale-110'
+                            }`}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    {/* Quick emoji selection row */}
+                    <div className="flex items-center gap-1 flex-wrap pt-1">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold mr-1">Emoji:</span>
+                      {['🎙️', '🎧', '⚙️', '🧠', '👁️', '⚡', '🌹', '🌸', '🛸', '✨', '💫', '👑', '👽', '🤖', '🔥', '⭐'].map(em => (
+                        <button
+                          key={em}
+                          type="button"
+                          onClick={() => setQuickRenameEmoji(em)}
+                          className={`w-6 h-6 rounded-md flex items-center justify-center text-xs transition-all cursor-pointer ${
+                            activeEmoji === em ? 'bg-indigo-600 ring-2 ring-white scale-110' : 'bg-slate-900 hover:bg-slate-800 text-slate-300'
+                          }`}
+                        >
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* One-click Saved Speakers Quick Pick */}
@@ -4309,20 +4464,27 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 <div className="flex flex-wrap gap-2">
                   {savedSpeakers.map(s => {
                     const isSelected = quickRenameVal.trim().toLowerCase() === s.name.toLowerCase();
+                    const sTheme = getSpeakerTheme(s.name, savedSpeakers);
                     return (
                       <button
                         key={s.id || s.name}
                         type="button"
-                        onClick={() => setQuickRenameVal(s.name)}
+                        onClick={() => {
+                          setQuickRenameVal(s.name);
+                          const color = s.color && SPEAKER_COLOR_MAP[s.color] ? s.color : getAutoSpeakerColor(s.name);
+                          const emoji = s.avatarEmoji || getAutoSpeakerEmoji(s.name);
+                          setQuickRenameColor(color);
+                          setQuickRenameEmoji(emoji);
+                        }}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-400 ring-2 ring-indigo-400/50 scale-105 shadow-md'
-                            : 'bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border-slate-700/80 hover:border-slate-600'
+                            ? `${sTheme.badge} ring-2 ring-white scale-105 shadow-lg brightness-110`
+                            : `${sTheme.badge} opacity-75 hover:opacity-100 hover:scale-105`
                         }`}
                       >
-                        <span className="text-sm">{s.avatarEmoji || '🎙️'}</span>
+                        <span className="text-sm">{s.avatarEmoji || sTheme.emoji || '🎙️'}</span>
                         <span>{s.name}</span>
-                        {s.role && <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-400 font-normal">{s.role}</span>}
+                        {s.role && <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-800/80 text-slate-300 font-normal">{s.role}</span>}
                       </button>
                     );
                   })}
