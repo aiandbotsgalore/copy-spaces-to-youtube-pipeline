@@ -366,11 +366,16 @@ def resolve_speakers_acoustically(
     """
     if not segments or not audio_path or not Path(audio_path).exists():
         return {}
-    if not os.path.exists(profiles_file):
+    prof_path = None
+    for p in [Path(profiles_file), Path(__file__).resolve().parent.parent / "voice_profiles.json", Path(__file__).resolve().parent / "voice_profiles.json", Path("public/voice_profiles.json")]:
+        if p.exists():
+            prof_path = p
+            break
+    if not prof_path:
         return {}
 
     try:
-        with open(profiles_file, "r", encoding="utf-8") as f:
+        with open(prof_path, "r", encoding="utf-8") as f:
             prof_data = json.load(f)
     except Exception:
         return {}

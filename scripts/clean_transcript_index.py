@@ -36,14 +36,25 @@ def clean_episode_segments(segments, title=""):
     min_time = max(30.0, min(90.0, total_time * 0.015))
     sorted_spks = sorted(speaker_durations.keys(), key=lambda k: speaker_durations[k], reverse=True)
 
-    # Always keep known named speakers as dominant
-    known_names = {"Logan", "Logan Black", "Oor", "Eric Hecker", "Dougie", "Parr", "Dr. Snuggles", "Sarah", "Dave", "Chan", "Brad", "Jenny", "Samantha", "Dorgy Meta", "Presenter"}
+    # Always keep known named speakers as dominant (dynamically load all enrolled profiles)
+    known_names = {"Logan", "Logan Black", "Oor", "Eric Hecker", "Dougie", "Parr", "Dr. Snuggles", "Sarah", "Dave", "Chan", "Brad", "Jenny", "Samantha", "Dorgy Meta", "Presenter", "Rose", "Angela", "God Sauce", "Brian", "Linn", "ConsciousCulprit", "teejay"}
+    for prof_path in [Path("voice_profiles.json"), Path("public/voice_profiles.json"), Path(__file__).resolve().parent.parent / "voice_profiles.json"]:
+        if prof_path.exists():
+            try:
+                with open(prof_path, "r", encoding="utf-8") as pf:
+                    p_data = json.load(pf)
+                    for k in p_data.get("profiles", {}).keys():
+                        if k and not k.lower().startswith("speaker"):
+                            known_names.add(k.strip())
+            except Exception:
+                pass
     
     dominant = []
     for spk in sorted_spks:
-        if spk in known_names or speaker_durations[spk] >= min_time or len(dominant) < 3:
+        is_named = not spk.lower().startswith("speaker")
+        if is_named or spk in known_names or speaker_durations[spk] >= min_time or len(dominant) < 3:
             dominant.append(spk)
-        if len(dominant) >= 10:
+        if len(dominant) >= 12:
             break
 
     if not dominant:

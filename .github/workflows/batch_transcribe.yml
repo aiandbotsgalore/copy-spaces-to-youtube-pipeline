@@ -43,9 +43,10 @@ jobs:
 
       - name: Install FFmpeg & Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
+          sudo apt-get update && sudo apt-get install -y ffmpeg libsndfile1
           python -m pip install --upgrade pip
-          pip install requests assemblyai
+          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+          pip install requests assemblyai speechbrain soundfile
 
       - name: Run Batch Transcription Queue (Newest to Oldest)
         id: transcribe_step
