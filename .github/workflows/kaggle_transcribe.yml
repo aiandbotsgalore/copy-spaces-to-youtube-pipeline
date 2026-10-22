@@ -1,0 +1,113 @@
+name: Cloud GPU Transcribe (Kaggle)
+run-name: Kaggle GPU Transcribe (${{ inputs.release_tag || 'Auto-Queue Batch' }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Specific release tag to transcribe (leave empty to process queue)'
+        required: false
+        default: ''
+        type: string
+      batch_limit:
+        description: 'Maximum episodes to transcribe in this batch'
+        required: false
+        default: '5'
+        type: string
+
+concurrency:
+  group: kaggle-gpu-transcribe
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  launch-kaggle-gpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Kaggle CLI
+        run: |
+          pip install --upgrade kaggle
+
+      - name: Prepare Kaggle Kernel Payload
+        env:
+          TARGET_TAG: ${{ inputs.release_tag }}
+          BATCH_LIMIT: ${{ inputs.batch_limit || '5' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          echo "[*] Injecting environment parameters into Kaggle worker script..."
+          # Prepend environment variables so the worker runs with runtime tokens
+          cat << 'EOF' > scripts/kaggle_worker/env_bootstrap.py
+          import os
+          os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.release_tag }}"
+          os.environ["BATCH_LIMIT"] = "${{ inputs.batch_limit || '5' }}"
+          os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
+          os.environ["HF_TOKEN"] = "${{ secrets.HF_TOKEN }}"
+          os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
+          EOF
+          
+          # Combine bootstrap with worker
+          cat scripts/kaggle_worker/env_bootstrap.py scripts/kaggle_worker/transcribe_worker.py > scripts/kaggle_worker/worker_final.py
+          mv scripts/kaggle_worker/worker_final.py scripts/kaggle_worker/transcribe_worker.py
+          rm -f scripts/kaggle_worker/env_bootstrap.py
+
+      - name: Dispatch Kaggle Dual-T4 GPU Worker
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          echo "[*] Pushing kernel to Kaggle cloud GPU pool..."
+          kaggle kernels push -p scripts/kaggle_worker --accelerator NvidiaTeslaT4
+          echo "[✓] Kaggle Dual-T4 GPU Worker successfully initiated!"
+
+      - name: Monitor Cloud GPU Execution
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          KERNEL_ID="loganblackjbjb/spacepipe-transcriber"
+          echo "[*] Monitoring status of $KERNEL_ID..."
+          
+          for i in {1..60}; do
+            STATUS=$(kaggle kernels status "$KERNEL_ID" | tr -d '\r')
+            echo "[$i/60] $STATUS"
+            
+            if [[ "$STATUS" == *"COMPLETE"* ]]; then
+              echo "[✓] Kaggle GPU Transcription Completed Successfully!"
+              break
+            elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]]; then
+              echo "[!] Kaggle GPU Transcription failed!"
+              kaggle kernels output "$KERNEL_ID" -p ./kaggle_logs || true
+              cat ./kaggle_logs/*.log || true
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Rebuild Transcripts Search Index
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/build_transcripts_index.py || echo "[!] Search index build skipped"
+
+      - name: Commit Updated Search Index
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json || true
+          git commit -m "chore(transcripts): update search index from Kaggle GPU run [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin master || true
+          git push origin master || echo "Push skipped"
