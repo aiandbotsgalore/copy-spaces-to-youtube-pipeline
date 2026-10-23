@@ -3,11 +3,12 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2
+  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { MontageProvider } from './contexts/MontageContext';
+import { CopilotProvider } from './contexts/CopilotContext';
 import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
@@ -33,6 +34,7 @@ const FeaturePanel = React.lazy(() => import('./components/FeaturePanel'));
 const BatchUrlEditor = React.lazy(() => import('./components/BatchUrlEditor'));
 const ConfigurationPanel = React.lazy(() => import('./components/ConfigurationPanel'));
 const FileViewer = React.lazy(() => import('./components/FileViewer'));
+const AICopilotPanel = React.lazy(() => import('./components/AICopilotPanel').then(m => ({ default: m.AICopilotPanel })));
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -164,6 +166,7 @@ type Panel =
   | 'clips'
   | 'montage'
   | 'voice-profiles'
+  | 'ai-copilot'
   | `file:${string}`;
 
 interface NavItemProps {
@@ -288,6 +291,7 @@ function AppContent() {
   return (
     <PlayerProvider>
       <MontageProvider>
+        <CopilotProvider>
         <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
       {/* ── Sidebar ── */}
       <aside className="w-full md:w-64 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0">
@@ -352,6 +356,12 @@ function AppContent() {
                 label="Voice Profiles"
                 active={activePanel === 'voice-profiles'}
                 onClick={() => setActivePanel('voice-profiles')}
+              />
+              <NavItem
+                icon={<Bot size={15} />}
+                label="AI Copilot"
+                active={activePanel === 'ai-copilot'}
+                onClick={() => setActivePanel('ai-copilot')}
               />
             </div>
           </div>
@@ -591,12 +601,17 @@ function AppContent() {
             }}
           />
         )}
+
+        {activePanel === 'ai-copilot' && (
+          <AICopilotPanel />
+        )}
         </Suspense>
         </PanelErrorBoundary>
       </main>
       <PlayerBar />
       <MontageReelDrawer isHidden={activePanel === 'montage'} />
     </div>
+    </CopilotProvider>
     </MontageProvider>
     </PlayerProvider>
   );

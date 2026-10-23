@@ -428,10 +428,29 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 };
 
+const FALLBACK_COPILOT_CONTEXT: CopilotContextType = {
+  messages: [],
+  loading: false,
+  error: null,
+  model: 'gemini-2.5-flash',
+  setModel: () => {},
+  autoApply: false,
+  setAutoApply: () => {},
+  actionHistory: [],
+  contextPayload: {},
+  setContextPayload: () => {},
+  sendMessage: async () => {},
+  applyAction: async () => false,
+  revertAction: async () => false,
+  clearMessages: () => {},
+  setActivePanelNavHandler: () => {},
+};
+
 export const useCopilot = (): CopilotContextType => {
   const ctx = useContext(CopilotContext);
   if (!ctx) {
-    throw new Error('useCopilot must be used within a CopilotProvider');
+    console.warn('[CopilotContext] useCopilot invoked outside a CopilotProvider. Returning safe fallback context.');
+    return FALLBACK_COPILOT_CONTEXT;
   }
   return ctx;
 };
