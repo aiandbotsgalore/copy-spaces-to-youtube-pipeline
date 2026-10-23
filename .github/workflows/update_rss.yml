@@ -60,8 +60,7 @@ jobs:
           PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
           python3 scripts/sync_clips_catalog.py --commit || echo "[!] Clips sync notice"
-          python3 scripts/gen_podcast_rss.py
-          python3 scripts/gen_clips_rss.py
+          python3 scripts/generate_rss.py --all
 
       - name: Validate RSS Feeds
         run: |
