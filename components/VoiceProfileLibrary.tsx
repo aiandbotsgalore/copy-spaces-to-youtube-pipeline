@@ -1833,7 +1833,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                   <Sparkles size={12} /> Automatic Diarization Matching
                 </span>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Once enrolled, new Twitter Spaces transcribed by Deepgram or Whisper will automatically compute cosine similarity against this 192-dim vector and label speech turns accurately.
+                  Once enrolled, new Twitter Spaces transcribed by Whisper or WhisperX will automatically compute cosine similarity against this 192-dim vector and label speech turns accurately.
                 </p>
               </div>
             </div>
@@ -1925,7 +1925,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
                 <h5 className="font-bold text-emerald-400">2. Word-Level Boundary Diarization</h5>
                 <p className="text-slate-400">
-                  Deepgram Nova-2 tracks word-level acoustic boundaries. Each speaker transition immediately flushes conversational turns, preserving brief interjections, backchannels, and rapid multi-party exchanges without text crosstalk bleed.
+                  WhisperX neural diarizer tracks word-level acoustic boundaries. Each speaker transition immediately flushes conversational turns, preserving brief interjections, backchannels, and rapid multi-party exchanges without text crosstalk bleed.
                 </p>
               </div>
 

@@ -259,7 +259,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
       onDispatched?.(payload.releaseTag);
       setNotice({
         kind: 'success',
-        message: `Uploaded "${payload.releaseName}" (${payload.releaseTag}) and started the processing pipeline (audio normalization, AssemblyAI transcription, clip extraction, and RSS feed update).`,
+        message: `Uploaded "${payload.releaseName}" (${payload.releaseTag}) and started the processing pipeline (audio normalization, cloud GPU transcription, clip extraction, and RSS feed update).`,
         action: 'upload',
       });
 
@@ -688,7 +688,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     Uploads your audio file to a new GitHub Release with structured metadata, then triggers{' '}
-                    <code className="text-indigo-300">ingest.yml</code> to normalize MP3 audio, run AssemblyAI speaker diarization &amp; transcription, extract highlight clips, and update your RSS feeds.
+                    <code className="text-indigo-300">ingest.yml</code> to normalize MP3 audio, run neural speaker diarization &amp; transcription, extract highlight clips, and update your RSS feeds.
                   </p>
                 </div>
               </div>

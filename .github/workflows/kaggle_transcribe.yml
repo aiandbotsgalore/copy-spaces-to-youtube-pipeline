@@ -102,12 +102,21 @@ jobs:
         run: |
           python scripts/build_transcripts_index.py || echo "[!] Search index build skipped"
 
-      - name: Commit Updated Search Index
+      - name: Extract AI Highlight Clips
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/batch_transcribe_queue.py --missing-clips --limit 5 || true
+
+      - name: Commit Updated Search Index & Clips
         if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json || true
-          git commit -m "chore(transcripts): update search index from Kaggle GPU run [skip ci]" || echo "No changes to commit"
+          git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json public/clips/clips_catalog.json best_saved_clips || true
+          git commit -m "chore(transcripts): update search index and highlight clips from Kaggle GPU run [skip ci]" || echo "No changes to commit"
           git pull --rebase origin master || true
           git push origin master || echo "Push skipped"

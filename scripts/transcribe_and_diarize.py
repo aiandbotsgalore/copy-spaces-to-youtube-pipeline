@@ -918,6 +918,48 @@ def transcribe_audio_chunk_assemblyai(
     return segments
 
 
+
+def transcribe_audio_chunk_whisper(
+    audio_path: Path,
+    time_offset: float = 0.0,
+    title: str = ""
+) -> List[Dict[str, Any]]:
+    """Free local fallback using faster-whisper when cloud APIs are unavailable."""
+    print(f"[*] Transcribing {audio_path.name} via faster-whisper (free engine)...")
+    try:
+        from faster_whisper import WhisperModel
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        compute_type = "float16" if device == "cuda" else "int8"
+        print(f"[*] Loading faster-whisper base model on {device.upper()} ({compute_type})...")
+        model = WhisperModel("base", device=device, compute_type=compute_type)
+        segments_gen, info = model.transcribe(str(audio_path), beam_size=5, word_timestamps=True)
+        results: List[Dict[str, Any]] = []
+        for s in segments_gen:
+            words = []
+            if s.words:
+                for w in s.words:
+                    words.append({
+                        "word": w.word.strip(),
+                        "start": round(time_offset + w.start, 2),
+                        "end": round(time_offset + w.end, 2),
+                        "confidence": round(w.probability, 2),
+                        "speaker": "Speaker A"
+                    })
+            results.append({
+                "start": round(time_offset + s.start, 2),
+                "end": round(time_offset + s.end, 2),
+                "speaker": "Speaker A",
+                "speaker_confidence": 0.95,
+                "text": s.text.strip(),
+                "words": words
+            })
+        print(f"[✓] faster-whisper finished {len(results)} segment(s) successfully!")
+        return results
+    except Exception as e:
+        print(f"[!] faster-whisper failed: {e}")
+        raise
+
 def process_audio_file(
     input_audio: Path,
     assemblyai_key: str,
@@ -1018,13 +1060,20 @@ def process_audio_file(
                 title=title
             )
     else:
-        # Standard Single-Pass AssemblyAI transcription
-        all_segments = transcribe_audio_chunk_assemblyai(
-            audio_path=active_audio,
-            assemblyai_key=assemblyai_key,
-            time_offset=0.0,
-            title=title
-        )
+        # Standard Single-Pass transcription with automatic free fallback
+        try:
+            if assemblyai_key:
+                all_segments = transcribe_audio_chunk_assemblyai(
+                    audio_path=active_audio,
+                    assemblyai_key=assemblyai_key,
+                    time_offset=0.0,
+                    title=title
+                )
+            else:
+                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+        except Exception as e:
+            print(f"[!] Cloud transcription failed ({e}). Falling back to free local faster-whisper...")
+            all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
 
     # Clean temporary compressed audio if generated
     if active_audio != input_audio and active_audio.exists():
@@ -1130,9 +1179,7 @@ def main():
 
     assemblyai_key = os.environ.get("ASSEMBLYAI_API_KEY", "").strip()
     if not assemblyai_key:
-        print("[🛑] CRITICAL ERROR: ASSEMBLYAI_API_KEY environment variable is not set!")
-        print("     Please add ASSEMBLYAI_API_KEY to your GitHub Secrets or environment.")
-        sys.exit(1)
+        print("[*] No ASSEMBLYAI_API_KEY detected; defaulting to free local faster-whisper engine.")
 
     gh_token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")

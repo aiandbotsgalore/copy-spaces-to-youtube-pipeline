@@ -218,13 +218,13 @@ jobs:
             gh release upload "$REL_TAG" work/*.mp3 --clobber
           fi
 
-      - name: Trigger GPU Transcription on Local Runner
+      - name: Trigger Free Cloud GPU Transcription (Kaggle)
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Dispatching transcribe_episode.yml for release: ${{ steps.process.outputs.release_tag }}"
-          gh workflow run transcribe_episode.yml -f release_tag="${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed or runner offline"
+          echo "Dispatching kaggle_transcribe.yml for release: ${{ steps.process.outputs.release_tag }}"
+          gh workflow run kaggle_transcribe.yml -f release_tag="${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed or runner offline"
 
 
   rss:

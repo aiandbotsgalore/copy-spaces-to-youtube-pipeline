@@ -262,16 +262,6 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
     history = failed_history if failed_history is not None else analysis.get("failed_history", {})
     
     fatal_error = None
-    for item in history.values():
-        err = item.get("last_error", "")
-        err_l = err.lower()
-        if "assemblyai_api_key" in err_l or "assemblyai authentication" in err_l:
-            fatal_error = "AssemblyAI API key is missing or invalid. Please add ASSEMBLYAI_API_KEY to your GitHub Secrets."
-            break
-        elif "insufficient" in err_l or "spend limit" in err_l or "funds" in err_l or "credit" in err_l:
-            fatal_error = "Transcription service credits or spend limit reached. Please check your credit balance in assemblyai.com."
-            break
-
     data = {
         "last_updated": datetime.now(timezone.utc).isoformat(),
         "total_episodes_with_audio": total_with_audio,
@@ -381,7 +371,7 @@ def main():
 
     # Execute AssemblyAI transcription for each item in the batch sequentially
     print("\n" + "=" * 65)
-    print("          STARTING ASSEMBLYAI CLOUD TRANSCRIPTION BATCH         ")
+    print("          STARTING CLOUD WHISPER TRANSCRIPTION BATCH         ")
     print("=" * 65)
 
     success_count = 0
@@ -427,7 +417,7 @@ def main():
 
                 if "ASSEMBLYAI_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary:
                     print("\n" + "!" * 65)
-                    print(f"[🛑] FATAL ASSEMBLYAI INFRASTRUCTURE ERROR: {error_summary}")
+                    print(f"[🛑] TRANSCRIPTION ERROR: {error_summary}")
                     print("     Halting remaining batch queue immediately to prevent wasted runs.")
                     print("!" * 65 + "\n")
                     break

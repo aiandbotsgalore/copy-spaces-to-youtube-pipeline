@@ -460,7 +460,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
           </div>
           <p className="text-[11px] text-slate-300 leading-relaxed">
             The latest execution of <strong className="text-white">{unacknowledgedFailedRuns[0].display_title || unacknowledgedFailedRuns[0].name}</strong>
-            {unacknowledgedFailedRuns[0].head_branch ? ` (${unacknowledgedFailedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL, or missing ASSEMBLYAI_API_KEY).
+            {unacknowledgedFailedRuns[0].head_branch ? ` (${unacknowledgedFailedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL).
           </p>
           <div className="flex items-center gap-2 pt-1 flex-wrap">
             <a

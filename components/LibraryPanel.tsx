@@ -546,16 +546,6 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   <p className="text-xs text-rose-400/90 mt-0.5">
                     {transcriptionStatus.fatal_error}
                   </p>
-                  {(transcriptionStatus.fatal_error.toLowerCase().includes('assemblyai') || transcriptionStatus.fatal_error.toLowerCase().includes('deepgram')) && (
-                    <a
-                      href="https://www.assemblyai.com/dashboard/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[11px] text-rose-300 hover:text-rose-200 underline mt-1.5 font-medium"
-                    >
-                      Open AssemblyAI Dashboard <ExternalLink size={11} />
-                    </a>
-                  )}
                   {transcriptionStatus.fatal_error.toLowerCase().includes('modal') && (
                     <a
                       href="https://modal.com/settings/billing"
