@@ -210,6 +210,8 @@ fi
 # We look for git tags or METADATA::SOURCE_ID::<id> in existing releases.
 echo "--- Duplicate check ---"
 SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+# Host handle (yt-dlp uploader_id), stored in the release body so the transcript list can show who hosted
+HOST_HANDLE=$(yt-dlp --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
@@ -387,6 +389,7 @@ if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
     echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
     echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
     echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+    echo "host_handle=${HOST_HANDLE:-}" >> "$GITHUB_OUTPUT"
     echo "episode_date=$EPISODE_DATE" >> "$GITHUB_OUTPUT"
     echo "already_exists=false" >> "$GITHUB_OUTPUT"
 fi

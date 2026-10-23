@@ -1,0 +1,72 @@
+name: Sync Knowledge Graph & Qdrant Cloud
+run-name: Sync Investigative Knowledge Graph & Qdrant Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      quotes_only:
+        description: 'Sync only curated quotes and contradiction matrix (fast, ~10s)'
+        required: false
+        default: true
+        type: boolean
+      max_episodes:
+        description: 'Maximum episodes to embed for full archive chunks (0 for quotes only)'
+        required: false
+        default: '0'
+        type: string
+  push:
+    paths:
+      - 'docs/documentary/research/**'
+      - 'docs/documentary/data/**'
+      - 'scripts/build_investigative_graph.py'
+      - 'scripts/sync_qdrant_transcripts.py'
+
+concurrency:
+  group: sync-qdrant-knowledge
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync-knowledge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install qdrant-client onnxruntime tokenizers numpy
+
+      - name: Build Investigative Knowledge Graph
+        run: |
+          python scripts/build_investigative_graph.py
+
+      - name: Sync Vectors to Qdrant Cloud
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: |
+          if [ "${{ inputs.quotes_only }}" = "false" ] && [ "${{ inputs.max_episodes }}" != "0" ]; then
+            python scripts/sync_qdrant_transcripts.py --max-episodes ${{ inputs.max_episodes }}
+          else
+            python scripts/sync_qdrant_transcripts.py --quotes-only
+          fi
+
+      - name: Commit Updated Knowledge Graph
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/investigative_knowledge_graph.json
+          git diff --staged --quiet || git commit -m "chore(graph): update investigative knowledge graph [skip ci]" || echo "No changes to commit"
+          git fetch origin master
+          git merge -X ours origin/master --no-edit || git pull --rebase -X ours origin master || true
+          git push origin master || echo "Push skipped"
