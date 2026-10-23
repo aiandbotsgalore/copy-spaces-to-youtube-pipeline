@@ -1,13 +1,19 @@
 {
-  "last_updated": "2026-10-23T12:43:43.884140+00:00",
-  "total_episodes_with_audio": 825,
-  "transcribed_count": 680,
+  "last_updated": "2026-10-23T23:52:20.861461+00:00",
+  "total_episodes_with_audio": 827,
+  "transcribed_count": 682,
   "untranscribed_count": 145,
-  "percent_complete": 82.4,
+  "percent_complete": 82.5,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {},
+  "failed_episodes": {
+    "20261022_1yxBePgOWAkJN": {
+      "attempts": 1,
+      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
+      "last_attempt": "2026-10-23T23:51:34.736128+00:00"
+    }
+  },
   "next_in_queue": [
     {
       "tag": "20261018_1RJjpbPMOmwKw",

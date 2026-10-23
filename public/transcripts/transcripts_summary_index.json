@@ -1,5 +1,31 @@
 [
   {
+    "release_id": 422384741,
+    "release_tag": "20261023_1yGBePgdOgoKN",
+    "title": "MOB_MENTALITY",
+    "published_at": "2026-10-23T23:09:22Z",
+    "episode_date": "2026-10-23",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261023_1yGBePgdOgoKN/20261023_1yGBePgdOgoKN_MOB_MENTALITY.mp3",
+    "segment_count": 34,
+    "body": "- **Space Title:** MOB_MENTALITY\n- **Duration:** 00:57:09\n- **Processed:** 20261023_1yGBePgdOgoKN\n- **Source ID:** 1yGBePgdOgoKN\n\n---\nMETADATA::DURATION::00:57:09\nMETADATA::SOURCE_ID::1yGBePgdOgoKN\nMETADATA::EPISODE_DATE::20261023\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
+    "release_id": 422386084,
+    "release_tag": "20261023_1wxWjlNLyrRJQ",
+    "title": "UFOx_DISCLOSURE_IS_HERE_AND_NOW",
+    "published_at": "2026-10-23T23:12:15Z",
+    "episode_date": "2026-10-23",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261023_1wxWjlNLyrRJQ/20261023_1wxWjlNLyrRJQ_UFOx_DISCLOSURE_IS_HERE_AND_NOW.mp3",
+    "segment_count": 82,
+    "body": "- **Space Title:** UFOx_DISCLOSURE_IS_HERE_AND_NOW\n- **Duration:** 02:23:51\n- **Processed:** 20261023_1wxWjlNLyrRJQ\n- **Source ID:** 1wxWjlNLyrRJQ\n\n---\nMETADATA::DURATION::02:23:51\nMETADATA::SOURCE_ID::1wxWjlNLyrRJQ\nMETADATA::EPISODE_DATE::20261023\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 421595230,
     "release_tag": "20261022_1yxBePgOWAkJN",
     "title": "StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS",
