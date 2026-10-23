@@ -1,34 +1,14 @@
 {
-  "last_updated": "2026-10-23T08:49:06.069536+00:00",
+  "last_updated": "2026-10-23T12:43:43.884140+00:00",
   "total_episodes_with_audio": 825,
-  "transcribed_count": 676,
-  "untranscribed_count": 149,
-  "percent_complete": 81.9,
+  "transcribed_count": 680,
+  "untranscribed_count": 145,
+  "percent_complete": 82.4,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
   "failed_episodes": {},
   "next_in_queue": [
-    {
-      "tag": "20261022_1aKbdEaeWloJX",
-      "name": "Con_Mojito",
-      "date": "Oct 22, 2026"
-    },
-    {
-      "tag": "20261021_1wxWjlYWnDZJQ",
-      "name": "head_hunted",
-      "date": "Oct 21, 2026"
-    },
-    {
-      "tag": "20261020_1qJDzWgqVjDKV",
-      "name": "Today",
-      "date": "Oct 20, 2026"
-    },
-    {
-      "tag": "20261020_1OGwbnrbeADKB",
-      "name": "the_ufoshane_show_-_mentoring_tupa_and_red",
-      "date": "Oct 20, 2026"
-    },
     {
       "tag": "20261018_1RJjpbPMOmwKw",
       "name": "5_to_boot_anyone_from_speaker_including_the_host",
@@ -108,6 +88,26 @@
       "tag": "20260218_1YpKkgeeApjKj",
       "name": "Apollo 20: The Secret Mission to the Moon 4 Aliens",
       "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1kvKpmVdQEoGE",
+      "name": "Unearthing the Secrets of the Ancients:Lost Civilizations & UFOs",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260217_1OwxWwqqLkQxQ",
+      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
+      "date": "Jan 20, 2023"
+    },
+    {
+      "tag": "20260220_1djGXlYkooRGZ",
+      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
+      "date": "Jan 19, 2023"
+    },
+    {
+      "tag": "20260216_1BRJjZRlQoeJw",
+      "name": "Space broken?",
+      "date": "Jan 19, 2023"
     }
   ]
 }

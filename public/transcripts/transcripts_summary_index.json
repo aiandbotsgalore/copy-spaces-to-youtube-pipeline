@@ -39,6 +39,58 @@
     ]
   },
   {
+    "release_id": 420661673,
+    "release_tag": "20261022_1aKbdEaeWloJX",
+    "title": "Con_Mojito",
+    "published_at": "2026-10-22T11:54:29Z",
+    "episode_date": "2026-10-22",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1aKbdEaeWloJX/20261022_1aKbdEaeWloJX_Con_Mojito.mp3",
+    "segment_count": 505,
+    "body": "- **Space Title:** Con_Mojito\n- **Duration:** 05:31:51\n- **Processed:** 20261022_1aKbdEaeWloJX\n- **Source ID:** 1aKbdEaeWloJX\n\n---\nMETADATA::DURATION::05:31:51\nMETADATA::SOURCE_ID::1aKbdEaeWloJX\nMETADATA::EPISODE_DATE::20261022\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
+    "release_id": 421250796,
+    "release_tag": "20261021_1wxWjlYWnDZJQ",
+    "title": "head_hunted",
+    "published_at": "2026-10-22T22:07:51Z",
+    "episode_date": "2026-10-21",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261021_1wxWjlYWnDZJQ/20261021_1wxWjlYWnDZJQ_head_hunted.mp3",
+    "segment_count": 30,
+    "body": "- **Space Title:** head_hunted\n- **Duration:** 00:55:09\n- **Processed:** 20261021_1wxWjlYWnDZJQ\n- **Source ID:** 1wxWjlYWnDZJQ\n\n---\nMETADATA::DURATION::00:55:09\nMETADATA::SOURCE_ID::1wxWjlYWnDZJQ\nMETADATA::EPISODE_DATE::20261021\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
+    "release_id": 419043537,
+    "release_tag": "20261020_1qJDzWgqVjDKV",
+    "title": "Today",
+    "published_at": "2026-10-21T01:21:39Z",
+    "episode_date": "2026-10-20",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261020_1qJDzWgqVjDKV/20261020_1qJDzWgqVjDKV_Today_Part1.mp3",
+    "segment_count": 452,
+    "body": "- **Space Title:** Today\n- **Duration:** 10:00:00\n- **Processed:** 20261020_1qJDzWgqVjDKV\n- **Source ID:** 1qJDzWgqVjDKV\n\n---\nMETADATA::DURATION::10:00:00\nMETADATA::SOURCE_ID::1qJDzWgqVjDKV\nMETADATA::EPISODE_DATE::20261020\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
+    "release_id": 421228880,
+    "release_tag": "20261020_1OGwbnrbeADKB",
+    "title": "the_ufoshane_show_-_mentoring_tupa_and_red",
+    "published_at": "2026-10-22T21:37:40Z",
+    "episode_date": "2026-10-20",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261020_1OGwbnrbeADKB/20261020_1OGwbnrbeADKB_the_ufoshane_show_-_mentoring_tupa_and_red.mp3",
+    "segment_count": 39,
+    "body": "- **Space Title:** the_ufoshane_show_-_mentoring_tupa_and_red\n- **Duration:** 01:25:40\n- **Processed:** 20261020_1OGwbnrbeADKB\n- **Source ID:** 1OGwbnrbeADKB\n\n---\nMETADATA::DURATION::01:25:40\nMETADATA::SOURCE_ID::1OGwbnrbeADKB\nMETADATA::EPISODE_DATE::20261020\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 416230006,
     "release_tag": "20261018_1dxYlarbprvJX",
     "title": "Paper_Trail",

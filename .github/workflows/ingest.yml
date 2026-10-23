@@ -231,72 +231,10 @@ jobs:
     needs: ingest
     if: needs.ingest.result == 'success' && needs.ingest.outputs.already_exists != 'true'
     runs-on: ubuntu-latest
-    concurrency:
-      group: rss-update
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install Dependencies & Build Web App
-        run: |
-          npm ci
-          npm run build
-
-      - name: Sync Clips Catalog & Generate RSS Feeds
+      - name: Trigger RSS Update and Deployment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PODCAST_TITLE: ${{ vars.PODCAST_TITLE || '' }}
-          PODCAST_DESC: ${{ vars.PODCAST_DESC || '' }}
-          PODCAST_AUTHOR: ${{ vars.PODCAST_AUTHOR || '' }}
-          PODCAST_EMAIL: ${{ vars.PODCAST_EMAIL || '' }}
-          PODCAST_IMAGE: ${{ vars.PODCAST_IMAGE || '' }}
         run: |
-          python3 scripts/sync_clips_catalog.py --commit || echo "[!] Clips sync notice"
-          python3 scripts/gen_podcast_rss.py
-          python3 scripts/gen_clips_rss.py
-
-      - name: Validate RSS Feeds
-        run: |
-          for feed in podcast.xml podcast_archive.xml clips.xml; do
-            if [ -f "$feed" ]; then
-              if ! grep -q '<rss version="2.0"' "$feed"; then
-                echo "Error: $feed has invalid RSS structure"
-                exit 1
-              fi
-              echo "Valid RSS: $feed"
-            fi
-          done
-
-      - name: Assemble Site & Deploy to Pages
-        run: |
-          mkdir -p site
-          cp -r dist/* site/
-          mkdir -p site/clips site/transcripts
-          cp podcast.xml site/
-          [ -f podcast_archive.xml ] && cp podcast_archive.xml site/ || true
-          [ -f clips.xml ] && cp clips.xml site/ || true
-          [ -f artwork.png ] && cp artwork.png site/ || true
-          [ -f artwork.jpg ] && cp artwork.jpg site/ || true
-          [ -f public/clips/clips_catalog.json ] && cp public/clips/clips_catalog.json site/clips/ || true
-          [ -f public/transcripts/transcription_status.json ] && cp public/transcripts/transcription_status.json site/transcripts/ || true
-          [ -f public/transcripts/transcripts_summary_index.json ] && cp public/transcripts/transcripts_summary_index.json site/transcripts/ || true
-
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          echo "[*] Triggering update_rss.yml to compile web app, sync clips catalog, and deploy to GitHub Pages..."
+          gh workflow run update_rss.yml --ref master || echo "[!] Note: update_rss.yml already triggered"
