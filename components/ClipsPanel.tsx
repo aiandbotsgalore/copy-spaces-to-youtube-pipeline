@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
+import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
 
 export interface ClipItem {
@@ -197,9 +198,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
             if (clipsJsonAsset) {
               try {
-                const jRes = await fetch(clipsJsonAsset.browser_download_url);
-                if (jRes.ok) {
-                  const metaClips = await jRes.json();
+                const text = await fetchReleaseAssetText(token, clipsJsonAsset, owner, repo, r.tag_name).catch(() => null);
+                if (text) {
+                  const metaClips = JSON.parse(text);
                   if (Array.isArray(metaClips)) {
                     for (const mc of metaClips) {
                       const mcStart = Math.round(mc.start_seconds || 0);
@@ -247,8 +248,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     }
                   }
                 }
-              } catch (jErr) {
-                console.warn('Could not parse release clips metadata JSON:', jErr);
+              } catch {
+                // Silently fallback if release clip JSON is unavailable or unparseable
               }
             }
 
