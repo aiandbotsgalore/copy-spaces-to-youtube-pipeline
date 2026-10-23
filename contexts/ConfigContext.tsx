@@ -31,6 +31,17 @@ export const DEFAULT_CONFIG: EnhancedConfig = {
   discordWebhookUrl: '',
   enableScheduledMonitoring: false,
   scheduledCron: '0 */2 * * *',
+  clipMinScore: 7,
+  clipMaxLengthSec: 180,
+  autoSuggestClips: true,
+  watchedHosts: [],
+  ingestConcurrency: 1,
+  audioFormat: 'mp3',
+  strictMode: false,
+  transcriptionModel: 'large-v3',
+  transcriptionLanguage: 'en',
+  keepRawRecordings: false,
+  cacheRetentionDays: 0,
 };
 
 function buildInitialConfig(): EnhancedConfig {

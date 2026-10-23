@@ -25,6 +25,18 @@ export interface PipelineConfig {
   discordWebhookUrl: string;
   enableScheduledMonitoring: boolean;
   scheduledCron: string;
+  // Pipeline Settings (all optional; defaults live in DEFAULT_CONFIG)
+  clipMinScore?: number;
+  clipMaxLengthSec?: number;
+  autoSuggestClips?: boolean;
+  watchedHosts?: string[];
+  ingestConcurrency?: number;
+  audioFormat?: 'mp3' | 'm4a' | 'opus';
+  strictMode?: boolean;
+  transcriptionModel?: string;
+  transcriptionLanguage?: string;
+  keepRawRecordings?: boolean;
+  cacheRetentionDays?: number; // 0 = keep forever
 }
 
 export type EnhancedConfig = PipelineConfig;

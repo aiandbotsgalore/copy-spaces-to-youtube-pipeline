@@ -4,8 +4,25 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { createDirectorMiddleware } from './server/directorMiddleware';
 import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
+import { searchTranscriptLexical } from './server/transcriptSearchService';
 
 function setupProxyMiddlewares(middlewares: any) {
+  // Lexical search across every transcript on disk (public/transcripts), for the Transcripts search overlay.
+  middlewares.use('/api/transcripts/search', async (req: any, res: any) => {
+    try {
+      const host = req.headers.host || 'localhost:5000';
+      const url = new URL(req.url || '', `http://${host}`);
+      const q = (url.searchParams.get('q') || '').trim();
+      const max = Math.min(300, Math.max(1, Number(url.searchParams.get('max')) || 120));
+      const results = q.length >= 2 ? await searchTranscriptLexical(q, { maxResults: max, mode: 'lexical' }) : [];
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.end(JSON.stringify(results));
+    } catch (err: any) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: err?.message || 'Search failed' }));
+    }
+  });
+
   middlewares.use('/api/fetch-asset', async (req: any, res: any) => {
     const host = req.headers.host || 'localhost:5000';
     const parsedUrl = new URL(req.url || '', `http://${host}`);

@@ -168,6 +168,7 @@ jobs:
             METADATA::DURATION::${{ steps.duration.outputs.duration }}
             METADATA::SOURCE_ID::${{ steps.process.outputs.space_id }}
             METADATA::EPISODE_DATE::${{ steps.process.outputs.episode_date }}
+            METADATA::HOST::${{ steps.process.outputs.host_handle }}
             METADATA::YOUTUBE_STATUS::UNLISTED
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

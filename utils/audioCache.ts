@@ -151,3 +151,27 @@ export async function clearAllAudioCache(): Promise<void> {
     console.warn('Error clearing audio cache:', err);
   }
 }
+
+/**
+ * Deletes cached audio older than `maxAgeDays`, judged by the response's Date (or Last-Modified) header.
+ * Entries with no usable header are kept, since their age is unknown. Returns how many were removed.
+ */
+export async function pruneAudioCache(maxAgeDays: number): Promise<number> {
+  if (!maxAgeDays || maxAgeDays <= 0 || typeof window === 'undefined' || !('caches' in window)) return 0;
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const cutoff = Date.now() - maxAgeDays * 86_400_000;
+    let removed = 0;
+    for (const req of await cache.keys()) {
+      const res = await cache.match(req);
+      const stamp = Date.parse(res?.headers.get('date') || res?.headers.get('last-modified') || '');
+      if (Number.isFinite(stamp) && stamp < cutoff) {
+        if (await removeCachedAudio(req.url)) removed++;
+      }
+    }
+    return removed;
+  } catch (err) {
+    console.warn('Error pruning audio cache:', err);
+    return 0;
+  }
+}

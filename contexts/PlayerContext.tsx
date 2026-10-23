@@ -190,7 +190,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     pendingSeekRef.current = null;
   }, []);
 
-  // Global Keyboard Shortcuts for audio controls (Space, ArrowLeft, ArrowRight, M)
+  // Global Keyboard Shortcuts for audio controls (Space, ←/→ = 1s, Shift+←/→ = 15s, M)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't intercept when user is typing in form fields
@@ -204,10 +204,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         togglePlay();
       } else if (e.code === 'ArrowLeft' && current) {
         e.preventDefault();
-        skip(-15);
+        skip(e.shiftKey ? -15 : -1);
       } else if (e.code === 'ArrowRight' && current) {
         e.preventDefault();
-        skip(15);
+        skip(e.shiftKey ? 15 : 1);
       } else if ((e.key === 'm' || e.key === 'M') && current) {
         e.preventDefault();
         toggleMute();

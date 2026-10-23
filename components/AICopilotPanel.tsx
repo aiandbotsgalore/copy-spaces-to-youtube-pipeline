@@ -56,6 +56,14 @@ const PRESET_PILLS = [
   },
 ];
 
+const SELECTION_PILLS = [
+  { icon: <Scissors size={13} className="text-cyan-400" />, label: 'Make a clip', prompt: 'Turn the attached selection into a clip with tightened in/out points and a viral score.' },
+  { icon: <FileSearch size={13} className="text-indigo-400" />, label: 'Summarize', prompt: 'Summarize the attached selection in two sentences and name who is speaking.' },
+  { icon: <Flame size={13} className="text-amber-400" />, label: 'Find similar', prompt: 'Find other moments in this episode that are similar in tone or topic to the attached selection.' },
+];
+
+type ContextKey = 'episode' | 'selection' | 'reel';
+
 export const AICopilotPanel: React.FC = () => {
   const {
     messages,
@@ -70,12 +78,20 @@ export const AICopilotPanel: React.FC = () => {
     revertAction,
     clearMessages,
     contextPayload,
+    setContextPayload,
   } = useCopilot();
 
   const montage = useMontage();
   const player = usePlayer();
 
   const [input, setInput] = useState('');
+  const [ctxOff, setCtxOff] = useState<Set<ContextKey>>(() => new Set());
+  const toggleCtx = (k: ContextKey) => setCtxOff(prev => { const n = new Set(prev); if (n.has(k)) n.delete(k); else n.add(k); return n; });
+  const ctxOverride = () => ({
+    ...(ctxOff.has('episode') ? { currentEpisode: undefined } : {}),
+    ...(ctxOff.has('selection') ? { selectedText: undefined } : {}),
+    ...(ctxOff.has('reel') ? { activeMontageClips: undefined } : {}),
+  });
   const [showCanvas, setShowCanvas] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -90,12 +106,12 @@ export const AICopilotPanel: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
-    sendMessage(input);
+    sendMessage(input, ctxOverride());
     setInput('');
   };
 
   const handlePillClick = (prompt: string) => {
-    sendMessage(prompt);
+    sendMessage(prompt, ctxOverride());
   };
 
   const formatTime = (seconds: number) => {
@@ -241,8 +257,8 @@ export const AICopilotPanel: React.FC = () => {
 
         {/* Quick Action Pills */}
         <div className="px-4 py-2 border-b border-slate-800/40 bg-slate-900/30 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">Playbooks:</span>
-          {PRESET_PILLS.map((pill, i) => (
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">{contextPayload.selectedText && !ctxOff.has('selection') ? 'For your selection:' : 'Playbooks:'}</span>
+          {(contextPayload.selectedText && !ctxOff.has('selection') ? SELECTION_PILLS : PRESET_PILLS).map((pill, i) => (
             <button
               key={i}
               onClick={() => handlePillClick(pill.prompt)}
@@ -255,21 +271,52 @@ export const AICopilotPanel: React.FC = () => {
           ))}
         </div>
 
-        {/* Context Chip (if active episode or file is present) */}
-        {(contextPayload.currentEpisode || contextPayload.activeTab) && (
-          <div className="px-4 py-1.5 bg-indigo-500/5 border-b border-indigo-500/10 flex items-center gap-2 text-xs text-slate-400 flex-shrink-0">
-            <span className="text-indigo-400 font-semibold">Active Context:</span>
+        {/* Context chips: click to include/exclude from the next message; x on the selection removes it */}
+        {(contextPayload.currentEpisode || contextPayload.selectedText || montage.clips.length > 0) && (
+          <div className="px-4 py-2 border-b border-line bg-card/40 flex items-center gap-2 flex-wrap text-xs text-slate-400 flex-shrink-0">
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Context</span>
             {contextPayload.currentEpisode && (
-              <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[11px]">
-                🎙️ {contextPayload.currentEpisode.title || contextPayload.currentEpisode.releaseTag}
+              <button
+                onClick={() => toggleCtx('episode')}
+                aria-pressed={!ctxOff.has('episode')}
+                title={ctxOff.has('episode') ? 'Excluded from the next message. Click to include.' : 'Included. Click to exclude.'}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] max-w-[260px] cursor-pointer transition-opacity ${ctxOff.has('episode') ? 'opacity-40 line-through border-line bg-card' : 'bg-a1/10 text-slate-200 border-a1/30'}`}
+              >
+                <FileSearch size={11} className="text-a0 flex-shrink-0" />
+                <span className="truncate">{contextPayload.currentEpisode.title || contextPayload.currentEpisode.releaseTag}</span>
+              </button>
+            )}
+            {contextPayload.selectedText && (
+              <span className={`flex items-center rounded-md border text-[11px] max-w-[320px] transition-opacity ${ctxOff.has('selection') ? 'opacity-40 border-line bg-card' : 'bg-cyan/10 text-slate-200 border-cyan/30'}`}>
+                <button onClick={() => toggleCtx('selection')} aria-pressed={!ctxOff.has('selection')} className={`flex items-center gap-1.5 pl-2 pr-1 py-0.5 min-w-0 cursor-pointer ${ctxOff.has('selection') ? 'line-through' : ''}`}>
+                  <Scissors size={11} className="text-cyan flex-shrink-0" />
+                  <span className="truncate">Selection</span>
+                </button>
+                <button
+                  onClick={() => setContextPayload(prev => ({ ...prev, selectedText: undefined }))}
+                  aria-label="Remove selection"
+                  className="px-1.5 py-0.5 text-slate-400 hover:text-white cursor-pointer"
+                >×</button>
               </span>
             )}
-            {contextPayload.activeTab && (
-              <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]">
-                Tab: {contextPayload.activeTab}
-              </span>
+            {montage.clips.length > 0 && (
+              <button
+                onClick={() => toggleCtx('reel')}
+                aria-pressed={!ctxOff.has('reel')}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] cursor-pointer transition-opacity ${ctxOff.has('reel') ? 'opacity-40 line-through border-line bg-card' : 'bg-card text-slate-200 border-line'}`}
+              >
+                <Layers size={11} className="text-a0" />
+                Reel · {montage.clips.length} clip{montage.clips.length === 1 ? '' : 's'}
+              </button>
             )}
           </div>
+        )}
+
+        {/* Quote card for the attached selection */}
+        {contextPayload.selectedText && !ctxOff.has('selection') && (
+          <blockquote className="mx-4 mt-3 px-4 py-3 rounded-lg border-l-2 border-cyan bg-cyan/5 text-[13px] text-slate-200 leading-relaxed flex-shrink-0 max-h-32 overflow-y-auto">
+            “{contextPayload.selectedText}”
+          </blockquote>
         )}
 
         {/* Messages Stream */}

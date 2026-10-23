@@ -3,7 +3,7 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot
+  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot, Sparkles, Scale
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
@@ -12,6 +12,8 @@ import { CopilotProvider } from './contexts/CopilotContext';
 import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
+import { ReelChip } from './components/shell/ReelChip';
+import { pruneAudioCache } from './utils/audioCache';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
@@ -32,9 +34,11 @@ const GitHubConnect = React.lazy(() => import('./components/GitHubConnect'));
 const DeployWizard = React.lazy(() => import('./components/DeployWizard'));
 const FeaturePanel = React.lazy(() => import('./components/FeaturePanel'));
 const BatchUrlEditor = React.lazy(() => import('./components/BatchUrlEditor'));
+const PipelineSettings = React.lazy(() => import('./components/PipelineSettings'));
 const ConfigurationPanel = React.lazy(() => import('./components/ConfigurationPanel'));
 const FileViewer = React.lazy(() => import('./components/FileViewer'));
 const AICopilotPanel = React.lazy(() => import('./components/AICopilotPanel').then(m => ({ default: m.AICopilotPanel })));
+const InvestigativeRadar = React.lazy(() => import('./components/InvestigativeRadar').then(m => ({ default: m.InvestigativeRadar })));
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -152,6 +156,7 @@ const STATIC_FILES: PipelineFile[] = [
 
 type Panel =
   | 'dashboard'
+  | 'pipeline-settings'
   | 'github'
   | 'config'
   | 'features'
@@ -163,6 +168,7 @@ type Panel =
   | 'deploy'
   | 'library'
   | 'transcripts'
+  | 'investigative-radar'
   | 'clips'
   | 'montage'
   | 'voice-profiles'
@@ -181,24 +187,22 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, badgeColor }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between group px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+    aria-current={active ? 'page' : undefined}
+    className={`w-full flex items-center justify-between group px-3 py-2 text-[13px] font-medium rounded-lg border transition-colors cursor-pointer ${
       active
-        ? 'bg-indigo-500/15 text-indigo-300'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+        ? 'bg-a1/15 text-white border-a1/60'
+        : 'text-slate-400 border-transparent hover:text-slate-200 hover:bg-card/60'
     }`}
   >
     <div className="flex items-center gap-3 min-w-0">
-      <span className={active ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-400'}>{icon}</span>
+      <span className={active ? 'text-a0' : 'text-slate-500 group-hover:text-slate-300'}>{icon}</span>
       <span className="truncate">{label}</span>
     </div>
-    <div className="flex items-center gap-1.5 flex-shrink-0">
-      {badge && (
-        <span className={`text-[11px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
-          {badge}
-        </span>
-      )}
-      {active && <ChevronRight size={12} className="opacity-50" />}
-    </div>
+    {badge && (
+      <span className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${badgeColor || 'bg-card text-slate-300'}`}>
+        {badge}
+      </span>
+    )}
   </button>
 );
 
@@ -208,9 +212,15 @@ function AppContent() {
     updateConfig,
   } = useConfig();
   const [activePanel, setActivePanel] = useState<Panel>('dashboard');
-  const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | null>(null);
+  const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | string | null>(null);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+
+  // Apply the cache-retention setting once per load.
+  useEffect(() => {
+    if (config.cacheRetentionDays) pruneAudioCache(config.cacheRetentionDays);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [isExportingZip, setIsExportingZip] = useState(false);
 
   // Panels that live in the collapsed "Settings & Pipeline" group: open it so the active item is visible.
@@ -218,6 +228,7 @@ function AppContent() {
     if (
       activePanel === 'run-history' ||
       activePanel === 'rss-preview' ||
+      activePanel === 'pipeline-settings' ||
       activePanel === 'config' ||
       activePanel === 'features' ||
       activePanel === 'deploy' ||
@@ -292,91 +303,103 @@ function AppContent() {
     <PlayerProvider>
       <MontageProvider>
         <CopilotProvider>
-        <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
+        <div className="min-h-screen bg-bg text-slate-200 flex flex-col md:flex-row font-sans">
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-64 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0">
-        {/* Logo */}
-        <div className="p-5 border-b border-slate-800/80">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-500/15 rounded-xl border border-indigo-500/20">
-              <Mic2 className="text-indigo-400" size={20} />
-            </div>
-            <div>
-              <h1 className="font-bold text-base tracking-tight text-white leading-none">SpacePipe Gen</h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">Audio Pipeline Generator</p>
-            </div>
+      <aside className="w-full md:w-[clamp(208px,18vw,236px)] flex-shrink-0 border-r border-line bg-bg flex flex-col h-screen sticky top-0">
+        <div className="px-4 pt-4 pb-3 flex flex-wrap items-center gap-x-2.5 gap-y-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-a0 to-a1 flex items-center justify-center flex-shrink-0">
+            <AudioWaveform size={15} className="text-white" />
           </div>
+          <h1 className="font-semibold text-[15px] tracking-tight text-white leading-none">SpacePipe <span className="font-normal text-slate-400">Studio</span></h1>
+          <span
+            title={githubUser ? `Connected as ${githubUser.login}` : 'No GitHub connection: viewing the local archive'}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-medium ${
+              githubUser ? 'border-emerald/30 bg-emerald/10 text-emerald' : 'border-line bg-card text-slate-400'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${githubUser ? 'bg-emerald' : 'bg-slate-500'}`} />
+            {githubUser ? 'Online' : 'Local'}
+          </span>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+          <NavItem
+            icon={<Sparkles size={16} />}
+            label="AI Studio Copilot"
+            active={activePanel === 'ai-copilot'}
+            onClick={() => setActivePanel('ai-copilot')}
+            badge="AI"
+            badgeColor="text-a0"
+          />
+          <NavItem
+            icon={<LayoutDashboard size={16} />}
+            label="Command Center"
+            active={activePanel === 'dashboard'}
+            onClick={() => setActivePanel('dashboard')}
+          />
+          <NavItem
+            icon={<PlusCircle size={16} />}
+            label="Ingest"
+            active={activePanel === 'submit-space' || activePanel === 'live-queue'}
+            onClick={() => setActivePanel('submit-space')}
+          />
+          <NavItem
+            icon={<Library size={16} />}
+            label="Episode Library"
+            active={activePanel === 'library'}
+            onClick={() => setActivePanel('library')}
+          />
+          <NavItem
+            icon={<FileSearch size={16} />}
+            label="Transcripts"
+            active={activePanel === 'transcripts'}
+            onClick={() => setActivePanel('transcripts')}
+          />
+          <NavItem
+            icon={<Scale size={16} />}
+            label="Investigative Radar"
+            active={activePanel === 'investigative-radar'}
+            onClick={() => setActivePanel('investigative-radar')}
+            badge="GraphRAG"
+            badgeColor="bg-amber-500/20 text-amber-400 border border-amber-500/30"
+          />
+          <NavItem
+            icon={<Flame size={16} />}
+            label="Best Clips"
+            active={activePanel === 'clips'}
+            onClick={() => setActivePanel('clips')}
+          />
+          <NavItem
+            icon={<Film size={16} />}
+            label="Montage Studio"
+            active={activePanel === 'montage'}
+            onClick={() => setActivePanel('montage')}
+          />
+          <NavItem
+            icon={<Bot size={16} />}
+            label="Voice Profiles"
+            active={activePanel === 'voice-profiles'}
+            onClick={() => setActivePanel('voice-profiles')}
+          />
+        </nav>
 
-          {/* TIER 1 — STUDIO / DAILY OPERATIONS */}
-          <div>
-            <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">🎙️ Studio</p>
-            <div className="space-y-1">
-              <NavItem
-                icon={<LayoutDashboard size={15} />}
-                label="Command Center"
-                active={activePanel === 'dashboard'}
-                onClick={() => setActivePanel('dashboard')}
-              />
-              <NavItem
-                icon={<PlusCircle size={15} />}
-                label="Ingest"
-                active={activePanel === 'submit-space' || activePanel === 'live-queue'}
-                onClick={() => setActivePanel('submit-space')}
-              />
-              <NavItem
-                icon={<Library size={15} />}
-                label="Episode Library"
-                active={activePanel === 'library'}
-                onClick={() => setActivePanel('library')}
-              />
-              <NavItem
-                icon={<FileSearch size={15} />}
-                label="Transcripts"
-                active={activePanel === 'transcripts'}
-                onClick={() => setActivePanel('transcripts')}
-              />
-              <NavItem
-                icon={<Flame size={15} />}
-                label="Best Clips"
-                active={activePanel === 'clips'}
-                onClick={() => setActivePanel('clips')}
-              />
-              <NavItem
-                icon={<Film size={15} />}
-                label="Montage Studio"
-                active={activePanel === 'montage'}
-                onClick={() => setActivePanel('montage')}
-              />
-              <NavItem
-                icon={<AudioWaveform size={15} />}
-                label="Voice Profiles"
-                active={activePanel === 'voice-profiles'}
-                onClick={() => setActivePanel('voice-profiles')}
-              />
-              <NavItem
-                icon={<Bot size={15} />}
-                label="AI Copilot"
-                active={activePanel === 'ai-copilot'}
-                onClick={() => setActivePanel('ai-copilot')}
-              />
-            </div>
-          </div>
-
-          {/* TIER 2 — SETTINGS & PIPELINE (collapsed by default) */}
-          <div>
-            <button
-              onClick={() => setSettingsExpanded(e => !e)}
-              className="w-full flex items-center justify-between px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-400 transition-colors"
-            >
-              <span>⚙️ Settings &amp; Pipeline</span>
-              <ChevronDown size={12} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
-            </button>
+        <div className="border-t border-line px-3 pt-2 pb-3 space-y-2 max-h-[55vh] overflow-y-auto">
+          <button
+            onClick={() => setSettingsExpanded(e => !e)}
+            aria-expanded={settingsExpanded}
+            className="w-full flex items-center justify-between px-3 py-2 text-[13px] font-medium text-slate-400 hover:text-slate-200 rounded-lg hover:bg-card/60 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-3"><Settings size={16} className="text-slate-500" /> Pipeline Settings</span>
+            <ChevronDown size={13} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
+          </button>
             {settingsExpanded && (
               <div className="space-y-1">
+                <NavItem
+                  icon={<Settings size={15} />}
+                  label="Pipeline Settings"
+                  active={activePanel === 'pipeline-settings'}
+                  onClick={() => setActivePanel('pipeline-settings')}
+                />
                 <NavItem
                   icon={<History size={15} />}
                   label="Run History"
@@ -391,7 +414,7 @@ function AppContent() {
                 />
                 <NavItem
                   icon={<Settings size={15} />}
-                  label="Configuration"
+                  label="Repo & Podcast"
                   active={activePanel === 'config'}
                   onClick={() => setActivePanel('config')}
                 />
@@ -443,19 +466,13 @@ function AppContent() {
                 ))}
               </div>
             )}
-          </div>
-        </nav>
 
-        <div className="p-3 border-t border-slate-800/80">
           <PipelineHealthWidget
             config={config}
             compact={true}
             onNavigateToGitHub={() => setActivePanel('github')}
           />
-        </div>
-
-        <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-500 text-center">
-          Generated files comply with DevOps strict mode
+          <ReelChip />
         </div>
       </aside>
 
@@ -490,6 +507,8 @@ function AppContent() {
             }}
           />
         )}
+
+        {activePanel === 'pipeline-settings' && <PipelineSettings />}
 
         {activePanel === 'config' && (
           <ConfigurationPanel
@@ -581,6 +600,16 @@ function AppContent() {
           <TranscriptPanel
             config={config}
             initialReleaseId={selectedTranscriptId}
+          />
+        )}
+
+        {activePanel === 'investigative-radar' && (
+          <InvestigativeRadar
+            config={config}
+            onOpenTranscript={(id) => {
+              setSelectedTranscriptId(id);
+              setActivePanel('transcripts');
+            }}
           />
         )}
 
