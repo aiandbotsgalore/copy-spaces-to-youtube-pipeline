@@ -33,6 +33,21 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 EPISODES_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _duration_sec(body):
+    """Seconds from the release body's METADATA::DURATION::HH:MM:SS (or MM:SS) line; None when absent."""
+    m = re.search(r"METADATA::DURATION::(\d{1,2}):(\d{2})(?::(\d{2}))?", body or "")
+    if not m:
+        return None
+    a, b, c = int(m.group(1)), int(m.group(2)), m.group(3)
+    return a * 3600 + b * 60 + int(c) if c is not None else a * 60 + b
+
+
+def _host_handle(body):
+    """Host handle from METADATA::HOST::<handle> (yt-dlp uploader_id); None when absent so the UI hides it."""
+    m = re.search(r"METADATA::HOST::@?([A-Za-z0-9_.\-]+)", body or "")
+    return m.group(1) if m else None
+
+
 def parse_time_to_seconds(time_str: str) -> float:
     if not time_str:
         return 0.0
@@ -291,6 +306,8 @@ def main():
             "audio_url": ep.get("audio_url", ""),
             "segment_count": ep.get("segment_count", len(ep.get("segments", []))),
             "body": ep.get("body", ""),
+            "duration_sec": _duration_sec(ep.get("body", "")),
+            "host_handle": _host_handle(ep.get("body", "")),
             "speakers": spks,
         })
 

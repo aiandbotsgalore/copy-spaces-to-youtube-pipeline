@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"><style>html,body{margin:0;background:#0B0F17}*{box-sizing:border-box}::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#1E293B;border-radius:4px}::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}html{color-scheme:dark;scrollbar-color:#1E293B transparent}input[type=range]{accent-color:var(--a0,#8b5cf6)}a{color:var(--a3,#a5b4fc)}a:hover{color:#c7d2fe}</style></helmet>
+<div style="--a0:{{ ac.a0 }};--a1:{{ ac.a1 }};--a2:{{ ac.a2 }};--a3:{{ ac.a3 }};--z:{{ zm }};--bg:{{ atmo }};zoom:var(--z,1);display:flex;width:100%;height:calc(100vh / var(--z,1));min-width:0;background:var(--bg,#0B0F17);color:#e2e8f0;font:13px/1.4 'IBM Plex Sans',system-ui,sans-serif;overflow:hidden">
+  <!-- Sidebar -->
+  <aside style="width:clamp(208px,18vw,236px);flex:none;overflow:hidden;display:flex;flex-direction:column;background:#0B0F17;border-right:1px solid #1E293B">
+    <div style="display:flex;align-items:center;gap:8px;padding:14px 14px 16px;gap:8px;flex-wrap:wrap;flex:none;min-height:max-content">
+      <div style="width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));display:grid;place-items:center;box-shadow:0 0 14px color-mix(in srgb,var(--a1,#6366f1) 40%,transparent)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg></div>
+      <div style="font-weight:600;font-size:14px;letter-spacing:-.01em;flex:1 0 auto;white-space:nowrap">SpacePipe <span style="color:#94a3b8;font-weight:500">Studio</span></div>
+      <div title="{{ sp.tip }}" style="display:flex;align-items:center;gap:5px;flex:none;padding:2px 7px;border-radius:99px;background:{{ sp.bg }};border:1px solid {{ sp.bd }};color:{{ sp.c }};font-size:10.5px;font-weight:500;white-space:nowrap"><span style="width:5px;height:5px;border-radius:50%;background:{{ sp.c }};box-shadow:0 0 6px {{ sp.c }}"></span>{{ sp.t }}</div>
+    </div>
+    <nav style="display:flex;flex-direction:column;gap:1px;padding:4px 8px;flex:1;overflow:auto">
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="8">
+        <div onClick="{{ n.go }}" style="flex:none;display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:7px;cursor:pointer;color:{{ n.color }};background:{{ n.bg }};box-shadow:{{ n.ring }};font-weight:{{ n.weight }}" style-hover="background:#131B2E;color:#e2e8f0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{ n.icolor }}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ n.d }}"></path></svg>
+          <span style="flex:1">{{ n.label }}</span>
+          <sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="font:500 10px 'JetBrains Mono',monospace;color:var(--a2,#818cf8)">{{ n.badge }}</span></sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="margin-top:16px;border-top:1px solid #1E293B;padding:12px 8px 4px">
+      <div onClick="{{ toggleSettings }}" style="display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:7px;cursor:pointer;color:#94a3b8" style-hover="background:#131B2E;color:#e2e8f0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.sliders }}"></path></svg>
+        <span style="flex:1">Pipeline Settings</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transform:{{ chevRot }};transition:transform .15s"><path d="m6 9 6 6 6-6"></path></svg>
+      </div>
+      <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:1px;padding:2px 0 4px 20px">
+          <sc-for list="{{ settings }}" as="s" hint-placeholder-count="0">
+            <div onClick="{{ s.go }}" style="display:flex;align-items:center;gap:8px;height:28px;padding:0 10px;border-radius:6px;color:{{ s.c }};background:{{ s.bg }};cursor:pointer" style-hover="background:#131B2E;color:#e2e8f0"><span style="width:5px;height:5px;border-radius:50%;background:{{ s.dot }}"></span><span style="flex:1">{{ s.label }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="padding:8px 8px 12px"><div onClick="{{ toggleReel }}" style="display:flex;align-items:center;gap:9px;height:44px;padding:0 10px 0 12px;border-radius:10px;background:#131B2E;border:1px solid #1E293B;cursor:pointer" style-hover="border-color:var(--a1,#6366f1)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.film }}"></path></svg>
+      <div style="flex:1;font-weight:500;white-space:nowrap">Reel: {{ reelCount }} clips <span style="color:#64748b">•</span> <span style="font-family:'JetBrains Mono',monospace;font-size:12px">{{ reelDur }}</span></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>
+    </div></div>
+  </aside>
+
+  <!-- Main -->
+  <sc-if value="{{ isT }}" hint-placeholder-val="{{ true }}"><main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;gap:16px;height:52px;flex:none;padding:0 18px;border-bottom:1px solid #1E293B">
+      <h1 style="flex:none;margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">Interactive Transcripts</h1>
+      <div style="flex:1 1 220px;min-width:0;max-width:560px;margin-left:8px;display:flex;align-items:center;gap:9px;height:34px;padding:0 12px;border-radius:8px;background:#131B2E;border:1px solid #1E293B" style-focus="border-color:var(--a1,#6366f1)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="{{ icons.search }}"></path></svg>
+        <input value="{{ ts }}" onInput="{{ setTs }}" placeholder="Search 702 transcripts · 951,874 turns" style="flex:1;min-width:0;background:none;border:0;outline:0;color:#e2e8f0;font:inherit">
+        
+      </div>
+      <div style="flex:1"></div>
+      <button onClick="{{ goCopilot }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:0;cursor:pointer;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));box-shadow:0 0 16px color-mix(in srgb,var(--a1,#6366f1) 30%,transparent)" style-hover="filter:brightness(1.12)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.sparkles }}"></path></svg>Ask Copilot</button>
+      <button onClick="{{ toggleHelp }}" title="Shortcuts · ?" style="flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:#94a3b8;background:#131B2E;border:1px solid #1E293B" style-hover="border-color:#334155;color:#e2e8f0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v10H3zM7 10h.01M11 10h.01M15 10h.01M7 14h10"></path></svg></button>
+      <button onClick="{{ refresh }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;cursor:pointer;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B;font:500 13px 'IBM Plex Sans',sans-serif" style-hover="border-color:#334155"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.refresh }}"></path></svg>Refresh</button>
+    </header>
+
+    <div style="flex:1;min-height:0;display:flex;position:relative">
+      <!-- Episode list -->
+      <sc-if value="{{ epScrim }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeEp }}" style="position:absolute;inset:0;z-index:7;background:#0009"></div></sc-if>
+      <section style="width:{{ epl.w }};flex:none;display:{{ epl.d }};position:{{ epl.pos }};top:0;bottom:0;left:0;z-index:8;background:#0B0F17;box-shadow:{{ epl.sh }};flex-direction:column;border-right:1px solid #1E293B;min-height:0">
+        <div style="display:flex;align-items:center;gap:1px;height:40px;flex:none;padding:0 6px;border-bottom:1px solid #1E293B;overflow-x:auto;scrollbar-width:none">
+          <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+            <div onClick="{{ f.pick }}" title="{{ f.tip }}" style="flex:none;display:flex;align-items:center;gap:5px;white-space:nowrap;font:500 11.5px 'IBM Plex Sans',sans-serif;height:26px;padding:0 6px;border-radius:6px;cursor:pointer;color:{{ f.color }};background:{{ f.bg }}" style-hover="color:#e2e8f0"><span style="width:6px;height:6px;border-radius:50%;background:{{ f.dot }};box-shadow:{{ f.glow }};display:{{ f.dd }}"></span>{{ f.label }}<span style="font:500 10.5px 'JetBrains Mono',monospace;color:{{ f.nc }}">{{ f.n }}</span></div>
+          </sc-for>
+        </div>
+        <div style="flex:1;overflow:auto;overflow-x:hidden;padding:8px;display:flex;flex-direction:column;gap:4px">
+          <sc-for list="{{ episodes }}" as="e" hint-placeholder-count="8">
+            <div onClick="{{ e.pick }}" style="display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-radius:8px;cursor:pointer;background:{{ e.bg }};border:1px solid {{ e.border }};box-shadow:{{ e.glow }}">
+              <div style="font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:{{ e.tcolor }}">{{ e.title }}</div>
+              <div style="display:flex;align-items:center;gap:6px;min-width:0;font:500 11.5px 'IBM Plex Sans',sans-serif;color:#94a3b8"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM19 11a7 7 0 0 1-14 0M12 18v3"></path></svg><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ e.host }}</span></div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div onClick="{{ e.play }}" style="width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:{{ e.plbg }};opacity:{{ e.plo }}" style-hover="opacity:1;background:var(--a1,#6366f1)"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="{{ e.pld }}"></path></svg></div>
+                <span style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;font:400 11px 'JetBrains Mono',monospace;color:{{ e.dc }};white-space:nowrap"><span>{{ e.date }}</span><span style="color:#94a3b8">{{ e.rt }}</span></span>
+                <span title="{{ e.status }}" style="width:8px;height:8px;flex:none;margin-right:2px;border-radius:50%;background:{{ e.pc }};box-shadow:{{ e.pglow }}"></span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- Inspector -->
+      <section style="flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;position:relative">
+        <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;background:#0B0F17">
+          <div style="flex:none;display:flex;align-items:center;gap:10px;height:44px;padding:0 14px 0 18px;border-bottom:1px solid #1E293B">
+            <span style="font-weight:600;white-space:nowrap">{{ sr.n }} matches</span><span style="font:500 11.5px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap">{{ sr.m }} episodes</span><div style="flex:1"></div>
+            <div onClick="{{ clearTs }}" title="Clear search · Esc" style="width:26px;height:26px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:#94a3b8" style-hover="background:#1E293B;color:#fff"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;overflow-x:hidden;padding:10px 12px 16px;display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ sr.groups }}" as="g" hint-placeholder-count="0">
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div onClick="{{ g.open }}" style="display:flex;align-items:center;gap:10px;padding:4px 8px 8px;margin-bottom:2px;border-bottom:1px solid #1a2336;cursor:pointer" style-hover="color:#fff"><span style="flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.title }}</span><span style="font:400 11px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap">{{ g.date }}</span><span style="font:500 10.5px 'JetBrains Mono',monospace;padding:1px 7px;border-radius:99px;color:#fbbf24;background:#f59e0b14;border:1px solid #f59e0b38">{{ g.n }}</span></div>
+                <sc-for list="{{ g.hits }}" as="r" hint-placeholder-count="0"><div onClick="{{ r.go }}" style="display:grid;grid-template-columns:52px 72px minmax(0,1fr);column-gap:10px;align-items:start;padding:7px 8px;border-radius:8px;cursor:pointer" style-hover="background:#131B2E"><span style="font:500 11.5px/22px 'JetBrains Mono',monospace;color:#64748b">{{ r.time }}</span><span style="display:block;width:72px;height:22px;padding:0 6px;border-radius:6px;text-align:center;font:500 11px/20px 'IBM Plex Sans',sans-serif;color:{{ r.sc }};background:{{ r.pbg }};border:1px solid {{ r.pbd }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.who }}</span><span style="font-size:13.5px;line-height:22px;color:#b6c2d4;text-wrap:pretty">{{ r.pre }}<span style="color:#fff;background:color-mix(in srgb,#fbbf24 32%,transparent);border-radius:3px">{{ r.hit }}</span>{{ r.post }}</span></div></sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{ sr.none }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 0;text-align:center;color:#64748b">No matches</div></sc-if>
+          </div>
+        </div>
+        </sc-if>
+        <div style="flex:none;padding:10px 18px;border-bottom:1px solid #1E293B;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;min-width:0"><sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div onClick="{{ toggleEp }}" title="Episodes" style="width:28px;height:28px;flex:none;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B" style-hover="border-color:var(--a1,#6366f1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"></path></svg></div></sc-if><h2 title="{{ current.title }}" style="flex:1;margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.3;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ current.title }}</h2></div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <sc-if value="{{ isLive }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:flex;align-items:center;gap:6px;height:22px;padding:0 8px;border-radius:6px;font:600 10.5px 'JetBrains Mono',monospace;letter-spacing:.06em;color:#fecdd3;background:#f43f5e26;border:1px solid #f43f5e66"><span style="width:6px;height:6px;border-radius:50%;background:#f43f5e;box-shadow:0 0 8px #f43f5e"></span>LIVE</span></sc-if>
+            <span title="Space host" style="flex:none;display:flex;align-items:center;gap:6px;white-space:nowrap;font:500 12px 'IBM Plex Sans',sans-serif;color:#cbd5e1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--a2,#818cf8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zM19 11a7 7 0 0 1-14 0M12 18v3"></path></svg>{{ current.host }}</span>
+            <span style="flex:none;margin-right:auto;font:500 11px 'JetBrains Mono',monospace;padding:2px 8px;border-radius:99px;background:#131B2E;border:1px solid #1E293B;color:#94a3b8;white-space:nowrap">{{ current.date }}<span style="color:#475569;padding:0 6px">·</span>{{ current.rt }}</span>
+            <div style="display:flex;gap:6px;position:relative">
+            <sc-for list="{{ actions }}" as="a" hint-placeholder-count="3">
+              <button onClick="{{ a.go }}" title="{{ a.tip }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:7px;cursor:pointer;font:500 12.5px 'IBM Plex Sans',sans-serif;color:{{ a.color }};background:{{ a.bg }};border:1px solid {{ a.border }}" style-hover="filter:brightness(1.25)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.d }}"></path></svg><span style="display:{{ a.ld }}">{{ a.label }}</span><sc-if value="{{ a.count }}" hint-placeholder-val="{{ false }}"><span style="font:500 11px 'JetBrains Mono',monospace;padding:0 5px;border-radius:4px;background:#ffffff14">{{ a.count }}</span></sc-if><sc-if value="{{ a.tail }}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.55"><path d="{{ a.tail }}"></path></svg></sc-if>
+              </button>
+            </sc-for>
+            <div style="position:relative">
+              <button onClick="{{ toggleEx }}" title="Export transcript" style="white-space:nowrap;display:flex;align-items:center;gap:4px;height:30px;padding:0 7px 0 9px;border-radius:7px;cursor:pointer;font:500 12.5px 'IBM Plex Sans',sans-serif;color:#cbd5e1;background:{{ exBg }};border:1px solid {{ exBd }}" style-hover="filter:brightness(1.25)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.ext }}"></path></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ exRot }};transition:transform .15s"><path d="m6 9 6 6 6-6"></path></svg></button>
+              <sc-if value="{{ exOpen }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ toggleEx }}" style="position:fixed;inset:0;z-index:15"></div>
+                <div style="position:absolute;top:36px;right:0;z-index:16;min-width:200px;padding:4px;border-radius:10px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 12px 32px #000a;display:flex;flex-direction:column;gap:1px">
+                  <sc-for list="{{ exItems }}" as="x" hint-placeholder-count="4"><div onClick="{{ x.go }}" style="display:flex;align-items:center;gap:9px;height:32px;padding:0 10px;border-radius:7px;cursor:pointer;color:#cbd5e1" style-hover="background:#1b2640;color:#fff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ x.d }}"></path></svg><span style="flex:1">{{ x.label }}</span><span style="font:400 11px 'JetBrains Mono',monospace;color:#64748b">{{ x.k }}</span></div></sc-for>
+                </div>
+              </sc-if>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:none;display:flex;flex-direction:column;gap:6px;padding:8px 18px;border-bottom:1px solid #1E293B;background:#0d1320">
+          <div onClick="{{ seek }}" style="position:relative;height:clamp(46px,9vh,76px);cursor:pointer">
+            <div style="position:absolute;inset:0 0 16px 0;display:flex;align-items:center;gap:1px">
+              <sc-for list="{{ bars }}" as="b" hint-placeholder-count="0"><div style="flex:1;border-radius:1px;height:{{ b.h }};background:{{ b.bg }}"></div></sc-for>
+            </div>
+            <sc-for list="{{ bands }}" as="k" hint-placeholder-count="0"><div onClick="{{ k.go }}" title="{{ k.tip }}" style="position:absolute;top:0;bottom:16px;left:{{ k.left }};width:{{ k.w }};min-width:8px;z-index:1;border-radius:3px;background:{{ k.bg }};border-top:2px solid {{ k.col }};cursor:pointer" style-hover="filter:brightness(1.8)"><span style="position:absolute;top:3px;left:3px;font:600 9.5px/1 'JetBrains Mono',monospace;color:{{ k.col }}">{{ k.s }}</span></div></sc-for>
+            <sc-for list="{{ marks }}" as="m" hint-placeholder-count="0"><div onClick="{{ m.go }}" onMouseEnter="{{ m.enter }}" onMouseLeave="{{ m.leave }}" style="position:absolute;bottom:0;left:{{ m.left }};width:{{ m.wd }};height:14px;padding-right:1px;display:flex;align-items:flex-end;cursor:pointer;z-index:2"><div style="flex:1;height:{{ m.h }};border-radius:2px;background:{{ m.bg }};opacity:{{ m.o }};box-shadow:{{ m.glow }};transition:height .12s"></div></div></sc-for>
+            <div style="position:absolute;top:0;bottom:0;z-index:3;left:{{ headLeft }};width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 8px #fff;pointer-events:none"></div>
+            <sc-if value="{{ tipOn }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;bottom:20px;left:{{ tip.left }};transform:{{ tip.tx }};z-index:5;pointer-events:none;display:flex;align-items:center;gap:7px;white-space:nowrap;padding:5px 9px;border-radius:7px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 8px 24px #000a;font:500 11.5px 'IBM Plex Sans',sans-serif;color:#e2e8f0"><span style="width:7px;height:7px;border-radius:2px;background:{{ tip.c }}"></span>{{ tip.who }}<span style="font:500 11px 'JetBrains Mono',monospace;color:#94a3b8">{{ tip.time }}</span></div></sc-if>
+          </div>
+          <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px">
+            <span style="font:500 11.5px 'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:#e2e8f0;white-space:nowrap">{{ curTime }}</span>
+            <div style="display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 8px">
+              <div style="display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:#131B2E;border:1px solid #1E293B">
+                <div onClick="{{ stepBack.go }}" title="{{ stepBack.tip }}" style="white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;height:26px;padding:0 8px;display:grid;place-items:center;border-radius:6px;cursor:pointer;color:#cbd5e1" style-hover="background:#1E293B;color:#fff">{{ stepBack.label }}</div>
+                <div onClick="{{ togglePlay }}" title="Play / Pause · Space" style="width:30px;height:30px;margin:0 2px;border-radius:50%;display:grid;place-items:center;background:var(--a1,#6366f1);cursor:pointer;flex:none;box-shadow:0 0 12px color-mix(in srgb,var(--a1,#6366f1) 40%,transparent)"><svg width="13" height="13" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="{{ playD }}"></path></svg></div>
+                <sc-for list="{{ stepFwd }}" as="c" hint-placeholder-count="1"><div onClick="{{ c.go }}" title="{{ c.tip }}" style="white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;height:26px;padding:0 8px;display:grid;place-items:center;border-radius:6px;cursor:pointer;color:#cbd5e1" style-hover="background:#1E293B;color:#fff">{{ c.label }}</div></sc-for>
+              </div>
+              <div onClick="{{ togglePrec }}" title="Sync offset · , and . nudge 0.1s" style="display:flex;align-items:center;gap:6px;white-space:nowrap;height:34px;padding:0 10px;border-radius:10px;cursor:pointer;font:500 11.5px 'JetBrains Mono',monospace;color:{{ pr.c }};background:{{ pr.bg }};border:1px solid {{ pr.bd }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.clock }}"></path></svg><sc-if value="{{ pr.showOff }}" hint-placeholder-val="{{ false }}"><span>{{ offLabel }}</span></sc-if></div>
+              <sc-if value="{{ prec }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:#131B2E;border:1px solid #1E293B">
+                  <div onClick="{{ syncBack.go }}" title="Shift audio earlier · ," style="white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;height:26px;padding:0 8px;display:grid;place-items:center;border-radius:6px;cursor:pointer;color:#cbd5e1" style-hover="background:#1E293B;color:#fff">-0.1s</div>
+                  <div onClick="{{ resetOff }}" title="Reset offset" style="white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;height:26px;padding:0 8px;display:grid;place-items:center;border-radius:6px;cursor:pointer;color:#cbd5e1;min-width:56px;color:#e2e8f0" style-hover="background:#1E293B">{{ offLabel }}</div>
+                  <div onClick="{{ syncFwd.go }}" title="Shift audio later · ." style="white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;height:26px;padding:0 8px;display:grid;place-items:center;border-radius:6px;cursor:pointer;color:#cbd5e1" style-hover="background:#1E293B;color:#fff">+0.1s</div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isLive }}" hint-placeholder-val="{{ false }}"><div onClick="{{ goLive }}" title="Jump to live edge" style="display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border-radius:10px;cursor:pointer;white-space:nowrap;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.06em;color:{{ lv.c }};background:{{ lv.bg }};border:1px solid {{ lv.bd }}"><span style="width:6px;height:6px;border-radius:50%;background:#f43f5e;box-shadow:{{ lv.glow }}"></span>LIVE</div></sc-if>
+            </div>
+            <span style="font:500 11.5px 'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:#64748b;white-space:nowrap">{{ totTime }}</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ isReady }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:none;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 18px;border-bottom:1px solid #1E293B">
+            <div style="flex:0 1 180px;min-width:96px;display:flex;align-items:center;gap:7px;height:28px;padding:0 9px;border-radius:7px;background:#131B2E;border:1px solid #1E293B" style-focus="border-color:var(--a1,#6366f1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="{{ icons.search }}"></path></svg>
+              <input value="{{ lq }}" onInput="{{ setLq }}" placeholder="Find in episode" style="flex:1;min-width:0;background:none;border:0;outline:0;color:#e2e8f0;font:12.5px 'IBM Plex Sans',sans-serif">
+              <sc-if value="{{ lqOn }}" hint-placeholder-val="{{ false }}"><span style="font:500 10.5px 'JetBrains Mono',monospace;color:#fbbf24;white-space:nowrap">{{ lqCount }}</span></sc-if>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none">
+              <sc-for list="{{ spkChips }}" as="k" hint-placeholder-count="4"><div onClick="{{ k.go }}" style="flex:none;display:flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:99px;cursor:pointer;white-space:nowrap;font:500 11.5px 'IBM Plex Sans',sans-serif;color:{{ k.c }};background:{{ k.bg }};border:1px solid {{ k.bd }};opacity:{{ k.o }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ k.col }}"></span>{{ k.l }}<span style="font:500 10.5px 'JetBrains Mono',monospace;color:#64748b">{{ k.n }}</span></div></sc-for>
+            </div>
+            <div onClick="{{ toggleScroll }}" title="Follow playhead · F" style="width:28px;height:28px;flex:none;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:{{ scrollColor }};background:{{ scrollBg }};border:1px solid {{ scrollBorder }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 12a7 7 0 1 0 14 0 7 7 0 1 0-14 0M10 12a2 2 0 1 0 4 0 2 2 0 1 0-4 0"></path></svg></div>
+          </div>
+          <div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column">
+            <div ref="{{ setList }}" onWheel="{{ freeScroll }}" style="flex:1;min-height:0;overflow:auto;overflow-x:hidden;padding:6px 10px 12px;display:flex;flex-direction:column;gap:1px">
+              <sc-for list="{{ turns }}" as="t" hint-placeholder-count="0">
+                <div onClick="{{ t.jump }}" onMouseEnter="{{ t.enter }}" onMouseLeave="{{ t.leave }}" data-active="{{ t.on }}" style="display:grid;grid-template-columns:52px 72px minmax(0,68ch) 26px;justify-content:start;column-gap:10px;align-items:start;padding:7px 8px;border-radius:8px;cursor:pointer;background:{{ t.bg }};box-shadow:{{ t.ring }}">
+                  <span style="font:500 11.5px/22px 'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:{{ t.tc }}" style-hover="color:#fff">{{ t.time }}</span>
+                  <span style="display:block;width:72px;height:22px;padding:0 6px;border-radius:6px;text-align:center;font:500 11px/20px 'IBM Plex Sans',sans-serif;color:{{ t.sc }};background:{{ t.pbg }};border:1px solid {{ t.pbd }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.who }}</span>
+                  <span style="font-size:14px;line-height:22px;text-wrap:pretty;user-select:none"><sc-for list="{{ t.words }}" as="w" hint-placeholder-count="0"><span onClick="{{ w.go }}" onMouseDown="{{ w.down }}" onMouseEnter="{{ w.over }}" style="color:{{ w.c }};background:{{ w.bg }};border-radius:3px" style-hover="color:#fff;background:#ffffff14">{{ w.w }}</span></sc-for></span>
+                  <span onClick="{{ t.add }}" title="{{ t.addTip }}" style="width:26px;height:22px;border-radius:6px;display:grid;place-items:center;color:{{ t.addc }};background:{{ t.addbg }};opacity:{{ t.addo }};transition:opacity .12s" style-hover="opacity:1;color:#fff;background:color-mix(in srgb,var(--a1,#6366f1) 24%,transparent)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.addd }}"></path></svg></span>
+                </div>
+              </sc-for>
+              <sc-if value="{{ noTurns }}" hint-placeholder-val="{{ false }}"><div style="padding:32px 0;text-align:center;color:#64748b">No matching turns</div></sc-if>
+            </div>
+            <sc-if value="{{ selOn }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:4px;padding:4px;border-radius:10px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 10px 30px #000a,0 0 18px color-mix(in srgb,var(--a1,#6366f1) 18%,transparent);white-space:nowrap">
+              <span style="padding:0 6px 0 8px;font:500 11.5px 'JetBrains Mono',monospace;color:#cbd5e1">{{ selb.range }}</span><span style="padding-right:6px;font:500 11.5px 'JetBrains Mono',monospace;color:var(--a3,#a5b4fc)">{{ selb.dur }}</span>
+              <div onClick="{{ selb.add }}" title="Add selection to Reel" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:7px;border:0;cursor:pointer;font:500 12px 'IBM Plex Sans',sans-serif;color:#fff;background:var(--a1,#6366f1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Clip</div>
+              <div onClick="{{ selb.ask }}" title="Ask Copilot about selection" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;cursor:pointer;font:500 12px 'IBM Plex Sans',sans-serif;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B" style-hover="border-color:var(--a1,#6366f1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.sparkles }}"></path></svg>Ask</div>
+              <div onClick="{{ selb.copy }}" title="Copy quote" style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:#94a3b8" style-hover="background:#1E293B;color:#fff"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.copy }}"></path></svg></div>
+              <div onClick="{{ selb.clear }}" title="Clear · Esc" style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:#64748b" style-hover="background:#1E293B;color:#fff"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div>
+            </div></sc-if>
+            <sc-if value="{{ showJump }}" hint-placeholder-val="{{ false }}"><div onClick="{{ followOn }}" title="Back to playhead" style="position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 10px;border-radius:99px;cursor:pointer;white-space:nowrap;font:500 11.5px 'JetBrains Mono',monospace;color:#fff;background:var(--a1,#6366f1);box-shadow:0 6px 20px #0008,0 0 14px color-mix(in srgb,var(--a1,#6366f1) 40%,transparent)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 12a7 7 0 1 0 14 0 7 7 0 1 0-14 0"></path></svg>{{ curTime }}</div></sc-if>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isQueued }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;min-height:0;overflow:auto;display:grid;place-items:center;padding:14px;background:radial-gradient(ellipse at 50% 40%,#131B2E 0%,#0B0F17 70%)">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+              <div style="display:flex;align-items:center;gap:8px;white-space:nowrap;padding:5px 13px;border-radius:99px;font-weight:500;background:{{ qb.bg }};border:1px solid {{ qb.bd }};color:{{ qb.c }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ qb.c }};box-shadow:0 0 8px {{ qb.c }}"></span>{{ qb.t }}</div>
+              <div style="display:flex;align-items:flex-start">
+                <sc-for list="{{ stages }}" as="g" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:flex-start">
+                    <div style="width:{{ g.lw }};height:2px;margin-top:11px;border-radius:1px;background:{{ g.lc }}"></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;width:76px">
+                      <div style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:{{ g.bg }};border:1.5px solid {{ g.bd }};box-shadow:{{ g.glow }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{ g.ic }}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ g.d }}"></path></svg></div>
+                      <span style="font-size:12px;color:{{ g.tc }};white-space:nowrap">{{ g.l }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;font:500 12px 'JetBrains Mono',monospace;color:#94a3b8;white-space:nowrap"><span>{{ qmeta.pos }}</span><span style="color:#334155">|</span><span>{{ qmeta.eta }}</span></div>
+              <button onClick="{{ prioritize }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:34px;padding:0 15px;border-radius:8px;border:0;cursor:pointer;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));box-shadow:0 0 18px color-mix(in srgb,var(--a1,#6366f1) 33%,transparent)" style-hover="filter:brightness(1.12)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="{{ icons.zap }}"></path></svg>{{ prioLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+        <div onClick="{{ trayReel }}" title="Reel" style="flex:none;display:flex;align-items:center;gap:10px;height:32px;padding:0 14px 0 18px;border-top:1px solid #1E293B;background:#0d1320;cursor:pointer" style-hover="background:#111a2b">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.film }}"></path></svg>
+          <span style="font-weight:500;white-space:nowrap">Reel</span>
+          <div style="flex:1;min-width:0;display:flex;gap:2px;height:6px"><sc-for list="{{ reelStrip }}" as="c" hint-placeholder-count="5"><div style="flex:{{ c.dur }} 1 0;min-width:2px;border-radius:2px;background:{{ c.col }}"></div></sc-for></div>
+          <span style="font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8;white-space:nowrap">{{ reelCount }} · {{ reelDur }}</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>
+        </div>
+      </section>
+    </div>
+</main></sc-if>
+  <sc-if value="{{ isM }}" hint-placeholder-val="{{ false }}">
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-height:52px;flex:none;padding:8px 18px;border-bottom:1px solid #1E293B">
+      <h1 style="flex:none;margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">Montage Studio</h1>
+      <div style="display:flex;align-items:center;gap:10px;height:32px;padding:0 12px;border-radius:8px;background:#131B2E;border:1px solid #1E293B;white-space:nowrap">
+        <span style="font:500 13px 'JetBrains Mono',monospace;color:{{ gauge.tc }}">{{ gauge.run }}</span>
+        <div style="width:64px;height:5px;border-radius:3px;background:#1E293B;overflow:hidden"><div style="width:{{ gauge.pct }};height:100%;border-radius:3px;background:{{ gauge.bar }};box-shadow:0 0 8px {{ gauge.bar }}"></div></div>
+        <span style="font:400 12px 'JetBrains Mono',monospace;color:#64748b">{{ gauge.target }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:4px">
+        <sc-for list="{{ tools }}" as="b" hint-placeholder-count="5"><div onClick="{{ b.go }}" title="{{ b.label }}" style="width:32px;height:32px;border-radius:8px;display:grid;place-items:center;cursor:pointer;color:{{ b.c }};background:#131B2E;border:1px solid #1E293B;opacity:{{ b.o }}" style-hover="border-color:var(--a1,#6366f1);color:#fff"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ b.d }}"></path></svg></div></sc-for>
+      </div>
+      <button onClick="{{ aiSort }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:0;cursor:pointer;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));box-shadow:0 0 16px color-mix(in srgb,var(--a1,#6366f1) 30%,transparent)" style-hover="filter:brightness(1.12)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.sparkles }}"></path></svg>AI Sort</button>
+      <button onClick="{{ goCopilot }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:8px;cursor:pointer;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B;font:500 13px 'IBM Plex Sans',sans-serif" style-hover="border-color:#334155"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.copilot }}"></path></svg></button>
+    </header>
+    <div style="flex:1;min-height:0;display:flex">
+      <section style="flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid #1E293B">
+        <div style="flex:none;padding:12px 14px;border-bottom:1px solid #1E293B;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600">Sequence</span><span style="font:500 11px 'JetBrains Mono',monospace;padding:1px 7px;border-radius:99px;background:#131B2E;border:1px solid #1E293B;color:#94a3b8">{{ tlCount }}</span></div>
+          <div style="display:flex;gap:2px;height:40px">
+            <sc-for list="{{ strip }}" as="c" hint-placeholder-count="5"><div title="{{ c.title }}" style="flex:{{ c.dur }} 1 0;min-width:0;overflow:hidden;padding:5px 7px;border-radius:5px;border-top:3px solid {{ c.col }};background:{{ c.bg }};font:500 11px/1.2 'IBM Plex Sans',sans-serif;color:#e2e8f0;white-space:nowrap;text-overflow:ellipsis">{{ c.title }}</div></sc-for>
+            <div style="flex:{{ gap }} 1 0;min-width:0;border-radius:5px;border:1px dashed #2a3750"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;overflow-x:hidden;padding:8px 10px;display:flex;flex-direction:column;gap:4px">
+          <sc-for list="{{ rows }}" as="c" hint-placeholder-count="5">
+            <div draggable="{{ c.dg }}" onDragStart="{{ c.ds }}" onDragOver="{{ c.dov }}" onDrop="{{ c.drop }}" onDragEnd="{{ c.de }}" style="display:flex;align-items:center;gap:8px;padding:8px 8px 8px 6px;border-radius:9px;background:{{ c.bg }};border:1px solid {{ c.bd }};box-shadow:{{ c.glow }}">
+              <span style="color:#475569;cursor:grab;display:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="{{ icons.grip }}"></path></svg></span>
+              <span style="font:500 11px 'JetBrains Mono',monospace;color:#64748b;width:16px;text-align:right">{{ c.n }}</span>
+              <div onClick="{{ c.aud }}" style="width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;background:{{ c.pbg }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="{{ c.pd }}"></path></svg></div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <div style="font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ c.title }}</div>
+                <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#64748b;white-space:nowrap;overflow:hidden"><span style="color:{{ c.col }};font-weight:500">{{ c.speaker }}</span><span>•</span><span style="overflow:hidden;text-overflow:ellipsis">{{ c.src }}</span></div>
+              </div>
+              <span style="font:500 12px 'JetBrains Mono',monospace;color:#cbd5e1;width:34px;text-align:right;flex:none">{{ c.dur }}</span>
+              <div style="display:flex;gap:1px;flex:none">
+                <sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="4"><div onClick="{{ a.go }}" style="width:26px;height:26px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:{{ a.c }};opacity:{{ a.o }}" style-hover="background:#1E293B;color:#fff;opacity:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ a.d }}"></path></svg></div></sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid #1E293B;background:#0d1320">
+          <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="2"><div onClick="{{ t.go }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;font:500 11.5px 'IBM Plex Sans',sans-serif;padding:4px 9px;border-radius:6px;cursor:pointer;color:{{ t.c }};background:{{ t.bg }};border:1px solid {{ t.bd }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>{{ t.label }}</div></sc-for>
+          <div style="flex:1"></div>
+          <sc-for list="{{ exports }}" as="x" hint-placeholder-count="3"><button onClick="{{ x.go }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:7px;cursor:pointer;font:500 12.5px 'IBM Plex Sans',sans-serif;color:{{ x.c }};background:{{ x.bg }};border:1px solid {{ x.bd }}" style-hover="filter:brightness(1.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.cache }}"></path></svg>{{ x.label }}</button></sc-for>
+        </div>
+      </section>
+      <section style="width:clamp(260px,28vw,380px);flex:none;display:flex;flex-direction:column;min-height:0">
+        <div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #1E293B">
+          <span style="font-weight:600">Clips</span><span style="font:500 11px 'JetBrains Mono',monospace;padding:1px 7px;border-radius:99px;background:#131B2E;border:1px solid #1E293B;color:#94a3b8">{{ libCount }}</span>
+          <div style="flex:1;min-width:0;display:flex;align-items:center;gap:7px;height:30px;padding:0 10px;border-radius:7px;background:#131B2E;border:1px solid #1E293B" style-focus="border-color:var(--a1,#6366f1)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="{{ icons.search }}"></path></svg><input value="{{ q }}" onInput="{{ setQ }}" placeholder="Search" style="flex:1;min-width:0;background:none;border:0;outline:0;color:#e2e8f0;font:inherit"></div>
+        </div>
+        <div style="flex:1;overflow:auto;overflow-x:hidden;padding:8px;display:flex;flex-direction:column;gap:4px">
+          <sc-for list="{{ lib }}" as="c" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;gap:6px;padding:9px 11px;border-radius:8px;background:#0f1626;border:1px solid #1E293B;opacity:{{ c.o }}">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:2px;background:{{ c.col }}"></span><span style="font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</span><span style="font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8">{{ c.dur }}</span></div>
+              <div style="font-size:12.5px;line-height:1.4;color:#94a3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ c.q }}</div>
+              <div style="display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;font:400 11px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.src }}</span>
+                <div onClick="{{ c.ex }}" title="Exclude" style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:{{ c.exc }}" style-hover="background:#1E293B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="{{ icons.ban }}"></path></svg></div>
+                <div onClick="{{ c.add }}" style="white-space:nowrap;display:flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:6px;cursor:pointer;font:500 11.5px 'IBM Plex Sans',sans-serif;color:{{ c.ac }};background:{{ c.abg }};border:1px solid {{ c.abd }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.ad }}"></path></svg>{{ c.al }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </main>
+  </sc-if>
+  <sc-if value="{{ isB }}" hint-placeholder-val="{{ false }}">
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-height:52px;flex:none;padding:8px 18px;border-bottom:1px solid #1E293B">
+      <h1 style="flex:none;margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">Best Clips</h1>
+      <div style="display:flex;gap:2px;padding:2px;border-radius:8px;background:#131B2E;border:1px solid #1E293B">
+        <sc-for list="{{ bcats }}" as="c" hint-placeholder-count="5"><div onClick="{{ c.go }}" style="white-space:nowrap;font:500 12px 'IBM Plex Sans',sans-serif;padding:4px 10px;border-radius:6px;cursor:pointer;color:{{ c.c }};background:{{ c.bg }}">{{ c.label }}</div></sc-for>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:2px;padding:2px;border-radius:8px;background:#131B2E;border:1px solid #1E293B">
+        <sc-for list="{{ bsorts }}" as="c" hint-placeholder-count="2"><div onClick="{{ c.go }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;font:500 12px 'IBM Plex Sans',sans-serif;padding:4px 10px;border-radius:6px;cursor:pointer;color:{{ c.c }};background:{{ c.bg }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.d }}"></path></svg>{{ c.label }}</div></sc-for>
+      </div>
+    </header>
+    <div style="flex:1;min-height:0;display:flex">
+      <section style="flex:1;min-width:0;overflow:auto;overflow-x:hidden;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;align-content:start;border-right:1px solid #1E293B">
+        <sc-for list="{{ bcards }}" as="c" hint-placeholder-count="6">
+          <div onClick="{{ c.pick }}" style="display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:10px;cursor:pointer;background:{{ c.bg }};border:1px solid {{ c.bd }};box-shadow:{{ c.glow }}">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:38px;height:38px;flex:none;border-radius:50%;background:{{ c.ring }};display:grid;place-items:center"><div style="width:30px;height:30px;border-radius:50%;background:#0f1626;display:grid;place-items:center;font:600 12px 'JetBrains Mono',monospace;color:{{ c.col }}">{{ c.score }}</div></div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+                <span style="display:flex;align-items:center;gap:6px;white-space:nowrap;font-weight:500;color:{{ c.wc }}"><span style="width:7px;height:7px;flex:none;border-radius:2px;background:{{ c.wc }}"></span>{{ c.who }}</span>
+                <span style="font:400 11px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.src }}</span>
+              </div>
+              <span style="font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8">{{ c.dur }}</span>
+            </div>
+            <div style="font-size:14px;line-height:1.45;color:#e2e8f0;text-wrap:pretty;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">“{{ c.quote }}”</div>
+            <div style="display:flex;gap:2px;align-items:center;height:22px"><sc-for list="{{ c.bars }}" as="b" hint-placeholder-count="0"><div style="flex:1;height:{{ b.h }};border-radius:1px;background:{{ c.wv }}"></div></sc-for></div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div onClick="{{ c.play }}" style="width:28px;height:28px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:{{ c.pbg }};color:#fff" style-hover="background:var(--a1,#6366f1)"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.pd }}"></path></svg></div>
+              <div style="flex:1"></div>
+              <div onClick="{{ c.star }}" style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:{{ c.sc }}" style-hover="background:#1E293B"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></div>
+              <div onClick="{{ c.add }}" style="white-space:nowrap;display:flex;align-items:center;gap:5px;height:28px;padding:0 10px;border-radius:7px;cursor:pointer;font:500 12px 'IBM Plex Sans',sans-serif;color:{{ c.ac }};background:{{ c.abg }};border:1px solid {{ c.abd }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ c.ad }}"></path></svg>{{ c.al }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+      <section style="width:clamp(280px,32vw,420px);flex:none;display:flex;flex-direction:column;min-height:0;background:#0d1320">
+        <div style="flex:none;padding:14px 16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid #1E293B">
+          <div style="display:flex;align-items:center;gap:10px"><span style="font:600 22px 'JetBrains Mono',monospace;color:{{ bd.col }}">{{ bd.score }}</span><span style="flex:1;min-width:0;font-weight:500;color:{{ bd.wc }}">{{ bd.who }}</span><span style="flex:0 1 auto;min-width:0;max-width:55%;font:400 11.5px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ bd.src }}</span></div>
+          <div ref="{{ bd.setBox }}" style="position:relative;height:64px;display:flex;align-items:center;gap:1px;user-select:none">
+            <sc-for list="{{ bd.bars }}" as="b" hint-placeholder-count="0"><div style="flex:1;height:{{ b.h }};border-radius:1px;background:{{ b.bg }}"></div></sc-for>
+            <div style="position:absolute;top:0;bottom:0;left:{{ bd.l }};width:{{ bd.w }};border-radius:4px;background:#ffffff0a;pointer-events:none"></div>
+            <div onPointerDown="{{ bd.dragIn }}" style="position:absolute;top:-4px;bottom:-4px;left:{{ bd.l }};width:14px;margin-left:-7px;cursor:ew-resize;display:grid;place-items:center;touch-action:none"><div style="width:3px;height:100%;border-radius:2px;background:#fff;box-shadow:0 0 8px #fff"></div></div>
+            <div onPointerDown="{{ bd.dragOut }}" style="position:absolute;top:-4px;bottom:-4px;left:{{ bd.r }};width:14px;margin-left:-7px;cursor:ew-resize;display:grid;place-items:center;touch-action:none"><div style="width:3px;height:100%;border-radius:2px;background:#fff;box-shadow:0 0 8px #fff"></div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font:400 11px 'JetBrains Mono',monospace;color:#64748b"><span>{{ bd.tin }}</span><span>{{ bd.dur }}</span><span>{{ bd.tout }}</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <sc-for list="{{ bd.parts }}" as="p" hint-placeholder-count="3"><div style="display:grid;grid-template-columns:84px 1fr 28px;gap:10px;align-items:center;font-size:12px;color:#94a3b8"><span>{{ p.label }}</span><div style="height:5px;border-radius:3px;background:#1E293B;overflow:hidden"><div style="width:{{ p.v }}%;height:100%;border-radius:3px;background:{{ bd.col }}"></div></div><span style="font:500 11.5px 'JetBrains Mono',monospace;color:#cbd5e1;text-align:right">{{ p.v }}</span></div></sc-for>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;overflow-x:hidden;padding:10px 12px;display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ bd.ctx }}" as="l" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:2px;padding:7px 8px;border-radius:7px;background:{{ l.bg }};box-shadow:{{ l.ring }}"><span style="font:400 11px/18px 'JetBrains Mono',monospace;color:#64748b">{{ l.t }}</span><span style="font:500 12px/18px 'IBM Plex Sans',sans-serif;color:{{ l.sc }}">{{ l.who }}</span><span style="grid-column:1/-1;font-size:13.5px;line-height:20px;color:{{ l.tc }}">{{ l.text }}</span></div></sc-for>
+        </div>
+        <div style="flex:none;display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid #1E293B">
+          <button onClick="{{ bd.add }}" style="white-space:nowrap;flex:1;display:flex;justify-content:center;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:0;cursor:pointer;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));box-shadow:0 0 16px color-mix(in srgb,var(--a1,#6366f1) 30%,transparent)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>{{ bd.al }}</button>
+          <button onClick="{{ bd.exp }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:8px;cursor:pointer;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B;font:500 12.5px 'IBM Plex Sans',sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Export</button>
+          <button onClick="{{ bd.openT }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:8px;cursor:pointer;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B;font:500 12.5px 'IBM Plex Sans',sans-serif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>Transcript</button>
+        </div>
+      </section>
+    </div>
+  </main>
+  </sc-if>
+  <sc-if value="{{ reelOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:{{ rp.l }};right:{{ rp.r }};bottom:{{ rp.b }};width:clamp(290px,26vw,360px);max-height:60vh;display:flex;flex-direction:column;border-radius:12px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 12px 40px #000a,0 0 24px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent);z-index:20;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #1E293B"><span style="font-weight:600;flex:1">Reel</span><span style="font:500 12px 'JetBrains Mono',monospace;color:#94a3b8">{{ reelDur }}</span><div onClick="{{ closeReel }}" style="width:24px;height:24px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:#94a3b8" style-hover="background:#1E293B"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div></div>
+      <div style="display:flex;height:6px;gap:2px;margin:8px 12px 0"><sc-for list="{{ reelStrip }}" as="c" hint-placeholder-count="5"><div style="flex:{{ c.dur }} 1 0;border-radius:2px;background:{{ c.col }}"></div></sc-for></div>
+      <div style="overflow:auto;padding:8px;display:flex;flex-direction:column;gap:2px"><sc-for list="{{ reelStrip }}" as="c" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px" style-hover="background:#1b2640"><span style="width:7px;height:7px;flex:none;border-radius:2px;background:{{ c.col }}"></span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.title }}</span><span style="font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8">{{ c.dur }}s</span><div onClick="{{ c.rm }}" style="width:20px;height:20px;flex:none;border-radius:5px;display:grid;place-items:center;cursor:pointer;color:#64748b" style-hover="background:#1E293B;color:#f472b6"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div></div></sc-for></div>
+      <div style="padding:8px 10px;border-top:1px solid #1E293B"><div onClick="{{ openMontage }}" style="text-align:center;height:30px;line-height:30px;border-radius:7px;cursor:pointer;font-weight:500;color:#fff;background:var(--a1,#6366f1)">Open in Montage</div></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isP }}" hint-placeholder-val="{{ false }}">
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;min-height:52px;flex:none;padding:8px 18px;border-bottom:1px solid #1E293B">
+      <h1 style="flex:none;margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">{{ pg.title }}</h1>
+      <div style="flex:1 1 200px;max-width:420px;display:flex;align-items:center;gap:8px;height:32px;padding:0 11px;border-radius:8px;background:#131B2E;border:1px solid #1E293B" style-focus="border-color:var(--a1,#6366f1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round"><path d="{{ icons.search }}"></path></svg><input ref="{{ setPqEl }}" value="{{ pq }}" onInput="{{ setPq }}" placeholder="{{ pg.ph }}" style="flex:1;min-width:0;background:none;border:0;outline:0;color:#e2e8f0;font:inherit"></div>
+      <div style="flex:1"></div>
+      <button onClick="{{ pgBtn }}" style="white-space:nowrap;display:flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:0;cursor:pointer;color:#fff;font:500 13px 'IBM Plex Sans',sans-serif;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1));box-shadow:0 0 16px color-mix(in srgb,var(--a1,#6366f1) 30%,transparent)" style-hover="filter:brightness(1.12)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>{{ pg.btn }}</button>
+    </header>
+    <div style="flex:1;min-height:0;overflow:auto;overflow-x:hidden;padding:14px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+        <sc-for list="{{ pg.tiles }}" as="t" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:10px;background:#131B2E;border:1px solid #1E293B;border-top:2px solid {{ t.c }}"><span style="font:600 24px 'JetBrains Mono',monospace;color:{{ t.c }}">{{ t.v }}</span><span style="color:#94a3b8;font-size:12px">{{ t.l }}</span></div></sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <sc-for list="{{ pg.rows }}" as="w" hint-placeholder-count="6">
+          <div onClick="{{ w.open }}" style="display:grid;grid-template-columns:34px minmax(0,1fr) clamp(60px,14vw,150px) 88px 56px 28px;gap:12px;align-items:center;padding:9px 12px;border-radius:9px;cursor:{{ w.cur }};background:#0f1626;border:1px solid #1E293B" style-hover="border-color:#334155">
+            <div style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:{{ w.c }}1f;color:{{ w.c }};font:600 13px 'IBM Plex Sans',sans-serif">{{ w.i }}</div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:1px"><span style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ w.t }}</span><span style="font:400 11.5px 'JetBrains Mono',monospace;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ w.m }}</span></div>
+            <div style="height:5px;border-radius:3px;background:#1E293B;overflow:hidden;opacity:{{ w.bo }}"><div style="width:{{ w.pct }}%;height:100%;border-radius:3px;background:{{ w.c }};box-shadow:0 0 8px {{ w.c }}"></div></div>
+            <span style="white-space:nowrap;display:flex;align-items:center;gap:5px;font:500 10.5px 'IBM Plex Sans',sans-serif;padding:1px 8px;border-radius:99px;color:{{ w.c }};background:{{ w.c }}1a;border:1px solid {{ w.c }}40"><span style="width:5px;height:5px;border-radius:50%;background:{{ w.c }};box-shadow:0 0 6px {{ w.c }}"></span>{{ w.s }}</span>
+            <span style="font:500 12px 'JetBrains Mono',monospace;color:#94a3b8;text-align:right">{{ w.r }}</span>
+            <div onClick="{{ w.act }}" title="{{ w.at }}" style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;cursor:pointer;color:{{ w.c }};opacity:{{ w.ao }};pointer-events:{{ w.pe }}" style-hover="background:#1E293B"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ w.ad }}"></path></svg></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </main>
+  </sc-if>
+  <sc-if value="{{ isC }}" hint-placeholder-val="{{ false }}">
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;gap:14px;height:52px;flex:none;padding:0 18px;border-bottom:1px solid #1E293B"><h1 style="margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">AI Studio Copilot</h1><span style="display:flex;align-items:center;gap:6px;font:500 11px 'IBM Plex Sans',sans-serif;padding:2px 9px;border-radius:99px;color:#34d399;background:#10b9811a;border:1px solid #10b98140"><span style="width:5px;height:5px;border-radius:50%;background:#34d399;box-shadow:0 0 6px #34d399"></span>Online</span></header>
+    <div ref="{{ setChat }}" style="flex:1;min-height:0;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:10px">
+      <sc-if value="{{ chatEmpty }}" hint-placeholder-val="{{ true }}"><div style="margin:auto;width:72px;height:72px;border-radius:20px;display:grid;place-items:center;background:#131B2E;border:1px solid #1E293B;box-shadow:0 0 30px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.copilot }}"></path></svg></div></sc-if>
+      <sc-for list="{{ msgs }}" as="m" hint-placeholder-count="0"><div style="max-width:min(560px,85%);flex:none;width:max-content;align-self:{{ m.al }};display:flex;flex-direction:column;gap:8px;padding:9px 13px;border-radius:12px;line-height:1.5;background:{{ m.bg }};border:1px solid {{ m.bd }};color:#e2e8f0"><span>{{ m.t }}</span><sc-if value="{{ m.hasRefs }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ m.refs }}" as="r" hint-placeholder-count="0"><div onClick="{{ r.go }}" style="display:flex;align-items:center;gap:5px;height:24px;padding:0 8px;border-radius:6px;cursor:pointer;white-space:nowrap;font:500 11px 'JetBrains Mono',monospace;color:var(--a3,#a5b4fc);background:color-mix(in srgb,var(--a1,#6366f1) 10%,transparent);border:1px solid color-mix(in srgb,var(--a1,#6366f1) 30%,transparent)" style-hover="background:color-mix(in srgb,var(--a1,#6366f1) 22%,transparent);color:#fff"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l14 9-14 9z"></path></svg>{{ r.l }}</div></sc-for></div></sc-if></div></sc-for>
+    </div>
+    <div style="flex:none;padding:12px 18px;border-top:1px solid #1E293B;display:flex;flex-direction:column;gap:10px">
+      <sc-if value="{{ cq.on }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;background:#131B2E;border:1px solid #1E293B"><div style="display:flex;align-items:center;gap:8px"><span style="flex:none;white-space:nowrap;display:block;padding:0 7px;height:20px;border-radius:5px;font:500 11px/18px 'IBM Plex Sans',sans-serif;color:{{ cq.sc }};background:{{ cq.pbg }};border:1px solid {{ cq.pbd }}">{{ cq.who }}</span><span style="flex:none;white-space:nowrap;font:500 11px 'JetBrains Mono',monospace;color:#64748b">{{ cq.range }}</span><span style="flex:1;min-width:0;font-size:11.5px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cq.ep }}</span></div><div style="font-size:13.5px;line-height:1.5;color:#e2e8f0;text-wrap:pretty">“{{ cq.q }}”</div></div></sc-if>
+      <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ cchips }}" as="c" hint-placeholder-count="2"><div onClick="{{ c.go }}" title="{{ c.tip }}" style="flex:none;display:flex;align-items:center;gap:7px;max-width:300px;height:28px;padding:0 6px 0 9px;border-radius:7px;cursor:pointer;background:{{ c.bg }};border:1px solid {{ c.bd }};color:{{ c.c }};font:500 12px 'IBM Plex Sans',sans-serif"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{ c.ic }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none"><path d="{{ c.d }}"></path></svg><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.l }}</span><span style="flex:none;white-space:nowrap;font:500 10.5px 'JetBrains Mono',monospace;color:#64748b">{{ c.sub }}</span><span onClick="{{ c.rmGo }}" style="display:{{ c.rmShow }};flex:none;width:18px;height:18px;place-items:center;border-radius:4px;color:#64748b" style-hover="background:#1E293B;color:#f472b6"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></span></div></sc-for></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ sugg }}" as="s" hint-placeholder-count="3"><div onClick="{{ s.go }}" style="white-space:nowrap;font:500 12px 'IBM Plex Sans',sans-serif;padding:5px 11px;border-radius:99px;cursor:pointer;color:var(--a3,#a5b4fc);background:color-mix(in srgb,var(--a1,#6366f1) 8%,transparent);border:1px solid color-mix(in srgb,var(--a1,#6366f1) 25%,transparent)" style-hover="background:color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)">{{ s.t }}</div></sc-for></div>
+      <div style="display:flex;gap:8px"><input value="{{ ci }}" onInput="{{ setCi }}" onKeyDown="{{ ciKey }}" placeholder="Ask Copilot" style="flex:1;min-width:0;height:38px;padding:0 13px;border-radius:9px;background:#131B2E;border:1px solid #1E293B;outline:0;color:#e2e8f0;font:inherit"><button onClick="{{ ciSend }}" style="width:38px;height:38px;border-radius:9px;border:0;cursor:pointer;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1))"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button></div>
+    </div>
+  </main>
+  </sc-if>
+  <sc-if value="{{ isS }}" hint-placeholder-val="{{ false }}">
+  <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="display:flex;align-items:center;gap:14px;height:52px;flex:none;padding:0 18px;border-bottom:1px solid #1E293B"><h1 style="margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em;white-space:nowrap">Pipeline Settings</h1></header>
+    <div style="flex:1;min-height:0;overflow:auto;padding:14px 18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-content:start">
+      <sc-for list="{{ sets }}" as="g" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;border-radius:10px;background:#131B2E;border:1px solid {{ g.bd }};box-shadow:{{ g.glow }}">
+          <div style="display:flex;align-items:center;gap:8px;padding:11px 14px;font-weight:600;white-space:nowrap"><span style="width:7px;height:7px;flex:none;border-radius:50%;background:{{ g.dot }};box-shadow:0 0 8px {{ g.dot }}"></span>{{ g.t }}</div>
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;min-height:44px;padding:6px 14px;border-top:1px solid #1a2336">
+              <span style="flex:1;min-width:0;color:#cbd5e1">{{ it.l }}</span>
+              <sc-if value="{{ it.isT }}" hint-placeholder-val="{{ false }}"><div onClick="{{ it.go }}" style="position:relative;width:34px;height:20px;flex:none;border-radius:99px;cursor:pointer;background:{{ it.tbg }};transition:background .15s"><div style="position:absolute;top:2px;left:{{ it.kl }};width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s"></div></div></sc-if>
+              <sc-if value="{{ it.isH }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:100%"><sc-for list="{{ it.hosts }}" as="hh" hint-placeholder-count="0"><span style="display:flex;align-items:center;gap:4px;height:24px;padding:0 4px 0 9px;border-radius:99px;background:#0B0F17;border:1px solid #1E293B;font:500 11.5px 'IBM Plex Sans',sans-serif;color:#cbd5e1;white-space:nowrap">{{ hh.h }}<span onClick="{{ hh.rm }}" style="width:16px;height:16px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#64748b" style-hover="background:#1E293B;color:#f472b6"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></span></span></sc-for><input value="{{ it.hin }}" onInput="{{ it.setHin }}" onKeyDown="{{ it.hKey }}" placeholder="+ @handle" style="width:96px;height:24px;padding:0 9px;border-radius:99px;background:#0B0F17;border:1px dashed #2a3750;outline:0;color:#e2e8f0;font:500 11.5px 'IBM Plex Sans',sans-serif"></div></sc-if>
+              <sc-if value="{{ it.isU }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8;white-space:nowrap"><div style="width:96px;height:5px;border-radius:3px;background:#1E293B;overflow:hidden"><div style="width:{{ it.pct }};height:100%;border-radius:3px;background:#94a3b8"></div></div>{{ it.used }}</div></sc-if>
+              <sc-if value="{{ it.isS }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:2px;padding:2px;border-radius:7px;background:#0B0F17;border:1px solid #1E293B"><sc-for list="{{ it.opts }}" as="o" hint-placeholder-count="3"><div onClick="{{ o.go }}" style="white-space:nowrap;font:500 11.5px 'IBM Plex Sans',sans-serif;padding:3px 9px;border-radius:5px;cursor:pointer;color:{{ o.c }};background:{{ o.bg }}">{{ o.l }}</div></sc-for></div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </main>
+  </sc-if>
+  <sc-if value="{{ help }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeHelp }}" style="position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:#05080fcc">
+      <div onClick="{{ stop }}" style="width:min(380px,100%);display:flex;flex-direction:column;border-radius:14px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 20px 60px #000c">
+        <div style="display:flex;align-items:center;padding:12px 14px 10px 16px;border-bottom:1px solid #1E293B"><span style="flex:1;font-weight:600">Shortcuts</span><div onClick="{{ closeHelp }}" style="width:26px;height:26px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:#94a3b8" style-hover="background:#1E293B;color:#fff"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div></div>
+        <div style="display:flex;flex-direction:column;padding:6px 8px 10px">
+          <sc-for list="{{ helpRows }}" as="r" hint-placeholder-count="8"><div style="display:flex;align-items:center;gap:10px;height:36px;padding:0 8px"><span style="flex:1;color:#cbd5e1">{{ r.l }}</span><div style="display:flex;gap:4px"><sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="1"><span style="min-width:24px;height:24px;padding:0 7px;display:grid;place-items:center;border-radius:6px;background:#0B0F17;border:1px solid #2a3750;border-bottom-width:2px;font:500 11.5px 'JetBrains Mono',monospace;color:#e2e8f0">{{ k.k }}</span></sc-for></div></div></sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ pub }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closePub }}" style="position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:#05080fcc">
+      <div onClick="{{ stop }}" style="width:min(560px,100%);max-height:calc(100vh / var(--z,1) - 32px);display:flex;flex-direction:column;border-radius:14px;background:#0f1626;border:1px solid #2a3750;box-shadow:0 20px 60px #000c;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 14px 10px 16px;border-bottom:1px solid #1E293B"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--a2,#818cf8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 19h.01"></path></svg><span style="flex:1;font-weight:600">Publish preview</span><div style="display:flex;gap:2px;padding:2px;border-radius:7px;background:#0B0F17;border:1px solid #1E293B"><sc-for list="{{ pubd.feeds }}" as="o" hint-placeholder-count="3"><div onClick="{{ o.go }}" style="white-space:nowrap;font:500 11.5px 'IBM Plex Sans',sans-serif;padding:3px 9px;border-radius:5px;cursor:pointer;color:{{ o.c }};background:{{ o.bg }}">{{ o.l }}</div></sc-for></div><div onClick="{{ closePub }}" style="width:26px;height:26px;border-radius:6px;display:grid;place-items:center;cursor:pointer;color:#94a3b8" style-hover="background:#1E293B;color:#fff"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div></div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-wrap:wrap;gap:14px">
+            <div style="width:112px;height:112px;flex:none;border-radius:10px;display:grid;place-items:center;background:repeating-linear-gradient(135deg,#131B2E 0 8px,#172036 8px 16px);border:1px solid #1E293B;font:500 10.5px 'JetBrains Mono',monospace;color:#64748b">cover art</div>
+            <div style="flex:1 1 220px;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <span style="font:500 10.5px 'JetBrains Mono',monospace;letter-spacing:.06em;color:#64748b">SPACEPIPE ARCHIVE</span>
+              <span style="font-size:17px;font-weight:600;line-height:1.3;text-wrap:pretty">{{ pubd.title }}</span>
+              <span style="font:500 12px 'JetBrains Mono',monospace;color:#94a3b8">{{ pubd.host }} · {{ pubd.meta }}</span>
+              <span style="font-size:13px;line-height:1.5;color:#b6c2d4;text-wrap:pretty">{{ pubd.desc }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ pubd.hasCh }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:1px">
+              <div style="display:flex;align-items:center;gap:8px;padding:0 8px 6px"><span style="font-weight:600">Chapters</span><span style="font:500 11px 'JetBrains Mono',monospace;color:#64748b">{{ pubd.nCh }}</span></div>
+              <sc-for list="{{ pubd.chapters }}" as="c" hint-placeholder-count="5"><div onClick="{{ c.go }}" style="display:grid;grid-template-columns:62px 8px minmax(0,1fr);gap:10px;align-items:center;min-height:34px;padding:4px 8px;border-radius:7px;cursor:pointer" style-hover="background:#131B2E"><span style="font:500 11.5px 'JetBrains Mono',monospace;color:#94a3b8">{{ c.t }}</span><span style="width:7px;height:7px;border-radius:2px;background:{{ c.sc }}"></span><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e2e8f0">{{ c.l }}</span></div></sc-for>
+            </div>
+          </sc-if>
+        </div>
+        <div style="flex:none;display:flex;justify-content:flex-end;gap:6px;padding:10px 14px;border-top:1px solid #1E293B">
+          <div onClick="{{ pubd.copy }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:7px;cursor:pointer;font:500 12px 'IBM Plex Sans',sans-serif;color:#cbd5e1;background:#131B2E;border:1px solid #1E293B;height:32px" style-hover="border-color:#334155"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ icons.copy }}"></path></svg>Copy RSS item</div>
+          <div onClick="{{ pubd.publish }}" style="white-space:nowrap;display:flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:7px;border:0;cursor:pointer;font:500 12px 'IBM Plex Sans',sans-serif;color:#fff;background:var(--a1,#6366f1);height:32px;padding:0 14px;background:linear-gradient(135deg,var(--a0,#8b5cf6),var(--a1,#6366f1))">Publish</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ toastOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;right:16px;bottom:16px;z-index:30;display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:10px;background:#131B2E;border:1px solid #2a3750;box-shadow:0 10px 30px #0009;font-weight:500;white-space:nowrap"><span style="width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399"></span>{{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Indigo&quot;,&quot;Ember&quot;,&quot;Aurora&quot;],&quot;default&quot;:&quot;Indigo&quot;,&quot;tsType&quot;:&quot;'Indigo' | 'Ember' | 'Aurora'&quot;,&quot;section&quot;:&quot;Feel&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Compact&quot;,&quot;Default&quot;,&quot;Roomy&quot;],&quot;default&quot;:&quot;Default&quot;,&quot;tsType&quot;:&quot;'Compact' | 'Default' | 'Roomy'&quot;,&quot;section&quot;:&quot;Feel&quot;},&quot;atmosphere&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Flat&quot;,&quot;Nebula&quot;,&quot;Grid&quot;],&quot;default&quot;:&quot;Flat&quot;,&quot;tsType&quot;:&quot;'Flat' | 'Nebula' | 'Grid'&quot;,&quot;section&quot;:&quot;Feel&quot;}}">
+class Component extends DCLogic {
+  state = { vw: typeof window !== 'undefined' ? window.innerWidth : 1400, epOpen: false, ss: -1, se: -1, help: false, pub: false, live: 2430, cctx: { ep: true, sel: true, reel: false }, csel: null, hostIn: '', lq: '', spk: [], hr: -1, hm: -1, prec: false, reelFrom: 'side', sel: 2, filter: 'All', settingsOpen: false, scroll: true, t: 0, off: 0, playing: false, view: 't', ts: '', toast: '', cached: [], copied: false, prio: [], baud: null, trim: {}, dov: -1, rowSt: {}, added: [], psSec: null, sets: { strict: true, spk: true, fp: false, model: 'Balanced', dia: true, lang: 'Auto', feed: 'Unlisted', auto: false, lufs: '-16', rec: true, conc: '2', afmt: 'MP3', sugg: true, minScore: '80', maxLen: '60s', ret: '30d', raw: true, hosts: ['@AngelaOnAir', '@PaperTrailLive', '@RoundtableLive'] }, reelOpen: false, cm: [], ci: '', pq: '', bsel: 'k1', bcat: 'All', bsort: 'Score', bsaved: ['k2'], q: '', aud: null, lvl: true, fade: true, ex: [], hist: [], fut: [],
+    tl: [
+      { id: 'a', title: 'Opening framing of the timeline', speaker: 'Host', src: 'Timeline Walkthrough, Part 3 • 00:03:12', dur: 22, score: 3, locked: true },
+      { id: 'b', title: 'First disagreement over the dates', speaker: 'Guest 2', src: 'Evidence Review • 00:41:07', dur: 18, score: 6, locked: false },
+      { id: 'c', title: 'Caller describes the afternoon', speaker: 'Caller', src: 'Open Mic Wednesday • 00:08:18', dur: 19, score: 5, locked: false },
+      { id: 'd', title: 'Correction to an earlier claim', speaker: 'Guest 1', src: 'Contradictions Segment • 00:27:30', dur: 16, score: 8, locked: false },
+      { id: 'e', title: 'Closing remarks', speaker: 'Host', src: 'Debrief • 00:55:00', dur: 22, score: 4, locked: false }] };
+  upd(tl) { this.setState(x => ({ tl, hist: x.hist.concat([x.tl]), fut: [] })); }
+  flash(t) { clearTimeout(this.tt); this.setState({ toast: t }); this.tt = setTimeout(() => this.setState({ toast: '' }), 2000); }
+  componentDidMount() {
+    this.iv = setInterval(() => this.setState(x => { const live = x.live + 1, o = { live }; if (x.playing) { const D = x.sel === 12 ? live : (this.dur || 3842); o.t = Math.min(D, x.t + 1); } return o; }), 1000);
+    this.rz = () => this.setState({ vw: window.innerWidth }); window.addEventListener('resize', this.rz);
+    this.mu = () => { this.dragSel = false; }; window.addEventListener('mouseup', this.mu);
+    this.kd = e => { const tag = (document.activeElement || {}).tagName || '';
+      if (e.key === 'Escape') { const o = { help: false, pub: false, ss: -1, se: -1, epOpen: false }; if (tag === 'INPUT') { o.ts = ''; o.lq = ''; document.activeElement.blur(); } this.setState(o); return; }
+      if (/INPUT|TEXTAREA/.test(tag)) return; if (e.key === '?') { e.preventDefault(); this.setState(x => ({ help: !x.help })); return; } if (this.state.view !== 't') return; const D = this.dur || 3842, sk = d => this.setState(x => ({ t: Math.max(0, Math.min(D, x.t + d)) })), so = d => this.setState(x => ({ off: Math.round((x.off + d) * 10) / 10 }));
+      if (e.code === 'Space' && tag !== 'BUTTON') { e.preventDefault(); this.setState(x => ({ playing: !x.playing })); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); sk(e.shiftKey ? -15 : -1); } else if (e.key === 'ArrowRight') { e.preventDefault(); sk(e.shiftKey ? 15 : 1); }
+      else if (e.key === ',') so(-.1); else if (e.key === '.') so(.1); else if (e.key === 'f' || e.key === 'F') this.setState(x => ({ scroll: !x.scroll })); };
+    window.addEventListener('keydown', this.kd);
+  }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.tt); clearTimeout(this.ct); window.removeEventListener('keydown', this.kd); window.removeEventListener('resize', this.rz); window.removeEventListener('mouseup', this.mu); }
+  componentDidUpdate(pp, ps) {
+    if (this.chatEl && ps.cm !== this.state.cm) this.chatEl.scrollTop = this.chatEl.scrollHeight;
+    if (this.state.scroll && this.listEl && (ps.t !== this.state.t || !ps.scroll || ps.sel !== this.state.sel)) { const a = this.listEl.querySelector('[data-active="true"]'); if (a) this.listEl.scrollTop = a.offsetTop - this.listEl.clientHeight / 3; }
+  }
+  renderVals() {
+    const VM = { 'Transcripts': 't', 'Montage Studio': 'm', 'Best Clips': 'b', 'AI Studio Copilot': 'c', 'Command Center': 'cc', 'Ingest': 'i', 'Episode Library': 'l', 'Voice Profiles': 'v' };
+    const ic = {
+      copilot: 'M4 12a8 4 0 1 0 16 0 8 4 0 1 0-16 0M10.5 12a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0M12 3v3M12 18v3',
+      sparkles: 'M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z',
+      command: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M12 12l4-4M12 5.5v1.5M5.5 12H7M18.5 12H17',
+      ingest: 'M10.8 12a1.2 1.2 0 1 0 2.4 0 1.2 1.2 0 1 0-2.4 0M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8',
+      library: 'M5 5h14M5 10h14M5 15h6M15 14l5 3-5 3z',
+      fileText: 'M4 5h16v11H9l-5 4zM8 9h8M8 12.5h5',
+      clips: 'M7 4H4v16h3M17 4h3v16h-3M10 9v6M14 8v8',
+      film: 'M3 6h9v4H3zM14 6h7v4h-7zM3 14h5v4H3zM10 14h11v4H10z',
+      mic: 'M7 8a3 3 0 1 0 6 0 3 3 0 1 0-6 0M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 7a4 4 0 0 1 0 6M20 4.5a8 8 0 0 1 0 11',
+      sliders: 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',
+      search: 'M3 11a8 8 0 1 0 16 0 8 8 0 1 0-16 0M21 21l-4.3-4.3',
+      refresh: 'M20 12a8 8 0 1 1-2.5-5.8M20 4v5h-5',
+      zap: 'M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z',
+      play: 'M6 3l14 9-14 9z',
+      cache: 'M12 4v11M7.5 11 12 15.5 16.5 11M5 19h14',
+      users: 'M3 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5M5.5 7.5a3 3 0 1 0 6 0 3 3 0 1 0-6 0M16 5a3 3 0 0 1 0 6M18.5 14.5c1.5.7 2.5 2.2 2.5 4',
+      copy: 'M8 8h11v12H8zM5 16V4h11',
+      txt: 'M6 3h9l4 4v14H6zM9 12h7M9 16h5',
+      json: 'M9 4C6 4 7 8 5 12c2 4 1 8 4 8M15 4c3 0 2 4 4 8-2 4-1 8-4 8',
+      ext: 'M13 4h7v7M20 4l-9 9M10 6H5v13h13v-5',
+      clock: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M12 7v5l3 2',
+      grip: 'M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01',
+      ban: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M5.6 5.6l12.8 12.8',
+      scroll: 'M12 5v14M6 13l6 6 6-6M5 3h14'
+    };
+    const nav = [
+      ['AI Studio Copilot', 'copilot', 'AI'], ['Command Center', 'command'], ['Ingest', 'ingest'], ['Episode Library', 'library'],
+      ['Transcripts', 'fileText'], ['Best Clips', 'clips'], ['Montage Studio', 'film'], ['Voice Profiles', 'mic']
+    ].map(([label, k, badge]) => {
+      const a = this.state.view === VM[label];
+      return { label, d: ic[k], badge, color: a ? '#fff' : '#94a3b8', icolor: a ? 'var(--a2,#818cf8)' : 'currentColor', bg: a ? 'linear-gradient(90deg,color-mix(in srgb,var(--a1,#6366f1) 15%,transparent),color-mix(in srgb,var(--a1,#6366f1) 5%,transparent))' : 'transparent', go: () => this.setState({ view: VM[label], reelOpen: false }), ring: a ? 'inset 2px 0 0 var(--a0,#8b5cf6), 0 0 0 1px color-mix(in srgb,var(--a1,#6366f1) 18%,transparent)' : 'none', weight: a ? 500 : 400 };
+    });
+    const E = [
+      ['Space with Angela: Timeline Walkthrough, Part 3', 'Feb 21, 2026', 1],
+      ['Late Night Roundtable — Evidence Review', 'Feb 20, 2026', 1],
+      ['Sav Testimony Follow-up & Open Mic', 'Feb 19, 2026', 0],
+      ['Paper Trail Live: Contradictions Segment', 'Feb 18, 2026', 1],
+      ['Open Mic Wednesday — Guest Hour', 'Feb 18, 2026', 0],
+      ['Community Call: Moderation Policy Discussion', 'Feb 17, 2026', 1],
+      ['Morning Space: News Recap and Callers', 'Feb 17, 2026', 0],
+      ['Special Edition: Logan Interview Re-air', 'Feb 16, 2026', 1],
+      ['Weekend Debrief — Clip Compilation', 'Feb 15, 2026', 1],
+      ['Space with Angela: Timeline Walkthrough, Part 2', 'Feb 14, 2026', 0],
+      ['Friday Night Live: Listener Q&A', 'Feb 13, 2026', 1],
+      ['Emergency Space — Breaking Updates', 'Feb 12, 2026', 0]
+    ];
+    [3842, 4510, 2891, 3655, 3120, 5230, 2410, 3480, 3925, 4102, 3710, 1860].forEach((v, i) => { E[i][3] = v; });
+    ['@AngelaOnAir', '@RoundtableLive', '@SavSpeaks', '@PaperTrailLive', '@OpenMicWed', '@CommunityCallHQ', '@MorningSpaceX', '@LoganTalks', '@WeekendDebrief', '@AngelaOnAir', '@FridayNightLive', '@BreakingSpaces'].forEach((v, i) => { E[i][4] = v; });
+    E.push(['Night Shift — Live from the Archive Room', 'Live now', 2, this.state.live, '@NightShiftSpace']);
+    const rtf = v => { const hh = Math.floor(v / 3600), mm = Math.floor(v % 3600 / 60); return hh ? hh + 'h ' + String(mm).padStart(2, '0') + 'm' : mm + 'm'; };
+    const T = [[0,'Host','Okay, we are live. Quick rundown of what we are covering before we open the floor.'],[34,'Guest 1','Thanks for having me. I want to start with the sequence of events as I remember them.'],[92,'Host','Right, and that lines up with the dates we pulled from the archive last week.'],[171,'Guest 2','I would push back a little on that. The timing does not quite work out.'],[268,'Guest 1','Fair, but the messages were sent before any of that happened.'],[402,'Caller','Hey, can I jump in? I was in the room for part of this.'],[455,'Host','Go ahead, you are on.'],[498,'Caller','So what I saw was different from what has been described so far.'],[731,'Guest 2','That is useful. Can you say roughly when that was?'],[790,'Caller','Late afternoon, maybe around four. I did not note the exact time.'],[1204,'Host','Let us pause there and come back to it after the break.'],[1650,'Guest 1','Before we move on, one correction to something I said earlier.'],[2410,'Guest 2','Agreed. The numbers I quoted were from the first draft, not the final.'],[3300,'Host','That is all the time we have. Thanks everyone for joining.']];
+    const s = this.state;
+    const ACP = { Indigo: ['#8b5cf6', '#6366f1', '#818cf8', '#a5b4fc'], Ember: ['#fb923c', '#f43f5e', '#fb7185', '#fecdd3'], Aurora: ['#2dd4bf', '#0891b2', '#22d3ee', '#a5f3fc'] }[this.props.accent ?? 'Indigo'] || ['#8b5cf6', '#6366f1', '#818cf8', '#a5b4fc'];
+    const zm = { Compact: .9, Default: 1, Roomy: 1.1 }[this.props.density ?? 'Default'] || 1;
+    const mx = (v, pc) => 'color-mix(in srgb,var(' + v + ') ' + pc + '%,transparent)';
+    const atmo = { Flat: '#0B0F17',
+      Nebula: 'radial-gradient(1000px 560px at 88% -12%,' + mx('--a1', 24) + ',transparent 70%),radial-gradient(800px 520px at 12% 112%,' + mx('--a0', 16) + ',transparent 70%),#0B0F17',
+      Grid: 'linear-gradient(#ffffff07 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,#ffffff07 1px,transparent 1px) 0 0/24px 24px,radial-gradient(900px 500px at 70% 0%,' + mx('--a1', 10) + ',transparent 70%),#0B0F17' }[this.props.atmosphere ?? 'Flat'] || '#0B0F17';
+    const tsq = s.ts.trim().toLowerCase();
+    const episodes = E.map((e, i) => ({ e, i })).sort((a, b) => (b.e[2] === 2) - (a.e[2] === 2)).filter(({ e }) => (s.filter === 'All' || (s.filter === 'Ready') === !!e[2]) && (!tsq || e[0].toLowerCase().includes(tsq) || (e[2] && T.some(x => x[2].toLowerCase().includes(tsq))))).map(({ e, i }) => {
+      const on = i === s.sel, r = !!e[2], lvE = e[2] === 2;
+      return { title: e[0], host: e[4], date: e[1], rt: rtf(e[3]), status: lvE ? 'Live · recording' : r ? 'Transcript ready' : 'Audio only · transcript pending', dc: lvE ? '#fb7185' : '#64748b', pick: () => this.setState({ sel: i, t: lvE ? s.live : 0, playing: lvE, ss: -1, se: -1, epOpen: false, scroll: true }), play: ev => { ev.stopPropagation(); this.setState(x => x.sel === i ? { playing: !x.playing } : { sel: i, t: 0, playing: true }); }, pld: on && s.playing ? 'M8 5v14M16 5v14' : 'M6 3l14 9-14 9z', plbg: on && s.playing ? 'var(--a1,#6366f1)' : '#2a3750', plo: on ? 1 : .5,
+        bg: on ? 'linear-gradient(90deg,color-mix(in srgb,var(--a1,#6366f1) 15%,transparent),#131B2E)' : '#0f1626', border: on ? 'var(--a1,#6366f1)' : '#1E293B', glow: on ? '0 0 0 1px color-mix(in srgb,var(--a1,#6366f1) 20%,transparent), 0 0 18px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)' : 'none', tcolor: on ? '#fff' : '#cbd5e1',
+        pc: lvE ? '#f43f5e' : r ? '#34d399' : '#fbbf24', pbg: r ? '#10b9811a' : '#f59e0b14', pb: r ? '#10b98140' : '#f59e0b38', pglow: '0 0 8px ' + (lvE ? '#f43f5e' : r ? '#34d399' : '#fbbf24') };
+    });
+    const cur = E[s.sel];
+    const DUR = cur[3], ready = !!cur[2], isLive = cur[2] === 2; this.dur = DUR;
+    const LP = [['Host', 'We are back, and the room is filling up fast tonight.'], ['Caller', 'Can you hear me? I have been trying to get up here for an hour.'], ['Host', 'We hear you. Go ahead.'], ['Caller', 'The timeline you posted matches what I saw that afternoon.'], ['Guest 1', 'That is the third person tonight who has said that.'], ['Guest 2', 'Let us not get ahead of ourselves. Corroboration is not proof.'], ['Host', 'Fair. One more caller and then we regroup.'], ['Guest 1', 'I can pull the archive link while we wait.']];
+    const LT = []; for (let k = 0; 2400 + k * 6 <= s.live && k < 2000; k++) LT.push([2400 + k * 6, LP[k % 8][0], LP[k % 8][1]]);
+    const TR = isLive ? LT.slice(-30) : T;
+    const wtime = (i, k) => { const x = TR[i]; if (!x) return 0; const n = x[2].split(' ').length, len = (TR[i + 1] ? TR[i + 1][0] : DUR) - x[0]; return x[0] + k / n * Math.min(len, n * .42); };
+    const hasR = s.ss >= 0 && s.se >= 0 && s.ss !== s.se, lo = Math.min(s.ss, s.se), hi = Math.max(s.ss, s.se);
+    const fmt = v => { v = Math.max(0, Math.floor(v)); const m = Math.floor(v % 3600 / 60), sc = v % 60; return Math.floor(v / 3600) + ':' + String(m).padStart(2, '0') + ':' + String(sc).padStart(2, '0'); };
+    const SP = { Host: '#22d3ee', 'Guest 1': '#a78bfa', 'Guest 2': '#34d399', Caller: '#fbbf24' };
+    let ai = 0; TR.forEach((x, i) => { if (x[0] <= s.t) ai = i; });
+    const lq = s.lq.trim().toLowerCase(), spkN = {};
+    TR.forEach(x => { spkN[x[1]] = (spkN[x[1]] || 0) + 1; });
+    const turns0 = TR.map((x, i) => { const on = i === ai, hov = s.hr === i, tid = 'tr' + s.sel + '-' + x[0], added = s.tl.some(c => c.id === tid), len = (TR[i + 1] ? TR[i + 1][0] : DUR) - x[0];
+      const ws = x[2].split(' '), hit = !!lq && x[2].toLowerCase().includes(lq);
+      const words = ws.map((w, k) => { const id = i * 1000 + k, wt = wtime(i, k), wh = !!lq && w.toLowerCase().includes(lq), inS = hasR && id >= lo && id <= hi;
+        return { w: w + ' ', c: inS || wh ? '#fff' : on ? (wt <= s.t ? '#f8fafc' : '#7d8aa1') : '#b6c2d4', bg: inS ? 'color-mix(in srgb,var(--a1,#6366f1) 40%,transparent)' : wh ? 'color-mix(in srgb,#fbbf24 32%,transparent)' : 'transparent',
+          down: ev => { if (ev.button) return; ev.preventDefault(); this.dragSel = true; this.setState({ ss: id, se: id }); }, over: () => { if (this.dragSel && this.state.se !== id) this.setState({ se: id }); },
+          go: ev => { ev.stopPropagation(); if (this.state.ss === this.state.se) this.setState({ t: Math.floor(wt), ss: -1, se: -1 }); } }; });
+      return { time: fmt(x[0]), who: x[1], words, sc: SP[x[1]], pbg: SP[x[1]] + '14', pbd: SP[x[1]] + '33', on: on ? 'true' : 'false', isOn: on, hov, ring: on ? 'inset 2px 0 0 #22d3ee' : 'none', tc: on ? '#22d3ee' : '#64748b',
+        show: (!s.spk.length || s.spk.includes(x[1])) && (!lq || hit), hit,
+        enter: () => { if (this.state.hr !== i) this.setState({ hr: i }); }, leave: () => this.setState({ hr: -1 }),
+        jump: () => this.setState({ t: x[0] }), add: ev => { ev.stopPropagation(); if (added) { this.upd(s.tl.filter(c => c.id !== tid)); this.flash('Removed from Reel'); } else { this.upd(s.tl.concat([{ id: tid, title: x[2].length > 48 ? x[2].slice(0, 46) + '…' : x[2], speaker: x[1], src: cur[0] + ' • ' + fmt(x[0]), dur: Math.min(25, len), score: 5, locked: false }])); this.flash('Added to Reel · ' + (s.tl.length + 1) + ' clips'); } },
+        addTip: added ? 'In Reel · remove' : 'Add to Reel', addd: added ? 'M5 12l5 5L20 7' : 'M12 5v14M5 12h14', addc: added ? 'var(--a3,#a5b4fc)' : '#94a3b8', addbg: added ? 'color-mix(in srgb,var(--a1,#6366f1) 18%,transparent)' : 'transparent', addo: added ? 1 : hov ? .9 : 0 }; });
+    const turns = turns0.filter(t => t.show).map((t, j) => ({ ...t, bg: t.isOn ? 'color-mix(in srgb,var(--a1,#6366f1) 9%,transparent)' : t.hov ? '#131B2E' : j % 2 ? '#ffffff05' : 'transparent' }));
+    const spkChips = Object.keys(SP).map(k => { const on = s.spk.includes(k), any = s.spk.length > 0; return { l: k, n: spkN[k] || 0, col: SP[k], c: on ? '#fff' : '#cbd5e1', bg: on ? SP[k] + '1f' : '#131B2E', bd: on ? SP[k] + '80' : '#1E293B', o: any && !on ? .5 : 1, go: () => this.setState(q => ({ spk: q.spk.includes(k) ? q.spk.filter(z => z !== k) : q.spk.concat(k) })) }; });
+    const bars = Array.from({ length: 110 }, (_, i) => { const v = Math.abs(Math.sin(i * 1.7) * Math.cos(i * .43) + Math.sin(i * .21)) / 2; const f = i / 110; return { h: (18 + v * 82) + '%', bg: f * DUR <= s.t ? 'var(--a2,#818cf8)' : '#2a3750' }; });
+    const marks = !ready ? [] : TR.map((x, i) => { const hv = s.hm === i, nx = TR[i + 1] ? TR[i + 1][0] : DUR, dim = s.spk.length && !s.spk.includes(x[1]); return { left: (x[0] / DUR * 100) + '%', wd: ((nx - x[0]) / DUR * 100) + '%', bg: SP[x[1]], h: hv ? '11px' : '5px', o: dim ? .15 : hv ? 1 : .75, glow: hv ? '0 0 8px ' + SP[x[1]] : 'none', go: ev => { ev.stopPropagation(); this.setState({ t: x[0] }); }, enter: () => this.setState({ hm: i }), leave: () => this.setState({ hm: -1 }) }; });
+    const hmx = ready && s.hm >= 0 ? TR[s.hm] : null, hf = hmx ? Math.min(1, (hmx[0] + ((TR[s.hm + 1] ? TR[s.hm + 1][0] : DUR) - hmx[0]) / 2) / DUR) : 0;
+    const bcl = v => v >= 90 ? '#34d399' : v >= 80 ? '#22d3ee' : '#a78bfa';
+    const bands = !ready || isLive ? [] : [[3, 91], [7, 84], [11, 78]].map(([j, sc]) => { const a = T[j][0], b = T[j + 1][0], col = bcl(sc), n = T[j][2].split(' ').length; return { left: a / DUR * 100 + '%', w: (b - a) / DUR * 100 + '%', col, bg: col + '1c', s: sc, tip: 'Suggested clip · ' + sc + ' · ' + fmt(a), go: ev => { ev.stopPropagation(); this.setState({ t: a, ss: j * 1000, se: j * 1000 + n - 1 }); } }; });
+    const rs = s.tl.reduce((a, c) => a + c.dur, 0);
+    const go = (label, d) => ({ label, go: () => this.setState(q => ({ t: Math.max(0, Math.min(DUR, q.t + d)) })) });
+    const SPC = { Host: '#22d3ee', 'Guest 1': '#a78bfa', 'Guest 2': '#34d399', Caller: '#fbbf24' };
+    const tcol = v => v >= 8 ? '#f472b6' : v >= 5 ? '#a78bfa' : '#22d3ee';
+    const fmtS = v => Math.floor(v / 60) + ':' + String(Math.round(v % 60)).padStart(2, '0');
+    const tl = s.tl, tlDur = tl.reduce((a, c) => a + c.dur, 0), TARGET = 120;
+    const mv = (i, d) => { const n = tl.slice(); const j = i + d; if (j < 0 || j >= n.length || n[i].locked) return; [n[i], n[j]] = [n[j], n[i]]; this.upd(n); };
+    const rows = tl.map((c, i) => { const on = s.aud === c.id; return { n: i + 1, title: c.title, speaker: c.speaker, src: c.src, dur: c.dur + 's', col: SPC[c.speaker], score: 'Tension ' + c.score,
+      bg: on ? 'linear-gradient(90deg,color-mix(in srgb,var(--a1,#6366f1) 15%,transparent),#131B2E)' : '#0f1626', bd: s.dov === i ? '#22d3ee' : on ? 'var(--a1,#6366f1)' : '#1E293B', glow: on ? '0 0 18px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)' : 'none',
+      pbg: on ? 'var(--a1,#6366f1)' : '#2a3750', pd: on ? 'M8 5v14M16 5v14' : 'M6 3l14 9-14 9z', aud: () => this.setState({ aud: on ? null : c.id }),
+      dg: !c.locked, ds: ev => { this.dragI = i; try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', String(i)); } catch (e) {} },
+      dov: ev => { ev.preventDefault(); if (this.state.dov !== i) this.setState({ dov: i }); },
+      drop: ev => { ev.preventDefault(); const f = this.dragI; this.dragI = null; this.setState({ dov: -1 }); if (f == null || f === i || tl[i].locked) return; const n = tl.slice(); const [m] = n.splice(f, 1); n.splice(i, 0, m); this.upd(n); },
+      de: () => this.setState({ dov: -1 }),
+      segs: Array.from({ length: 10 }, (_, k) => ({ h: (30 + k * 7) + '%', bg: k < c.score ? tcol(c.score) : '#1E293B' })),
+      acts: [
+        { d: 'm18 15-6-6-6 6', c: '#94a3b8', o: i === 0 || c.locked ? .25 : 1, go: () => mv(i, -1) },
+        { d: 'm6 9 6 6 6-6', c: '#94a3b8', o: i === tl.length - 1 || c.locked ? .25 : 1, go: () => mv(i, 1) },
+        { d: c.locked ? 'M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zM8 11V7a4 4 0 0 1 8 0v4' : 'M6 11h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1zM8 11V7a4 4 0 0 1 7.5-2', c: c.locked ? 'var(--a3,#a5b4fc)' : '#64748b', o: 1, go: () => this.upd(tl.map(x => x.id === c.id ? { ...x, locked: !x.locked } : x)) },
+        { d: 'M18 6 6 18M6 6l12 12', c: '#64748b', o: 1, go: () => this.upd(tl.filter(x => x.id !== c.id)) }] }; });
+    const LIB = [
+      ['l1', 'Host', 'Setting up the second half', 'Okay, so before the break we had two open questions, and I want to take them one at a time.', 'Timeline Walkthrough, Part 2 • 00:12:40', 21],
+      ['l2', 'Guest 1', 'Message sent before the meeting', 'The messages were sent before any of that happened, and I have the timestamps.', 'Evidence Review • 00:18:05', 17],
+      ['l3', 'Caller', 'Different recollection', 'What I saw was different from what has been described so far, and I was in the room.', 'Open Mic Wednesday • 00:09:44', 24],
+      ['l4', 'Guest 2', 'Numbers from the first draft', 'The numbers I quoted earlier were from the first draft, not the final version.', 'Contradictions Segment • 00:44:10', 15],
+      ['l5', 'Host', 'Pause and come back', 'Let us pause there and come back to it after the break.', 'Morning Space • 00:33:21', 12],
+      ['l6', 'Guest 1', 'A correction', 'Before we move on, one correction to something I said earlier in the hour.', 'Roundtable • 00:50:02', 14]];
+    const qq = s.q.trim().toLowerCase();
+    const lib = LIB.filter(c => !qq || (c[2] + c[3] + c[1] + c[4]).toLowerCase().includes(qq)).map(c => { const inn = tl.some(x => x.id === c[0]), exd = s.ex.includes(c[0]);
+      return { title: c[2], q: c[3], src: c[4], dur: c[5] + 's', col: SPC[c[1]], o: exd ? .4 : 1, exc: exd ? '#f472b6' : '#64748b',
+        ex: () => this.setState(x => ({ ex: x.ex.includes(c[0]) ? x.ex.filter(k => k !== c[0]) : x.ex.concat(c[0]) })),
+        al: inn ? 'In reel' : 'Add', ad: inn ? 'M5 12l5 5L20 7' : 'M12 5v14M5 12h14', ac: inn ? '#34d399' : '#fff', abg: inn ? '#10b9811a' : 'var(--a1,#6366f1)', abd: inn ? '#10b98140' : 'var(--a2,#818cf8)',
+        add: () => { if (!inn && !exd) this.upd(tl.concat([{ id: c[0], title: c[2], speaker: c[1], src: c[4], dur: c[5], score: 5, locked: false }])); } }; });
+    const over = tlDur > TARGET;
+    const ibtn = (d, c, o, go, label) => ({ d, c, o, go, label });
+    const tg = (label, d, on, go) => ({ label, d, go, c: on ? 'var(--a3,#a5b4fc)' : '#94a3b8', bg: on ? 'color-mix(in srgb,var(--a1,#6366f1) 13%,transparent)' : '#131B2E', bd: on ? 'var(--a1,#6366f1)' : '#1E293B' });
+    const BC = [
+      ['k1', 96, 'Quotable', 'Host', 'The record does not care how confident anyone sounded. It only cares what was said and when.', 'Timeline Walkthrough, Part 3', '00:03:12', 24, 5, [94, 97, 92]],
+      ['k2', 93, 'Revealing', 'Guest 1', 'I had the messages in my hands before the meeting ever started, and nobody asked to see them.', 'Evidence Review', '00:41:07', 19, 4, [95, 90, 94]],
+      ['k3', 91, 'Heated', 'Guest 2', 'You cannot say it was one thing on Tuesday and something else entirely by Friday.', 'Contradictions Segment', '00:27:30', 17, 8, [92, 88, 93]],
+      ['k4', 88, 'Quotable', 'Caller', 'I was in the room, and what I saw does not match any version I have heard so far.', 'Open Mic Wednesday', '00:08:18', 21, 3, [86, 91, 87]],
+      ['k5', 84, 'Funny', 'Host', 'We have been live for three hours and I still cannot find the one tab I had open.', 'Late Night Roundtable', '01:12:44', 12, 7, [80, 85, 86]],
+      ['k6', 82, 'Revealing', 'Guest 2', 'The numbers I quoted earlier came from the first draft, not the final version.', 'Community Call', '00:44:10', 15, 6, [79, 88, 80]],
+      ['k7', 79, 'Heated', 'Guest 1', 'Say that again, slowly, so everyone listening can hear exactly what you just claimed.', 'Friday Night Live', '00:50:02', 14, 2, [82, 76, 78]],
+      ['k8', 76, 'Funny', 'Caller', 'First time caller, long time listener, and I promise I will not take the whole hour.', 'Morning Space', '00:01:03', 11, 1, [72, 80, 77]]];
+    const bcol = v => v >= 90 ? '#34d399' : v >= 80 ? '#22d3ee' : '#a78bfa';
+    const wv = (k, n) => Array.from({ length: n }, (_, i) => ({ h: (16 + Math.abs(Math.sin(i * 1.3 + k) * Math.cos(i * .37 + k * 2) + Math.sin(i * .2 + k)) / 2 * 84) + '%' }));
+    const bcats = ['All', 'Quotable', 'Heated', 'Revealing', 'Funny'].map(c => ({ label: c, go: () => this.setState({ bcat: c }), c: s.bcat === c ? '#fff' : '#94a3b8', bg: s.bcat === c ? '#1E293B' : 'transparent' }));
+    const bsorts = [['Score', 'M12 20V4M5 11l7-7 7 7'], ['Recent', 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M12 7v5l3 2']].map(([l, d]) => ({ label: l, d, go: () => this.setState({ bsort: l }), c: s.bsort === l ? '#fff' : '#94a3b8', bg: s.bsort === l ? '#1E293B' : 'transparent' }));
+    const bl = BC.filter(c => s.bcat === 'All' || c[2] === s.bcat).sort((a, b) => s.bsort === 'Score' ? b[1] - a[1] : a[8] - b[8] || b[1] - a[1]);
+    const tdur = c => { const tr = s.trim[c[0]]; return tr ? Math.round((tr[1] - tr[0]) * c[7] / .72) : c[7]; };
+    const addClip = c => { if (!tl.some(x => x.id === c[0])) this.upd(tl.concat([{ id: c[0], title: c[3] + ' — ' + c[5], speaker: c[3], src: c[5] + ' • ' + c[6], dur: tdur(c), score: Math.round(c[1] / 10), locked: false }])); };
+    const bcards = bl.map(c => { const on = s.bsel === c[0], inn = tl.some(x => x.id === c[0]), sv = s.bsaved.includes(c[0]);
+      return { score: c[1], col: bcol(c[1]), ring: 'conic-gradient(' + bcol(c[1]) + ' ' + c[1] + '%, #1E293B 0)', quote: c[4], who: c[3], wc: SPC[c[3]], src: c[5] + ' • ' + c[6], dur: tdur(c) + 's', bars: wv(c[8], 36), wv: on ? bcol(c[1]) : '#334155',
+        bg: on ? 'linear-gradient(180deg,color-mix(in srgb,var(--a1,#6366f1) 15%,transparent),#131B2E)' : '#0f1626', bd: on ? 'var(--a1,#6366f1)' : '#1E293B', glow: on ? '0 0 20px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)' : 'none', pick: () => this.setState({ bsel: c[0] }), play: ev => { ev.stopPropagation(); this.setState(x => ({ baud: x.baud === c[0] ? null : c[0], bsel: c[0] })); }, pbg: s.baud === c[0] ? 'var(--a1,#6366f1)' : '#2a3750', pd: s.baud === c[0] ? 'M8 5v14M16 5v14' : 'M6 3l14 9-14 9z',
+        sc: sv ? '#fbbf24' : '#64748b', star: ev => { ev.stopPropagation(); this.setState(x => ({ bsaved: x.bsaved.includes(c[0]) ? x.bsaved.filter(k => k !== c[0]) : x.bsaved.concat(c[0]) })); },
+        al: inn ? 'In reel' : 'Add', ad: inn ? 'M5 12l5 5L20 7' : 'M12 5v14M5 12h14', ac: inn ? '#34d399' : '#fff', abg: inn ? '#10b9811a' : 'var(--a1,#6366f1)', abd: inn ? '#10b98140' : 'var(--a2,#818cf8)', add: ev => { ev.stopPropagation(); addClip(c); } }; });
+    const sc0 = BC.find(c => c[0] === s.bsel) || BC[0], sin = tl.some(x => x.id === sc0[0]);
+    const CTX = [['Guest 2', 'Before that, can I add one thing?'], null, ['Host', 'That is a fair point.'], ['Guest 1', 'And it connects to what came before.']];
+    const tr = s.trim[sc0[0]] || [.12, .84], hms = sc0[6].split(':').map(Number), st0 = hms[0] * 3600 + hms[1] * 60 + hms[2], span = sc0[7] / .72, ws = st0 - .12 * span;
+    const drag = k => ev => { ev.preventDefault(); if (!this.trimBox) return; const box = this.trimBox.getBoundingClientRect(), id = sc0[0];
+      const mv = e => { const f = Math.max(0, Math.min(1, (e.clientX - box.left) / box.width)); this.setState(x => { const c = (x.trim[id] || [.12, .84]).slice(); if (k) c[1] = Math.max(f, c[0] + .08); else c[0] = Math.min(f, c[1] - .08); return { trim: { ...x.trim, [id]: c } }; }); };
+      const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up); };
+    const epIdx = Math.max(0, E.findIndex(e => e[0].includes(sc0[5])));
+    const bd = { score: sc0[1], col: bcol(sc0[1]), who: sc0[3], wc: SPC[sc0[3]], src: sc0[5], dur: tdur(sc0) + 's', tin: fmt(ws + tr[0] * span), tout: fmt(ws + tr[1] * span),
+      bars: wv(sc0[8], 90).map((b, i) => ({ h: b.h, bg: i / 90 >= tr[0] && i / 90 <= tr[1] ? bcol(sc0[1]) : '#2a3750' })),
+      l: tr[0] * 100 + '%', r: tr[1] * 100 + '%', w: (tr[1] - tr[0]) * 100 + '%', dragIn: drag(0), dragOut: drag(1), setBox: el => { this.trimBox = el; },
+      parts: [['Impact', sc0[9][0]], ['Clarity', sc0[9][1]], ['Standalone', sc0[9][2]]].map(([label, v]) => ({ label, v })),
+      ctx: CTX.map((l, i) => l ? { t: '00:0' + (i + 1) + ':' + (10 + i * 7), who: l[0], text: l[1], sc: SPC[l[0]], tc: '#94a3b8', bg: 'transparent', ring: 'none' } : { t: sc0[6], who: sc0[3], text: sc0[4], sc: SPC[sc0[3]], tc: '#f1f5f9', bg: 'color-mix(in srgb,var(--a1,#6366f1) 9%,transparent)', ring: 'inset 2px 0 0 ' + bcol(sc0[1]) }),
+      al: sin ? 'In reel' : 'Add to Reel', add: () => addClip(sc0), exp: () => this.flash('Saved clip.mp3'), openT: () => this.setState({ view: 't', sel: epIdx, t: Math.min(DUR, st0), playing: false }) };
+    const pq = s.pq.trim().toLowerCase();
+    const P = {
+      cc: { title: 'Command Center', ph: 'Search jobs', btn: 'Run Pipeline', tiles: [['Ingesting', 3, '#22d3ee'], ['Transcribing', 7, '#a78bfa'], ['Failed', 1, '#f472b6'], ['Published', 412, '#34d399']],
+        rows: [['Timeline Walkthrough, Part 3', 'Transcribe • diarize', 'Running', '#22d3ee', 64, '12:40'], ['Evidence Review', 'Ingest • fetch audio', 'Running', '#22d3ee', 38, '08:02'], ['Open Mic Wednesday', 'Clip detection', 'Running', '#a78bfa', 81, '03:15'], ['Contradictions Segment', 'Transcribe • align', 'Queued', '#fbbf24', 0, '—'], ['Morning Space', 'Fetch audio', 'Failed', '#f472b6', 22, '00:41'], ['Weekend Debrief', 'Publish feed', 'Done', '#34d399', 100, '01:58']] },
+      i: { title: 'Ingest', ph: 'Paste a Space URL', btn: 'Add Space', tiles: [['Queue', 5, '#fbbf24'], ['Active', 2, '#22d3ee'], ['Done today', 18, '#34d399']],
+        rows: [['x.com/i/spaces/1vOGw…', 'Recording • live', 'Live', '#f472b6', 72, '42:10'], ['x.com/i/spaces/1MnxP…', 'Downloading', 'Active', '#22d3ee', 45, '18:33'], ['x.com/i/spaces/1ZqRk…', 'Waiting', 'Queued', '#fbbf24', 0, '—'], ['x.com/i/spaces/1BdYe…', 'Waiting', 'Queued', '#fbbf24', 0, '—'], ['x.com/i/spaces/1yNjL…', 'Complete', 'Done', '#34d399', 100, '1:04:02']] },
+      l: { title: 'Episode Library', ph: 'Search episodes', btn: 'Import', tiles: [['Episodes', 864, 'var(--a2,#818cf8)'], ['Ready', 702, '#34d399'], ['Audio only', 162, '#fbbf24']],
+        rows: E.map(e => [e[0], e[1], e[2] ? 'Ready' : 'Audio Only', e[2] ? '#34d399' : '#fbbf24', 0, fmt(e[3])]) },
+      v: { title: 'Voice Profiles', ph: 'Search speakers', btn: 'New Profile', tiles: [['Profiles', 27, '#a78bfa'], ['Verified', 21, '#34d399'], ['Unmatched', 6, '#fbbf24']],
+        rows: [['Angela', '27 episodes • 412 samples', 'Verified', '#34d399', 100, '98%'], ['Sav', '19 episodes • 288 samples', 'Verified', '#34d399', 100, '96%'], ['Logan', '11 episodes • 140 samples', 'Verified', '#34d399', 100, '94%'], ['Caller 14', '2 episodes • 9 samples', 'Unmatched', '#fbbf24', 40, '61%'], ['Guest 7', '4 episodes • 31 samples', 'Review', '#22d3ee', 70, '82%']] }
+    };
+    const pk = P[s.view] || P.cc;
+    const CHK = 'M5 12l5 5L20 7', UP = 'M12 19V5M5 12l7-7 7 7';
+    const ACT = { Failed: ['Retry', ic.refresh, 'Running', '#22d3ee', 6], Queued: ['Prioritize', UP, 'Prioritized', '#a78bfa', 0], Unmatched: ['Verify', CHK, 'Verified', '#34d399', 100], Review: ['Verify', CHK, 'Verified', '#34d399', 100], Live: ['Stop', 'M7 7h10v10H7z', 'Done', '#34d399', 100] };
+    const rowsSrc = (s.view === 'i' ? s.added.map(u => [u, 'Waiting', 'Queued', '#fbbf24', 0, '—']) : []).concat(pk.rows);
+    const pg = { title: pk.title, ph: pk.ph, btn: pk.btn, tiles: pk.tiles.map(t => ({ l: t[0], v: t[1], c: t[2] })),
+      rows: rowsSrc.filter(w => !pq || (w[0] + w[1]).toLowerCase().includes(pq)).map(w => { const key = s.view + ':' + w[0], o = s.rowSt[key], st = o ? o[0] : w[2], col = o ? o[1] : w[3], pct = o ? o[2] : w[4], li = E.findIndex(e => e[0] === w[0]);
+        const a = s.view === 'l' ? ['Open', ic.ext] : ACT[st];
+        return { t: w[0], m: w[1], s: st, c: col, pct, r: w[5], i: w[0][0].toUpperCase(), bo: pct ? 1 : 0, at: a ? a[0] : '', ad: a ? a[1] : '', ao: a ? 1 : 0, pe: a ? 'auto' : 'none', cur: s.view === 'l' ? 'pointer' : 'default',
+          open: () => { if (s.view === 'l' && li >= 0) this.setState({ view: 't', sel: li, t: 0, playing: false }); },
+          act: ev => { ev.stopPropagation(); if (!a) return; if (s.view === 'l') { this.setState({ view: 't', sel: li, t: 0, playing: false }); return; } this.setState(x => ({ rowSt: { ...x.rowSt, [key]: [a[2], a[3], a[4]] } })); } }; }) };
+    const cs = s.csel, cx = s.cctx, useSel = !!cs && cx.sel, useEp = cx.ep, rf = (arr, ep) => arr.map(([sec, w]) => ({ l: fmt(sec) + ' · ' + w, ep, sec }));
+    const reply = q => {
+      if (/summar/i.test(q) && useSel) return { t: cs.who + ' makes one self-contained point and qualifies it in the same breath. Works as a standalone clip: clear setup, no outside context needed.', refs: [{ l: cs.range.split('–')[0] + ' · ' + cs.who, ep: cs.epI, sec: cs.t }] };
+      if (/summar/i.test(q) && useEp) return { t: 'Four voices. The host frames the timeline, Guest 2 disputes the timing, a caller gives a first-hand account, and Guest 1 corrects an earlier figure near the end.', refs: rf([[0, 'Host'], [171, 'Guest 2'], [498, 'Caller'], [1650, 'Guest 1']], s.sel) };
+      if (/contradict/i.test(q)) return { t: 'Two points of tension: Guest 2 disputes the timing the host accepted, and the numbers quoted earlier are later attributed to a first draft.', refs: rf([[171, 'Guest 2'], [2410, 'Guest 2']], useSel ? cs.epI : s.sel) };
+      if (/title/i.test(q)) return { t: 'What the Room Actually Saw  ·  The Timing Doesn’t Work  ·  Messages Before the Meeting', refs: [] };
+      if (/clip|best/i.test(q)) return { t: 'Found 3 clips scoring above 90 across 2 episodes.' + (cx.reel ? ' 1 is already in your Reel.' : ''), refs: [{ l: 'Best Clips', view: 'b' }] };
+      if (/fail|error/i.test(q)) return { t: 'One job failed: Morning Space, fetch audio. Retrying in 2 minutes.', refs: [{ l: 'Command Center', view: 'cc' }] };
+      return { t: useEp ? 'Done. 5 matching moments in this episode, 12 across the last 7 days.' : 'Done. 5 episodes matched across the last 7 days.', refs: [] }; };
+    const send = t => { t = (t || '').trim(); if (!t) return; this.setState(x => ({ cm: x.cm.concat([{ r: 'u', t }, { r: 'a', ...reply(t) }]), ci: '' })); };
+    const so = (label, d) => ({ label, go: () => this.setState(q => ({ off: Math.round((q.off + d) * 10) / 10 })) });
+    const isCached = s.cached.includes(s.sel);
+    const actions = [
+      { label: isCached ? 'Cached' : 'Cache',  tip: isCached ? 'Audio stored locally' : 'Store audio locally for instant scrubbing', d: isCached ? 'M5 12l5 5L20 7' : ic.cache, ok: isCached, go: () => { if (!isCached) this.setState(x => ({ cached: x.cached.concat(x.sel) })); } },
+      { label: 'Speakers', hide: 1, tip: 'Manage speakers (27) · Voice Profiles', d: ic.users, count: 27, tail: 'M9 6l6 6-6 6', go: () => this.setState({ view: 'v' }) },
+    ].map(a => ({ ...a, count: a.count || '', tail: a.tail || '', ld: a.hide ? 'none' : 'inline', color: a.ok ? '#34d399' : '#cbd5e1', bg: a.ok ? '#10b9811a' : '#131B2E', border: a.ok ? '#10b98140' : '#1E293B' }));
+    const exGo = (m) => () => { this.setState({ exOpen: false }); this.flash(m); };
+    const exItems = [
+      { label: 'Publish preview', d: 'M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 19h.01', k: '', go: () => this.setState({ exOpen: false, pub: true }) },
+      { label: 'Copy to clipboard', d: ic.copy, k: '', go: exGo('Copied transcript') },
+      { label: 'Plain text', d: ic.txt, k: '.txt', go: exGo('Saved transcript.txt') },
+      { label: 'Timestamped data', d: ic.json, k: '.json', go: exGo('Saved transcript.json') },
+      { label: 'Source Space', d: ic.ext, k: 'X', go: exGo('Opened on X') }];
+    const isPrio = s.prio.includes(s.sel);
+    const st = s.sets, setK = (k, v) => this.setState(x => ({ sets: { ...x.sets, [k]: v } }));
+    const tgl = (l, k) => ({ l, isT: true, isS: false, isH: false, isU: false, opts: [], go: () => setK(k, !st[k]), tbg: st[k] ? 'var(--a1,#6366f1)' : '#2a3750', kl: st[k] ? '16px' : '2px' });
+    const seg = (l, k, os) => ({ l, isT: false, isS: true, isH: false, isU: false, opts: os.map(o => ({ l: o, go: () => setK(k, o), c: st[k] === o ? '#fff' : '#94a3b8', bg: st[k] === o ? '#1E293B' : 'transparent' })) });
+    const addHost = () => { let v = s.hostIn.trim(); if (!v) return; if (v[0] !== '@') v = '@' + v; if (!st.hosts.includes(v)) setK('hosts', st.hosts.concat(v)); this.setState({ hostIn: '' }); };
+    const hostItem = { l: 'Watched hosts', isT: false, isS: false, isH: true, isU: false, opts: [], hosts: st.hosts.map(x => ({ h: x, rm: () => setK('hosts', st.hosts.filter(y => y !== x)) })), hin: s.hostIn, setHin: ev => this.setState({ hostIn: ev.target.value }), hKey: ev => { if (ev.key === 'Enter') addHost(); } };
+    const usage = { l: 'Disk', isT: false, isS: false, isH: false, isU: true, opts: [], pct: (st.ret === '7d' ? 34 : st.ret === '30d' ? 61 : 88) + '%', used: (st.ret === '7d' ? 102 : st.ret === '30d' ? 183 : 264) + ' / 300 GB' };
+    const sets = [
+      { t: 'Ingest', dot: '#f472b6', items: [tgl('Auto-record watched hosts', 'rec'), hostItem, seg('Concurrent jobs', 'conc', ['1', '2', '4']), seg('Audio format', 'afmt', ['MP3', 'WAV', 'FLAC'])] },
+      { t: 'Strict Mode', dot: '#34d399', items: [tgl('Strict validation', 'strict'), tgl('Block on speaker mismatch', 'spk'), tgl('Audio fingerprint check', 'fp')] },
+      { t: 'Transcription', dot: '#22d3ee', items: [seg('Model', 'model', ['Fast', 'Balanced', 'Accurate']), tgl('Diarization', 'dia'), seg('Language', 'lang', ['Auto', 'EN', 'ES'])] },
+      { t: 'Clips', dot: '#fbbf24', items: [tgl('Auto-suggest clips', 'sugg'), seg('Min score', 'minScore', ['70', '80', '90']), seg('Max length', 'maxLen', ['30s', '60s', '90s'])] },
+      { t: 'Publishing', dot: 'var(--a2,#818cf8)', items: [seg('Feed', 'feed', ['Private', 'Unlisted', 'Public']), tgl('Auto-publish', 'auto'), seg('Loudness', 'lufs', ['-19', '-16', '-14'])] },
+      { t: 'Storage', dot: '#94a3b8', items: [seg('Audio cache', 'ret', ['7d', '30d', 'Forever']), tgl('Keep raw recordings', 'raw'), usage] }
+    ].map(g => { const on = s.view === 'ps' && s.psSec === g.t; return { ...g, bd: on ? 'var(--a1,#6366f1)' : '#1E293B', glow: on ? '0 0 20px color-mix(in srgb,var(--a1,#6366f1) 15%,transparent)' : 'none' }; });
+    const FC = { All: [864, '', 'All episodes'], Ready: [702, '#34d399', 'Transcript ready · searchable'], 'Audio Only': [162, '#fbbf24', 'Audio only · transcript pending'] };
+    const filters = ['All', 'Ready', 'Audio Only'].map(k => { const on = s.filter === k, f = FC[k]; return { label: k === 'Audio Only' ? 'Audio' : k, n: f[0], tip: f[2], dot: f[1] || 'transparent', dd: f[1] ? 'block' : 'none', glow: f[1] ? '0 0 6px ' + f[1] : 'none', nc: on ? '#94a3b8' : '#475569', pick: () => this.setState({ filter: k }), color: on ? '#fff' : '#64748b', bg: on ? '#1E293B' : 'transparent' }; });
+    const narrow = s.vw / zm < 1120, tsqT = s.view === 't' && !!tsq;
+    const sr = (() => { if (!tsqT) return { groups: [], n: 0, m: 0, none: false }; const groups = []; E.forEach((e, i) => { if (!e[2] || e[2] === 2) return; const hits = T.filter((x, j) => (j + i) % 3 !== 0 && x[2].toLowerCase().includes(tsq)).slice(0, 3).map(x => { const p = x[2].toLowerCase().indexOf(tsq); return { time: fmt(x[0]), who: x[1], sc: SP[x[1]], pbg: SP[x[1]] + '14', pbd: SP[x[1]] + '33', pre: x[2].slice(0, p), hit: x[2].slice(p, p + tsq.length), post: x[2].slice(p + tsq.length), go: () => this.setState({ sel: i, t: x[0], ts: '', lq: tsq, playing: false, scroll: true, ss: -1, se: -1 }) }; }); if (hits.length) groups.push({ title: e[0], date: e[1], n: hits.length, hits, open: () => this.setState({ sel: i, t: 0, ts: '', lq: tsq, playing: false }) }); }); const n = groups.reduce((a, g) => a + g.n, 0); return { groups, n, m: groups.length, none: n === 0 }; })();
+    let selb = { range: '', dur: '' };
+    if (hasR) { const li = Math.floor(lo / 1000), lk = lo % 1000, hI = Math.floor(hi / 1000), hk = hi % 1000, parts = []; for (let i = li; i <= hI; i++) { if (!TR[i]) continue; const ws = TR[i][2].split(' '); parts.push(ws.slice(i === li ? lk : 0, i === hI ? hk + 1 : ws.length).join(' ')); }
+      const txt = parts.join(' '), a = wtime(li, lk), b = wtime(hI, hk) + .42, d = Math.max(1, Math.round(b - a)), who = TR[li] ? TR[li][1] : 'Host';
+      selb = { range: fmt(a) + ' → ' + fmt(b), dur: d + 's', clear: () => this.setState({ ss: -1, se: -1 }), copy: () => this.flash('Copied quote'),
+        add: () => { this.upd(tl.concat([{ id: 'sel' + Date.now(), title: txt.length > 48 ? txt.slice(0, 46) + '…' : txt, speaker: who, src: cur[0] + ' • ' + fmt(a), dur: d, score: 6, locked: false }])); this.setState({ ss: -1, se: -1 }); this.flash('Clip added to Reel · ' + d + 's'); },
+        ask: () => this.setState(x => ({ view: 'c', csel: { q: txt, range: fmt(a) + '–' + fmt(b), who, ep: cur[0], epI: s.sel, t: Math.floor(a) }, cctx: { ...x.cctx, sel: true }, ss: -1, se: -1 })) }; }
+    const acc = p => 'color-mix(in srgb,var(--a1,#6366f1) ' + p + '%,transparent)';
+    const cchips = [
+      { k: 'ep', l: cur[0], sub: rtf(cur[3]), tip: 'Episode context', d: ic.fileText },
+      cs ? { k: 'sel', l: '“' + (cs.q.length > 34 ? cs.q.slice(0, 32) + '…' : cs.q) + '”', sub: cs.range.split('–')[0], tip: 'Selected quote', d: 'M4 7h16M4 12h10M4 17h7', rm: true } : null,
+      { k: 'reel', l: 'Reel', sub: tl.length + ' clips', tip: 'Reel context', d: ic.film }
+    ].filter(Boolean).map(c => { const on = !!cx[c.k]; return { ...c, go: () => this.setState(x => ({ cctx: { ...x.cctx, [c.k]: !x.cctx[c.k] } })), c: on ? '#e2e8f0' : '#64748b', bg: on ? acc(10) : 'transparent', bd: on ? acc(40) : '#1E293B', ic: on ? 'var(--a3,#a5b4fc)' : '#475569', rmShow: c.rm ? 'grid' : 'none', rmGo: ev => { ev.stopPropagation(); this.setState({ csel: null }); } }; });
+    const CHI = ready && !isLive ? [0, 3, 5, 10, 11, 13] : [];
+    const pubd = { title: cur[0], host: cur[4], meta: cur[1] + ' · ' + rtf(cur[3]), desc: 'Recorded live on X Spaces with ' + cur[4] + '. ' + (ready ? Object.keys(spkN).length + ' speakers · ' + TR.length + ' turns.' : 'Transcript pending.'), nCh: String(CHI.length), hasCh: CHI.length > 0,
+      chapters: CHI.map(j => ({ t: fmt(T[j][0]), sc: SP[T[j][1]], l: T[j][1] + ' — ' + T[j][2].split(' ').slice(0, 7).join(' ').replace(/[.,?]$/, ''), go: () => this.setState({ pub: false, t: T[j][0] }) })),
+      feeds: ['Private', 'Unlisted', 'Public'].map(o => ({ l: o, go: () => setK('feed', o), c: st.feed === o ? '#fff' : '#94a3b8', bg: st.feed === o ? '#1E293B' : 'transparent' })),
+      publish: () => { this.setState({ pub: false }); this.flash('Queued for publish · ' + st.feed); }, copy: () => this.flash('Copied RSS item') };
+    const atEdge = isLive && s.playing && s.t >= s.live - 2;
+    return {
+      narrow, epl: { w: narrow ? 'min(320px,86%)' : 'clamp(236px,24vw,344px)', d: !narrow || s.epOpen ? 'flex' : 'none', pos: narrow ? 'absolute' : 'relative', sh: narrow ? '0 0 40px #000c' : 'none' }, epScrim: narrow && s.epOpen, toggleEp: () => this.setState(x => ({ epOpen: !x.epOpen })), closeEp: () => this.setState({ epOpen: false }),
+      isLive, goLive: () => this.setState({ t: s.live, playing: true, scroll: true }), lv: atEdge ? { c: '#fecdd3', bg: '#f43f5e26', bd: '#f43f5e66', glow: '0 0 8px #f43f5e' } : { c: '#94a3b8', bg: '#131B2E', bd: '#1E293B', glow: 'none' },
+      bands, selOn: hasR, selb, isSearch: tsqT, sr, clearTs: () => this.setState({ ts: '' }),
+      help: s.help, toggleHelp: () => this.setState(x => ({ help: !x.help })), closeHelp: () => this.setState({ help: false }), stop: ev => ev.stopPropagation(),
+      helpRows: [['Play / Pause', 'Space'], ['Seek 1s', '← →'], ['Seek 15s', '⇧ ← →'], ['Sync offset ±0.1s', ', .'], ['Follow playhead', 'F'], ['Select words → clip', 'Drag'], ['Shortcuts', '?'], ['Close · clear', 'Esc']].map(([l, k]) => ({ l, keys: k.split(' ').map(z => ({ k: z })) })),
+      pub: s.pub, closePub: () => this.setState({ pub: false }), pubd, cchips,
+      cq: useSel ? { on: true, q: cs.q, who: cs.who, range: cs.range, ep: cs.ep, sc: SP[cs.who] || '#94a3b8', pbg: (SP[cs.who] || '#94a3b8') + '14', pbd: (SP[cs.who] || '#94a3b8') + '33' } : { on: false },
+      ac: { a0: ACP[0], a1: ACP[1], a2: ACP[2], a3: ACP[3] }, zm, atmo, icons: ic, nav, episodes, actions, filters, exItems, exOpen: !!s.exOpen, toggleEx: () => this.setState(x => ({ exOpen: !x.exOpen })), exRot: s.exOpen ? 'rotate(180deg)' : 'none', exBg: s.exOpen ? '#1b2640' : '#131B2E', exBd: s.exOpen ? 'var(--a1,#6366f1)' : '#1E293B',
+      stepBack: { ...go('-15s', -15), tip: 'Back 15s · Shift+← (← 1s)' }, stepFwd: [{ ...go('+15s', 15), tip: 'Forward 15s · Shift+→ (→ 1s)' }],
+      prec: s.prec, togglePrec: () => this.setState(x => ({ prec: !x.prec })), resetOff: () => this.setState({ off: 0 }),
+      pr: { c: s.prec || s.off ? 'var(--a3,#a5b4fc)' : '#94a3b8', bg: s.prec ? 'color-mix(in srgb,var(--a1,#6366f1) 13%,transparent)' : '#131B2E', bd: s.prec ? 'var(--a1,#6366f1)' : '#1E293B', showOff: !s.prec && s.off !== 0 },
+      lq: s.lq, setLq: ev => this.setState({ lq: ev.target.value }), lqOn: !!lq, lqCount: String(turns0.filter(t => t.hit).length), spkChips, noTurns: ready && turns.length === 0,
+      showJump: ready && !s.scroll && !hasR, followOn: () => this.setState({ scroll: true }), freeScroll: () => { if (this.state.scroll) this.setState({ scroll: false }); },
+      tipOn: !!hmx, tip: hmx ? { left: hf * 100 + '%', tx: hf < .08 ? 'translateX(-7px)' : hf > .92 ? 'translateX(calc(-100% + 7px))' : 'translateX(-50%)', who: hmx[1], time: fmt(hmx[0]), c: SP[hmx[1]] } : { left: '0', tx: 'none', who: '', time: '', c: 'transparent' },
+      closeReel: () => this.setState({ reelOpen: false }), trayReel: () => this.setState(x => ({ reelOpen: !(x.reelOpen && x.reelFrom === 'tray'), reelFrom: 'tray' })),
+      rp: s.reelFrom === 'tray' && s.view === 't' ? { l: 'auto', r: '10px', b: '46px' } : { l: 'calc(clamp(208px,18vw,236px) + 8px)', r: 'auto', b: '8px' }, syncBack: so('-0.1s', -.1), syncFwd: so('+0.1s', .1), sets, isS: s.view === 'ps',
+      sp: st.strict ? { t: 'Online', tip: 'Pipeline online · strict validation on', c: '#34d399', bg: '#10b9811a', bd: '#10b98140' } : { t: 'Strict off', tip: 'Pipeline online · strict validation disabled', c: '#fbbf24', bg: '#f59e0b14', bd: '#f59e0b38' },
+      ts: s.ts, setTs: ev => this.setState({ ts: ev.target.value }), goCopilot: () => this.setState({ view: 'c' }), refresh: () => this.flash('Synced'),
+      qb: isPrio ? { t: 'Prioritized', c: '#a78bfa', bg: 'color-mix(in srgb,var(--a0,#8b5cf6) 10%,transparent)', bd: 'color-mix(in srgb,var(--a0,#8b5cf6) 25%,transparent)' } : { t: 'Queued in Pipeline', c: '#22d3ee', bg: '#06b6d416', bd: '#06b6d440' },
+      prioLabel: isPrio ? 'Prioritized' : 'Prioritize Ingest', prioritize: () => { if (!isPrio) { this.setState(x => ({ prio: x.prio.concat(x.sel) })); this.flash('Moved to front of queue'); } },
+      stages: (() => { const CK = 'M5 12l5 5L20 7'; return [['Fetch', 2], ['Transcribe', 1], ['Diarize', 0], ['Index', 0]].map(([l, k], i) => ({ l, lw: i ? '28px' : '0px', lc: k === 2 ? '#34d399' : k === 1 ? 'linear-gradient(90deg,#34d399,var(--a1,#6366f1))' : '#1E293B', bg: k === 2 ? '#10b9811a' : k === 1 ? 'color-mix(in srgb,var(--a1,#6366f1) 16%,transparent)' : '#0f1626', bd: k === 2 ? '#34d399' : k === 1 ? 'var(--a1,#6366f1)' : '#2a3750', glow: k === 1 ? '0 0 12px color-mix(in srgb,var(--a1,#6366f1) 45%,transparent)' : 'none', ic: k === 2 ? '#34d399' : k === 1 ? 'var(--a3,#a5b4fc)' : '#475569', d: k === 2 ? CK : k === 1 ? 'M12 7v5l3 2' : 'M11.5 12h1', tc: k === 2 ? '#94a3b8' : k === 1 ? '#e2e8f0' : '#64748b' })); })(),
+      qmeta: (() => { const p = isPrio ? 1 : s.sel % 5 + 3; return { pos: '#' + p + ' in queue', eta: 'ETA ' + p * 6 + 'm' }; })(),
+      aiSort: () => { const free = tl.filter(c => !c.locked).sort((a, b) => b.score - a.score); let n = 0; this.upd(tl.map(c => c.locked ? c : free[n++])); this.flash('Sorted by tension'); },
+      setPqEl: el => { this.pqEl = el; },
+      pgBtn: () => { if (s.view === 'i') { const u = s.pq.trim(); if (!u) { if (this.pqEl) this.pqEl.focus(); return; } this.setState(x => ({ added: [u].concat(x.added), pq: '' })); this.flash('Space queued'); return; } this.flash({ cc: 'Pipeline started', l: 'Import started', v: 'Profile created' }[s.view]); },
+      chatEmpty: s.cm.length === 0, toastOn: !!s.toast, toast: s.toast,
+      current: { title: cur[0], host: cur[4], date: cur[1], rt: rtf(cur[3]) },
+      isT: s.view === 't', isP: ['cc', 'i', 'l', 'v'].includes(s.view), isC: s.view === 'c', pg, pq: s.pq, setPq: ev => this.setState({ pq: ev.target.value }),
+      msgs: s.cm.map(m => ({ t: m.t, hasRefs: !!(m.refs && m.refs.length), refs: (m.refs || []).map(r => ({ l: r.l, go: () => this.setState(r.view ? { view: r.view } : { view: 't', sel: r.ep, t: r.sec, playing: false, scroll: true, ts: '' }) })), al: m.r === 'u' ? 'flex-end' : 'flex-start', bg: m.r === 'u' ? 'color-mix(in srgb,var(--a1,#6366f1) 18%,transparent)' : '#131B2E', bd: m.r === 'u' ? 'var(--a1,#6366f1)' : '#1E293B' })),
+      sugg: (useSel ? ['Summarize selection', 'Find contradictions', 'Suggest a title'] : ['Summarize this episode', 'Find best clips', 'Show failed jobs']).map(t => ({ t, go: () => send(t) })), ci: s.ci, setCi: ev => this.setState({ ci: ev.target.value }), ciKey: ev => { if (ev.key === 'Enter') send(s.ci); }, ciSend: () => send(s.ci), setChat: el => { this.chatEl = el; },
+      reelOpen: s.reelOpen, toggleReel: () => this.setState(x => ({ reelOpen: !(x.reelOpen && x.reelFrom === 'side'), reelFrom: 'side' })), openMontage: () => this.setState({ view: 'm', reelOpen: false }),
+      reelStrip: tl.map(c => ({ title: c.title, dur: c.dur, col: tcol(c.score), rm: () => this.upd(tl.filter(x => x.id !== c.id)) })), isB: s.view === 'b', bcats, bsorts, bcards, bd, isM: s.view === 'm', rows, lib, libCount: LIB.length, q: s.q, setQ: ev => this.setState({ q: ev.target.value }), tlCount: tl.length,
+      strip: tl.map(c => ({ title: c.title, dur: c.dur, col: tcol(c.score), bg: tcol(c.score) + '1f' })), gap: Math.max(0, TARGET - tlDur),
+      gauge: { run: fmtS(tlDur), target: fmtS(TARGET), pct: Math.min(100, tlDur / TARGET * 100) + '%', bar: over ? '#fbbf24' : '#34d399', tc: over ? '#fbbf24' : '#e2e8f0' },
+      tools: [ibtn('M9 14 4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11', '#cbd5e1', s.hist.length ? 1 : .35, () => this.setState(x => x.hist.length ? { tl: x.hist[x.hist.length - 1], hist: x.hist.slice(0, -1), fut: x.fut.concat([x.tl]) } : null), 'Undo'),
+        ibtn('m15 14 5-5-5-5M20 9H9.5a5.5 5.5 0 0 0 0 11H13', '#cbd5e1', s.fut.length ? 1 : .35, () => this.setState(x => x.fut.length ? { tl: x.fut[x.fut.length - 1], fut: x.fut.slice(0, -1), hist: x.hist.concat([x.tl]) } : null), 'Redo'),
+        ibtn('M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M12 7v5l3 2', '#cbd5e1', 1, () => this.upd(tl.slice().sort((a, b) => a.src.localeCompare(b.src))), 'Chronological'),
+        ibtn('M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14', '#f472b6', 1, () => this.upd([]), 'Clear')],
+      toggles: [tg('Level -16 LUFS', 'M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2', s.lvl, () => this.setState({ lvl: !s.lvl })), tg('Micro-fades', 'M3 18 21 6M3 18h18', s.fade, () => this.setState({ fade: !s.fade }))],
+      exports: [{ label: 'Export WAV', c: '#fff', bg: 'var(--a1,#6366f1)', bd: 'var(--a2,#818cf8)', go: () => this.flash('Rendering montage.wav') }, { label: 'Labels', c: '#cbd5e1', bg: '#131B2E', bd: '#1E293B', go: () => this.flash('Saved labels.txt') }, { label: 'JSON', c: '#cbd5e1', bg: '#131B2E', bd: '#1E293B', go: () => this.flash('Saved montage.json') }],
+      stepChips: [go('-1s', -1), go('+1s', 1), go('+15s', 15)], syncChips: [so('-0.1s', -.1), so('+0.1s', .1)],
+      offLabel: (s.off > 0 ? '+' : '') + s.off.toFixed(1) + 's',
+      isReady: ready, isQueued: !ready, turns, bars, marks, headLeft: (s.t / DUR * 100) + '%', waveOpacity: 1,
+      curTime: fmt(s.t), totTime: fmt(DUR),
+      playD: s.playing ? 'M8 5v14M16 5v14' : 'M6 3l14 9-14 9z',
+      togglePlay: () => this.setState(q => ({ playing: !q.playing })),
+      seek: ev => { const b = ev.currentTarget.getBoundingClientRect(); this.setState({ t: Math.round((ev.clientX - b.left) / b.width * DUR) }); },
+      setList: el => { this.listEl = el; },
+      reelCount: tl.length, reelDur: Math.floor(rs / 60) + 'm ' + String(rs % 60).padStart(2, '0') + 's',
+      settingsOpen: s.settingsOpen, chevRot: s.settingsOpen ? 'rotate(180deg)' : 'none',
+      toggleSettings: () => this.setState(x => ({ settingsOpen: !x.settingsOpen })),
+      settings: [['Ingest', '#f472b6'], ['Strict Mode', '#34d399'], ['Transcription', '#22d3ee'], ['Clips', '#fbbf24'], ['Publishing', 'var(--a2,#818cf8)'], ['Storage', '#94a3b8']].map(([label, dot]) => { const on = s.view === 'ps' && s.psSec === label; return { label, dot, c: on ? '#fff' : '#94a3b8', bg: on ? '#131B2E' : 'transparent', go: () => this.setState({ view: 'ps', psSec: label, reelOpen: false }) }; }),
+      toggleScroll: () => this.setState(x => ({ scroll: !x.scroll })),
+      scrollColor: s.scroll ? 'var(--a3,#a5b4fc)' : '#94a3b8', scrollBg: s.scroll ? 'color-mix(in srgb,var(--a1,#6366f1) 13%,transparent)' : '#131B2E', scrollBorder: s.scroll ? 'var(--a1,#6366f1)' : '#1E293B'
+    };
+  }
+}
+</script>
+</body>
+</html>

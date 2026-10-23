@@ -171,6 +171,7 @@ jobs:
             METADATA::DURATION::\${{ steps.duration.outputs.duration }}
             METADATA::SOURCE_ID::\${{ steps.process.outputs.space_id }}
             METADATA::EPISODE_DATE::\${{ steps.process.outputs.episode_date }}
+            METADATA::HOST::\${{ steps.process.outputs.host_handle }}
         env:
           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
 ${transcriptionStep}
@@ -375,6 +376,8 @@ fi
 # 4. Duplicate Detection
 echo "--- Duplicate check ---"
 SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+# Host handle (yt-dlp uploader_id), stored in the release body so the transcript list can show who hosted
+HOST_HANDLE=$(yt-dlp --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
@@ -509,6 +512,7 @@ if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
         echo "$SPACE_TITLE"
         echo "$DELIM"
         echo "space_id=$SPACE_ID"
+        echo "host_handle=\${HOST_HANDLE:-}"
         echo "episode_date=$EPISODE_DATE"
         echo "already_exists=false"
     } >> "$GITHUB_OUTPUT"

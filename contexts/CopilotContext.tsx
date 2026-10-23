@@ -328,16 +328,19 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const dynamicContext: CopilotContextPayload = {
         ...contextPayload,
         ...override,
-        activeMontageClips: montage.clips.map(c => ({
-          id: c.id,
-          title: c.title,
-          quote: c.quote,
-          speaker: c.speaker,
-          startSec: c.startSec,
-          endSec: c.endSec,
-          category: c.category,
-          tensionScore: c.tensionScore,
-        })),
+        // An explicit override (even `undefined`, used by the Copilot's context chips) wins over the live Reel.
+        activeMontageClips: override && 'activeMontageClips' in override
+          ? override.activeMontageClips
+          : montage.clips.map(c => ({
+              id: c.id,
+              title: c.title,
+              quote: c.quote,
+              speaker: c.speaker,
+              startSec: c.startSec,
+              endSec: c.endSec,
+              category: c.category,
+              tensionScore: c.tensionScore,
+            })),
         configSummary: {
           enableTranscription: config.enableTranscription,
           enableScheduledMonitoring: config.enableScheduledMonitoring,
