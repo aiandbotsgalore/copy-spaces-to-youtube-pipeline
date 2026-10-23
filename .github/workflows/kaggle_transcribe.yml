@@ -125,3 +125,11 @@ jobs:
           git commit -m "chore(transcripts): update search index, speaker labels, and highlight clips from Kaggle GPU run [skip ci]" || echo "No changes to commit"
           git pull --rebase origin master || true
           git push origin master || echo "Push skipped"
+
+      - name: Trigger RSS Update & Web Deployment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering update_rss.yml to publish updated transcripts, clips, and RSS feeds..."
+          gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"

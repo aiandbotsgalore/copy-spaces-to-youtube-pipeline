@@ -1,56 +1,71 @@
 name: Rescan Archive for Speaker
+run-name: Rescan Archive (${{ inputs.all_speakers && 'All Enrolled Speakers' || inputs.speaker_name }})
 
 on:
   workflow_dispatch:
     inputs:
+      all_speakers:
+        description: 'Scan and label all 12 enrolled profiles in voice_profiles.json'
+        required: false
+        default: true
+        type: boolean
       speaker_name:
-        description: 'Speaker Name enrolled in voice_profiles.json (e.g. Rose, Angela, Oor)'
-        required: true
+        description: 'Single Speaker Name enrolled in voice_profiles.json (if not scanning all)'
+        required: false
         default: 'Rose'
         type: string
+      heuristic_only:
+        description: 'Dialogue heuristic matching only (fast, skips audio streaming)'
+        required: false
+        default: false
+        type: boolean
       batch_size:
         description: 'Number of historical episodes to process (0 = all)'
         required: false
-        default: '50'
+        default: '0'
         type: string
       min_similarity:
-        description: 'Minimum cosine similarity threshold (default: 0.54)'
+        description: 'Minimum cosine similarity threshold for acoustic match (default: 0.54)'
         required: false
         default: '0.54'
         type: string
 
 permissions:
   contents: write
+  actions: write
+  packages: read
 
 jobs:
   rescan:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/spacepipe-runner:latest
+      options: --user root
+    timeout-minutes: 120
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install System Dependencies
+      - name: Verify Pre-Baked Container Environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg libsndfile1 curl
-
-      - name: Install Python AI Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install speechbrain soundfile requests
+          python -c "import torch, speechbrain, soundfile; print('[✓] SpacePipe Pre-Baked AI Container Ready!')"
+          ffmpeg -version | head -n 1
 
       - name: Execute Acoustic & Conversational Archive Rescan
         run: |
+          ARGS=""
+          if [ "${{ inputs.all_speakers }}" = "true" ]; then
+            ARGS="--all-speakers"
+          else
+            ARGS="--speaker '${{ inputs.speaker_name || 'Rose' }}'"
+          fi
+          if [ "${{ inputs.heuristic_only }}" = "true" ]; then
+            ARGS="$ARGS --heuristic-only"
+          fi
           python scripts/rescan_archive_speakers.py \
-            --speaker "${{ inputs.speaker_name }}" \
-            --batch-size "${{ inputs.batch_size }}" \
-            --min-sim "${{ inputs.min_similarity }}"
+            $ARGS \
+            --batch-size "${{ inputs.batch_size || '0' }}" \
+            --min-sim "${{ inputs.min_similarity || '0.54' }}"
 
       - name: Commit and Push Updated Transcripts & Summary Index
         if: always()
@@ -58,4 +73,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
-          git diff --staged --quiet || (git commit -m "chore(transcripts): rescan archive and update labels for '${{ inputs.speaker_name }}' [skip ci]" && git pull --rebase origin master && git push origin master)
+          git diff --staged --quiet || (git commit -m "chore(transcripts): rescan archive and update speaker labels [skip ci]" && git pull --rebase origin master && git push origin master)
+
+      - name: Trigger RSS Update & Web Deployment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering update_rss.yml to publish updated transcripts..."
+          gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"

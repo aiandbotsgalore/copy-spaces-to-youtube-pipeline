@@ -9,6 +9,7 @@ on:
       - 'Ingest Space'
       - 'Batch Transcribe Episodes (Newest to Oldest)'
       - 'Cloud GPU Transcribe (Kaggle)'
+      - 'Transcribe Episode'
     types: [completed]
 
 permissions:
@@ -62,6 +63,8 @@ jobs:
                   cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"release_tag={target}"]
           elif "Batch Transcribe" in workflow_name:
               cmd = ["gh", "workflow", "run", "batch_transcribe.yml", "-f", "limit=5", "-f", "dry_run=false"]
+          elif "Transcribe Episode" in workflow_name:
+              cmd = ["gh", "workflow", "run", "transcribe_episode.yml", "-f", f"release_tag={target}"]
           elif "Kaggle" in workflow_name:
               cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml", "-f", f"release_tag={target}"]
           else:

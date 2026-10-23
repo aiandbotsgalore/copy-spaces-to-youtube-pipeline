@@ -1033,32 +1033,45 @@ def process_audio_file(
                 for idx, c_file in enumerate(chunk_files, 1):
                     c_dur = get_audio_duration(c_file)
                     print(f"\n--- Processing Chunk [{idx}/{len(chunk_files)}]: {c_file.name} ({format_timestamp(c_dur)}) ---")
-                    chunk_segs = transcribe_audio_chunk_assemblyai(
-                        audio_path=c_file,
-                        assemblyai_key=assemblyai_key,
-                        time_offset=current_offset,
-                        chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
-                        title=title
-                    )
+                    if assemblyai_key:
+                        chunk_segs = transcribe_audio_chunk_assemblyai(
+                            audio_path=c_file,
+                            assemblyai_key=assemblyai_key,
+                            time_offset=current_offset,
+                            chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
+                            title=title
+                        )
+                    else:
+                        chunk_segs = transcribe_audio_chunk_whisper(
+                            c_file,
+                            time_offset=current_offset,
+                            title=title
+                        )
                     all_segments.extend(chunk_segs)
                     current_offset += c_dur if c_dur > 0 else chunk_seconds
 
                 shutil.rmtree(chunks_dir, ignore_errors=True)
             else:
+                if assemblyai_key:
+                    all_segments = transcribe_audio_chunk_assemblyai(
+                        audio_path=active_audio,
+                        assemblyai_key=assemblyai_key,
+                        time_offset=0.0,
+                        title=title
+                    )
+                else:
+                    all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+        except Exception as e:
+            print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
+            if assemblyai_key:
                 all_segments = transcribe_audio_chunk_assemblyai(
                     audio_path=active_audio,
                     assemblyai_key=assemblyai_key,
                     time_offset=0.0,
                     title=title
                 )
-        except Exception as e:
-            print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
-            all_segments = transcribe_audio_chunk_assemblyai(
-                audio_path=active_audio,
-                assemblyai_key=assemblyai_key,
-                time_offset=0.0,
-                title=title
-            )
+            else:
+                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
     else:
         # Standard Single-Pass transcription with automatic free fallback
         try:
