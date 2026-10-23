@@ -1,7 +1,7 @@
 {
-  "last_updated": "2026-10-23T05:06:58.047708+00:00",
-  "total_episodes_with_audio": 824,
-  "transcribed_count": 675,
+  "last_updated": "2026-10-23T08:49:06.069536+00:00",
+  "total_episodes_with_audio": 825,
+  "transcribed_count": 676,
   "untranscribed_count": 149,
   "percent_complete": 81.9,
   "auto_chain_active": true,
@@ -9,19 +9,24 @@
   "fatal_error": null,
   "failed_episodes": {
     "20261018_1dxYlarbprvJX": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T05:06:08.963830+00:00"
+      "last_attempt": "2026-10-23T08:48:14.758731+00:00"
     },
     "20261015_1DxleVaWvoVKL": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T05:06:08.963847+00:00"
+      "last_attempt": "2026-10-23T08:48:14.758734+00:00"
     },
     "20261015_1DGleVaWWQDJL": {
       "attempts": 1,
       "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
       "last_attempt": "2026-10-23T05:06:08.963850+00:00"
+    },
+    "20261022_1yxBePgOWAkJN": {
+      "attempts": 1,
+      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
+      "last_attempt": "2026-10-23T08:48:14.758716+00:00"
     }
   },
   "next_in_queue": [

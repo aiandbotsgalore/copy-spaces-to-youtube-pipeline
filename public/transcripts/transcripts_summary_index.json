@@ -1,5 +1,18 @@
 [
   {
+    "release_id": 421595230,
+    "release_tag": "20261022_1yxBePgOWAkJN",
+    "title": "StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS",
+    "published_at": "2026-10-23T08:15:11Z",
+    "episode_date": "2026-10-22",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yxBePgOWAkJN/20261022_1yxBePgOWAkJN_StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS_Part1.mp3",
+    "segment_count": 386,
+    "body": "- **Space Title:** StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS\n- **Duration:** 10:00:00\n- **Processed:** 20261022_1yxBePgOWAkJN\n- **Source ID:** 1yxBePgOWAkJN\n\n---\nMETADATA::DURATION::10:00:00\nMETADATA::SOURCE_ID::1yxBePgOWAkJN\nMETADATA::EPISODE_DATE::20261022\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 421236538,
     "release_tag": "20261022_1yGBePgbBoyKN",
     "title": "DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote",
