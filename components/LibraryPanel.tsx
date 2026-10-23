@@ -546,14 +546,14 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                   <p className="text-xs text-rose-400/90 mt-0.5">
                     {transcriptionStatus.fatal_error}
                   </p>
-                  {transcriptionStatus.fatal_error.toLowerCase().includes('modal') && (
+                  {transcriptionStatus.fatal_error.toLowerCase().includes('kaggle') && (
                     <a
-                      href="https://modal.com/settings/billing"
+                      href="https://www.kaggle.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] text-rose-300 hover:text-rose-200 underline mt-1.5 font-medium"
                     >
-                      Open Modal Billing Settings <ExternalLink size={11} />
+                      Open Kaggle Dashboard <ExternalLink size={11} />
                     </a>
                   )}
                 </div>

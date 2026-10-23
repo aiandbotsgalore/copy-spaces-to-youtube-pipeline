@@ -4,14 +4,14 @@ import { buildPythonRSSScript } from './templates/pythonRss';
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
   const transcriptionStep = config.enableTranscription ? `
-      - name: Trigger Transcription Workflow
+      - name: Trigger Free Cloud GPU Transcription (Kaggle)
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: \${{ steps.process.outputs.release_tag }}
         run: |
-          echo "Dispatching transcribe_episode.yml for release: $RELEASE_TAG"
-          gh workflow run transcribe_episode.yml -f release_tag="$RELEASE_TAG" || echo "Workflow dispatch failed"
+          echo "Dispatching kaggle_transcribe.yml for release: $RELEASE_TAG"
+          gh workflow run kaggle_transcribe.yml -f release_tag="$RELEASE_TAG" || echo "Workflow dispatch failed"
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `
