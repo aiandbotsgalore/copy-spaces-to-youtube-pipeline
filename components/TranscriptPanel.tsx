@@ -231,7 +231,7 @@ function inferNumericTimestampScale(segments: any[]): 1 | 1000 {
     .filter(s => Number.isFinite(s?.start) && Number.isFinite(s?.end) && s.end > s.start)
     .map(s => s.end - s.start);
   const values = numeric.flatMap(s => [s?.start, s?.end]).filter(Number.isFinite) as number[];
-  const maxValue = values.length ? Math.max(...values) : 0;
+  const maxValue = values.reduce((max, v) => (v > max ? v : max), 0);
   const medianDuration = median(durations);
   if (maxValue >= 1_000_000) return 1000;
   if (medianDuration >= 250) return 1000;
@@ -1577,7 +1577,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   // Dynamic Conversation & Confrontation Heatmap across the active episode timeline
   const conversationHeatmap = useMemo(() => {
     if (!utterances.length) return [];
-    const maxTime = Math.max(...utterances.map(u => u.startSec), 1);
+    let maxTime = 1;
+    for (let i = 0; i < utterances.length; i++) {
+      const s = utterances[i].startSec;
+      if (s > maxTime) maxTime = s;
+    }
     const numBuckets = 50;
     const bucketDuration = maxTime / numBuckets;
 
@@ -1605,7 +1609,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
     });
 
-    const maxCount = Math.max(...buckets.map(b => b.count), 1);
+    let maxCount = 1;
+    for (let i = 0; i < buckets.length; i++) {
+      if (buckets[i].count > maxCount) maxCount = buckets[i].count;
+    }
     return buckets.map(b => ({
       ...b,
       density: b.count / maxCount,
