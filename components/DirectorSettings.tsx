@@ -119,7 +119,7 @@ export const DirectorSettings: React.FC<{ onClose: () => void; onChanged?: () =>
             </div>
           ) : (
             <div className="text-slate-300">
-              No key found. Set <code>CHEAPER_INFERENCE_API_KEY</code> in <code>.env.local</code> and restart, or save a backup key below.
+              No key found. Set <code>DIRECTOR_API_KEY</code> in <code>.env.local</code> and restart, or save a backup key below.
             </div>
           )}
 

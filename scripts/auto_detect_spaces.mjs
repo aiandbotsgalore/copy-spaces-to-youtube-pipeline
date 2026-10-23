@@ -16,8 +16,8 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
-const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || 'LoganBlack';
-const HANDLES = RAW_HANDLES.split(',').map(h => h.trim()).filter(Boolean);
+const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || 'AngelaMaggard3,txrrxstrxxl,LoganBlack';
+const HANDLES = RAW_HANDLES.split(',').map(h => h.trim().replace(/^@/, '')).filter(Boolean);
 const TWEET_LIMIT = parseInt(process.env.TWEET_LIMIT || process.env.INPUT_LIMIT || '20', 10);
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 

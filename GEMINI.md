@@ -9,7 +9,7 @@ The application provides an interactive form where users input metadata (reposit
 *   **Framework:** [React](https://react.dev/) (v19)
 *   **Build Tool:** [Vite](https://vitejs.dev/)
 *   **Language:** [TypeScript](https://www.typescriptlang.org/)
-*   **Styling:** [Tailwind CSS](https://tailwindcss.com/) (Loaded via CDN in `index.html`)
+*   **Styling:** [Tailwind CSS](https://tailwindcss.com/) (v4 integrated via `@tailwindcss/vite` and `@import "tailwindcss"` in `index.css`)
 *   **Icons:** [Lucide React](https://lucide.dev/)
 
 # Building and Running
@@ -48,11 +48,11 @@ The application provides an interactive form where users input metadata (reposit
 
 The project follows a flat directory structure where source files are located directly in the root or minimal subdirectories.
 
-*   **`App.tsx`**: The main application component. Handles the state for configuration inputs (`PipelineConfig`) and renders the dual-pane layout (sidebar for navigation, main area for form/preview).
+*   **`App.tsx`**: The main application component. Handles the state for configuration inputs (`EnhancedConfig` / `PipelineConfig`) and renders the dual-pane layout (sidebar for navigation, main area for form/preview).
 *   **`utils/templates.ts`**: Contains the template literal functions that generate the actual string content for the output files (`ingest.yml`, `ingest.sh`, `README.md`, etc.). This is where the core logic for the "generator" resides.
 *   **`components/FileViewer.tsx`**: A component responsible for rendering the generated code snippets with syntax highlighting or simple text display.
-*   **`types.ts`**: Defines the TypeScript interfaces for the application state (`PipelineConfig`) and the file structure (`PipelineFile`).
-*   **`index.html`**: The application entry point. Notably, **Tailwind CSS is loaded here via a CDN script**, rather than being part of the PostCSS build pipeline.
+*   **`types.ts`**: Defines the TypeScript interfaces for the application state (`PipelineConfig` / `EnhancedConfig`) and the file structure (`PipelineFile`).
+*   **`index.html`**: The application entry point. Loads `index.css` and font preconnects.
 
 # Development Conventions
 

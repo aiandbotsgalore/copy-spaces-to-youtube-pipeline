@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+# SpacePipe Studio High-Performance Cloud Audio & ML Runner
+# Optimized for GitHub Actions Ubuntu 24.04 (4-vCPU) Environments
+
+FROM python:3.11-slim-bookworm
+
+LABEL org.opencontainers.image.title="SpacePipe ML & Audio Runner"
+LABEL org.opencontainers.image.description="Pre-baked container with FFmpeg 7, PyTorch CPU, SpeechBrain, faster-whisper, and yt-dlp"
+LABEL org.opencontainers.image.source="https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    OMP_NUM_THREADS=4 \
+    MKL_NUM_THREADS=4
+
+# 1. Install System Audio & Build Dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsndfile1 \
+    curl \
+    git \
+    procps \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Upgrade Pip and Install CPU PyTorch Stack
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# 3. Install ML Audio, Diarization, and Pipeline Dependencies
+RUN pip install \
+    speechbrain \
+    soundfile \
+    requests \
+    assemblyai \
+    yt-dlp \
+    faster-whisper \
+    numpy
+
+WORKDIR /workspace
+
+CMD ["/bin/bash"]

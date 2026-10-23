@@ -14,10 +14,6 @@ export function saveConfig(config: EnhancedConfig): void {
     const {
       githubToken: _t,
       artworkDataUrl: _a,
-      enableTranscription: _et,
-      enableSlackWebhook: _es,
-      enableDiscordWebhook: _ed,
-      enableScheduledMonitoring: _em,
       ...rest
     } = config;
     localStorage.setItem(CONFIG_KEY, JSON.stringify(rest));
@@ -62,18 +58,7 @@ export function loadConfig(): Partial<StorableConfig> {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) return {};
-    const {
-      enableTranscription: _et,
-      enableSlackWebhook: _es,
-      enableDiscordWebhook: _ed,
-      enableScheduledMonitoring: _em,
-      ...rest
-    } = JSON.parse(raw) as Partial<StorableConfig> & {
-      enableTranscription?: boolean;
-      enableSlackWebhook?: boolean;
-      enableDiscordWebhook?: boolean;
-      enableScheduledMonitoring?: boolean;
-    };
+    const rest = JSON.parse(raw) as Partial<StorableConfig>;
     if (rest.repoName === 'my-spaces-archive' || rest.repoName === 'spaces-pipeline') {
       rest.repoName = 'copy-spaces-to-youtube-pipeline';
     }

@@ -7,6 +7,7 @@ import {
   generateQueueFile,
   generateTestAudioYaml,
 } from '../templates';
+import { buildPythonRSSScript } from '../templates/pythonRss';
 import { EnhancedConfig } from '../../types';
 import { escapeYamlDoubleQuote, escapeYamlSingleQuote } from '../escape';
 import { validateConfig } from '../validation';
@@ -33,19 +34,31 @@ const mockConfig: EnhancedConfig = {
 };
 
 describe('Template Generation & Escaping Safety', () => {
-  it('escapes quotes and newlines in YAML environment variables', () => {
-    const yaml = generateIngestYaml(mockConfig);
+  it('escapes quotes, newlines, and ${{ expressions in YAML environment variables', () => {
+    const maliciousConfig: EnhancedConfig = {
+      ...mockConfig,
+      podcastTitle: 'Hack "Space" ${{ secrets.GITHUB_TOKEN }}',
+      podcastDescription: 'Line 1\nLine 2 ${{ env.LEAK }}',
+    };
+    const yaml = generateIngestYaml(maliciousConfig);
     expect(yaml).toContain('name: Ingest Space');
-    // Ensure raw quotes do not break the PODCAST_TITLE / PODCAST_DESC line
-    expect(yaml).toContain(`PODCAST_TITLE: "${escapeYamlDoubleQuote(mockConfig.podcastTitle)}"`);
-    expect(yaml).toContain(`PODCAST_DESC: "${escapeYamlDoubleQuote(mockConfig.podcastDescription)}"`);
-    expect(yaml).not.toContain('PODCAST_TITLE: "Tech "Talks"');
+    expect(yaml).toContain(`PODCAST_TITLE: "${escapeYamlDoubleQuote(maliciousConfig.podcastTitle)}"`);
+    expect(yaml).toContain(`PODCAST_DESC: "${escapeYamlDoubleQuote(maliciousConfig.podcastDescription)}"`);
+    expect(yaml).not.toContain('PODCAST_TITLE: "Hack "Space"');
+    // Ensure raw ${{ is escaped with ${{ '${{' }}
+    expect(yaml).toContain("${{ '${{' }} secrets.GITHUB_TOKEN }}");
+    expect(yaml).toContain("${{ '${{' }} env.LEAK }}");
   });
 
-  it('escapes single quotes in cron schedules', () => {
-    const monitorYaml = generateMonitorYaml(mockConfig);
-    expect(monitorYaml).toContain("cron: '0 */4 * * *'");
+  it('escapes single quotes and ${{ expressions in cron schedules', () => {
+    const maliciousCronConfig: EnhancedConfig = {
+      ...mockConfig,
+      scheduledCron: "0 */2 * * *' ${{ secrets.TOKEN }}",
+    };
+    const monitorYaml = generateMonitorYaml(maliciousCronConfig);
+    expect(monitorYaml).toContain("cron: '0 */2 * * *'' ${{ '${{' }} secrets.TOKEN }}'");
     expect(monitorYaml).toContain('name: Monitor Batch Queue');
+    expect(monitorYaml).toContain('gh workflow run ingest.yml -f space_url="$NEXT_URL"');
   });
 
   it('generates valid ingest bash script with LF line endings and safe flags', () => {
@@ -53,6 +66,10 @@ describe('Template Generation & Escaping Safety', () => {
     expect(bash.startsWith('#!/bin/bash')).toBe(true);
     expect(bash).toContain('set -euo pipefail');
     expect(bash).not.toContain('\r\n');
+    // Checks that delimiter format is used for GITHUB_OUTPUT
+    expect(bash).toContain('space_title<<$DELIM');
+    // Checks that space_queue.txt is prioritized if non-empty
+    expect(bash).toContain('if [[ -f "space_queue.txt" ]]');
   });
 
   it('formats batch queue text with newline delimiters', () => {
@@ -68,10 +85,46 @@ describe('Template Generation & Escaping Safety', () => {
     expect(testYaml).toContain('yt-dlp --version');
   });
 
-  it('generates comprehensive README with proper author attribution', () => {
-    const readme = generateReadme(mockConfig);
-    expect(readme).toContain(mockConfig.podcastTitle);
-    expect(readme).toContain(`${mockConfig.authorName} · ${mockConfig.email}`);
+  it('generates comprehensive README with single-line safe title and author attribution', () => {
+    const multilineTitleConfig: EnhancedConfig = {
+      ...mockConfig,
+      podcastTitle: 'My Podcast\nLine 2',
+      authorName: 'Jane\nSmith',
+    };
+    const readme = generateReadme(multilineTitleConfig);
+    expect(readme).toContain('# My Podcast Line 2 — SpacePipe');
+    expect(readme).toContain('Jane Smith · john@example.com');
+    expect(readme).not.toContain('# My Podcast\nLine 2');
+  });
+
+  it('prevents script injection in ingest.yml run steps', () => {
+    const yaml = generateIngestYaml(mockConfig);
+    // MP3 path duration check must pass via env rather than inline expression
+    expect(yaml).toContain('MP3_PATH: ${{ steps.process.outputs.mp3_path }}');
+    expect(yaml).toContain('"$MP3_PATH"');
+    expect(yaml).not.toContain('"${{ steps.process.outputs.mp3_path }}"');
+
+    // Transcription dispatch must pass release_tag via env
+    expect(yaml).toContain('RELEASE_TAG: ${{ steps.process.outputs.release_tag }}');
+    expect(yaml).toContain('release_tag="$RELEASE_TAG"');
+    expect(yaml).not.toContain('release_tag="${{ steps.process.outputs.release_tag }}"');
+
+    // Slack and Discord notification must use python json.dumps
+    expect(yaml).toContain('json.dumps({"text":');
+    expect(yaml).toContain('json.dumps({"content":');
+
+    // Heredoc PYEOF must not be indented
+    expect(yaml).toContain('\nPYEOF\n');
+  });
+
+  it('generates Python RSS script starting at column 0 without unexpected indentation', () => {
+    const pythonScript = buildPythonRSSScript();
+    const lines = pythonScript.split('\n');
+    expect(lines[0].startsWith('import ')).toBe(true);
+    expect(lines[0].startsWith(' ')).toBe(false);
+    expect(pythonScript).toContain('def xml_text(');
+    expect(pythonScript).toContain('def xml_attr(');
+    expect(pythonScript).toContain('<?xml version="1.0" encoding="UTF-8"?>');
   });
 });
 

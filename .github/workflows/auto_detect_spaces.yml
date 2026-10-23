@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       x_handles:
-        description: 'Comma-separated X handles to scan (no @) e.g. LoganBlack,ShaneB_Official'
+        description: 'Comma-separated X handles to scan (no @) e.g. AngelaMaggard3,txrrxstrxxl,LoganBlack'
         required: false
-        default: 'LoganBlack'
+        default: 'AngelaMaggard3,txrrxstrxxl,LoganBlack'
         type: string
       x_handle:
         description: 'Single handle (legacy fallback)'
@@ -51,7 +51,7 @@ jobs:
           X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
           X_CT0: ${{ secrets.X_CT0 }}
           # Supports either input parameter or defaults to LoganBlack
-          X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || 'LoganBlack' }}
+          X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || 'AngelaMaggard3,txrrxstrxxl,LoganBlack' }}
           TWEET_LIMIT: ${{ inputs.limit || '20' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |

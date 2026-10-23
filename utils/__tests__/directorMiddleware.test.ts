@@ -289,7 +289,7 @@ describe('error mapping and secrecy', () => {
 });
 
 describe('models, test and refine', () => {
-  const h = (f: any) => mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY }, f);
+  const h = (f: any, extra: Record<string, string> = {}) => mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY, ...extra }, f);
 
   it('lists only claude-* models, sorted', async () => {
     const f = mkFetch([() => new Response(JSON.stringify({ data: [{ id: 'gpt-x' }, { id: 'claude-sonnet-5.5' }, { id: 'claude-opus-5' }] }), { status: 200 })]);
@@ -322,5 +322,159 @@ describe('models, test and refine', () => {
     expect(r.json.ok).toBe(true);
     expect(r.json.refine.ops).toEqual([{ op: 'drop', clipId: 'a' }]);
     expect(f.calls[1].body.messages.at(-1).content).toContain('locked');
+  });
+
+  it('copilot route returns 401 when no key is configured', async () => {
+    const r = await call(h(mkFetch([]), { CHEAPER_INFERENCE_API_KEY: '' }), {
+      method: 'POST',
+      url: '/copilot',
+      body: { messages: [{ role: 'user', content: 'hello' }] },
+    });
+    expect(r.status).toBe(401);
+    expect(r.json.code).toBe('NO_KEY');
+  });
+
+  it('copilot route processes chat messages, calls gateway, and extracts action blocks', async () => {
+    const rawReply = `I found a great soundbite and extracted it for you.
+\`\`\`action
+{
+  "action": "CREATE_CLIP",
+  "params": {
+    "title": "Autonomous Coding Breakdown",
+    "quote": "Coding changed overnight",
+    "speaker": "Alice",
+    "startSec": 10.0,
+    "endSec": 28.5,
+    "viralScore": 95
+  },
+  "explanation": "Extracted 18.5s clip"
+}
+\`\`\`
+All set!`;
+
+    const f = mkFetch([() => chat(rawReply)]);
+    const r = await call(h(f), {
+      method: 'POST',
+      url: '/copilot',
+      body: {
+        messages: [{ role: 'user', content: 'Find a great soundbite' }],
+        context: { activeTab: 'transcripts' },
+      },
+    });
+
+    expect(r.status).toBe(200);
+    expect(r.json.ok).toBe(true);
+    expect(r.json.text).toContain('I found a great soundbite');
+    expect(r.json.text).not.toContain('```action');
+    expect(r.json.actions).toHaveLength(1);
+    expect(r.json.actions[0].action).toBe('CREATE_CLIP');
+    expect(r.json.actions[0].params.title).toBe('Autonomous Coding Breakdown');
+  });
+
+  it('transcripts search endpoint supports mode parameter (hybrid, lexical, vector)', async () => {
+    const f = mkFetch([]);
+    const app = h(f);
+
+    // Default or hybrid mode
+    const rHybrid = await call(app, { method: 'GET', url: '/transcripts/search?q=compromise&limit=2&mode=hybrid' });
+    expect(rHybrid.status).toBe(200);
+    expect(rHybrid.json.ok).toBe(true);
+    expect(rHybrid.json.mode).toBe('hybrid');
+    expect(Array.isArray(rHybrid.json.results)).toBe(true);
+
+    // Lexical mode
+    const rLex = await call(app, { method: 'GET', url: '/transcripts/search?q=compromise&limit=2&mode=lexical' });
+    expect(rLex.status).toBe(200);
+    expect(rLex.json.ok).toBe(true);
+    expect(rLex.json.mode).toBe('lexical');
+    expect(Array.isArray(rLex.json.results)).toBe(true);
+  });
+
+  it('copilot executes native search_transcripts tool call server-side and synthesizes response', async () => {
+    const toolCallTurn = new Response(
+      JSON.stringify({
+        model: 'claude-sonnet-5.5',
+        choices: [
+          {
+            finish_reason: 'tool_calls',
+            message: {
+              content: null,
+              tool_calls: [
+                {
+                  id: 'call_search_42',
+                  type: 'function',
+                  function: {
+                    name: 'search_transcripts',
+                    arguments: JSON.stringify({ query: 'compromise', scope: 'all_transcripts' }),
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        usage: { prompt_tokens: 120, completion_tokens: 30 },
+      }),
+      { status: 200 }
+    );
+
+    const synthTurn = chat('Angela made an emphatic statement on compromise at 14:20.');
+
+    const f = mkFetch([() => toolCallTurn, () => synthTurn]);
+    const r = await call(h(f), {
+      method: 'POST',
+      url: '/copilot',
+      body: {
+        messages: [{ role: 'user', content: 'What was said about compromise?' }],
+      },
+    });
+    expect(r.status).toBe(200);
+    expect(r.json.ok).toBe(true);
+    expect(f.calls).toHaveLength(2);
+
+    // Turn 2 messages should include the tool result
+    const secondCallMsgs = f.calls[1].body.messages;
+    const toolMsg = secondCallMsgs.find((m: any) => m.role === 'tool');
+    expect(toolMsg).toBeDefined();
+    expect(toolMsg.name).toBe('search_transcripts');
+    expect(toolMsg.content).toContain('compromise');
+
+    expect(r.json.text).toBe('Angela made an emphatic statement on compromise at 14:20.');
+    expect(r.json.matches).toBeDefined();
+    expect(r.json.matches.length).toBeGreaterThan(0);
+    expect(r.json.actions[0].action).toBe('SEARCH_TRANSCRIPTS');
+    expect(r.json.actions[0].status).toBe('completed');
+  });
+
+  it('copilot intercepts inline SEARCH_TRANSCRIPTS action code block server-side and re-invokes model', async () => {
+    const inlineActionTurn = chat(`Searching the transcript archive...
+\`\`\`action
+{
+  "action": "SEARCH_TRANSCRIPTS",
+  "params": {
+    "query": "compromise",
+    "scope": "all_transcripts"
+  },
+  "explanation": "Searching spoken dialogue"
+}
+\`\`\``);
+
+    const synthTurn = chat('Here are the best quotes on compromise across the archive.');
+
+    const f = mkFetch([() => inlineActionTurn, () => synthTurn]);
+    const r = await call(h(f), {
+      method: 'POST',
+      url: '/copilot',
+      body: {
+        messages: [{ role: 'user', content: 'Find quotes on compromise' }],
+      },
+    });
+
+    expect(r.status).toBe(200);
+    expect(r.json.ok).toBe(true);
+    expect(f.calls).toHaveLength(2);
+    expect(r.json.text).toBe('Here are the best quotes on compromise across the archive.');
+    expect(r.json.matches.length).toBeGreaterThan(0);
+    expect(r.json.actions[0].action).toBe('SEARCH_TRANSCRIPTS');
+    expect(r.json.actions[0].status).toBe('completed');
   });
 });

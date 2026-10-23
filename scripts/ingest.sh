@@ -284,7 +284,7 @@ echo "Live status: $LIVE_STATUS (RECORD_LIVE=$RECORD_LIVE)"
 
 if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" != "true" ]]; then
     echo "::warning::Space is currently broadcasting live. Automated live ingestion is disabled."
-    echo "::notice::To record an in-progress Space, trigger this workflow manually from GitHub Actions or the web app with 'Record Live Stream' enabled."
+    echo "::notice::Ingestion deferred until broadcast concludes. Always waiting for the Space to end before processing replay."
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "already_exists=true" >> "$GITHUB_OUTPUT"
         echo "space_id=${SPACE_ID:-}" >> "$GITHUB_OUTPUT"
@@ -313,6 +313,9 @@ echo "Starting download..."
 CONCURRENT_ARGS=()
 if [[ "$LIVE_STATUS" != "is_live" ]]; then
     CONCURRENT_ARGS=(--concurrent-fragments 8)
+else
+    # Manual live stream capture resilience: infinite fragment retries and mpegts container buffer
+    CONCURRENT_ARGS=(--hls-use-mpegts --fragment-retries infinite)
 fi
 yt-dlp \
     "${CONCURRENT_ARGS[@]}" \

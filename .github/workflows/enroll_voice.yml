@@ -34,6 +34,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   enroll:
@@ -51,6 +52,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg libsndfile1 curl
+
+      - name: Cache ML Weights & Pip (zstd multithreaded)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/torch
+            ~/.cache/huggingface
+            ~/.cache/speechbrain
+            ~/.cache/pip
+          key: ml-models-${{ runner.os }}-${{ hashFiles('voice_profiles.json') }}
+          restore-keys: |
+            ml-models-${{ runner.os }}-
 
       - name: Install Python AI Dependencies
         run: |
@@ -127,11 +140,24 @@ jobs:
             echo "[✓] Voice enrollment completed on initial or internal retry pass."
           else
             echo "[!] Voice enrollment initial attempt exited with code $ENROLL_EXIT. Engaging Auto-Remediation Secondary Pass..."
+            # Auto-Remediation: Ensure input_raw exists if fast-path stream slices failed
+            if [ ! -f speaker_samples/downloaded/input_raw ]; then
+              echo "[*] Downloading input_raw for remediation pass..."
+              SRC="${{ inputs.audio_url }}"
+              if [[ "$SRC" =~ ^http ]]; then
+                curl -L "$SRC" -o speaker_samples/downloaded/input_raw || true
+              elif [ -f "$SRC" ]; then
+                cp "$SRC" speaker_samples/downloaded/input_raw || true
+              fi
+            fi
+
             # Auto-Remediation: apply 16kHz mono loudnorm + VAD to full input if stream slices failed
             mkdir -p speaker_samples/downloaded/remediated
-            ffmpeg -y -i speaker_samples/downloaded/input_raw -vn -ac 1 -ar 16000 -c:a pcm_s16le \
-              -af "silenceremove=start_periods=1:start_duration=0.1:start_threshold=-38dB:detection=peak,loudnorm=I=-16:TP=-1.5:LRA=11" \
-              -t 30 speaker_samples/downloaded/remediated/remediated_voice.wav || true
+            if [ -f speaker_samples/downloaded/input_raw ]; then
+              ffmpeg -y -i speaker_samples/downloaded/input_raw -vn -ac 1 -ar 16000 -c:a pcm_s16le \
+                -af "silenceremove=start_periods=1:start_duration=0.1:start_threshold=-38dB:detection=peak,loudnorm=I=-16:TP=-1.5:LRA=11" \
+                -t 30 speaker_samples/downloaded/remediated/remediated_voice.wav || true
+            fi
             
             if [ -f speaker_samples/downloaded/remediated/remediated_voice.wav ]; then
               echo "[*] Re-attempting enrollment with sanitized, loudnorm-filtered audio..."
@@ -274,6 +300,17 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add voice_profiles.json public/voice_profiles.json public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
           git diff --staged --quiet || (git commit -m "feat(voice): update voice profiles and telemetry for '${{ inputs.speaker_name }}' [skip ci]" && git pull --rebase origin master && git push origin master)
+
+      - name: Quarantine Failure to GitHub Issues DLQ
+        if: steps.enroll_step.outputs.enroll_exit != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/report_dlq_issue.py \
+            --workflow "Enroll Voice Profile" \
+            --run-id "${{ github.run_id }}" \
+            --target "${{ inputs.speaker_name }}" \
+            --log-file enrollment.log || true
 
       - name: Assert Step Result
         if: steps.enroll_step.outputs.enroll_exit != '0'

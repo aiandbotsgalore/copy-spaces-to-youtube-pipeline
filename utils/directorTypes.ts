@@ -96,6 +96,7 @@ export type DirectorErrorCode =
   | 'TIMEOUT'
   | 'UPSTREAM'
   | 'MODEL_NOT_FOUND'
+  | 'NOT_FOUND'
   | 'BAD_OUTPUT'
   | 'BAD_REQUEST'
   | 'NO_CANDIDATES'

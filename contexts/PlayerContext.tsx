@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
 
 export interface NowPlayingEpisode {
-  id: number;
+  id: number | string;
   title: string;
   audioUrl: string;
   durationLabel?: string;

@@ -6,7 +6,7 @@ import {
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
   Save, CheckCircle2, Star, Plus, Trash2, UserPlus, Sparkle, Clock,
   Globe, Radio, Layers, ArrowRight, Headphones, Scissors, Film, HardDriveDownload,
-  Database, Tag, BarChart3, ShieldAlert
+  Database, Tag, BarChart3, ShieldAlert, Bot
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
@@ -14,6 +14,7 @@ import { usePlayer, NowPlayingEpisode } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 import { AudioSlicerModal, SlicerTurnTarget } from './AudioSlicerModal';
 import { useMontage } from '../contexts/MontageContext';
+import { useCopilot } from '../contexts/CopilotContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
 import {
   SearchWorkerClient,
@@ -865,6 +866,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
   const { addClip } = useMontage();
+  const copilot = useCopilot();
 
   const openQuickSlicer = (target: SlicerTurnTarget) => {
     setSlicerTarget(target);
@@ -1742,6 +1744,45 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
   }, [selectedGlobalTag, loadSegmentsForEpisodes]);
 
+  // Automatically sync full active episode turns into Copilot context
+  useEffect(() => {
+    if (selectedRelease && utterances.length > 0) {
+      copilot.setContextPayload(prev => {
+        if (
+          prev.currentEpisode?.releaseTag === selectedRelease.tag_name &&
+          prev.currentEpisode?.totalTurns === utterances.length
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          activeTab: 'transcripts',
+          currentEpisode: {
+            releaseId: selectedRelease.id,
+            releaseTag: selectedRelease.tag_name,
+            title: selectedRelease.name || selectedRelease.tag_name,
+            audioUrl: mp3Asset?.browser_download_url,
+            speakers: Array.from(new Set(utterances.map(u => u.speaker))),
+            segmentsSample: utterances.slice(0, 30).map(u => ({
+              speaker: u.speaker,
+              text: u.text,
+              start: u.startSec,
+              end: u.endSec || u.startSec + 5,
+            })),
+            allSegments: utterances.map(u => ({
+              speaker: u.speaker,
+              text: u.text,
+              start: u.startSec,
+              end: u.endSec || u.startSec + 5,
+            })),
+            totalTurns: utterances.length,
+            durationSec: utterances[utterances.length - 1]?.endSec || utterances[utterances.length - 1]?.startSec || 0,
+          },
+        };
+      });
+    }
+  }, [selectedRelease, utterances, mp3Asset, copilot]);
+
   // Initialize background Search Worker
   useEffect(() => {
     searchWorkerRef.current = new SearchWorkerClient();
@@ -2445,11 +2486,53 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           )}
         </div>
 
-        <button onClick={fetchReleases} disabled={loading || !hasCredentials}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700 cursor-pointer">
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Refreshing…' : 'Refresh'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (selectedRelease) {
+                copilot.setContextPayload(prev => ({
+                  ...prev,
+                  activeTab: 'transcripts',
+                  currentEpisode: {
+                    releaseId: selectedRelease.id,
+                    releaseTag: selectedRelease.tag_name,
+                    title: selectedRelease.name || selectedRelease.tag_name,
+                    audioUrl: mp3Asset?.browser_download_url,
+                    speakers: Array.from(new Set(utterances.map(u => u.speaker))),
+                    segmentsSample: utterances.slice(0, 30).map(u => ({
+                      speaker: u.speaker,
+                      text: u.text,
+                      start: u.startSec,
+                      end: u.endSec || u.startSec + 5,
+                    })),
+                    allSegments: utterances.map(u => ({
+                      speaker: u.speaker,
+                      text: u.text,
+                      start: u.startSec,
+                      end: u.endSec || u.startSec + 5,
+                    })),
+                    totalTurns: utterances.length,
+                    durationSec: utterances[utterances.length - 1]?.endSec || utterances[utterances.length - 1]?.startSec || 0,
+                  },
+                }));
+              }
+              if (copilot.activePanelNavHandler) {
+                copilot.activePanelNavHandler('ai-copilot');
+              }
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+            title="Ask AI Copilot about this transcript and extract soundbites"
+          >
+            <Bot size={14} />
+            <span>Ask Copilot</span>
+          </button>
+
+          <button onClick={fetchReleases} disabled={loading || !hasCredentials}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700 cursor-pointer">
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {!hasCredentials && (

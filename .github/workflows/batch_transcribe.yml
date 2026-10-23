@@ -1,18 +1,18 @@
 name: Batch Transcribe Episodes (Newest to Oldest)
-run-name: Batch Transcribe ${{ inputs.limit || '10' }} episodes (Newest First)
+run-name: Batch Transcribe ${{ inputs.limit || '15' }} episodes (Parallel Matrix)
 
 on:
   workflow_dispatch:
     inputs:
       limit:
-        description: 'Number of untranscribed episodes to process (e.g. 5, 10, 25)'
+        description: 'Number of untranscribed episodes to process (max 15 per parallel run)'
         required: false
-        default: '5'
+        default: '15'
         type: string
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
         required: false
-        default: true
+        default: false
         type: boolean
       missing_clips:
         description: 'Process transcribed episodes that are missing highlight clips'
@@ -27,11 +27,18 @@ concurrency:
 permissions:
   contents: write
   actions: write
+  issues: write
 
 jobs:
-  batch-transcribe:
+  # ============================================================================
+  # 1. PLAN BATCH: Discover Queue and Emit Parallel Matrix
+  # ============================================================================
+  plan_batch:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    outputs:
+      matrix: ${{ steps.emit_matrix.outputs.matrix }}
+      has_items: ${{ steps.emit_matrix.outputs.has_items }}
+      count: ${{ steps.emit_matrix.outputs.count }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -41,15 +48,62 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install FFmpeg & Dependencies
+      - name: Discover Queue & Generate Matrix
+        id: emit_matrix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg libsndfile1
+          pip install requests
+          LIMIT="${{ inputs.limit || '15' }}"
+          CLIPS_FLAG=""
+          if [ "${{ inputs.missing_clips }}" = "true" ]; then
+            CLIPS_FLAG="--missing-clips"
+          fi
+          python scripts/batch_transcribe_queue.py --limit "$LIMIT" --emit-matrix $CLIPS_FLAG
+
+  # ============================================================================
+  # 2. TRANSCRIBE MATRIX: High-Throughput Parallel Transcribers (Max 15)
+  # ============================================================================
+  transcribe_matrix:
+    needs: plan_batch
+    if: needs.plan_batch.outputs.has_items == 'true' && inputs.dry_run != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      max-parallel: 15
+      fail-fast: false
+      matrix:
+        tag: ${{ fromJson(needs.plan_batch.outputs.matrix) }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache ML Weights & Pip (zstd multithreaded)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/torch
+            ~/.cache/huggingface
+            ~/.cache/speechbrain
+            ~/.cache/pip
+          key: ml-models-${{ runner.os }}-${{ hashFiles('voice_profiles.json') }}
+          restore-keys: |
+            ml-models-${{ runner.os }}-
+
+      - name: Install FFmpeg & Python AI Stack
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libsndfile1
           python -m pip install --upgrade pip
           pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install requests assemblyai speechbrain soundfile
+          pip install requests assemblyai speechbrain soundfile faster-whisper
 
-      - name: Run Batch Transcription Queue (Newest to Oldest)
-        id: transcribe_step
+      - name: Transcribe & Diarize Episode
+        id: run_tx
         env:
           ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -59,25 +113,52 @@ jobs:
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          DRY_ARG=""
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
-            DRY_ARG="--dry-run"
+          set +e
+          python scripts/transcribe_and_diarize.py --release-tag "${{ matrix.tag }}" 2>&1 | tee transcribe_${{ matrix.tag }}.log
+          TX_EXIT=${PIPESTATUS[0]}
+          echo "tx_exit=$TX_EXIT" >> $GITHUB_OUTPUT
+          if [ $TX_EXIT -ne 0 ]; then
+            echo "::error title=Transcription Failed::Episode ${{ matrix.tag }} failed with exit code $TX_EXIT"
+            exit $TX_EXIT
           fi
-          CLIPS_ARG=""
-          if [ "${{ inputs.missing_clips }}" = "true" ]; then
-            CLIPS_ARG="--missing-clips"
-          fi
-          python scripts/batch_transcribe_queue.py --limit "${{ inputs.limit || 10 }}" $DRY_ARG $CLIPS_ARG
+
+      - name: Quarantine Failure to GitHub Issues DLQ
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/report_dlq_issue.py \
+            --workflow "Batch Transcribe Episodes (Newest to Oldest)" \
+            --run-id "${{ github.run_id }}" \
+            --target "${{ matrix.tag }}" \
+            --log-file "transcribe_${{ matrix.tag }}.log" || true
+
+  # ============================================================================
+  # 3. FINALIZE CATALOG: Rebuild Search Index, Commit, and Trigger RSS
+  # ============================================================================
+  finalize_catalog:
+    needs: [plan_batch, transcribe_matrix]
+    if: always() && needs.plan_batch.outputs.has_items == 'true' && inputs.dry_run != true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Indexing Dependencies
+        run: pip install requests
 
       - name: Rebuild Transcripts Search Index
-        if: always() && steps.transcribe_step.outcome != 'skipped' && inputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/build_transcripts_index.py || echo "[!] Warning: Failed to rebuild transcripts search index"
 
       - name: Commit Updated Search Index and Status
-        if: always() && steps.transcribe_step.outcome != 'skipped'
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -88,7 +169,6 @@ jobs:
           git push origin master || echo "Push skipped or already up to date"
 
       - name: Trigger RSS Update
-        if: always() && steps.transcribe_step.outcome != 'skipped'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

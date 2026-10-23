@@ -35,8 +35,10 @@ import {
   Wand2,
   Undo2,
   Redo2,
+  Bot,
 } from 'lucide-react';
 import { useMontage, MontageClipItem, HARD_EXCLUDE_PHRASE, AutoCuratorMode, DIRECTOR_LAST_PROMPT_KEY } from '../contexts/MontageContext';
+import { useCopilot } from '../contexts/CopilotContext';
 import { EnhancedConfig } from '../types';
 import { PromptDirector } from './PromptDirector';
 import { TensionArc } from './TensionArc';
@@ -165,6 +167,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     isExporting,
     exportProgress,
   } = useMontage();
+
+  const copilot = useCopilot();
 
   // Resizable layout (persisted): left/right pane split and the Director panel height
   const [layout, setLayout] = useState<StudioLayout>(loadStudioLayout);
@@ -729,6 +733,19 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               >
                 {isSorting ? <Loader2 size={11} className="animate-spin text-indigo-400" /> : <Wand2 size={11} className="text-amber-400" />}
                 <span>AI Sort</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (copilot.activePanelNavHandler) {
+                    copilot.activePanelNavHandler('ai-copilot');
+                  }
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-violet-900/60 to-indigo-900/60 hover:from-violet-800 hover:to-indigo-800 text-violet-200 hover:text-white border border-violet-500/40 rounded-lg text-[11px] font-semibold transition-all cursor-pointer shadow-sm mr-1"
+                title="Open AI Studio Copilot for this montage reel"
+              >
+                <Bot size={11} className="text-violet-400" />
+                <span>AI Producer</span>
               </button>
 
               <span className="text-[11px] text-slate-400 flex items-center gap-1 ml-1">

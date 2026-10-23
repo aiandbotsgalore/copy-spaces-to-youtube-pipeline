@@ -146,11 +146,11 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
         owner,
         repo,
         'auto_detect_spaces.yml',
-        { x_handle: targetHandle }
+        { x_handles: Array.from(new Set(['AngelaMaggard3', 'txrrxstrxxl', targetHandle])).join(',') }
       );
       setNotice({
         kind: 'success',
-        message: `🛰️ Auto-detection scan triggered for @${targetHandle}! Checking recent tweets for new Spaces in GitHub Actions...`,
+        message: `🛰️ Auto-detection scan triggered for @AngelaMaggard3, @txrrxstrxxl, and @${targetHandle}! Checking recent tweets for new Spaces in GitHub Actions...`,
       });
     } catch (err) {
       setNotice({
@@ -304,7 +304,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs text-slate-400">
-              Auto-Detect active (scans @{config.authorName?.replace(/^@/, '').trim() || 'LoganBlack'} every 30m)
+              Auto-Detect active (scans @AngelaMaggard3, @txrrxstrxxl, @{config.authorName?.replace(/^@/, '').trim() || 'LoganBlack'})
             </span>
           </div>
 

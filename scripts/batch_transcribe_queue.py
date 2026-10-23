@@ -302,6 +302,7 @@ def main():
     parser.add_argument("--limit", type=int, default=10, help="Number of episodes to transcribe (0 for all)")
     parser.add_argument("--missing-clips", action="store_true", help="Process transcribed episodes that are missing highlight clips")
     parser.add_argument("--dry-run", action="store_true", help="Preview queue and exit without running Modal")
+    parser.add_argument("--emit-matrix", action="store_true", help="Outputs next batch as JSON array to GITHUB_OUTPUT for GitHub Actions matrix jobs")
     parser.add_argument("--token", type=str, default=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"))
     args = parser.parse_args()
 
@@ -345,6 +346,22 @@ def main():
     for i, item in enumerate(to_process, 1):
         mb = item["total_audio_bytes"] / (1024 * 1024)
         print(f"  {i:2d}. [{item['date_display']}] {item['tag']} - {item['name']} ({mb:.1f} MB, {item['mp3_count']} part(s))")
+
+    if args.emit_matrix:
+        matrix_tags = [item["tag"] for item in to_process]
+        matrix_json = json.dumps(matrix_tags)
+        print(f"\n[Matrix Batch Output]: {matrix_json}")
+        github_output = os.environ.get("GITHUB_OUTPUT")
+        if github_output:
+            try:
+                with open(github_output, "a", encoding="utf-8") as f:
+                    f.write(f"matrix={matrix_json}\n")
+                    f.write(f"has_items={'true' if matrix_tags else 'false'}\n")
+                    f.write(f"count={len(matrix_tags)}\n")
+                print(f"[✓] Wrote matrix output to GITHUB_OUTPUT: count={len(matrix_tags)}")
+            except Exception as e:
+                print(f"[!] Notice: Failed to write GITHUB_OUTPUT: {e}")
+        sys.exit(0)
 
     if args.dry_run:
         github_output = os.environ.get("GITHUB_OUTPUT")

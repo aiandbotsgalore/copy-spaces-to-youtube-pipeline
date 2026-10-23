@@ -8,9 +8,10 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: \${{ steps.process.outputs.release_tag }}
         run: |
-          echo "Dispatching transcribe_episode.yml for release: \${{ steps.process.outputs.release_tag }}"
-          gh workflow run transcribe_episode.yml -f release_tag="\${{ steps.process.outputs.release_tag }}" || echo "Workflow dispatch failed"
+          echo "Dispatching transcribe_episode.yml for release: $RELEASE_TAG"
+          gh workflow run transcribe_episode.yml -f release_tag="$RELEASE_TAG" || echo "Workflow dispatch failed"
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `
@@ -22,9 +23,10 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
           JOB_STATUS: \${{ job.status }}
         run: |
           if [[ -n "$SLACK_WEBHOOK_URL" ]]; then
+            PAYLOAD=$(python3 -c 'import os, json; print(json.dumps({"text": f"SpacePipe | {os.environ.get(\\"JOB_STATUS\\")} | {os.environ.get(\\"SPACE_TITLE\\")}"}))')
             curl -s -X POST "$SLACK_WEBHOOK_URL" \\
               -H 'Content-type: application/json' \\
-              -d "{\\"text\\":\\"SpacePipe | $JOB_STATUS | $SPACE_TITLE\\"}" || true
+              -d "$PAYLOAD" || true
           fi
 ` : '';
 
@@ -37,9 +39,10 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
           JOB_STATUS: \${{ job.status }}
         run: |
           if [[ -n "$DISCORD_WEBHOOK_URL" ]]; then
+            PAYLOAD=$(python3 -c 'import os, json; print(json.dumps({"content": f"SpacePipe | {os.environ.get(\\"JOB_STATUS\\")} | {os.environ.get(\\"SPACE_TITLE\\")}"}))')
             curl -s -X POST "$DISCORD_WEBHOOK_URL" \\
               -H 'Content-type: application/json' \\
-              -d "{\\"content\\":\\"SpacePipe | $JOB_STATUS | $SPACE_TITLE\\"}" || true
+              -d "$PAYLOAD" || true
           fi
 ` : '';
 
@@ -122,11 +125,13 @@ jobs:
       - name: Extract MP3 Duration
         id: duration
         if: success() && steps.process.outputs.already_exists != 'true'
+        env:
+          MP3_PATH: \${{ steps.process.outputs.mp3_path }}
         run: |
           DURATION=$(ffprobe -v error -show_entries format=duration \\
-            -of default=noprint_wrappers=1:nokey=1 "\${{ steps.process.outputs.mp3_path }}" \\
+            -of default=noprint_wrappers=1:nokey=1 "$MP3_PATH" \\
             | awk '{printf "%02d:%02d:%02d", ($1/3600), ($1%3600/60), ($1%60)}')
-          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> "$GITHUB_OUTPUT"
 
       - name: Dequeue Processed Item
         if: success() && inputs.space_url == '' && inputs.release_tag == ''
@@ -142,7 +147,6 @@ jobs:
           git add batch_queue.txt space_queue.txt || true
           git commit -m "chore(queue): dequeue processed space [skip ci]" || echo "No changes to commit"
           git push || echo "Notice: Push skipped or no changes"
-
 
       - name: Create Release
         if: success() && steps.process.outputs.already_exists != 'true' && inputs.release_tag == ''
@@ -198,7 +202,7 @@ ${slackStep}${discordStep}
         run: |
           cat <<'PYEOF' > generate_rss.py
 ${pythonScript}
-          PYEOF
+PYEOF
           python3 generate_rss.py
 
       - name: Validate RSS
@@ -239,17 +243,19 @@ jobs:
 
       - name: Check and Promote from Batch Queue
         id: promote
+        env:
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ ! -f batch_queue.txt ]] || [[ ! -s batch_queue.txt ]]; then
             echo "Batch queue is empty. Nothing to process."
-            echo "promoted=false" >> $GITHUB_OUTPUT
+            echo "promoted=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          NEXT_URL=$(grep -v '^[[:space:]]*$' batch_queue.txt | head -n 1 | tr -d '[:space:]')
+          NEXT_URL=$(grep -v '^[[:space:]]*$' batch_queue.txt | grep -v '^[[:space:]]*#' | head -n 1 | tr -d '[:space:]')
           if [[ -z "$NEXT_URL" ]]; then
             echo "No valid URL in batch queue."
-            echo "promoted=false" >> $GITHUB_OUTPUT
+            echo "promoted=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -264,9 +270,12 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add space_queue.txt batch_queue.txt
           git commit -m "chore: promote next URL from batch queue" || echo "No changes"
-          git push
-          echo "promoted=true" >> $GITHUB_OUTPUT
+          git push || echo "Push skipped or no changes"
+          echo "promoted=true" >> "$GITHUB_OUTPUT"
           echo "URL promoted: $NEXT_URL"
+
+          # Explicitly trigger ingest workflow to avoid GITHUB_TOKEN push loop suppression
+          gh workflow run ingest.yml -f space_url="$NEXT_URL" || echo "Direct workflow dispatch skipped"
 `;
 
 export const generateIngestScript = (_config: EnhancedConfig): string => `#!/bin/bash
@@ -279,18 +288,52 @@ set -euo pipefail
 # Includes: duplicate detection against existing GitHub Releases
 # ==============================================================================
 
-QUEUE_FILE="\${QUEUE_FILE:-batch_queue.txt}"
-if [[ ! -f "$QUEUE_FILE" && -f "space_queue.txt" ]]; then
-    QUEUE_FILE="space_queue.txt"
-fi
 WORK_DIR="work"
 TARGET_URL=""
 
 # 1. Determine Input Source
+if [[ -n "\${MANUAL_RELEASE_TAG:-}" ]]; then
+    echo "Using Manual Pre-Staged Release Tag: $MANUAL_RELEASE_TAG"
+    RELEASE_TAG="$MANUAL_RELEASE_TAG"
+    mkdir -p "$WORK_DIR"
+    MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" 2>/dev/null | head -n 1 || true)
+    if [[ -z "$MP3_FILE" && -n "\${GITHUB_TOKEN:-}" && -n "\${GITHUB_REPOSITORY:-}" ]]; then
+        gh release download "$RELEASE_TAG" --pattern "*.mp3" --dir "$WORK_DIR" || true
+        MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" 2>/dev/null | head -n 1 || true)
+    fi
+    if [[ -n "$MP3_FILE" ]]; then
+        SPACE_TITLE="$MANUAL_RELEASE_TAG"
+        SPACE_ID="\${MANUAL_RELEASE_TAG#*_}"
+        EPISODE_DATE="\${MANUAL_RELEASE_TAG:0:8}"
+        if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
+            DELIM="EOF_$(date +%s%N)"
+            {
+                echo "mp3_path=$MP3_FILE"
+                echo "release_tag=$RELEASE_TAG"
+                echo "space_title<<$DELIM"
+                echo "$SPACE_TITLE"
+                echo "$DELIM"
+                echo "space_id=$SPACE_ID"
+                echo "episode_date=$EPISODE_DATE"
+                echo "already_exists=false"
+            } >> "$GITHUB_OUTPUT"
+        fi
+        echo "Pre-staged release processed successfully."
+        exit 0
+    fi
+fi
+
 if [[ -n "\${MANUAL_URL:-}" ]]; then
     echo "Using Manual URL from Workflow Input"
     TARGET_URL="$MANUAL_URL"
 else
+    # Prioritize space_queue.txt if it contains a non-comment URL
+    if [[ -f "space_queue.txt" ]] && grep -v '^[[:space:]]*#' space_queue.txt | grep -q '[^[:space:]]'; then
+        QUEUE_FILE="space_queue.txt"
+    else
+        QUEUE_FILE="\${QUEUE_FILE:-batch_queue.txt}"
+    fi
+
     if [[ ! -f "$QUEUE_FILE" ]]; then
         echo "::notice::Queue file $QUEUE_FILE not found — nothing to ingest."
         if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
@@ -330,9 +373,6 @@ else
 fi
 
 # 4. Duplicate Detection
-# Extract the platform-specific source ID before downloading.
-# We look for METADATA::SOURCE_ID::<id> in existing release bodies via the
-# GitHub Releases API. If found, we skip gracefully without re-downloading.
 echo "--- Duplicate check ---"
 SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
@@ -347,7 +387,6 @@ repo  = os.environ.get("REPO", "")
 sid   = os.environ.get("SPACE_ID", "")
 if not (token and repo and sid):
     print("no"); exit()
-# Paginate through ALL releases until the API returns an empty page
 found = False
 page = 1
 while True:
@@ -362,12 +401,12 @@ while True:
     except Exception:
         break
     if not releases:
-        break  # No more pages
+        break
     if any(f"SOURCE_ID::{sid}" in (rel.get("body") or "") for rel in releases):
         found = True
         break
     if len(releases) < 100:
-        break  # Last page — no need to fetch another
+        break
     page += 1
 print("yes" if found else "no")
 PYEOF
@@ -390,40 +429,36 @@ fi
 echo "--- End duplicate check ---"
 
 # 5. Live Broadcast Check
-# Automated ingest must only process concluded broadcasts/replays.
-# Live stream capture will only proceed if RECORD_LIVE is explicitly set to true.
 RECORD_LIVE="\${RECORD_LIVE:-false}"
 echo "Checking live stream status..."
-LIVE_STATUS=\$(yt-dlp --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
-echo "Live status: \$LIVE_STATUS (RECORD_LIVE=\$RECORD_LIVE)"
+LIVE_STATUS=$(yt-dlp --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
+echo "Live status: $LIVE_STATUS (RECORD_LIVE=$RECORD_LIVE)"
 
-if [[ "\$LIVE_STATUS" == "is_live" && "\$RECORD_LIVE" != "true" ]]; then
+if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" != "true" ]]; then
     echo "::warning::Space is currently broadcasting live. Automated live ingestion is disabled."
-    echo "::notice::To record an in-progress Space, trigger this workflow manually from GitHub Actions or the web app with 'Record Live Stream' enabled."
+    echo "::notice::To record an in-progress Space, trigger this workflow manually with 'Record Live Stream' enabled."
     if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
-        echo "already_exists=true" >> "\$GITHUB_OUTPUT"
-        echo "space_id=\${SPACE_ID:-}" >> "\$GITHUB_OUTPUT"
+        echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        echo "space_id=\${SPACE_ID:-}" >> "$GITHUB_OUTPUT"
     fi
     exit 0
 fi
 
-if [[ "\$LIVE_STATUS" == "is_upcoming" && "\$RECORD_LIVE" != "true" ]]; then
+if [[ "$LIVE_STATUS" == "is_upcoming" && "$RECORD_LIVE" != "true" ]]; then
     echo "::warning::Space is scheduled/upcoming. Ingestion deferred until broadcast completes."
     if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
-        echo "already_exists=true" >> "\$GITHUB_OUTPUT"
-        echo "space_id=\${SPACE_ID:-}" >> "\$GITHUB_OUTPUT"
+        echo "already_exists=true" >> "$GITHUB_OUTPUT"
+        echo "space_id=\${SPACE_ID:-}" >> "$GITHUB_OUTPUT"
     fi
     exit 0
 fi
 
-if [[ "\$LIVE_STATUS" == "is_live" && "\$RECORD_LIVE" == "true" ]]; then
+if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" == "true" ]]; then
     echo "🔴 Manual live capture requested: proceeding to record live broadcast."
 fi
 
-# 6. Prepare Work Directory
+# 6. Prepare Work Directory & Download
 mkdir -p "$WORK_DIR"
-
-# 6. Download and Convert
 echo "Starting download..."
 yt-dlp \\
     --retries 5 \\
@@ -451,34 +486,43 @@ echo "Successfully created: $MP3_FILE"
 BASENAME=$(basename "$MP3_FILE" .mp3)
 EPISODE_DATE="\${BASENAME:0:8}"
 if [[ -n "$SPACE_ID" ]]; then
-    # Deterministic, collision-free tag using the platform source ID
     RELEASE_TAG="\${BASENAME:0:8}_$SPACE_ID"
-    # Strip the YYYYMMDD_<ID>_ prefix to extract the clean title
     DATE_ID_PREFIX="\${BASENAME:0:9}\${SPACE_ID}_"
     SPACE_TITLE="\${BASENAME#$DATE_ID_PREFIX}"
 else
-    # Fallback when source ID could not be extracted
     RELEASE_TAG="\${BASENAME:0:8}_$(date +%s%N | cut -c1-13)"
     SPACE_TITLE="\${BASENAME:9}"
 fi
 if [[ -z "$SPACE_TITLE" ]] || [[ "$SPACE_TITLE" == "$BASENAME" ]]; then
     SPACE_TITLE="$BASENAME"
 fi
+# Strip carriage returns and collapse multiple spaces into clean single line
+SPACE_TITLE=$(echo "$SPACE_TITLE" | tr -d '\r' | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g' | sed 's/^ //;s/ $//')
 
-# 9. Set GitHub Output Variables
+# 9. Set GitHub Output Variables with Delimiter Guard
 if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
-    echo "mp3_path=$MP3_FILE" >> "$GITHUB_OUTPUT"
-    echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-    echo "space_title=$SPACE_TITLE" >> "$GITHUB_OUTPUT"
-    echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
-    echo "episode_date=$EPISODE_DATE" >> "$GITHUB_OUTPUT"
-    echo "already_exists=false" >> "$GITHUB_OUTPUT"
+    DELIM="EOF_$(date +%s%N)"
+    {
+        echo "mp3_path=$MP3_FILE"
+        echo "release_tag=$RELEASE_TAG"
+        echo "space_title<<$DELIM"
+        echo "$SPACE_TITLE"
+        echo "$DELIM"
+        echo "space_id=$SPACE_ID"
+        echo "episode_date=$EPISODE_DATE"
+        echo "already_exists=false"
+    } >> "$GITHUB_OUTPUT"
 fi
 
 echo "Done."
 `;
 
-export const generateReadme = (config: EnhancedConfig): string => `# ${config.podcastTitle} — SpacePipe
+export const generateReadme = (config: EnhancedConfig): string => {
+  const safeTitle = (config.podcastTitle || 'Spaces Archive').replace(/[\r\n]+/g, ' ').trim();
+  const safeAuthor = (config.authorName || 'Spaces Host').replace(/[\r\n]+/g, ' ').trim();
+  const safeEmail = (config.email || '').replace(/[\r\n]+/g, ' ').trim();
+
+  return `# ${safeTitle} — SpacePipe
 
 Automated audio ingestion pipeline powered by GitHub Actions. Supports Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and any platform supported by yt-dlp.
 
@@ -530,6 +574,7 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 │  └─ ingest.sh           # Download & process script
 ├─ space_queue.txt        # Single URL trigger
 ├─ batch_queue.txt        # Multi-URL queue
+├─ requirements.txt       # Python dependencies (yt-dlp)
 └─ artwork.jpg            # Podcast cover art
 \`\`\`
 
@@ -546,8 +591,9 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 
 ## Author
 
-${config.authorName} · ${config.email}
+${safeAuthor}${safeEmail ? ` · ${safeEmail}` : ''}
 `;
+};
 
 export const generateQueueFile = (config: EnhancedConfig): string => {
   if (config.batchUrls && config.batchUrls.filter(u => u.trim()).length > 0) {

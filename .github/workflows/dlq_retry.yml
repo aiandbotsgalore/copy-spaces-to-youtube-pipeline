@@ -1,0 +1,121 @@
+name: DLQ Automated Retry & Self-Healing Resolver
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_run:
+    workflows:
+      - 'Enroll Voice Profile'
+      - 'Ingest Space'
+      - 'Batch Transcribe Episodes (Newest to Oldest)'
+      - 'Cloud GPU Transcribe (Kaggle)'
+    types: [completed]
+
+permissions:
+  issues: write
+  actions: write
+  contents: read
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Re-dispatch failed job when user comments /retry
+  # -------------------------------------------------------------
+  handle-retry-comment:
+    if: |
+      github.event_name == 'issue_comment' &&
+      !github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/retry') &&
+      contains(github.event.issue.labels.*.name, 'dlq-quarantine')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse DLQ Metadata and Trigger Re-dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'EOF'
+          import os, re, subprocess, sys
+
+          issue_body = os.environ.get("ISSUE_BODY", "")
+          issue_number = os.environ.get("ISSUE_NUMBER", "")
+          user = os.environ.get("COMMENT_USER", "user")
+
+          # Parse embedded metadata block
+          wf_match = re.search(r"workflow=(.+)", issue_body)
+          tg_match = re.search(r"target=(.+)", issue_body)
+
+          workflow_name = wf_match.group(1).strip() if wf_match else ""
+          target = tg_match.group(1).strip() if tg_match else ""
+
+          print(f"[*] Dispatching retry for workflow: '{workflow_name}', target: '{target}' requested by @{user}")
+
+          cmd = []
+          if "Enroll Voice Profile" in workflow_name:
+              cmd = ["gh", "workflow", "run", "enroll_voice.yml", "-f", f"speaker_name={target}"]
+          elif "Ingest Space" in workflow_name:
+              if target.startswith("http"):
+                  cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"space_url={target}"]
+              else:
+                  cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"release_tag={target}"]
+          elif "Batch Transcribe" in workflow_name:
+              cmd = ["gh", "workflow", "run", "batch_transcribe.yml", "-f", "limit=5", "-f", "dry_run=false"]
+          elif "Kaggle" in workflow_name:
+              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml", "-f", f"release_tag={target}"]
+          else:
+              # Fallback match by lowercase
+              cmd = ["gh", "workflow", "run", f"{workflow_name.lower().replace(' ', '_')}.yml"]
+
+          try:
+              res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+              comment_body = f"🚀 **Self-Healing Re-Dispatch Triggered!**\n\n@{user} requested `/retry`. Workflow **`{workflow_name}`** was dispatched for `{target}`.\n\n*This issue will automatically close when the run succeeds.*"
+          except Exception as e:
+              comment_body = f"⚠️ **Retry Dispatch Failed**:\n```\n{e}\n```"
+
+          subprocess.run(["gh", "issue", "comment", str(issue_number), "-b", comment_body])
+          EOF
+
+  # -------------------------------------------------------------
+  # Job 2: Auto-close DLQ Issue when workflow succeeds
+  # -------------------------------------------------------------
+  auto-close-resolved-dlq:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan & Close Matching DLQ Issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, subprocess
+
+          wf_name = os.environ.get("WORKFLOW_NAME", "")
+          run_id = os.environ.get("RUN_ID", "")
+          run_url = os.environ.get("RUN_URL", "")
+
+          print(f"[*] Checking for open DLQ issues matching successful run #{run_id} ({wf_name})...")
+
+          # List open DLQ issues
+          res = subprocess.run(["gh", "issue", "list", "--label", "dlq-quarantine", "--state", "open", "--json", "number,title,body"], capture_output=True, text=True)
+          if res.returncode != 0:
+              print(f"[!] Could not list issues: {res.stderr}")
+              exit(0)
+
+          issues = json.loads(res.stdout or "[]")
+          for iss in issues:
+              num = iss["number"]
+              title = iss.get("title", "")
+              body = iss.get("body", "")
+
+              # Match if workflow name appears in title/body
+              if wf_name.lower() in title.lower() or wf_name.lower() in body.lower():
+                  print(f"[✓] Auto-closing DLQ Issue #{num} due to successful re-run #{run_id}!")
+                  close_comment = f"✅ **Self-Healing Succeeded!**\n\nThe subsequent run [{wf_name} #{run_id}]({run_url}) succeeded.\nClosing this Dead-Letter Queue issue automatically."
+                  subprocess.run(["gh", "issue", "comment", str(num), "-b", close_comment])
+                  subprocess.run(["gh", "issue", "close", str(num), "--reason", "completed"])
+          EOF

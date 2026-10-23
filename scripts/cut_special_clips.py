@@ -220,7 +220,7 @@ def main():
 
     cloud_map = load_cloud_audio_map()
 
-    master_path = Path(args.master_json)
+    master_path = Path(args.master_json) if Path(args.master_json).exists() else (Path("docs/documentary/data") / args.master_json)
     q_map = {}
     if master_path.exists():
         with open(master_path, "r", encoding="utf-8") as f:
@@ -240,7 +240,7 @@ def main():
     print(f"Mode:                   {'DRY RUN (Audit only)' if args.dry_run else 'LIVE EXTRACTION (24-bit/48kHz WAV)'}\n")
 
     # Mode 1: Audit JSON Manifest
-    audit_file = Path(args.audit_results)
+    audit_file = Path(args.audit_results) if Path(args.audit_results).exists() else (Path("docs/documentary/data") / args.audit_results)
     if not args.quote_ids and not args.all_verified and not args.cue_sheet and audit_file.exists():
         print(f"Processing cues from audit results manifest: {audit_file.resolve()}\n")
         with open(audit_file, "r", encoding="utf-8") as f:
@@ -361,8 +361,9 @@ def main():
     elif args.all_verified:
         target_ids = [q["quote_id"] for q in master_quotes if q.get("verification_status") != "PURGED"]
         print(f"Targeting all {len(target_ids)} active quotes from master JSON.")
-    elif args.cue_sheet and Path(args.cue_sheet).exists():
-        target_ids = parse_cue_ids_from_markdown(Path(args.cue_sheet))
+    elif args.cue_sheet and (Path(args.cue_sheet).exists() or (Path("docs/documentary/data") / args.cue_sheet).exists()):
+        cue_p = Path(args.cue_sheet) if Path(args.cue_sheet).exists() else (Path("docs/documentary/data") / args.cue_sheet)
+        target_ids = parse_cue_ids_from_markdown(cue_p)
         print(f"Targeting {len(target_ids)} unique quotes parsed from cue sheet: {args.cue_sheet}")
     else:
         print("ERROR: No valid target quotes or cue sheet specified.")

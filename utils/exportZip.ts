@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import { PipelineFile, EnhancedConfig } from '../types';
 
 export function normalizeLineEndings(content: string, language: string): string {
-  if (language === 'bash' || language === 'yaml' || language === 'text') {
+  if (language === 'bash' || language === 'yaml' || language === 'text' || language === 'markdown') {
     return content.replace(/\r\n/g, '\n');
   }
   return content;
@@ -26,5 +26,5 @@ export async function exportPipelineZip(files: PipelineFile[], config: EnhancedC
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

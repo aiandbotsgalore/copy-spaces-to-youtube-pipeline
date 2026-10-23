@@ -23,7 +23,11 @@ async function serve(fetchImpl: typeof fetch) {
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 }
 afterEach(async () => {
-  if (server) await new Promise(r => server!.close(r));
+  if (server) {
+    const s = server;
+    server = null;
+    await new Promise<void>(resolve => s.close(() => resolve()));
+  }
   server = null;
 });
 

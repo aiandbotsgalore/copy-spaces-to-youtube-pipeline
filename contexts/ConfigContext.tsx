@@ -47,10 +47,13 @@ function buildInitialConfig(): EnhancedConfig {
     email: stored.email || DEFAULT_CONFIG.email,
     githubToken: storedToken,
     artworkDataUrl: '',
-    enableTranscription: true,
-    enableSlackWebhook: false,
-    enableDiscordWebhook: false,
-    enableScheduledMonitoring: false,
+    enableTranscription: stored.enableTranscription ?? DEFAULT_CONFIG.enableTranscription,
+    enableSlackWebhook: stored.enableSlackWebhook ?? DEFAULT_CONFIG.enableSlackWebhook,
+    enableDiscordWebhook: stored.enableDiscordWebhook ?? DEFAULT_CONFIG.enableDiscordWebhook,
+    enableScheduledMonitoring: stored.enableScheduledMonitoring ?? DEFAULT_CONFIG.enableScheduledMonitoring,
+    scheduledCron: stored.scheduledCron || DEFAULT_CONFIG.scheduledCron,
+    batchUrls: stored.batchUrls || DEFAULT_CONFIG.batchUrls,
+    platforms: stored.platforms || DEFAULT_CONFIG.platforms,
   };
 }
 

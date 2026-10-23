@@ -78,13 +78,13 @@ def main():
                         help="Directory containing extracted archival clips (default: special_clips/)")
     parser.add_argument("--manifest", default="narration_manifest.json",
                         help="Path to narration manifest JSON (default: narration_manifest.json)")
-    parser.add_argument("--out-manifest", default="documentary_assembly_manifest.json",
+    parser.add_argument("--out-manifest", default="docs/documentary/data/documentary_assembly_manifest.json",
                         help="Output path for complete documentary timeline assembly manifest")
     args = parser.parse_args()
 
     narration_dir = Path(args.narration_dir)
     clips_dir = Path(args.clips_dir)
-    manifest_path = Path(args.manifest)
+    manifest_path = Path(args.manifest) if Path(args.manifest).exists() else (Path("docs/documentary/data") / args.manifest)
 
     if not manifest_path.exists():
         print(f"ERROR: Narration manifest not found at {manifest_path}")

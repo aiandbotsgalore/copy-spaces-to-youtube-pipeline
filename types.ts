@@ -14,9 +14,6 @@ export interface PipelineConfig {
   authorName: string;
   email: string;
   imageUrl: string;
-}
-
-export interface EnhancedConfig extends PipelineConfig {
   githubToken: string;
   artworkDataUrl: string;
   platforms: string[];
@@ -29,6 +26,8 @@ export interface EnhancedConfig extends PipelineConfig {
   enableScheduledMonitoring: boolean;
   scheduledCron: string;
 }
+
+export type EnhancedConfig = PipelineConfig;
 
 export interface ConfigProfile {
   id: string;

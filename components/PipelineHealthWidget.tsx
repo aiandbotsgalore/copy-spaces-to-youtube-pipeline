@@ -68,7 +68,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
   const dlqJobs = loadDeadLetterQueue();
 
   // Evaluate recent failures (last 10 runs)
-  const recentRuns = runs.slice(0, 10);
+  const recentRuns = runs.slice(0, 30);
   const activeRuns = recentRuns.filter(r => isActiveRun(r));
   const failedRuns = recentRuns.filter(r => r.conclusion === 'failure');
 
@@ -79,7 +79,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
     if (r.id === dismissedRunId) return false;
     if (healedRunIds.includes(r.id)) return false;
     const newerSuccess = recentRuns.find(
-      other => other.name === r.name && other.conclusion === 'success' && new Date(other.created_at) > new Date(r.created_at)
+      other => (other.name === r.name || (!!other.path && !!r.path && other.path === r.path)) && other.conclusion === 'success' && new Date(other.created_at) > new Date(r.created_at)
     );
     if (newerSuccess) {
       markRunHealed(r.id);
@@ -378,6 +378,16 @@ export const PipelineHealthWidget: React.FC<Props> = ({
             <div className="flex items-center gap-2 text-rose-300 font-bold text-xs">
               <AlertTriangle size={15} className="text-rose-400" />
               <span>Dead-Letter Queue ({dlqJobs.length} Quarantined)</span>
+              {hasRepo && (
+                <a
+                  href={`https://github.com/${owner}/${repo}/issues?q=is%3Aissue+label%3Adlq-quarantine`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-rose-300 hover:text-white underline font-semibold ml-2"
+                >
+                  GitHub DLQ Tracker <ExternalLink size={10} />
+                </a>
+              )}
             </div>
             <span className="text-[10px] bg-rose-500/30 text-rose-200 border border-rose-500/40 px-2 py-0.5 rounded font-mono uppercase font-bold">
               Quarantined After 3 Failed Remediation Attempts

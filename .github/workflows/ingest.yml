@@ -24,17 +24,20 @@ on:
         description: 'Existing Release Tag for a pre-staged local audio upload (skips yt-dlp)'
         required: false
         type: string
+  repository_dispatch:
+    types: [ingest_space, ingest_url]
 
 permissions:
   contents: write
   pages: write
   id-token: write
   actions: write
+  issues: write
 
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 360
     concurrency:
       group: ingest-${{ inputs.release_tag || inputs.space_url || github.run_id }}
       cancel-in-progress: false
@@ -60,15 +63,24 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache Pip Wheels (zstd multithreaded)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-cache-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            pip-cache-${{ runner.os }}-
+
       - name: Install yt-dlp
         run: python3 -m pip install -U -r requirements.txt
 
       - name: Run Ingest Script
         id: process
         env:
-          MANUAL_URL: ${{ inputs.space_url }}
-          MANUAL_RELEASE_TAG: ${{ inputs.release_tag }}
-          RECORD_LIVE: ${{ inputs.record_live }}
+          MANUAL_URL: ${{ inputs.space_url || github.event.client_payload.space_url }}
+          MANUAL_RELEASE_TAG: ${{ inputs.release_tag || github.event.client_payload.release_tag }}
+          # Live recording is strictly manual via workflow_dispatch; automated dispatch never records live.
+          RECORD_LIVE: ${{ inputs.record_live || 'false' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: bash ./scripts/ingest.sh
@@ -98,6 +110,38 @@ jobs:
           git add batch_queue.txt space_queue.txt || true
           git commit -m "chore(queue): dequeue processed space [skip ci]" || echo "No changes to commit"
           git push || echo "Notice: Push skipped or no changes"
+
+      - name: Quarantine Poison Pill from Queue
+        if: failure() && steps.process.outcome == 'failure' && inputs.space_url == '' && inputs.release_tag == ''
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          python3 - <<'EOF'
+          import os
+          if os.path.exists('batch_queue.txt'):
+              with open('batch_queue.txt', 'r', encoding='utf-8') as f:
+                  lines = [l for l in f if l.strip()]
+              if lines:
+                  failed_item = lines[0].strip()
+                  with open('failed_queue.txt', 'a', encoding='utf-8') as fq:
+                      fq.write(failed_item + '\n')
+                  with open('batch_queue.txt', 'w', encoding='utf-8') as f:
+                      f.writelines(lines[1:])
+                  print(f"[!] Quarantined poison pill to failed_queue.txt: {failed_item}")
+          EOF
+          git add batch_queue.txt failed_queue.txt || true
+          git commit -m "chore(queue): quarantine failed item to failed_queue.txt [skip ci]" || echo "No changes"
+          git push || true
+
+      - name: Quarantine Failure to GitHub Issues DLQ
+        if: failure() && steps.process.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/report_dlq_issue.py \
+            --workflow "Ingest Space" \
+            --run-id "${{ github.run_id }}" \
+            --target "${{ inputs.release_tag || inputs.space_url || 'Queue Item' }}" || true
 
 
       - name: Create Release
