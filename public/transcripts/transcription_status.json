@@ -1,14 +1,25 @@
 {
-  "last_updated": "2026-10-23T12:43:43.884140+00:00",
-  "total_episodes_with_audio": 825,
-  "transcribed_count": 680,
-  "untranscribed_count": 145,
-  "percent_complete": 82.4,
+  "last_updated": "2026-10-23T23:29:20.704489+00:00",
+  "total_episodes_with_audio": 827,
+  "transcribed_count": 681,
+  "untranscribed_count": 146,
+  "percent_complete": 82.3,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {},
+  "failed_episodes": {
+    "20261022_1yxBePgOWAkJN": {
+      "attempts": 1,
+      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
+      "last_attempt": "2026-10-23T23:28:30.687361+00:00"
+    }
+  },
   "next_in_queue": [
+    {
+      "tag": "20261023_1wxWjlNLyrRJQ",
+      "name": "UFOx_DISCLOSURE_IS_HERE_AND_NOW",
+      "date": "Oct 23, 2026"
+    },
     {
       "tag": "20261018_1RJjpbPMOmwKw",
       "name": "5_to_boot_anyone_from_speaker_including_the_host",
@@ -102,11 +113,6 @@
     {
       "tag": "20260220_1djGXlYkooRGZ",
       "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
-      "date": "Jan 19, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZRlQoeJw",
-      "name": "Space broken?",
       "date": "Jan 19, 2023"
     }
   ]
