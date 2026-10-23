@@ -74,13 +74,23 @@ export const PipelineHealthWidget: React.FC<Props> = ({
 
   // Auto-Clear: A failed run is considered auto-healed if:
   // 1. Its ID is recorded in healed runs list, OR
-  // 2. A subsequent run of the same workflow succeeded after the failure.
+  // 2. A subsequent run of the same workflow (or equivalent transcription engine) succeeded after the failure.
+  const isTranscribeWorkflow = (run: WorkflowRun) =>
+    run.name.toLowerCase().includes('transcribe') || (!!run.path && run.path.includes('transcribe'));
+
   const unacknowledgedFailedRuns = failedRuns.filter(r => {
     if (r.id === dismissedRunId) return false;
     if (healedRunIds.includes(r.id)) return false;
-    const newerSuccess = recentRuns.find(
-      other => (other.name === r.name || (!!other.path && !!r.path && other.path === r.path)) && other.conclusion === 'success' && new Date(other.created_at) > new Date(r.created_at)
-    );
+    const newerSuccess = recentRuns.find(other => {
+      if (other.conclusion !== 'success') return false;
+      if (new Date(other.created_at) <= new Date(r.created_at)) return false;
+      // Exact name or exact workflow path match
+      if (other.name === r.name || (!!other.path && !!r.path && other.path === r.path)) return true;
+      // Cross-engine transcription auto-heal: if an episode or batch transcribe failed earlier,
+      // but a subsequent transcription run (e.g. Kaggle GPU Transcribe) succeeded afterward
+      if (isTranscribeWorkflow(r) && isTranscribeWorkflow(other)) return true;
+      return false;
+    });
     if (newerSuccess) {
       markRunHealed(r.id);
       return false;
@@ -444,15 +454,17 @@ export const PipelineHealthWidget: React.FC<Props> = ({
               </span>
               <button
                 onClick={() => {
-                  const id = unacknowledgedFailedRuns[0].id;
-                  markRunHealed(id);
-                  setDismissedRunId(id);
-                  try {
-                    localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
-                  } catch {}
+                  unacknowledgedFailedRuns.forEach(f => markRunHealed(f.id));
+                  const firstId = unacknowledgedFailedRuns[0]?.id;
+                  if (firstId) {
+                    setDismissedRunId(firstId);
+                    try {
+                      localStorage.setItem('spacepipe_dismissed_failed_run', String(firstId));
+                    } catch {}
+                  }
                 }}
                 className="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer"
-                title="Dismiss this failure alert"
+                title="Dismiss all failure alerts"
               >
                 <X size={13} />
               </button>
@@ -473,15 +485,17 @@ export const PipelineHealthWidget: React.FC<Props> = ({
             </a>
             <button
               onClick={() => {
-                const id = unacknowledgedFailedRuns[0].id;
-                markRunHealed(id);
-                setDismissedRunId(id);
-                try {
-                  localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
-                } catch {}
+                unacknowledgedFailedRuns.forEach(f => markRunHealed(f.id));
+                const firstId = unacknowledgedFailedRuns[0]?.id;
+                if (firstId) {
+                  setDismissedRunId(firstId);
+                  try {
+                    localStorage.setItem('spacepipe_dismissed_failed_run', String(firstId));
+                  } catch {}
+                }
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-              title="Acknowledge and clear this failure badge"
+              title="Acknowledge and clear all failure alerts"
             >
               <Check size={12} className="text-emerald-400" /> Mark as Healed &amp; Clear Alert
             </button>

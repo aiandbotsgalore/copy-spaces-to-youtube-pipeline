@@ -122,8 +122,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json public/transcripts/episodes public/clips/clips_catalog.json best_saved_clips || true
-          git commit -m "chore(transcripts): update search index, speaker labels, and highlight clips from Kaggle GPU run [skip ci]" || echo "No changes to commit"
-          git pull --rebase origin master || true
+          git diff --staged --quiet || git commit -m "chore(transcripts): update search index, speaker labels, and highlight clips from Kaggle GPU run [skip ci]" || echo "No changes to commit"
+          git fetch origin master
+          git merge -X ours origin/master --no-edit || git pull --rebase -X ours origin master || true
           git push origin master || echo "Push skipped"
 
       - name: Trigger RSS Update & Web Deployment
