@@ -1,13 +1,13 @@
 name: Batch Transcribe Episodes (Newest to Oldest)
-run-name: Batch Transcribe ${{ inputs.limit || '15' }} episodes (Parallel Matrix)
+run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via Kaggle Dual-T4 GPU
 
 on:
   workflow_dispatch:
     inputs:
       limit:
-        description: 'Number of untranscribed episodes to process (max 15 per parallel run)'
+        description: 'Number of untranscribed episodes to process'
         required: false
-        default: '15'
+        default: '5'
         type: string
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
@@ -28,102 +28,9 @@ permissions:
   contents: write
   actions: write
   issues: write
-  packages: read
 
 jobs:
-  # ============================================================================
-  # 1. PLAN BATCH: Discover Queue and Emit Parallel Matrix
-  # ============================================================================
-  plan_batch:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.emit_matrix.outputs.matrix }}
-      has_items: ${{ steps.emit_matrix.outputs.has_items }}
-      count: ${{ steps.emit_matrix.outputs.count }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Discover Queue & Generate Matrix
-        id: emit_matrix
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pip install requests
-          LIMIT="${{ inputs.limit || '15' }}"
-          CLIPS_FLAG=""
-          if [ "${{ inputs.missing_clips }}" = "true" ]; then
-            CLIPS_FLAG="--missing-clips"
-          fi
-          python scripts/batch_transcribe_queue.py --limit "$LIMIT" --emit-matrix $CLIPS_FLAG
-
-  # ============================================================================
-  # 2. TRANSCRIBE MATRIX: High-Throughput Parallel Transcribers (Max 15)
-  # ============================================================================
-  transcribe_matrix:
-    needs: plan_batch
-    if: needs.plan_batch.outputs.has_items == 'true' && inputs.dry_run != true
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/spacepipe-runner:latest
-      options: --user root
-    timeout-minutes: 180
-    strategy:
-      max-parallel: 15
-      fail-fast: false
-      matrix:
-        tag: ${{ fromJson(needs.plan_batch.outputs.matrix) }}
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Verify Pre-Baked Container Environment
-        run: |
-          python -c "import torch, faster_whisper, speechbrain; print('[✓] SpacePipe Pre-Baked AI Container Ready!')"
-          ffmpeg -version | head -n 1
-
-      - name: Transcribe & Diarize Episode
-        id: run_tx
-        env:
-          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: |
-          set +e
-          python scripts/transcribe_and_diarize.py --release-tag "${{ matrix.tag }}" 2>&1 | tee transcribe_${{ matrix.tag }}.log
-          TX_EXIT=${PIPESTATUS[0]}
-          echo "tx_exit=$TX_EXIT" >> $GITHUB_OUTPUT
-          if [ $TX_EXIT -ne 0 ]; then
-            echo "::error title=Transcription Failed::Episode ${{ matrix.tag }} failed with exit code $TX_EXIT"
-            exit $TX_EXIT
-          fi
-
-      - name: Quarantine Failure to GitHub Issues DLQ
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python scripts/report_dlq_issue.py \
-            --workflow "Batch Transcribe Episodes (Newest to Oldest)" \
-            --run-id "${{ github.run_id }}" \
-            --target "${{ matrix.tag }}" \
-            --log-file "transcribe_${{ matrix.tag }}.log" || true
-
-  # ============================================================================
-  # 3. FINALIZE CATALOG: Rebuild Search Index, Commit, and Trigger RSS
-  # ============================================================================
-  finalize_catalog:
-    needs: [plan_batch, transcribe_matrix]
-    if: always() && needs.plan_batch.outputs.has_items == 'true' && inputs.dry_run != true
+  dispatch_batch:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -134,27 +41,35 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Indexing Dependencies
+      - name: Install Queue Dependencies
         run: pip install requests
 
-      - name: Rebuild Transcripts Search Index
+      - name: Dry Run - Discover Queue
+        if: inputs.dry_run == true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python scripts/build_transcripts_index.py || echo "[!] Warning: Failed to rebuild transcripts search index"
+          LIMIT="${{ inputs.limit || '5' }}"
+          echo "[*] Discovering queue in dry-run mode (limit: $LIMIT)..."
+          python scripts/batch_transcribe_queue.py --limit "$LIMIT" --dry-run
 
-      - name: Commit Updated Search Index and Status
+      - name: Process Missing Highlight Clips
+        if: inputs.dry_run != true && inputs.missing_clips == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git rm --cached public/transcripts/transcripts_search_index.json 2>/dev/null || true
-          git add public/transcripts/transcription_status.json public/transcripts/transcripts_summary_index.json public/transcripts/episodes || true
-          git commit -m "chore(transcripts): batch update transcripts index and status [skip ci]" || echo "No changes to commit"
-          git pull --rebase origin master || true
-          git push origin master || echo "Push skipped or already up to date"
+          LIMIT="${{ inputs.limit || '5' }}"
+          echo "[*] Extracting highlight clips for transcribed episodes missing clips (limit: $LIMIT)..."
+          python scripts/batch_transcribe_queue.py --missing-clips --limit "$LIMIT"
 
-      - name: Trigger RSS Update
+      - name: Forward Batch to Kaggle Dual-T4 GPU Worker
+        if: inputs.dry_run != true && inputs.missing_clips != true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
+          LIMIT="${{ inputs.limit || '5' }}"
+          echo "[*] Forwarding batch transcription queue (batch_limit=$LIMIT) to Kaggle Dual-T4 GPU worker..."
+          gh workflow run kaggle_transcribe.yml -f batch_limit="$LIMIT"
+          echo "[✓] Kaggle GPU batch job successfully dispatched!"

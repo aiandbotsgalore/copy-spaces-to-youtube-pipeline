@@ -62,7 +62,7 @@ jobs:
               else:
                   cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"release_tag={target}"]
           elif "Batch Transcribe" in workflow_name:
-              cmd = ["gh", "workflow", "run", "batch_transcribe.yml", "-f", "limit=5", "-f", "dry_run=false"]
+              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml", "-f", "batch_limit=5"]
           elif "Transcribe Episode" in workflow_name:
               cmd = ["gh", "workflow", "run", "transcribe_episode.yml", "-f", f"release_tag={target}"]
           elif "Kaggle" in workflow_name:

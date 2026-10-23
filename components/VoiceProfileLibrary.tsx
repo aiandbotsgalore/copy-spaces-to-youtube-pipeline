@@ -9,6 +9,12 @@ import {
 import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release, DeadLetterJob } from '../types';
 import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
 import { loadDeadLetterQueue, saveDeadLetterQueue, removeFromDeadLetterQueue } from '../utils/storage';
+import { VoiceProfileModal } from './voice/VoiceProfileModal';
+import { CliEnrollmentGuideModal } from './voice/CliEnrollmentGuideModal';
+import { RawJsonViewerModal } from './voice/RawJsonViewerModal';
+import { PipelineArchitectureModal } from './voice/PipelineArchitectureModal';
+import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
+import { AudioPreCheckResult } from './voice/types';
 
 interface Props {
   config: EnhancedConfig;
@@ -122,23 +128,11 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [retryingDlqId, setRetryingDlqId] = useState<string | null>(null);
   const [dlqList, setDlqList] = useState<DeadLetterJob[]>(() => loadDeadLetterQueue());
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [copiedCode, setCopiedCode] = useState(false);
 
   // Modals
   const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | null>(null);
   const [targetProfile, setTargetProfile] = useState<VoiceProfile | null>(null);
-  const [audioPreCheck, setAudioPreCheck] = useState<{
-    duration: number;
-    peakDb: number;
-    isClipping: boolean;
-    isTooQuiet: boolean;
-    isOptimalDuration: boolean;
-    silenceRatio: number;
-    sampleRate: number;
-    channels: number;
-    qualityLevel: 'excellent' | 'good' | 'warning' | 'error';
-    qualityNotes: string[];
-  } | null>(null);
+  const [audioPreCheck, setAudioPreCheck] = useState<AudioPreCheckResult | null>(null);
   const [inspectingAudio, setInspectingAudio] = useState(false);
 
   // Form State
@@ -1414,664 +1408,74 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         </div>
       </div>
 
-      {/* ── Create / Edit Profile Modal ── */}
-      {(modalMode === 'CREATE' || modalMode === 'EDIT') && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                  <AudioWaveform size={18} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">
-                    {modalMode === 'CREATE' ? 'Add New Voice Profile' : `Edit Profile: ${targetProfile?.name}`}
-                  </h3>
-                  <p className="text-xs text-slate-400">Configure identity and acoustic metadata</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setModalMode(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
+      {/* ── Extracted Voice Profile Modals ── */}
+      <VoiceProfileModal
+        isOpen={modalMode === 'CREATE' || modalMode === 'EDIT'}
+        modalMode={modalMode}
+        targetProfile={targetProfile}
+        formName={formName}
+        setFormName={setFormName}
+        formRole={formRole}
+        setFormRole={setFormRole}
+        formColor={formColor}
+        setFormColor={setFormColor}
+        formEmoji={formEmoji}
+        setFormEmoji={setFormEmoji}
+        formNotes={formNotes}
+        setFormNotes={setFormNotes}
+        formAudioUrl={formAudioUrl}
+        setFormAudioUrl={setFormAudioUrl}
+        audioSourceTab={audioSourceTab}
+        setAudioSourceTab={setAudioSourceTab}
+        localAudioFile={localAudioFile}
+        setLocalAudioFile={setLocalAudioFile}
+        localAudioPreviewUrl={localAudioPreviewUrl}
+        setLocalAudioPreviewUrl={setLocalAudioPreviewUrl}
+        dragOver={dragOver}
+        setDragOver={setDragOver}
+        inspectingAudio={inspectingAudio}
+        audioPreCheck={audioPreCheck}
+        handleSelectAudioFile={handleSelectAudioFile}
+        handleUploadFromComputerAndEnroll={handleUploadFromComputerAndEnroll}
+        uploadingAudio={uploadingAudio}
+        hasGitHub={hasGitHub}
+        handleCloudEnroll={handleCloudEnroll}
+        enrollingCloud={enrollingCloud}
+        handleSaveForm={handleSaveForm}
+        onClose={() => setModalMode(null)}
+        roleOptions={ROLE_OPTIONS}
+        colorOptions={COLOR_OPTIONS}
+        emojiOptions={EMOJI_OPTIONS}
+      />
 
-            <div className="space-y-4">
-              {/* Speaker Name */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Speaker Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Angela, Logan, Rick Doty…"
-                  value={formName}
-                  onChange={e => setFormName(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs font-semibold bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
-                />
-              </div>
+      <CliEnrollmentGuideModal
+        isOpen={modalMode === 'CLI_GUIDE'}
+        targetProfile={targetProfile}
+        onClose={() => setModalMode(null)}
+        onOpenEdit={(p) => handleOpenEdit(p)}
+      />
 
-              {/* Role & Color */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Role</label>
-                  <select
-                    value={formRole}
-                    onChange={e => setFormRole(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
-                  >
-                    {ROLE_OPTIONS.map(r => (
-                      <option key={r} value={r} className="bg-slate-900 text-white">{r}</option>
-                    ))}
-                  </select>
-                </div>
+      <RawJsonViewerModal
+        isOpen={modalMode === 'RAW_JSON'}
+        catalog={catalog}
+        onClose={() => setModalMode(null)}
+        onCopySuccess={() => {
+          setStatusMsg({ type: 'success', text: 'JSON copied to clipboard!' });
+          setTimeout(() => setStatusMsg(null), 3000);
+        }}
+      />
 
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Color Theme</label>
-                  <select
-                    value={formColor}
-                    onChange={e => setFormColor(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-medium bg-slate-950 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
-                  >
-                    {COLOR_OPTIONS.map(c => (
-                      <option key={c.id} value={c.id} className="bg-slate-900 text-white">{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+      <PipelineArchitectureModal
+        isOpen={modalMode === 'DIARIZATION_INFO'}
+        onClose={() => setModalMode(null)}
+      />
 
-              {/* Avatar Emoji */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Avatar Emoji</label>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {EMOJI_OPTIONS.map(emoji => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setFormEmoji(emoji)}
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all cursor-pointer ${
-                        formEmoji === emoji ? 'bg-indigo-600 text-white scale-110 shadow-md ring-2 ring-indigo-400' : 'bg-slate-950 hover:bg-slate-800'
-                      }`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">Bio / Vocal Characteristics</label>
-                <textarea
-                  rows={2}
-                  placeholder="e.g. Host on tech spaces. Lower register, clear articulation."
-                  value={formNotes}
-                  onChange={e => setFormNotes(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
-                />
-              </div>
-
-              {/* Audio Sample Reference (From Computer or Web URL) */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Audio Sample Reference</span>
-                  <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={() => setAudioSourceTab('COMPUTER')}
-                      className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
-                        audioSourceTab === 'COMPUTER' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      💻 From Computer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAudioSourceTab('URL')}
-                      className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
-                        audioSourceTab === 'URL' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      🌐 Web URL / Path
-                    </button>
-                  </div>
-                </div>
-
-                {audioSourceTab === 'COMPUTER' ? (
-                  <div className="space-y-3">
-                    {!localAudioFile ? (
-                      <label
-                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                        onDragLeave={() => setDragOver(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setDragOver(false);
-                          if (e.dataTransfer.files?.[0]) {
-                            handleSelectAudioFile(e.dataTransfer.files[0]);
-                          }
-                        }}
-                        className={`flex flex-col items-center justify-center p-5 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                          dragOver ? 'border-indigo-500 bg-indigo-950/20' : 'border-slate-700 hover:border-indigo-500/60 bg-slate-950/60 hover:bg-slate-950'
-                        }`}
-                      >
-                        <input
-                          type="file"
-                          accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              handleSelectAudioFile(e.target.files[0]);
-                            }
-                          }}
-                        />
-                        <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 mb-2">
-                          <UploadCloud size={20} />
-                        </div>
-                        <span className="text-xs font-bold text-slate-200">
-                          Click to browse or drag &amp; drop audio sample
-                        </span>
-                        <span className="text-[11px] text-slate-400 mt-0.5">
-                          Direct from your computer: WAV, MP3, M4A, OGG (3s – 15s clean monologue recommended)
-                        </span>
-                      </label>
-                    ) : (
-                      <div className="p-3.5 bg-slate-950 border border-slate-700/80 rounded-xl space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="p-2 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex-shrink-0">
-                              <Music size={16} />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-white truncate">{localAudioFile.name}</p>
-                              <p className="text-[11px] text-slate-400">
-                                {(localAudioFile.size / 1024).toFixed(1)} KB • {localAudioFile.type || 'audio file'}
-                              </p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLocalAudioFile(null);
-                              if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
-                              setLocalAudioPreviewUrl(null);
-                            }}
-                            className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                            title="Remove file"
-                          >
-                            <X size={15} />
-                          </button>
-                        </div>
-
-                        {/* Audio Player Preview */}
-                        {localAudioPreviewUrl && (
-                          <div className="space-y-1">
-                            <span className="text-[11px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1">
-                              <Volume2 size={11} className="text-indigo-400" /> Listen to Audio Sample
-                            </span>
-                            <audio
-                              controls
-                              src={localAudioPreviewUrl}
-                              className="w-full h-8 rounded-lg bg-slate-900 border border-slate-800"
-                            />
-                          </div>
-                        )}
-
-                        {/* Web Audio Pre-Flight Inspection Card */}
-                        {inspectingAudio && (
-                          <div className="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/25 flex items-center gap-2 text-xs text-indigo-300">
-                            <Loader size={13} className="animate-spin text-indigo-400" />
-                            <span>Analyzing acoustic waveform with Web Audio API…</span>
-                          </div>
-                        )}
-
-                        {audioPreCheck && (
-                          <div className={`p-3 rounded-xl border space-y-2 text-xs ${
-                            audioPreCheck.qualityLevel === 'excellent' ? 'bg-emerald-500/10 border-emerald-500/30' :
-                            audioPreCheck.qualityLevel === 'good' ? 'bg-indigo-500/10 border-indigo-500/30' :
-                            audioPreCheck.qualityLevel === 'warning' ? 'bg-amber-500/10 border-amber-500/30' :
-                            'bg-rose-500/10 border-rose-500/30'
-                          }`}>
-                            <div className="flex items-center justify-between font-bold">
-                              <span className="flex items-center gap-1.5 text-white">
-                                <Sparkles size={13} className={audioPreCheck.qualityLevel === 'error' ? 'text-rose-400' : audioPreCheck.qualityLevel === 'warning' ? 'text-amber-400' : 'text-emerald-400'} />
-                                Pre-Flight Quality Check
-                              </span>
-                              <span className={`text-[11px] uppercase font-mono px-2 py-0.5 rounded font-bold ${
-                                audioPreCheck.qualityLevel === 'excellent' ? 'bg-emerald-500/20 text-emerald-300' :
-                                audioPreCheck.qualityLevel === 'good' ? 'bg-indigo-500/20 text-indigo-300' :
-                                audioPreCheck.qualityLevel === 'warning' ? 'bg-amber-500/20 text-amber-300' :
-                                'bg-rose-500/20 text-rose-300'
-                              }`}>
-                                {audioPreCheck.qualityLevel}
-                              </span>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2 text-[11px] font-mono">
-                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[11px]">DURATION</span>
-                                <span className="font-bold text-white">{audioPreCheck.duration.toFixed(1)}s</span>
-                              </div>
-                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[11px]">PEAK LEVEL</span>
-                                <span className="font-bold text-white">{audioPreCheck.peakDb.toFixed(1)} dBFS</span>
-                              </div>
-                              <div className="bg-slate-950/70 p-1.5 rounded-lg border border-slate-800 text-center">
-                                <span className="text-slate-400 block text-[11px]">SAMPLE RATE</span>
-                                <span className="font-bold text-white">{audioPreCheck.sampleRate / 1000} kHz</span>
-                              </div>
-                            </div>
-
-                            <div className="space-y-0.5 text-[11px] text-slate-300">
-                              {audioPreCheck.qualityNotes.map((note, idx) => (
-                                <p key={idx} className="flex items-start gap-1.5">
-                                  <span className="w-1 h-1 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0" />
-                                  <span>{note}</span>
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Action: Upload & Cloud Enroll */}
-                        <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
-                          <p className="text-[11px] text-slate-400 max-w-xs leading-relaxed">
-                            Uploads file directly to <code className="text-indigo-300 font-mono">speaker_samples/</code> and triggers cloud enrollment.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={handleUploadFromComputerAndEnroll}
-                            disabled={uploadingAudio || !hasGitHub || !formName.trim()}
-                            title={!hasGitHub ? 'Configure GitHub Token in Settings' : 'Upload file to repo and enroll'}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
-                          >
-                            {uploadingAudio ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                            {uploadingAudio ? 'Uploading…' : 'Upload & Enroll'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. https://domain.com/sample.wav or speaker_samples/Angela/clip_01.wav"
-                      value={formAudioUrl}
-                      onChange={e => setFormAudioUrl(e.target.value)}
-                      className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner"
-                    />
-                    {formAudioUrl.trim().startsWith('http') && (
-                      <div className="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-2">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-0.5">
-                            <p className="text-xs font-bold text-indigo-200 flex items-center gap-1.5">
-                              <Sparkles size={13} className="text-indigo-400" /> 1-Click Cloud Neural Enrollment
-                            </p>
-                            <p className="text-[11px] text-slate-400 leading-relaxed">
-                              Extract the 192-dim SpeechBrain ECAPA-TDNN vector in GitHub Actions cloud runner and auto-commit to <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleCloudEnroll}
-                            disabled={enrollingCloud || !hasGitHub || !formName.trim()}
-                            title={!hasGitHub ? 'Configure GitHub Token in Settings first' : 'Dispatch enroll_voice.yml workflow'}
-                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-md cursor-pointer transition-all hover:scale-105"
-                          >
-                            {enrollingCloud ? <Loader size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                            {enrollingCloud ? 'Dispatching…' : 'Enroll in Cloud'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setModalMode(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveForm}
-                disabled={!formName.trim()}
-                className="flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all shadow-lg cursor-pointer hover:scale-105"
-              >
-                <Check size={14} /> Save Profile
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── CLI Enrollment Guide Modal ── */}
-      {modalMode === 'CLI_GUIDE' && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                  <Terminal size={18} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">Enroll Voice Sample</h3>
-                  <p className="text-xs text-slate-400">Generate 192-dim neural embedding using ECAPA-TDNN</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setModalMode(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs text-slate-300">
-              <p className="leading-relaxed">
-                Add sample audio for <strong className="text-white font-bold">{targetProfile?.name || 'this speaker'}</strong> using either of the two enrollment methods below:
-              </p>
-
-              {/* Method 1: Cloud GitHub Action */}
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
-                    <Sparkles size={13} className="text-indigo-400" /> Method 1: 1-Click Cloud Runner (Recommended)
-                  </span>
-                  <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Zero Local Setup</span>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Provide any direct link to a voice clip (.wav, .mp3, .m4a) in the profile editor, or run the <strong className="text-slate-200">Enroll Voice Profile</strong> action in GitHub. The cloud runner loads PyTorch &amp; SpeechBrain ECAPA-TDNN, extracts the 192-dim vector, and commits to <code className="text-indigo-300 font-mono">voice_profiles.json</code> automatically.
-                </p>
-                <div className="pt-1 flex items-center justify-between">
-                  <span className="text-[11px] font-mono text-slate-400">Workflow: .github/workflows/enroll_voice.yml</span>
-                  <button
-                    onClick={() => {
-                      setModalMode(null);
-                      if (targetProfile) handleOpenEdit(targetProfile);
-                    }}
-                    className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer"
-                  >
-                    Open Profile to Enroll <ArrowRight size={12} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Method 2: Local CLI */}
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Terminal size={13} className="text-emerald-400" /> Method 2: Local Command Line
-                  </span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`python scripts/extract_speaker_clips.py --enroll "speaker_samples/${targetProfile?.name || 'speaker'}.wav" --name "${targetProfile?.name || 'Speaker'}"`);
-                      setCopiedCode(true);
-                      setTimeout(() => setCopiedCode(false), 2500);
-                    }}
-                    className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 cursor-pointer"
-                  >
-                    {copiedCode ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                    {copiedCode ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Run directly on your local machine or server with Python 3:
-                </p>
-                <pre className="p-2.5 bg-slate-900 rounded-lg text-emerald-300 font-mono text-[11px] overflow-x-auto select-all">
-                  python scripts/extract_speaker_clips.py --enroll "speaker_samples/{targetProfile?.name || 'speaker'}.wav" --name "{targetProfile?.name || 'Speaker'}"
-                </pre>
-              </div>
-
-              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-1">
-                <span className="font-bold text-indigo-300 flex items-center gap-1 text-xs">
-                  <Sparkles size={12} /> Automatic Diarization Matching
-                </span>
-                <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Once enrolled, new Twitter Spaces transcribed by Whisper or WhisperX will automatically compute cosine similarity against this 192-dim vector and label speech turns accurately.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 border-t border-slate-800">
-              <button
-                onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Raw JSON Viewer Modal ── */}
-      {modalMode === 'RAW_JSON' && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText size={18} className="text-indigo-400" />
-                <h3 className="text-base font-bold text-white">voice_profiles.json</h3>
-              </div>
-              <button
-                onClick={() => setModalMode(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <pre className="p-4 bg-slate-950 border border-slate-800 rounded-xl text-[11px] font-mono text-slate-300 max-h-96 overflow-y-auto select-all">
-              {JSON.stringify(catalog, null, 2)}
-            </pre>
-
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(catalog, null, 2));
-                  setStatusMsg({ type: 'success', text: 'JSON copied to clipboard!' });
-                  setTimeout(() => setStatusMsg(null), 3000);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg cursor-pointer"
-              >
-                <Copy size={13} /> Copy JSON
-              </button>
-              <button
-                onClick={() => setModalMode(null)}
-                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Pipeline Architecture Guide Modal ── */}
-      {modalMode === 'DIARIZATION_INFO' && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HelpCircle size={18} className="text-amber-400" />
-                <h3 className="text-base font-bold text-white">Voice Diarization Architecture</h3>
-              </div>
-              <button
-                onClick={() => setModalMode(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto pr-2">
-              <p>
-                SpacePipe Gen utilizes a dual-tier acoustic and conversational identification architecture to automatically resolve speakers in audio spaces:
-              </p>
-
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                <h5 className="font-bold text-indigo-400">1. SpeechBrain ECAPA-TDNN Embeddings</h5>
-                <p className="text-slate-400">
-                  Audio waveforms are projected into a 192-dimensional vector space using the <code className="text-indigo-300 font-mono">speechbrain/spkrec-ecapa-voxceleb</code> neural model. Distinct voices cluster together, allowing cosine similarity comparison against enrolled profiles stored in <code className="text-indigo-300 font-mono">voice_profiles.json</code>.
-                </p>
-              </div>
-
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                <h5 className="font-bold text-emerald-400">2. Word-Level Boundary Diarization</h5>
-                <p className="text-slate-400">
-                  WhisperX neural diarizer tracks word-level acoustic boundaries. Each speaker transition immediately flushes conversational turns, preserving brief interjections, backchannels, and rapid multi-party exchanges without text crosstalk bleed.
-                </p>
-              </div>
-
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1.5">
-                <h5 className="font-bold text-indigo-400">3. Conversational Heuristics & LLM Consensus</h5>
-                <p className="text-slate-400">
-                  Direct vocative address rules and self-introductions in the text are cross-referenced with your registered Voice Profile Library to guarantee accurate identification even in challenging audio environments.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-              >
-                Got It
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Separation Matrix & Quality Auditor Modal ── */}
-      {modalMode === 'SEPARATION_MATRIX' && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-3xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">Acoustic Separation Matrix &amp; Diarization Auditor</h3>
-                  <p className="text-xs text-slate-400">Pairwise cosine similarity between enrolled 192-dim neural vectors</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setModalMode(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
-              {/* Summary Stats */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[11px] uppercase font-bold text-slate-400">Total Enrolled Voices</span>
-                  <p className="text-xl font-black text-white">{stats.enrolled}</p>
-                </div>
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[11px] uppercase font-bold text-slate-400">Evaluated Pairs</span>
-                  <p className="text-xl font-black text-indigo-400">{confusionPairs.length}</p>
-                </div>
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
-                  <span className="text-[11px] uppercase font-bold text-slate-400">High Overlap Risks (&gt;75%)</span>
-                  <p className={`text-xl font-black ${confusionPairs.filter(p => p.risk === 'high').length > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {confusionPairs.filter(p => p.risk === 'high').length}
-                  </p>
-                </div>
-              </div>
-
-              {/* Guidance Box */}
-              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-slate-300 leading-relaxed text-[11px] space-y-1">
-                <span className="font-bold text-indigo-300 flex items-center gap-1">
-                  <Info size={12} /> Diarization Quality Metric Interpretation
-                </span>
-                <p>
-                  Cosine similarity ranges from <strong>0.00</strong> (completely orthogonal vocal acoustics) to <strong>1.00</strong> (identical voice).
-                  Separation below <strong>0.65</strong> ensures razor-sharp multi-speaker discrimination.
-                  Pairs with <strong>&gt;0.75</strong> similarity run a slight risk of label mixing during crosstalk or degraded microphone conditions.
-                </p>
-              </div>
-
-              {/* Pairs List */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Pairwise Similarity Scores</h4>
-                {confusionPairs.length === 0 ? (
-                  <p className="p-4 text-center text-slate-400 bg-slate-950 rounded-xl border border-slate-800">
-                    At least 2 enrolled voice profiles with 192-dim vectors are required to calculate acoustic separation.
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {confusionPairs.map((pair, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-3 rounded-xl border flex items-center justify-between gap-4 transition-all ${
-                          pair.risk === 'high' ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' :
-                          pair.risk === 'moderate' ? 'bg-amber-500/10 border-amber-500/25 text-amber-200' :
-                          'bg-slate-950/80 border-slate-800 text-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="font-mono text-xs font-bold text-slate-400">#{idx + 1}</span>
-                          <div>
-                            <span className="font-bold text-white text-xs">{pair.speakerA}</span>
-                            <span className="text-slate-400 mx-2">↔</span>
-                            <span className="font-bold text-white text-xs">{pair.speakerB}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 flex-shrink-0">
-                          {/* Progress bar */}
-                          <div className="w-24 bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800 hidden sm:block">
-                            <div
-                              style={{ width: `${Math.round(pair.similarity * 100)}%` }}
-                              className={`h-full rounded-full ${
-                                pair.risk === 'high' ? 'bg-rose-500' :
-                                pair.risk === 'moderate' ? 'bg-amber-400' :
-                                'bg-emerald-400'
-                              }`}
-                            />
-                          </div>
-
-                          <span className="font-mono text-xs font-bold text-white">
-                            {(pair.similarity * 100).toFixed(1)}%
-                          </span>
-
-                          <span className={`text-[11px] uppercase font-bold px-2 py-0.5 rounded-full border ${
-                            pair.risk === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' :
-                            pair.risk === 'moderate' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' :
-                            'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                          }`}>
-                            {pair.risk === 'high' ? 'High Overlap' : pair.risk === 'moderate' ? 'Moderate' : 'Optimal Separation'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 border-t border-slate-800">
-              <button
-                onClick={() => setModalMode(null)}
-                className="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-              >
-                Close Auditor
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <SeparationMatrixModal
+        isOpen={modalMode === 'SEPARATION_MATRIX'}
+        onClose={() => setModalMode(null)}
+        stats={stats}
+        confusionPairs={confusionPairs}
+      />
     </div>
   );
 };

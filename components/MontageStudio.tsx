@@ -49,6 +49,9 @@ import { SilenceGapBlock } from './SilenceGapBlock';
 import { FloatingTransportBar } from './FloatingTransportBar';
 import { buildSequencePlan } from '../utils/sequencePlan';
 import { categoryDotClass } from '../utils/uiTokens';
+import { TimelineClipCard } from './montage/TimelineClipCard';
+import { CandidateClipCard } from './montage/CandidateClipCard';
+import { StudioExportBar } from './montage/StudioExportBar';
 import { probeFileDuration, reconcileWindow } from '../utils/clipProbe';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
@@ -926,176 +929,44 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               timelineClips.map((clip, idx) => {
                 const isPlayingThis = isAuditioning && currentAuditionIndex === idx;
                 const isSoloPlaying = previewClipId === clip.id && isPreviewPlaying;
-                const clipDur = plan.items[idx]?.effDur ?? Math.max(0.2, clip.endSec - clip.startSec);
                 const isUnverifiable = unverifiableClipIds.includes(clip.id);
                 const isDraggingThis = draggedIdx === idx;
                 const isDragOverThis = dragOverIdx === idx;
 
                 return (
                   <React.Fragment key={clip.id}>
-                  <div
-                    draggable
-                    onDragStart={() => handleDragStart(idx)}
-                    onDragOver={e => handleTimelineDragOver(e, idx)}
-                    onDrop={e => handleTimelineDrop(e, idx)}
-                    className={`p-3.5 rounded-xl border transition-all relative ${
-                      isDraggingThis
-                        ? 'opacity-40 border-dashed border-indigo-500'
-                        : isDragOverThis
-                        ? 'border-indigo-400 bg-indigo-950/40 shadow-lg ring-2 ring-indigo-500/40'
-                        : isPlayingThis
-                        ? 'bg-indigo-950/80 border-emerald-500 shadow-xl ring-2 ring-emerald-500/30'
-                        : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    {/* Top Row: Reorder grip, Rank, Category, Speaker, Controls */}
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-300" title="Drag to reorder">
-                          <GripVertical size={14} />
-                        </span>
-                        <span className="w-5 h-5 rounded-md bg-slate-800 text-slate-200 font-mono text-[11px] font-bold flex items-center justify-center border border-slate-700">
-                          {idx + 1}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300">
-                          <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${categoryDotClass(clip.category)}`} aria-hidden="true" />
-                          {clip.category || 'Archival Quote'}
-                        </span>
-                        <span className="text-xs font-bold text-slate-200 truncate max-w-[140px]">
-                          {clip.speaker}
-                        </span>
-                        {typeof clip.tensionScore === 'number' && (
-                          <span
-                            className="px-1.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-slate-800 text-slate-300"
-                            title="Director tension score (1-10)"
-                          >
-                            T{clip.tensionScore}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        {/* Play solo preview */}
-                        <button
-                          onClick={() => playSoloPreview(clip)}
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                            isSoloPlaying
-                              ? 'bg-amber-500 text-slate-950 border-amber-400'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
-                          }`}
-                          title="Audition single clip slice"
-                        >
-                          {isSoloPlaying ? <Pause size={12} /> : <Play size={12} />}
-                        </button>
-
-                        {/* Move Up/Down */}
-                        <button
-                          onClick={() => moveClip(clip.id, 'up')}
-                          disabled={idx === 0}
-                          className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                          title="Move earlier"
-                        >
-                          <ArrowUp size={12} />
-                        </button>
-                        <button
-                          onClick={() => moveClip(clip.id, 'down')}
-                          disabled={idx === timelineClips.length - 1}
-                          className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                          title="Move later"
-                        >
-                          <ArrowDown size={12} />
-                        </button>
-
-                        {/* Exclude / Blacklist toggle */}
-                        <button
-                          onClick={() => toggleBlacklist(clip.quoteId || clip.id)}
-                          className={`p-1 rounded-lg text-xs transition-colors cursor-pointer ${
-                            isBlacklisted(clip.quoteId || clip.id)
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                              : 'hover:bg-slate-800 text-slate-400 hover:text-rose-400'
-                          }`}
-                          title="Toggle Exclude from Montage (blacklist quote)"
-                        >
-                          <ShieldAlert size={12} />
-                        </button>
-
-                        {/* Lock: the Director never changes a locked clip */}
-                        <button
-                          onClick={() => toggleClipLock(clip.id)}
-                          className={`p-1 rounded-lg text-xs transition-colors cursor-pointer ${
-                            clip.locked
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'hover:bg-slate-800 text-slate-400 hover:text-amber-300'
-                          }`}
-                          title={clip.locked ? 'Locked: the Director will not change this clip' : 'Lock this clip against Director edits'}
-                          aria-pressed={!!clip.locked}
-                        >
-                          {clip.locked ? <Lock size={12} /> : <Unlock size={12} />}
-                        </button>
-
-                        {/* Delete */}
-                        <button
-                          onClick={() => removeClip(clip.id)}
-                          className="p-1 rounded-lg hover:bg-rose-950/50 text-slate-400 hover:text-rose-400 cursor-pointer transition-colors"
-                          title="Remove from sequence"
-                        >
-                          <X size={13} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Quote text */}
-                    <p className="text-xs text-slate-300 italic font-medium leading-relaxed mb-3 line-clamp-3">
-                      "{clip.quote}"
-                    </p>
-                    {clip.directorNote && (
-                      <p className="text-[11px] text-indigo-300/90 mb-2">Director: {clip.directorNote}</p>
-                    )}
-                    {isUnverifiable && (
-                      <p className="text-[11px] text-amber-300 mb-2 flex items-center gap-1">
-                        <AlertTriangle size={11} /> Audio could not be loaded (missing file or unreachable URL). It will be skipped.
-                      </p>
-                    )}
-
-                    {/* Visual Waveform & Interactive Trim Scrubbing */}
-                    <div className="pt-2.5 border-t border-slate-800/80">
-                      <VisualWaveformTrim
-                        clip={clip}
-                        isPlaying={isPlayingThis}
-                        playheadProgress={auditionProgress?.timelineIndex === idx ? auditionProgress.clipProgress : 0}
-                        onTrimStart={(newStart) => {
-                          updateClip(clip.id, {
-                            startSec: newStart,
-                            origStartSec: clip.origStartSec ?? clip.startSec,
-                            origEndSec: clip.origEndSec ?? clip.endSec,
-                            trimBasis: 'manual',
-                          });
-                        }}
-                        onTrimEnd={(newEnd) => {
-                          updateClip(clip.id, {
-                            endSec: newEnd,
-                            origStartSec: clip.origStartSec ?? clip.startSec,
-                            origEndSec: clip.origEndSec ?? clip.endSec,
-                            trimBasis: 'manual',
-                          });
-                        }}
-                        onResetTrim={() => resetClipTrim(clip.id)}
-                        onSeekPreview={(timeSec) => {
-                          if (previewAudioRef.current && previewClipId === clip.id) {
-                            previewAudioRef.current.currentTime = timeSec;
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {idx < timelineClips.length - 1 && (
-                    <SilenceGapBlock
-                      gapSec={plan.items[idx]?.gapAfter ?? gapSeconds}
-                      isCustom={clip.gapAfterSec !== undefined}
-                      defaultGapSec={gapSeconds}
-                      onSetGap={(g) => setClipGap(clip.id, g)}
+                    <TimelineClipCard
+                      clip={clip}
+                      idx={idx}
+                      timelineClipsLength={timelineClips.length}
+                      isDraggingThis={isDraggingThis}
+                      isDragOverThis={isDragOverThis}
+                      isPlayingThis={isPlayingThis}
+                      isSoloPlaying={isSoloPlaying}
+                      isUnverifiable={isUnverifiable}
+                      isBlacklisted={isBlacklisted(clip.quoteId || clip.id)}
+                      auditionProgress={auditionProgress}
+                      previewAudioRef={previewAudioRef}
+                      previewClipId={previewClipId}
+                      onDragStart={handleDragStart}
+                      onDragOver={handleTimelineDragOver}
+                      onDrop={handleTimelineDrop}
+                      onPlaySolo={playSoloPreview}
+                      onMoveClip={moveClip}
+                      onToggleBlacklist={toggleBlacklist}
+                      onToggleLock={toggleClipLock}
+                      onRemoveClip={removeClip}
+                      onUpdateClip={updateClip}
+                      onResetTrim={resetClipTrim}
                     />
-                  )}
+                    {idx < timelineClips.length - 1 && (
+                      <SilenceGapBlock
+                        gapSec={plan.items[idx]?.gapAfter ?? gapSeconds}
+                        isCustom={clip.gapAfterSec !== undefined}
+                        defaultGapSec={gapSeconds}
+                        onSetGap={(g) => setClipGap(clip.id, g)}
+                      />
+                    )}
                   </React.Fragment>
                 );
               })
@@ -1103,87 +974,19 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           </div>
 
           {/* Master Audition & Export Action Bar */}
-          <div className="px-5 py-3.5 bg-slate-900/90 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap text-xs">
-            {/* Audition Player */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={isAuditioning ? stopAudition : startAudition}
-                disabled={timelineClips.length === 0}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold shadow-lg transition-all cursor-pointer disabled:opacity-30 ${
-                  isAuditioning
-                    ? 'bg-amber-500 text-slate-950'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                }`}
-              >
-                {isAuditioning ? <Pause size={14} /> : <Play size={14} />}
-                <span>{isAuditioning ? 'Pause Audition' : 'Audition Sequence'}</span>
-              </button>
-
-              {auditionStatus && <span className="text-[11px] text-amber-300 max-w-[220px] truncate" title={auditionStatus}>{auditionStatus}</span>}
-              {isAuditioning && (
-                <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
-                  <button
-                    onClick={() => skipAudition(Math.max(0, currentAuditionIndex - 1))}
-                    disabled={currentAuditionIndex === 0}
-                    className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                  >
-                    <SkipBack size={12} />
-                  </button>
-                  <span className="font-mono text-emerald-400 font-bold text-xs">
-                    #{currentAuditionIndex + 1}/{timelineClips.length}
-                  </span>
-                  <button
-                    onClick={() => skipAudition(Math.min(timelineClips.length - 1, currentAuditionIndex + 1))}
-                    disabled={currentAuditionIndex >= timelineClips.length - 1}
-                    className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                  >
-                    <SkipForward size={12} />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Master Export Buttons */}
-            <div className="flex items-center gap-2">
-              {isExporting ? (
-                <div className="flex items-center gap-2 text-indigo-400 font-medium">
-                  <Loader2 size={15} className="animate-spin" />
-                  <span>{exportProgress}</span>
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={exportStitchedWav}
-                    disabled={timelineClips.length === 0}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold shadow-lg cursor-pointer transition-all active:scale-95 disabled:opacity-40"
-                    title="Render master broadcast WAV file with -16 LUFS loudness matching"
-                  >
-                    <Download size={13} />
-                    <span>Export Stitched WAV</span>
-                  </button>
-
-                  <button
-                    onClick={exportAudacityLabels}
-                    disabled={timelineClips.length === 0}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
-                    title="Export Audacity / DAW label track marker file"
-                  >
-                    <FileText size={13} className="text-amber-400" />
-                    <span>Audacity Labels</span>
-                  </button>
-
-                  <button
-                    onClick={exportManifestJson}
-                    disabled={timelineClips.length === 0}
-                    className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 font-semibold cursor-pointer transition-colors disabled:opacity-40"
-                    title="Export JSON recipe"
-                  >
-                    <span>JSON</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <StudioExportBar
+            isAuditioning={isAuditioning}
+            onToggleAudition={isAuditioning ? stopAudition : startAudition}
+            timelineClipsLength={timelineClips.length}
+            auditionStatus={auditionStatus}
+            currentAuditionIndex={currentAuditionIndex}
+            onSkipAudition={skipAudition}
+            isExporting={isExporting}
+            exportProgress={exportProgress}
+            onExportStitchedWav={exportStitchedWav}
+            onExportAudacityLabels={exportAudacityLabels}
+            onExportManifestJson={exportManifestJson}
+          />
         </section>
 
         {isDesktop && (
@@ -1326,151 +1129,18 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
                 const hasFailed = failedAudioUrls[clip.id];
 
                 return (
-                  <div
+                  <CandidateClipCard
                     key={clip.id}
-                    draggable={!isHardExcluded}
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('application/spacepipe-clip', JSON.stringify(clip));
-                      e.dataTransfer.effectAllowed = 'copy';
-                    }}
-                    className={`p-4 rounded-xl border transition-all ${
-                      !isHardExcluded ? 'cursor-grab active:cursor-grabbing' : ''
-                    } ${
-                      isExcluded
-                        ? 'bg-rose-950/20 border-rose-500/30'
-                        : isAlreadyInTimeline
-                        ? 'bg-slate-900/60 border-indigo-500/30'
-                        : 'bg-slate-900/90 border-slate-800/90 hover:border-slate-700'
-                    }`}
-                  >
-                    {/* Hard Exclude Editorial Alert if present */}
-                    {isHardExcluded && (
-                      <div className="mb-2.5 px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center gap-2 text-rose-300 text-xs font-semibold">
-                        <AlertTriangle size={14} className="flex-shrink-0" />
-                        <span>MANDATORY EXCLUSION: Strictly excluded from montage sequences by Editorial Charter.</span>
-                      </div>
-                    )}
-
-                    {/* Header */}
-                    <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        {clip.quoteId && (
-                          <span className="font-mono text-[11px] text-slate-400">
-                            {clip.quoteId}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300">
-                          <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${categoryDotClass(clip.category)}`} aria-hidden="true" />
-                          {clip.category || 'Excerpt'}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {clip.speaker}
-                        </span>
-                      </div>
-
-                      {/* Status Badges */}
-                      <div className="flex items-center gap-1.5">
-                        {clip.status === 'EXISTS' && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Asset exists in cloud release library">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-                            In library
-                          </span>
-                        )}
-                        {clip.status === 'READY_FOR_EXTRACTION' && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Timecode boundaries aligned for cloud slicing">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true" />
-                            Ready to extract
-                          </span>
-                        )}
-                        {clip.status === 'SOURCE_NOT_AVAILABLE' && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400" title="Source recording outside available archive pool">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
-                            Source not available
-                          </span>
-                        )}
-                        {isExcluded && (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" aria-hidden="true" />
-                            Excluded
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Quote Text */}
-                    <p className="text-sm text-slate-100 leading-relaxed mb-3">
-                      &ldquo;{clip.quote}&rdquo;
-                    </p>
-
-                    {/* Footer: Source Space, Duration, Actions */}
-                    <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-3 flex-wrap text-xs">
-                      <div className="text-[11px] text-slate-400 truncate max-w-[240px]">
-                        <span className="text-slate-400">Source:</span> {clip.sourceTitle}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {/* Instant streaming playback button */}
-                        {clip.audioUrl ? (
-                          <button
-                            onClick={() => playSoloPreview(clip)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                              isSoloPlaying
-                                ? 'bg-indigo-600 text-white border-indigo-500'
-                                : 'bg-transparent hover:bg-slate-800 text-slate-300 border-transparent'
-                            }`}
-                            title="Stream preview directly from cloud storage"
-                          >
-                            {isSoloPlaying ? <Pause size={12} /> : <Play size={12} />}
-                            <span>{isSoloPlaying ? 'Pause' : 'Stream'}</span>
-                          </button>
-                        ) : hasFailed ? (
-                          <span className="px-2 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[11px] font-semibold">
-                            Stream Offline
-                          </span>
-                        ) : null}
-
-                        {/* Blacklist toggle button */}
-                        {!isHardExcluded && (
-                          <button
-                            onClick={() => toggleBlacklist(clip.quoteId || clip.id)}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                              isExcluded
-                                ? 'bg-transparent text-rose-300 border-rose-500/40 hover:bg-rose-500/10'
-                                : 'bg-transparent hover:bg-slate-800 text-slate-300 hover:text-rose-300 border-transparent'
-                            }`}
-                            title="Exclude quote from automatic montage sequences"
-                          >
-                            {isExcluded ? 'Include' : 'Exclude'}
-                          </button>
-                        )}
-
-                        {/* Add to timeline button */}
-                        <button
-                          onClick={() => addClip(clip)}
-                          disabled={isHardExcluded || isAlreadyInTimeline}
-                          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer ${
-                            isAlreadyInTimeline
-                              ? 'bg-transparent text-emerald-400 border border-slate-800 cursor-not-allowed'
-                              : isHardExcluded
-                              ? 'bg-rose-950/40 text-slate-400 border border-rose-900/30 cursor-not-allowed'
-                              : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                          }`}
-                        >
-                          {isAlreadyInTimeline ? (
-                            <>
-                              <Check size={12} />
-                              <span>In reel</span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus size={12} />
-                              <span>Add to reel</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    clip={clip}
+                    isHardExcluded={!!isHardExcluded}
+                    isExcluded={!!isExcluded}
+                    isAlreadyInTimeline={isAlreadyInTimeline}
+                    isSoloPlaying={isSoloPlaying}
+                    hasFailed={hasFailed}
+                    onPlaySolo={playSoloPreview}
+                    onToggleBlacklist={toggleBlacklist}
+                    onAddClip={addClip}
+                  />
                 );
               })
             )}
