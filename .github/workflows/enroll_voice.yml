@@ -35,41 +35,22 @@ on:
 permissions:
   contents: write
   issues: write
+  packages: read
 
 jobs:
   enroll:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/spacepipe-runner:latest
+      options: --user root
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install System Dependencies
+      - name: Verify Pre-Baked Container Environment
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg libsndfile1 curl
-
-      - name: Cache ML Weights & Pip (zstd multithreaded)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/torch
-            ~/.cache/huggingface
-            ~/.cache/speechbrain
-            ~/.cache/pip
-          key: ml-models-${{ runner.os }}-${{ hashFiles('voice_profiles.json') }}
-          restore-keys: |
-            ml-models-${{ runner.os }}-
-
-      - name: Install Python AI Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install speechbrain soundfile requests
+          python -c "import torch, speechbrain, soundfile; print('[✓] SpacePipe Pre-Baked AI Container Ready!')"
+          ffmpeg -version | head -n 1
 
       - name: Prepare Sample Audio Clips (Fast HTTP Byte-Range Streaming)
         env:

@@ -28,6 +28,7 @@ permissions:
   contents: write
   actions: write
   issues: write
+  packages: read
 
 jobs:
   # ============================================================================
@@ -68,6 +69,9 @@ jobs:
     needs: plan_batch
     if: needs.plan_batch.outputs.has_items == 'true' && inputs.dry_run != true
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/spacepipe-runner:latest
+      options: --user root
     timeout-minutes: 180
     strategy:
       max-parallel: 15
@@ -78,29 +82,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Cache ML Weights & Pip (zstd multithreaded)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/torch
-            ~/.cache/huggingface
-            ~/.cache/speechbrain
-            ~/.cache/pip
-          key: ml-models-${{ runner.os }}-${{ hashFiles('voice_profiles.json') }}
-          restore-keys: |
-            ml-models-${{ runner.os }}-
-
-      - name: Install FFmpeg & Python AI Stack
+      - name: Verify Pre-Baked Container Environment
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libsndfile1
-          python -m pip install --upgrade pip
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install requests assemblyai speechbrain soundfile faster-whisper
+          python -c "import torch, faster_whisper, speechbrain; print('[✓] SpacePipe Pre-Baked AI Container Ready!')"
+          ffmpeg -version | head -n 1
 
       - name: Transcribe & Diarize Episode
         id: run_tx

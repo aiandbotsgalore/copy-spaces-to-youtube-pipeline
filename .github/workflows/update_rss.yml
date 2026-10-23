@@ -17,8 +17,6 @@ on:
       - 'package-lock.json'
   release:
     types: [published]
-  schedule:
-    - cron: "*/30 * * * *"
   workflow_dispatch: {}
 
 permissions:

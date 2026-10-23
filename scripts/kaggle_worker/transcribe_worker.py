@@ -65,7 +65,7 @@ def format_timestamp_srt(seconds: float) -> str:
 
 
 def get_untranscribed_releases(repo: str, gh_token: str, limit: int = 5) -> List[Dict[str, Any]]:
-    """Fetches releases from GitHub and finds those missing .json transcripts."""
+    """Paginates through GitHub Releases until 'limit' untranscribed episodes are discovered."""
     headers = {
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "SpacePipe-Kaggle-Worker"
@@ -73,27 +73,40 @@ def get_untranscribed_releases(repo: str, gh_token: str, limit: int = 5) -> List
     if gh_token:
         headers["Authorization"] = f"token {gh_token}"
 
-    url = f"https://api.github.com/repos/{repo}/releases?per_page=50"
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req) as resp:
-        releases = json.loads(resp.read().decode())
-
     to_process = []
-    for rel in releases:
-        assets = rel.get("assets", [])
-        mp3_assets = [a for a in assets if a["name"].lower().endswith((".mp3", ".m4a"))]
-        json_assets = [a for a in assets if a["name"].lower().endswith(".json") and not a["name"].lower().endswith("_clips.json")]
+    page = 1
+    max_pages = 25
 
-        if mp3_assets and not json_assets:
-            to_process.append({
-                "release_id": rel["id"],
-                "tag_name": rel["tag_name"],
-                "title": rel.get("name") or rel["tag_name"],
-                "mp3_asset": mp3_assets[0],
-                "upload_url": rel["upload_url"]
-            })
-            if len(to_process) >= limit:
-                break
+    while len(to_process) < limit and page <= max_pages:
+        url = f"https://api.github.com/repos/{repo}/releases?per_page=100&page={page}"
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req) as resp:
+                releases = json.loads(resp.read().decode())
+        except Exception as e:
+            print(f"[!] Warning: Failed fetching releases page {page}: {e}")
+            break
+
+        if not releases or not isinstance(releases, list):
+            break
+
+        for rel in releases:
+            assets = rel.get("assets", [])
+            mp3_assets = [a for a in assets if a["name"].lower().endswith((".mp3", ".m4a")) and not a["name"].startswith("clip_")]
+            json_assets = [a for a in assets if a["name"].lower().endswith(".json") and not a["name"].lower().endswith("_clips.json")]
+
+            if mp3_assets and not json_assets:
+                to_process.append({
+                    "release_id": rel["id"],
+                    "tag_name": rel["tag_name"],
+                    "title": rel.get("name") or rel["tag_name"],
+                    "mp3_asset": mp3_assets[0],
+                    "upload_url": rel["upload_url"]
+                })
+                if len(to_process) >= limit:
+                    break
+
+        page += 1
 
     return to_process
 

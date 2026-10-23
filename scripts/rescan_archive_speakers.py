@@ -135,13 +135,13 @@ def scan_conversational_heuristics(segments: List[Dict[str, Any]], target_speake
     self_intro = [
         re.compile(rf'\b(?:this\s+is|i\'m|it\'s)\s+{name_lower}\b', re.I),
     ]
-    exclude = re.compile(r'\b(?:amber\s+rose|rose\s+prairie|rose\s+bowl|a\s+rose\s+by\s+any|guns\s+n\s+roses)\b', re.I)
+    exclude = re.compile(r'\b(?:amber\s+rose|rose\s+prairie|rose\s+bowl|a\s+rose\s+by\s+any|guns\s+n\s+roses)\b', re.I) if name_lower == "rose" else None
 
     scores = {}
     for i, s in enumerate(segments):
         txt = s.get("text", "")
         spk = s.get("speaker", "")
-        if exclude.search(txt):
+        if exclude and exclude.search(txt):
             continue
 
         if any(p.search(txt) for p in self_intro) and spk.lower().startswith("speaker"):
@@ -198,23 +198,28 @@ def update_episode_speaker(ep_file: Path, summary_map: Dict[str, Any], old_spk: 
 def main():
     parser = argparse.ArgumentParser(description="Retroactively scan and label speakers across historical spaces")
     parser.add_argument("--speaker", type=str, default="Rose", help="Target speaker name (must be in voice_profiles.json)")
+    parser.add_argument("--all-speakers", action="store_true", help="Scan and label all enrolled speakers in voice_profiles.json")
     parser.add_argument("--batch-size", type=int, default=0, help="Max episodes to process (0 = all)")
     parser.add_argument("--min-sim", type=float, default=0.54, help="Min cosine similarity for acoustic match (default: 0.54)")
     parser.add_argument("--heuristic-only", action="store_true", help="Run only dialogue heuristic scanner (no audio needed)")
     args = parser.parse_args()
 
-    speaker = args.speaker.strip()
-    target_emb = load_profile_embedding(speaker)
-
-    print(f"============================================================")
-    print(f"  SPACEPIPE RETROACTIVE SPEAKER SCANNER: '{speaker}'")
-    print(f"============================================================")
-
-    if target_emb:
-        print(f"[✓] Enrolled voiceprint found for '{speaker}' (192-dim vector loaded).")
+    if args.all_speakers:
+        try:
+            with open(PROFILES_PATH, "r", encoding="utf-8") as f:
+                p_data = json.load(f)
+            target_speakers = list(p_data.get("profiles", {}).keys())
+        except Exception as e:
+            print(f"[!] Error reading profiles: {e}")
+            target_speakers = [args.speaker.strip()]
+        print(f"============================================================")
+        print(f"  SPACEPIPE MULTI-SPEAKER SCANNER ({len(target_speakers)} ENROLLED PROFILES)")
+        print(f"============================================================")
     else:
-        print(f"[!] Notice: No 192-dim voiceprint found for '{speaker}'. Running in heuristic-only mode.")
-        args.heuristic_only = True
+        target_speakers = [args.speaker.strip()]
+        print(f"============================================================")
+        print(f"  SPACEPIPE RETROACTIVE SPEAKER SCANNER: '{target_speakers[0]}'")
+        print(f"============================================================")
 
     # Check for SpeechBrain
     classifier = None
@@ -248,107 +253,126 @@ def main():
     if args.batch_size > 0:
         episodes = episodes[:args.batch_size]
 
-    print(f"[*] Scanning {len(episodes)} total historical episodes across archive...")
+    print(f"[*] Loaded {len(episodes)} historical episodes from summary index...")
 
-    total_scanned = 0
-    total_matched = 0
-    total_turns_updated = 0
+    total_scanned_overall = 0
+    total_matched_overall = 0
+    total_turns_updated_overall = 0
     tmp_dir = Path("tmp_speaker_rescan")
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
-    for ep in episodes:
-        tag = ep.get("release_tag")
-        title = ep.get("title", tag)
-        existing_speakers = ep.get("speakers", [])
+    for speaker in target_speakers:
+        target_emb = load_profile_embedding(speaker)
+        print(f"\n--- Checking Speaker: '{speaker}' ---")
+        if target_emb:
+            print(f"[✓] Voiceprint loaded (192-dim vector).")
+        else:
+            print(f"[*] No voiceprint vector found; heuristic matching only.")
 
-        # Check if already labeled
-        if any(s.lower() == speaker.lower() for s in existing_speakers):
-            continue
+        spk_matched = 0
+        spk_turns = 0
 
-        ep_file = EPISODES_DIR / f"{tag}.json"
-        if not ep_file.exists():
-            continue
+        for ep in episodes:
+            tag = ep.get("release_tag")
+            title = ep.get("title", tag)
+            existing_speakers = ep.get("speakers", [])
 
-        total_scanned += 1
-        try:
-            with open(ep_file, "r", encoding="utf-8") as f:
-                ep_data = json.load(f)
-        except Exception:
-            continue
+            # Check if already labeled
+            if any(s.lower() == speaker.lower() for s in existing_speakers):
+                continue
 
-        segs = ep_data.get("segments", [])
-        if not segs:
-            continue
+            ep_file = EPISODES_DIR / f"{tag}.json"
+            if not ep_file.exists():
+                continue
 
-        generic_speakers = sorted(list({s.get("speaker", "") for s in segs if s.get("speaker", "").lower().startswith("speaker")}))
-        if not generic_speakers:
-            continue
+            total_scanned_overall += 1
+            try:
+                with open(ep_file, "r", encoding="utf-8") as f:
+                    ep_data = json.load(f)
+            except Exception:
+                continue
 
-        matched_spk = None
-        match_reason = ""
+            segs = ep_data.get("segments", [])
+            if not segs:
+                continue
 
-        # Tier 0: Acoustic Voiceprint Match (if audio available and model loaded)
-        audio_url = ep.get("audio_url") or ep_data.get("audio_url")
-        if classifier and target_emb and audio_url and audio_url.startswith("http"):
-            # Group candidate turns per generic speaker
-            for g_spk in generic_speakers:
-                spk_turns = [
-                    s for s in segs
-                    if s.get("speaker") == g_spk and 4.0 <= (s.get("end", 0) - s.get("start", 0)) <= 18.0
-                ]
-                if len(spk_turns) < 3:
-                    continue
+            generic_speakers = sorted(list({s.get("speaker", "") for s in segs if s.get("speaker", "").lower().startswith("speaker")}))
+            if not generic_speakers:
+                continue
 
-                # Slices 3-5 clips
-                clip_files = []
-                for idx, t in enumerate(spk_turns[:5]):
-                    st = float(t.get("start", 0))
-                    dur = float(t.get("end", st + 5.0)) - st
-                    out_clip = str(tmp_dir / f"{tag}_{g_spk.replace(' ', '_')}_{idx}.wav")
-                    if slice_candidate_clip(audio_url, st, dur, out_clip):
-                        clip_files.append(out_clip)
+            matched_spk = None
+            match_reason = ""
 
-                if len(clip_files) >= 2:
-                    computed_emb = compute_audio_embedding(clip_files, classifier)
-                    if computed_emb:
-                        sim = cosine_similarity(computed_emb, target_emb)
-                        if sim >= args.min_sim:
-                            matched_spk = g_spk
-                            match_reason = f"Acoustic ECAPA Match (Cosine Sim: {sim:.3f})"
-                            break
+            # Tier 0: Acoustic Voiceprint Match (if audio available and model loaded)
+            audio_url = ep.get("audio_url") or ep_data.get("audio_url")
+            if classifier and target_emb and audio_url and audio_url.startswith("http") and not args.heuristic_only:
+                # Group candidate turns per generic speaker
+                for g_spk in generic_speakers:
+                    spk_candidate_turns = [
+                        s for s in segs
+                        if s.get("speaker") == g_spk and 4.0 <= (s.get("end", 0) - s.get("start", 0)) <= 18.0
+                    ]
+                    if len(spk_candidate_turns) < 3:
+                        continue
 
-                for cf in clip_files:
-                    try:
-                        os.remove(cf)
-                    except Exception:
-                        pass
+                    # Slices 3-5 clips
+                    clip_files = []
+                    for idx, t in enumerate(spk_candidate_turns[:5]):
+                        st = float(t.get("start", 0))
+                        dur = float(t.get("end", st + 5.0)) - st
+                        out_clip = str(tmp_dir / f"{tag}_{g_spk.replace(' ', '_')}_{idx}.wav")
+                        if slice_candidate_clip(audio_url, st, dur, out_clip):
+                            clip_files.append(out_clip)
 
-        # Tier 1: Conversational Heuristic Fallback
-        if not matched_spk:
-            heuristic_winner = scan_conversational_heuristics(segs, speaker)
-            if heuristic_winner and heuristic_winner in generic_speakers:
-                matched_spk = heuristic_winner
-                match_reason = "Conversational Hand-off & Dialogue Direct Address"
+                    if len(clip_files) >= 2:
+                        computed_emb = compute_audio_embedding(clip_files, classifier)
+                        if computed_emb:
+                            sim = cosine_similarity(computed_emb, target_emb)
+                            if sim >= args.min_sim:
+                                matched_spk = g_spk
+                                match_reason = f"Acoustic ECAPA Match (Cosine Sim: {sim:.3f})"
+                                break
 
-        if matched_spk:
-            turns = update_episode_speaker(ep_file, summary_map, matched_spk, speaker)
-            if turns > 0:
-                total_matched += 1
-                total_turns_updated += turns
-                print(f"[✓] {tag} : Labeled '{matched_spk}' -> '{speaker}' ({turns} turns) via {match_reason}")
-                print(f"    Episode: '{title}'")
+                    for cf in clip_files:
+                        try:
+                            os.remove(cf)
+                        except Exception:
+                            pass
+
+            # Tier 1: Conversational Heuristic Fallback
+            if not matched_spk:
+                heuristic_winner = scan_conversational_heuristics(segs, speaker)
+                if heuristic_winner and heuristic_winner in generic_speakers:
+                    matched_spk = heuristic_winner
+                    match_reason = "Conversational Hand-off & Dialogue Direct Address"
+
+            if matched_spk:
+                turns = update_episode_speaker(ep_file, summary_map, matched_spk, speaker)
+                if turns > 0:
+                    spk_matched += 1
+                    spk_turns += turns
+                    total_matched_overall += 1
+                    total_turns_updated_overall += turns
+                    print(f"[✓] {tag} : Labeled '{matched_spk}' -> '{speaker}' ({turns} turns) via {match_reason}")
+                    print(f"    Episode: '{title}'")
+                    # Update local ep object so subsequent passes see the new speaker
+                    if speaker not in ep.get("speakers", []):
+                        ep.setdefault("speakers", []).append(speaker)
+
+        if spk_matched > 0:
+            print(f"[+] Labeled '{speaker}' in {spk_matched} episodes ({spk_turns} turns).")
 
     shutil.rmtree(tmp_dir, ignore_errors=True)
 
     # Sync summary index if any changes made
-    if total_matched > 0:
+    if total_matched_overall > 0:
         updated_summary = list(summary_map.values())
         with open(SUMMARY_PATH, "w", encoding="utf-8") as f:
             json.dump(updated_summary, f, ensure_ascii=False, indent=2)
-        print(f"\n[🎉] Complete! Labeled '{speaker}' across {total_matched} episodes ({total_turns_updated} total turns).")
+        print(f"\n[🎉] Complete! Labeled enrolled speakers across {total_matched_overall} episodes ({total_turns_updated_overall} total turns).")
         print(f"     Updated {SUMMARY_PATH}.")
     else:
-        print(f"\n[*] Scan complete. Checked {total_scanned} episodes with generic speakers. No new unconfirmed matches.")
+        print(f"\n[*] Scan complete. No new speaker matches found.")
 
 
 if __name__ == "__main__":

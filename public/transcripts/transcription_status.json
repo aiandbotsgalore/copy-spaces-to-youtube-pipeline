@@ -7,28 +7,7 @@
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {
-    "20261018_1dxYlarbprvJX": {
-      "attempts": 2,
-      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T08:48:14.758731+00:00"
-    },
-    "20261015_1DxleVaWvoVKL": {
-      "attempts": 2,
-      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T08:48:14.758734+00:00"
-    },
-    "20261015_1DGleVaWWQDJL": {
-      "attempts": 1,
-      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T05:06:08.963850+00:00"
-    },
-    "20261022_1yxBePgOWAkJN": {
-      "attempts": 1,
-      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-10-23T08:48:14.758716+00:00"
-    }
-  },
+  "failed_episodes": {},
   "next_in_queue": [
     {
       "tag": "20261022_1aKbdEaeWloJX",

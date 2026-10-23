@@ -21,28 +21,25 @@ concurrency:
 permissions:
   contents: write
   actions: write
+  packages: read
 
 jobs:
   transcribe:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/spacepipe-runner:latest
+      options: --user root
     timeout-minutes: 120
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install FFmpeg & Dependencies
+      - name: Verify Pre-Baked Container Environment
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg libsndfile1
-          python -m pip install --upgrade pip
-          pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install requests assemblyai speechbrain soundfile
+          python -c "import torch, speechbrain, soundfile, faster_whisper; print('[✓] SpacePipe Pre-Baked AI Container Ready!')"
+          ffmpeg -version | head -n 1
 
-      - name: Run AssemblyAI Cloud Audio Transcription
+      - name: Run Transcription & Diarization
         id: transcribe_step
         env:
           ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
