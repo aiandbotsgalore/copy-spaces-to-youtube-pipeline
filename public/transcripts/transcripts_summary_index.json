@@ -1,5 +1,31 @@
 [
   {
+    "release_id": 421236538,
+    "release_tag": "20261022_1yGBePgbBoyKN",
+    "title": "DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote",
+    "published_at": "2026-10-22T21:47:54Z",
+    "episode_date": "2026-10-22",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yGBePgbBoyKN/20261022_1yGBePgbBoyKN_DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote.mp3",
+    "segment_count": 508,
+    "body": "- **Space Title:** DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote\n- **Duration:** 10:31:07\n- **Processed:** 20261022_1yGBePgbBoyKN\n- **Source ID:** 1yGBePgbBoyKN\n\n---\nMETADATA::DURATION::10:31:07\nMETADATA::SOURCE_ID::1yGBePgbBoyKN\nMETADATA::EPISODE_DATE::20261022\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
+    "release_id": 421227558,
+    "release_tag": "20261022_1vJpPNbzmELJE",
+    "title": "UFOX_Everyone_Is_LARPing_monologue",
+    "published_at": "2026-10-22T21:35:53Z",
+    "episode_date": "2026-10-22",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1vJpPNbzmELJE/20261022_1vJpPNbzmELJE_UFOX_Everyone_Is_LARPing_monologue.mp3",
+    "segment_count": 48,
+    "body": "- **Space Title:** UFOX_Everyone_Is_LARPing_monologue\n- **Duration:** 01:24:10\n- **Processed:** 20261022_1vJpPNbzmELJE\n- **Source ID:** 1vJpPNbzmELJE\n\n---\nMETADATA::DURATION::01:24:10\nMETADATA::SOURCE_ID::1vJpPNbzmELJE\nMETADATA::EPISODE_DATE::20261022\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 416230006,
     "release_tag": "20261018_1dxYlarbprvJX",
     "title": "Paper_Trail",
