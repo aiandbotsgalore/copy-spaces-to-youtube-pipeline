@@ -216,19 +216,36 @@ async function run() {
   const unavailableSpaces = [];
   const liveDeferredSpaces = [];
 
+  const CORE_APPROVED_HOSTS = new Set(
+    ['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase())
+  );
+
   for (const space of newSpaces) {
     console.log(`\n🔎 Checking availability & broadcast status: ${space.url}`);
     let isAvailable = true;
     let liveStatus = 'unknown';
+    let uploaderId = '';
+    let uploader = '';
+    let title = '';
+    let description = '';
 
     try {
-      const output = execSync(`yt-dlp --print live_status --no-warnings "${space.url}"`, {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 25000,
-        encoding: 'utf-8'
-      }).trim();
+      const output = execSync(
+        `yt-dlp --print "%(live_status)s|||%(uploader_id)s|||%(uploader)s|||%(title)s|||%(description)s" --no-warnings "${space.url}"`,
+        {
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 25000,
+          encoding: 'utf-8'
+        }
+      ).trim();
       const lines = output.split('\n').map(l => l.trim()).filter(Boolean);
-      liveStatus = lines[lines.length - 1] || 'unknown';
+      const lastLine = lines[lines.length - 1] || '';
+      const parts = lastLine.split('|||');
+      liveStatus = parts[0] || 'unknown';
+      uploaderId = parts[1] || '';
+      uploader = parts[2] || '';
+      title = parts[3] || '';
+      description = parts[4] || '';
     } catch {
       isAvailable = false;
       unavailableSpaces.push(space);
@@ -245,6 +262,30 @@ async function run() {
       if (liveStatus === 'is_upcoming') {
         console.log(`   ⏰ Space ${space.spaceId} is scheduled/upcoming — skipping.`);
         continue;
+      }
+
+      // Gatekeeper: Check host & speaker authorization
+      const uploaderIdLower = (uploaderId || '').toLowerCase().trim();
+      const uploaderLower = (uploader || '').toLowerCase().trim();
+      const isApprovedHost = CORE_APPROVED_HOSTS.has(uploaderIdLower) || CORE_APPROVED_HOSTS.has(uploaderLower);
+
+      if (!isApprovedHost) {
+        // Third-party host: ONLY permit download if Angela is confirmed as a speaker/participant
+        const combinedText = `${description} ${title} ${space.tweetText || ''}`.toLowerCase();
+        const isAngelaParticipant =
+          combinedText.includes('angelamaggard') ||
+          combinedText.includes('angela maggard') ||
+          combinedText.includes('@angelamaggard3') ||
+          combinedText.includes('angela');
+
+        if (!isAngelaParticipant) {
+          console.log(`   ⛔ Space ${space.spaceId} is hosted by @${uploaderId || uploader || 'unknown'} and @AngelaMaggard3 is NOT a confirmed participant/speaker. Skipping.`);
+          continue;
+        } else {
+          console.log(`   🎤 Space ${space.spaceId} is hosted by third-party @${uploaderId || uploader}, but Angela Maggard is confirmed as speaker/participant! Proceeding.`);
+        }
+      } else {
+        console.log(`   👑 Space ${space.spaceId} is hosted by approved primary creator @${uploaderId || uploader}.`);
       }
 
       console.log(`🚀 Dispatching ingest.yml for ${space.url} (status: ${liveStatus})...`);

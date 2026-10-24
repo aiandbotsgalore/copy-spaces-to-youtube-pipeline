@@ -380,9 +380,13 @@ def main():
     for idx, item in enumerate(to_process, 1):
         tag = item["tag"]
         name = item["name"]
-        print(f"\n>>> [{idx}/{len(to_process)}] Transcribing: {tag} ({name})...")
+        action_verb = "Extracting clips for" if args.missing_clips else "Transcribing"
+        print(f"\n>>> [{idx}/{len(to_process)}] {action_verb}: {tag} ({name})...")
 
-        cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag]
+        if args.missing_clips:
+            cmd = [sys.executable, "scripts/find_and_cut_best_clips.py", "--release-tag", tag, "--repo", args.repo, "--limit", "5"]
+        else:
+            cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag]
         start_time = time.time()
         try:
             res = subprocess.run(cmd, capture_output=True, text=True)
@@ -415,7 +419,7 @@ def main():
 
                 failed_items.append({"tag": tag, "error": error_summary})
 
-                if "ASSEMBLYAI_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary:
+                if not args.missing_clips and ("ASSEMBLYAI_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary):
                     print("\n" + "!" * 65)
                     print(f"[🛑] TRANSCRIPTION ERROR: {error_summary}")
                     print("     Halting remaining batch queue immediately to prevent wasted runs.")
@@ -440,7 +444,15 @@ def main():
         if item["tag"] not in [f["tag"] for f in failed_items]:
             failed_history.pop(item["tag"], None)
 
-    # Post-batch tasks: rebuild search index
+    # Post-batch tasks: rebuild search index and sync clips
+    if args.missing_clips:
+        print("\n[*] Syncing highlight clips catalog...")
+        try:
+            subprocess.run([sys.executable, "scripts/sync_clips_catalog.py", "--repo", args.repo], check=False)
+            print("[✓] Clips catalog sync complete!")
+        except Exception as e:
+            print(f"[!] Notice: sync_clips_catalog.py failed: {e}")
+
     print("\n[*] Rebuilding transcript search index with all newly uploaded transcripts...")
     try:
         subprocess.run([sys.executable, "scripts/build_transcripts_index.py"], check=True)

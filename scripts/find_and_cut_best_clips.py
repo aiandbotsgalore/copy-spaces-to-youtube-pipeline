@@ -583,10 +583,160 @@ def process_single_episode(
     return saved_clips
 
 
+def process_release(
+    release_tag: str,
+    repo: str = "aiandbotsgalore/copy-spaces-to-youtube-pipeline",
+    output_dir: str = "best_saved_clips",
+    limit: int = 5,
+    category: Optional[str] = None,
+    force: bool = False,
+    token: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Fetches transcript & audio from a GitHub Release, extracts highlight clips, and uploads them to the release."""
+    import tempfile
+    import urllib.parse
+    token = token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SpacePipe-HighlightClipper"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+
+    print(f"\n========================================================")
+    print(f"[*] Processing Release: {release_tag}")
+    print(f"========================================================")
+
+    # 1. Fetch release details via gh cli or HTTP
+    release_data = None
+    try:
+        gh_cmd = ["gh", "release", "view", release_tag, "--repo", repo, "--json", "name,assets,url,id"]
+        gh_env = os.environ.copy()
+        if token:
+            gh_env["GH_TOKEN"] = token
+            gh_env["GITHUB_TOKEN"] = token
+        r_proc = subprocess.run(gh_cmd, capture_output=True, text=True, check=True, env=gh_env)
+        release_data = json.loads(r_proc.stdout)
+    except Exception:
+        rel_api = f"https://api.github.com/repos/{repo}/releases/tags/{release_tag}"
+        resp = requests.get(rel_api, headers=headers)
+        if resp.status_code == 200:
+            release_data = resp.json()
+        else:
+            print(f"[!] Could not fetch release {release_tag}: {resp.status_code}")
+            return []
+
+    assets = release_data.get("assets", [])
+    has_clips_json = any(a.get("name", "").endswith("_clips.json") or a.get("name") == "clips_catalog.json" for a in assets)
+    has_clip_mp3 = any(a.get("name", "").endswith(".mp3") and re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s", a.get("name", "")) for a in assets)
+    if (has_clips_json or has_clip_mp3) and not force:
+        print(f"[✓] Release {release_tag} already has highlight clips. Skipping.")
+        return []
+
+    # 2. Find transcript JSON
+    json_asset = next(
+        (a for a in assets if a.get("name", "").endswith(".json") and not a.get("name", "").endswith("_clips.json") and a.get("name") != "clips_catalog.json"),
+        None
+    )
+    if not json_asset:
+        print(f"[!] No transcript JSON found in release {release_tag}. Skipping.")
+        return []
+
+    # 3. Find primary MP3 audio
+    mp3_asset = next(
+        (a for a in assets if a.get("name", "").endswith(".mp3") and not re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s", a.get("name", ""))),
+        None
+    )
+    if not mp3_asset:
+        print(f"[!] No primary MP3 audio found in release {release_tag}. Skipping.")
+        return []
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+
+        # Download transcript JSON
+        local_json = tmp_path / json_asset["name"]
+        print(f"[*] Downloading transcript: {json_asset['name']}...")
+        j_dl_url = json_asset.get("browser_download_url") or json_asset.get("url")
+        j_resp = requests.get(j_dl_url, headers=headers)
+        j_resp.raise_for_status()
+        with open(local_json, "wb") as f:
+            f.write(j_resp.content)
+
+        # Download audio MP3
+        local_mp3 = tmp_path / mp3_asset["name"]
+        print(f"[*] Downloading audio ({mp3_asset.get('size', 0)/(1024*1024):.1f} MB): {mp3_asset['name']}...")
+        m_dl_url = mp3_asset.get("browser_download_url") or mp3_asset.get("url")
+        m_resp = requests.get(m_dl_url, headers=headers, stream=True)
+        m_resp.raise_for_status()
+        with open(local_mp3, "wb") as f:
+            for chunk in m_resp.iter_content(chunk_size=1048576):
+                f.write(chunk)
+        print(f"[✓] Audio downloaded: {local_mp3.stat().st_size / (1024*1024):.1f} MB")
+
+        # Process and slice clips
+        clips_work_dir = tmp_path / "clips_out"
+        clips_work_dir.mkdir(parents=True, exist_ok=True)
+        clips = process_single_episode(str(local_json), str(local_mp3), str(clips_work_dir), limit=limit, category=category)
+
+        if not clips:
+            print(f"[!] No clips were extracted for {release_tag}.")
+            return []
+
+        # Save episode clips JSON
+        ep_stem = Path(json_asset["name"]).stem
+        ep_clips_json = clips_work_dir / f"{ep_stem}_clips.json"
+        with open(ep_clips_json, "w", encoding="utf-8") as f:
+            json.dump(clips, f, indent=2)
+
+        # Collect files to upload to GitHub Release
+        files_to_upload = [str(ep_clips_json)]
+        for c in clips_work_dir.glob("**/*.mp3"):
+            if c.is_file() and c.stat().st_size > 0:
+                files_to_upload.append(str(c))
+
+        print(f"\n[*] Uploading {len(files_to_upload)} clip assets to GitHub Release {release_tag}...")
+        try:
+            up_cmd = ["gh", "release", "upload", release_tag, *files_to_upload, "--repo", repo, "--clobber"]
+            up_env = os.environ.copy()
+            if token:
+                up_env["GH_TOKEN"] = token
+                up_env["GITHUB_TOKEN"] = token
+            subprocess.run(up_cmd, check=True, env=up_env)
+            print(f"[✓] Successfully uploaded {len(files_to_upload)} highlight clip assets to {release_tag}!")
+        except Exception as up_err:
+            print(f"[!] Notice: gh release upload failed ({up_err}). Attempting REST upload...")
+            upload_url_base = f"https://uploads.github.com/repos/{repo}/releases/{release_data.get('id')}/assets"
+            for f_path in files_to_upload:
+                f_name = Path(f_path).name
+                u_headers = {
+                    "Content-Type": "audio/mpeg" if f_name.endswith(".mp3") else "application/json",
+                    "User-Agent": "SpacePipe-HighlightClipper"
+                }
+                if token:
+                    u_headers["Authorization"] = f"token {token}"
+                with open(f_path, "rb") as f_data:
+                    requests.post(f"{upload_url_base}?name={urllib.parse.quote(f_name)}", headers=u_headers, data=f_data)
+
+        # Copy to local output_dir as well
+        os.makedirs(output_dir, exist_ok=True)
+        for f_path in files_to_upload:
+            p = Path(f_path)
+            if p.suffix == ".mp3":
+                sub_dir = Path(output_dir) / p.parent.name
+                sub_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(p, sub_dir / p.name)
+            else:
+                shutil.copy2(p, Path(output_dir) / p.name)
+
+        return clips
+
+
 def main():
     parser = argparse.ArgumentParser(description="Find and cut the best and funniest moments from Twitter Spaces using Gemini AI")
     parser.add_argument("--json", type=str, help="Path to transcript JSON file")
     parser.add_argument("--audio", type=str, help="Path to matching audio MP3 file")
+    parser.add_argument("--release-tag", type=str, help="Release tag (e.g. 20261023_1yGBePgdOgoKN) to extract and upload clips for")
+    parser.add_argument("--batch-missing", type=int, default=0, help="Process up to N transcribed episodes that are missing clips")
+    parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repository")
+    parser.add_argument("--force", action="store_true", help="Force regenerate clips even if existing clips found")
     parser.add_argument("--all", action="store_true", help="Scan all transcripts in output_transcripts/ with matching audio in work/")
     parser.add_argument("--output-dir", type=str, default="best_saved_clips", help="Output directory for saved clips (default: best_saved_clips)")
     parser.add_argument("--limit", type=int, default=5, help="Number of highlights to extract per episode (default: 5)")
@@ -606,7 +756,37 @@ def main():
         except Exception:
             all_extracted_clips = []
 
-    if args.json and args.audio:
+    if args.release_tag:
+        clips = process_release(args.release_tag, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force)
+        all_extracted_clips.extend(clips)
+
+    elif args.batch_missing > 0:
+        print(f"[*] Scanning for up to {args.batch_missing} transcribed episodes missing clips...")
+        status_file = Path("public/transcripts/transcription_status.json")
+        missing_tags = []
+        if status_file.exists():
+            try:
+                with open(status_file, "r", encoding="utf-8") as f:
+                    s_data = json.load(f)
+                    missing_tags = [item["tag"] for item in s_data.get("missing_clips", [])]
+            except Exception:
+                pass
+        if not missing_tags:
+            from scripts.batch_transcribe_queue import fetch_all_releases, analyze_releases
+            rel_list = fetch_all_releases(args.repo)
+            analysis = analyze_releases(rel_list)
+            missing_tags = [item["tag"] for item in analysis.get("missing_clips", [])]
+
+        targets = missing_tags[:args.batch_missing]
+        print(f"[*] Found {len(targets)} candidate episode(s) to process: {', '.join(targets)}")
+        for t in targets:
+            try:
+                clips = process_release(t, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force)
+                all_extracted_clips.extend(clips)
+            except Exception as e:
+                print(f"[!] Error processing release {t}: {e}")
+
+    elif args.json and args.audio:
         clips = process_single_episode(args.json, args.audio, args.output_dir, args.limit, args.category)
         all_extracted_clips.extend(clips)
         

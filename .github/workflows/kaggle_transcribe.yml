@@ -132,7 +132,11 @@ jobs:
           CHEAPER_INFERENCE_API_KEY: ${{ secrets.CHEAPER_INFERENCE_API_KEY }}
           CHEAPER_INFERENCE_BASE_URL: ${{ secrets.CHEAPER_INFERENCE_BASE_URL }}
         run: |
-          python scripts/batch_transcribe_queue.py --missing-clips --limit 5 || true
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            python scripts/find_and_cut_best_clips.py --release-tag "${{ inputs.release_tag }}" || true
+          fi
+          python scripts/batch_transcribe_queue.py --missing-clips --limit 3 || true
+          python scripts/sync_clips_catalog.py || true
 
       - name: Commit Updated Search Index & Clips
         if: always()

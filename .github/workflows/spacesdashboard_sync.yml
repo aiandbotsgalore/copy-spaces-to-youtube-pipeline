@@ -1,0 +1,50 @@
+name: Sync SpacesDashboard Speaker Queue
+
+on:
+  schedule:
+    - cron: '15 */6 * * *' # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      handle:
+        description: 'Twitter/X handle on SpacesDashboard to scan'
+        required: true
+        default: 'AngelaMaggard3'
+      limit:
+        description: 'Max new spaces to dispatch to ingest pipeline'
+        required: true
+        default: '5'
+      dry_run:
+        description: 'Check spaces without dispatching ingest workflow'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync_spaces:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run SpacesDashboard Scraper
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPACESDASHBOARD_HANDLE: ${{ inputs.handle || 'AngelaMaggard3' }}
+          DISPATCH_LIMIT: ${{ inputs.limit || '5' }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: |
+          node scripts/sync_spacesdashboard.mjs
