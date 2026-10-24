@@ -534,6 +534,7 @@ export function getUtteranceWords(source: WordTimingSource): UtteranceWord[] {
   return result;
 }
 
+const MAX_CACHED_EPISODES = 10;
 const EPISODE_SEGMENTS_CACHE = new Map<string, SearchIndexSegment[]>();
 
 export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<EpisodeSummary[]> {
@@ -594,13 +595,20 @@ export async function fetchSingleEpisodeTranscript(releaseTag: string, owner?: s
 
 export async function getEpisodeSegments(releaseTag: string, owner?: string, repo?: string): Promise<SearchIndexSegment[]> {
   if (EPISODE_SEGMENTS_CACHE.has(releaseTag)) {
-    return EPISODE_SEGMENTS_CACHE.get(releaseTag)!;
+    const hit = EPISODE_SEGMENTS_CACHE.get(releaseTag)!;
+    EPISODE_SEGMENTS_CACHE.delete(releaseTag);
+    EPISODE_SEGMENTS_CACHE.set(releaseTag, hit);
+    return hit;
   }
   const text = await fetchSingleEpisodeTranscript(releaseTag, owner, repo);
   if (!text) return [];
   try {
     const data = JSON.parse(text);
     const segs: SearchIndexSegment[] = Array.isArray(data.segments) ? data.segments : [];
+    if (EPISODE_SEGMENTS_CACHE.size >= MAX_CACHED_EPISODES) {
+      const oldestKey = EPISODE_SEGMENTS_CACHE.keys().next().value;
+      if (oldestKey) EPISODE_SEGMENTS_CACHE.delete(oldestKey);
+    }
     EPISODE_SEGMENTS_CACHE.set(releaseTag, segs);
     return segs;
   } catch {
@@ -1129,13 +1137,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [globalIndex, globalIndexLoading, owner, repo]);
 
   const loadSegmentsForEpisodes = useCallback(async (tags: string[]) => {
-    const needed = tags.filter(tag => !EPISODE_SEGMENTS_CACHE.has(tag));
+    const limitedTags = tags.slice(0, 5);
+    const needed = limitedTags.filter(tag => !EPISODE_SEGMENTS_CACHE.has(tag));
     if (needed.length > 0) {
       setGlobalIndexLoading(true);
       try {
-        await Promise.all(needed.map(async (tag) => {
+        for (const tag of needed) {
           await getEpisodeSegments(tag, owner, repo);
-        }));
+        }
       } finally {
         setGlobalIndexLoading(false);
       }
@@ -1143,7 +1152,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setGlobalIndex(prev => {
       if (!prev) return prev;
       return prev.map(ep => {
-        if (tags.includes(ep.release_tag) && (!ep.segments || ep.segments.length === 0)) {
+        if (limitedTags.includes(ep.release_tag) && (!ep.segments || ep.segments.length === 0)) {
           return { ...ep, segments: EPISODE_SEGMENTS_CACHE.get(ep.release_tag) || [] };
         }
         return ep;
@@ -1736,7 +1745,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         .filter(ep => ep.speakers && ep.speakers.some(s => s.trim().toLowerCase() === targetSpeakerLower))
         .map(ep => ep.release_tag);
       if (matchingTags.length > 0) {
-        loadSegmentsForEpisodes(matchingTags);
+        loadSegmentsForEpisodes(matchingTags.slice(0, 5));
       }
     }
   }, [selectedGlobalSpeaker, summaryIndex, loadSegmentsForEpisodes]);
@@ -1906,6 +1915,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           segment: seg,
           segmentIndex: i,
         });
+
+        if (results.length >= 300) {
+          break;
+        }
+      }
+      if (results.length >= 300) {
+        break;
       }
     }
     return results;
@@ -2174,9 +2190,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             try {
               const parsed = JSON.parse(rawText);
               segments = Array.isArray(parsed.segments) ? parsed.segments : [];
-              if (segments.length > 0) {
-                EPISODE_SEGMENTS_CACHE.set(ep.release_tag, segments);
-              }
               if (jsonFolder) {
                 jsonFolder.file(`${ep.release_tag}.json`, rawText);
               }

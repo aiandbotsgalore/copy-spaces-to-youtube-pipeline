@@ -263,6 +263,13 @@ self.onmessage = function(e) {
           segment: seg,
           segmentIndex: sIdx,
         });
+
+        if (results.length >= 300) {
+          break;
+        }
+      }
+      if (results.length >= 300) {
+        break;
       }
     }
 
