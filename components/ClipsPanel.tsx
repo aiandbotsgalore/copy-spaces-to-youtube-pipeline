@@ -30,8 +30,12 @@ import {
   Repeat,
   X,
   Share2,
-  Video
+  Video,
+  Upload,
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react';
+import { writeRepositoryBinaryFile } from '../utils/github';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
 import { fetchReleaseAssetText } from '../utils/github';
@@ -128,11 +132,76 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   // EchoMimicV3 Cloud Talking Avatar Modal state
   const [avatarModalClip, setAvatarModalClip] = useState<ClipItem | null>(null);
-  const [selectedAvatarType, setSelectedAvatarType] = useState<'logan' | 'angela' | 'custom'>('logan');
-  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const [speakerAvatarMap, setSpeakerAvatarMap] = useState<Record<string, string>>({});
+  const [avatarLayoutMode, setAvatarLayoutMode] = useState<'stage_grid' | 'split_screen' | 'solo'>('stage_grid');
   const [avatarRatio, setAvatarRatio] = useState<'9:16' | '1:1' | '16:9'>('9:16');
   const [avatarDispatchStatus, setAvatarDispatchStatus] = useState<string | null>(null);
   const [isDispatchingAvatar, setIsDispatchingAvatar] = useState(false);
+  const [uploadingSpeakerAvatar, setUploadingSpeakerAvatar] = useState<string | null>(null);
+
+  const getDefaultSpeakerAvatarUrl = (name: string): string => {
+    const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (clean === 'logan' || clean === 'loganblack') return 'https://unavatar.io/twitter/LoganBlack';
+    if (clean === 'angela' || clean === 'angelamaggard' || clean === 'angelamaggard3') return 'https://unavatar.io/twitter/AngelaMaggard3';
+    if (clean === 'teejay' || clean === 'felony' || clean === 'felonytalk') return 'https://unavatar.io/twitter/felonytalk';
+    if (clean === 'consciousculprit' || clean === 'mystery' || clean === 'studentomystery') return 'https://unavatar.io/twitter/studentomystery';
+    return `https://unavatar.io/twitter/${clean || 'twitter'}`;
+  };
+
+  // Sync avatarModalClip speakers with Voice Profile Library
+  useEffect(() => {
+    if (avatarModalClip) {
+      const saved = localStorage.getItem('spacepipe_voice_profiles_catalog');
+      const profiles = saved ? JSON.parse(saved)?.profiles || {} : {};
+      const initialMap: Record<string, string> = {};
+      const spks = avatarModalClip.speakers && avatarModalClip.speakers.length > 0
+        ? avatarModalClip.speakers
+        : ['Logan', 'Guest'];
+
+      spks.forEach((spk: string) => {
+        if (profiles[spk]?.avatar_url) {
+          initialMap[spk] = profiles[spk].avatar_url;
+        } else {
+          initialMap[spk] = getDefaultSpeakerAvatarUrl(spk);
+        }
+      });
+      setSpeakerAvatarMap(initialMap);
+    }
+  }, [avatarModalClip]);
+
+  const handleUploadPhotoForSpeaker = async (speaker: string, file?: File | null) => {
+    if (!file) return;
+    setUploadingSpeakerAvatar(speaker);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      setSpeakerAvatarMap(prev => ({ ...prev, [speaker]: dataUrl }));
+
+      // If GitHub token is present, upload binary image to public/avatars/{slug}.jpg
+      if (token) {
+        try {
+          const slug = speaker.toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const fileName = `public/avatars/${slug}.jpg`;
+          const base64Data = dataUrl.split(',')[1];
+          await writeRepositoryBinaryFile(
+            token,
+            owner,
+            repo,
+            fileName,
+            base64Data,
+            `chore(avatar): upload talking avatar photo for ${speaker}`,
+            'master'
+          );
+          const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/master/${fileName}`;
+          setSpeakerAvatarMap(prev => ({ ...prev, [speaker]: rawUrl }));
+        } catch (uploadErr) {
+          console.warn('GitHub avatar image upload failed, using local data URL:', uploadErr);
+        }
+      }
+      setUploadingSpeakerAvatar(null);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const globalPlayer = usePlayer();
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -156,11 +225,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     setAvatarDispatchStatus(null);
     try {
       const audioUrl = getAudioUrl(clip);
-      const avatarUrl = selectedAvatarType === 'logan'
-        ? 'https://unavatar.io/twitter/LoganBlack'
-        : selectedAvatarType === 'angela'
-        ? 'https://unavatar.io/twitter/AngelaMaggard3'
-        : (customAvatarUrl.trim() || 'https://unavatar.io/twitter/LoganBlack');
+      const speakersList = clip.speakers && clip.speakers.length > 0 ? clip.speakers : ['Logan', 'Guest'];
+      const primaryAvatar = speakerAvatarMap[speakersList[0]] || getDefaultSpeakerAvatarUrl(speakersList[0]);
 
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
@@ -177,9 +243,12 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           ref: 'master',
           inputs: {
             audio_url: audioUrl,
-            avatar_image: avatarUrl,
+            avatar_image: primaryAvatar,
             aspect_ratio: avatarRatio,
-            prompt: `Charismatic speaker in documentary highlight: ${clip.title}`
+            layout: avatarLayoutMode,
+            speakers_json: JSON.stringify(speakersList),
+            speaker_avatars_json: JSON.stringify(speakerAvatarMap),
+            prompt: `Twitter Spaces ${avatarLayoutMode} audio presentation for: ${clip.title}`
           }
         })
       });
@@ -1293,10 +1362,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           </div>
         </div>
       )}
-      {/* ECHOMIMIC V3 CLOUD AVATAR MODAL */}
+      {/* SPACES LIVE STAGE GRID AVATAR MODAL */}
       {avatarModalClip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="relative w-full max-w-lg bg-slate-900 border border-purple-500/30 rounded-2xl p-6 shadow-2xl shadow-purple-950/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+          <div className="relative w-full max-w-2xl bg-slate-900 border border-purple-500/40 rounded-2xl p-6 sm:p-7 shadow-2xl shadow-purple-950/60 my-8">
             <button
               onClick={() => {
                 setAvatarModalClip(null);
@@ -1307,94 +1376,186 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               <X size={18} />
             </button>
 
+            {/* Modal Header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/40 shadow-inner">
                 <Video size={20} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">EchoMimicV3 Talking Avatar</h3>
-                <p className="text-xs text-purple-300">Wan2.1-1.3B Cloud GPU Audio-Driven Animation</p>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span>Spaces &quot;Live Stage&quot; Grid Avatar</span>
+                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono border border-purple-500/30">
+                    EchoMimicV3 Wan2.1
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">Multi-speaker talking avatar short with active speaker glowing tile highlights</p>
               </div>
             </div>
 
-            <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Target Clip</span>
-              <p className="text-sm font-semibold text-white truncate">{avatarModalClip.title}</p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Duration: {avatarModalClip.duration || 60}s • {avatarModalClip.speakers?.join(', ') || 'Speaker'}
-              </p>
+            {/* Target Clip Summary */}
+            <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl mb-5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Target Highlight Clip</span>
+                <p className="text-sm font-semibold text-white truncate">{avatarModalClip.title}</p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  ⏱️ {avatarModalClip.duration || 60}s • 👥 {(avatarModalClip.speakers || []).join(', ') || 'Multi-Speaker'}
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">1. Select Avatar Speaker</label>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAvatarType('logan')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
-                      selectedAvatarType === 'logan'
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <span>🎙️ Logan Black</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Host Avatar</span>
-                  </button>
+            {/* 1. Spaces Live Stage Grid Preview & Photo Pickers */}
+            <div className="space-y-4 mb-5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
+                  1. Spaces &quot;Live Stage&quot; Grid ({(avatarModalClip.speakers || []).length} Speakers)
+                </label>
+                <span className="text-[11px] text-purple-400 font-medium">Click &quot;Choose Image&quot; to upload custom photo</span>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAvatarType('angela')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
-                      selectedAvatarType === 'angela'
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <span>🎙️ Angela Maggard</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Guest Avatar</span>
-                  </button>
+              {/* The Live Stage Mockup Container */}
+              <div className="p-4 bg-slate-950 rounded-2xl border-2 border-slate-800/80 shadow-2xl relative overflow-hidden">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {((avatarModalClip.speakers && avatarModalClip.speakers.length > 0)
+                    ? avatarModalClip.speakers
+                    : ['Logan', 'Guest']
+                  ).map((speaker, sIdx) => {
+                    const avatarUrl = speakerAvatarMap[speaker] || getDefaultSpeakerAvatarUrl(speaker);
+                    const isFirst = sIdx === 0;
 
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAvatarType('custom')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
-                      selectedAvatarType === 'custom'
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <span>🖼️ Custom Photo</span>
-                    <span className="text-[10px] text-slate-500 font-normal">URL Input</span>
-                  </button>
+                    return (
+                      <div
+                        key={speaker}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 transition-all relative ${
+                          isFirst
+                            ? 'bg-gradient-to-b from-purple-950/40 to-slate-900 border-purple-500/70 shadow-lg shadow-purple-950/50 ring-1 ring-purple-500/40'
+                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        {/* Status Badge */}
+                        <div className="w-full flex items-center justify-between text-[10px]">
+                          <span className={`px-1.5 py-0.5 rounded font-mono font-bold ${
+                            isFirst ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {isFirst ? '🟢 Speaking' : 'Listening'}
+                          </span>
+                          <span className="text-slate-500 font-mono text-[9px]">#{sIdx + 1}</span>
+                        </div>
+
+                        {/* Circular Avatar with Active Pulse Ring */}
+                        <div className="relative group/avatar cursor-pointer">
+                          <div className={`w-16 h-16 rounded-full overflow-hidden border-2 bg-slate-850 flex items-center justify-center shadow-lg transition-transform ${
+                            isFirst ? 'border-purple-400 scale-105 shadow-purple-500/30' : 'border-slate-700'
+                          }`}>
+                            <img
+                              src={avatarUrl}
+                              alt={speaker}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+
+                          {/* Hover Overlay for Instant File Picker */}
+                          <label
+                            className="absolute inset-0 bg-slate-950/80 rounded-full opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold"
+                            title={`Upload custom photo for ${speaker}`}
+                          >
+                            <Camera size={16} className="text-purple-300 mb-0.5" />
+                            <span>Change</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleUploadPhotoForSpeaker(speaker, e.target.files?.[0])}
+                            />
+                          </label>
+                        </div>
+
+                        {/* Speaker Name Tag */}
+                        <div className="text-center w-full min-w-0">
+                          <p className="text-xs font-bold text-white truncate">{speaker}</p>
+                          <label
+                            className="inline-flex items-center gap-1 mt-1 text-[10px] text-purple-400 hover:text-purple-300 cursor-pointer font-medium hover:underline"
+                          >
+                            <Upload size={10} />
+                            <span>{uploadingSpeakerAvatar === speaker ? 'Uploading...' : 'Choose Image'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleUploadPhotoForSpeaker(speaker, e.target.files?.[0])}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {selectedAvatarType === 'custom' && (
-                  <input
-                    type="text"
-                    value={customAvatarUrl}
-                    onChange={(e) => setCustomAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/portrait.jpg"
-                    className="mt-2 w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                  />
-                )}
+                {/* Simulated Kinetic Caption Bar at Bottom of Stage */}
+                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col items-center text-center">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                    🔥 Dynamic Kinetic Caption Bar 🔥
+                  </span>
+                  <p className="text-xs font-bold text-white bg-slate-900/90 px-3 py-1.5 rounded-lg border border-amber-500/30 max-w-md truncate">
+                    &ldquo;{avatarModalClip.transcript_snippet || 'Banter, debate, and quotes will animate here in sync with speech...'}&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Format & Layout Controls */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  2. Stage Layout Style
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAvatarLayoutMode('stage_grid')}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold text-left cursor-pointer transition-all ${
+                      avatarLayoutMode === 'stage_grid'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="font-bold">🎭 Spaces Live Stage</div>
+                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">Active glowing tiles</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAvatarLayoutMode('split_screen')}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold text-left cursor-pointer transition-all ${
+                      avatarLayoutMode === 'split_screen'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="font-bold">📱 Stacked Split</div>
+                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">Top/Bottom podcast</div>
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">2. Video Aspect Ratio</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  3. Video Aspect Ratio
+                </label>
                 <div className="grid grid-cols-3 gap-2">
                   {(['9:16', '1:1', '16:9'] as const).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setAvatarRatio(r)}
-                      className={`p-2 rounded-lg border text-xs font-semibold text-center cursor-pointer transition-all ${
+                      className={`p-2.5 rounded-xl border text-xs font-semibold text-center cursor-pointer transition-all ${
                         avatarRatio === r
                           ? 'border-purple-500 bg-purple-500/20 text-white'
-                          : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
                       }`}
                     >
-                      {r === '9:16' ? '📱 9:16 (Shorts)' : r === '1:1' ? '⬛ 1:1 (Square)' : '🖥️ 16:9 (Landscape)'}
+                      {r === '9:16' ? '📱 9:16 (Shorts)' : r === '1:1' ? '⬛ 1:1' : '🖥️ 16:9'}
                     </button>
                   ))}
                 </div>
@@ -1402,23 +1563,24 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             </div>
 
             {avatarDispatchStatus === 'success' && (
-              <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex items-center gap-2">
-                <Check size={16} />
-                <span>Job dispatched! Kaggle Dual-T4 GPU worker is animating the avatar in the cloud.</span>
+              <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex items-center gap-2.5 animate-in fade-in">
+                <Check size={18} className="flex-shrink-0" />
+                <span>🎉 Job dispatched! Kaggle Dual-T4 GPU worker is rendering the Spaces Live Stage video in the cloud.</span>
               </div>
             )}
 
             {avatarDispatchStatus && avatarDispatchStatus.startsWith('error') && (
-              <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400">
+              <div className="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 animate-in fade-in">
                 {avatarDispatchStatus}
               </div>
             )}
 
-            <div className="mt-6 flex items-center justify-end gap-3">
+            {/* Footer Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setAvatarModalClip(null)}
-                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+                className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 cursor-pointer"
               >
                 Cancel
               </button>
@@ -1426,7 +1588,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 type="button"
                 disabled={isDispatchingAvatar}
                 onClick={() => handleDispatchAvatar(avatarModalClip)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-900/40 cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-900/50 cursor-pointer disabled:opacity-50"
               >
                 {isDispatchingAvatar ? (
                   <>
@@ -1436,7 +1598,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 ) : (
                   <>
                     <Sparkles size={14} />
-                    <span>Generate Avatar Short</span>
+                    <span>Generate Spaces Live Stage Short</span>
                   </>
                 )}
               </button>

@@ -111,6 +111,7 @@ export interface VoiceProfile {
   embedding?: number[];
   last_updated?: string;
   avatar_emoji?: string;
+  avatar_url?: string;
   color?: string;
   notes?: string;
   sample_audio_url?: string;

@@ -4,7 +4,7 @@ import {
   Save, Loader, AlertCircle, CheckCircle2, Trash2, Edit3, ExternalLink,
   Download, Upload, Copy, Info, Terminal, RefreshCw, Mic, Volume2,
   Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText,
-  UploadCloud, Music, FileAudio
+  UploadCloud, Music, FileAudio, Camera, Image
 } from 'lucide-react';
 import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release, DeadLetterJob } from '../types';
 import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
@@ -247,6 +247,68 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         .catch(() => {});
     }
   }, [hasGitHub, config.githubToken, owner, repo]);
+
+  const getDefaultSpeakerAvatar = (name: string): string => {
+    const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (clean === 'logan' || clean === 'loganblack') return 'https://unavatar.io/twitter/LoganBlack';
+    if (clean === 'angela' || clean === 'angelamaggard' || clean === 'angelamaggard3') return 'https://unavatar.io/twitter/AngelaMaggard3';
+    if (clean === 'teejay' || clean === 'felony') return 'https://unavatar.io/twitter/felonytalk';
+    if (clean === 'consciousculprit' || clean === 'mystery') return 'https://unavatar.io/twitter/studentomystery';
+    return `https://unavatar.io/twitter/${clean}`;
+  };
+
+  const handleUploadSpeakerAvatar = async (speakerName: string, file?: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      const nextCatalog = { ...catalog };
+      const p = nextCatalog.profiles[speakerName];
+      if (p) {
+        p.avatar_url = dataUrl;
+        saveCatalogLocal(nextCatalog);
+      }
+
+      if (hasGitHub) {
+        try {
+          const slug = speakerName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const fileName = `public/avatars/${slug}.jpg`;
+          const base64Data = dataUrl.split(',')[1];
+          await writeRepositoryBinaryFile(
+            config.githubToken,
+            owner,
+            repo,
+            fileName,
+            base64Data,
+            `chore(avatar): upload portrait photo for ${speakerName}`,
+            'master'
+          );
+          const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/master/${fileName}`;
+          if (p) {
+            p.avatar_url = rawUrl;
+            saveCatalogLocal(nextCatalog);
+            const content = JSON.stringify(nextCatalog, null, 2);
+            await writeRepositoryTextFile(
+              config.githubToken,
+              owner,
+              repo,
+              'voice_profiles.json',
+              content,
+              `chore(profiles): update avatar_url for ${speakerName}`,
+              'master'
+            );
+          }
+          setStatusMsg({ type: 'success', text: `🎉 Avatar photo uploaded and saved for ${speakerName}!` });
+        } catch (err: any) {
+          setStatusMsg({ type: 'error', text: `Avatar saved locally, but GitHub upload failed: ${err.message}` });
+        }
+      } else {
+        setStatusMsg({ type: 'success', text: `Avatar updated locally for ${speakerName}!` });
+      }
+      setTimeout(() => setStatusMsg(null), 5000);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Sync to localStorage
   const saveCatalogLocal = (next: VoiceProfilesCatalog) => {
@@ -1157,8 +1219,32 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                     {/* Card Header: Avatar, Name, Role */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-md border ${colorTheme.badge} flex-shrink-0 group-hover:scale-105 transition-transform`}>
-                          {profile.avatar_emoji || '🎙️'}
+                        <div className={`w-13 h-13 rounded-2xl flex items-center justify-center text-xl shadow-md border ${colorTheme.badge} flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative group/avatar bg-slate-950`}>
+                          {profile.avatar_url || getDefaultSpeakerAvatar(profile.name) ? (
+                            <img
+                              src={profile.avatar_url || getDefaultSpeakerAvatar(profile.name)}
+                              alt={profile.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <span>{profile.avatar_emoji || '🎙️'}</span>
+                          )}
+                          <label
+                            className="absolute inset-0 bg-slate-950/75 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold"
+                            title="Upload Avatar Photo (.jpg, .png)"
+                          >
+                            <Camera size={14} className="mb-0.5 text-purple-300" />
+                            <span>Photo</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleUploadSpeakerAvatar(profile.name, e.target.files?.[0])}
+                            />
+                          </label>
                         </div>
                         <div className="min-w-0">
                           <h3 className="text-base font-bold text-white truncate tracking-tight">{profile.name}</h3>

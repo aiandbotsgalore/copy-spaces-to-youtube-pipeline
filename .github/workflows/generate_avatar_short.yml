@@ -7,13 +7,30 @@ on:
         description: 'URL or path to speech audio clip (MP3/WAV)'
         required: true
       avatar_image:
-        description: 'URL or path to portrait image (e.g. Logan or Angela photo)'
+        description: 'URL or path to primary portrait image'
         required: false
-        default: 'https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/logan.jpg'
+        default: 'https://unavatar.io/twitter/LoganBlack'
+      layout:
+        description: 'Stage layout mode'
+        required: false
+        default: 'stage_grid'
+        type: choice
+        options:
+          - 'stage_grid'
+          - 'split_screen'
+          - 'solo'
+      speakers_json:
+        description: 'JSON array of speaker names participating in this clip'
+        required: false
+        default: '["Logan", "Angela"]'
+      speaker_avatars_json:
+        description: 'JSON map of speaker name to avatar photo URL'
+        required: false
+        default: '{}'
       prompt:
-        description: 'Visual direction and expression prompt'
+        description: 'Visual direction and caption bar title'
         required: false
-        default: 'A charismatic person speaking earnestly into camera, realistic natural eye blinks and subtle head motion'
+        default: 'Twitter Spaces Live Stage Banter'
       aspect_ratio:
         description: 'Video aspect ratio'
         required: false
@@ -58,6 +75,9 @@ jobs:
         env:
           SPEECH_AUDIO: ${{ inputs.audio_url }}
           AVATAR_IMAGE: ${{ inputs.avatar_image }}
+          LAYOUT: ${{ inputs.layout || 'stage_grid' }}
+          SPEAKERS_JSON: ${{ inputs.speakers_json || '[]' }}
+          SPEAKER_AVATARS_JSON: ${{ inputs.speaker_avatars_json || '{}' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
           TARGET_RELEASE_TAG: ${{ inputs.target_release_tag }}
@@ -68,6 +88,9 @@ jobs:
           import os
           os.environ["SPEECH_AUDIO"] = "${{ inputs.audio_url }}"
           os.environ["AVATAR_IMAGE"] = "${{ inputs.avatar_image }}"
+          os.environ["LAYOUT"] = "${{ inputs.layout || 'stage_grid' }}"
+          os.environ["SPEAKERS_JSON"] = '''${{ inputs.speakers_json || '[]' }}'''
+          os.environ["SPEAKER_AVATARS_JSON"] = '''${{ inputs.speaker_avatars_json || '{}' }}'''
           os.environ["PROMPT"] = "${{ inputs.prompt }}"
           os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
           os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag }}"
@@ -83,7 +106,7 @@ jobs:
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: |
-          echo "[*] Submitting EchoMimicV3 kernel to Kaggle Cloud GPU pool..."
+          echo "[*] Submitting EchoMimicV3 Live Stage kernel to Kaggle Cloud GPU pool..."
           kaggle kernels push -p scripts/kaggle_worker/echomimic_pkg --accelerator NvidiaTeslaT4
           echo "[✓] Kaggle GPU job successfully dispatched!"
 
