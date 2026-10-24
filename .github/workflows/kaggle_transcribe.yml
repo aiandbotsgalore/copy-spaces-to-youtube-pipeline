@@ -121,6 +121,7 @@ jobs:
       - name: Match & Label Enrolled Speakers
         if: always()
         run: |
+          python scripts/apply_voice_profiles_to_transcripts.py || true
           python scripts/rescan_archive_speakers.py --all-speakers --heuristic-only || true
 
       - name: Extract AI Highlight Clips

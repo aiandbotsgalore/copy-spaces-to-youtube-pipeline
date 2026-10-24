@@ -72,6 +72,7 @@ export interface SavedSpeaker {
   id: string;
   name: string;
   avatarEmoji?: string;
+  avatarUrl?: string;
   color?: string;
   role?: string;
 }
@@ -380,6 +381,8 @@ const DEFAULT_SAVED_SPEAKERS: SavedSpeaker[] = [
   { id: 'dougie',            name: 'Dougie',            avatarEmoji: '💎', color: 'fuchsia', role: 'Speaker'       },
   { id: 'dr-snuggles',       name: 'Dr. Snuggles',      avatarEmoji: '🧸', color: 'teal',    role: 'Speaker'       },
   { id: 'sarah',             name: 'Sarah',             avatarEmoji: '🌟', color: 'amber',   role: 'Speaker'       },
+  { id: 'daz',               name: 'Daz',               avatarEmoji: '🐺', color: 'cyan',    role: 'Speaker'       },
+  { id: 'grider',            name: 'Grider',            avatarEmoji: '🚀', color: 'orange',  role: 'Speaker'       },
 ];
 
 // High-contrast alternating palette ensuring consecutive generic speakers (1, 2, 3... or A, B, C...) have contrasting hues
@@ -424,7 +427,7 @@ export function getAutoSpeakerEmoji(name: string): string {
 
 function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
   if (!displayName) {
-    return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, avatarUrl: undefined, role: undefined };
   }
   const cleanName = displayName.trim();
   const match = savedSpeakers.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
@@ -441,13 +444,13 @@ function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []
       }
     }
     const resolvedColor = (colorKey && SPEAKER_COLOR_MAP[colorKey]) ? colorKey : getAutoSpeakerColor(cleanName);
-    return { ...SPEAKER_COLOR_MAP[resolvedColor], emoji, role: match.role };
+    return { ...SPEAKER_COLOR_MAP[resolvedColor], emoji, avatarUrl: match.avatarUrl, role: match.role };
   }
 
   // Check official default speakers list
   const defaultMatch = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
   if (defaultMatch && defaultMatch.color && SPEAKER_COLOR_MAP[defaultMatch.color]) {
-    return { ...SPEAKER_COLOR_MAP[defaultMatch.color], emoji: defaultMatch.avatarEmoji, role: defaultMatch.role };
+    return { ...SPEAKER_COLOR_MAP[defaultMatch.color], emoji: defaultMatch.avatarEmoji, avatarUrl: (defaultMatch as any)?.avatarUrl, role: defaultMatch.role };
   }
 
   // Handle "Speaker 1", "Speaker 2", "Speaker_1", etc.
@@ -846,6 +849,48 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return DEFAULT_SAVED_SPEAKERS;
   });
   const [showSavedSpeakersModal, setShowSavedSpeakersModal] = useState(false);
+
+  // Sync enrolled profiles and avatars from /voice_profiles.json
+  useEffect(() => {
+    fetch('/voice_profiles.json')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!data || !data.profiles) return;
+        setSavedSpeakers(prev => {
+          const map = new Map(prev.map((s, idx) => [s.name.toLowerCase(), idx]));
+          const next = [...prev];
+          let changed = false;
+          for (const [pName, pData] of Object.entries<any>(data.profiles)) {
+            const clean = pName.trim();
+            const lower = clean.toLowerCase();
+            const avatarUrl = pData.avatar_url;
+            if (map.has(lower)) {
+              const idx = map.get(lower)!;
+              if (avatarUrl && next[idx].avatarUrl !== avatarUrl) {
+                next[idx] = { ...next[idx], avatarUrl };
+                changed = true;
+              }
+            } else {
+              next.push({
+                id: lower.replace(/\s+/g, '-'),
+                name: clean,
+                avatarUrl,
+                avatarEmoji: getAutoSpeakerEmoji(clean),
+                color: getAutoSpeakerColor(clean),
+                role: 'Speaker',
+              });
+              changed = true;
+            }
+          }
+          if (changed) {
+            try { localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(next)); } catch {}
+            return next;
+          }
+          return prev;
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   const [savingGitHub, setSavingGitHub] = useState(false);
   const [saveGitHubSuccess, setSaveGitHubSuccess] = useState('');
@@ -3581,7 +3626,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 ${theme.avatar}`}
                                 title={res.segment.speaker}
                               >
-                                {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
+                                {theme.avatarUrl ? (
+                                  <img src={theme.avatarUrl} alt={res.segment.speaker} className="w-full h-full object-cover rounded-xl" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                                ) : theme.emoji ? (
+                                  <span className="text-base select-none">{theme.emoji}</span>
+                                ) : (
+                                  <span>{initialChar}</span>
+                                )}
                               </div>
 
                               {/* Content */}
@@ -4221,7 +4272,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 onClick={e => { e.stopPropagation(); openQuickRename(utterance.rawSpeaker, utterance.speaker); }}
                                 className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm mt-0.5 transition-transform group-hover:scale-105 ${theme.avatar} cursor-pointer hover:ring-2 hover:ring-indigo-400`}
                                 title={`Click to rename ${utterance.speaker}`}>
-                                {theme.emoji ? <span className="text-base select-none">{theme.emoji}</span> : <span>{initialChar}</span>}
+                                {theme.avatarUrl ? (
+                                  <img src={theme.avatarUrl} alt={utterance.speaker} className="w-full h-full object-cover rounded-xl" onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }} />
+                                ) : theme.emoji ? (
+                                  <span className="text-base select-none">{theme.emoji}</span>
+                                ) : (
+                                  <span>{initialChar}</span>
+                                )}
                               </div>
 
                               {/* Body */}

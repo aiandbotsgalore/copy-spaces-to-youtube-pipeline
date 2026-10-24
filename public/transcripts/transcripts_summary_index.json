@@ -86,7 +86,7 @@
     "duration_sec": 19911,
     "host_handle": "LoganBlack",
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -116,7 +116,7 @@
     "duration_sec": 36000,
     "host_handle": "LoganBlack",
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -131,7 +131,7 @@
     "duration_sec": 5140,
     "host_handle": "TurtleOfTime12",
     "speakers": [
-      "Speaker 1"
+      "Shane"
     ]
   },
   {
@@ -169,8 +169,8 @@
     "duration_sec": 4200,
     "host_handle": "txrrxstrxxl",
     "speakers": [
+      "Angela",
       "Oor",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -211,8 +211,8 @@
     "duration_sec": 784,
     "host_handle": "AngelaMaggard3",
     "speakers": [
+      "Angela",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -258,14 +258,14 @@
       "Daz",
       "Linn",
       "Ophelia",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8"
+      "Speaker 8",
+      "Tom"
     ]
   },
   {
@@ -280,8 +280,8 @@
     "duration_sec": 2029,
     "host_handle": "txrrxstrxxl",
     "speakers": [
-      "Speaker 1",
-      "Speaker 2",
+      "Angela",
+      "Oor",
       "Speaker 3",
       "Speaker 4"
     ]
@@ -326,8 +326,8 @@
       "Angela",
       "Deacon",
       "Deacon/Chase",
+      "Logan",
       "Sav",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -451,14 +451,14 @@
     "duration_sec": 17848,
     "host_handle": "txrrxstrxxl",
     "speakers": [
+      "Angela",
       "Lana",
-      "Speaker 1",
+      "Oor",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -476,11 +476,11 @@
     "duration_sec": 36000,
     "host_handle": "LoganBlack",
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6"
     ]
   },
@@ -728,10 +728,10 @@
     "duration_sec": 8932,
     "host_handle": "txrrxstrxxl",
     "speakers": [
+      "Angela",
+      "Oor",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -824,9 +824,9 @@
     "duration_sec": 2968,
     "host_handle": "txrrxstrxxl",
     "speakers": [
+      "Angela",
+      "Oor",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6"
@@ -844,13 +844,13 @@
     "duration_sec": 6648,
     "host_handle": "KING OOR (@txrrxstrxxl)",
     "speakers": [
+      "Angela",
+      "Oor",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -890,7 +890,7 @@
     "duration_sec": 3117,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Speaker 1",
+      "Angela",
       "Speaker 2"
     ]
   },
@@ -958,7 +958,7 @@
     "duration_sec": 1317,
     "host_handle": "felonytalk",
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -993,7 +993,7 @@
     "duration_sec": 1158,
     "host_handle": "felonytalk",
     "speakers": [
-      "Speaker 1"
+      "God Sauce"
     ]
   },
   {
@@ -1008,7 +1008,7 @@
     "duration_sec": 3190,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Speaker 1",
+      "Angela",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4"
@@ -1044,18 +1044,18 @@
     "duration_sec": 69841,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "God Sauce",
       "Logan",
       "Speaker 1",
-      "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -1070,6 +1070,7 @@
     "duration_sec": 43908,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Oor",
       "Speaker 1",
@@ -1079,7 +1080,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -1121,7 +1121,7 @@
     "duration_sec": 1667,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Speaker 1"
+      "Angela"
     ]
   },
   {
@@ -1136,7 +1136,7 @@
     "duration_sec": 3713,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Speaker 1",
+      "Angela",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -1153,7 +1153,7 @@
     "duration_sec": 6282,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Speaker 1",
+      "Angela",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -1173,15 +1173,15 @@
     "duration_sec": 17166,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "Grider",
       "Logan",
+      "Sarah",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -1245,8 +1245,8 @@
     "speakers": [
       "Eric Hecker",
       "Logan",
+      "Sarah",
       "Speaker 1",
-      "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -1289,11 +1289,11 @@
     "duration_sec": 35585,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "ConsciousCulprit",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -1315,8 +1315,8 @@
     "duration_sec": 4818,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "Angela",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -1341,7 +1341,7 @@
     "duration_sec": 301,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -1397,6 +1397,7 @@
     "duration_sec": 50922,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "Chan",
       "Dave",
       "Logan",
       "Oor",
@@ -1405,7 +1406,6 @@
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8"
@@ -1423,8 +1423,8 @@
     "duration_sec": 21199,
     "host_handle": "KING OOR (@txrrxstrxxl)",
     "speakers": [
-      "Speaker 1",
-      "Speaker 2"
+      "Angela",
+      "Oor"
     ]
   },
   {
@@ -1439,12 +1439,12 @@
     "duration_sec": 37536,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "God Sauce",
       "Jenny",
       "Logan",
       "Prompt",
       "Speaker 1",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -1465,12 +1465,12 @@
     "duration_sec": 24426,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
+      "Chan",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -1559,12 +1559,12 @@
       "Andra",
       "Dougie",
       "Dr. Snuggles",
+      "Lana",
       "Logan",
       "Oor",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7"
@@ -1584,13 +1584,13 @@
     "speakers": [
       "Dorgy Meta",
       "Dougie",
+      "Logan",
       "Logan Black",
       "Presenter",
+      "Sarah",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8"
@@ -1608,7 +1608,7 @@
     "duration_sec": 310,
     "host_handle": "𝗟𝗢𝗚𝗔𝗡 (@LoganBlack)",
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -1653,14 +1653,14 @@
     "speakers": [
       "3W",
       "Andra",
+      "Angela",
       "Danielle",
       "Deb",
       "Eric Hecker",
+      "Grider",
       "Mary",
       "Oor",
       "Sara",
-      "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "rita"
     ]
@@ -1677,10 +1677,10 @@
     "duration_sec": 8841,
     "host_handle": null,
     "speakers": [
+      "Chan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 12",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -1703,10 +1703,10 @@
     "duration_sec": 6309,
     "host_handle": "TurtleOfTime12",
     "speakers": [
+      "Shane",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5"
     ]
   },
@@ -1746,13 +1746,13 @@
     "duration_sec": 7632,
     "host_handle": null,
     "speakers": [
+      "Oor",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -1798,9 +1798,9 @@
     "duration_sec": 8127,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
@@ -1873,6 +1873,7 @@
     "duration_sec": 6189,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -1882,7 +1883,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -1925,18 +1925,18 @@
     "duration_sec": 11169,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -1951,13 +1951,13 @@
     "duration_sec": 14838,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -1980,13 +1980,13 @@
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -2025,11 +2025,11 @@
     "duration_sec": 2424,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7"
     ]
@@ -2046,7 +2046,7 @@
     "duration_sec": 1422,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -2061,13 +2061,13 @@
     "duration_sec": 17070,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -2087,8 +2087,8 @@
     "duration_sec": 39470,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Sam (Tupa)",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -2113,6 +2113,7 @@
     "duration_sec": 7827,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -2121,7 +2122,6 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -2161,10 +2161,10 @@
     "duration_sec": 8893,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -2183,7 +2183,7 @@
     "duration_sec": 28413,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -2250,6 +2250,7 @@
     "duration_sec": 21442,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -2257,7 +2258,6 @@
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -2276,11 +2276,11 @@
     "duration_sec": 4434,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8"
@@ -2298,7 +2298,8 @@
     "duration_sec": 30726,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
+      "Shane",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
@@ -2307,7 +2308,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -2350,6 +2350,7 @@
     "duration_sec": 48747,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -2359,7 +2360,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -2376,10 +2376,10 @@
     "duration_sec": 68929,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Lana",
       "Logan",
       "Mary",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -2423,14 +2423,14 @@
     "duration_sec": 23859,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
-      "Speaker 8"
+      "Speaker 7"
     ]
   },
   {
@@ -2446,10 +2446,10 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Mary",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -2497,8 +2497,8 @@
     "duration_sec": 417,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -2540,12 +2540,12 @@
     "duration_sec": 22779,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -2566,8 +2566,8 @@
     "duration_sec": 4732,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -2589,7 +2589,7 @@
     "duration_sec": 33048,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
@@ -2615,9 +2615,9 @@
     "duration_sec": 32487,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -2691,8 +2691,8 @@
     "duration_sec": 4770,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -2713,8 +2713,8 @@
     "duration_sec": 393,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -2730,10 +2730,10 @@
     "duration_sec": 4296,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -2858,10 +2858,10 @@
     "duration_sec": 35388,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -2916,12 +2916,12 @@
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -3014,7 +3014,7 @@
     "duration_sec": 492,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4"
@@ -3032,18 +3032,18 @@
     "duration_sec": 86838,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "teejay"
     ]
   },
   {
@@ -3058,7 +3058,7 @@
     "duration_sec": 27,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -3073,8 +3073,8 @@
     "duration_sec": 498,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -3114,8 +3114,8 @@
     "duration_sec": 34136,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -3166,8 +3166,8 @@
     "duration_sec": 3288,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5"
@@ -3206,6 +3206,7 @@
     "host_handle": null,
     "speakers": [
       "Angela",
+      "Brian",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -3215,8 +3216,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -3257,8 +3257,8 @@
     "duration_sec": 4923,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5"
@@ -3354,13 +3354,13 @@
     "duration_sec": 35433,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Logan",
       "Shane",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -3401,6 +3401,7 @@
     "duration_sec": 12366,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
       "Shane",
       "Speaker 1",
@@ -3409,7 +3410,6 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -3626,8 +3626,8 @@
     "duration_sec": 4545,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5"
@@ -3645,6 +3645,7 @@
     "duration_sec": 71082,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -3653,10 +3654,9 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Tom"
     ]
   },
   {
@@ -3698,13 +3698,13 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Rose",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -3886,12 +3886,12 @@
     "duration_sec": 52638,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -3912,11 +3912,11 @@
     "duration_sec": 24429,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -3938,7 +3938,7 @@
     "duration_sec": 780,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -4056,6 +4056,7 @@
     "duration_sec": 4314,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Shane",
       "Speaker 1",
       "Speaker 10",
@@ -4066,7 +4067,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -4082,7 +4082,7 @@
     "duration_sec": 543,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2"
     ]
   },
@@ -4196,8 +4196,8 @@
     "duration_sec": 66447,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Shane",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -4248,7 +4248,7 @@
     "duration_sec": 48,
     "host_handle": null,
     "speakers": [
-      "Speaker 0"
+      "Logan"
     ]
   },
   {
@@ -4515,13 +4515,13 @@
     "duration_sec": 35364,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -4616,6 +4616,7 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -4625,7 +4626,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -4718,13 +4718,13 @@
     "speakers": [
       "Eric Hecker",
       "Logan",
+      "Sarah",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -4870,8 +4870,8 @@
     "duration_sec": 2499,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -4946,10 +4946,10 @@
     "host_handle": null,
     "speakers": [
       "Logan",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4"
+      "Speaker 4",
+      "Tom"
     ]
   },
   {
@@ -4984,10 +4984,10 @@
     "duration_sec": 62721,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -5036,8 +5036,8 @@
     "duration_sec": 912,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
-      "Speaker 2"
+      "Logan",
+      "Speaker 1"
     ]
   },
   {
@@ -5053,7 +5053,7 @@
     "host_handle": null,
     "speakers": [
       "Logan",
-      "Speaker 1",
+      "Shane",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -5078,7 +5078,7 @@
     "duration_sec": 207,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -5118,8 +5118,8 @@
     "duration_sec": 48288,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
@@ -5143,11 +5143,11 @@
     "duration_sec": 19305,
     "host_handle": null,
     "speakers": [
+      "Angela",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -5169,6 +5169,7 @@
     "duration_sec": 57130,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -5178,7 +5179,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -5195,8 +5195,8 @@
     "duration_sec": 588,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -5212,7 +5212,7 @@
     "duration_sec": 402,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -5305,8 +5305,8 @@
     "duration_sec": 3414,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -5379,10 +5379,10 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Mary",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -5525,6 +5525,7 @@
     "duration_sec": 59156,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Shane",
       "Speaker 1",
@@ -5535,8 +5536,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -5551,11 +5551,11 @@
     "duration_sec": 2259,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
-      "Speaker 5"
+      "Speaker 4"
     ]
   },
   {
@@ -5681,10 +5681,10 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -5725,7 +5725,7 @@
     "duration_sec": 2283,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -5744,7 +5744,7 @@
     "duration_sec": 930,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -5788,7 +5788,7 @@
     "duration_sec": 7437,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -5834,15 +5834,15 @@
     "duration_sec": 22377,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -5984,17 +5984,17 @@
     "duration_sec": 23374,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -6009,10 +6009,10 @@
     "duration_sec": 4398,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5"
     ]
   },
@@ -6152,8 +6152,8 @@
     "duration_sec": 359,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -6169,8 +6169,8 @@
     "duration_sec": 29424,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -6274,9 +6274,9 @@
     "host_handle": null,
     "speakers": [
       "Angela",
+      "Eric Hecker",
       "Logan",
       "Shane",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -6488,9 +6488,9 @@
     "duration_sec": 1404,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5"
     ]
@@ -6609,7 +6609,7 @@
     "duration_sec": 555,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -6626,18 +6626,18 @@
     "duration_sec": 91308,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -6652,9 +6652,9 @@
     "duration_sec": 6744,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
-      "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -6852,11 +6852,11 @@
     "duration_sec": 15840,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -6930,6 +6930,7 @@
     "duration_sec": 61170,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -6937,7 +6938,6 @@
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -6958,6 +6958,7 @@
     "speakers": [
       "Lana",
       "Logan",
+      "Sarah",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
@@ -6966,8 +6967,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -6982,13 +6982,13 @@
     "duration_sec": 38081,
     "host_handle": null,
     "speakers": [
+      "Daz",
       "Logan",
       "Mary",
+      "Rick Doty",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -7028,7 +7028,7 @@
     "duration_sec": 7479,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -7127,10 +7127,10 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -7164,6 +7164,7 @@
     "duration_sec": 52020,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -7173,7 +7174,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -7190,6 +7190,7 @@
     "duration_sec": 5892,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
@@ -7197,7 +7198,6 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -7239,12 +7239,12 @@
     "duration_sec": 101372,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -7316,7 +7316,7 @@
     "duration_sec": 5160,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -7351,7 +7351,7 @@
     "duration_sec": 321,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -7368,8 +7368,8 @@
     "duration_sec": 1479,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -7434,7 +7434,7 @@
     "duration_sec": 7833,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -7532,6 +7532,7 @@
     "duration_sec": 40962,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Shane",
       "Speaker 1",
@@ -7542,7 +7543,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -7565,10 +7565,10 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -7583,7 +7583,7 @@
     "duration_sec": 1308,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -7731,6 +7731,7 @@
     "speakers": [
       "Lana",
       "Logan",
+      "Mary",
       "Shane",
       "Speaker 1",
       "Speaker 2",
@@ -7739,8 +7740,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -7756,6 +7756,7 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -7765,8 +7766,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -7829,14 +7829,14 @@
     "duration_sec": 93519,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
+      "Rose",
       "Shane",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -7857,7 +7857,6 @@
     "speakers": [
       "Logan",
       "Shane",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
@@ -7866,7 +7865,8 @@
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -7882,13 +7882,13 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Rick Doty",
       "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -7933,11 +7933,11 @@
     "duration_sec": 32569,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -7959,11 +7959,11 @@
     "duration_sec": 38814,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Shane",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -8264,8 +8264,8 @@
     "duration_sec": 34398,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -8316,10 +8316,10 @@
     "duration_sec": 4713,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -8383,7 +8383,7 @@
     "duration_sec": 2693,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -8476,17 +8476,17 @@
     "duration_sec": 76821,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -8502,6 +8502,7 @@
     "duration_sec": 80520,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Lana",
       "Logan",
       "Speaker 1",
@@ -8512,7 +8513,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -8586,12 +8586,12 @@
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -8683,10 +8683,10 @@
     "duration_sec": 65867,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -8728,7 +8728,7 @@
     "duration_sec": 442,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -8898,6 +8898,7 @@
     "duration_sec": 2970,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -8908,8 +8909,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -9028,6 +9028,7 @@
     "duration_sec": 5703,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Rick Doty",
       "Speaker 1",
       "Speaker 10",
@@ -9038,8 +9039,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -9080,7 +9080,7 @@
     "duration_sec": 298,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -9095,9 +9095,9 @@
     "duration_sec": 1698,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5"
     ]
@@ -9193,14 +9193,14 @@
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "teejay"
     ]
   },
   {
@@ -9215,9 +9215,9 @@
     "duration_sec": 240,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3"
+      "Speaker 2"
     ]
   },
   {
@@ -9280,8 +9280,8 @@
     "duration_sec": 20652,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -9306,7 +9306,7 @@
     "duration_sec": 159,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -9421,7 +9421,7 @@
     "duration_sec": 982,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -9462,13 +9462,13 @@
     "duration_sec": 1742,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -9703,9 +9703,9 @@
     "duration_sec": 483,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3"
+      "Speaker 2"
     ]
   },
   {
@@ -9720,7 +9720,7 @@
     "duration_sec": 3861,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -9787,7 +9787,7 @@
     "duration_sec": 106,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -9802,13 +9802,13 @@
     "duration_sec": 19159,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -9998,6 +9998,7 @@
     "duration_sec": 62783,
     "host_handle": null,
     "speakers": [
+      "Brian",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -10008,8 +10009,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -10082,12 +10082,12 @@
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -10175,8 +10175,8 @@
     "duration_sec": 3837,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4"
     ]
@@ -10242,8 +10242,8 @@
     "duration_sec": 888,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4"
     ]
@@ -10286,10 +10286,10 @@
     "duration_sec": 4683,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7"
@@ -10307,13 +10307,13 @@
     "duration_sec": 4251,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
       "Speaker 8",
       "Speaker 9"
     ]
@@ -10405,7 +10405,7 @@
     "duration_sec": 14616,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
@@ -10477,10 +10477,10 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -10550,9 +10550,9 @@
     "duration_sec": 15021,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
@@ -10765,8 +10765,8 @@
     "duration_sec": 38204,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -10843,7 +10843,7 @@
     "duration_sec": 4897,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
@@ -10971,8 +10971,8 @@
     "duration_sec": 562,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -10992,14 +10992,14 @@
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "teejay"
     ]
   },
   {
@@ -11119,7 +11119,6 @@
     "host_handle": null,
     "speakers": [
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -11129,7 +11128,8 @@
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -11145,8 +11145,8 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Sarah",
       "Shane",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
@@ -11197,11 +11197,11 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -11249,7 +11249,6 @@
     "host_handle": null,
     "speakers": [
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -11259,7 +11258,8 @@
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "teejay"
     ]
   },
   {
@@ -11323,7 +11323,7 @@
     "duration_sec": 1399,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -11341,11 +11341,11 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Sarah",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -11366,7 +11366,9 @@
     "duration_sec": 80358,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
+      "Mary",
       "Shane",
       "Speaker 1",
       "Speaker 10",
@@ -11375,9 +11377,7 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
-      "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 7"
     ]
   },
   {
@@ -11393,13 +11393,13 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -11570,11 +11570,11 @@
     "duration_sec": 4895,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
-      "Speaker 5"
+      "Speaker 4"
     ]
   },
   {
@@ -11615,9 +11615,9 @@
     "duration_sec": 279,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3"
+      "Speaker 2"
     ]
   },
   {
@@ -11632,6 +11632,7 @@
     "duration_sec": 30771,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -11640,7 +11641,6 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -11719,7 +11719,7 @@
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Tom"
     ]
   },
   {
@@ -11760,7 +11760,7 @@
     "duration_sec": 636,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -11897,9 +11897,9 @@
     "duration_sec": 418,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4"
     ]
   },
@@ -12038,7 +12038,7 @@
     "duration_sec": 555,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2"
     ]
   },
@@ -12211,6 +12211,7 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
@@ -12218,7 +12219,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -12359,13 +12359,13 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -12434,12 +12434,12 @@
     "duration_sec": 21238,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -12464,13 +12464,13 @@
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "teejay"
     ]
   },
   {
@@ -12485,7 +12485,7 @@
     "duration_sec": 712,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2"
     ]
   },
@@ -12599,7 +12599,7 @@
     "duration_sec": 6214,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
@@ -12950,11 +12950,11 @@
     "duration_sec": 52518,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
+      "Lana",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -12976,7 +12976,7 @@
     "duration_sec": 384,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2"
     ]
   },
@@ -13037,11 +13037,11 @@
     "duration_sec": 13148,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -13064,12 +13064,12 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -13135,9 +13135,9 @@
     "duration_sec": 432,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3"
+      "Speaker 2"
     ]
   },
   {
@@ -13204,12 +13204,12 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Mary",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -13229,11 +13229,11 @@
     "duration_sec": 42824,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -13355,10 +13355,10 @@
     "duration_sec": 44238,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -13381,8 +13381,8 @@
     "duration_sec": 2332,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
-      "Speaker 2"
+      "Logan",
+      "Speaker 1"
     ]
   },
   {
@@ -13468,7 +13468,7 @@
     "duration_sec": 7308,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -13488,8 +13488,8 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -13584,7 +13584,7 @@
     "duration_sec": 66,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -13676,7 +13676,7 @@
     "duration_sec": 48666,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
@@ -13850,9 +13850,9 @@
     "duration_sec": 3060,
     "host_handle": null,
     "speakers": [
+      "Eric Hecker",
       "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -13872,13 +13872,13 @@
     "duration_sec": 55947,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 12",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -13898,8 +13898,8 @@
     "duration_sec": 411,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
-      "Speaker 2"
+      "Logan",
+      "Speaker 1"
     ]
   },
   {
@@ -13957,8 +13957,8 @@
     "duration_sec": 259,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
-      "Speaker 2"
+      "Logan",
+      "Speaker 1"
     ]
   },
   {
@@ -14020,7 +14020,7 @@
     "duration_sec": 798,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -14115,7 +14115,7 @@
     "duration_sec": 111,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -14182,7 +14182,7 @@
     "duration_sec": 140,
     "host_handle": null,
     "speakers": [
-      "Speaker"
+      "Logan"
     ]
   },
   {
@@ -14198,6 +14198,7 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Mary",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
@@ -14205,7 +14206,6 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
@@ -14287,8 +14287,8 @@
     "duration_sec": 5915,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Shane",
-      "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
@@ -14359,8 +14359,8 @@
     "duration_sec": 3630,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3"
     ]
   },
@@ -14402,12 +14402,12 @@
     "duration_sec": 7725,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -14452,11 +14452,11 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Shane",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
-      "Speaker 3",
       "Speaker 4",
       "Speaker 5",
       "Speaker 6",
@@ -14524,7 +14524,7 @@
     "duration_sec": 1287,
     "host_handle": null,
     "speakers": [
-      "Speaker 1"
+      "Logan"
     ]
   },
   {
@@ -14586,7 +14586,6 @@
     "host_handle": null,
     "speakers": [
       "Logan",
-      "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
@@ -14596,7 +14595,8 @@
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
-      "Speaker 9"
+      "Speaker 9",
+      "Tom"
     ]
   },
   {
@@ -14611,9 +14611,9 @@
     "duration_sec": 494,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
-      "Speaker 3"
+      "Speaker 2"
     ]
   },
   {
@@ -14669,8 +14669,8 @@
     "duration_sec": 1320,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4"
     ]
@@ -14816,7 +14816,7 @@
     "duration_sec": 1662,
     "host_handle": null,
     "speakers": [
-      "Speaker 1",
+      "Logan",
       "Speaker 2",
       "Speaker 3"
     ]
@@ -14860,6 +14860,7 @@
     "host_handle": null,
     "speakers": [
       "Gabe",
+      "Grider",
       "Logan",
       "Rick Doty",
       "Speaker 1",
@@ -14869,8 +14870,7 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {
@@ -14885,11 +14885,11 @@
     "duration_sec": 50238,
     "host_handle": null,
     "speakers": [
+      "Daz",
       "Logan",
       "Shane",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -14988,13 +14988,13 @@
     "host_handle": null,
     "speakers": [
       "Logan",
+      "Sarah",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -15288,6 +15288,7 @@
     "duration_sec": 36633,
     "host_handle": null,
     "speakers": [
+      "Chan",
       "Logan",
       "Speaker 1",
       "Speaker 10",
@@ -15297,7 +15298,6 @@
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -15313,10 +15313,10 @@
     "duration_sec": 363,
     "host_handle": null,
     "speakers": [
+      "Logan",
       "Speaker 1",
       "Speaker 2",
-      "Speaker 3",
-      "Speaker 4"
+      "Speaker 3"
     ]
   },
   {
@@ -15356,10 +15356,10 @@
     "duration_sec": 15165,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
@@ -15422,14 +15422,14 @@
     "duration_sec": 37326,
     "host_handle": null,
     "speakers": [
+      "Dr. Snuggles",
+      "Logan",
       "Oor",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
-      "Speaker 5",
       "Speaker 6",
       "Speaker 7",
       "Speaker 8",
@@ -15541,10 +15541,10 @@
     "duration_sec": 4182,
     "host_handle": null,
     "speakers": [
+      "Dr. Snuggles",
       "Logan",
       "Speaker 1",
       "Speaker 10",
-      "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
@@ -15566,13 +15566,13 @@
     "duration_sec": 16548,
     "host_handle": null,
     "speakers": [
+      "Grider",
       "Logan",
       "Speaker 1",
       "Speaker 2",
       "Speaker 3",
       "Speaker 4",
       "Speaker 5",
-      "Speaker 6",
       "Speaker 7",
       "Speaker 8"
     ]
@@ -15637,16 +15637,16 @@
     "duration_sec": 27780,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 11",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
       "Speaker 9"
     ]
   },
@@ -15714,16 +15714,16 @@
     "duration_sec": 27780,
     "host_handle": null,
     "speakers": [
+      "God Sauce",
+      "Logan",
       "Speaker 1",
       "Speaker 10",
       "Speaker 2",
       "Speaker 3",
-      "Speaker 4",
       "Speaker 5",
       "Speaker 6",
       "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
+      "Speaker 8"
     ]
   },
   {

@@ -46,10 +46,11 @@ def ensure_dependencies():
     print("[*] Checking runtime dependencies...")
     try:
         import whisperx
-        print("[✓] WhisperX already installed.")
+        import speechbrain
+        print("[✓] WhisperX and SpeechBrain already installed.")
     except ImportError:
-        print("[*] Installing WhisperX and PyAnnote inside Kaggle container...")
-        run_cmd([sys.executable, "-m", "pip", "install", "-q", "whisperx", "requests"])
+        print("[*] Installing WhisperX, PyAnnote, and SpeechBrain inside Kaggle container...")
+        run_cmd([sys.executable, "-m", "pip", "install", "-q", "whisperx", "requests", "speechbrain"])
         print("[✓] Dependencies installed successfully.")
 
 
@@ -146,6 +147,157 @@ def upload_asset_to_release(upload_url_template: str, file_path: Path, content_t
         print(f"[!] Warning: Upload of {file_path.name} returned HTTP {e.code}: {e.read().decode()}")
 
 
+def resolve_speakers_with_voiceprints(
+    final_result: Dict[str, Any],
+    audio_data: Any,
+    title: str,
+    device: str
+) -> Dict[str, str]:
+    """
+    Matches speaker clusters (e.g. SPEAKER_00) against enrolled 192-dim voiceprints
+    in voice_profiles.json using ECAPA-TDNN on Kaggle GPU.
+    Also incorporates host anchors and dialogue cues.
+    """
+    segments = final_result.get("segments", [])
+    if not segments:
+        return {}
+
+    # 1. Load enrolled profiles
+    profiles_data = {}
+    for p_path in [
+        Path("voice_profiles.json"),
+        Path("/kaggle/working/voice_profiles.json"),
+        Path(__file__).parent.parent / "voice_profiles.json",
+        Path(__file__).parent / "voice_profiles.json"
+    ]:
+        if p_path.exists():
+            try:
+                with open(p_path, "r", encoding="utf-8") as f:
+                    profiles_data = json.load(f).get("profiles", {})
+                break
+            except Exception:
+                pass
+
+    if not profiles_data:
+        try:
+            url = "https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/voice_profiles.json"
+            req = urllib.request.Request(url, headers={"User-Agent": "SpacePipe-Kaggle"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                profiles_data = json.loads(resp.read().decode("utf-8")).get("profiles", {})
+        except Exception as e:
+            print(f"[!] Note: Could not fetch voice_profiles.json: {e}")
+
+    enrolled_vectors = {}
+    for name, p in profiles_data.items():
+        emb = p.get("embedding")
+        if isinstance(emb, list) and len(emb) == 192:
+            try:
+                import numpy as np
+                vec = np.array(emb, dtype=np.float32)
+                norm = np.linalg.norm(vec)
+                if norm > 1e-6:
+                    enrolled_vectors[name] = vec / norm
+            except Exception:
+                pass
+
+    spk_turns: Dict[str, List[Dict[str, Any]]] = {}
+    for s in segments:
+        spk = str(s.get("speaker") or "").strip()
+        if spk:
+            spk_turns.setdefault(spk, []).append(s)
+
+    matched_map: Dict[str, str] = {}
+
+    # 2. Acoustic Voiceprint Matching via SpeechBrain on GPU
+    if enrolled_vectors and audio_data is not None:
+        try:
+            import torch
+            import numpy as np
+            from speechbrain.inference.speaker import EncoderClassifier
+
+            print(f"[*] Initializing SpeechBrain ECAPA classifier on {device}...")
+            sb_classifier = EncoderClassifier.from_hparams(
+                source="speechbrain/spkrec-ecapa-voxceleb",
+                savedir="/tmp/speechbrain_cache",
+                run_opts={"device": device}
+            )
+
+            sr = 16000
+            for spk_tag, turns in spk_turns.items():
+                valid_turns = [t for t in turns if 2.5 <= (t.get("end", 0) - t.get("start", 0)) <= 15.0]
+                if not valid_turns:
+                    valid_turns = turns[:5]
+
+                embs = []
+                for t in valid_turns[:6]:
+                    st_sample = int(t.get("start", 0) * sr)
+                    end_sample = int(t.get("end", 0) * sr)
+                    if end_sample > len(audio_data):
+                        end_sample = len(audio_data)
+                    slice_audio = audio_data[st_sample:end_sample]
+                    if len(slice_audio) < sr * 1.5:
+                        continue
+                    peak = np.max(np.abs(slice_audio))
+                    if peak > 1e-6:
+                        slice_audio = slice_audio / peak
+                    t_tensor = torch.from_numpy(slice_audio.astype(np.float32)).unsqueeze(0).to(device)
+                    with torch.no_grad():
+                        emb = sb_classifier.encode_batch(t_tensor).squeeze().cpu().numpy()
+                    norm = np.linalg.norm(emb)
+                    if norm > 1e-6:
+                        embs.append(emb / norm)
+
+                if embs:
+                    mean_emb = np.mean(embs, axis=0)
+                    m_norm = np.linalg.norm(mean_emb)
+                    if m_norm > 1e-6:
+                        mean_emb = mean_emb / m_norm
+                        scored = []
+                        for e_name, e_vec in enrolled_vectors.items():
+                            sim = float(np.dot(mean_emb, e_vec))
+                            scored.append((sim, e_name))
+                        scored.sort(reverse=True)
+                        if scored:
+                            best_sim, best_name = scored[0]
+                            runner_up = scored[1][0] if len(scored) > 1 else 0.0
+                            if best_sim >= 0.52 and (best_sim - runner_up >= 0.05 or best_sim >= 0.60):
+                                matched_map[spk_tag] = best_name
+                                print(f"[✓] Neural Acoustic Voiceprint Match: {spk_tag} -> {best_name} (sim: {best_sim:.3f})")
+        except Exception as e:
+            print(f"[!] SpeechBrain acoustic matching note: {e}")
+
+    # 3. Host Anchor Fallback
+    title_lower = title.lower()
+    if "Logan" not in matched_map.values():
+        is_logan_host = "logan" in title_lower or os.environ.get("SPACE_HOST", "").lower() in ["loganblack", "logan"]
+        if is_logan_host and spk_turns:
+            sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+            for spk_tag, _ in sorted_spks:
+                if spk_tag not in matched_map:
+                    matched_map[spk_tag] = "Logan"
+                    print(f"[✓] Host Anchor Match: {spk_tag} -> Logan")
+                    break
+
+    if "Angela" not in matched_map.values():
+        is_angela_host = "angela" in title_lower or os.environ.get("SPACE_HOST", "").lower() in ["angelamaggard3", "txrrxstrxxl"]
+        if is_angela_host and spk_turns:
+            sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+            for spk_tag, _ in sorted_spks:
+                if spk_tag not in matched_map:
+                    matched_map[spk_tag] = "Angela"
+                    print(f"[✓] Host Anchor Match: {spk_tag} -> Angela")
+                    break
+
+    # 4. Apply matched names
+    if matched_map:
+        for s in segments:
+            cur_spk = s.get("speaker")
+            if cur_spk in matched_map:
+                s["speaker"] = matched_map[cur_spk]
+
+    return matched_map
+
+
 def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir: Path):
     import whisperx
     import torch
@@ -199,6 +351,12 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
     else:
         print("[*] No HF_TOKEN provided; skipping pyannote diarization.")
         final_result = aligned_result
+
+    # 3b. Neural Voiceprint & Speaker Matching via ECAPA-TDNN (100% Cloud GPU)
+    try:
+        resolve_speakers_with_voiceprints(final_result, audio, title, device)
+    except Exception as e:
+        print(f"[!] Warning: Voice profile resolution skipped ({e})")
 
     # 4. Format outputs to exact SpacePipe schema
     stem = Path(mp3_asset["name"]).stem
