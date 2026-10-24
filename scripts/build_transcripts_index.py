@@ -43,9 +43,23 @@ def _duration_sec(body):
 
 
 def _host_handle(body):
-    """Host handle from METADATA::HOST::<handle> (yt-dlp uploader_id); None when absent so the UI hides it."""
-    m = re.search(r"METADATA::HOST::@?([A-Za-z0-9_.\-]+)", body or "")
-    return m.group(1) if m else None
+    """Host handle from METADATA::HOST::<handle> or - **Host:** line; None when absent."""
+    if not body:
+        return None
+    m = re.search(r"METADATA::HOST::@?([A-Za-z0-9_.\-]+)", body)
+    if m:
+        return m.group(1).strip()
+    m2 = re.search(r"-\s*\*\*Host:\*\*\s*@?([^\n\r]+)", body, re.IGNORECASE)
+    if m2:
+        val = m2.group(1).strip()
+        if val and not val.lower().startswith("unknown"):
+            return val.lstrip("@").strip()
+    m3 = re.search(r"Host:\s*@?([A-Za-z0-9_.\-]+)", body, re.IGNORECASE)
+    if m3:
+        val = m3.group(1).strip()
+        if val and not val.lower().startswith("unknown"):
+            return val.lstrip("@").strip()
+    return None
 
 
 def parse_time_to_seconds(time_str: str) -> float:
