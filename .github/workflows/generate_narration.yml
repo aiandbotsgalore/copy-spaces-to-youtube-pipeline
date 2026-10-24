@@ -1,0 +1,125 @@
+name: Generate Documentary Narration (VoxCPM2 Cloud GPU)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_segments:
+        description: 'Segments to generate (ALL or comma-separated list like LOGAN_001,LOGAN_002)'
+        required: true
+        default: 'ALL'
+      ref_audio:
+        description: 'Optional path or URL to reference audio WAV/MP3'
+        required: false
+        default: ''
+      target_release_tag:
+        description: 'GitHub Release tag to store master narration archive'
+        required: false
+        default: 'documentary-narration-master'
+
+concurrency:
+  group: voxcpm-narration
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  synthesize-narration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Kaggle CLI
+        run: |
+          pip install --upgrade kaggle
+
+      - name: Prepare Kaggle Kernel Payload
+        env:
+          TARGET_SEGMENTS: ${{ inputs.target_segments || 'ALL' }}
+          REF_AUDIO: ${{ inputs.ref_audio }}
+          TARGET_RELEASE_TAG: ${{ inputs.target_release_tag || 'documentary-narration-master' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "[*] Injecting environment bootstrap into Kaggle VoxCPM worker..."
+          cat << 'EOF' > scripts/kaggle_worker/voxcpm_pkg/env_bootstrap.py
+          import os
+          os.environ["TARGET_SEGMENTS"] = "${{ inputs.target_segments || 'ALL' }}"
+          os.environ["REF_AUDIO"] = "${{ inputs.ref_audio }}"
+          os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag || 'documentary-narration-master' }}"
+          os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
+          os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
+          EOF
+
+          cat scripts/kaggle_worker/voxcpm_pkg/env_bootstrap.py scripts/kaggle_worker/voxcpm_pkg/voxcpm_narrator.py > scripts/kaggle_worker/voxcpm_pkg/worker_final.py
+          mv scripts/kaggle_worker/voxcpm_pkg/worker_final.py scripts/kaggle_worker/voxcpm_pkg/voxcpm_narrator.py
+          rm -f scripts/kaggle_worker/voxcpm_pkg/env_bootstrap.py
+
+      - name: Dispatch Kaggle Tesla T4 GPU Worker
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          echo "[*] Submitting VoxCPM2 kernel to Kaggle Cloud GPU pool..."
+          kaggle kernels push -p scripts/kaggle_worker/voxcpm_pkg --accelerator NvidiaTeslaT4
+          echo "[✓] Kaggle GPU job successfully dispatched!"
+
+      - name: Monitor Cloud GPU Execution
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          KERNEL_ID="loganblackjbjb/voxcpm-narrator"
+          echo "[*] Monitoring status of $KERNEL_ID..."
+          
+          for i in {1..90}; do
+            STATUS=$(kaggle kernels status "$KERNEL_ID" | tr -d '\r')
+            echo "[$i/90] $STATUS"
+            
+            if [[ "$STATUS" == *"COMPLETE"* ]]; then
+              echo "[✓] Kaggle VoxCPM2 Narration Completed Successfully!"
+              break
+            elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]]; then
+              echo "[!] Kaggle GPU execution failed!"
+              kaggle kernels output "$KERNEL_ID" -p ./kaggle_logs || true
+              cat ./kaggle_logs/*.log || true
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Download & Ingest 48 kHz Narration Audio
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          KERNEL_ID="loganblackjbjb/voxcpm-narrator"
+          mkdir -p kaggle_output narration
+          kaggle kernels output "$KERNEL_ID" -p ./kaggle_output || echo "Could not download kaggle output"
+          
+          if [ -d "./kaggle_output/narration_output" ]; then
+            cp ./kaggle_output/narration_output/*.wav narration/ 2>/dev/null || true
+            cp ./kaggle_output/narration_output/narration_synthesis_summary.json docs/documentary/data/ 2>/dev/null || true
+          fi
+
+          echo "[*] Checking generated narration files:"
+          ls -la narration/ || true
+
+      - name: Verify Timeline Assembly Readiness
+        run: |
+          python scripts/prepare_assembly.py --narration-dir narration || true
+
+      - name: Commit Narration Audio Files to Repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add narration/ docs/documentary/data/narration_synthesis_summary.json || true
+          git diff --staged --quiet || git commit -m "feat(narration): add master 48 kHz VoxCPM2 Logan voice segments [skip ci]" || echo "No changes to commit"
+          git fetch origin master
+          git merge -X ours origin/master --no-edit || git pull --rebase -X ours origin master || true
+          git push origin master || echo "Push skipped"

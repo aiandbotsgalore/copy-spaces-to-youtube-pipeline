@@ -29,7 +29,8 @@ import {
   Star,
   Repeat,
   X,
-  Share2
+  Share2,
+  Video
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
@@ -125,6 +126,14 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedRss, setCopiedRss] = useState(false);
 
+  // EchoMimicV3 Cloud Talking Avatar Modal state
+  const [avatarModalClip, setAvatarModalClip] = useState<ClipItem | null>(null);
+  const [selectedAvatarType, setSelectedAvatarType] = useState<'logan' | 'angela' | 'custom'>('logan');
+  const [customAvatarUrl, setCustomAvatarUrl] = useState('');
+  const [avatarRatio, setAvatarRatio] = useState<'9:16' | '1:1' | '16:9'>('9:16');
+  const [avatarDispatchStatus, setAvatarDispatchStatus] = useState<string | null>(null);
+  const [isDispatchingAvatar, setIsDispatchingAvatar] = useState(false);
+
   const globalPlayer = usePlayer();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -141,6 +150,52 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       setIsPlaying(false);
     }
   }, [globalPlayer.isPlaying, isPlaying]);
+
+  const handleDispatchAvatar = async (clip: ClipItem) => {
+    setIsDispatchingAvatar(true);
+    setAvatarDispatchStatus(null);
+    try {
+      const audioUrl = getAudioUrl(clip);
+      const avatarUrl = selectedAvatarType === 'logan'
+        ? 'https://unavatar.io/twitter/LoganBlack'
+        : selectedAvatarType === 'angela'
+        ? 'https://unavatar.io/twitter/AngelaMaggard3'
+        : (customAvatarUrl.trim() || 'https://unavatar.io/twitter/LoganBlack');
+
+      const headers: Record<string, string> = {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `token ${token}`;
+      }
+
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/generate_avatar_short.yml/dispatches`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          ref: 'master',
+          inputs: {
+            audio_url: audioUrl,
+            avatar_image: avatarUrl,
+            aspect_ratio: avatarRatio,
+            prompt: `Charismatic speaker in documentary highlight: ${clip.title}`
+          }
+        })
+      });
+
+      if (res.ok || res.status === 204) {
+        setAvatarDispatchStatus('success');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setAvatarDispatchStatus(`error: ${errData.message || res.statusText || 'Check GitHub token with actions:write permission'}`);
+      }
+    } catch (e: any) {
+      setAvatarDispatchStatus(`error: ${e.message}`);
+    } finally {
+      setIsDispatchingAvatar(false);
+    }
+  };
 
   const loadClips = async () => {
     setLoading(true);
@@ -1061,6 +1116,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                           >
                             <Download size={13} />
                           </a>
+                          <button
+                            onClick={() => {
+                              setAvatarModalClip(clip);
+                              setAvatarDispatchStatus(null);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                            title="Animate Talking Avatar (EchoMimicV3 Cloud GPU)"
+                          >
+                            <Video size={13} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1228,6 +1293,157 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           </div>
         </div>
       )}
+      {/* ECHOMIMIC V3 CLOUD AVATAR MODAL */}
+      {avatarModalClip && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-purple-500/30 rounded-2xl p-6 shadow-2xl shadow-purple-950/50">
+            <button
+              onClick={() => {
+                setAvatarModalClip(null);
+                setAvatarDispatchStatus(null);
+              }}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
+                <Video size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">EchoMimicV3 Talking Avatar</h3>
+                <p className="text-xs text-purple-300">Wan2.1-1.3B Cloud GPU Audio-Driven Animation</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Target Clip</span>
+              <p className="text-sm font-semibold text-white truncate">{avatarModalClip.title}</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Duration: {avatarModalClip.duration || 60}s • {avatarModalClip.speakers?.join(', ') || 'Speaker'}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">1. Select Avatar Speaker</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAvatarType('logan')}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                      selectedAvatarType === 'logan'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>🎙️ Logan Black</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Host Avatar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAvatarType('angela')}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                      selectedAvatarType === 'angela'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>🎙️ Angela Maggard</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Guest Avatar</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAvatarType('custom')}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 cursor-pointer transition-all ${
+                      selectedAvatarType === 'custom'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>🖼️ Custom Photo</span>
+                    <span className="text-[10px] text-slate-500 font-normal">URL Input</span>
+                  </button>
+                </div>
+
+                {selectedAvatarType === 'custom' && (
+                  <input
+                    type="text"
+                    value={customAvatarUrl}
+                    onChange={(e) => setCustomAvatarUrl(e.target.value)}
+                    placeholder="https://example.com/portrait.jpg"
+                    className="mt-2 w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">2. Video Aspect Ratio</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['9:16', '1:1', '16:9'] as const).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setAvatarRatio(r)}
+                      className={`p-2 rounded-lg border text-xs font-semibold text-center cursor-pointer transition-all ${
+                        avatarRatio === r
+                          ? 'border-purple-500 bg-purple-500/20 text-white'
+                          : 'border-slate-800 bg-slate-950/40 text-slate-400 hover:border-slate-700'
+                      }`}
+                    >
+                      {r === '9:16' ? '📱 9:16 (Shorts)' : r === '1:1' ? '⬛ 1:1 (Square)' : '🖥️ 16:9 (Landscape)'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {avatarDispatchStatus === 'success' && (
+              <div className="mt-4 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex items-center gap-2">
+                <Check size={16} />
+                <span>Job dispatched! Kaggle Dual-T4 GPU worker is animating the avatar in the cloud.</span>
+              </div>
+            )}
+
+            {avatarDispatchStatus && avatarDispatchStatus.startsWith('error') && (
+              <div className="mt-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400">
+                {avatarDispatchStatus}
+              </div>
+            )}
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setAvatarModalClip(null)}
+                className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDispatchingAvatar}
+                onClick={() => handleDispatchAvatar(avatarModalClip)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-900/40 cursor-pointer disabled:opacity-50"
+              >
+                {isDispatchingAvatar ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Dispatching Cloud GPU...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={14} />
+                    <span>Generate Avatar Short</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -1345,6 +1561,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               >
                 <Download size={14} />
               </a>
+              <button
+                onClick={() => {
+                  setAvatarModalClip(clip);
+                  setAvatarDispatchStatus(null);
+                }}
+                className="p-2 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Animate Talking Avatar (EchoMimicV3 Cloud GPU)"
+              >
+                <Video size={14} />
+              </button>
             </div>
           </div>
         </div>

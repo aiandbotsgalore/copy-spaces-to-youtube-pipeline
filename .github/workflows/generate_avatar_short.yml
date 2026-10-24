@@ -1,0 +1,129 @@
+name: Generate Talking Avatar Short (EchoMimicV3 Cloud GPU)
+
+on:
+  workflow_dispatch:
+    inputs:
+      audio_url:
+        description: 'URL or path to speech audio clip (MP3/WAV)'
+        required: true
+      avatar_image:
+        description: 'URL or path to portrait image (e.g. Logan or Angela photo)'
+        required: false
+        default: 'https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/logan.jpg'
+      prompt:
+        description: 'Visual direction and expression prompt'
+        required: false
+        default: 'A charismatic person speaking earnestly into camera, realistic natural eye blinks and subtle head motion'
+      aspect_ratio:
+        description: 'Video aspect ratio'
+        required: false
+        default: '9:16'
+        type: choice
+        options:
+          - '9:16'
+          - '1:1'
+          - '16:9'
+      target_release_tag:
+        description: 'Optional GitHub release tag to attach finished video'
+        required: false
+        default: ''
+
+concurrency:
+  group: echomimic-avatar
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  animate-avatar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Kaggle CLI
+        run: |
+          pip install --upgrade kaggle
+
+      - name: Prepare Kaggle Kernel Payload
+        env:
+          SPEECH_AUDIO: ${{ inputs.audio_url }}
+          AVATAR_IMAGE: ${{ inputs.avatar_image }}
+          PROMPT: ${{ inputs.prompt }}
+          ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
+          TARGET_RELEASE_TAG: ${{ inputs.target_release_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "[*] Injecting environment bootstrap into Kaggle EchoMimic worker..."
+          cat << 'EOF' > scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
+          import os
+          os.environ["SPEECH_AUDIO"] = "${{ inputs.audio_url }}"
+          os.environ["AVATAR_IMAGE"] = "${{ inputs.avatar_image }}"
+          os.environ["PROMPT"] = "${{ inputs.prompt }}"
+          os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
+          os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag }}"
+          os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
+          os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
+          EOF
+
+          cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py > scripts/kaggle_worker/echomimic_pkg/worker_final.py
+          mv scripts/kaggle_worker/echomimic_pkg/worker_final.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py
+          rm -f scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
+
+      - name: Dispatch Kaggle Tesla T4 GPU Worker
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          echo "[*] Submitting EchoMimicV3 kernel to Kaggle Cloud GPU pool..."
+          kaggle kernels push -p scripts/kaggle_worker/echomimic_pkg --accelerator NvidiaTeslaT4
+          echo "[✓] Kaggle GPU job successfully dispatched!"
+
+      - name: Monitor Cloud GPU Execution
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          KERNEL_ID="loganblackjbjb/echomimic-avatar"
+          echo "[*] Monitoring status of $KERNEL_ID..."
+          
+          for i in {1..90}; do
+            STATUS=$(kaggle kernels status "$KERNEL_ID" | tr -d '\r')
+            echo "[$i/90] $STATUS"
+            
+            if [[ "$STATUS" == *"COMPLETE"* ]]; then
+              echo "[✓] Kaggle EchoMimicV3 Avatar Completed Successfully!"
+              break
+            elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]]; then
+              echo "[!] Kaggle GPU execution failed!"
+              kaggle kernels output "$KERNEL_ID" -p ./kaggle_logs || true
+              cat ./kaggle_logs/*.log || true
+              exit 1
+            fi
+            sleep 30
+          done
+
+      - name: Download Rendered Talking Avatar Video
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+        run: |
+          KERNEL_ID="loganblackjbjb/echomimic-avatar"
+          mkdir -p kaggle_avatar_out
+          kaggle kernels output "$KERNEL_ID" -p ./kaggle_avatar_out || echo "Could not download kaggle output"
+          
+          echo "[*] Rendered output contents:"
+          ls -la kaggle_avatar_out/ || true
+
+      - name: Upload Video as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: talking-avatar-short
+          path: kaggle_avatar_out/**/*.mp4
+          if-no-files-found: ignore
