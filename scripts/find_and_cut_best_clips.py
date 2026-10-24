@@ -279,7 +279,72 @@ def call_gemini_highlight_discovery(
     limit: int = 5,
     category_filter: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Uses Free Cohere API or OpenRouter Free models to identify the top entertaining clips."""
+    """Uses Cheaper Inference (Gemini Flash), Cohere API, or OpenRouter to identify the top entertaining clips."""
+    # 0. Try Cheaper Inference (gemini-2.5-flash) first if available
+    ci_key = os.environ.get("CHEAPER_INFERENCE_API_KEY")
+    if ci_key:
+        ci_base = os.environ.get("CHEAPER_INFERENCE_BASE_URL", "https://api.cheaperinference.com/v1").rstrip("/")
+        ci_model = os.environ.get("DIRECTOR_MODEL", "gemini-2.5-flash")
+        filter_instruction = ""
+        if category_filter and category_filter.lower() != "all":
+            filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+        prompt = f"""You are an expert audio podcast producer and viral clip curator.
+Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
+Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
+Each clip should be 20 to 90 seconds long.
+{filter_instruction}
+
+Return ONLY a valid JSON object with a single "clips" array containing dictionaries with keys:
+"title", "category", "start_seconds", "end_seconds", "speakers", "viral_score", "reason", "transcript_snippet".
+
+Transcript:
+{transcript_text}"""
+        try:
+            print(f"[*] Analyzing highlights with Gemini ({ci_model}) via Cheaper Inference...", flush=True)
+            resp = requests.post(
+                f"{ci_base}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {ci_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": ci_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.3
+                },
+                timeout=120
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data["choices"][0]["message"]["content"].strip()
+                if "```" in content:
+                    m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                    if m:
+                        content = m.group(1).strip()
+                parsed = json.loads(content)
+                raw_clips = parsed.get("clips") or []
+                clean_clips = []
+                for cl in raw_clips:
+                    if "start_seconds" in cl and "end_seconds" in cl and float(cl["end_seconds"]) > float(cl["start_seconds"]):
+                        clean_clips.append({
+                            "title": str(cl.get("title", "Highlight Clip")),
+                            "category": normalize_category(str(cl.get("category", "Humor & Banter"))),
+                            "start_seconds": float(cl["start_seconds"]),
+                            "end_seconds": float(cl["end_seconds"]),
+                            "speakers": list(cl.get("speakers", [])),
+                            "viral_score": int(cl.get("viral_score", 8)),
+                            "reason": str(cl.get("reason", "Entertaining dialogue")),
+                            "transcript_snippet": str(cl.get("transcript_snippet", ""))
+                        })
+                if clean_clips:
+                    print(f"[✓] Gemini Flash extracted {len(clean_clips)} moments!", flush=True)
+                    return clean_clips
+            else:
+                print(f"[!] Cheaper Inference notice ({resp.status_code}): {resp.text[:150]}", flush=True)
+        except Exception as e:
+            print(f"[!] Cheaper Inference error with {ci_model}: {e}", flush=True)
+
     # 1. Try Cohere Free API first if available
     cohere_key = os.environ.get("COHERE_API_KEY")
     if cohere_key:

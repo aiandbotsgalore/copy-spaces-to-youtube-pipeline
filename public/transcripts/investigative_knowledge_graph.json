@@ -3,7 +3,7 @@
   "title": "The Paper Trail Investigative Knowledge Graph",
   "updated_at": "2026-10-23",
   "stats": {
-    "total_curated_quotes": 283,
+    "total_curated_quotes": 299,
     "total_contradiction_pairs": 8,
     "total_speakers": 21,
     "total_categories": 277
@@ -462,7 +462,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:01:00–00:04:33"
+      "time_window": "00:01:00\u201300:04:33"
     },
     {
       "quote_id": "AQ-0002",
@@ -477,7 +477,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:01:00–00:04:33"
+      "time_window": "00:01:00\u201300:04:33"
     },
     {
       "quote_id": "AQ-0003",
@@ -492,7 +492,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:01:00–00:04:33"
+      "time_window": "00:01:00\u201300:04:33"
     },
     {
       "quote_id": "AQ-0004",
@@ -507,7 +507,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:12:56–00:19:22"
+      "time_window": "00:12:56\u201300:19:22"
     },
     {
       "quote_id": "AQ-0005",
@@ -522,7 +522,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:12:56–00:19:22"
+      "time_window": "00:12:56\u201300:19:22"
     },
     {
       "quote_id": "AQ-0006",
@@ -537,7 +537,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:12:56–00:19:22"
+      "time_window": "00:12:56\u201300:19:22"
     },
     {
       "quote_id": "AQ-0007",
@@ -552,7 +552,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:12:56–00:19:22"
+      "time_window": "00:12:56\u201300:19:22"
     },
     {
       "quote_id": "AQ-0008",
@@ -567,7 +567,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:12:56–00:19:22"
+      "time_window": "00:12:56\u201300:19:22"
     },
     {
       "quote_id": "AQ-0009",
@@ -582,7 +582,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:21:08–00:21:20"
+      "time_window": "00:21:08\u201300:21:20"
     },
     {
       "quote_id": "AQ-0010",
@@ -597,7 +597,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:21:54–00:27:44"
+      "time_window": "00:21:54\u201300:27:44"
     },
     {
       "quote_id": "AQ-0011",
@@ -612,7 +612,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:31:20–00:31:45"
+      "time_window": "00:31:20\u201300:31:45"
     },
     {
       "quote_id": "AQ-0012",
@@ -627,7 +627,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:40:46–00:41:20"
+      "time_window": "00:40:46\u201300:41:20"
     },
     {
       "quote_id": "AQ-0013",
@@ -642,7 +642,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:53:58–00:54:19"
+      "time_window": "00:53:58\u201300:54:19"
     },
     {
       "quote_id": "AQ-0014",
@@ -657,7 +657,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:52:10–00:52:20"
+      "time_window": "00:52:10\u201300:52:20"
     },
     {
       "quote_id": "AQ-0015",
@@ -672,7 +672,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:58:14–01:00:12"
+      "time_window": "00:58:14\u201301:00:12"
     },
     {
       "quote_id": "AQ-0016",
@@ -687,7 +687,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:03:42–01:05:11"
+      "time_window": "01:03:42\u201301:05:11"
     },
     {
       "quote_id": "AQ-0017",
@@ -702,7 +702,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:07:21–01:07:35"
+      "time_window": "01:07:21\u201301:07:35"
     },
     {
       "quote_id": "AQ-0018",
@@ -717,7 +717,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:18:06–01:21:13"
+      "time_window": "01:18:06\u201301:21:13"
     },
     {
       "quote_id": "AQ-0019",
@@ -732,7 +732,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:21:17–01:24:33"
+      "time_window": "01:21:17\u201301:24:33"
     },
     {
       "quote_id": "AQ-0020",
@@ -747,7 +747,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:44:01–00:44:39"
+      "time_window": "00:44:01\u201300:44:39"
     },
     {
       "quote_id": "AQ-0021",
@@ -762,7 +762,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:37:13–01:37:54"
+      "time_window": "01:37:13\u201301:37:54"
     },
     {
       "quote_id": "AQ-0022",
@@ -777,7 +777,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:34:03–01:37:10"
+      "time_window": "01:34:03\u201301:37:10"
     },
     {
       "quote_id": "AQ-0023",
@@ -792,7 +792,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:51:21–01:52:17"
+      "time_window": "01:51:21\u201301:52:17"
     },
     {
       "quote_id": "AQ-0024",
@@ -807,7 +807,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:52:22–01:56:57"
+      "time_window": "01:52:22\u201301:56:57"
     },
     {
       "quote_id": "AQ-0025",
@@ -822,7 +822,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:57:14–01:57:18"
+      "time_window": "01:57:14\u201301:57:18"
     },
     {
       "quote_id": "AQ-0026",
@@ -837,7 +837,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:57:45–01:59:53"
+      "time_window": "01:57:45\u201301:59:53"
     },
     {
       "quote_id": "AQ-0027",
@@ -852,7 +852,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:59:56–02:00:43"
+      "time_window": "01:59:56\u201302:00:43"
     },
     {
       "quote_id": "AQ-0028",
@@ -867,7 +867,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:11:40–02:11:45"
+      "time_window": "02:11:40\u201302:11:45"
     },
     {
       "quote_id": "AQ-0029",
@@ -882,7 +882,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:02:47–02:03:02"
+      "time_window": "02:02:47\u201302:03:02"
     },
     {
       "quote_id": "AQ-0030",
@@ -897,7 +897,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:03:25–02:03:42"
+      "time_window": "02:03:25\u201302:03:42"
     },
     {
       "quote_id": "AQ-0031",
@@ -912,7 +912,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:00:37–00:01:32"
+      "time_window": "00:00:37\u201300:01:32"
     },
     {
       "quote_id": "AQ-0032",
@@ -927,7 +927,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:03:13–00:05:14"
+      "time_window": "00:03:13\u201300:05:14"
     },
     {
       "quote_id": "AQ-0033",
@@ -935,14 +935,14 @@
       "date": "2026-09-30",
       "episode_title": "The Social Cost of Taking a Suicide Threat Seriously",
       "release_tag": "20260930_1lJQRWLvWVzxE",
-      "exact_quote": "For you to sit here and act like your actions are my fucking fault— if CPS gets involved or your husband gets a hold of these messages, that is not my fault nor my responsibility.",
+      "exact_quote": "For you to sit here and act like your actions are my fucking fault\u2014 if CPS gets involved or your husband gets a hold of these messages, that is not my fault nor my responsibility.",
       "category": "Retaliation / CPS / real-world contacts",
       "target": "Sav",
       "why_it_matters": "Brutal dismissal of consequences regarding child protective services and ex-husband custody involvement.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0034",
@@ -957,7 +957,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0035",
@@ -972,7 +972,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0036",
@@ -987,7 +987,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0037",
@@ -1002,7 +1002,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0038",
@@ -1010,14 +1010,14 @@
       "date": "2026-09-30",
       "episode_title": "The Social Cost of Taking a Suicide Threat Seriously",
       "release_tag": "20260930_1lJQRWLvWVzxE",
-      "exact_quote": "Put me on the motherfucking hot seat and I'll exact— I will literally give you a PowerPoint presentation on yes, the fuck I said it, Why the fuck I said it?",
+      "exact_quote": "Put me on the motherfucking hot seat and I'll exact\u2014 I will literally give you a PowerPoint presentation on yes, the fuck I said it, Why the fuck I said it?",
       "category": "Documentation / legal preparation / self-admission",
       "target": "herself",
       "why_it_matters": "Defiant declaration that she has prepared a full visual legal presentation documenting her statements and justifications.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:07:59–00:33:04"
+      "time_window": "00:07:59\u201300:33:04"
     },
     {
       "quote_id": "AQ-0039",
@@ -1032,7 +1032,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:35:05–00:35:52"
+      "time_window": "00:35:05\u201300:35:52"
     },
     {
       "quote_id": "AQ-0040",
@@ -1047,7 +1047,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "00:01:38–00:02:37"
+      "time_window": "00:01:38\u201300:02:37"
     },
     {
       "quote_id": "AQ-0041",
@@ -1062,7 +1062,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:35:05–00:35:52"
+      "time_window": "00:35:05\u201300:35:52"
     },
     {
       "quote_id": "AQ-0042",
@@ -1077,7 +1077,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:46:31–00:49:24"
+      "time_window": "00:46:31\u201300:49:24"
     },
     {
       "quote_id": "AQ-0043",
@@ -1092,7 +1092,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:46:31–00:49:24"
+      "time_window": "00:46:31\u201300:49:24"
     },
     {
       "quote_id": "AQ-0044",
@@ -1107,7 +1107,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "00:42:22–00:42:57"
+      "time_window": "00:42:22\u201300:42:57"
     },
     {
       "quote_id": "AQ-0045",
@@ -1122,7 +1122,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:43:06–00:44:05"
+      "time_window": "00:43:06\u201300:44:05"
     },
     {
       "quote_id": "AQ-0046",
@@ -1137,7 +1137,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:14:32–01:15:45"
+      "time_window": "01:14:32\u201301:15:45"
     },
     {
       "quote_id": "AQ-0047",
@@ -1152,7 +1152,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:37:43–00:37:55"
+      "time_window": "00:37:43\u201300:37:55"
     },
     {
       "quote_id": "AQ-0048",
@@ -1167,7 +1167,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:12:02–01:13:10"
+      "time_window": "01:12:02\u201301:13:10"
     },
     {
       "quote_id": "AQ-0049",
@@ -1182,7 +1182,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "00:02:46–00:03:05"
+      "time_window": "00:02:46\u201300:03:05"
     },
     {
       "quote_id": "AQ-0050",
@@ -1197,7 +1197,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:19:50–00:20:25"
+      "time_window": "00:19:50\u201300:20:25"
     },
     {
       "quote_id": "AQ-0051",
@@ -1212,7 +1212,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:20:29–00:20:51"
+      "time_window": "00:20:29\u201300:20:51"
     },
     {
       "quote_id": "AQ-0052",
@@ -1227,7 +1227,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:21:25–00:21:53"
+      "time_window": "00:21:25\u201300:21:53"
     },
     {
       "quote_id": "AQ-0053",
@@ -1242,7 +1242,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:22:31–00:24:44"
+      "time_window": "00:22:31\u201300:24:44"
     },
     {
       "quote_id": "AQ-0054",
@@ -1257,7 +1257,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:25:21–00:26:37"
+      "time_window": "00:25:21\u201300:26:37"
     },
     {
       "quote_id": "AQ-0055",
@@ -1272,7 +1272,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "00:26:51–00:27:05"
+      "time_window": "00:26:51\u201300:27:05"
     },
     {
       "quote_id": "AQ-0056",
@@ -1287,7 +1287,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:35:43–01:36:27"
+      "time_window": "01:35:43\u201301:36:27"
     },
     {
       "quote_id": "AQ-0057",
@@ -1302,13 +1302,13 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:39:08–01:41:02"
+      "time_window": "01:39:08\u201301:41:02"
     },
     {
       "quote_id": "AQ-0058",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "I hope not because I already have their address and phone number and personal information, and I'll slap them with the lawsuit so fast.",
       "category": "Doxxing / personal info gathering / legal pressure",
@@ -1317,13 +1317,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "12:51:21–12:51:27"
+      "time_window": "12:51:21\u201312:51:27"
     },
     {
       "quote_id": "AQ-0059",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "Oh, I got it. I always do that before I talk to someone, yeah.",
       "category": "Methods / profiling / information gathering",
@@ -1332,13 +1332,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "12:51:36–12:51:43"
+      "time_window": "12:51:36\u201312:51:43"
     },
     {
       "quote_id": "AQ-0060",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "But I don't ever expose it unless I need to. I just have it so I can get to my attorney if I needed to.",
       "category": "Leverage / legal threats / conflict doctrine",
@@ -1347,13 +1347,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "12:51:36–12:51:43"
+      "time_window": "12:51:36\u201312:51:43"
     },
     {
       "quote_id": "AQ-0061",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "Oh, yeah. I do that for fun. I know that's probably bad, but, like, that's what I do on TikTok. Um, so, like, there's a lot of other people that are adopted or their kids are missing. So and I don't know. I don't have any, like, background in it. I just am good at finding people, so I just do it for fun.",
       "category": "Self-description / hobby / OSINT",
@@ -1362,13 +1362,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "12:51:49–12:52:03"
+      "time_window": "12:51:49\u201312:52:03"
     },
     {
       "quote_id": "AQ-0062",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "My adopted dad's family, a lot of people are upset with me for doxing them. But, like, they're not good people at all.",
       "category": "Doxxing admission / family targeting",
@@ -1377,13 +1377,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "12:29:06–12:30:48"
+      "time_window": "12:29:06\u201312:30:48"
     },
     {
       "quote_id": "AQ-0063",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "I've already been sued twice for $10, and I've won both. And I've done multiple other lawsuits against other individuals and won. I didn't take the money. I closed it, but I just wanted to shut them the fuck up. You know?",
       "category": "Litigation weaponization / legal motive",
@@ -1392,13 +1392,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "13:33:00–13:33:13"
+      "time_window": "13:33:00\u201313:33:13"
     },
     {
       "quote_id": "AQ-0064",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "I'll send you my phone number so that way we're not talking on recorded space because I won't talk about the type of torture that's on, like, recorded space, but I'll I'll talk about it. I just don't wanna I don't I think that's the only reason why I'm okay It's because I only talk about half truths.",
       "category": "Calculated disclosure / recorded spaces / half-truths",
@@ -1407,13 +1407,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "13:44:59–13:45:12"
+      "time_window": "13:44:59\u201313:45:12"
     },
     {
       "quote_id": "AQ-0065",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "The other day was that today, we were in citizen space, and he bumped everybody down to listener. He's like, I removed everyone. And then everyone came back up. They're like, Logan, we love you so much. Citizen is like, what the hell is going on?",
       "category": "Pre-fallout friendship / admiration of Logan",
@@ -1422,13 +1422,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:32:56–05:33:11"
+      "time_window": "05:32:56\u201305:33:11"
     },
     {
       "quote_id": "AQ-0066",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "What do you guys think of Logan's new profile picture? Who cares? I care. I care.",
       "category": "Pre-fallout friendship / personal care",
@@ -1437,13 +1437,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:48:37–05:48:43"
+      "time_window": "05:48:37\u201305:48:43"
     },
     {
       "quote_id": "AQ-0067",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Haunted Hump Day🎸👽 🛸⚡️",
+      "episode_title": "Haunted Hump Day\ud83c\udfb8\ud83d\udc7d \ud83d\udef8\u26a1\ufe0f",
       "release_tag": "20260217_1vAxRvZrEPaxl",
       "exact_quote": "Yeah. You got my vote, Logan. Yeah. You got mine as well.",
       "category": "Pre-fallout loyalty / solidarity with Logan",
@@ -1452,13 +1452,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "10:24:15–10:24:20"
+      "time_window": "10:24:15\u201310:24:20"
     },
     {
       "quote_id": "AQ-0068",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "I would also like to remind them, though, that you can sue people for loss of enjoyment of life. And I am a very petty individual. I'm working on it. I think it's a work in progress. I'm a retired mean girl. But if people make me come back to character, I'm not holding any punches back.",
       "category": "Self-description / conflict style",
@@ -1467,13 +1467,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:50:14–02:50:43"
+      "time_window": "02:50:14\u201302:50:43"
     },
     {
       "quote_id": "AQ-0069",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "If I get to that point where I have to, you know, hold other people accountable just so that I can move forward, it's gonna be full transparency. I hope people realize I have nothing to hide, and I will tell on my damn self before I give anybody the opportunity to do that for me.",
       "category": "Confession philosophy / transparency claim",
@@ -1482,28 +1482,28 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:50:14–02:50:43"
+      "time_window": "02:50:14\u201302:50:43"
     },
     {
       "quote_id": "AQ-0070",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
-      "exact_quote": "And then don't cry about it later when we take it too damn far because we warned you ahead of time. We told you that we don't have— well, I don't know about everybody else, but, like, I have this line. And when it gets crossed, man, I go zero to a 100. There's no doubling back. All I see is tunnel vision, and my eye is on the prize. I'm in it to win it.",
+      "exact_quote": "And then don't cry about it later when we take it too damn far because we warned you ahead of time. We told you that we don't have\u2014 well, I don't know about everybody else, but, like, I have this line. And when it gets crossed, man, I go zero to a 100. There's no doubling back. All I see is tunnel vision, and my eye is on the prize. I'm in it to win it.",
       "category": "Conflict escalation / tunnel vision",
       "target": "herself / adversaries",
       "why_it_matters": "Definitive description of her psychological escalation pattern: crossing her line triggers 'zero to 100' relentless tunnel vision.",
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:52:28–02:52:58"
+      "time_window": "02:52:28\u201302:52:58"
     },
     {
       "quote_id": "AQ-0071",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "So, like, I get that that sometimes is very difficult, but I'll wrap you up in lawsuits. I will serve you with a cease and desist. I will wrap it up for three to four years, damn it. You're gonna be paying out of pocket. I'm not.",
       "category": "Litigation threat / legal harassment",
@@ -1512,13 +1512,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:52:28–02:52:58"
+      "time_window": "02:52:28\u201302:52:58"
     },
     {
       "quote_id": "AQ-0072",
       "speaker": "Logan (speaking to Angela)",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "Thank you. This is why I love you, Angela, because you are on the same page as I am, and we just don't give a fuck. We can do what we want to when we want to, which most people can't do.",
       "category": "Alliance / pre-fallout bond / validation",
@@ -1527,13 +1527,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:53:00–02:53:09"
+      "time_window": "02:53:00\u201302:53:09"
     },
     {
       "quote_id": "AQ-0073",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "Die one day, bro. We're on borrowed time. You know? Everyone's, like, you know, talking about, like, you know, live today. Live today. No. You live every day. You only die once.",
       "category": "Worldview / mortality / fatalism",
@@ -1542,13 +1542,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:53:09–02:53:18"
+      "time_window": "02:53:09\u201302:53:18"
     },
     {
       "quote_id": "AQ-0074",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "Oh, absolutely. I have complex PTSD. So, um, it's not something I've never been diagnosed with manic, but I I have seen myself spiral before. I feel it when it's gonna happen. You get kind of like a, um, I wouldn't say like a red flag, but your body tells you beforehand before you're gonna get there. So it's my job to remove myself from the equation. Um, otherwise, I I know it's gonna go too far. And I noticed sometimes people see when I'm getting there and they poke me more. They like the reaction.",
       "category": "Mental health / trauma self-awareness / escalation triggers",
@@ -1557,13 +1557,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "03:19:38–03:20:10"
+      "time_window": "03:19:38\u201303:20:10"
     },
     {
       "quote_id": "AQ-0075",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "Cult Signups  🥳",
+      "episode_title": "Cult Signups  \ud83e\udd73",
       "release_tag": "20260217_1lPKqbPREoeGb",
       "exact_quote": "I would love to know that why kidnap a baby from your mom and why adopt her into a military family, and then why allow the type of abuse that happened to me at Wright Patterson Air Force Base to continue? I'm 36. I'm okay. I'm, you know, I'm safe ish. I'm still around certain people, but they don't mess with me for the simple fact that I have multiple contingency plans.",
       "category": "Contingency plans / leverage / backstory",
@@ -1572,7 +1572,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:57:42–02:59:56"
+      "time_window": "02:57:42\u201302:59:56"
     },
     {
       "quote_id": "AQ-0076",
@@ -1587,7 +1587,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:21:16–02:21:50"
+      "time_window": "02:21:16\u201302:21:50"
     },
     {
       "quote_id": "AQ-0077",
@@ -1602,7 +1602,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:26:32–02:26:45"
+      "time_window": "02:26:32\u201302:26:45"
     },
     {
       "quote_id": "AQ-0078",
@@ -1617,7 +1617,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:27:31–02:28:15"
+      "time_window": "02:27:31\u201302:28:15"
     },
     {
       "quote_id": "AQ-0079",
@@ -1632,7 +1632,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:28:20–02:30:17"
+      "time_window": "02:28:20\u201302:30:17"
     },
     {
       "quote_id": "AQ-0080",
@@ -1640,14 +1640,14 @@
       "date": "2026-09-26",
       "episode_title": "Monkey_Island",
       "release_tag": "20260926_1OGwbnVyavLKB",
-      "exact_quote": "I'm recording on my second device right now to prove it. This is because when you record on this device— I know, but people be deleting shit. They delete it, bro.",
+      "exact_quote": "I'm recording on my second device right now to prove it. This is because when you record on this device\u2014 I know, but people be deleting shit. They delete it, bro.",
       "category": "Methods / covert recording / second device",
       "target": "Space participants",
       "why_it_matters": "Unambiguous on-air admission that she actively records live Spaces using a secondary device to capture deleted audio.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:33:55–02:34:30"
+      "time_window": "02:33:55\u201302:34:30"
     },
     {
       "quote_id": "AQ-0081",
@@ -1662,7 +1662,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:38:31–02:38:50"
+      "time_window": "02:38:31\u201302:38:50"
     },
     {
       "quote_id": "AQ-0082",
@@ -1677,7 +1677,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:41:48–02:41:52"
+      "time_window": "02:41:48\u201302:41:52"
     },
     {
       "quote_id": "AQ-0083",
@@ -1692,7 +1692,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:41:57–02:42:18"
+      "time_window": "02:41:57\u201302:42:18"
     },
     {
       "quote_id": "AQ-0084",
@@ -1707,7 +1707,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:43:41–02:44:24"
+      "time_window": "02:43:41\u201302:44:24"
     },
     {
       "quote_id": "AQ-0085",
@@ -1722,7 +1722,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "06:29:29–06:29:37"
+      "time_window": "06:29:29\u201306:29:37"
     },
     {
       "quote_id": "AQ-0086",
@@ -1737,7 +1737,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:13:28–00:14:16"
+      "time_window": "00:13:28\u201300:14:16"
     },
     {
       "quote_id": "AQ-0087",
@@ -1745,14 +1745,14 @@
       "date": "2026-09-27",
       "episode_title": "LADIES_NIGHT",
       "release_tag": "20260927_1kKzDPkMkqrJv",
-      "exact_quote": "I think a lot of these men forget that they came from a woman. And I think a lot of people— and I'm just going to say men in general because there's women too— I think they have mommy issues. I think that, you know what I mean? Like, if we're going to be real, it's unresolved issues that they're projecting.",
+      "exact_quote": "I think a lot of these men forget that they came from a woman. And I think a lot of people\u2014 and I'm just going to say men in general because there's women too\u2014 I think they have mommy issues. I think that, you know what I mean? Like, if we're going to be real, it's unresolved issues that they're projecting.",
       "category": "Psychological armchair diagnosis / male critics",
       "target": "male adversaries / hosts",
       "why_it_matters": "Dismisses her male critics and adversaries as suffering from unresolved 'mommy issues' and projection.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:16:38–00:17:24"
+      "time_window": "00:16:38\u201300:17:24"
     },
     {
       "quote_id": "AQ-0088",
@@ -1767,7 +1767,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:22:42–00:23:36"
+      "time_window": "00:22:42\u201300:23:36"
     },
     {
       "quote_id": "AQ-0089",
@@ -1782,7 +1782,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:34:25–00:36:55"
+      "time_window": "00:34:25\u201300:36:55"
     },
     {
       "quote_id": "AQ-0090",
@@ -1797,7 +1797,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:44:40–00:44:56"
+      "time_window": "00:44:40\u201300:44:56"
     },
     {
       "quote_id": "AQ-0091",
@@ -1812,7 +1812,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:05:47–01:07:05"
+      "time_window": "01:05:47\u201301:07:05"
     },
     {
       "quote_id": "AQ-0092",
@@ -1827,7 +1827,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:10:41–01:11:19"
+      "time_window": "01:10:41\u201301:11:19"
     },
     {
       "quote_id": "AQ-0093",
@@ -1842,7 +1842,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:28:52–01:29:17"
+      "time_window": "01:28:52\u201301:29:17"
     },
     {
       "quote_id": "AQ-0094",
@@ -1857,13 +1857,13 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:47:42–01:47:46"
+      "time_window": "01:47:42\u201301:47:46"
     },
     {
       "quote_id": "AQ-0095",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "Oh, I got you. Let me go get that because that was funny. And it was it was it was wrong. I'm not gonna lie. But he sits there and talks about burning women alive and, like, this modern day witch hunt, so I like to emasculate him with his mommy issues.",
       "category": "Psychological conflict / humiliation tactic / mommy issues",
@@ -1872,13 +1872,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:11:43–00:11:56"
+      "time_window": "00:11:43\u201300:11:56"
     },
     {
       "quote_id": "AQ-0096",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "And I'm just gonna call it out because I didn't get to stay in the space yesterday. But the reason why those two ladies are mad at me is because I won't automatically cancel Mellow for his AI photos of that baby Jesus because it was showing, um, the private, I guess. But you have to, like, literally zoom in on the baby to see it. I didn't even notice it. Um, but because I wouldn't automatically label him a pedophile, that's the reason why these two girls are mad at me. And I can prove all that in DM. Um, I'm just trying to figure out whether I should just I I don't know. There's a lot of other angles going on. So I'm, like, I'm going through all my DMs today. I'm a go out and get all the common denominators. Everyone messaged me about those two individuals. And then I'm probably just gonna say it because I got the pockets deep enough to afford a lawsuit if I need to.",
       "category": "DMs investigation / lawsuit threat / pedophile labeling defense",
@@ -1887,13 +1887,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:12:23–00:13:03"
+      "time_window": "00:12:23\u201300:13:03"
     },
     {
       "quote_id": "AQ-0097",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "That's what it seems like. It's like a modern day male witch hunt. You know, how we have that with the women? It's now it's going overboard. When I was exposing and talking about these pedophiles, I was not trying to start, you know, this this this whole little thing to do this to innocent people. You know? Let's let's save that type of behavior for real abusers, real individuals that are are are hurting people, not egos.",
       "category": "Defense of men / 'witch hunt' critique / saving accusations for real abusers",
@@ -1902,13 +1902,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:13:10–00:13:35"
+      "time_window": "00:13:10\u201300:13:35"
     },
     {
       "quote_id": "AQ-0098",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "You should stay away from that little group that you're because I'm a take them down eventually. Your little group, man, that's a whole shit that's itself, bro. That's multiple targets to take down. That's a lot of",
       "category": "Targeting / retaliation pledge / 'take them down'",
@@ -1917,13 +1917,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:27:47–00:27:58"
+      "time_window": "00:27:47\u201300:27:58"
     },
     {
       "quote_id": "AQ-0099",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "Well, I noticed, man. I got some words. That Yeti fuck fuck. I'm a take him down eventually.",
       "category": "Direct threat / 'take him down' / profanity",
@@ -1932,13 +1932,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:28:15–00:28:20"
+      "time_window": "00:28:15\u201300:28:20"
     },
     {
       "quote_id": "AQ-0100",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "Well, my dad was handed a baby 10/27/1987, the same day he became a Green Beret. Um, my sealed adoption file was missing from Vital Records. It's not even in the state. It's on a completely different military base in a completely different state... I'm trying to expose that they kidnap these babies, illegally adopt them into military families, and utilizing TRICARE, test and torture them like human guinea pigs... my dad tried to go AWOL and take me out of the country in 1991. That's how he lost custody of me.",
       "category": "Backstory / adoption / military conspiracies / TRICARE torture claims",
@@ -1947,13 +1947,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:38:57–00:40:37"
+      "time_window": "00:38:57\u201300:40:37"
     },
     {
       "quote_id": "AQ-0101",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "So if anyone has the ability to look up the if they wouldn't mind doxing me in a a non negative way, I'd appreciate it. I'd even put it in writing. I just want answers. Well, journalists investigate, and it's not considered doxing. Right? Like, that's the term. Doxxing has a very, like, specific term. It means you are exposing for the first time. You are tying someone's actual name to their online name in a post, and you share, like, their exact location at that time. So you could say, like, Britney Spears' real name is this, and she used to live here. That's still not a docs. Right?",
       "category": "Doxxing definition / legal rationalization / investigating",
@@ -1962,13 +1962,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:46:11–00:47:42"
+      "time_window": "00:46:11\u201300:47:42"
     },
     {
       "quote_id": "AQ-0102",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "A year and a half ago, when I first came on this app, that's when it came out again. And I was just like, I remember I messaged you, Logan. I was like, hey. Like, what is this? And, I mean, we talked extensively about it. And so I noticed that's when new people, new players come on this app and that, you know, it's like, oh, let's get them on our it literally feels like high school clicks. It's like, yeah, recycled fast.",
       "category": "Logan relationship history / pre-fallout trust / high school cliques",
@@ -1977,13 +1977,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:48:52–00:49:27"
+      "time_window": "00:48:52\u201300:49:27"
     },
     {
       "quote_id": "AQ-0103",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "It literally it reminds me of psychological warfare tactics being utilized in spaces against civilians. That's honestly, you got rescuer mode people that come in your inbox and pretend to be, like, empathetic just to, like, break down your barriers to get more info, and then you have the attack dogs, dude. It's very strategic. And I I told all y'all when I came on this app that I literally just wanna get to the bottom of it. So I have documented this abuse. I've extensively, um, um, mapped it out... if there is people or an organization behind this type of harassment, that is federal. We're not looking at just a civil case here. We're looking at, like, um, like a class action lawsuit.",
       "category": "Psychological warfare / 'rescuer mode' infiltration / mapping abuse / federal lawsuit",
@@ -1992,13 +1992,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:49:50–00:51:17"
+      "time_window": "00:49:50\u201300:51:17"
     },
     {
       "quote_id": "AQ-0104",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "So I would just recommend, um, documentation, and then if you get attacked, write it down. I I take notes just because I wanna come back and see if a pattern emerges. You know? But I wouldn't completely let that hinder your growth. I feel like there's a lot of people like myself that are gonna take the bullying, that are gonna bulldoze their way through just because this can't be the end game, man.",
       "category": "Documentation method / taking notes / bulldozing through bullying",
@@ -2007,13 +2007,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:52:21–00:54:57"
+      "time_window": "00:52:21\u201300:54:57"
     },
     {
       "quote_id": "AQ-0105",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "I'd appreciate it because, um, I'm getting blackmailed now because people want me to pass out, um, a certain well, a couple people sent me their private information to keep safe, And one individual sent me their resume to pass on to my contacts to help him get a job, um, just because he's getting excommunicated from the community... And now I have other people that are harassing me because they feel like they deserve to see these things to prove whether or not this person is telling the truth or not... why do people feel the need that they just like, that they deserve other people's information? You know, it's not gatekeeping if it's not yours.",
       "category": "Private information repository / blackmail / dossier keeping",
@@ -2022,13 +2022,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:58:28–00:59:27"
+      "time_window": "00:58:28\u201300:59:27"
     },
     {
       "quote_id": "AQ-0106",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "I think we need to do a class action lawsuit. I think the only way that we're gonna be able to stop this is by hitting them. Um, you have to think they're playing risk in Cheska, and then most people are over here playing checkers. They stay three to five steps ahead because they they know how to navigate the bureaucratic bullshit. They have attorneys for that. You know? And if you can hit them and find the loopholes in the states that they are, you know, doing these things and hit them one by one, you know, objective after objective. I think that we could really hit them below the belt.",
       "category": "Litigation strategy / 'hitting them below the belt' / chess vs checkers",
@@ -2037,13 +2037,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:53:46–01:54:27"
+      "time_window": "01:53:46\u201301:54:27"
     },
     {
       "quote_id": "AQ-0107",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane✨👽",
+      "episode_title": "LiVE! Cambian interviews Tupacabra,Redpandakoala, & UFO Shane\u2728\ud83d\udc7d",
       "release_tag": "20260217_1mnGeAPMdvEGX",
       "exact_quote": "Do you want me to say, hey, Logan. People are making claims that you're involved with being a petal. So so do you wanna go openly and and make, uh, acknowledge these claims? No. You don't wanna discuss that... You wanna avoid this topic and and just not acknowledge it, and hopefully, it just disappears.",
       "category": "Pedophile claims / Logan direct dialogue / public acknowledgment debate",
@@ -2052,7 +2052,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "09:55:51–09:56:17"
+      "time_window": "09:55:51\u201309:56:17"
     },
     {
       "quote_id": "AQ-0108",
@@ -2067,7 +2067,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:33:11–00:33:21"
+      "time_window": "00:33:11\u201300:33:21"
     },
     {
       "quote_id": "AQ-0109",
@@ -2082,7 +2082,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:36:06–00:36:07"
+      "time_window": "00:36:06\u201300:36:07"
     },
     {
       "quote_id": "AQ-0110",
@@ -2097,7 +2097,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:38:57–00:39:11"
+      "time_window": "00:38:57\u201300:39:11"
     },
     {
       "quote_id": "AQ-0111",
@@ -2112,7 +2112,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:42:15–00:42:21"
+      "time_window": "00:42:15\u201300:42:21"
     },
     {
       "quote_id": "AQ-0112",
@@ -2127,7 +2127,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:24:06–01:26:31"
+      "time_window": "01:24:06\u201301:26:31"
     },
     {
       "quote_id": "AQ-0113",
@@ -2142,7 +2142,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:28:00–01:29:16"
+      "time_window": "01:28:00\u201301:29:16"
     },
     {
       "quote_id": "AQ-0114",
@@ -2157,7 +2157,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "15:22:36–15:23:12"
+      "time_window": "15:22:36\u201315:23:12"
     },
     {
       "quote_id": "AQ-0115",
@@ -2172,7 +2172,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "15:25:20–15:26:36"
+      "time_window": "15:25:20\u201315:26:36"
     },
     {
       "quote_id": "AQ-0116",
@@ -2187,7 +2187,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "15:26:51–15:26:59"
+      "time_window": "15:26:51\u201315:26:59"
     },
     {
       "quote_id": "AQ-0117",
@@ -2202,7 +2202,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "15:27:38–15:28:17"
+      "time_window": "15:27:38\u201315:28:17"
     },
     {
       "quote_id": "AQ-0118",
@@ -2217,7 +2217,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "22:21:33–22:22:30"
+      "time_window": "22:21:33\u201322:22:30"
     },
     {
       "quote_id": "AQ-0119",
@@ -2232,13 +2232,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "22:23:40–22:24:09"
+      "time_window": "22:23:40\u201322:24:09"
     },
     {
       "quote_id": "AQ-0120",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "I mean, well, if the boot fits, bro, you wear it. You lace the fuck up. I didn't say that. So if you wanna put words in my mouth, by all means, I'm the right one, sir. We can use our manners and have a an educated conversation without being a dickhead.",
       "category": "Verbal aggression / confrontation / 'lace the fuck up'",
@@ -2247,13 +2247,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:09:41–04:10:02"
+      "time_window": "04:09:41\u201304:10:02"
     },
     {
       "quote_id": "AQ-0121",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "I say you're being a little asshat. You got more dick in your personality than your pants, and you need to work on that... Oh, you wish, bro. I got bigger dicks in my side drawer than you.",
       "category": "Crude insults / sexual humiliation / emasculation",
@@ -2262,13 +2262,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:10:05–04:10:21"
+      "time_window": "04:10:05\u201304:10:21"
     },
     {
       "quote_id": "AQ-0122",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "Keep talking shit. I'm a fuck your daddy and get my kitty really loves, and then we're gonna see who's crying, bitch.",
       "category": "Vulgar clapback / retaliation / profanity",
@@ -2277,13 +2277,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "04:10:29–04:10:33"
+      "time_window": "04:10:29\u201304:10:33"
     },
     {
       "quote_id": "AQ-0123",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "That's probably all he last in real life. That's probably why he's so miserable and goes after women. It's probably clearly a mommy issue or his wife left him probably or you know, there's some, like, underlying root issue that he thinks women are demonic... And he said, what? You think I'm a narcissist? So that's clearly a projection of something someone had said to him previously.",
       "category": "Armchair psychology / mommy issues / projection",
@@ -2292,13 +2292,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:12:16–04:12:33"
+      "time_window": "04:12:16\u201304:12:33"
     },
     {
       "quote_id": "AQ-0124",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "That's true, sir. I've had two investigative journalists try to blackmail me for my sources. And I I gave them three that are willing to speak without in writing to be protected. But I specifically said I'm not giving any names out unless you have it in writing that they're gonna be protected because they're active duty... Now, with all due respect, I've been doing this without help. So I've already made it this far. I don't need you. I'd like to get there, but, like, I'm gonna get there either way, alive or not. You know what I mean? It's gonna come out either way because I'm more of a liability dead than alive because I inherited things. It's not legally for me to share yet. I'm still trying to find a loophole... So I'm trying to hopefully, like, bulldoze in a China shop, you know, get it out there because my story is really insane.",
       "category": "Journalist blackmail / inherited classified files / 'liability dead than alive' / bulldozing",
@@ -2307,13 +2307,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "04:30:57–04:32:35"
+      "time_window": "04:30:57\u201304:32:35"
     },
     {
       "quote_id": "AQ-0125",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "People don't like me because I'm annoying as shit. Like, I mean, come on. Block me, bro. Block him. Like, really show me on this doll where it hurt you. Like, come on. Like, you should have more control of your own emotions. And if not, separate yourself from the equation. Because at the end of the day, you're engaging in it, so you're asking for it. If you don't want it, you don't give it your energy.",
       "category": "Self-admission / 'show me on this doll' / victim-blaming in conflict",
@@ -2322,13 +2322,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "04:49:19–04:49:39"
+      "time_window": "04:49:19\u201304:49:39"
     },
     {
       "quote_id": "AQ-0126",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "I hope not because I told him, you sue them. You sue them so fast, bro. They mess with you. That's malicious intent. All they gotta do is f around, find out one damn time, and then they go then they're gonna see. Then they're gonna cry victim. And you know what? They're gonna say, oh, you took it too far. Well, boohoo, I told you the first time. Don't f with me. I told y'all to mind your manners. You can sit there and show your facts without being an asshat. Sue them. Sue them all.",
       "category": "Litigation philosophy / 'sue them all' / fuck around and find out / 'you took it too far'",
@@ -2337,13 +2337,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "04:49:50–04:50:17"
+      "time_window": "04:49:50\u201304:50:17"
     },
     {
       "quote_id": "AQ-0127",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "sure you're safe. Like me, sue the shit out of you, and I'll take everything you got, bro.",
       "category": "Threat of financial ruin / lawsuit / taking everything",
@@ -2352,13 +2352,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:14:46–05:14:51"
+      "time_window": "05:14:46\u201305:14:51"
     },
     {
       "quote_id": "AQ-0128",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "If you use paper content with malicious intent, if you slandered, liable, deformed my character in any way, it's all taken one thought.",
       "category": "Defamation threat / sampling audio / character defense",
@@ -2367,28 +2367,28 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:14:56–05:15:03"
+      "time_window": "05:14:56\u201305:15:03"
     },
     {
       "quote_id": "AQ-0129",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "I don't fuck around. I fucking I fucking bring the fuck around to you. I stand up for someone.",
       "category": "Retaliation doctrine / proactive aggression / 'bring the fuck around to you'",
       "target": "adversaries",
-      "why_it_matters": "Fierce, aggressive rhetorical inversion: asserts she does not just wait for people to fuck around—she proactively brings the consequences straight to them.",
+      "why_it_matters": "Fierce, aggressive rhetorical inversion: asserts she does not just wait for people to fuck around\u2014she proactively brings the consequences straight to them.",
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:15:49–05:15:53"
+      "time_window": "05:15:49\u201305:15:53"
     },
     {
       "quote_id": "AQ-0130",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "Sorry. Can you help me take down third special forces here at Fort Bragg for human and drug trafficking. I I've done recognizance, so I know where they're drugging them. I have the victims. I know the names. I know who's cheating on their wives. I also am trying to expose Wright Patterson Air Force Base for testing and torturing children. My sealed adoption file is missing. I was kidnapped and illegally adopted as a baby. My dad was murdered on Father's Day. My mom was murdered on my birthday. I use my real government name because I'm taking these efforts down. I get mocked and ridiculed on a daily basis, um, but I'm gonna do it anyway because, you know, I'm being authentic. This is my real government name.",
       "category": "Surveillance dossiers / personal blackmail / 'I know who's cheating on their wives' / Fort Bragg / child torture",
@@ -2397,13 +2397,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:16:17–05:16:49"
+      "time_window": "05:16:17\u201305:16:49"
     },
     {
       "quote_id": "AQ-0131",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "There's another one in your jugular, dude, that'll literally not decapacitate you, but it'll it'll freeze you... That's not what I would personally do. My main thing would be my straight to the jugular, knee kick to the groin, um, and then I would swipe swipe their ankles right from out from under them.",
       "category": "Physical combat tactics / jugular strike / groin strike",
@@ -2412,13 +2412,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:18:26–05:19:08"
+      "time_window": "05:18:26\u201305:19:08"
     },
     {
       "quote_id": "AQ-0132",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Music & Chill Vibes🎸👽 *No Hands*",
+      "episode_title": "Music & Chill Vibes\ud83c\udfb8\ud83d\udc7d *No Hands*",
       "release_tag": "20260218_1ynJOyzqLjXKR",
       "exact_quote": "If in my car, you're gonna get a taser to your throat if you're in my window, or you're gonna get my nine that's in between my seats.",
       "category": "Weapons / firearms / taser to throat / armed self-defense",
@@ -2427,13 +2427,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:19:14–05:19:20"
+      "time_window": "05:19:14\u201305:19:20"
     },
     {
       "quote_id": "AQ-0133",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "Well, Logan, I'll tell you that I can go very low as well. And if you need an extra member of the group chat, I'm",
       "category": "Logan relationship / group chats / playful rapport",
@@ -2442,13 +2442,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:57:24–04:57:32"
+      "time_window": "04:57:24\u201304:57:32"
     },
     {
       "quote_id": "AQ-0134",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "you know I had a stalker that, like, poured blood on my front porch and, like, threatened to, like, unalive me",
       "category": "Stalking claims / physical intimidation / blood on porch",
@@ -2457,13 +2457,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "06:53:05–06:53:18"
+      "time_window": "06:53:05\u201306:53:18"
     },
     {
       "quote_id": "AQ-0135",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "A lot of times, I can't even join the rooms. Man, I just got a call with my lawyer. I was like, oh, man... No. It's not. I was just like, fuck. That's why I was I was gone for a little bit just now dealing with that.",
       "category": "Legal battles / active lawyer calls / litigation lifestyle",
@@ -2472,13 +2472,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "06:57:39–06:57:59"
+      "time_window": "06:57:39\u201306:57:59"
     },
     {
       "quote_id": "AQ-0136",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "the report. I have the flight radar from that day. I screen recorded while it was going down.",
       "category": "Surveillance method / flight radar screen recording / real-time tracking",
@@ -2487,13 +2487,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "07:02:55–07:03:00"
+      "time_window": "07:02:55\u201307:03:00"
     },
     {
       "quote_id": "AQ-0137",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "Bro, I have cameras up everywhere in my house. And, like, I I can show you like, I have timelines. Like, I'm really organized. So, like, I don't really talk about gang stalking or any of that stuff on public platforms just because I don't wanna put a target you know, a bigger target on my back because of what I normally talk about to begin with. Um, but that stuff's really real, and you have to be careful the information you share, especially when you make that choice to dedicate your life to speaking on these uncomfortable subjects. You have to be in it for the long haul.",
       "category": "Surveillance infrastructure / timelines / home security / paranoia",
@@ -2502,13 +2502,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "07:08:01–07:08:36"
+      "time_window": "07:08:01\u201307:08:36"
     },
     {
       "quote_id": "AQ-0138",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "It's my same name. I use my real name just because I wanna hold these I wanna hold these fuckers accountable.",
       "category": "Accountability / real name / combat mindset",
@@ -2517,13 +2517,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "07:17:58–07:18:05"
+      "time_window": "07:17:58\u201307:18:05"
     },
     {
       "quote_id": "AQ-0139",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "Oh, I've had journals since age age seven, and I have multiple contingency plans in place. And I'm extremely petty person, so I just but they know that.",
       "category": "Self-admission / contingency plans / 'extremely petty person' / childhood journals",
@@ -2532,13 +2532,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "07:21:05–07:21:12"
+      "time_window": "07:21:05\u201307:21:12"
     },
     {
       "quote_id": "AQ-0140",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "my uncle my uncle's on the staff. His name is Mark Maggard. That's his parents that were CIA. That was my dad that was handed the baby, and he actively speaks on this just because everybody else is not alive. So he just tries to give me a little bit, you know, more evidence.",
       "category": "Family intelligence background / Mark Maggard / corroborating evidence",
@@ -2547,13 +2547,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "07:21:19–07:21:32"
+      "time_window": "07:21:19\u201307:21:32"
     },
     {
       "quote_id": "AQ-0141",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "I had to block my kids because they were trolling trolls, and I was like, absolutely not. Like, I got my own battles. Thank you.",
       "category": "Family boundary / children online / fighting own battles",
@@ -2562,13 +2562,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "07:31:49–07:31:55"
+      "time_window": "07:31:49\u201307:31:55"
     },
     {
       "quote_id": "AQ-0142",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "Oh, it's funny. Like, my adopted mom, you know, like, because I was kidnapped today. Like, my family follows me, And I say this stuff on there because I'm trying to provoke them to sue me. Because if I'm gonna be honest, it's easier for me to submit this evidence that way without having to come out of pocket. Um, so, like, I try to provoke them into, you know, telling all the damn selves. And they don't. They won't do it.",
       "category": "Legal strategy / baiting lawsuits / discovery exploitation / weaponized exposure",
@@ -2577,13 +2577,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "07:32:29–07:32:50"
+      "time_window": "07:32:29\u201307:32:50"
     },
     {
       "quote_id": "AQ-0143",
       "speaker": "Angela",
       "date": "2026-02-18",
-      "episode_title": "Tête-à-Tête",
+      "episode_title": "T\u00eate-\u00e0-T\u00eate",
       "release_tag": "20260218_1yoKMwvrwkXJQ",
       "exact_quote": "It is I know. But I smiled a little. You have to think. My dad was on the lives on Father's Day, and my mom was on the lives on my birthday. I took that personal. That took, like, I guess, shut the hell up or I'm gonna you know? And I'm I'm petty. That was the wrong that was the wrong angle.",
       "category": "Conflict psychology / 'I took that personal' / pettiness / refusal to back down",
@@ -2592,13 +2592,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "07:33:01–07:33:14"
+      "time_window": "07:33:01\u201307:33:14"
     },
     {
       "quote_id": "AQ-0144",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "I made a big move yesterday last night in a in a big space. What would you do? I gave my grandma's phone number to an important person to see if he can get her to talk... Astral... Because I gave her the opportunity to speak out and help with my kidnapping, at least get me justice for that, um, and she couldn't do that. So I'm excited.",
       "category": "Doxxing / real-world contact pressure / handing out private phone numbers",
@@ -2607,13 +2607,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:48:19–05:49:40"
+      "time_window": "05:48:19\u201305:49:40"
     },
     {
       "quote_id": "AQ-0145",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "So I got freaked out on my backup account. Uh, I went I was gonna try and link it to my tick my TikTok to my Twitter account, and I had to stop that because I don't know if you guys have read the fine print of what it's saying... But it's pretty much saying that TikTok can post on your behalf. It can write post, delete post, add people, delete people, um, like, post things in your favor... so now I can't use my backup account...",
       "category": "Account security / backup burner accounts / platform paranoia",
@@ -2622,13 +2622,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:50:37–05:51:08"
+      "time_window": "05:50:37\u201305:51:08"
     },
     {
       "quote_id": "AQ-0146",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "You see a lot of gatekeeping of information and a lot of, like, passive shade. I never feel that or see that in your live or Shane's live, and I just just wanted to shout you off that because I think that's, you know, that's badass as fuck. I I appreciate that. I respect you.",
       "category": "Logan relationship / pre-fallout praise / admiration",
@@ -2637,13 +2637,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:52:48–05:53:12"
+      "time_window": "05:52:48\u201305:53:12"
     },
     {
       "quote_id": "AQ-0147",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "Yes. Exactly. Because, like, people will tell you I'm nice. People will say I'm mean. You gotta believe them both. I act accordingly. I'm not perfect, and I don't wanna pretend to be. I have good days and bad days, but I always have a moral compass, and I try to utilize that in everything I do. It's just not always a likable thing.",
       "category": "Self-admission / conflict philosophy / 'believe them both' / 'I act accordingly'",
@@ -2652,13 +2652,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:53:24–05:53:37"
+      "time_window": "05:53:24\u201305:53:37"
     },
     {
       "quote_id": "AQ-0148",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "I just figured if she realizes, like, hey. This is not going away. You're not gonna brush it under the table. Maybe she'll just fall into place just because, you know, there's way bigger secrets out that I could expose that I haven't, that I don't plan on to, you know, just because I know that it'll cause irreparable harm and chaos to my family. Even if it is the truth, you know, there's certain truths that are not worth the chaos. So, like, I really just want justice for being kidnapped... when it comes to child trafficking and her involvement with it, you know, because I know that's a big claim, but she she took those photos. She was documenting this entire, you know, time.",
       "category": "Blackmail leverage / bigger secrets / child trafficking allegations",
@@ -2667,13 +2667,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:53:48–05:54:42"
+      "time_window": "05:53:48\u201305:54:42"
     },
     {
       "quote_id": "AQ-0149",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "because I called her and I was telling her, I was like, hey. You know, there's three of these projects already declassified. And she was freaked out. She's like, you know, where can you see it? I'm like, you can just Google your name and it pops up. And she was trying to figure out how to delete that, how she could go about erasing the stuff from being public. And she was genuinely yeah. I was trying to explain her you can't, but there's more projects out there.",
       "category": "Family confrontation / digital footprint / public exposure panic",
@@ -2682,13 +2682,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:55:49–05:56:17"
+      "time_window": "05:55:49\u201305:56:17"
     },
     {
       "quote_id": "AQ-0150",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "So she was already, um, really well respected in the army. If you look up her name, you'll see a bunch of articles... She was in the intelligence community, INSCOM.",
       "category": "Family military pedigree / INSCOM / military intelligence",
@@ -2697,13 +2697,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:56:55–05:57:19"
+      "time_window": "05:56:55\u201305:57:19"
     },
     {
       "quote_id": "AQ-0151",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "The first 48. They call it Cosmic Revenge, uh, a 250 page file... 23 soldiers got turned into stone poles... That's like some Medusa kinda stuff. They got turned to stone, 23 of them.",
       "category": "Fringe military claims / Soviet UFO documents / paranormal phenomena",
@@ -2712,13 +2712,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "06:12:15–06:15:09"
+      "time_window": "06:12:15\u201306:15:09"
     },
     {
       "quote_id": "AQ-0152",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "So I wanted to quickly say I gotta go. Angela, I have to read your book, so you gotta keep us posted on that.",
       "category": "Logan relationship / pre-fallout support / book project",
@@ -2727,13 +2727,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "06:15:35–06:16:03"
+      "time_window": "06:15:35\u201306:16:03"
     },
     {
       "quote_id": "AQ-0153",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "John Keel Confidential Research 🎸👽🛸",
+      "episode_title": "John Keel Confidential Research \ud83c\udfb8\ud83d\udc7d\ud83d\udef8",
       "release_tag": "20260217_1OwGWYlXpRmxQ",
       "exact_quote": "Yeah. When it comes to the hypnosis stuff... I've done a lot of experimentation on my own.",
       "category": "Hypnosis / psychological manipulation / self-admission",
@@ -2742,7 +2742,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "06:23:03–06:23:48"
+      "time_window": "06:23:03\u201306:23:48"
     },
     {
       "quote_id": "AQ-0154",
@@ -2757,7 +2757,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:22:44–04:23:01"
+      "time_window": "04:22:44\u201304:23:01"
     },
     {
       "quote_id": "AQ-0155",
@@ -2772,7 +2772,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "04:23:08–04:23:20"
+      "time_window": "04:23:08\u201304:23:20"
     },
     {
       "quote_id": "AQ-0156",
@@ -2787,7 +2787,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "OPTIONAL",
-      "time_window": "04:30:36–04:30:51"
+      "time_window": "04:30:36\u201304:30:51"
     },
     {
       "quote_id": "AQ-0157",
@@ -2802,7 +2802,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:47:18–05:47:54"
+      "time_window": "05:47:18\u201305:47:54"
     },
     {
       "quote_id": "AQ-0158",
@@ -2817,7 +2817,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "08:43:15–08:44:12"
+      "time_window": "08:43:15\u201308:44:12"
     },
     {
       "quote_id": "AQ-0159",
@@ -2832,7 +2832,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "STRONG",
-      "time_window": "09:00:53–09:01:06"
+      "time_window": "09:00:53\u201309:01:06"
     },
     {
       "quote_id": "AQ-0160",
@@ -2847,7 +2847,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:13:30–02:13:37"
+      "time_window": "02:13:30\u201302:13:37"
     },
     {
       "quote_id": "AQ-0161",
@@ -2862,7 +2862,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "02:13:41–02:13:47"
+      "time_window": "02:13:41\u201302:13:47"
     },
     {
       "quote_id": "AQ-0162",
@@ -2877,7 +2877,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "STRONG",
-      "time_window": "02:19:30–02:19:33"
+      "time_window": "02:19:30\u201302:19:33"
     },
     {
       "quote_id": "AQ-0163",
@@ -2892,7 +2892,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "02:17:55–02:18:20"
+      "time_window": "02:17:55\u201302:18:20"
     },
     {
       "quote_id": "AQ-0164",
@@ -2907,7 +2907,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "SUPPORTING",
-      "time_window": "02:15:35–02:15:46"
+      "time_window": "02:15:35\u201302:15:46"
     },
     {
       "quote_id": "AQ-0165",
@@ -2922,7 +2922,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "02:02:55–02:03:05"
+      "time_window": "02:02:55\u201302:03:05"
     },
     {
       "quote_id": "AQ-0166",
@@ -2937,7 +2937,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "BACKGROUND",
-      "time_window": "02:20:51–02:21:03"
+      "time_window": "02:20:51\u201302:21:03"
     },
     {
       "quote_id": "AQ-0167",
@@ -2952,7 +2952,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "03:42:45–03:42:49"
+      "time_window": "03:42:45\u201303:42:49"
     },
     {
       "quote_id": "AQ-0168",
@@ -2967,7 +2967,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "03:15:47–03:16:30"
+      "time_window": "03:15:47\u201303:16:30"
     },
     {
       "quote_id": "AQ-0169",
@@ -2982,7 +2982,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "03:14:11–03:14:41"
+      "time_window": "03:14:11\u201303:14:41"
     },
     {
       "quote_id": "AQ-0170",
@@ -2997,7 +2997,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "STRONG",
-      "time_window": "03:26:54–03:27:14"
+      "time_window": "03:26:54\u201303:27:14"
     },
     {
       "quote_id": "AQ-0171",
@@ -3012,7 +3012,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "03:41:17–03:41:48"
+      "time_window": "03:41:17\u201303:41:48"
     },
     {
       "quote_id": "AQ-0172",
@@ -3027,7 +3027,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "SUPPORTING",
-      "time_window": "03:28:58–03:29:46"
+      "time_window": "03:28:58\u201303:29:46"
     },
     {
       "quote_id": "AQ-0173",
@@ -3042,7 +3042,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "03:35:14–03:36:51"
+      "time_window": "03:35:14\u201303:36:51"
     },
     {
       "quote_id": "AQ-0174",
@@ -3057,7 +3057,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "03:31:45–03:31:52"
+      "time_window": "03:31:45\u201303:31:52"
     },
     {
       "quote_id": "AQ-0175",
@@ -3072,7 +3072,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:26:44–00:28:19"
+      "time_window": "00:26:44\u201300:28:19"
     },
     {
       "quote_id": "AQ-0176",
@@ -3087,7 +3087,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:31:44–00:31:55"
+      "time_window": "00:31:44\u201300:31:55"
     },
     {
       "quote_id": "AQ-0177",
@@ -3102,7 +3102,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:34:05–00:34:31"
+      "time_window": "00:34:05\u201300:34:31"
     },
     {
       "quote_id": "AQ-0178",
@@ -3117,7 +3117,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:35:15–00:35:48"
+      "time_window": "00:35:15\u201300:35:48"
     },
     {
       "quote_id": "AQ-0179",
@@ -3132,7 +3132,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:36:48–00:37:48"
+      "time_window": "00:36:48\u201300:37:48"
     },
     {
       "quote_id": "AQ-0180",
@@ -3147,7 +3147,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:38:04–00:38:24"
+      "time_window": "00:38:04\u201300:38:24"
     },
     {
       "quote_id": "AQ-0181",
@@ -3162,7 +3162,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:38:59–00:39:40"
+      "time_window": "00:38:59\u201300:39:40"
     },
     {
       "quote_id": "AQ-0182",
@@ -3177,7 +3177,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:40:47–00:41:42"
+      "time_window": "00:40:47\u201300:41:42"
     },
     {
       "quote_id": "AQ-0183",
@@ -3192,7 +3192,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:41:50–00:42:32"
+      "time_window": "00:41:50\u201300:42:32"
     },
     {
       "quote_id": "AQ-0184",
@@ -3207,7 +3207,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:46:45–00:48:41"
+      "time_window": "00:46:45\u201300:48:41"
     },
     {
       "quote_id": "AQ-0185",
@@ -3222,7 +3222,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "SUPPORTING",
-      "time_window": "00:51:10–00:51:55"
+      "time_window": "00:51:10\u201300:51:55"
     },
     {
       "quote_id": "AQ-0186",
@@ -3237,7 +3237,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:54:46–00:54:55"
+      "time_window": "00:54:46\u201300:54:55"
     },
     {
       "quote_id": "AQ-0187",
@@ -3252,7 +3252,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:55:09–00:55:23"
+      "time_window": "00:55:09\u201300:55:23"
     },
     {
       "quote_id": "AQ-0188",
@@ -3267,7 +3267,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:57:11–00:57:30"
+      "time_window": "00:57:11\u201300:57:30"
     },
     {
       "quote_id": "AQ-0189",
@@ -3282,7 +3282,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:01:44–00:05:01"
+      "time_window": "00:01:44\u201300:05:01"
     },
     {
       "quote_id": "AQ-0190",
@@ -3297,7 +3297,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:09:11–00:12:15"
+      "time_window": "00:09:11\u201300:12:15"
     },
     {
       "quote_id": "AQ-0191",
@@ -3312,7 +3312,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:25:30–00:27:04"
+      "time_window": "00:25:30\u201300:27:04"
     },
     {
       "quote_id": "AQ-0192",
@@ -3327,7 +3327,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:33:07–00:35:51"
+      "time_window": "00:33:07\u201300:35:51"
     },
     {
       "quote_id": "AQ-0193",
@@ -3342,13 +3342,13 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "STRONG",
-      "time_window": "01:03:15–01:03:40"
+      "time_window": "01:03:15\u201301:03:40"
     },
     {
       "quote_id": "AQ-0194",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "GUITAR JAM 🎸🔥",
+      "episode_title": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
       "release_tag": "20260217_1RDGlleabPOGL",
       "exact_quote": "long as that astronaut from this morning's not there, because I already have his address, and I did not sue him yet. But he says one more thing out of pocket, bro... And, like, I told him, I have an attorney on retainer for that reason because my story is important, and I want justice more than anything. And if I have to legally handle that, I will because that's defamation of character. So I I just gave him a warning... I use my real name on purpose. I post nondisclosure agreements. My grandparents do work for the CIA. Like, that shit's declassified. So, like, leave me alone.",
       "category": "Doxxing admission / collecting physical addresses / attorney on retainer / lawsuit warning",
@@ -3357,13 +3357,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:04:10–02:05:30"
+      "time_window": "02:04:10\u201302:05:30"
     },
     {
       "quote_id": "AQ-0195",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "GUITAR JAM 🎸🔥",
+      "episode_title": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
       "release_tag": "20260217_1RDGlleabPOGL",
       "exact_quote": "The last one I did was in the end of May. Um, my husband's cousin's daughter was abducted. She's 13 years old out of New York... All I added was his first name and his Xbox account and the state that he lived in. Um, FBI was involved... they were more concerned with how I got the information than actually, like, saving her. It took them over eight hours to go to the location that I gave them, and she was there. They did find her.",
       "category": "Investigation methods / Xbox tracking / FBI intervention / abductions",
@@ -3372,13 +3372,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:02:09–02:03:19"
+      "time_window": "02:02:09\u201302:03:19"
     },
     {
       "quote_id": "AQ-0196",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "GUITAR JAM 🎸🔥",
+      "episode_title": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
       "release_tag": "20260217_1RDGlleabPOGL",
       "exact_quote": "not in one of those spaces because I would absolutely love to, like, contribute. I don't really ever do that publicly, but, like, I have worked with law enforcement, um, and I do have track records and some positive cases. I only have one positive case of the person being found alive, um, but I was able to help recover three other missing people.",
       "category": "Law enforcement cooperation / missing persons track record",
@@ -3387,13 +3387,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "SUPPORTING",
-      "time_window": "02:01:05–02:01:23"
+      "time_window": "02:01:05\u201302:01:23"
     },
     {
       "quote_id": "AQ-0197",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "GUITAR JAM 🎸🔥",
+      "episode_title": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
       "release_tag": "20260217_1RDGlleabPOGL",
       "exact_quote": "That's what happened to me. Because my children's father is seven years older than me, and I didn't understand grooming... Three kids later, and, you know, like, he hit me in the head with a vacuum cleaner, beat my ass... if my dad if I told him I didn't call my dad. Because I knew if I would've called my dad, my daddy would've unlocked that man. You know, but that was a green beret. There's no way in hell. So I handled my own problems... I packed three children up on a plane... from Phoenix, Arizona back to North Carolina... thirteen years free.",
       "category": "Autobiographical narrative / domestic violence / Green Beret father / Phoenix to NC",
@@ -3402,13 +3402,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:58:54–02:00:01"
+      "time_window": "01:58:54\u201302:00:01"
     },
     {
       "quote_id": "AQ-0198",
       "speaker": "Angela",
       "date": "2026-02-17",
-      "episode_title": "GUITAR JAM 🎸🔥",
+      "episode_title": "GUITAR JAM \ud83c\udfb8\ud83d\udd25",
       "release_tag": "20260217_1RDGlleabPOGL",
       "exact_quote": "I'm totally okay with you disagreeing, but just don't like, your rebuttal be, like, mocking my trauma and degrading it because they're like, you probably have, like, a mom and dad. I was stabbed at age 11, locked in a dog cage, bro. Like, come on. I'm okay, but, like, that's not okay to for you to mock it.",
       "category": "Trauma weaponization / childhood abuse claims / dog cage & stabbing",
@@ -3417,7 +3417,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:06:12–02:06:30"
+      "time_window": "02:06:12\u201302:06:30"
     },
     {
       "quote_id": "AQ-0199",
@@ -3432,7 +3432,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:24:33–00:25:48"
+      "time_window": "00:24:33\u201300:25:48"
     },
     {
       "quote_id": "AQ-0200",
@@ -3447,7 +3447,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:23:14–00:24:32"
+      "time_window": "00:23:14\u201300:24:32"
     },
     {
       "quote_id": "AQ-0201",
@@ -3462,7 +3462,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:36:11–00:37:16"
+      "time_window": "00:36:11\u201300:37:16"
     },
     {
       "quote_id": "AQ-0202",
@@ -3477,7 +3477,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:37:30–00:38:22"
+      "time_window": "00:37:30\u201300:38:22"
     },
     {
       "quote_id": "AQ-0203",
@@ -3492,7 +3492,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:38:54–00:40:30"
+      "time_window": "00:38:54\u201300:40:30"
     },
     {
       "quote_id": "AQ-0204",
@@ -3507,7 +3507,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "00:53:01–00:53:21"
+      "time_window": "00:53:01\u201300:53:21"
     },
     {
       "quote_id": "AQ-0205",
@@ -3522,7 +3522,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:54:43–00:55:59"
+      "time_window": "00:54:43\u201300:55:59"
     },
     {
       "quote_id": "AQ-0206",
@@ -3537,7 +3537,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:56:01–00:56:34"
+      "time_window": "00:56:01\u201300:56:34"
     },
     {
       "quote_id": "AQ-0207",
@@ -3552,7 +3552,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:56:36–00:56:46"
+      "time_window": "00:56:36\u201300:56:46"
     },
     {
       "quote_id": "AQ-0208",
@@ -3567,7 +3567,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:56:46–00:57:50"
+      "time_window": "00:56:46\u201300:57:50"
     },
     {
       "quote_id": "AQ-0209",
@@ -3582,7 +3582,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "STRONG",
-      "time_window": "01:10:40–01:12:54"
+      "time_window": "01:10:40\u201301:12:54"
     },
     {
       "quote_id": "AQ-0210",
@@ -3597,7 +3597,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:49:41–01:50:22"
+      "time_window": "01:49:41\u201301:50:22"
     },
     {
       "quote_id": "AQ-0211",
@@ -3612,7 +3612,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:51:08–01:51:34"
+      "time_window": "01:51:08\u201301:51:34"
     },
     {
       "quote_id": "AQ-0212",
@@ -3627,7 +3627,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:01:51–02:04:25"
+      "time_window": "02:01:51\u201302:04:25"
     },
     {
       "quote_id": "AQ-0213",
@@ -3642,13 +3642,13 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:51:04–02:53:33"
+      "time_window": "02:51:04\u201302:53:33"
     },
     {
       "quote_id": "AQ-0214",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "like, one thing I admire about you, which is a trait I do not currently possess. I'm working on it. But he is able to talk to everybody regardless if he agrees with them, um, whatever their political stance is, is, whatever their background is, like, he is kinda like a mediator. Like, he tries to, like, bring them all together and collab, and, like, I think that's awesome. I'm the one that's always over there, you know, trying to find the problems and, you know, pinpoint them out and, you know, analyze and locate the threat. And he's over here, like, minimizing it and bringing the pieces together. So, like, I just think it's important.",
       "category": "Self-description / Threat analysis MO / conflict temperament",
@@ -3657,13 +3657,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:43:17–05:43:48"
+      "time_window": "05:43:17\u201305:43:48"
     },
     {
       "quote_id": "AQ-0215",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "I still love how you articulate things in a nice manner. When I get aggravated or salty or marinated, I can't hide it. And I just feel like and I can hear it sometimes when you get a little, like, a little, ugh, but you don't show it. You know what I mean? You you're able to keep, like, that composure, and I admire that quality.",
       "category": "Self-description / emotional dysregulation / inability to suppress anger",
@@ -3672,13 +3672,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:44:40–05:44:55"
+      "time_window": "05:44:40\u201305:44:55"
     },
     {
       "quote_id": "AQ-0216",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "keep your friend close, but your enemies closer. You know what I mean? You gotta That's right. You have to have that discernment, and you have to have bravery that it takes to, um, keep that poker face. You don't ever show all your cards ever. I never do. I tell a lot of stuff, but I have a lot more stuff in my pockets, names, dates, documents that I shouldn't possess, um, that I do. You when you talk about things like this, you protect yourself first at all times. You can care about others, but you have to keep your cup filled Alright. All the time. You give the overflow, the abundance.",
       "category": "Direct admission / illicit dossier collection / unauthorized document possession / poker face strategy",
@@ -3687,13 +3687,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:51:16–05:51:46"
+      "time_window": "05:51:16\u201305:51:46"
     },
     {
       "quote_id": "AQ-0217",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "Not only communicating, but comprehending. I think that's a great freaking point. You know? Forgiveness is important. Uh, you know, like, everybody makes mistakes. I make mistakes every single day. But do we own up to them? Do we admit it if we're wrong? Like, that's something that we have to do, especially if we're gonna be holding other people accountable. We have to be fully transparent with ourselves first. Then it levels the playing field. When you raise that bar, you raise that standard, other people have to match it. They eliminate themselves. They see themselves out because it takes too much work to be inauthentic. They don't have the emotional capacity or the the determination to live that way. They're not gonna do it, and they're gonna feel threatened by you. And that's not your problem.",
       "category": "Self-stated philosophy / accountability & transparency / admitting fault",
@@ -3702,13 +3702,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:52:32–05:53:10"
+      "time_window": "05:52:32\u201305:53:10"
     },
     {
       "quote_id": "AQ-0218",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "If you're easily manipulated, you're easily controlled. So we need to take that into consideration.",
       "category": "Philosophy / manipulation & control dynamics",
@@ -3717,13 +3717,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "05:54:30–05:54:35"
+      "time_window": "05:54:30\u201305:54:35"
     },
     {
       "quote_id": "AQ-0219",
       "speaker": "Angela",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "That he was authentic. When I asked him about Right Path, he said he personally hadn't been there. He stated the places that he had been at. Um, he said that he he didn't he couldn't currently do anything about it, but he could get in touch with other people. Uh, I you have to be, like, you know, careful with these people. Uh, I I understand keeping them at Arden's length, but at the same time, they're still human beings. You know what I mean? Just because your job requires you to have some, you know, level of secrecy, that doesn't mean that the person themselves is evil. That's their job. Uh, it's something that I I've had struggled with just because, like, I've always thought my grandma just worked for the CIA. I did not realize she was a part of the DIA and multiple agencies simultaneously at the same time. So, like, getting this other information and putting it into perspective and seeing how that could have altered the reason you know, her responses to me when I asked her certain questions, um, it it it makes me it makes it come to you know, it's a bigger picture. It's it's there's real fear there. You know? She's genuinely scared of her NDAs. And before four days ago, she didn't know that they were null and void. Now she does. Now, you know, we're working on getting her to talk. But, you know, these people, they're still people. And, yeah, they have more information, and they have higher clearance rates, and they're a part of other things. But, you know, I think we should still take into consideration. They still feel things like you and I.",
       "category": "Investigation method / grandmother DIA-CIA records / nullifying NDAs / forcing family to talk",
@@ -3732,13 +3732,13 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:57:00–05:58:15"
+      "time_window": "05:57:00\u201305:58:15"
     },
     {
       "quote_id": "AQ-0220",
       "speaker": "Mellow Demon",
       "date": "2026-02-16",
-      "episode_title": "😂😘😂 Entry Level Improv and Music from the Beyond.✨🚀✨",
+      "episode_title": "\ud83d\ude02\ud83d\ude18\ud83d\ude02 Entry Level Improv and Music from the Beyond.\u2728\ud83d\ude80\u2728",
       "release_tag": "20260216_1djxXNkreeNGZ",
       "exact_quote": "Well, thanks. I'm not just here for you know? Thank you. I I appreciate you so much too, uh, as you know. Um, but I think it's, uh, it's just important and and essential to finding the truth to be able to access all points of view, uh, without putting people needlessly on, you know, the defensive. Um, and we don't know. We don't know. We and and and yeah. I mean, so I'm not like, uh, Lex Freeman type where I'm just, like, trying to kiss everyone's ass or anything. I'm trying to get to the truth, and I feel like this is the the the only and best way to do it. Um, and, you know, and I think if we can speak, you know, and behave with equanimity and revolutionary civility as I refer to it, um, it it only gets the job done better as you know, if you it's not we're gonna, like, break the law or something or, like, harm someone. Right? If you're gonna take someone down, Angela, you're a good ethical person. You're gonna do it using the law. You know? And so, therefore, we can just communicate freely with people, and we will only benefit by getting access to as many people as possible.",
       "category": "Third-party framing / pre-fallout perception of Angela / legal takedown assumption",
@@ -3747,7 +3747,7 @@
       "pre_or_post_fallout": "PRE-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "05:43:48–05:44:39"
+      "time_window": "05:43:48\u201305:44:39"
     },
     {
       "quote_id": "AQ-0221",
@@ -3762,7 +3762,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:31:28–01:32:52"
+      "time_window": "01:31:28\u201301:32:52"
     },
     {
       "quote_id": "AQ-0222",
@@ -3770,14 +3770,14 @@
       "date": "2026-09-15",
       "episode_title": "Super_Spy_Tea_Time_Red_String_Therapy_pt.4",
       "release_tag": "20260915_1qGvvebNOARGB",
-      "exact_quote": "Please invite me to the space because if I have any – anything in my – because I have a private discord of evidence that I've collected from just, like, the abuse that I've witnessed. And I've never added anybody in there, even though a lot of people have wanted in there. Just because some of the evidence and stuff I've collected could be weaponized to hurt other people. And I don't feel like that is the right way to handle it. I've been tempted, not even to lie. But it's just the wrong way to go about it. So in the future, if there's ever any allegations like that, especially with past tense stuff, if I haven't saved it, I know other people that probably do. And I feel like the only way to counteract it would be to just address it head on. TJ, you want me to set you up? There's some lore. I had a camper I was going to be passing around and giving to an individual on this app for free because I believed their story that they had told. And I thought that they were an admirable individual. And come to find out, they had their own lore when it came to a camper. TJ, did you want to do that or do you want to wait?",
+      "exact_quote": "Please invite me to the space because if I have any \u2013 anything in my \u2013 because I have a private discord of evidence that I've collected from just, like, the abuse that I've witnessed. And I've never added anybody in there, even though a lot of people have wanted in there. Just because some of the evidence and stuff I've collected could be weaponized to hurt other people. And I don't feel like that is the right way to handle it. I've been tempted, not even to lie. But it's just the wrong way to go about it. So in the future, if there's ever any allegations like that, especially with past tense stuff, if I haven't saved it, I know other people that probably do. And I feel like the only way to counteract it would be to just address it head on. TJ, you want me to set you up? There's some lore. I had a camper I was going to be passing around and giving to an individual on this app for free because I believed their story that they had told. And I thought that they were an admirable individual. And come to find out, they had their own lore when it came to a camper. TJ, did you want to do that or do you want to wait?",
       "category": "Evidence hoarding / private Discord dossier / weaponization admission",
       "target": "Community targets",
       "why_it_matters": "Direct admission of maintaining a secret private Discord evidence archive: Angela confesses she hoards evidence that 'could be weaponized to hurt other people,' admitting she has 'been tempted, not even to lie' to use it.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:47:11–01:48:12"
+      "time_window": "01:47:11\u201301:48:12"
     },
     {
       "quote_id": "AQ-0223",
@@ -3792,7 +3792,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:48:37–01:48:58"
+      "time_window": "01:48:37\u201301:48:58"
     },
     {
       "quote_id": "AQ-0224",
@@ -3807,7 +3807,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:51:08–01:54:20"
+      "time_window": "01:51:08\u201301:54:20"
     },
     {
       "quote_id": "AQ-0225",
@@ -3822,7 +3822,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:58:24–02:01:40"
+      "time_window": "01:58:24\u201302:01:40"
     },
     {
       "quote_id": "AQ-0226",
@@ -3837,7 +3837,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:05:24–02:09:13"
+      "time_window": "02:05:24\u201302:09:13"
     },
     {
       "quote_id": "AQ-0227",
@@ -3852,7 +3852,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:13:03–02:13:05"
+      "time_window": "02:13:03\u201302:13:05"
     },
     {
       "quote_id": "AQ-0228",
@@ -3867,7 +3867,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:13:39–02:13:43"
+      "time_window": "02:13:39\u201302:13:43"
     },
     {
       "quote_id": "AQ-0229",
@@ -3882,7 +3882,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:14:40–02:14:58"
+      "time_window": "02:14:40\u201302:14:58"
     },
     {
       "quote_id": "AQ-0230",
@@ -3897,7 +3897,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:15:02–02:15:22"
+      "time_window": "02:15:02\u201302:15:22"
     },
     {
       "quote_id": "AQ-0231",
@@ -3912,7 +3912,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:15:33–02:15:46"
+      "time_window": "02:15:33\u201302:15:46"
     },
     {
       "quote_id": "AQ-0232",
@@ -3927,7 +3927,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "02:23:03–02:24:14"
+      "time_window": "02:23:03\u201302:24:14"
     },
     {
       "quote_id": "AQ-0233",
@@ -3942,7 +3942,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:36:43–02:36:52"
+      "time_window": "02:36:43\u201302:36:52"
     },
     {
       "quote_id": "AQ-0234",
@@ -3957,7 +3957,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "02:37:01–02:38:24"
+      "time_window": "02:37:01\u201302:38:24"
     },
     {
       "quote_id": "AQ-0235",
@@ -3972,7 +3972,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL",
-      "time_window": "00:30:42–00:31:50"
+      "time_window": "00:30:42\u201300:31:50"
     },
     {
       "quote_id": "AQ-0236",
@@ -3980,14 +3980,14 @@
       "date": "2026-09-04",
       "episode_title": "Breaking olds 2026-09-04 16:20",
       "release_tag": "20260904_1OxwbnpyBjLJB",
-      "exact_quote": "Watch out. She could sue you. He said her name. It's this constant threat of like, you know, getting burnt by this person. That's what's crazy with this whole thing is this psychotic like driving force by this one person that has driven a fucking wall through the communities. And like, it's crazy because it's happening in other communities, too. And it's just like, I'm on good terms with this person, I guess, until like, I say something, you know, like right now it's being recorded and cataloged. And so I guess now I'm talking shit or whatever. And it's like, I don't know. No, no, son, you're not. This has become and this is where we have to stop all this. OK, this is obviously a public issue. We are a community, be it virtual. Well, it's OK to speak on it. And the reality is for Angela to pop up out of nowhere and pretend like she's got some inner track, inner line of communication with this family is, as Reaper said, on par for the course of how she seems to be behaving online. And it's not cool. And that's why I came up here. Victor's sister does not have an X account. She would never have spoken to Angela Madrigan, period. So, yeah, I kind of have to agree. And I don't mean to like just jump in, but I just wanted to give my two cents because I've been listening to you guys. Thank you, Logan and Sian, for having me up. And I've had a lot of experience with Victor and he was always nice to me and pretty professional. He says a lot of controversial stuff, though, that some people would really not like. And so I think we have to remember that, that there's going to be people out there that want to take other people down. They're going to take a little nugget of information. They're going to run with it. And so, you know, how do we really know that this is his sister? Why would she reach out to Angela? And everybody is correct. Like Angela does have a track record of having conflict with a lot of other people on this platform. So I just wanted to say that I want to give him some grace, you know. And I think it's hard, like addiction is really a hard thing. It's a disease. And like I said, he's never been bad to me. So my heart kind of goes out to him if he's struggling with this. Like I can't imagine having a life where, you know, there's hard drugs involved is easy. And I don't know. I just don't – I'm not really – I'm not saying anybody has dragged his name through the mud besides perhaps what I've heard Angela say. And I'm kind of disappointed until we have like, you know, more facts. So I just want to put my two cents in. Thank you so much for letting me have the floor. Appreciate you.",
+      "exact_quote": "Watch out. She could sue you. He said her name. It's this constant threat of like, you know, getting burnt by this person. That's what's crazy with this whole thing is this psychotic like driving force by this one person that has driven a fucking wall through the communities. And like, it's crazy because it's happening in other communities, too. And it's just like, I'm on good terms with this person, I guess, until like, I say something, you know, like right now it's being recorded and cataloged. And so I guess now I'm talking shit or whatever. And it's like, I don't know. No, no, son, you're not. This has become and this is where we have to stop all this. OK, this is obviously a public issue. We are a community, be it virtual. Well, it's OK to speak on it. And the reality is for Angela to pop up out of nowhere and pretend like she's got some inner track, inner line of communication with this family is, as Reaper said, on par for the course of how she seems to be behaving online. And it's not cool. And that's why I came up here. Victor's sister does not have an X account. She would never have spoken to Angela Madrigan, period. So, yeah, I kind of have to agree. And I don't mean to like just jump in, but I just wanted to give my two cents because I've been listening to you guys. Thank you, Logan and Sian, for having me up. And I've had a lot of experience with Victor and he was always nice to me and pretty professional. He says a lot of controversial stuff, though, that some people would really not like. And so I think we have to remember that, that there's going to be people out there that want to take other people down. They're going to take a little nugget of information. They're going to run with it. And so, you know, how do we really know that this is his sister? Why would she reach out to Angela? And everybody is correct. Like Angela does have a track record of having conflict with a lot of other people on this platform. So I just wanted to say that I want to give him some grace, you know. And I think it's hard, like addiction is really a hard thing. It's a disease. And like I said, he's never been bad to me. So my heart kind of goes out to him if he's struggling with this. Like I can't imagine having a life where, you know, there's hard drugs involved is easy. And I don't know. I just don't \u2013 I'm not really \u2013 I'm not saying anybody has dragged his name through the mud besides perhaps what I've heard Angela say. And I'm kind of disappointed until we have like, you know, more facts. So I just want to put my two cents in. Thank you so much for letting me have the floor. Appreciate you.",
       "category": "Third-party testimony / community destruction / fear of lawsuits / fabricated insider connections",
       "target": "Angela",
       "why_it_matters": "Vivid testimony on the toxic atmosphere Angela created: describes a community terrorized by constant threats of lawsuits and recordings, and refutes Angela's claims of having backchannel contact with targets' families.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:01:28–01:04:10"
+      "time_window": "01:01:28\u201301:04:10"
     },
     {
       "quote_id": "AQ-0237",
@@ -4002,7 +4002,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:10:26–01:12:54"
+      "time_window": "01:10:26\u201301:12:54"
     },
     {
       "quote_id": "AQ-0238",
@@ -4017,7 +4017,7 @@
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "STRONG",
-      "time_window": "01:12:54–01:13:38"
+      "time_window": "01:12:54\u201301:13:38"
     },
     {
       "quote_id": "AQ-0239",
@@ -4025,20 +4025,20 @@
       "date": "2026-09-04",
       "episode_title": "Breaking olds 2026-09-04 16:20",
       "release_tag": "20260904_1OxwbnpyBjLJB",
-      "exact_quote": "i'll just i'll just land there you know i think part of the problem is that the information came from angela and like we all know that she just kind of goes after people so i can tell you like i was i know not everybody's a fan of skittles but i was at her house physically when she got swatted for the fourth time with cps and you know skittles is skittles but she's not a bad mom and she also lives with her parents like there's so many adults there the kids well taken care of and like to weaponize cps against somebody on the internet that you don't like is crazy so it's a little bit of the boy who cried wolf where like she's gone after so many people with bullshit um that's hard to believe anything that she says Então, assim...",
+      "exact_quote": "i'll just i'll just land there you know i think part of the problem is that the information came from angela and like we all know that she just kind of goes after people so i can tell you like i was i know not everybody's a fan of skittles but i was at her house physically when she got swatted for the fourth time with cps and you know skittles is skittles but she's not a bad mom and she also lives with her parents like there's so many adults there the kids well taken care of and like to weaponize cps against somebody on the internet that you don't like is crazy so it's a little bit of the boy who cried wolf where like she's gone after so many people with bullshit um that's hard to believe anything that she says Ent\u00e3o, assim...",
       "category": "Eyewitness testimony / CPS weaponization / four swatting incidents against Skittles / crying wolf",
       "target": "Angela",
       "why_it_matters": "Devastating firsthand eyewitness testimony: host testifies under his own name that he was physically present at Skittles' home when she was swatted by Child Protective Services for the fourth time due to false reports from Angela. Denounces weaponizing child welfare agencies against online enemies.",
       "pre_or_post_fallout": "POST-FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL",
-      "time_window": "01:19:15–01:20:00"
+      "time_window": "01:19:15\u201301:20:00"
     },
     {
       "quote_id": "AQ-0240",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "It's huge issue because, like, I have all the data. I have the information. I'm great at researching. It's putting it in order. My brain the it doesn't work that way. It bounces from It's tedious. Yeah. She has TDS? No. No. I have reactive attachment disorders, complex PTSD, and anxiety.",
       "category": "Self-Characterization & Psychological Profile",
@@ -4053,7 +4053,7 @@
       "quote_id": "AQ-0241",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "I think Seth Harp is very passionate about his story, but he didn't care about the victims. And and I have the names. I can literally introduce you to this the victims. I I can introduce you to the people that are part of that unit. I just needed it in writing that they would be protected, the ones that would are willing to go to court for me, which Logan and well, Melodemon has all of their names, but Logan has two of them just because for contingencies.",
       "category": "Pre-Fallout Relationship with Logan & Contingency Dossiers",
@@ -4068,9 +4068,9 @@
       "quote_id": "AQ-0242",
       "speaker": "Angela Maggard (dialogue with Logan Black)",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
-      "exact_quote": "Logan: But you gotta stop telling people that I have the stuff because— Angela: Oh, my bad. My bad. Logan: It defeats the purpose. Angela: A little bit. Yeah. Speaker 1: If you're gonna murder me, murder Logan too. No. Don't murder Logan. I have contingencies other places off the island. No. No. No. No. No. No. Double murder Logan, and don't murder me. Angela: I would never do that.",
+      "exact_quote": "Logan: But you gotta stop telling people that I have the stuff because\u2014 Angela: Oh, my bad. My bad. Logan: It defeats the purpose. Angela: A little bit. Yeah. Speaker 1: If you're gonna murder me, murder Logan too. No. Don't murder Logan. I have contingencies other places off the island. No. No. No. No. No. No. Double murder Logan, and don't murder me. Angela: I would never do that.",
       "category": "Pre-Fallout Relationship with Logan & Contingency Dossiers",
       "target": "Logan Black",
       "why_it_matters": "Real-time dialogue between Logan and Angela where Logan directly admonishes Angela for announcing that he holds her contingency dossiers, Angela immediately concedes ('My bad, my bad'), and Angela adamantly vows she would never harm or betray Logan ('I would never do that'), presenting an absolute contradiction to her post-fallout scorched-earth campaign.",
@@ -4083,7 +4083,7 @@
       "quote_id": "AQ-0243",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "I know the names of the men on in this unit because I run the are we dating the same man page for Fayetteville, Fort Bragg, and Raleigh as well as the are we dating the same woman page. You gotta protect yourself better, I feel like. Because, like, it's telling us this information isn't really gonna I mean, I've I've everybody around me is dead. So, like, the only way for me to ever get any justice is to put it in as many recorded spaces as possible. Because we're gonna be realistic, they're not really gonna look into it till I'm quote. I mean, that's the pattern. Right?",
       "category": "Surveillance MO, AWDTSM Groups & Recorded Spaces Strategy",
@@ -4098,7 +4098,7 @@
       "quote_id": "AQ-0244",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "Have to have contingency plans and you don't show everything. So, like, I talk about a lot, but I've omitted names. I've omitted specific locations. I I give a little bit enough for people to be able to go look into it, but I have the real dirt in my back pocket because I want my day in court.",
       "category": "Tactical Dossiers, Legal Strategy & Contingency Withholding",
@@ -4113,12 +4113,12 @@
       "quote_id": "AQ-0245",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "Another thing, but you're we're brag and a lot of people don't realize is there's you know, we have the drug trafficking ring, but they also have a blackmail ring where they take these soldiers and their wives. It's kind of like a sex ring, if we're gonna be honest. And they record them and they get the evidence and they blackmail them throughout their career. Either shut up and do your job and follow orders or one, you get murdered and disappear like Seth's talking about or or two, you're you're kicked out of the army.",
       "category": "Blackmail, Surveillance & Exploitation Narratives",
       "target": "Military Blackmail Rings / Surveillance Psychology",
-      "why_it_matters": "Reveals Angela's fixation on recording sexual conduct and leveraging recordings for career-long blackmail—a exact conceptual blueprint of the allegations she later wielded against Logan and community members.",
+      "why_it_matters": "Reveals Angela's fixation on recording sexual conduct and leveraging recordings for career-long blackmail\u2014a exact conceptual blueprint of the allegations she later wielded against Logan and community members.",
       "pre_or_post_fallout": "PRE_FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "HIGH_VALUE",
@@ -4128,12 +4128,12 @@
       "quote_id": "AQ-0246",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "Okay. So January 5, there was a space on here run by Son of Athens, the Antonio guy. He it was his space that these recordings and these fucking nudes were being shared at. Kumar is the one who shared them. There was also a group chat last year called ex unit group chat. That's where they were sharing all these women's nudes and extorting them and blackmailing them for money. And I have the screenshots of Kumar threatening this girl. You either send me $10,000 or I share your nudes online, and then he did it anyway.",
       "category": "Extortion, Nude Sharing & Group Chat Surveillance",
       "target": "Online Troll Chats / Kumar / Son of Athens",
-      "why_it_matters": "Shows Angela's early obsession with group chats trading non-consensual sexual images, screenshots of financial extortion, and claims of holding proof of nude distribution—patterns that recur verbatim in her September attacks on Logan.",
+      "why_it_matters": "Shows Angela's early obsession with group chats trading non-consensual sexual images, screenshots of financial extortion, and claims of holding proof of nude distribution\u2014patterns that recur verbatim in her September attacks on Logan.",
       "pre_or_post_fallout": "PRE_FALLOUT",
       "contradiction_candidate": true,
       "recommendation": "HIGH_VALUE",
@@ -4143,7 +4143,7 @@
       "quote_id": "AQ-0247",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "there were a group of individuals that were placed on this app just to control narratives, that there's a group chat on Discord, which I infiltrated. There's a few different names that are well known space hosts that are in that group chat. But if you look at his thing, it says been verified. He doesn't have a been verified since date. And if you're ever in a space with him, he can unmute the mic. He can crash your space. He has the ability to do all these weird things. Ported this over, like, a period of four years. He's actually why I started documenting in the first place, him and reptile hybrid.",
       "category": "Infiltration MO & Origin of Documenting",
@@ -4158,7 +4158,7 @@
       "quote_id": "AQ-0248",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "SPACE # 1000🎉(according to spacesdashboard.com)",
+      "episode_title": "SPACE # 1000\ud83c\udf89(according to spacesdashboard.com)",
       "release_tag": "20260217_1mrGmBoEYMdJy",
       "exact_quote": "I'll even give them access to the groups on Facebook where I have all the, you know, data on there because I run the are we dating the same man page and are we dating the same woman page and exposing Harnett County police brutality and corruption page? So I've gathered a lot of data on on this area and these soldiers.",
       "category": "Facebook Groups Dossiers & Local Intelligence Gathering",
@@ -4223,7 +4223,7 @@
       "exact_quote": "And then we have chaos agents and disinfo agents. Their their sole job. And I know this for a fact because there's a couple paper trails, um, financially speaking, where they're being paid. Um, but there are paid offs on this app that literally just go from community to community, stirring up the shit, derailing conversations, and harassing people to the extent of hacking devices that were at least attempting to gain information to later blackmail these individuals into submission or, um, to do their bidding. Like little fucking slaves. That's disgusting. And this is documented, and this is not speculation. I have proof of this.",
       "category": "Hacking Allegations, Blackmail & Disinformation Agents",
       "target": "Online Networks / Blackmailers / Hackers",
-      "why_it_matters": "Demonstrates Angela's worldview regarding device hacking, financial paper trails, and blackmail leverage—mirroring the very tactics she herself routinely executes and threatens.",
+      "why_it_matters": "Demonstrates Angela's worldview regarding device hacking, financial paper trails, and blackmail leverage\u2014mirroring the very tactics she herself routinely executes and threatens.",
       "pre_or_post_fallout": "PRE_FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "HIGH_VALUE",
@@ -4233,7 +4233,7 @@
       "quote_id": "AQ-0253",
       "speaker": "Angela Maggard",
       "date": "2026-02-16",
-      "episode_title": "Biotech Realities🧬🤖",
+      "episode_title": "Biotech Realities\ud83e\uddec\ud83e\udd16",
       "release_tag": "20260216_1dRJZYLgYXMGB",
       "exact_quote": "Did you see that girl that shared her gaping asshole yesterday and how I retweeted it? I have no shame. I missed that one. Oh, it's still up to date.",
       "category": "Self-Characterization & Shock Tactics",
@@ -4248,7 +4248,7 @@
       "quote_id": "AQ-0254",
       "speaker": "Angela Maggard",
       "date": "2026-02-16",
-      "episode_title": "Biotech Realities🧬🤖",
+      "episode_title": "Biotech Realities\ud83e\uddec\ud83e\udd16",
       "release_tag": "20260216_1dRJZYLgYXMGB",
       "exact_quote": "Told y'all four years ago this group was happening, and I finally infiltrated them, and I documented it. And now we're burning it.",
       "category": "Infiltration, Documenting & Scorched-Earth Retaliation",
@@ -4263,7 +4263,7 @@
       "quote_id": "AQ-0255",
       "speaker": "Angela Maggard",
       "date": "2026-02-16",
-      "episode_title": "Biotech Realities🧬🤖",
+      "episode_title": "Biotech Realities\ud83e\uddec\ud83e\udd16",
       "release_tag": "20260216_1dRJZYLgYXMGB",
       "exact_quote": "Blackmail, sharing of nudes, stealing of money from old ladies, um, corruption. And a lot of these people are from different countries having all their business in American affairs. It's weird.",
       "category": "Allegations of Nude Sharing, Blackmail & Financial Theft",
@@ -4278,7 +4278,7 @@
       "quote_id": "AQ-0256",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "Human Origins 🤷🏻🤔🧐👽🙏🤖",
+      "episode_title": "Human Origins \ud83e\udd37\ud83c\udffb\ud83e\udd14\ud83e\uddd0\ud83d\udc7d\ud83d\ude4f\ud83e\udd16",
       "release_tag": "20260217_1OyKAWwQAYNJb",
       "exact_quote": "I got in trouble because I showed my pew pews that I printed, um, on live. I was showing them the different ones and how you can make, like, a grenade launcher as long as it's in air, um, it's in a oh, oh my god. Oh, what's it called? Not airsoft form. Um, I'm having a brain fart right now. Sorry. I was just showing the different labels.",
       "category": "Weapons, Social Media Suspensions & Personal History",
@@ -4293,7 +4293,7 @@
       "quote_id": "AQ-0257",
       "speaker": "Angela Maggard",
       "date": "2026-02-17",
-      "episode_title": "Human Origins 🤷🏻🤔🧐👽🙏🤖",
+      "episode_title": "Human Origins \ud83e\udd37\ud83c\udffb\ud83e\udd14\ud83e\uddd0\ud83d\udc7d\ud83d\ude4f\ud83e\udd16",
       "release_tag": "20260217_1OyKAWwQAYNJb",
       "exact_quote": "Because if they are using it, I'm gonna sue. My attorney's name is George Mast, just for anybody that likes to listen to recorded spaces that wants to do that. There are people that do. Yep. But I have an attorney just for that reason. Because it it cost me nothing out of pocket because, you know, he's known my birth mother forever. So I just fill out the paperwork. He proofreads it, make sure it's good, stamps it, and sends it off for me.",
       "category": "Legal Threats, Named Attorney George Mast & Lawsuit Machinery",
@@ -4463,7 +4463,7 @@
       "exact_quote": "I want the truth out there. All of it. To the point where I will sit in the fucking hot seat, let you guys pick me the fuck apart solely for the simple facts that patterns don't lie. People do. And you can sit here and feel how you want to feel about me right now. That's fine. All I'm asking you to do is look. Use your discernment. That's it. That's all you got to do is look. I don't want to even, you know, read it. I'm trying not to lead you. But I'm being asked to hold shit back. And I'm only doing that because I'm giving the other people involved time to mentally process this next chapter.",
       "category": "Philosophy of Evidence, Withholding Dossiers & Justification",
       "target": "Audience / General Philosophy",
-      "why_it_matters": "Articulates her evidentiary mantra ('patterns don't lie, people do') and openly explains why she drip-feeds documents: claiming she holds back files to let third parties emotionally adjust before dropping full exposés.",
+      "why_it_matters": "Articulates her evidentiary mantra ('patterns don't lie, people do') and openly explains why she drip-feeds documents: claiming she holds back files to let third parties emotionally adjust before dropping full expos\u00e9s.",
       "pre_or_post_fallout": "POST_FALLOUT",
       "contradiction_candidate": false,
       "recommendation": "ESSENTIAL_CORE",
@@ -4668,7 +4668,7 @@
       "quote_id": "AQ-0282",
       "speaker": "Speaker 8 (Eyewitness Testimony)",
       "date": "2026-09-18",
-      "episode_title": "ALIEN GOSPEL RADIO 📻",
+      "episode_title": "ALIEN GOSPEL RADIO \ud83d\udcfb",
       "release_tag": "20260918_1wGWjlMgYrAKQ",
       "exact_quote": "Oh, boy. Yeah. You know, she's currently trying to, like, she's she just told, like, you know, Sav, right? Sav, she just threatened Sav, like, I'm gonna subpoena you at your father's house because of my space and shit, right? She's constantly making these legal threats to people that, like, which is which is illegal by the way. You can't, like, weaponize the legal system, like getting, like, a shit on your, like, your enemies and shit. That's that's illegal. Like, frivolous lawsuits, Angela, that's gonna come back to bite you in the ass.",
       "category": "Third-Party Testimony & Witness Account",
@@ -4693,6 +4693,230 @@
       "contradiction_candidate": true,
       "recommendation": "ESSENTIAL_CORE",
       "time_window": "375.0s - 450.0s"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I have, like, two and a half years worth of recorded spaces of testimony and evidence that people can go through",
+      "category": "Hardware & Drives",
+      "target": "Angela",
+      "why_it_matters": "Asserts a large archive of recorded evidence exists and is in her possession. Its existence, completeness, and authenticity are testable, and it underpins every other accusation she makes.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": false,
+      "time_window": "00:01:00",
+      "quote_id": "AQ-0284"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I gave him classified information. I gave him names of people who hold security clearances just in case I didn't win this fight. I gave him my siblings' names, their social media accounts, where they live as a collateral",
+      "category": "General Admission",
+      "target": "Angela",
+      "why_it_matters": "She admits voluntarily handing sensitive personal and allegedly classified information to the person she now accuses. It undercuts her narrative of being a victim of this person, raises legal exposure, and could conflict with later statements about trust or fear.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:10:42",
+      "quote_id": "AQ-0285"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I sent him the fucking front door the photo of his front door of his house. I in the group chat, not publicly",
+      "category": "Allegations & Accusations",
+      "target": "Angela",
+      "why_it_matters": "She specifies the doxxing as sending a photo of a man's home to him in a private group chat, a testable act that is also an implicit threat. Her 'not publicly' qualifier will matter if the recipient or chat records show otherwise.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:16:00",
+      "quote_id": "AQ-0286"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I did. And I'm not a liar. So, Shane, Shane, I did do that.",
+      "category": "General Admission",
+      "target": "Angela",
+      "why_it_matters": "A named admission that she assisted in doxxing 'Shane' and sent him material about it two years earlier. This can be checked against his account and any message history.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "01:54:00",
+      "quote_id": "AQ-0287"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I live in a one party consent state, so I can record my phone calls.",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "She asserts both that she holds voice recordings and that recording the calls was lawful. Both the legal premise (all-party versus one-party consent depends on the jurisdictions of every participant) and the existence of the recordings are testable.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": false,
+      "time_window": "00:26:30",
+      "quote_id": "AQ-0288"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I'm the only one in this equation who's talked to the FBI. And I made police and I made police reports",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "She claims exclusive contact with the FBI and the filing of police reports. This is verifiable through report numbers, and the exclusivity is challenged when another participant later says he has also worked with the FBI.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "01:40:00",
+      "quote_id": "AQ-0289"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I have been in contact with the FBI for a while, and I'd I'd just say to most of you guys on here, I'm the least of your concerns right now because y'all been being watched for a while.",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "She asserts ongoing FBI contact and implies active federal surveillance of the other participants, and ties missing recorded spaces to it. Neither claim is substantiated here, and the implication is intimidating.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "01:52:19",
+      "quote_id": "AQ-0290"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I hired somebody for that specific retaliation just in case, and everything is legally already in the works.",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "A claim that she has retained someone to handle retaliation and that legal action is underway. The existence of an attorney or filing is checkable, and it conflicts with her earlier statement that she doesn't want to go to court.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "01:07:21",
+      "quote_id": "AQ-0291"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I don't even wanna go to court if I don't have to.",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "Contradicts her statements about calling the cops and her attorney, filed restraining orders, a lawsuit with established damages, and legally pending action. This inconsistency is a strong candidate for later conflict.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "01:00:13",
+      "quote_id": "AQ-0292"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "Logan can fucking ruin me.",
+      "category": "Allegations & Accusations",
+      "target": "Angela",
+      "why_it_matters": "She states she gave Logan her siblings' details as 'collateral' and that he can ruin her. This frames the relationship as a mutual-leverage standoff, which sits oddly with her narrative of being unprovoked and merely 'calling out' abuse.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:10:42",
+      "quote_id": "AQ-0293"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "He told everybody he tried to reach out to me. That's a lie. He did not.",
+      "category": "Alibi & Timeline",
+      "target": "Angela",
+      "why_it_matters": "A categorical denial about whether Logan attempted contact. Because she says she blocked him and only unblocked him just before the space, block history and message timestamps could confirm or refute it.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:01:00",
+      "quote_id": "AQ-0294"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I reached out to him March of this year.",
+      "category": "Alibi & Timeline",
+      "target": "Angela",
+      "why_it_matters": "A dated assertion that she initiated contact in March, around her birthday, to ask him to ease off. Combined with her claim that she sent mediators and that he did not reach out, it sets up a checkable timeline of who contacted whom and when.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:53:50",
+      "quote_id": "AQ-0295"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "He said that to me, and I didn't share the rest of the screenshots for the simple fact that he is deceased.",
+      "category": "Allegations & Accusations",
+      "target": "Angela",
+      "why_it_matters": "She claims a deceased person told her relationships with minors are acceptable if their parents are dead, and says she withheld further screenshots. The claim is unverifiable by the deceased but the screenshots she did share can be authenticated.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": false,
+      "time_window": "00:12:56",
+      "quote_id": "AQ-0296"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I thought she was being dramatic, um, until I saw the DMs myself.",
+      "category": "Alibi & Timeline",
+      "target": "Angela",
+      "why_it_matters": "A timeline claim that she initially doubted her friend and only changed her view after seeing the DMs, framing her involvement as reluctant. She also says she fought with Sav about it, which message history could confirm or contradict.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": true,
+      "time_window": "00:01:00",
+      "quote_id": "AQ-0297"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "I called and got a well check done on her.",
+      "category": "Court & Law Enforcement",
+      "target": "Angela",
+      "why_it_matters": "She states she contacted law enforcement for a welfare check on Sav after a suicide threat, while also saying she was triangulated and wanted distance. Police records would verify the call, and it bears on her claim to be acting purely as a friend.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": false,
+      "time_window": "00:10:00",
+      "quote_id": "AQ-0298"
+    },
+    {
+      "speaker": "Angela",
+      "date": "2026-09-20",
+      "episode_title": "LOGAN_BLACK_UNMASKED_-_WEAPONIZING_WOMEN_ON_UFO_X",
+      "release_tag": "20260918_1MJgNbdaAPlGL",
+      "exact_quote": "my other account was permanently banned",
+      "category": "General Admission",
+      "target": "Angela",
+      "why_it_matters": "She admits her prior account was permanently banned after a mass-report and says much of last year's activity happened on a different account. This bears on the completeness and provenance of her evidence archive and on her claim she could not respond to narratives for a year.",
+      "pre_or_post_fallout": "POST-FALLOUT",
+      "contradiction_candidate": false,
+      "time_window": "01:54:00",
+      "quote_id": "AQ-0299"
     }
   ]
 }

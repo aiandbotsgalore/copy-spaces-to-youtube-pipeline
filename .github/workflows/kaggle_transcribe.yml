@@ -108,8 +108,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           QDRANT_URL: ${{ secrets.QDRANT_URL }}
           QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          CHEAPER_INFERENCE_API_KEY: ${{ secrets.CHEAPER_INFERENCE_API_KEY }}
+          CHEAPER_INFERENCE_BASE_URL: ${{ secrets.CHEAPER_INFERENCE_BASE_URL }}
         run: |
           pip install qdrant-client onnxruntime tokenizers numpy || true
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            python scripts/extract_investigative_claims.py --episode "${{ inputs.release_tag }}" || echo "[!] Claim extraction skipped"
+          fi
           python scripts/build_investigative_graph.py || echo "[!] Graph build skipped"
           python scripts/sync_qdrant_transcripts.py --quotes-only || echo "[!] Qdrant sync skipped"
 
@@ -124,6 +129,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CHEAPER_INFERENCE_API_KEY: ${{ secrets.CHEAPER_INFERENCE_API_KEY }}
+          CHEAPER_INFERENCE_BASE_URL: ${{ secrets.CHEAPER_INFERENCE_BASE_URL }}
         run: |
           python scripts/batch_transcribe_queue.py --missing-clips --limit 5 || true
 

@@ -588,6 +588,7 @@ export function parseTranscriptData(rawContent: string): ParsedUtterance[] {
     const addCandidate = (value: unknown) => {
       if (Array.isArray(value) && value.length > 0) candidates.push(value);
     };
+    addCandidate(json);
     addCandidate(json.utterances);
     addCandidate(json.segments);
     addCandidate(json.transcript?.utterances);
@@ -662,6 +663,7 @@ export function parseTranscriptData(rawContent: string): ParsedUtterance[] {
     // fall through to plain-text parser
   }
 
+  if (/^\s*[\[{]/.test(rawContent)) return [];
   const lines = rawContent.split(/\r?\n/);
   const utterances: ParsedUtterance[] = [];
   const lineRegex = /^\[?(\d+:\d{2}(?::\d{2})?(?:\.\d+)?)\s*(?:-\s*(\d+:\d{2}(?::\d{2})?(?:\.\d+)?))?\]?\s*([^:\n\r]+?)\s*:\s*(.*)$/;

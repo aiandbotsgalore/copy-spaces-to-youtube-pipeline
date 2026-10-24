@@ -103,7 +103,7 @@ def main():
         sys.exit(1)
 
     print(f"[*] Connecting to Qdrant Cloud at: {qdrant_url}")
-    client = QdrantClient(url=qdrant_url, api_key=qdrant_key)
+    client = QdrantClient(url=qdrant_url, api_key=qdrant_key, timeout=60)
 
     repo_root = Path(__file__).resolve().parent.parent
     print("[*] Loading offline ONNX all-MiniLM-L6-v2 embedder (384 dims)...")
