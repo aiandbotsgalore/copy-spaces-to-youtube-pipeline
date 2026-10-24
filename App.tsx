@@ -3,7 +3,7 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot, Scale
+  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot, Scale, Video
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
@@ -27,6 +27,7 @@ const InvestigativeRadar = React.lazy(() => import('./components/InvestigativeRa
 const MontageStudio = React.lazy(() => import('./components/MontageStudio'));
 const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
 const VoxStudio = React.lazy(() => import('./components/VoxStudio'));
+const AvatarStudio = React.lazy(() => import('./components/AvatarStudio'));
 const RunHistory = React.lazy(() => import('./components/RunHistory'));
 const RSSPreview = React.lazy(() => import('./components/RSSPreview'));
 const LiveQueuePanel = React.lazy(() => import('./components/LiveQueuePanel'));
@@ -170,6 +171,7 @@ type Panel =
   | 'montage'
   | 'voice-profiles'
   | 'vox-studio'
+  | 'avatar-studio'
   | 'ai-copilot'
   | `file:${string}`;
 
@@ -376,6 +378,14 @@ function AppContent() {
                 onClick={() => setActivePanel('vox-studio')}
                 badge="VoxCPM-2"
                 badgeColor="bg-violet-500/20 text-violet-300 border border-violet-500/30"
+              />
+              <NavItem
+                icon={<Video size={15} />}
+                label="Avatar Studio"
+                active={activePanel === 'avatar-studio'}
+                onClick={() => setActivePanel('avatar-studio')}
+                badge="LivePortrait"
+                badgeColor="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
               />
               <NavItem
                 icon={<Bot size={15} />}
@@ -634,6 +644,10 @@ function AppContent() {
 
         {activePanel === 'vox-studio' && (
           <VoxStudio config={config} />
+        )}
+
+        {activePanel === 'avatar-studio' && (
+          <AvatarStudio config={config} />
         )}
 
         {activePanel === 'ai-copilot' && (
