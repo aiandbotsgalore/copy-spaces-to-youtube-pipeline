@@ -26,6 +26,7 @@ const ClipsPanel = React.lazy(() => import('./components/ClipsPanel').then(m => 
 const InvestigativeRadar = React.lazy(() => import('./components/InvestigativeRadar').then(m => ({ default: m.InvestigativeRadar })));
 const MontageStudio = React.lazy(() => import('./components/MontageStudio'));
 const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
+const VoxStudio = React.lazy(() => import('./components/VoxStudio'));
 const RunHistory = React.lazy(() => import('./components/RunHistory'));
 const RSSPreview = React.lazy(() => import('./components/RSSPreview'));
 const LiveQueuePanel = React.lazy(() => import('./components/LiveQueuePanel'));
@@ -168,6 +169,7 @@ type Panel =
   | 'clips'
   | 'montage'
   | 'voice-profiles'
+  | 'vox-studio'
   | 'ai-copilot'
   | `file:${string}`;
 
@@ -366,6 +368,14 @@ function AppContent() {
                 label="Voice Profiles"
                 active={activePanel === 'voice-profiles'}
                 onClick={() => setActivePanel('voice-profiles')}
+              />
+              <NavItem
+                icon={<Mic2 size={15} />}
+                label="Vox Studio"
+                active={activePanel === 'vox-studio'}
+                onClick={() => setActivePanel('vox-studio')}
+                badge="VoxCPM-2"
+                badgeColor="bg-violet-500/20 text-violet-300 border border-violet-500/30"
               />
               <NavItem
                 icon={<Bot size={15} />}
@@ -620,6 +630,10 @@ function AppContent() {
               setActivePanel('transcripts');
             }}
           />
+        )}
+
+        {activePanel === 'vox-studio' && (
+          <VoxStudio config={config} />
         )}
 
         {activePanel === 'ai-copilot' && (
