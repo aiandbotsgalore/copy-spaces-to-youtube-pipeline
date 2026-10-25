@@ -510,40 +510,66 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
             {/* Virtual Backdrop Container */}
             <div className={`absolute inset-0 bg-gradient-to-br ${selectedBackdrop.previewGradient} transition-all duration-300`} />
 
-            {/* Simulated Photorealistic Avatar Host */}
-            <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 space-y-3">
-              {/* Avatar Head & Torso Frame */}
-              <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full bg-gradient-to-b from-indigo-950/80 via-slate-900 to-slate-950 border-2 border-indigo-500/40 p-2 shadow-2xl shadow-indigo-500/20 flex items-center justify-center overflow-hidden">
-                {/* Glow ring */}
-                <div className="absolute inset-0 bg-radial from-violet-500/20 via-transparent to-transparent animate-pulse" />
+            {/* Real Rendered Video View OR Rig View */}
+            {renderedJob?.videoUrl ? (
+              <div className="relative z-20 w-full h-full flex flex-col items-center justify-center p-4">
+                <video
+                  src={renderedJob.videoUrl}
+                  controls
+                  autoPlay
+                  loop
+                  playsInline
+                  className="max-h-[350px] rounded-2xl shadow-2xl border-2 border-indigo-500/60 object-contain bg-black"
+                />
+                <div className="mt-3 flex items-center gap-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-700 shadow-xl">
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Rendered MP4 Active ({renderedJob.resolution} @ {renderedJob.fps}fps)
+                  </span>
+                  <span className="text-slate-600">|</span>
+                  <button
+                    onClick={() => setRenderedJob(null)}
+                    className="text-[10px] text-slate-300 hover:text-white underline cursor-pointer"
+                  >
+                    Return to 3D Rig View
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="relative z-10 flex flex-col items-center justify-center text-center p-6 space-y-3">
+                {/* Avatar Head & Torso Frame */}
+                <div className="relative w-48 h-48 md:w-56 md:h-56 rounded-full bg-gradient-to-b from-indigo-950/80 via-slate-900 to-slate-950 border-2 border-indigo-500/40 p-2 shadow-2xl shadow-indigo-500/20 flex items-center justify-center overflow-hidden">
+                  {/* Glow ring */}
+                  <div className="absolute inset-0 bg-radial from-violet-500/20 via-transparent to-transparent animate-pulse" />
 
-                {/* Avatar Visual Placeholder Icon & Name */}
-                <div className="flex flex-col items-center justify-center">
-                  <span className="text-6xl md:text-7xl mb-1 filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
-                    {selectedPersona.avatarEmoji}
-                  </span>
-                  <span className="text-xs font-bold text-white tracking-wide">{selectedPersona.name}</span>
-                  <span className="text-[10px] text-indigo-300 font-mono">
-                    {isPlaying ? '• Speaking (Audio Synchronized)' : '• Ready / Idle Loop'}
-                  </span>
+                  {/* Avatar Visual Placeholder Icon & Name */}
+                  <div className="flex flex-col items-center justify-center">
+                    <span className="text-6xl md:text-7xl mb-1 filter drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
+                      {selectedPersona.avatarEmoji}
+                    </span>
+                    <span className="text-xs font-bold text-white tracking-wide">{selectedPersona.name}</span>
+                    <span className="text-[10px] text-indigo-300 font-mono">
+                      {isPlaying ? '• Speaking (Audio Synchronized)' : '• Ready / Idle Loop'}
+                    </span>
+                  </div>
+
+                  {/* Mesh Wireframe Canvas Overlay */}
+                  <canvas
+                    ref={canvasRef}
+                    width={240}
+                    height={240}
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                  />
                 </div>
 
-                {/* Mesh Wireframe Canvas Overlay */}
-                <canvas
-                  ref={canvasRef}
-                  width={240}
-                  height={240}
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                />
+                {/* Kinetic Captions Subtitle Box */}
+                <div className="max-w-md px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 text-center shadow-xl">
+                  <p className="text-sm md:text-base font-extrabold text-white tracking-tight leading-snug">
+                    "Tonight we are pulling the thread on the <span className="text-amber-400 bg-amber-400/20 px-1 rounded">2026 archive</span> on record."
+                  </p>
+                </div>
               </div>
-
-              {/* Kinetic Captions Subtitle Box */}
-              <div className="max-w-md px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md border border-white/10 text-center shadow-xl">
-                <p className="text-sm md:text-base font-extrabold text-white tracking-tight leading-snug">
-                  "Tonight we are pulling the thread on the <span className="text-amber-400 bg-amber-400/20 px-1 rounded">2026 archive</span> on record."
-                </p>
-              </div>
-            </div>
+            )}
 
             {/* Evidence Exhibit Picture-in-Picture (PiP) Window */}
             {showPipExhibit && (

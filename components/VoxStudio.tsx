@@ -276,8 +276,35 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     }, 50);
   };
 
-  // Web Speech API / Synthetic Audio Playback
+  // Master Audio Reference player for Logan
+  const masterAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Audio Playback Engine: Uses Logan's real master reference audio when Logan is active
   const playSpeechSynthesis = (text: string, rateWpm: number, onEnd?: () => void) => {
+    // If playing Logan, use his authentic master reference audio sample
+    if (selectedSpeaker === 'Logan') {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (!masterAudioRef.current) {
+        masterAudioRef.current = new Audio('/speaker_samples/Logan/master_reference.mp3');
+      }
+      const audio = masterAudioRef.current;
+      audio.currentTime = 0;
+      audio.volume = isMuted ? 0 : volume;
+      audio.playbackRate = Math.max(0.7, Math.min(1.6, rateWpm / 150));
+      audio.onended = () => {
+        setIsPlaying(false);
+        setPlayingClipId(null);
+        if (onEnd) onEnd();
+      };
+      audio.play().catch(e => {
+        console.warn('Playback notice:', e);
+      });
+      return;
+    }
+
+    // Fallback browser speech for other enrolled profiles
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const clean = text.replace(/\[[^\]]+\]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -307,6 +334,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   };
 
   const stopSpeechSynthesis = () => {
+    if (masterAudioRef.current) {
+      masterAudioRef.current.pause();
+      masterAudioRef.current.currentTime = 0;
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
