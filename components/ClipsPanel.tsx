@@ -33,7 +33,8 @@ import {
   Video,
   Upload,
   Camera,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ExternalLink
 } from 'lucide-react';
 import { writeRepositoryBinaryFile } from '../utils/github';
 import { usePlayer } from '../contexts/PlayerContext';
@@ -1563,9 +1564,23 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             </div>
 
             {avatarDispatchStatus === 'success' && (
-              <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex items-center gap-2.5 animate-in fade-in">
-                <Check size={18} className="flex-shrink-0" />
-                <span>🎉 Job dispatched! Kaggle Dual-T4 GPU worker is rendering the Spaces Live Stage video in the cloud.</span>
+              <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+                <div className="flex items-center gap-2.5">
+                  <Check size={18} className="flex-shrink-0 text-emerald-400" />
+                  <div>
+                    <p className="font-semibold text-white">🎉 Cloud GPU Render Dispatched!</p>
+                    <p className="text-[11px] text-emerald-400/90 mt-0.5">Kaggle Dual-T4 GPU worker is generating the 9:16 Spaces Live Stage video.</p>
+                  </div>
+                </div>
+                <a
+                  href={`https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-emerald-200 font-semibold transition-colors shrink-0 text-xs shadow-sm"
+                >
+                  <ExternalLink size={13} />
+                  <span>View Run & Download Video MP4 ↗</span>
+                </a>
               </div>
             )}
 
