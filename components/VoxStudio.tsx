@@ -613,9 +613,20 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                   <span className="text-slate-500 block">Timbre Stability</span>
                   <span className="text-emerald-400 font-bold text-xs">98.6%</span>
                 </div>
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span className="text-slate-500 block">Sample Source</span>
-                  <span className="text-indigo-300 font-bold text-xs">12.4s Clean</span>
+                <div
+                  onClick={() => {
+                    const audio = new Audio('/speaker_samples/Logan/master_reference.mp3');
+                    audio.play().catch(() => {});
+                    showToast('🎙️ Auditioning Logan Master Reference Sample (9.33s)');
+                  }}
+                  className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition-colors group"
+                  title="Click to audition Logan clean master reference audio sample"
+                >
+                  <span className="text-slate-500 block group-hover:text-indigo-300">Sample Source ▶</span>
+                  <span className="text-indigo-300 font-bold text-xs flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    9.3s Master Ref
+                  </span>
                 </div>
               </div>
 
