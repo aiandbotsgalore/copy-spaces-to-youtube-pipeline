@@ -29,7 +29,10 @@ progress.md
 task_plan.md
 task_prompt.md
 
-# Python cache
+# Environment files
+.env
+.env.*
+*.env
 __pycache__/
 scripts/__pycache__/
 

@@ -1,0 +1,5 @@
+git+https://github.com/openbmb/voxcpm.git
+torchvision
+torchaudio
+soundfile
+numpy

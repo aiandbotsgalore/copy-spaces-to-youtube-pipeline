@@ -150,12 +150,24 @@ function setupProxyMiddlewares(middlewares: any) {
             const pyScript = path.resolve(__dirname, 'scripts', 'cloud_voice', 'synthesize_hf.py');
             const safeText = text.replace(/[^a-zA-Z0-9.,!?'\-\s]/g, ' ');
             const pyCmd = 'python "' + pyScript + '" --text "' + safeText + '" --speaker "' + (speaker || 'Logan') + '" --out "' + outFullPath + '"';
-            child_process.execSync(pyCmd, { timeout: 45000, stdio: 'inherit' });
+            child_process.execSync(pyCmd, {
+              timeout: 90000,
+              stdio: 'pipe',
+              env: {
+                ...process.env,
+                VOXCPM_SPACE: process.env.VOXCPM_SPACE || 'loganblack0/voxcpm-voice-clone',
+                HF_TOKEN: process.env.HF_TOKEN
+              }
+            });
             if (fs.existsSync(outFullPath)) {
               resolvedAudioUrl = outRelPath;
             }
-          } catch (cloudErr) {
-            console.warn('[!] Cloud synthesis fallback notice:', cloudErr);
+          } catch (cloudErr: any) {
+            const isQueueFull = cloudErr?.status === 2;
+            const msg = isQueueFull
+              ? 'Hugging Face public VoxCPM-2 demo queue is currently congested by public web traffic.'
+              : (cloudErr?.message || 'Cloud synthesis notice');
+            console.warn('[!] Notice: ' + msg);
           }
         }
 
