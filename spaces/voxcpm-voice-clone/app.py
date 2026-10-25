@@ -54,7 +54,7 @@ def get_model():
         print("[*] Model loaded successfully.")
     return model
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=15)
 def generate_speech(text: str, ref_audio: str = None, ref_text: str = None, timesteps: int = 15) -> str:
     """
     Synthesize speech using VoxCPM-2 with reference voice cloning.
