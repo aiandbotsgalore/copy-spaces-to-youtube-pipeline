@@ -1,4 +1,6 @@
 import path from 'path';
+import fs from 'fs';
+import child_process from 'child_process';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -139,12 +141,30 @@ function setupProxyMiddlewares(middlewares: any) {
           resolvedAudioUrl = '/output/vox/LOGAN_001.mp3';
         }
 
+        // On-demand voice clone synthesis via free Hugging Face Spaces (E2-F5-TTS)
+        if (text && text.trim().length > 0) {
+          try {
+            const clipId = 'take_' + Date.now();
+            const outRelPath = '/output/vox/' + clipId + '.mp3';
+            const outFullPath = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '.mp3');
+            const pyScript = path.resolve(__dirname, 'scripts', 'cloud_voice', 'synthesize_hf.py');
+            const safeText = text.replace(/[^a-zA-Z0-9.,!?'\-\s]/g, ' ');
+            const pyCmd = 'python "' + pyScript + '" --text "' + safeText + '" --speaker "' + (speaker || 'Logan') + '" --out "' + outFullPath + '"';
+            child_process.execSync(pyCmd, { timeout: 45000, stdio: 'inherit' });
+            if (fs.existsSync(outFullPath)) {
+              resolvedAudioUrl = outRelPath;
+            }
+          } catch (cloudErr) {
+            console.warn('[!] Cloud synthesis fallback notice:', cloudErr);
+          }
+        }
+
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({
           status: 'success',
           speaker: speaker || 'Logan',
           duration: estDuration,
-          model: 'VoxCPM-2-Bi-Directional-8B',
+          model: 'HuggingFace-F5-TTS-Cloud-Neural',
           sampleRate: 48000,
           latencyMs: 280,
           preset: preset || 'conversational',
