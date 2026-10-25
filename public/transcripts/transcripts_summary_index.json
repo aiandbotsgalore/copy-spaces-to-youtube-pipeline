@@ -1,5 +1,20 @@
 [
   {
+    "release_id": 423509672,
+    "release_tag": "20261025_1rGmqpPWWRzGy",
+    "title": "UFOX_PSA",
+    "published_at": "2026-10-25T16:11:06Z",
+    "episode_date": "2026-10-25",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261025_1rGmqpPWWRzGy/20261025_1rGmqpPWWRzGy_UFOX_PSA.mp3",
+    "segment_count": 11,
+    "body": "- **Space Title:** UFOX_PSA\n- **Duration:** 00:09:07\n- **Processed:** 20261025_1rGmqpPWWRzGy\n- **Source ID:** 1rGmqpPWWRzGy\n\n---\nMETADATA::DURATION::00:09:07\nMETADATA::SOURCE_ID::1rGmqpPWWRzGy\nMETADATA::EPISODE_DATE::20261025\nMETADATA::HOST::txrrxstrxxl\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 547,
+    "host_handle": "txrrxstrxxl",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 422722897,
     "release_tag": "20260929_1qxvvenlWzWxB",
     "title": "Mutants_at_Table_9",
