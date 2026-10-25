@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-25T08:12:07Z",
+  "model": "openbmb/VoxCPM2",
+  "reference_audio": "master_reference.wav",
+  "total_segments": 1,
+  "successful": 1,
+  "segments": [
+    {
+      "id": "LOGAN_001",
+      "filename": "LOGAN_001.wav",
+      "status": "success",
+      "duration_seconds": 2.4,
+      "sample_rate": 48000,
+      "bit_depth": 24,
+      "file_size_bytes": 345644
+    }
+  ]
+}
