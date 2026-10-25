@@ -1,6 +1,6 @@
 {
   "id": "loganblackjbjb/voxcpm-narrator",
-  "title": "VoxCPM2 Documentary Narrator",
+  "title": "voxcpm-narrator",
   "code_file": "voxcpm_narrator.py",
   "language": "python",
   "kernel_type": "script",

@@ -85,7 +85,7 @@ jobs:
             if [[ "$STATUS" == *"COMPLETE"* ]]; then
               echo "[✓] Kaggle VoxCPM2 Narration Completed Successfully!"
               break
-            elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]]; then
+            elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]] || [[ "$STATUS" == *"Cannot access"* ]] || [[ "$STATUS" == *"denied"* ]]; then
               echo "[!] Kaggle GPU execution failed!"
               kaggle kernels output "$KERNEL_ID" -p ./kaggle_logs || true
               cat ./kaggle_logs/*.log || true
@@ -109,6 +109,15 @@ jobs:
 
           echo "[*] Checking generated narration files:"
           ls -la narration/ || true
+
+      - name: Upload Narration Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxcpm-narration-audio
+          path: |
+            narration/*.wav
+            kaggle_output/
+          if-no-files-found: warn
 
       - name: Verify Timeline Assembly Readiness
         run: |

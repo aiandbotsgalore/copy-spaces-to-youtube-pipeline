@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-scripts/kaggle_worker/voxcpm_narrator.py
+scripts/kaggle_worker/voxcpm_pkg/voxcpm_narrator.py
 
 Cloud-executed Kaggle GPU worker for documentary narration synthesis using VoxCPM2.
 Generates broadcast-master 48 kHz WAV files in Logan Black's voice from reference audio.
@@ -19,7 +19,7 @@ from pathlib import Path
 
 def run_cmd(cmd, check=True):
     print(f"[*] Running: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    res = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True)
+    res = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True, encoding="utf-8", errors="replace")
     if res.stdout:
         print(res.stdout[-1000:])
     if res.stderr and res.returncode != 0:
@@ -61,16 +61,22 @@ def main():
 
     # 3. Locate Reference Audio for Logan Black
     ref_wav = None
+    ref_transcript = "Ten years before Hiroshima, the American presidency still belonged to a different world. This is Franklin Roosevelt at Boulder Dam in 1935."
+
     if ref_audio_input and Path(ref_audio_input).exists():
         ref_wav = Path(ref_audio_input)
     else:
-        # Candidate reference samples in repo
+        # Candidate reference samples in repo prioritized for Logan Black
         cand_refs = [
+            repo_dir / "public/speaker_samples/Logan/master_reference.wav",
+            repo_dir / "speaker_samples/Logan/master_reference.wav",
             repo_dir / "speaker_samples/downloaded/remediated/remediated_voice.wav",
             repo_dir / "speaker_samples/Logan/auto_sample_38m53s.wav",
             repo_dir / "special_clips/Cue_01_AQ-0012_Angela.wav"
         ]
         # Search for any wav under speaker_samples
+        for p in (repo_dir / "public/speaker_samples").glob("**/*.wav"):
+            cand_refs.append(p)
         for p in (repo_dir / "speaker_samples").glob("**/*.wav"):
             cand_refs.append(p)
 
@@ -102,7 +108,7 @@ def main():
     if device == "cuda":
         print(f"[*] GPU: {torch.cuda.get_device_name(0)}, Memory: {torch.cuda.get_device_properties(0).total_memory / (1024**3):.1f} GB")
 
-    model = VoxCPM.from_pretrained("openbmb/VoxCPM2")
+    model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False)
 
     # 6. Synthesize Segments
     segments = manifest.get("segments", [])
@@ -124,25 +130,39 @@ def main():
         start_t = time.time()
 
         try:
-            # VoxCPM generate with voice cloning
-            wav = model.generate(
-                text=text,
-                reference_wav_path=str(ref_wav),
-                inference_timesteps=15
-            )
+            # Try high-fidelity prompt continuation + timbre cloning first
+            try:
+                wav = model.generate(
+                    text=text,
+                    prompt_wav_path=str(ref_wav),
+                    prompt_text=ref_transcript,
+                    reference_wav_path=str(ref_wav),
+                    inference_timesteps=15
+                )
+            except Exception as e_prompt:
+                print(f"    [*] Notice: continuation mode fallback ({e_prompt}), attempting direct timbre reference...")
+                wav = model.generate(
+                    text=text,
+                    reference_wav_path=str(ref_wav),
+                    inference_timesteps=15
+                )
 
             # Ensure native 48kHz audio output
-            sf.write(str(out_wav_path), wav, 48000, subtype="PCM_24")
-            duration = round(len(wav) / 48000.0, 2)
+            target_sr = getattr(model, "sample_rate", 48000)
+            if hasattr(model, "tts_model") and hasattr(model.tts_model, "sample_rate"):
+                target_sr = model.tts_model.sample_rate
+
+            sf.write(str(out_wav_path), wav, target_sr, subtype="PCM_24" if target_sr == 48000 else "PCM_16")
+            duration = round(len(wav) / float(target_sr), 2)
             elapsed = round(time.time() - start_t, 2)
-            print(f"    [✓] Generated {filename} ({duration}s audio) in {elapsed}s.")
+            print(f"    [✓] Generated {filename} ({duration}s audio @ {target_sr}Hz) in {elapsed}s.")
 
             results.append({
                 "id": seg_id,
                 "filename": filename,
                 "status": "success",
                 "duration_seconds": duration,
-                "sample_rate": 48000,
+                "sample_rate": target_sr,
                 "bit_depth": 24,
                 "file_size_bytes": out_wav_path.stat().st_size
             })
