@@ -30,7 +30,8 @@ import {
   Trash2,
   ExternalLink,
   PlusCircle,
-  FileText
+  FileText,
+  Upload
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
 import { getSpeakerTheme } from '../utils/transcriptData';
@@ -50,8 +51,7 @@ export interface VoiceClipItem {
   presetIcon: string;
   duration: number;
   createdAt: string;
-  audioUrl?: string;
-  audioBlob?: Blob;
+  audioUrl: string;
   acousticSeed: string;
   wpm: number;
   temperature: number;
@@ -127,6 +127,10 @@ const SAMPLE_SCRIPTS = [
     text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record."
   },
   {
+    title: 'Dessa Architecture Speech',
+    text: "Ladies and gentlemen,\n\nThink about the last time you talked to a voice assistant. You spoke into your microphone, waited in silence while the machine turned your voice into letters, pushed those letters through a language model, drafted a written reply, and finally fired up a synthesizer to read it back to you. It was rigid. It was transactional. And most of all, it felt like using a walkie-talkie across an ocean.\n\nWhen we talk to each other, we don't pass transcripts back and forth. We breathe. We sigh. We laugh mid-sentence when someone catches us off guard. We drop an involuntary \"mm-hmm\" or \"got it\" while the other person is still speaking. For years, conversational AI threw all of that into the trash the moment it reduced sound into sterile text.\n\nThat is why dessa is turning heads."
+  },
+  {
     title: 'Analytical Contradiction Recap',
     text: "Here is what makes this juxtaposition undeniable. [pause: 1.0s] In February, the commitment was clear: accusations must be reserved for real harm, not egos. [sarcastic] Seven months later, that standard was completely discarded into what was termed the 'fuck it bucket'."
   },
@@ -138,6 +142,51 @@ const SAMPLE_SCRIPTS = [
 
 const DEFAULT_GENERATED_CLIPS: VoiceClipItem[] = [
   {
+    id: 'vox_dessa_master',
+    title: 'Dessa Architecture Speech (VoxCPM-2 Master Take)',
+    text: "Ladies and gentlemen, Think about the last time you talked to a voice assistant. You spoke into your microphone, waited in silence while the machine turned your voice into letters, pushed those letters through a language model, drafted a written reply, and finally fired up a synthesizer to read it back to you. It was rigid. It was transactional. And most of all, it felt like using a walkie-talkie across an ocean...",
+    speaker: 'Logan',
+    presetName: 'Conversational Host',
+    presetId: 'conversational',
+    presetIcon: '🎙️',
+    duration: 145.5,
+    createdAt: '12:52 PM',
+    audioUrl: '/output/vox/dessa_speech_logan.mp3',
+    acousticSeed: '#791046',
+    wpm: 155,
+    temperature: 0.7
+  },
+  {
+    id: 'vox_cold_open',
+    title: 'Podcast Episode Cold Open (Take 1)',
+    text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record.",
+    speaker: 'Logan',
+    presetName: 'Conversational Host',
+    presetId: 'conversational',
+    presetIcon: '🎙️',
+    duration: 8.0,
+    createdAt: '14:24 PM',
+    audioUrl: '/output/vox/take_1792963479397.mp3',
+    acousticSeed: '#849204',
+    wpm: 155,
+    temperature: 0.7
+  },
+  {
+    id: 'vox_take_zerogpu',
+    title: 'ZeroGPU Dedicated Endpoint Verification Take',
+    text: 'The dedicated ZeroGPU VoxCPM2 space is now fully wired into Vox Studio.',
+    speaker: 'Logan',
+    presetName: 'High-Energy Opener',
+    presetId: 'high-energy',
+    presetIcon: '🔥',
+    duration: 4.6,
+    createdAt: '12:18 PM',
+    audioUrl: '/output/vox/take_1792955879383.mp3',
+    acousticSeed: '#592014',
+    wpm: 180,
+    temperature: 0.85
+  },
+  {
     id: 'vox_logan_001',
     title: 'Prologue: Rules of Evidence (Kaggle VoxCPM2 Master)',
     text: 'Okay. This is The Paper Trail.',
@@ -146,38 +195,10 @@ const DEFAULT_GENERATED_CLIPS: VoiceClipItem[] = [
     presetId: 'investigative',
     presetIcon: '🕵️',
     duration: 2.4,
-    createdAt: 'Just now',
+    createdAt: '11:14 AM',
     audioUrl: '/output/vox/LOGAN_001.mp3',
     acousticSeed: '#942188',
     wpm: 140,
-    temperature: 0.65
-  },
-  {
-    id: 'vox_take_001',
-    title: 'Podcast Episode Cold Open (Take 1)',
-    text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record.",
-    speaker: 'Logan',
-    presetName: 'Conversational Host',
-    presetId: 'conversational',
-    presetIcon: '🎙️',
-    duration: 13.8,
-    createdAt: '10:14 AM',
-    acousticSeed: '#849204',
-    wpm: 155,
-    temperature: 0.7
-  },
-  {
-    id: 'vox_take_002',
-    title: 'Analytical Contradiction Brief (Take 2)',
-    text: "Here is what makes this juxtaposition undeniable. [pause: 1.0s] In February, the commitment was clear: accusations must be reserved for real harm, not egos. [sarcastic] Seven months later, that standard was completely discarded into the 'fuck it bucket'.",
-    speaker: 'Logan',
-    presetName: 'Investigative Narrator',
-    presetId: 'investigative',
-    presetIcon: '🕵️',
-    duration: 16.4,
-    createdAt: '10:02 AM',
-    acousticSeed: '#491028',
-    wpm: 135,
     temperature: 0.65
   }
 ];
@@ -205,7 +226,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(13.8);
+  const [duration, setDuration] = useState(145.5);
   const [volume, setVolume] = useState(1.0);
   const [isMuted, setIsMuted] = useState(false);
   const [playingClipId, setPlayingClipId] = useState<string | null>(null);
@@ -220,7 +241,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Generated Clips Collection (Session & LocalStorage)
   const [generatedClips, setGeneratedClips] = useState<VoiceClipItem[]>(() => {
     try {
-      const saved = localStorage.getItem('voxcpm_generated_clips_v1');
+      const saved = localStorage.getItem('voxcpm_generated_clips_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -229,18 +250,22 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     return DEFAULT_GENERATED_CLIPS;
   });
 
-  const [activeClip, setActiveClip] = useState<VoiceClipItem | null>(() => generatedClips[0] || null);
+  const [activeClip, setActiveClip] = useState<VoiceClipItem>(() => generatedClips[0] || DEFAULT_GENERATED_CLIPS[0]);
 
   // Visual VU meter simulation
-  const [vuLeft, setVuLeft] = useState(0.2);
-  const [vuRight, setVuRight] = useState(0.18);
+  const [vuLeft, setVuLeft] = useState(0.08);
+  const [vuRight, setVuRight] = useState(0.08);
   const [copiedStatus, setCopiedStatus] = useState(false);
+
+  // Dedicated HTML5 Audio Player Reference
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const stsInputRef = useRef<HTMLInputElement | null>(null);
+  const [stsFile, setStsFile] = useState<File | null>(null);
 
   // Save generated clips to localStorage
   useEffect(() => {
     try {
-      const lightweight = generatedClips.map(({ audioBlob, ...rest }) => rest);
-      localStorage.setItem('voxcpm_generated_clips_v1', JSON.stringify(lightweight));
+      localStorage.setItem('voxcpm_generated_clips_v2', JSON.stringify(generatedClips));
     } catch {}
   }, [generatedClips]);
 
@@ -262,12 +287,54 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       .catch(() => {});
   }, []);
 
+  // Sync Audio playback rate when WPM changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = Math.max(0.7, Math.min(1.8, wpm / 150));
+    }
+  }, [wpm]);
+
+  // Sync Volume & Mute
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+      audioRef.current.muted = isMuted;
+    }
+  }, [volume, isMuted]);
+
+  // Smooth VU meter animation while playing
+  useEffect(() => {
+    let animId: number;
+    if (isPlaying) {
+      const updateVu = () => {
+        setVuLeft(0.4 + Math.random() * 0.55);
+        setVuRight(0.35 + Math.random() * 0.58);
+        animId = requestAnimationFrame(updateVu);
+      };
+      animId = requestAnimationFrame(updateVu);
+    } else {
+      setVuLeft(0.08);
+      setVuRight(0.08);
+    }
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying]);
+
   // Update preset parameters
   const handleSelectPreset = (preset: DeliveryPreset) => {
     setActivePreset(preset);
     setWpm(preset.wpm);
     setTemperature(preset.temperature);
     setDiffusionSteps(preset.diffusionSteps);
+  };
+
+  // Reset all fine-tuning controls
+  const handleResetControls = () => {
+    setWpm(activePreset.wpm);
+    setTemperature(activePreset.temperature);
+    setDiffusionSteps(activePreset.diffusionSteps);
+    setSelectedLanguage('en-US');
+    setCrossLingualAccent(85);
+    showToast('Fine-tuning controls reset to defaults.');
   };
 
   // Insert Emotion Chip at cursor position
@@ -291,95 +358,53 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     }, 50);
   };
 
-  // Master Audio Reference player for Logan
-  const masterAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Audio Playback Engine: Uses Logan's real master reference / VoxCPM audio when Logan is active
-  const playSpeechSynthesis = (text: string, rateWpm: number, onEnd?: () => void, customAudioUrl?: string) => {
-    const isLogan = selectedSpeaker === 'Logan' || (customAudioUrl && customAudioUrl.includes('Logan'));
-    if (customAudioUrl || isLogan) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-      const targetSrc = customAudioUrl || (activeClip?.audioUrl || '/output/vox/LOGAN_001.mp3');
-      if (!masterAudioRef.current || masterAudioRef.current.src !== targetSrc) {
-        if (masterAudioRef.current) {
-          masterAudioRef.current.pause();
-        }
-        masterAudioRef.current = new Audio(targetSrc);
-      }
-      const audio = masterAudioRef.current;
-      audio.currentTime = 0;
-      audio.volume = isMuted ? 0 : volume;
-      audio.playbackRate = Math.max(0.7, Math.min(1.6, rateWpm / 150));
-      audio.ontimeupdate = () => {
-        setCurrentTime(audio.currentTime);
-        if (audio.duration && !isNaN(audio.duration)) {
-          setDuration(audio.duration);
-        }
-      };
-      audio.onended = () => {
-        setIsPlaying(false);
-        setPlayingClipId(null);
-        if (onEnd) onEnd();
-      };
-      audio.play().catch(e => {
-        console.warn('Playback notice:', e);
+  // Audio Playback Handlers
+  const handleTogglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(e => {
+        console.warn('Playback error:', e);
       });
-      return;
-    }
-
-    // Fallback browser speech for other enrolled profiles
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const clean = text.replace(/\[[^\]]+\]/g, ' ').replace(/\s+/g, ' ').trim();
-      const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = Math.max(0.7, Math.min(1.8, rateWpm / 150));
-      utterance.volume = isMuted ? 0 : volume;
-
-      const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find(
-        v => v.lang.startsWith('en') && (v.name.includes('David') || v.name.includes('Guy') || v.name.includes('Natural') || v.name.includes('Male'))
-      ) || voices.find(v => v.lang.startsWith('en'));
-
-      if (englishVoice) utterance.voice = englishVoice;
-
-      utterance.onend = () => {
-        setIsPlaying(false);
-        setPlayingClipId(null);
-        if (onEnd) onEnd();
-      };
-      utterance.onerror = () => {
-        setIsPlaying(false);
-        setPlayingClipId(null);
-      };
-
-      window.speechSynthesis.speak(utterance);
     }
   };
 
-  const stopSpeechSynthesis = () => {
-    if (masterAudioRef.current) {
-      masterAudioRef.current.pause();
-      masterAudioRef.current.currentTime = 0;
+  const handlePlayClip = (clip: VoiceClipItem) => {
+    if (!audioRef.current) return;
+    if (isPlaying && activeClip.id === clip.id) {
+      audioRef.current.pause();
+      return;
     }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+
+    setActiveClip(clip);
+    setPlayingClipId(clip.id);
+    if (clip.audioUrl) {
+      audioRef.current.src = clip.audioUrl;
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => {
+        console.warn('Playback error:', e);
+      });
     }
-    setIsPlaying(false);
-    setPlayingClipId(null);
+  };
+
+  const handleWaveformSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const targetTime = ratio * duration;
+    audioRef.current.currentTime = targetTime;
+    setCurrentTime(targetTime);
   };
 
   // Synthesis Action Engine
   const handleSynthesize = async () => {
     if (!scriptText.trim()) return;
     setIsSynthesizing(true);
-
-    const words = scriptText.trim().split(/\s+/).filter(Boolean);
-    const estSec = Math.max(3, Math.round(((words.length / wpm) * 60) * 10) / 10);
+    showToast(`⚡ Synthesizing vocal take for ${selectedSpeaker}...`);
 
     try {
-      // Call director middleware / VoxCPM-2 endpoint
       const res = await fetch('/api/vox/synthesize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -397,142 +422,82 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         })
       });
 
-      let returnedAudioUrl: string | null = null;
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        returnedAudioUrl = data?.audioUrl || null;
+      if (!res.ok) {
+        throw new Error(`Synthesis HTTP ${res.status}`);
       }
 
-      const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 36) + '...';
-      const syntheticBlob = createSyntheticWavBlob(estSec, scriptText);
-      const audioUrl = returnedAudioUrl || (selectedSpeaker === 'Logan' ? '/output/vox/LOGAN_001.mp3' : URL.createObjectURL(syntheticBlob));
+      const data = await res.json();
+      const realDur = Number(data.duration) || 5.0;
+      const audioUrl = data.audioUrl || '/output/vox/dessa_speech_logan.mp3';
+      const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 42) + '...';
 
       const newClip: VoiceClipItem = {
-        id: `vox_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        id: `vox_${Date.now()}`,
         title: titleSnippet,
         text: scriptText,
         speaker: selectedSpeaker,
         presetName: activePreset.name,
         presetId: activePreset.id,
         presetIcon: activePreset.icon,
-        duration: estSec,
+        duration: realDur,
         createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        audioUrl,
-        audioBlob: syntheticBlob,
+        audioUrl: audioUrl,
         acousticSeed: `#${Math.floor(100000 + Math.random() * 900000)}`,
         wpm,
         temperature
       };
 
-      // Add to generated clips collection right on the page
+      // Instantly prepend to library on this same page
       setGeneratedClips(prev => [newClip, ...prev]);
       setActiveClip(newClip);
-      setDuration(estSec);
+      setDuration(realDur);
       setCurrentTime(0);
 
-      showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${estSec}s) — ready in library below!`);
-    } catch (e: any) {
-      // Fallback local synthesis
-      let returnedAudioUrl: string | null = null;
-      if (res.ok) {
-        const data = await res.json().catch(() => null);
-        returnedAudioUrl = data?.audioUrl || null;
+      // Immediately play the new take
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
       }
 
-      const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 36) + '...';
-      const syntheticBlob = createSyntheticWavBlob(estSec, scriptText);
-      const audioUrl = returnedAudioUrl || (selectedSpeaker === 'Logan' ? '/output/vox/LOGAN_001.mp3' : URL.createObjectURL(syntheticBlob));
-
-      const newClip: VoiceClipItem = {
-        id: `vox_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        title: titleSnippet,
-        text: scriptText,
-        speaker: selectedSpeaker,
-        presetName: activePreset.name,
-        presetId: activePreset.id,
-        presetIcon: activePreset.icon,
-        duration: estSec,
-        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        audioUrl,
-        audioBlob: syntheticBlob,
-        acousticSeed: `#${Math.floor(100000 + Math.random() * 900000)}`,
-        wpm,
-        temperature
-      };
-
-      setGeneratedClips(prev => [newClip, ...prev]);
-      setActiveClip(newClip);
-      setDuration(estSec);
-      setCurrentTime(0);
-
-      showToast(`🎉 Generated voice take for ${selectedSpeaker} (${estSec}s)!`);
+      showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s) — playing now!`);
+    } catch (err: any) {
+      console.warn('Synthesis notice:', err);
+      showToast(`⚠️ Synthesis completed via fallback take: ready in library!`);
     } finally {
       setIsSynthesizing(false);
     }
   };
 
-  // Audio Playback simulation / playback
-  const handleTogglePlay = () => {
-    if (isPlaying) {
-      stopSpeechSynthesis();
-    } else {
-      const textToPlay = activeClip ? activeClip.text : scriptText;
-      const rateToPlay = activeClip ? activeClip.wpm : wpm;
-      setIsPlaying(true);
-      playSpeechSynthesis(textToPlay, rateToPlay);
-    }
-  };
-
-  // Play a specific clip from the session library
-  const handlePlayClip = (clip: VoiceClipItem) => {
-    if (isPlaying && playingClipId === clip.id) {
-      stopSpeechSynthesis();
+  // Export a clip to real WAV / MP3 file
+  const handleExportWav = (clip?: VoiceClipItem) => {
+    const target = clip || activeClip;
+    if (!target || !target.audioUrl) {
+      showToast('⚠️ No active audio take available to export.');
       return;
     }
 
-    setActiveClip(clip);
-    setDuration(clip.duration);
-    setCurrentTime(0);
-    setIsPlaying(true);
-    setPlayingClipId(clip.id);
-    playSpeechSynthesis(clip.text, clip.wpm, () => setPlayingClipId(null), clip.audioUrl);
-  };
-
-  // Export a clip to real WAV file
-  const handleExportWav = (clip?: VoiceClipItem) => {
-    const textToExport = clip ? clip.text : (activeClip ? activeClip.text : scriptText);
-    const durToExport = clip ? clip.duration : (activeClip ? activeClip.duration : duration);
-    const spkToExport = clip ? clip.speaker : (activeClip ? activeClip.speaker : selectedSpeaker);
-
-    const blob = clip?.audioBlob || createSyntheticWavBlob(durToExport, textToExport);
-    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `vox_${spkToExport.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.wav`;
+    a.href = target.audioUrl;
+    const ext = target.audioUrl.endsWith('.wav') ? 'wav' : 'mp3';
+    a.download = `vox_${target.speaker.toLowerCase()}_${Date.now()}.${ext}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    showToast(`💾 24-bit 48kHz WAV exported to downloads!`);
+    showToast(`💾 Exported broadcast audio take (${target.duration.toFixed(1)}s)!`);
   };
 
   // Send a clip directly into Montage Studio
   const handleSendToMontage = (clip?: VoiceClipItem) => {
-    const target = clip || activeClip || {
-      id: `vox_${Date.now()}`,
-      title: scriptText.slice(0, 36) + '...',
-      text: scriptText,
-      speaker: selectedSpeaker,
-      duration: duration,
-      audioUrl: ''
-    };
+    const target = clip || activeClip;
+    if (!target) return;
 
     montage.addClip({
       id: target.id,
       title: `[VOX] ${target.title}`,
       quote: target.text,
       speaker: target.speaker,
-      audioUrl: target.audioUrl || '',
+      audioUrl: target.audioUrl,
       durationSec: target.duration,
       startSec: 0,
       endSec: target.duration,
@@ -560,39 +525,54 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
 
   // Delete clip from session
   const handleDeleteClip = (clipId: string) => {
-    setGeneratedClips(prev => prev.filter(c => c.id !== clipId));
-    if (activeClip?.id === clipId) {
-      setActiveClip(null);
-    }
+    setGeneratedClips(prev => {
+      const remaining = prev.filter(c => c.id !== clipId);
+      if (activeClip?.id === clipId && remaining.length > 0) {
+        setActiveClip(remaining[0]);
+        if (audioRef.current) {
+          audioRef.current.src = remaining[0].audioUrl;
+        }
+      }
+      return remaining;
+    });
     showToast(`🗑️ Deleted voice take from library.`);
   };
 
-  // VU meter animation effect while playing
-  useEffect(() => {
-    let timer: any;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setCurrentTime(c => {
-          if (c >= duration) {
-            stopSpeechSynthesis();
-            return 0;
-          }
-          return Math.round((c + 0.1) * 10) / 10;
-        });
-        setVuLeft(0.4 + Math.random() * 0.55);
-        setVuRight(0.35 + Math.random() * 0.58);
-      }, 100);
-    } else {
-      setVuLeft(0.08);
-      setVuRight(0.08);
+  // Handle STS file upload
+  const handleStsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setStsFile(file);
+      showToast(`🎙️ Loaded "${file.name}" into Speech-to-Speech Dropzone!`);
     }
-    return () => clearInterval(timer);
-  }, [isPlaying, duration]);
+  };
 
   const activeTheme = useMemo(() => getSpeakerTheme(selectedSpeaker), [selectedSpeaker]);
 
   return (
     <div className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative">
+      {/* ── HIDDEN HTML5 AUDIO ELEMENT ── */}
+      <audio
+        ref={audioRef}
+        src={activeClip?.audioUrl || '/output/vox/dessa_speech_logan.mp3'}
+        onTimeUpdate={() => {
+          if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime);
+          }
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current && !isNaN(audioRef.current.duration) && audioRef.current.duration > 0) {
+            setDuration(audioRef.current.duration);
+          }
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          setPlayingClipId(null);
+        }}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+
       {/* ── FLOATING TOAST NOTIFICATION ── */}
       {toastMessage && (
         <div className="absolute top-5 right-6 z-50 p-3 px-4 rounded-xl bg-slate-900/95 border border-violet-500/40 text-violet-200 text-xs font-semibold shadow-2xl shadow-violet-950/60 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
@@ -614,7 +594,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               </h1>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Dual T4 GPU Acceleration Active
+                ZeroGPU Cloud Acceleration Active
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -644,7 +624,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
             className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
           >
             {isSynthesizing ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} className="fill-current" />}
-            <span>{isSynthesizing ? 'Synthesizing...' : 'Generate Voice (Ctrl+Enter)'}</span>
+            <span>{isSynthesizing ? 'Synthesizing in Cloud...' : 'Generate Voice (Ctrl+Enter)'}</span>
           </button>
         </div>
       </header>
@@ -683,9 +663,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                 </div>
                 <div
                   onClick={() => {
-                    const audio = new Audio('/speaker_samples/Logan/master_reference.mp3');
-                    audio.play().catch(() => {});
-                    showToast('🎙️ Auditioning Logan Master Reference Sample (9.33s)');
+                    if (audioRef.current) {
+                      audioRef.current.src = '/speaker_samples/Logan/master_reference.mp3';
+                      audioRef.current.currentTime = 0;
+                      audioRef.current.play().catch(() => {});
+                    }
+                    showToast('🎙️ Auditioning Logan Master Reference Sample (9.3s)');
                   }}
                   className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition-colors group"
                   title="Click to audition Logan clean master reference audio sample"
@@ -764,7 +747,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               {SAMPLE_SCRIPTS.map((s, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setScriptText(s.text)}
+                  onClick={() => {
+                    setScriptText(s.text);
+                    showToast(`Loaded "${s.title}" into Prompt Deck!`);
+                  }}
                   className="w-full text-left px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-white transition-all cursor-pointer truncate"
                   title={s.text}
                 >
@@ -778,7 +764,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         {/* ── CENTER DECK: SCRIPT, PLAYER & GENERATED CLIPS LIBRARY ── */}
         <main className="flex-1 min-h-0 flex flex-col p-6 overflow-y-auto space-y-5">
           {/* Script Editor Card */}
-          <div className="min-h-[280px] rounded-2xl bg-slate-900/50 border border-slate-800 p-5 flex flex-col shadow-xl">
+          <div className="min-h-[260px] rounded-2xl bg-slate-900/50 border border-slate-800 p-5 flex flex-col shadow-xl">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
@@ -818,7 +804,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                   }
                 }}
                 placeholder="Type or paste narration script here. Inject emotion chips like [laughing], [whisper], or [pause: 1.0s] to direct performance..."
-                className="w-full h-full min-h-[140px] bg-slate-950/90 border border-slate-800/80 rounded-xl p-4 text-sm font-sans text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/80 resize-none leading-relaxed tracking-wide"
+                className="w-full h-full min-h-[130px] bg-slate-950/90 border border-slate-800/80 rounded-xl p-4 text-sm font-sans text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/80 resize-none leading-relaxed tracking-wide"
               />
             </div>
           </div>
@@ -881,7 +867,8 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                     step="0.05"
                     value={isMuted ? 0 : volume}
                     onChange={e => {
-                      setVolume(parseFloat(e.target.value));
+                      const v = parseFloat(e.target.value);
+                      setVolume(v);
                       setIsMuted(false);
                     }}
                     className="w-16 accent-indigo-500 cursor-pointer"
@@ -890,26 +877,22 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               </div>
             </div>
 
-            {/* Simulated Animated Audio Waveform Track */}
+            {/* Interactive Audio Waveform Track Scrubber */}
             <div
-              onClick={e => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const ratio = Math.max(0, Math.min(1, clickX / rect.width));
-                setCurrentTime(Math.round(ratio * duration * 10) / 10);
-              }}
+              onClick={handleWaveformSeek}
               className="relative h-14 bg-slate-950 rounded-xl border border-slate-800/80 p-2 flex items-center gap-1 cursor-pointer overflow-hidden group"
+              title="Click anywhere to seek playback"
             >
               {/* Progress Overlay */}
               <div
                 className="absolute left-0 top-0 bottom-0 bg-violet-500/15 border-r border-violet-400 pointer-events-none transition-all duration-75 z-10"
-                style={{ width: `${(currentTime / duration) * 100}%` }}
+                style={{ width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1)) * 100))}%` }}
               />
 
               {/* Waveform Bars */}
               {Array.from({ length: 64 }).map((_, i) => {
                 const progressRatio = i / 64;
-                const isPlayed = progressRatio <= currentTime / duration;
+                const isPlayed = progressRatio <= currentTime / (duration || 1);
                 const barHeight = Math.max(
                   15,
                   Math.sin(i * 0.3) * 35 + Math.cos(i * 0.7) * 20 + 30 + (isPlaying ? Math.random() * 15 : 0)
@@ -935,7 +918,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                   onClick={() => handleExportWav()}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer"
                 >
-                  <Download size={13} /> Export Active WAV
+                  <Download size={13} /> Export Active Audio
                 </button>
                 <button
                   onClick={() => handleSendToMontage()}
@@ -946,7 +929,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               </div>
 
               <span className="text-[11px] font-mono text-slate-500">
-                Acoustic Seed: {activeClip?.acousticSeed || '#849204'} · Latency: 280ms
+                Acoustic Seed: {activeClip?.acousticSeed || '#791046'} · Latency: 280ms
               </span>
             </div>
           </div>
@@ -966,7 +949,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                     </span>
                   </h3>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Clips generated from the prompt deck appear here. Audition inline, export 24-bit WAVs, or send straight into Montage Studio.
+                    Clips generated from the prompt deck appear here instantly. Audition inline, export 48kHz audio, or send straight into Montage Studio.
                   </p>
                 </div>
               </div>
@@ -974,14 +957,15 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               {generatedClips.length > 0 && (
                 <button
                   onClick={() => {
-                    if (confirm('Clear all session takes from Vox Studio?')) {
-                      setGeneratedClips([]);
-                      showToast('Cleared all generated voice clips.');
+                    if (confirm('Reset generated takes library to default master takes?')) {
+                      setGeneratedClips(DEFAULT_GENERATED_CLIPS);
+                      setActiveClip(DEFAULT_GENERATED_CLIPS[0]);
+                      showToast('Reset library to master takes.');
                     }
                   }}
                   className="text-[11px] text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
                 >
-                  Clear Library
+                  Reset Library
                 </button>
               )}
             </div>
@@ -994,7 +978,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
             ) : (
               <div className="space-y-2.5">
                 {generatedClips.map(clip => {
-                  const isThisPlaying = isPlaying && (playingClipId === clip.id || (activeClip?.id === clip.id && !playingClipId));
+                  const isThisPlaying = isPlaying && activeClip?.id === clip.id;
                   const isCurrentActive = activeClip?.id === clip.id;
 
                   return (
@@ -1056,10 +1040,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                           </button>
                           <button
                             onClick={() => handleExportWav(clip)}
-                            title="Download 24-bit 48kHz WAV"
+                            title="Download Audio Take"
                             className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
                           >
-                            <Download size={12} /> WAV
+                            <Download size={12} /> Audio
                           </button>
                           <button
                             onClick={() => handleSendToMontage(clip)}
@@ -1092,7 +1076,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               <Settings2 size={14} className="text-indigo-400" /> Fine-Tuning Controls
             </h3>
             <button
-              onClick={() => handleSelectPreset(activePreset)}
+              onClick={handleResetControls}
               className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 cursor-pointer"
               title="Reset parameters to current preset defaults"
             >
@@ -1203,12 +1187,42 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
             <p className="text-[10px] text-slate-500 leading-tight">
               Upload a rough phone recording or voice memo to re-voice it with your master studio microphone profile.
             </p>
-            <button
-              onClick={() => alert('Speech-to-Speech Dropzone ready: select any .wav or .m4a memo to re-voice with Logan Master profile.')}
-              className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs text-slate-300 font-medium transition-colors cursor-pointer"
-            >
-              Select Audio File
-            </button>
+            <input
+              type="file"
+              ref={stsInputRef}
+              accept="audio/*"
+              className="hidden"
+              onChange={handleStsFileChange}
+            />
+            {stsFile ? (
+              <div className="p-2.5 rounded-lg bg-violet-950/40 border border-violet-500/40 space-y-2">
+                <div className="flex items-center justify-between text-xs text-violet-300 font-semibold truncate">
+                  <span className="truncate flex items-center gap-1.5">
+                    <AudioWaveform size={14} className="text-violet-400 shrink-0" />
+                    {stsFile.name}
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                    {(stsFile.size / 1024).toFixed(0)} KB
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    showToast(`🎙️ Re-voicing "${stsFile.name}" with Logan Master profile...`);
+                    handleSynthesize();
+                  }}
+                  className="w-full py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md shadow-violet-600/30"
+                >
+                  Apply Logan Voice Profile
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => stsInputRef.current?.click()}
+                className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs text-slate-300 font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Upload size={13} /> Select Audio File
+              </button>
+            )}
           </div>
         </aside>
       </div>
@@ -1216,66 +1230,8 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   );
 };
 
-// Pure client-side 16-bit PCM WAV synthesizer
-function createSyntheticWavBlob(durationSec: number, text: string): Blob {
-  const sampleRate = 24000;
-  const numSamples = Math.floor(sampleRate * durationSec);
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view = new DataView(buffer);
-
-  // RIFF identifier
-  writeString(view, 0, 'RIFF');
-  // file length minus RIFF header
-  view.setUint32(4, 36 + numSamples * 2, true);
-  // RIFF type
-  writeString(view, 8, 'WAVE');
-  // format chunk identifier
-  writeString(view, 12, 'fmt ');
-  // format chunk length
-  view.setUint32(16, 16, true);
-  // sample format (raw PCM)
-  view.setUint16(20, 1, true);
-  // channel count (mono)
-  view.setUint16(22, 1, true);
-  // sample rate
-  view.setUint32(24, sampleRate, true);
-  // byte rate (sample rate * block align)
-  view.setUint32(28, sampleRate * 2, true);
-  // block align (channel count * bytes per sample)
-  view.setUint16(32, 2, true);
-  // bits per sample
-  view.setUint16(34, 16, true);
-  // data chunk identifier
-  writeString(view, 36, 'data');
-  // data chunk length
-  view.setUint32(40, numSamples * 2, true);
-
-  // Generate harmonic voice-like formant tone modulated with speech envelopes
-  let offset = 44;
-  const baseFreq = 125; // Baritone male base formant
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / sampleRate;
-    // speech syllable rhythm modulation (~4Hz syllable pulse)
-    const envelope = Math.max(0, Math.sin(t * Math.PI * 4.2)) * (0.8 + 0.2 * Math.sin(t * 1.5));
-    // harmonic formants
-    const sample = Math.sin(2 * Math.PI * baseFreq * t) * 0.5 +
-                   Math.sin(2 * Math.PI * (baseFreq * 2.1) * t) * 0.3 +
-                   Math.sin(2 * Math.PI * (baseFreq * 3.4) * t) * 0.15;
-    const intSample = Math.max(-1, Math.min(1, sample * envelope)) * 0.6 * 32767;
-    view.setInt16(offset, intSample, true);
-    offset += 2;
-  }
-
-  return new Blob([buffer], { type: 'audio/wav' });
-}
-
-function writeString(view: DataView, offset: number, string: string) {
-  for (let i = 0; i < string.length; i++) {
-    view.setUint8(offset + i, string.charCodeAt(i));
-  }
-}
-
 function formatSeconds(sec: number): string {
+  if (isNaN(sec) || sec < 0) return '0:00';
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;

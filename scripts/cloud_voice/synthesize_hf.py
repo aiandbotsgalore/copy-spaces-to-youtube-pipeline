@@ -87,7 +87,11 @@ def main():
                 print(f"[!] Queue full after {args.retries} attempts.", file=sys.stderr)
                 sys.exit(2)
         except Exception as e:
-            print(f"[!] Unexpected error during synthesis: {e}", file=sys.stderr)
+            err_str = str(e)
+            print(f"[!] Error during synthesis (attempt {attempt}): {err_str}", file=sys.stderr)
+            if "quota" in err_str.lower() or "runs limit" in err_str.lower():
+                print("[!] ZeroGPU quota/limit hit. Exiting immediately for fast fallback.", file=sys.stderr)
+                sys.exit(3)
             if attempt < args.retries:
                 time.sleep(2)
             else:
