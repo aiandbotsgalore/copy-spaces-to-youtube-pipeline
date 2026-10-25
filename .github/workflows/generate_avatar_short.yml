@@ -9,11 +9,11 @@ on:
       avatar_image:
         description: 'URL or path to primary portrait image'
         required: false
-        default: 'https://unavatar.io/twitter/LoganBlack'
+        default: 'https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/logan.jpg'
       layout:
         description: 'Stage layout mode'
         required: false
-        default: 'stage_grid'
+        default: 'solo'
         type: choice
         options:
           - 'stage_grid'
