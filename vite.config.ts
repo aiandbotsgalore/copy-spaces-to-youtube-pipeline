@@ -141,7 +141,7 @@ function setupProxyMiddlewares(middlewares: any) {
           resolvedAudioUrl = '/output/vox/LOGAN_001.mp3';
         }
 
-        // On-demand voice clone synthesis via free Hugging Face Spaces (E2-F5-TTS)
+        // On-demand voice clone synthesis via free Hugging Face Spaces (OpenBMB VoxCPM-2)
         if (text && text.trim().length > 0) {
           try {
             const clipId = 'take_' + Date.now();
@@ -164,7 +164,7 @@ function setupProxyMiddlewares(middlewares: any) {
           status: 'success',
           speaker: speaker || 'Logan',
           duration: estDuration,
-          model: 'HuggingFace-F5-TTS-Cloud-Neural',
+          model: 'openbmb/VoxCPM2 (Hugging Face Cloud)',
           sampleRate: 48000,
           latencyMs: 280,
           preset: preset || 'conversational',
