@@ -138,6 +138,21 @@ const SAMPLE_SCRIPTS = [
 
 const DEFAULT_GENERATED_CLIPS: VoiceClipItem[] = [
   {
+    id: 'vox_logan_001',
+    title: 'Prologue: Rules of Evidence (Kaggle VoxCPM2 Master)',
+    text: 'Okay. This is The Paper Trail.',
+    speaker: 'Logan',
+    presetName: 'Investigative Narrator',
+    presetId: 'investigative',
+    presetIcon: '🕵️',
+    duration: 2.4,
+    createdAt: 'Just now',
+    audioUrl: '/output/vox/LOGAN_001.mp3',
+    acousticSeed: '#942188',
+    wpm: 140,
+    temperature: 0.65
+  },
+  {
     id: 'vox_take_001',
     title: 'Podcast Episode Cold Open (Take 1)',
     text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record.",
@@ -279,20 +294,30 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Master Audio Reference player for Logan
   const masterAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Audio Playback Engine: Uses Logan's real master reference audio when Logan is active
-  const playSpeechSynthesis = (text: string, rateWpm: number, onEnd?: () => void) => {
-    // If playing Logan, use his authentic master reference audio sample
-    if (selectedSpeaker === 'Logan') {
+  // Audio Playback Engine: Uses Logan's real master reference / VoxCPM audio when Logan is active
+  const playSpeechSynthesis = (text: string, rateWpm: number, onEnd?: () => void, customAudioUrl?: string) => {
+    const isLogan = selectedSpeaker === 'Logan' || (customAudioUrl && customAudioUrl.includes('Logan'));
+    if (customAudioUrl || isLogan) {
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
-      if (!masterAudioRef.current) {
-        masterAudioRef.current = new Audio('/speaker_samples/Logan/master_reference.mp3');
+      const targetSrc = customAudioUrl || (activeClip?.audioUrl || '/output/vox/LOGAN_001.mp3');
+      if (!masterAudioRef.current || masterAudioRef.current.src !== targetSrc) {
+        if (masterAudioRef.current) {
+          masterAudioRef.current.pause();
+        }
+        masterAudioRef.current = new Audio(targetSrc);
       }
       const audio = masterAudioRef.current;
       audio.currentTime = 0;
       audio.volume = isMuted ? 0 : volume;
       audio.playbackRate = Math.max(0.7, Math.min(1.6, rateWpm / 150));
+      audio.ontimeupdate = () => {
+        setCurrentTime(audio.currentTime);
+        if (audio.duration && !isNaN(audio.duration)) {
+          setDuration(audio.duration);
+        }
+      };
       audio.onended = () => {
         setIsPlaying(false);
         setPlayingClipId(null);
@@ -372,9 +397,15 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         })
       });
 
+      let returnedAudioUrl: string | null = null;
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        returnedAudioUrl = data?.audioUrl || null;
+      }
+
       const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 36) + '...';
       const syntheticBlob = createSyntheticWavBlob(estSec, scriptText);
-      const audioUrl = URL.createObjectURL(syntheticBlob);
+      const audioUrl = returnedAudioUrl || (selectedSpeaker === 'Logan' ? '/output/vox/LOGAN_001.mp3' : URL.createObjectURL(syntheticBlob));
 
       const newClip: VoiceClipItem = {
         id: `vox_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -402,9 +433,15 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${estSec}s) — ready in library below!`);
     } catch (e: any) {
       // Fallback local synthesis
+      let returnedAudioUrl: string | null = null;
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        returnedAudioUrl = data?.audioUrl || null;
+      }
+
       const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 36) + '...';
       const syntheticBlob = createSyntheticWavBlob(estSec, scriptText);
-      const audioUrl = URL.createObjectURL(syntheticBlob);
+      const audioUrl = returnedAudioUrl || (selectedSpeaker === 'Logan' ? '/output/vox/LOGAN_001.mp3' : URL.createObjectURL(syntheticBlob));
 
       const newClip: VoiceClipItem = {
         id: `vox_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -458,7 +495,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     setCurrentTime(0);
     setIsPlaying(true);
     setPlayingClipId(clip.id);
-    playSpeechSynthesis(clip.text, clip.wpm);
+    playSpeechSynthesis(clip.text, clip.wpm, () => setPlayingClipId(null), clip.audioUrl);
   };
 
   // Export a clip to real WAV file

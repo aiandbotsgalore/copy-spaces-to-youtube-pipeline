@@ -142,7 +142,14 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
     resolution: string;
     fps: number;
     videoUrl: string;
-  } | null>(null);
+  } | null>(() => {
+    return {
+      jobId: 'kaggle_talking_avatar_short',
+      resolution: '1080x1920',
+      fps: 25,
+      videoUrl: '/output/episodes/kaggle_talking_avatar_short.mp4'
+    };
+  });
   const [showRenderToast, setShowRenderToast] = useState(false);
 
   // Performance Rig Controls
