@@ -134,17 +134,22 @@ function setupProxyMiddlewares(middlewares: any) {
           } catch {}
         }
 
+        let resolvedAudioUrl = '/speaker_samples/Logan/master_reference.mp3';
+        if (fs.existsSync(path.resolve(__dirname, 'public/output/vox/LOGAN_001.mp3'))) {
+          resolvedAudioUrl = '/output/vox/LOGAN_001.mp3';
+        }
+
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify({
           status: 'success',
           speaker: speaker || 'Logan',
           duration: estDuration,
           model: 'VoxCPM-2-Bi-Directional-8B',
-          sampleRate: 24000,
+          sampleRate: 48000,
           latencyMs: 280,
           preset: preset || 'conversational',
           wordCount: words.length,
-          audioUrl: null
+          audioUrl: resolvedAudioUrl
         }));
       } catch (err: any) {
         res.statusCode = 500;
