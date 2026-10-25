@@ -20,7 +20,7 @@ from pathlib import Path
 
 def run_cmd(cmd, check=True):
     print(f"[*] Running: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    res = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True)
+    res = subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True, encoding="utf-8", errors="replace")
     if res.stdout:
         print(res.stdout[-800:])
     if res.stderr and res.returncode != 0:
