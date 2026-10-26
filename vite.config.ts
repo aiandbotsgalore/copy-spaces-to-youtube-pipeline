@@ -8,7 +8,11 @@ import { createDirectorMiddleware } from './server/directorMiddleware';
 import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
 import { searchTranscriptLexical } from './server/transcriptSearchService';
 
-function setupProxyMiddlewares(middlewares: any) {
+function setupProxyMiddlewares(middlewares: any, env?: any) {
+  if (env) {
+    if (env.HF_TOKEN && !process.env.HF_TOKEN) process.env.HF_TOKEN = env.HF_TOKEN;
+    if (env.VOXCPM_SPACE && !process.env.VOXCPM_SPACE) process.env.VOXCPM_SPACE = env.VOXCPM_SPACE;
+  }
   // Lexical search across every transcript on disk (public/transcripts), for the Transcripts search overlay.
   middlewares.use('/api/transcripts/search', async (req: any, res: any) => {
     try {
@@ -152,8 +156,8 @@ function setupProxyMiddlewares(middlewares: any) {
               const outRelPath = '/output/vox/' + clipId + '.mp3';
               const outFullPath = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '.mp3');
               const pyScript = path.resolve(__dirname, 'scripts', 'cloud_voice', 'synthesize_hf.py');
-              const safeText = text.replace(/[^a-zA-Z0-9.,!?'\-\s]/g, ' ');
-              const pyCmd = 'python "' + pyScript + '" --text "' + safeText + '" --speaker "' + (speaker || 'Logan') + '" --out "' + outFullPath + '"';
+              const textB64 = Buffer.from(text, 'utf8').toString('base64');
+              const pyCmd = `python "${pyScript}" --text-b64 "${textB64}" --speaker "${speaker || 'Logan'}" --out "${outFullPath}"`;
               child_process.execSync(pyCmd, {
                 timeout: 90000,
                 stdio: 'pipe',
@@ -174,8 +178,8 @@ function setupProxyMiddlewares(middlewares: any) {
                 const outRelPath = '/output/vox/' + clipId + '.mp3';
                 const outFullPath = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '.mp3');
                 const tempWav = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '_temp.wav');
-                const safeSpeech = text.replace(/["'\[\]]/g, ' ').slice(0, 500);
-                const psCmd = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.SetOutputToWaveFile('${tempWav}'); $synth.Speak('${safeSpeech}'); $synth.Dispose()"`;
+                const textB64 = Buffer.from(text.slice(0, 800), 'utf8').toString('base64');
+                const psCmd = `powershell -NoProfile -Command "$bytes = [System.Convert]::FromBase64String('${textB64}'); $plain = [System.Text.Encoding]::UTF8.GetString($bytes); Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.SetOutputToWaveFile('${tempWav}'); $synth.Speak($plain); $synth.Dispose()"`;
                 child_process.execSync(psCmd, { stdio: 'pipe' });
                 if (fs.existsSync(tempWav)) {
                   child_process.execSync(`ffmpeg -y -i "${tempWav}" -af "equalizer=f=125:width_type=o:width=2:g=5,equalizer=f=3000:width_type=o:width=1.5:g=2,aresample=48000" -codec:a libmp3lame -b:a 192k "${outFullPath}"`, { stdio: 'pipe' });
@@ -345,10 +349,10 @@ export default defineConfig(({ mode }) => {
       {
         name: 'github-asset-proxy',
         configureServer(server) {
-          setupProxyMiddlewares(server.middlewares);
+          setupProxyMiddlewares(server.middlewares, env);
         },
         configurePreviewServer(server) {
-          setupProxyMiddlewares(server.middlewares);
+          setupProxyMiddlewares(server.middlewares, env);
         },
       },
       {

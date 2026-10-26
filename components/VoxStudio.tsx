@@ -230,6 +230,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   const [volume, setVolume] = useState(1.0);
   const [isMuted, setIsMuted] = useState(false);
   const [playingClipId, setPlayingClipId] = useState<string | null>(null);
+  const [pendingAutoplayClip, setPendingAutoplayClip] = useState<VoiceClipItem | null>(null);
 
   // Toast Notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -241,7 +242,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Generated Clips Collection (Session & LocalStorage)
   const [generatedClips, setGeneratedClips] = useState<VoiceClipItem[]>(() => {
     try {
-      const saved = localStorage.getItem('voxcpm_generated_clips_v2');
+      const saved = localStorage.getItem('voxcpm_generated_clips_v3');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -265,9 +266,20 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Save generated clips to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('voxcpm_generated_clips_v2', JSON.stringify(generatedClips));
+      localStorage.setItem('voxcpm_generated_clips_v3', JSON.stringify(generatedClips));
     } catch {}
   }, [generatedClips]);
+
+  // Mount: initialize audio element source
+  useEffect(() => {
+    if (audioRef.current && activeClip?.audioUrl) {
+      const resolvedUrl = new URL(activeClip.audioUrl, window.location.origin).href;
+      if (audioRef.current.src !== resolvedUrl) {
+        audioRef.current.src = activeClip.audioUrl;
+        audioRef.current.load();
+      }
+    }
+  }, []);
 
   // Load available voice profiles
   useEffect(() => {
@@ -358,34 +370,65 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     }, 50);
   };
 
-  // Audio Playback Handlers
-  const handleTogglePlay = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(e => {
-        console.warn('Playback error:', e);
-      });
-    }
-  };
-
-  const handlePlayClip = (clip: VoiceClipItem) => {
-    if (!audioRef.current) return;
-    if (isPlaying && activeClip.id === clip.id) {
-      audioRef.current.pause();
-      return;
-    }
+  // Dedicated Playback Controller
+  const playAudioClip = async (clip: VoiceClipItem, resetTime = true) => {
+    const audio = audioRef.current;
+    if (!audio || !clip.audioUrl) return;
 
     setActiveClip(clip);
     setPlayingClipId(clip.id);
-    if (clip.audioUrl) {
-      audioRef.current.src = clip.audioUrl;
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => {
-        console.warn('Playback error:', e);
-      });
+    setDuration(clip.duration);
+    setPendingAutoplayClip(null);
+
+    try {
+      const resolvedUrl = new URL(clip.audioUrl, window.location.origin).href;
+      if (audio.src !== resolvedUrl) {
+        audio.src = clip.audioUrl;
+        audio.load();
+      }
+      if (resetTime) {
+        audio.currentTime = 0;
+        setCurrentTime(0);
+      }
+      await audio.play();
+      setIsPlaying(true);
+    } catch (err: any) {
+      console.warn('Audio play notice:', err);
+      if (err.name === 'NotAllowedError') {
+        // Autoplay blocked by browser policy without active user activation
+        setPendingAutoplayClip(clip);
+      }
+      setIsPlaying(false);
     }
+  };
+
+  // Audio Playback Handlers
+  const handleTogglePlay = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      if (activeClip) {
+        await playAudioClip(activeClip, false);
+      }
+    }
+  };
+
+  const handlePlayClip = async (clip: VoiceClipItem) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying && activeClip?.id === clip.id) {
+      audio.pause();
+      setIsPlaying(false);
+      setPlayingClipId(null);
+      return;
+    }
+
+    await playAudioClip(clip, true);
   };
 
   const handleWaveformSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -402,7 +445,13 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   const handleSynthesize = async () => {
     if (!scriptText.trim()) return;
     setIsSynthesizing(true);
+    setPendingAutoplayClip(null);
     showToast(`⚡ Synthesizing vocal take for ${selectedSpeaker}...`);
+
+    // Synchronously prime the audio element during user click
+    if (audioRef.current) {
+      audioRef.current.load();
+    }
 
     try {
       const res = await fetch('/api/vox/synthesize', {
@@ -453,14 +502,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       setDuration(realDur);
       setCurrentTime(0);
 
-      // Immediately play the new take
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
+      // Attempt immediate playback
+      await playAudioClip(newClip, true);
 
-      showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s) — playing now!`);
+      showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s)!`);
     } catch (err: any) {
       console.warn('Synthesis notice:', err);
       showToast(`⚠️ Synthesis completed via fallback take: ready in library!`);
@@ -531,6 +576,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         setActiveClip(remaining[0]);
         if (audioRef.current) {
           audioRef.current.src = remaining[0].audioUrl;
+          audioRef.current.load();
         }
       }
       return remaining;
@@ -554,7 +600,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       {/* ── HIDDEN HTML5 AUDIO ELEMENT ── */}
       <audio
         ref={audioRef}
-        src={activeClip?.audioUrl || '/output/vox/dessa_speech_logan.mp3'}
+        preload="auto"
         onTimeUpdate={() => {
           if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
@@ -568,8 +614,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         onEnded={() => {
           setIsPlaying(false);
           setPlayingClipId(null);
+          setCurrentTime(0);
         }}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true);
+          setPendingAutoplayClip(null);
+        }}
         onPause={() => setIsPlaying(false)}
       />
 
@@ -663,11 +713,22 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                 </div>
                 <div
                   onClick={() => {
-                    if (audioRef.current) {
-                      audioRef.current.src = '/speaker_samples/Logan/master_reference.mp3';
-                      audioRef.current.currentTime = 0;
-                      audioRef.current.play().catch(() => {});
-                    }
+                    const sampleClip: VoiceClipItem = {
+                      id: 'vox_master_ref',
+                      title: 'Logan Master Reference Sample',
+                      text: 'Ten years before Hiroshima, the American presidency still belonged to a different world. This is Franklin Roosevelt at Boulder Dam in 1935.',
+                      speaker: 'Logan',
+                      presetName: 'Master Reference',
+                      presetId: 'conversational',
+                      presetIcon: '🎙️',
+                      duration: 9.3,
+                      createdAt: 'Studio Master',
+                      audioUrl: '/speaker_samples/Logan/master_reference.mp3',
+                      acousticSeed: '#942188',
+                      wpm: 145,
+                      temperature: 0.65
+                    };
+                    playAudioClip(sampleClip, true);
                     showToast('🎙️ Auditioning Logan Master Reference Sample (9.3s)');
                   }}
                   className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition-colors group"
@@ -811,6 +872,23 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
 
           {/* Waveform Player & Active Synthesis Deck */}
           <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl space-y-4">
+            {pendingAutoplayClip && (
+              <div className="p-3 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 border border-violet-400/50 rounded-xl flex items-center justify-between shadow-xl animate-in fade-in slide-in-from-top-1">
+                <div className="flex items-center gap-2.5 text-xs text-white font-semibold truncate">
+                  <Sparkles size={16} className="text-amber-300 shrink-0" />
+                  <span className="truncate">
+                    Take Ready: <strong>{pendingAutoplayClip.title}</strong> ({pendingAutoplayClip.duration.toFixed(1)}s)
+                  </span>
+                </div>
+                <button
+                  onClick={() => playAudioClip(pendingAutoplayClip, true)}
+                  className="px-3.5 py-1.5 bg-white text-slate-950 font-bold text-xs rounded-lg shadow-md hover:bg-slate-100 transition-transform active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Play size={13} className="fill-current" /> Audition Now
+                </button>
+              </div>
+            )}
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <button

@@ -12,6 +12,7 @@ import sys
 import os
 import json
 import time
+import base64
 import argparse
 import shutil
 import subprocess
@@ -21,12 +22,25 @@ from gradio_client.utils import QueueError
 
 def main():
     parser = argparse.ArgumentParser(description="Generate voice clone via OpenBMB VoxCPM-2 Hugging Face Space")
-    parser.add_argument("--text", required=True, help="Text to generate in cloned voice")
+    parser.add_argument("--text", default=None, help="Text to generate in cloned voice")
+    parser.add_argument("--text-b64", default=None, help="Base64-encoded text to generate")
     parser.add_argument("--speaker", default="Logan", help="Speaker name")
     parser.add_argument("--instruction", default="clear, authentic podcast host tone", help="Style control instruction")
     parser.add_argument("--out", required=True, help="Output destination path (MP3/WAV)")
     parser.add_argument("--retries", type=int, default=3, help="Max retry attempts on queue congestion")
     args = parser.parse_args()
+
+    raw_text = ""
+    if args.text_b64:
+        try:
+            raw_text = base64.b64decode(args.text_b64).decode("utf-8")
+        except Exception:
+            raw_text = args.text or ""
+    elif args.text:
+        raw_text = args.text
+    else:
+        print("[!] Either --text or --text-b64 must be provided.", file=sys.stderr)
+        sys.exit(1)
 
     project_root = Path(__file__).resolve().parent.parent.parent
     ref_wav = project_root / "public/speaker_samples/Logan/master_reference.wav"
@@ -40,7 +54,7 @@ def main():
     hf_token = os.environ.get("HF_TOKEN", None)
 
     print(f"[*] Target VoxCPM-2 Space: {target_space}")
-    clean_text = args.text.replace("[", "").replace("]", "").strip()
+    clean_text = raw_text.replace("[", "").replace("]", "").strip()
     print(f"[*] Generating VoxCPM-2 speech in cloud: \"{clean_text[:60]}...\"")
 
     out_path = Path(args.out)
