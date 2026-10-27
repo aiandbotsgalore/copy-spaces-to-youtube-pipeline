@@ -192,3 +192,41 @@ export function clipFromUtterances(t: LoadedTranscript, fromId: string, toId: st
     episodeStartSec: start, audioOffsetSec: start,
   };
 }
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Full-episode audio for transcript cuts                                                            */
+/* ------------------------------------------------------------------------------------------------ */
+
+const RELEASE_URL_RE = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/;
+const AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|opus|aac)$/i;
+
+/**
+ * A transcript's audio_url sometimes names one of the release's cut clips instead of the full recording.
+ * The full recording is the release asset whose name starts with the release tag.
+ */
+export function isFullEpisodeUrl(url: string | undefined, releaseTag: string): boolean {
+  const m = url ? RELEASE_URL_RE.exec(url) : null;
+  return !!m && m[3] === releaseTag && decodeURIComponent(m[4]).startsWith(`${releaseTag}_`) && AUDIO_EXT_RE.test(m[4]);
+}
+
+/** Looks up the full-episode audio asset in the GitHub release (read-only API call). */
+export async function resolveEpisodeAudio(t: LoadedTranscript, fetchImpl: typeof fetch, token?: string): Promise<{ ok: true; url: string } | { ok: false; reason: string }> {
+  if (isFullEpisodeUrl(t.audioUrl, t.releaseTag)) return { ok: true, url: t.audioUrl! };
+  const m = t.audioUrl ? RELEASE_URL_RE.exec(t.audioUrl) : null;
+  if (!m) return { ok: false, reason: 'The transcript has no GitHub release audio URL.' };
+  const [, owner, repo] = m;
+  let res: Response;
+  try {
+    res = await fetchImpl(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${encodeURIComponent(t.releaseTag)}`, {
+      headers: { Accept: 'application/vnd.github+json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+  } catch (e: any) {
+    return { ok: false, reason: `GitHub could not be reached: ${e?.message || e}` };
+  }
+  if (!res.ok) return { ok: false, reason: `GitHub returned HTTP ${res.status} for release ${t.releaseTag}.` };
+  const j: any = await res.json().catch(() => null);
+  const assets: { name: string; browser_download_url: string }[] = Array.isArray(j?.assets) ? j.assets : [];
+  const full = assets.find(a => typeof a?.name === 'string' && a.name.startsWith(`${t.releaseTag}_`) && AUDIO_EXT_RE.test(a.name));
+  if (!full) return { ok: false, reason: `Release ${t.releaseTag} has no full-episode audio asset (a file named ${t.releaseTag}_….mp3).` };
+  return { ok: true, url: full.browser_download_url };
+}

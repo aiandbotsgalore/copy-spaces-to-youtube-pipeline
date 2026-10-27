@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
-import { chunkUtterances, parseTranscriptJson, readTranscript, speakerStats, utteranceLine, isSafeTag, toEvidenceRefs } from '../../server/scriptData';
+import { chunkUtterances, parseTranscriptJson, readTranscript, speakerStats, utteranceLine, isSafeTag, toEvidenceRefs, isFullEpisodeUrl, resolveEpisodeAudio } from '../../server/scriptData';
+import { FULL_EPISODE_URL, releaseResponse } from './helpers/fakeCli';
 
 const ROOT = path.join(__dirname, '..', '..');
 const TAG = '20260826_1AxRnZYBVdrxl';
@@ -35,5 +36,23 @@ describe('transcript data', () => {
   it('refuses path-like release tags', () => {
     expect(isSafeTag(TAG)).toBe(true);
     expect(isSafeTag('../secrets')).toBe(false);
+  });
+});
+
+describe('full-episode audio for transcript cuts', () => {
+  const t = { releaseTag: '20260826_1AxRnZYBVdrxl', title: 'x', hash: 'h', utterances: [], audioUrl: 'https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260826_1AxRnZYBVdrxl/01h33m45s_I_Don.t_Like_It_In_The_Butt.mp3' };
+  it('recognises a cut clip file and finds the full recording in the release', async () => {
+    expect(isFullEpisodeUrl(t.audioUrl, t.releaseTag)).toBe(false);
+    expect(isFullEpisodeUrl(FULL_EPISODE_URL, t.releaseTag)).toBe(true);
+    const seen: string[] = [];
+    const r = await resolveEpisodeAudio(t, (async (u: any) => { seen.push(String(u)); return releaseResponse(); }) as typeof fetch);
+    expect(r).toEqual({ ok: true, url: FULL_EPISODE_URL });
+    expect(seen).toEqual(['https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/tags/20260826_1AxRnZYBVdrxl']);
+  });
+  it('fails with the reason instead of cutting from the wrong file', async () => {
+    const none = await resolveEpisodeAudio(t, (async () => new Response(JSON.stringify({ assets: [{ name: 'clip.mp3', browser_download_url: 'x' }] }))) as typeof fetch);
+    expect(none).toMatchObject({ ok: false, reason: expect.stringContaining('no full-episode audio asset') });
+    const down = await resolveEpisodeAudio(t, (async () => new Response('{}', { status: 403 })) as typeof fetch);
+    expect(down).toMatchObject({ ok: false, reason: 'GitHub returned HTTP 403 for release 20260826_1AxRnZYBVdrxl.' });
   });
 });
