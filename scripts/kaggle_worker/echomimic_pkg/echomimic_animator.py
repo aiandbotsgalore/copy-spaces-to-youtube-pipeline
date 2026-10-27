@@ -295,6 +295,8 @@ def main():
     ratio = os.environ.get("ASPECT_RATIO", "9:16")
     layout = os.environ.get("LAYOUT", "stage_grid")
     speakers = parse_speakers(os.environ.get("SPEAKERS_JSON", "[]")) or ["Logan", "Guest"]
+    if layout == "solo":
+        speakers = speakers[:1]
     speaker_avatars = parse_json(os.environ.get("SPEAKER_AVATARS_JSON", "{}"), {})
     speaker_avatars = speaker_avatars if isinstance(speaker_avatars, dict) else {}
     raw_segments = os.environ.get("SPEAKER_SEGMENTS_JSON", "[]")
