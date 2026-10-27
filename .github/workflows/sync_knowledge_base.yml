@@ -41,10 +41,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'requirements-knowledge.txt'
 
       - name: Install Dependencies
         run: |
-          pip install qdrant-client onnxruntime tokenizers numpy
+          pip install -r requirements-knowledge.txt
 
       - name: Build Investigative Knowledge Graph
         run: |

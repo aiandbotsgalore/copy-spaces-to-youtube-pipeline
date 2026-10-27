@@ -36,10 +36,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: |
+            requirements-worker.txt
+            requirements-knowledge.txt
 
       - name: Install Kaggle CLI
-        run: |
-          pip install --upgrade kaggle
+        run: pip install -r requirements-worker.txt
 
       - name: Prepare Kaggle Kernel Payload
         env:
@@ -111,7 +114,7 @@ jobs:
           CHEAPER_INFERENCE_API_KEY: ${{ secrets.CHEAPER_INFERENCE_API_KEY }}
           CHEAPER_INFERENCE_BASE_URL: ${{ secrets.CHEAPER_INFERENCE_BASE_URL }}
         run: |
-          pip install qdrant-client onnxruntime tokenizers numpy || true
+          pip install -r requirements-knowledge.txt || true
           if [ -n "${{ inputs.release_tag }}" ]; then
             python scripts/extract_investigative_claims.py --episode "${{ inputs.release_tag }}" || echo "[!] Claim extraction skipped"
           fi

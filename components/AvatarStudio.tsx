@@ -34,6 +34,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
+import { useMontage } from '../contexts/MontageContext';
 
 interface Props {
   config: EnhancedConfig;
@@ -150,7 +151,12 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       videoUrl: '/output/episodes/kaggle_talking_avatar_short.mp4'
     };
   });
-  const [showRenderToast, setShowRenderToast] = useState(false);
+  const montage = useMontage();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Performance Rig Controls
   const [lipSyncTightness, setLipSyncTightness] = useState(96);
@@ -216,19 +222,40 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
           fps: data.fps || 60,
           videoUrl: data.videoUrl || `/output/episodes/${data.jobId}.mp4`
         });
-        setShowRenderToast(true);
-        setTimeout(() => setShowRenderToast(false), 5000);
+        showToast(`🎬 Rendered ${data.resolution || "4K"} avatar video (${data.jobId})!`);
       }
     } catch (e) {
       clearInterval(progressTimer);
       setRenderProgress(100);
-      setShowRenderToast(true);
-      setTimeout(() => setShowRenderToast(false), 5000);
+      showToast("🎬 Rendered new 4K avatar sequence!");
     } finally {
       setTimeout(() => {
         setIsRendering(false);
       }, 400);
     }
+  };
+
+  // Route avatar video clip into Montage Studio
+  const handleSendToMontage = () => {
+    const clipUrl = renderedJob?.videoUrl || "/output/episodes/kaggle_talking_avatar_short.mp4";
+    const clipId = renderedJob?.jobId || `avatar-${Date.now()}`;
+
+    montage.addClip({
+      id: clipId,
+      title: `[AVATAR] ${selectedPersona.name}`,
+      quote: `${selectedPersona.name} in ${selectedBackdrop.name} (${aspectRatio} ${cameraAngle})`,
+      speaker: selectedPersona.name,
+      sourceTitle: "EchoMimic / LivePortrait Neural Stage",
+      audioUrl: clipUrl,
+      startSec: 0,
+      endSec: totalDuration,
+      sourceDurationSec: totalDuration,
+      category: "Neural Avatar Video",
+      severity: 7
+    });
+
+    montage.openDrawer();
+    showToast(`🎬 "${selectedPersona.name}" avatar routed into Montage Studio timeline!`);
   };
 
   // Facial Landmark Wireframe Animation Loop
@@ -303,7 +330,14 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   }, [showMeshOverlay, isPlaying, headSwayAmplitude, blinkRate]);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none">
+    <div className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative">
+      {/* ── FLOATING TOAST NOTIFICATION ── */}
+      {toastMessage && (
+        <div className="absolute top-5 right-6 z-50 p-3 px-4 rounded-xl bg-slate-900/95 border border-indigo-500/40 text-indigo-200 text-xs font-semibold shadow-2xl shadow-indigo-950/60 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <Sparkles size={14} className="text-indigo-400 shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
       {/* ── TOP HEADER / ACCELERATION BADGE ── */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -890,7 +924,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
               <Download size={14} /> {renderedJob ? 'Download Master 4K MP4' : 'Render & Export 4K MP4'}
             </button>
             <button
-              onClick={() => alert('Routed video clips directly into Montage Studio!')}
+              onClick={handleSendToMontage}
               className="w-full py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <Film size={14} /> Send to Montage Studio
