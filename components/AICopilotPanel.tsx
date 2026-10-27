@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { COPILOT_MODEL_OPTIONS } from '../utils/copilotModels';
 import {
   Bot,
   Send,
@@ -209,12 +210,13 @@ export const AICopilotPanel: React.FC = () => {
             {/* Model Selector */}
             <select
               value={model}
+              title="Model id sent to the gateway. The model that actually answered is shown under each reply."
               onChange={e => setModel(e.target.value)}
               className="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-lg border border-slate-700 focus:outline-none focus:border-indigo-500 cursor-pointer"
             >
-              <option value="claude-sonnet-5.5">Claude 3.5 Sonnet (Deep Producer)</option>
-              <option value="claude-3-5-haiku">Claude 3.5 Haiku (Lightning Fast)</option>
-              <option value="claude-opus-5">Claude 3 Opus (Maximum Precision)</option>
+              {COPILOT_MODEL_OPTIONS.map(o => (
+                <option key={o.id} value={o.id}>{o.label}</option>
+              ))}
             </select>
 
             {/* Split Canvas Toggle */}

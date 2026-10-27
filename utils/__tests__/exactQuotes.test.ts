@@ -1,4 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'fs';
+import { resolve as resolvePath } from 'path';
+
+// public/clips/* is gitignored (only clips_catalog.json is committed), so the Angela manifest exists only on
+// machines that have cut those clips. Those checks run there and are reported as skipped elsewhere.
+const HAS_ANGELA_MANIFEST = existsSync(resolvePath('public/clips/angela/manifest.json'));
 import { extractQuotesFromPrompt, isExactQuotesPrompt, cleanQuoteText } from '../quoteExtractor';
 import { matchAllQuotes } from '../quoteMatcher';
 import { buildExactTimeline } from '../exactTimelineBuilder';
@@ -148,7 +154,7 @@ describe('Exact Quotes Montage Assembler', () => {
     });
   });
 
-  describe('Real Pool Verification', () => {
+  describe.skipIf(!HAS_ANGELA_MANIFEST)('Real Pool Verification (needs local public/clips/angela/manifest.json)', () => {
     it('returns zero false positive matches for un-clipped transcript quotes', async () => {
       const fs = await import('fs');
       const path = await import('path');

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+import { MONTAGE_EDITORIAL_CONFIG } from '../config/montageEditorial';
 import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { buildPlayablePlan } from '../utils/sequencePlan';
@@ -120,8 +121,9 @@ const NORMALIZE_KEY = 'spacepipe_montage_norm_v2';
 const ANTICLICK_KEY = 'spacepipe_montage_anticlick_v2';
 const BLACKLIST_KEY = 'spacepipe_montage_blacklist_v2';
 
-// Editorial Rule: Hard exclusion string that must never appear in auto-montage sequences
-export const HARD_EXCLUDE_PHRASE = 'defended him relentlessly';
+// Editorial Rule: hard exclusion phrase that must never appear in auto-montage sequences.
+// Configured in config/montageEditorial.ts; re-exported here for existing imports.
+export const HARD_EXCLUDE_PHRASE = MONTAGE_EDITORIAL_CONFIG.hardExcludePhrase;
 
 /**
  * Editorial Priority & Escalation Weights:

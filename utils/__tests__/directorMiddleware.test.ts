@@ -105,13 +105,15 @@ describe('guards and status', () => {
     expect(none.json).toMatchObject({ keyConfigured: false, keySource: 'none' });
   });
 
-  it('honours DIRECTOR_MODEL and an in-request claude-* model only', async () => {
-    const f = mkFetch([() => chat(goodCut), () => chat(goodCut)]);
+  it('honours DIRECTOR_MODEL and an in-request model id of any family, ignoring malformed ids', async () => {
+    const f = mkFetch([() => chat(goodCut), () => chat(goodCut), () => chat(goodCut)]);
     const h = mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY, DIRECTOR_MODEL: 'claude-opus-5' }, f);
     await call(h, { method: 'POST', url: '/', body: genReq() });
     expect(f.calls[0].body.model).toBe('claude-opus-5');
-    await call(h, { method: 'POST', url: '/', body: genReq({ model: 'gpt-4o-mini' }) }); // not claude-*: ignored
-    expect(f.calls[1].body.model).toBe('claude-opus-5');
+    await call(h, { method: 'POST', url: '/', body: genReq({ model: 'gpt-6-luna' }) }); // OpenAI family: honoured
+    expect(f.calls[1].body.model).toBe('gpt-6-luna');
+    await call(h, { method: 'POST', url: '/', body: genReq({ model: 'bad id\n' }) }); // malformed: ignored
+    expect(f.calls[2].body.model).toBe('claude-opus-5');
   });
 });
 
@@ -291,10 +293,10 @@ describe('error mapping and secrecy', () => {
 describe('models, test and refine', () => {
   const h = (f: any, extra: Record<string, string> = {}) => mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY, ...extra }, f);
 
-  it('lists only claude-* models, sorted', async () => {
-    const f = mkFetch([() => new Response(JSON.stringify({ data: [{ id: 'gpt-x' }, { id: 'claude-sonnet-5.5' }, { id: 'claude-opus-5' }] }), { status: 200 })]);
+  it('lists every gateway model id, of any family, sorted', async () => {
+    const f = mkFetch([() => new Response(JSON.stringify({ data: [{ id: 'gpt-6-luna' }, { id: 'claude-sonnet-5.5' }, { id: 'claude-opus-5' }, { id: 42 }] }), { status: 200 })]);
     const r = await call(h(f), { url: '/models' });
-    expect(r.json.models).toEqual(['claude-opus-5', 'claude-sonnet-5.5']);
+    expect(r.json.models).toEqual(['claude-opus-5', 'claude-sonnet-5.5', 'gpt-6-luna']);
     expect(f.calls[0].init.headers.Authorization).toBe(`Bearer ${ENV_KEY}`);
   });
 
