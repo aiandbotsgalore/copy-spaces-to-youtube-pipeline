@@ -15,6 +15,8 @@ import {
 } from '../utils/scriptClient';
 import { estimateRuntime } from '../utils/scriptGates';
 import ScriptQuality, { LogTable } from './ScriptQuality';
+import { AudioPanel, usePreviewJob } from './ScriptAudio';
+import { countTakes, hasValidTake } from '../utils/scriptAudio';
 import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
@@ -205,7 +207,16 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
     return (
       <div className={cx('rounded-md border p-2.5', block.locked ? 'border-amber-700/50 bg-amber-950/10' : 'border-slate-800 bg-slate-950/50')}>
         <div className="flex items-center gap-2 mb-1.5 text-[11px] uppercase tracking-wide text-slate-500">
-          <span className="text-indigo-300">Narration</span><span>{block.mode}</span><div className="flex-1" />{tools}
+          <span className="text-indigo-300">Narration</span><span>{block.mode}</span>
+          {hasValidTake(block) ? (
+            <>
+              <button onClick={onPlay} className="text-indigo-300 hover:text-white" title="Play the Vox take">{playing ? <Pause size={13} /> : <Play size={13} />}</button>
+              <span className="normal-case text-slate-300">{block.takeSec.toFixed(1)} s Vox take</span>
+            </>
+          ) : (
+            <span className="normal-case" title="Words at 155 per minute; preview the audio for the real length">{block.takeUrl ? 'take is for older wording, ' : ''}about {((block.text.trim().split(/\s+/).filter(Boolean).length / 155) * 60).toFixed(1)} s, estimated</span>
+          )}
+          <div className="flex-1" />{tools}
         </div>
         <textarea className="w-full bg-transparent text-sm text-slate-100 leading-relaxed resize-y min-h-[3rem] focus:outline-none" value={block.text}
           onChange={e => onChange({ ...block, text: e.target.value })} rows={Math.min(8, Math.max(2, Math.ceil(block.text.length / 90)))} />
@@ -261,7 +272,7 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
 /* Main                                                                                            */
 /* ---------------------------------------------------------------------------------------------- */
 
-export default function ScriptStudio() {
+export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => void } = {}) {
   const player = usePlayer();
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [checking, setChecking] = useState(false);
@@ -284,6 +295,13 @@ export default function ScriptStudio() {
   const [logEntries, setLogEntries] = useState<LogEntry[] | null>(null);
   const [viewVersion, setViewVersion] = useState<{ id: string; diff: { blockId: string; change: string }[] } | null>(null);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  // When a preview finishes, refresh the takes without throwing away edits made meanwhile.
+  const preview = usePreviewJob(projectId, () => {
+    if (!projectId) return;
+    void scriptApi.project(projectId).then(r => { setData(r); if (!dirtyRef.current) setSegments(r.head ? r.head.segments : null); }).catch(setError);
+  });
   const stopStream = useRef<(() => void) | null>(null);
 
   const recheck = useCallback(async () => {
@@ -392,6 +410,13 @@ export default function ScriptStudio() {
     await scriptApi.saveVersion(project.id, project.headVersionId, segments, 'Edit');
     setDirty(false);
   });
+  const playTake = (b: Extract<Block, { kind: 'narration' }>) => {
+    if (!hasValidTake(b)) return;
+    const id = `script:${b.id}`;
+    if (player.current?.id === id) { player.togglePlay(); return; }
+    stopRef.current = null;
+    player.play({ id, title: `Narration: ${b.text.slice(0, 60)}`, audioUrl: b.takeUrl });
+  };
   const playClip = (b: Extract<Block, { kind: 'clip' }>) => {
     const c = clipsById[b.clipId];
     if (!c) return;
@@ -437,7 +462,7 @@ export default function ScriptStudio() {
           <input type="number" min={1} className={cx(input, 'w-16')} defaultValue={Math.round(project.targetRuntimeSec / 60)} key={project.targetRuntimeSec}
             onBlur={e => void act('Saving length', () => scriptApi.updateProject(project.id, { targetRuntimeSec: Math.max(1, Number(e.target.value) || 1) * 60 }))} /> min
         </label>
-        {runtime && <span className={cx('text-xs', data?.gates?.runtimeOk ? 'text-emerald-400' : 'text-amber-400')}>Now {hms(runtime.sec)}{runtime.estimated ? ' (narration estimated at 155 wpm)' : ''}</span>}
+        {runtime && segments && <span className={cx('text-xs', data?.gates?.runtimeOk ? 'text-emerald-400' : 'text-amber-400')}>Now {hms(runtime.sec)}{runtime.estimated ? (() => { const t = countTakes(segments); return t.withTake ? ` (${t.withTake} of ${t.narration} narration lines measured from Vox takes, the rest estimated at 155 wpm)` : ' (narration estimated at 155 wpm)'; })() : countTakes(segments).narration ? ' (narration measured from Vox takes)' : ''}</span>}
         <div className="flex-1" />
         <button className={btnGhost} onClick={() => setShowRoles(s => !s)}>Models: {roles.mode === 'subscription' ? 'subscriptions' : `fallback, cap $${roles.maxUsd.toFixed(2)}`}</button>
         {runActive ? (
@@ -614,13 +639,17 @@ export default function ScriptStudio() {
                     <h3 className="text-sm font-medium text-slate-100">{sc.title}</h3>
                     <span className="text-xs text-slate-500 flex-1 truncate">{sc.purpose}</span>
                     {run?.refinedSceneIds.includes(sc.id) && <span className="text-[10px] text-indigo-300">refined this run</span>}
+                    {sc.blocks.some(b => b.kind === 'narration') && (
+                      <button className="text-[11px] text-slate-400 hover:text-white disabled:opacity-40" disabled={dirty || preview.running} title={dirty ? 'Save your edits first' : 'Speak this scene\'s narration with Vox'}
+                        onClick={() => void preview.start(sc.id)}>Preview scene</button>
+                    )}
                   </div>
                   {sc.blocks.length === 0 && <div className="text-xs text-slate-500">No blocks yet{sc.suggestedClipIds?.length ? `; suggested clips: ${sc.suggestedClipIds.map(id => clipsById[id]?.title || id).join(', ')}` : ''}.</div>}
                   {sc.blocks.map((b, bI) => (
                     <BlockView key={b.id} block={b} clip={b.kind === 'clip' ? clipsById[b.clipId] : undefined}
                       playing={player.current?.id === `script:${b.id}` && player.isPlaying}
                       onChange={nb => editBlock(segI, scI, bI, nb)} onRemove={() => editBlock(segI, scI, bI, null)} onMove={d => editBlock(segI, scI, bI, null, d)}
-                      onPlay={() => b.kind === 'clip' && playClip(b)} onClaim={t => { setQuery(''); setFocusTime(t); }} />
+                      onPlay={() => (b.kind === 'clip' ? playClip(b) : b.kind === 'narration' ? playTake(b) : undefined)} onClaim={t => { setQuery(''); setFocusTime(t); }} />
                   ))}
                   <button className={btnGhost} onClick={() => addNarration(segI, scI)}><Plus size={12} /> Narration</button>
                 </div>
@@ -631,6 +660,8 @@ export default function ScriptStudio() {
 
         {/* Right: run, critiques, candidates, versions */}
         <aside className="border-l border-slate-800 overflow-y-auto p-3 space-y-4 text-xs">
+          <AudioPanel project={project} head={data?.head || null} dirty={dirty} roles={roles} runActive={runActive} preview={preview}
+            onRunStarted={id => setRunId(id)} onOpenMontage={onOpenMontage} onError={setError} />
           {run && (
             <div className="space-y-2">
               <div className="text-[11px] uppercase tracking-wide text-slate-500">Refinement run</div>
