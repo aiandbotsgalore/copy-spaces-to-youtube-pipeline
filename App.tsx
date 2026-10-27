@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, Component } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense, Component } from 'react';
 import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, ChevronRight, ChevronDown,
@@ -16,6 +16,7 @@ import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
 import { exportPipelineZip } from './utils/exportZip';
+import { getActivePanelFromHash, syncHashWithPanel } from './components/registry/studios';
 
 // Code-split / Lazy-loaded Panels
 const DashboardOverview = React.lazy(() => import('./components/DashboardOverview'));
@@ -215,7 +216,20 @@ function AppContent() {
     config,
     updateConfig,
   } = useConfig();
-  const [activePanel, setActivePanel] = useState<Panel>('dashboard');
+  const [activePanel, setActivePanelState] = useState<Panel>(() => (getActivePanelFromHash() as Panel));
+  const setActivePanel = useCallback((panel: Panel) => {
+    setActivePanelState(panel);
+    syncHashWithPanel(panel);
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const p = getActivePanelFromHash() as Panel;
+      setActivePanelState(p);
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
   const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | string | null>(null);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);

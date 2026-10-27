@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   classifyCliFailure, claudeArgs, codexArgs, CODEX_MODEL, createCheaperInferenceAdapter, createClaudeCliAdapter, createCodexCliAdapter,
-  ensureEmptySandbox, parseCmdShim, resolveCliBinary, subscriptionEnv, verifyCrossFamily, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP,
+  ensureEmptySandbox, parseCmdShim, resolveCliBinary, subscriptionEnv, verifyCrossFamily, parseRoleSpec, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP,
   type ProcessRunner, type RunOutcome,
 } from '../../server/scriptProviders';
 import { makeFakeCli, type CliCall } from './helpers/fakeCli';
@@ -144,5 +144,10 @@ describe('cross-family rule', () => {
     expect(verifyCrossFamily(FALLBACK_ROLE_MAP)).toEqual({ ok: true });
     expect(verifyCrossFamily({ ...DEFAULT_ROLE_MAP, judge: 'claude_cli:haiku' }).ok).toBe(false);
     expect(verifyCrossFamily({ ...DEFAULT_ROLE_MAP, factcheck: 'ci:claude-haiku-5.5' }).ok).toBe(false);
+  });
+  it("accepts open-source providers like ollama and groq across roles", () => {
+    expect(parseRoleSpec("ollama:llama3")).toEqual({ provider: "ollama", model: "llama3" });
+    expect(parseRoleSpec("groq:llama-3.3-70b")).toEqual({ provider: "groq", model: "llama-3.3-70b" });
+    expect(verifyCrossFamily({ ...DEFAULT_ROLE_MAP, judge: "ollama:llama3" })).toEqual({ ok: true });
   });
 });

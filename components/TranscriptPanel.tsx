@@ -18,6 +18,7 @@ import { SavedSpeakersModal } from './transcript/SavedSpeakersModal';
 import { useMontage } from '../contexts/MontageContext';
 import { useCopilot } from '../contexts/CopilotContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
+import { parseEpisodeSummaries } from '../utils/contracts/transcript';
 import {
   SearchWorkerClient,
   parseGoogleQuery,
@@ -568,7 +569,8 @@ export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<
         if (contentType.includes('text/html')) {
           continue;
         }
-        return await res.json();
+        const json = await res.json();
+        return parseEpisodeSummaries(json);
       }
     } catch (e) {
       lastErr = e;
@@ -915,6 +917,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [saveGitHubSuccess, setSaveGitHubSuccess] = useState('');
   const [saveGitHubError, setSaveGitHubError] = useState('');
   const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
+  const [utteranceDisplayLimit, setUtteranceDisplayLimit] = useState<number>(120);
+  const [sidebarDisplayLimit, setSidebarDisplayLimit] = useState<number>(50);
 
   const currentLoadedIdRef = useRef<number | null>(null);
   const transcriptionPollRef = useRef<number | null>(null);
@@ -1658,6 +1662,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           || utterances.find(item => item.startSec >= sec)
           || utterances[0];
         if (u) {
+          const uIdx = utterances.findIndex(item => item.id === u.id);
+          if (uIdx >= 0 && uIdx >= utteranceDisplayLimit - 20) {
+            setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, uIdx + 60));
+          }
           const timer = setTimeout(() => {
             const el = document.getElementById(`utterance-card-${u.id}`);
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1672,6 +1680,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         || utterances.find(item => item.startSec >= targetSec)
         || utterances[0];
       if (u) {
+        const uIdx = utterances.findIndex(item => item.id === u.id);
+        if (uIdx >= 0 && uIdx >= utteranceDisplayLimit - 20) {
+          setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, uIdx + 60));
+        }
         const timer = setTimeout(() => {
           const el = document.getElementById(`utterance-card-${u.id}`);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1679,7 +1691,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         return () => clearTimeout(timer);
       }
     }
-  }, [utterances, selectedRelease]);
+  }, [utterances, selectedRelease, utteranceDisplayLimit]);
 
   const speakerStats = useMemo(() => {
     const counts = new Map<string, number>();
@@ -1730,6 +1742,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }
     return true;
   }), [utterances, speakerFilter, hasActiveSearch, searchAst, selectedCategory, selectedMentionTarget]);
+
+  // Reset utteranceDisplayLimit when switching episode or filters
+  useEffect(() => {
+    setUtteranceDisplayLimit(120);
+  }, [selectedId, selectedPartNum, speakerFilter, selectedCategory, selectedMentionTarget, search]);
+
+  // Keep sidebarDisplayLimit expanded if selectedId is further down the list
+  useEffect(() => {
+    if (selectedId && effectiveReleases.length > 0) {
+      const idx = effectiveReleases.findIndex(r => r.id === selectedId);
+      if (idx >= 0 && idx >= sidebarDisplayLimit) {
+        setSidebarDisplayLimit(idx + 25);
+      }
+    }
+  }, [selectedId, effectiveReleases, sidebarDisplayLimit]);
 
   // Dynamic Conversation & Confrontation Heatmap across the active episode timeline
   const conversationHeatmap = useMemo(() => {
@@ -1933,7 +1960,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               start: u.startSec,
               end: u.endSec || u.startSec + 5,
             })),
-            allSegments: utterances.map(u => ({
+            allSegments: utterances.slice(0, 150).map(u => ({
               speaker: u.speaker,
               text: u.text,
               start: u.startSec,
@@ -2186,6 +2213,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   // ID-based comparison is filter-safe (index comparison would break under search/filter)
   const activeUtteranceId = activeUtteranceIndex >= 0 ? utterances[activeUtteranceIndex]?.id ?? null : null;
 
+  // Automatically expand utteranceDisplayLimit during audio playback so autoscroll and word sync are never interrupted
+  useEffect(() => {
+    if (activeUtteranceIndex >= 0 && activeUtteranceIndex >= utteranceDisplayLimit - 20) {
+      setUtteranceDisplayLimit(prev => Math.max(prev, activeUtteranceIndex + 60));
+    }
+  }, [activeUtteranceIndex, utteranceDisplayLimit]);
+
   useEffect(() => {
     if (!autoScroll || !activeUtteranceId || lastAutoScrolledUtteranceRef.current === activeUtteranceId) return;
     const el = document.getElementById(`utterance-card-${activeUtteranceId}`);
@@ -2197,6 +2231,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const handlePlayUtterance = (startSec: number) => {
     if (!selectedRelease || !mp3Asset) return;
+    const targetIdx = filteredUtterances.findIndex(u => u.startSec >= startSec || (u.endSec !== null && u.endSec >= startSec));
+    if (targetIdx >= 0 && targetIdx >= utteranceDisplayLimit - 20) {
+      setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, targetIdx + 60));
+    }
     const titleWithPart = episodeParts.length > 1 && activePart
       ? `${selectedRelease.name || selectedRelease.tag_name} (${activePart.label})`
       : (selectedRelease.name || selectedRelease.tag_name);
@@ -2673,7 +2711,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       start: u.startSec,
                       end: u.endSec || u.startSec + 5,
                     })),
-                    allSegments: utterances.map(u => ({
+                    allSegments: utterances.slice(0, 150).map(u => ({
                       speaker: u.speaker,
                       text: u.text,
                       start: u.startSec,
@@ -2775,7 +2813,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({effectiveReleases.length})</span>
             </div>
-            {effectiveReleases.map(release => {
+            {effectiveReleases.slice(0, sidebarDisplayLimit).map(release => {
               const hasTxt = !!pickTranscriptAsset(release) || (summaryIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && (ep.segment_count || 0) > 0) ?? false) || (globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0) ?? false);
               const isSelected = searchScope === 'current' && selectedId === release.id;
               const isPlayingThis = current?.id === release.id && isPlaying;
@@ -2806,6 +2844,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </button>
               );
             })}
+            {effectiveReleases.length > sidebarDisplayLimit && (
+              <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-center">
+                <button
+                  type="button"
+                  onClick={() => setSidebarDisplayLimit(prev => Math.min(effectiveReleases.length, prev + 50))}
+                  className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
+                >
+                  Show More Episodes ({effectiveReleases.length - sidebarDisplayLimit} remaining)
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ── Main View ── */}
@@ -4395,7 +4444,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           </div>
                         )}
 
-                        {filteredUtterances.map((utterance) => {
+                        {filteredUtterances.slice(0, utteranceDisplayLimit).map((utterance) => {
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
                           const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
@@ -4579,6 +4628,38 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                             </div>
                           );
                         })}
+
+                        {/* Progressive loading controls for multi-hour episodes with thousands of turns */}
+                        {filteredUtterances.length > utteranceDisplayLimit && (
+                          <div className="my-6 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-sm">
+                            <div className="flex items-center gap-2.5 text-xs text-slate-300">
+                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+                              <span>
+                                Showing <strong className="text-white font-semibold">{Math.min(utteranceDisplayLimit, filteredUtterances.length)}</strong> of <strong className="text-indigo-300 font-semibold">{filteredUtterances.length.toLocaleString()}</strong> turns
+                              </span>
+                              <span className="text-slate-500 text-[11px]">
+                                ({Math.round((Math.min(utteranceDisplayLimit, filteredUtterances.length) / filteredUtterances.length) * 100)}% loaded)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                              <button
+                                type="button"
+                                onClick={() => setUtteranceDisplayLimit(prev => Math.min(filteredUtterances.length, prev + 150))}
+                                className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                              >
+                                <span>Load More Turns (+{Math.min(150, filteredUtterances.length - utteranceDisplayLimit)})</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setUtteranceDisplayLimit(filteredUtterances.length)}
+                                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
+                                title="Render all turns in the DOM"
+                              >
+                                Load All
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

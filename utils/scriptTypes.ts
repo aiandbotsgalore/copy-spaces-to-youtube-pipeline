@@ -137,7 +137,20 @@ export interface StyleCard {
   text: string;
 }
 
+export interface ScriptEvidenceDoc {
+  id: string;
+  name: string;
+  type?: 'text' | 'markdown' | 'pdf' | 'notes';
+  content: string;
+  addedAt: number;
+  sizeBytes?: number;
+  sourceUrl?: string;
+  source?: 'upload' | 'manual' | 'google_drive';
+}
+
 export interface ScriptProject {
+  evidenceDocs?: ScriptEvidenceDoc[];
+  googleDriveFolderUrl?: string;
   id: string; title: string; createdAt: number; updatedAt: number;
   format: EpisodeFormat | null; sourceTags: string[]; targetRuntimeSec: number;
   transcriptHashes: Record<string, string>;
