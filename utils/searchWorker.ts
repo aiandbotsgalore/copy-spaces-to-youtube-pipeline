@@ -283,6 +283,7 @@ self.onmessage = function(e) {
 
 export class SearchWorkerClient {
   private worker: Worker | null = null;
+  private workerBlobUrl: string | null = null;
   private nextSearchId = 1;
   private pendingResolvers = new Map<number, (results: WorkerSearchResult[]) => void>();
   private isReady = false;
@@ -290,8 +291,12 @@ export class SearchWorkerClient {
   constructor() {
     try {
       const blob = new Blob([WORKER_SCRIPT], { type: 'application/javascript' });
-      const blobUrl = URL.createObjectURL(blob);
-      this.worker = new Worker(blobUrl);
+      this.workerBlobUrl = URL.createObjectURL(blob);
+      this.worker = new Worker(this.workerBlobUrl);
+
+      // Safe to revoke immediately after construction in modern browsers
+      URL.revokeObjectURL(this.workerBlobUrl);
+      this.workerBlobUrl = null;
 
       this.worker.onmessage = (e) => {
         const data = e.data;
@@ -309,6 +314,10 @@ export class SearchWorkerClient {
       };
     } catch (err) {
       console.warn('Web Workers not supported or blocked, falling back to main-thread search:', err);
+      if (this.workerBlobUrl) {
+        URL.revokeObjectURL(this.workerBlobUrl);
+        this.workerBlobUrl = null;
+      }
       this.worker = null;
     }
   }
@@ -344,9 +353,14 @@ export class SearchWorkerClient {
   }
 
   public terminate(): void {
+    if (this.workerBlobUrl) {
+      URL.revokeObjectURL(this.workerBlobUrl);
+      this.workerBlobUrl = null;
+    }
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;
     }
+    this.pendingResolvers.clear();
   }
 }

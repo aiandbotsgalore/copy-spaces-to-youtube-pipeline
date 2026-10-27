@@ -41,65 +41,22 @@ import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
 import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
+import { resizeImageToDataUrl } from '../utils/imageResize';
+import { getEpisodeSegments } from '../utils/transcriptData';
 
-export interface ClipItem {
-  title: string;
-  category: string;
-  start_seconds: number;
-  end_seconds: number;
-  duration?: number;
-  speakers: string[];
-  viral_score: number;
-  reason: string;
-  transcript_snippet: string;
-  episode?: string;
-  file_path?: string;
-  download_url?: string;
-}
+import { ClipItem } from "../utils/contracts/clipCatalog";
+import {
+  formatEpisodeTitle,
+  normalizeCategory,
+  CANONICAL_CATEGORY_ORDER,
+  getCategoryColor,
+  getAudioUrl,
+} from "./clips/clipUtils";
+import { ClipCard } from "./clips/ClipCard";
+import { ClipFilterBar } from "./clips/ClipFilterBar";
+import { AvatarModal } from "./clips/AvatarModal";
 
-const formatEpisodeTitle = (ep?: string) => {
-  if (!ep) return 'Unknown Space';
-  let clean = ep.replace(/^20\d{6}_[a-zA-Z0-9]+_/, '');
-  clean = clean.replace(/_/g, ' ').replace(/-/g, ' ').trim();
-  return clean || ep;
-};
-
-const normalizeCategory = (cat?: string): string => {
-  const c = (cat || '').trim();
-  const lower = c.toLowerCase();
-  if (lower.includes('humor') || lower.includes('banter')) return 'Humor & Banter';
-  if (lower.includes('story') || lower.includes('stories') || lower.includes('wild')) return 'Wild Stories';
-  if (lower.includes('rant')) return 'Passionate Rants';
-  if (lower.includes('quote') || lower.includes('golden')) return 'Golden Quotes';
-  if (lower.includes('highlight')) return 'Highlights';
-  return c || 'Highlights';
-};
-
-const CANONICAL_CATEGORY_ORDER = [
-  'ALL',
-  'Humor & Banter',
-  'Wild Stories',
-  'Passionate Rants',
-  'Golden Quotes',
-  'Highlights'
-];
-
-const getCategoryColor = (cat: string) => {
-  const canonical = normalizeCategory(cat);
-  const c = canonical.toLowerCase();
-  const dot =
-    c.includes('rant') ? 'bg-rose-400'
-    : c.includes('humor') || c.includes('banter') ? 'bg-amber-400'
-    : c.includes('story') || c.includes('wild') ? 'bg-indigo-400'
-    : c.includes('quote') || c.includes('golden') ? 'bg-slate-400'
-    : 'bg-emerald-400';
-  return {
-    badge: 'bg-slate-800 text-slate-300 border-transparent',
-    pill: 'text-slate-300 bg-slate-800 border-transparent',
-    dot,
-    icon: ''
-  };
-};
+export type { ClipItem };
 
 export interface ClipsPanelProps {
   config?: EnhancedConfig;
@@ -118,6 +75,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [sortBy, setSortBy] = useState<'newest' | 'viral' | 'oldest' | 'episode-az' | 'duration-desc' | 'duration-asc'>('newest');
   const [viewMode, setViewMode] = useState<'grouped' | 'grid' | 'list'>('grouped');
   const [expandedEpisodes, setExpandedEpisodes] = useState<Record<string, boolean>>({});
+  const [expandedAllClips, setExpandedAllClips] = useState<Record<string, boolean>>({});
+  const [visibleLimit, setVisibleLimit] = useState(36);
 
   // Audio Playback state
   const [activeClip, setActiveClip] = useState<ClipItem | null>(null);
@@ -173,24 +132,22 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const handleUploadPhotoForSpeaker = async (speaker: string, file?: File | null) => {
     if (!file) return;
     setUploadingSpeakerAvatar(speaker);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
+    try {
+      const { dataUrl, base64 } = await resizeImageToDataUrl(file, 512, 0.85);
       setSpeakerAvatarMap(prev => ({ ...prev, [speaker]: dataUrl }));
 
-      // If GitHub token is present, upload binary image to public/avatars/{slug}.jpg
+      // If GitHub token is present, upload optimized binary image to public/avatars/{slug}.jpg
       if (token) {
         try {
           const slug = speaker.toLowerCase().replace(/[^a-z0-9]/g, '_');
           const fileName = `public/avatars/${slug}.jpg`;
-          const base64Data = dataUrl.split(',')[1];
           await writeRepositoryBinaryFile(
             token,
             owner,
             repo,
             fileName,
-            base64Data,
-            `chore(avatar): upload talking avatar photo for ${speaker}`,
+            base64,
+            `chore(avatar): upload optimized talking avatar photo for ${speaker}`,
             'master'
           );
           const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/master/${fileName}`;
@@ -199,9 +156,11 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           console.warn('GitHub avatar image upload failed, using local data URL:', uploadErr);
         }
       }
+    } catch (err) {
+      console.warn('Failed to process avatar image:', err);
+    } finally {
       setUploadingSpeakerAvatar(null);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const globalPlayer = usePlayer();
@@ -229,6 +188,44 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       const speakersList = clip.speakers && clip.speakers.length > 0 ? clip.speakers : ['Logan', 'Guest'];
       const primaryAvatar = speakerAvatarMap[speakersList[0]] || getDefaultSpeakerAvatarUrl(speakersList[0]);
 
+      // The clip catalog only stores the speaker names. Resolve the source
+      // episode turns here so the cloud worker can mute each speaker's track
+      // outside their actual turns and animate the correct tile.
+      const releaseTag = (() => {
+        const candidates = [clip.episode, clip.file_path, clip.download_url].filter(Boolean).map(String);
+        for (const candidate of candidates) {
+          const fromReleaseUrl = candidate.match(/\/releases\/download\/([^/]+)/i)?.[1];
+          if (fromReleaseUrl) return fromReleaseUrl;
+          const fromTag = candidate.match(/(\d{8}_[A-Za-z0-9]+)/)?.[1];
+          if (fromTag) return fromTag;
+        }
+        return '';
+      })();
+
+      let speakerSegments: Array<{ speaker: string; start: number; end: number }> = [];
+      if (releaseTag) {
+        try {
+          const normalizeSpeaker = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+          const sourceSegments = await getEpisodeSegments(releaseTag, owner, repo);
+          const clipStart = Math.max(0, Number(clip.start_seconds) || 0);
+          const clipEnd = Math.max(clipStart, Number(clip.end_seconds) || clipStart + (clip.duration || 0));
+          speakerSegments = sourceSegments
+            .map((segment) => {
+              const start = Math.max(clipStart, Number(segment.start) || 0);
+              const end = Math.min(clipEnd, Number(segment.end ?? segment.start) || start);
+              return {
+                speaker: String(segment.speaker || '').trim(),
+                start: Math.max(0, start - clipStart),
+                end: Math.max(0, end - clipStart),
+              };
+            })
+            .filter((segment) => segment.speaker && segment.end > segment.start)
+            .filter((segment) => speakersList.some((speaker) => normalizeSpeaker(speaker) === normalizeSpeaker(segment.speaker)));
+        } catch (segmentErr) {
+          console.warn('Could not resolve speaker timing for avatar render:', segmentErr);
+        }
+      }
+
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
@@ -249,6 +246,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             layout: avatarLayoutMode,
             speakers_json: JSON.stringify(speakersList),
             speaker_avatars_json: JSON.stringify(speakerAvatarMap),
+            speaker_segments_json: JSON.stringify(speakerSegments),
             prompt: `Twitter Spaces ${avatarLayoutMode} audio presentation for: ${clip.title}`
           }
         })
@@ -272,15 +270,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     try {
       let combinedClips: ClipItem[] = [];
 
-      // 1. Fetch static local catalog (try relative, base, and root paths)
+      // 1. Fetch static local catalog (try relative, base, and root paths) with cache busting
+      const ts = Date.now();
       const catalogCandidates = [
-        './clips/clips_catalog.json',
-        '/clips/clips_catalog.json',
-        `${import.meta.env.BASE_URL || '/'}clips/clips_catalog.json`.replace(/\/+/g, '/')
+        `./clips/clips_catalog.json?t=${ts}`,
+        `/clips/clips_catalog.json?t=${ts}`,
+        `${import.meta.env.BASE_URL || '/'}clips/clips_catalog.json?t=${ts}`.replace(/\/+/g, '/')
       ];
       for (const catUrl of catalogCandidates) {
         try {
-          const res = await fetch(catUrl);
+          const res = await fetch(catUrl, { cache: 'no-store' });
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {
@@ -316,9 +315,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             const relTitle = r.name || r.tag_name || 'Space Episode';
             const assets: any[] = r.assets || [];
 
-            // Rich clips JSON
+            // Rich clips JSON (only individual episode clips, exclude global catalog)
             const clipsJsonAsset = assets.find((a: any) =>
-              a.name && (a.name.endsWith('_clips.json') || a.name === 'clips_catalog.json')
+              a.name && a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json'
             );
 
             if (clipsJsonAsset) {
@@ -406,6 +405,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     transcript_snippet: `Highlight moment from ${relTitle}`,
                     episode: relTitle,
                     file_path: a.browser_download_url,
+                    download_url: a.browser_download_url,
                   });
                 }
               }
@@ -417,11 +417,11 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       }
 
       setClips(combinedClips);
-      // Auto expand all episodes initially
+      // Auto expand only the first 2 episodes initially to prevent browser OOM from 25,000+ DOM nodes
       const initialExpanded: Record<string, boolean> = {};
-      combinedClips.forEach(c => {
-        if (c.episode) initialExpanded[c.episode] = true;
-      });
+      const distinctEps = Array.from(new Set(combinedClips.map(c => c.episode).filter(Boolean)));
+      if (distinctEps[0]) initialExpanded[distinctEps[0]] = true;
+      if (distinctEps[1]) initialExpanded[distinctEps[1]] = true;
       setExpandedEpisodes(initialExpanded);
     } catch {
       setClips([]);
@@ -484,6 +484,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   }, [clips]);
 
   // Filtered and Sorted Clips
+  useEffect(() => {
+    setVisibleLimit(36);
+  }, [search, selectedCategory, selectedEpisode, selectedSpeaker, onlyTopRated, sortBy]);
+
   const filteredClips = useMemo(() => {
     return clips
       .filter(c => {
@@ -750,198 +754,34 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       </div>
 
       {/* Search, Filter & View Controls Bar */}
-      <div className="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800 backdrop-blur-sm">
-        {/* Row 1: Search + View Modes + Sort */}
-        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by punchline, quote, topic, speaker, or Space title..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-9 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5 rounded cursor-pointer"
-                title="Clear Search"
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
-            {/* View Mode Toggle */}
-            <div className="flex items-center bg-slate-950 p-1 border border-slate-800 rounded-xl">
-              <button
-                onClick={() => setViewMode('grouped')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'grouped'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Group by Space Episode (Accordion)"
-              >
-                <Layers size={13} />
-                <span className="hidden sm:inline">By Space</span>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Grid Cards View"
-              >
-                <LayoutGrid size={13} />
-                <span className="hidden sm:inline">Grid</span>
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-                title="Compact List / Tracklist View"
-              >
-                <LayoutList size={13} />
-                <span className="hidden sm:inline">List</span>
-              </button>
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-300">
-              <ArrowUpDown size={13} className="text-indigo-400 flex-shrink-0" />
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value as any)}
-                className="bg-transparent text-white font-medium focus:outline-none cursor-pointer text-xs pr-1"
-              >
-                <option value="newest" className="bg-slate-900 text-white">📅 Chronological (Newest First)</option>
-                <option value="oldest" className="bg-slate-900 text-white">⏳ Chronological (Oldest First)</option>
-                <option value="viral" className="bg-slate-900 text-white">⭐ Highest Viral Score</option>
-                <option value="episode-az" className="bg-slate-900 text-white">🔤 Space Name (A-Z)</option>
-                <option value="duration-desc" className="bg-slate-900 text-white">⏱️ Longest Clips</option>
-                <option value="duration-asc" className="bg-slate-900 text-white">⚡ Shortest Quick-Bites</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-thin">
-          {categories.map(cat => {
-            const count = categoryCounts[cat] || 0;
-            const isSelected = selectedCategory === cat;
-            const color = getCategoryColor(cat);
-            return (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg font-medium transition-all whitespace-nowrap cursor-pointer ${
-                  isSelected
-                    ? 'bg-indigo-600 text-white shadow-lg font-semibold'
-                    : 'bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800/80'
-                }`}
-              >
-                <span>{cat === 'ALL' ? 'All moments' : cat}</span>
-                <span className={`px-1.5 py-0.2 rounded-md text-[11px] font-bold ${
-                  isSelected ? 'bg-indigo-800 text-indigo-100' : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Row 3: Space Episode Selector + Speaker Filter + Top Rated Toggle */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/80 text-xs text-slate-400">
-          <span className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
-            <SlidersHorizontal size={11} /> Filters:
-          </span>
-
-          {/* Episode Select */}
-          <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
-            <Radio size={12} className="text-slate-300 flex-shrink-0" />
-            <select
-              value={selectedEpisode}
-              onChange={e => setSelectedEpisode(e.target.value)}
-              className="bg-transparent text-slate-300 text-xs focus:outline-none cursor-pointer max-w-[200px] truncate"
-            >
-              <option value="ALL" className="bg-slate-900 text-white">All Spaces ({episodeList.length})</option>
-              {episodeList.map(ep => (
-                <option key={ep.name} value={ep.name} className="bg-slate-900 text-white">
-                  {formatEpisodeTitle(ep.name)} ({ep.count})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Speaker Select */}
-          {speakerList.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
-              <User size={12} className="text-emerald-400 flex-shrink-0" />
-              <select
-                value={selectedSpeaker}
-                onChange={e => setSelectedSpeaker(e.target.value)}
-                className="bg-transparent text-slate-300 text-xs focus:outline-none cursor-pointer max-w-[150px] truncate"
-              >
-                <option value="ALL" className="bg-slate-900 text-white">All Speakers</option>
-                {speakerList.map(spk => (
-                  <option key={spk} value={spk} className="bg-slate-900 text-white">
-                    {spk}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Top Rated 9-10 Toggle */}
-          <button
-            onClick={() => setOnlyTopRated(!onlyTopRated)}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
-              onlyTopRated
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-sm'
-                : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-slate-800'
-            }`}
-          >
-            <Star size={12} className={onlyTopRated ? 'text-amber-400 fill-amber-400' : 'text-slate-400'} />
-            <span>9-10 Viral Only</span>
-          </button>
-
-          {/* Autoplay Next Toggle */}
-          <button
-            onClick={() => setAutoNext(!autoNext)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ml-auto ${
-              autoNext
-                ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
-                : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-            }`}
-            title="Automatically play the next clip when one finishes"
-          >
-            <Repeat size={12} className={autoNext ? 'text-indigo-400' : 'text-slate-400'} />
-            <span>Autoplay Next: {autoNext ? 'ON' : 'OFF'}</span>
-          </button>
-
-          {/* Expand/Collapse All for Grouped View */}
-          {viewMode === 'grouped' && (
-            <button
-              onClick={toggleExpandAll}
-              className="text-[11px] text-slate-400 hover:text-white px-2 py-1 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-lg transition-colors cursor-pointer"
-            >
-              Toggle All
-            </button>
-          )}
-        </div>
-      </div>
-
+      <ClipFilterBar
+        search={search}
+        setSearch={setSearch}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        categories={categories}
+        categoryCounts={categoryCounts}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        episodes={episodeList.map(e => e.name)}
+        selectedEpisode={selectedEpisode}
+        setSelectedEpisode={setSelectedEpisode}
+        speakers={speakerList.map(spk => ({ name: spk, count: clips.filter(c => c.speakers?.includes(spk)).length }))}
+        selectedSpeaker={selectedSpeaker}
+        setSelectedSpeaker={setSelectedSpeaker}
+        onlyTopRated={onlyTopRated}
+        setOnlyTopRated={setOnlyTopRated}
+        totalFilteredCount={filteredClips.length}
+        onResetFilters={() => {
+          setSearch("");
+          setSelectedCategory("ALL");
+          setSelectedEpisode("ALL");
+          setSelectedSpeaker("ALL");
+          setOnlyTopRated(false);
+        }}
+      />
       {/* Results Count Bar */}
       <div className="flex items-center justify-between text-xs text-slate-400 px-1">
         <span>
@@ -996,8 +836,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       {/* VIEW MODE 1: Grouped by Space Episode (Accordion) */}
       {!loading && viewMode === 'grouped' && (
         <div className="space-y-4">
-          {(Object.entries(groupedClips) as [string, ClipItem[]][]).map(([epName, epClips]) => {
-            const isExpanded = expandedEpisodes[epName] !== false; // default open
+          {(Object.entries(groupedClips) as [string, ClipItem[]][]).map(([epName, epClips], epIdx) => {
+            const isExpanded = expandedEpisodes[epName] ?? (epIdx < 2);
             const isPlayingThisEpisode = activeClip && activeClip.episode === epName && isPlaying;
 
             return (
@@ -1061,8 +901,35 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
                 {/* Episode Clips Grid */}
                 {isExpanded && (
-                  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/30">
-                    {epClips.map((clip, idx) => renderClipCard(clip, idx))}
+                  <div className="p-4 bg-slate-950/30 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(expandedAllClips[epName] ? epClips : epClips.slice(0, 16)).map((clip, idx) => (
+                        <ClipCard
+                          key={`${clip.title}-${idx}`}
+                          clip={clip}
+                          idx={idx}
+                          isThisPlaying={Boolean(activeClip && activeClip.title === clip.title && isPlaying)}
+                          viewMode={viewMode}
+                          copiedId={copiedId}
+                          onPlay={handlePlayClip}
+                          onCopyQuote={handleCopyQuote}
+                          onOpenAvatarModal={c => {
+                            setAvatarModalClip(c);
+                            setAvatarDispatchStatus(null);
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {epClips.length > 16 && !expandedAllClips[epName] && (
+                      <div className="text-center pt-2">
+                        <button
+                          onClick={() => setExpandedAllClips(prev => ({ ...prev, [epName]: true }))}
+                          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                        >
+                          Show all {epClips.length} clips (+{epClips.length - 16} more)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1073,8 +940,41 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
       {/* VIEW MODE 2: Standard Grid View */}
       {!loading && viewMode === 'grid' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredClips.map((clip, idx) => renderClipCard(clip, idx))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClips.slice(0, visibleLimit).map((clip, idx) => (
+              <ClipCard
+                key={`${clip.title}-${idx}`}
+                clip={clip}
+                idx={idx}
+                isThisPlaying={Boolean(activeClip && activeClip.title === clip.title && isPlaying)}
+                viewMode={viewMode}
+                copiedId={copiedId}
+                onPlay={handlePlayClip}
+                onCopyQuote={handleCopyQuote}
+                onOpenAvatarModal={c => {
+                  setAvatarModalClip(c);
+                  setAvatarDispatchStatus(null);
+                }}
+              />
+            ))}
+          </div>
+          {filteredClips.length > visibleLimit && (
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                onClick={() => setVisibleLimit(prev => prev + 36)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg transition-all cursor-pointer"
+              >
+                Load More ({Math.min(36, filteredClips.length - visibleLimit)} more)
+              </button>
+              <button
+                onClick={() => setVisibleLimit(filteredClips.length)}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+              >
+                Show All ({filteredClips.length})
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1096,7 +996,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {filteredClips.map((clip, idx) => {
+                {filteredClips.slice(0, visibleLimit).map((clip, idx) => {
                   const isThisPlaying = activeClip && activeClip.title === clip.title && isPlaying;
                   const catColor = getCategoryColor(clip.category);
                   const starsCount = Math.min(5, Math.max(1, Math.round((clip.viral_score || 8) / 2)));
@@ -1204,6 +1104,22 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               </tbody>
             </table>
           </div>
+          {filteredClips.length > visibleLimit && (
+            <div className="p-4 bg-slate-950/60 border-t border-slate-800/80 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setVisibleLimit(prev => prev + 36)}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Load More ({Math.min(36, filteredClips.length - visibleLimit)} more)
+              </button>
+              <button
+                onClick={() => setVisibleLimit(filteredClips.length)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+              >
+                Show All ({filteredClips.length})
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -1363,395 +1279,26 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           </div>
         </div>
       )}
-      {/* SPACES LIVE STAGE GRID AVATAR MODAL */}
-      {avatarModalClip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-purple-500/40 rounded-2xl p-6 sm:p-7 shadow-2xl shadow-purple-950/60 my-8">
-            <button
-              onClick={() => {
-                setAvatarModalClip(null);
-                setAvatarDispatchStatus(null);
-              }}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center border border-purple-500/40 shadow-inner">
-                <Video size={20} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>Spaces &quot;Live Stage&quot; Grid Avatar</span>
-                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-mono border border-purple-500/30">
-                    EchoMimicV3 Wan2.1
-                  </span>
-                </h3>
-                <p className="text-xs text-slate-400">Multi-speaker talking avatar short with active speaker glowing tile highlights</p>
-              </div>
-            </div>
-
-            {/* Target Clip Summary */}
-            <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl mb-5 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400">Target Highlight Clip</span>
-                <p className="text-sm font-semibold text-white truncate">{avatarModalClip.title}</p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  ⏱️ {avatarModalClip.duration || 60}s • 👥 {(avatarModalClip.speakers || []).join(', ') || 'Multi-Speaker'}
-                </p>
-              </div>
-            </div>
-
-            {/* 1. Spaces Live Stage Grid Preview & Photo Pickers */}
-            <div className="space-y-4 mb-5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300">
-                  1. Spaces &quot;Live Stage&quot; Grid ({(avatarModalClip.speakers || []).length} Speakers)
-                </label>
-                <span className="text-[11px] text-purple-400 font-medium">Click &quot;Choose Image&quot; to upload custom photo</span>
-              </div>
-
-              {/* The Live Stage Mockup Container */}
-              <div className="p-4 bg-slate-950 rounded-2xl border-2 border-slate-800/80 shadow-2xl relative overflow-hidden">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {((avatarModalClip.speakers && avatarModalClip.speakers.length > 0)
-                    ? avatarModalClip.speakers
-                    : ['Logan', 'Guest']
-                  ).map((speaker, sIdx) => {
-                    const avatarUrl = speakerAvatarMap[speaker] || getDefaultSpeakerAvatarUrl(speaker);
-                    const isFirst = sIdx === 0;
-
-                    return (
-                      <div
-                        key={speaker}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 transition-all relative ${
-                          isFirst
-                            ? 'bg-gradient-to-b from-purple-950/40 to-slate-900 border-purple-500/70 shadow-lg shadow-purple-950/50 ring-1 ring-purple-500/40'
-                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                        }`}
-                      >
-                        {/* Status Badge */}
-                        <div className="w-full flex items-center justify-between text-[10px]">
-                          <span className={`px-1.5 py-0.5 rounded font-mono font-bold ${
-                            isFirst ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
-                          }`}>
-                            {isFirst ? '🟢 Speaking' : 'Listening'}
-                          </span>
-                          <span className="text-slate-500 font-mono text-[9px]">#{sIdx + 1}</span>
-                        </div>
-
-                        {/* Circular Avatar with Active Pulse Ring */}
-                        <div className="relative group/avatar cursor-pointer">
-                          <div className={`w-16 h-16 rounded-full overflow-hidden border-2 bg-slate-850 flex items-center justify-center shadow-lg transition-transform ${
-                            isFirst ? 'border-purple-400 scale-105 shadow-purple-500/30' : 'border-slate-700'
-                          }`}>
-                            <img
-                              src={avatarUrl}
-                              alt={speaker}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-
-                          {/* Hover Overlay for Instant File Picker */}
-                          <label
-                            className="absolute inset-0 bg-slate-950/80 rounded-full opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold"
-                            title={`Upload custom photo for ${speaker}`}
-                          >
-                            <Camera size={16} className="text-purple-300 mb-0.5" />
-                            <span>Change</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleUploadPhotoForSpeaker(speaker, e.target.files?.[0])}
-                            />
-                          </label>
-                        </div>
-
-                        {/* Speaker Name Tag */}
-                        <div className="text-center w-full min-w-0">
-                          <p className="text-xs font-bold text-white truncate">{speaker}</p>
-                          <label
-                            className="inline-flex items-center gap-1 mt-1 text-[10px] text-purple-400 hover:text-purple-300 cursor-pointer font-medium hover:underline"
-                          >
-                            <Upload size={10} />
-                            <span>{uploadingSpeakerAvatar === speaker ? 'Uploading...' : 'Choose Image'}</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleUploadPhotoForSpeaker(speaker, e.target.files?.[0])}
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Simulated Kinetic Caption Bar at Bottom of Stage */}
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-col items-center text-center">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400 mb-1">
-                    🔥 Dynamic Kinetic Caption Bar 🔥
-                  </span>
-                  <p className="text-xs font-bold text-white bg-slate-900/90 px-3 py-1.5 rounded-lg border border-amber-500/30 max-w-md truncate">
-                    &ldquo;{avatarModalClip.transcript_snippet || 'Banter, debate, and quotes will animate here in sync with speech...'}&rdquo;
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Format & Layout Controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  2. Stage Layout Style
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAvatarLayoutMode('stage_grid')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-left cursor-pointer transition-all ${
-                      avatarLayoutMode === 'stage_grid'
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-bold">🎭 Spaces Live Stage</div>
-                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">Active glowing tiles</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvatarLayoutMode('split_screen')}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-left cursor-pointer transition-all ${
-                      avatarLayoutMode === 'split_screen'
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-bold">📱 Stacked Split</div>
-                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">Top/Bottom podcast</div>
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                  3. Video Aspect Ratio
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['9:16', '1:1', '16:9'] as const).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setAvatarRatio(r)}
-                      className={`p-2.5 rounded-xl border text-xs font-semibold text-center cursor-pointer transition-all ${
-                        avatarRatio === r
-                          ? 'border-purple-500 bg-purple-500/20 text-white'
-                          : 'border-slate-800 bg-slate-950 text-slate-400 hover:border-slate-700'
-                      }`}
-                    >
-                      {r === '9:16' ? '📱 9:16 (Shorts)' : r === '1:1' ? '⬛ 1:1' : '🖥️ 16:9'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {avatarDispatchStatus === 'success' && (
-              <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-                <div className="flex items-center gap-2.5">
-                  <Check size={18} className="flex-shrink-0 text-emerald-400" />
-                  <div>
-                    <p className="font-semibold text-white">🎉 Cloud GPU Render Dispatched!</p>
-                    <p className="text-[11px] text-emerald-400/90 mt-0.5">Kaggle Dual-T4 GPU worker is generating the 9:16 Spaces Live Stage video.</p>
-                  </div>
-                </div>
-                <a
-                  href={`https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-lg text-emerald-200 font-semibold transition-colors shrink-0 text-xs shadow-sm"
-                >
-                  <ExternalLink size={13} />
-                  <span>View Run & Download Video MP4 ↗</span>
-                </a>
-              </div>
-            )}
-
-            {avatarDispatchStatus && avatarDispatchStatus.startsWith('error') && (
-              <div className="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 animate-in fade-in">
-                {avatarDispatchStatus}
-              </div>
-            )}
-
-            {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-              <button
-                type="button"
-                onClick={() => setAvatarModalClip(null)}
-                className="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isDispatchingAvatar}
-                onClick={() => handleDispatchAvatar(avatarModalClip)}
-                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-purple-900/50 cursor-pointer disabled:opacity-50"
-              >
-                {isDispatchingAvatar ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" />
-                    <span>Dispatching Cloud GPU...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={14} />
-                    <span>Generate Spaces Live Stage Short</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            {/* EchoMimicV3 Cloud Talking Avatar Modal */}
+      <AvatarModal
+        clip={avatarModalClip}
+        onClose={() => {
+          setAvatarModalClip(null);
+          setAvatarDispatchStatus(null);
+        }}
+        speakerAvatarMap={speakerAvatarMap}
+        onUploadPhotoForSpeaker={handleUploadPhotoForSpeaker}
+        uploadingSpeakerAvatar={uploadingSpeakerAvatar}
+        avatarLayoutMode={avatarLayoutMode}
+        setAvatarLayoutMode={setAvatarLayoutMode}
+        avatarRatio={avatarRatio}
+        setAvatarRatio={setAvatarRatio}
+        avatarDispatchStatus={avatarDispatchStatus}
+        isDispatchingAvatar={isDispatchingAvatar}
+        onDispatchAvatar={handleDispatchAvatar}
+        owner={owner}
+        repo={repo}
+      />
     </div>
   );
-
-  // Helper render function for individual clip card
-  function renderClipCard(clip: ClipItem, idx: number) {
-    const isThisPlaying = activeClip && activeClip.title === clip.title && isPlaying;
-    const catColor = getCategoryColor(clip.category);
-    const starsCount = Math.min(5, Math.max(1, Math.round((clip.viral_score || 8) / 2)));
-    const audioUrl = getAudioUrl(clip);
-
-    return (
-      <div
-        key={`${clip.title}-${idx}`}
-        className={`p-5 rounded-xl border transition-all flex flex-col justify-between relative group ${
-          isThisPlaying
-            ? 'bg-slate-900/95 border-indigo-500/70 shadow-xl ring-1 ring-indigo-500/50'
-            : 'bg-slate-900/70 border-slate-800/90 hover:border-slate-700 hover:bg-slate-850/80'
-        }`}
-      >
-        <div>
-          {/* Top Row: Category + Stars */}
-          <div className="flex items-center justify-between gap-2 mb-2.5">
-            <span className={`px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider rounded-md border ${catColor.badge}`}>
-              <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 align-middle ${catColor.dot}`} aria-hidden="true" />{normalizeCategory(clip.category)}
-            </span>
-            <div className="flex items-center gap-1 text-amber-400 text-xs" title={`Viral Score: ${clip.viral_score}/10`}>
-              {'⭐'.repeat(starsCount)}
-              <span className="text-[11px] font-bold text-slate-400 ml-1">
-                {clip.viral_score}/10
-              </span>
-            </div>
-          </div>
-
-          {/* Space Episode Banner (if not grouped) */}
-          {viewMode !== 'grouped' && clip.episode && (
-            <div className="flex items-center justify-between gap-1.5 text-[11px] font-medium text-slate-300 bg-slate-950/40 border border-slate-800/40 px-2.5 py-1 rounded-lg mb-2.5 w-full">
-              <div className="flex items-center gap-1.5 truncate">
-                <Radio size={12} className="flex-shrink-0 text-slate-300" />
-                <span className="truncate" title={formatEpisodeTitle(clip.episode)}>
-                  {formatEpisodeTitle(clip.episode)}
-                </span>
-              </div>
-              <span className="text-[11px] text-amber-400/90 flex-shrink-0 font-normal">
-                📅 {getClipRecordedDate(clip).displayDate}
-              </span>
-            </div>
-          )}
-
-          {/* Title */}
-          <h3 className="text-sm sm:text-base font-bold text-white mb-1.5 leading-snug group-hover:text-indigo-200 transition-colors">
-            {clip.title}
-          </h3>
-
-          {/* Reason */}
-          <p className="text-xs text-slate-400 mb-3 line-clamp-2 leading-relaxed">
-            {clip.reason}
-          </p>
-
-          {/* Quote Dialogue Box */}
-          <div className="p-3 bg-slate-950/80 border border-slate-800/90 rounded-xl mb-3.5 relative group/quote">
-            <p className="text-[11px] text-slate-300 italic line-clamp-3 leading-relaxed">
-              "{clip.transcript_snippet}"
-            </p>
-            <button
-              onClick={() => handleCopyQuote(clip.title, clip.transcript_snippet)}
-              className="absolute right-2 top-2 p-1 bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-white rounded opacity-0 group-hover/quote:opacity-100 transition-opacity cursor-pointer shadow-sm"
-              title="Copy Quote"
-            >
-              {copiedId === clip.title ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom Metadata & Playback Controls */}
-        <div>
-          <div className="flex items-center gap-3 text-[11px] text-slate-400 mb-3.5 flex-wrap">
-            <span className="flex items-center gap-1 font-mono text-slate-400">
-              <Clock size={11} />
-              {clip.duration ? `${clip.duration.toFixed(0)}s` : 'Clip'}
-            </span>
-            {clip.speakers && clip.speakers.length > 0 && (
-              <span className="flex items-center gap-1 truncate max-w-[220px]">
-                <User size={11} className="text-emerald-400" />
-                <span className="text-slate-400">{clip.speakers.join(', ')}</span>
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800/70">
-            <button
-              onClick={() => handlePlayClip(clip)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-md ${
-                isThisPlaying
-                  ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
-                  : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-[1.02]'
-              }`}
-            >
-              {isThisPlaying ? <Pause size={14} /> : <Play size={14} className="translate-x-0.2" />}
-              <span>{isThisPlaying ? 'Pause Moment' : 'Play Moment'}</span>
-            </button>
-
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => handleCopyQuote(clip.title, clip.transcript_snippet)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                title="Copy Quote"
-              >
-                {copiedId === clip.title ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-              </button>
-              <a
-                href={audioUrl}
-                download
-                className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-lg transition-colors"
-                title="Download MP3"
-              >
-                <Download size={14} />
-              </a>
-              <button
-                onClick={() => {
-                  setAvatarModalClip(clip);
-                  setAvatarDispatchStatus(null);
-                }}
-                className="p-2 text-slate-400 hover:text-purple-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                title="Animate Talking Avatar (EchoMimicV3 Cloud GPU)"
-              >
-                <Video size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 };

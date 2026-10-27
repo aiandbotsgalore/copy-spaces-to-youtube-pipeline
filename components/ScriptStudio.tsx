@@ -5,7 +5,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, ArrowDown, ArrowUp, Check, CheckCircle2, ChevronLeft, CircleSlash, Download, FileText, History, Loader2, Lock,
+  AlertTriangle, ArrowDown, BookOpen, ArrowUp, CloudDownload, ExternalLink, FolderSync, Link2, Check, CheckCircle2, ChevronLeft, CircleSlash, Download, FileText, History, Loader2, Lock,
   Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Square, Trash2, Unlock, Upload, Wand2, X, XCircle,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
@@ -16,7 +16,7 @@ import {
 import { estimateRuntime } from '../utils/scriptGates';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
-import { PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
+import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
@@ -62,6 +62,449 @@ function ErrorBox({ error, onClose }: { error: unknown; onClose: () => void }) {
   );
 }
 
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Upload Script & Evidence Modals                                                                */
+/* ---------------------------------------------------------------------------------------------- */
+
+function UploadScriptModal({
+  isOpen,
+  onClose,
+  onOpenProject,
+  initialTags = [],
+  episodes = [],
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpenProject: (id: string) => void;
+  initialTags?: string[];
+  episodes?: { releaseTag: string; title: string }[];
+}) {
+  const [title, setTitle] = useState('');
+  const [format, setFormat] = useState<EpisodeFormat | ''>('narrative_doc');
+  const [minutes, setMinutes] = useState(15);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialTags);
+  const [scriptText, setScriptText] = useState('');
+  const [scriptFilename, setScriptFilename] = useState('');
+  const [evidenceFiles, setEvidenceFiles] = useState<{ name: string; content: string; type: string }[]>([]);
+  const [customEvidenceText, setCustomEvidenceText] = useState('');
+  const [customEvidenceName, setCustomEvidenceName] = useState('');
+  const [driveOpen, setDriveOpen] = useState(false);
+  const [driveFolderUrl, setDriveFolderUrl] = useState('');
+  const [driveApiKey, setDriveApiKey] = useState(() => {
+    try { return localStorage.getItem('spacepipe_gdrive_api_key') || ''; } catch { return ''; }
+  });
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveStatus, setDriveStatus] = useState<{ ok: boolean; message: string; needsKey?: boolean } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const scriptFileRef = useRef<HTMLInputElement>(null);
+  const evidenceFileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (initialTags.length) setSelectedTags(initialTags);
+  }, [initialTags]);
+
+  if (!isOpen) return null;
+
+  const handleScriptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setScriptText(text);
+      setScriptFilename(file.name);
+      if (!title) {
+        setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Could not read script file.');
+    }
+  };
+
+  const handleEvidenceFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    try {
+      const docs = await Promise.all(
+        files.map(async f => ({
+          name: f.name,
+          content: await f.text(),
+          type: f.name.endsWith('.md') ? 'markdown' : 'text',
+        }))
+      );
+      setEvidenceFiles(prev => [...prev, ...docs]);
+    } catch (err: any) {
+      setError(err?.message || 'Could not read evidence file.');
+    }
+    if (evidenceFileRef.current) evidenceFileRef.current.value = '';
+  };
+
+  const addCustomEvidence = () => {
+    if (!customEvidenceText.trim()) return;
+    setEvidenceFiles(prev => [
+      ...prev,
+      {
+        name: customEvidenceName.trim() || `Notes ${prev.length + 1}`,
+        content: customEvidenceText.trim(),
+        type: 'text',
+      },
+    ]);
+    setCustomEvidenceText('');
+    setCustomEvidenceName('');
+  };
+
+  const removeEvidence = (index: number) => {
+    setEvidenceFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFetchGoogleDrive = async (overrideKey?: string) => {
+    if (!driveFolderUrl.trim()) return;
+    setDriveLoading(true);
+    setDriveStatus(null);
+    const keyToUse = overrideKey !== undefined ? overrideKey : driveApiKey;
+    try {
+      if (keyToUse.trim()) {
+        try { localStorage.setItem('spacepipe_gdrive_api_key', keyToUse.trim()); } catch { /* ignore */ }
+      }
+      const res = await scriptApi.fetchGoogleDrive({
+        url: driveFolderUrl.trim(),
+        apiKey: keyToUse.trim() || undefined,
+      });
+
+      if (!res.ok) {
+        setDriveStatus({
+          ok: false,
+          message: res.message || 'Could not fetch Google Drive folder.',
+          needsKey: res.code === 'AUTH_REQUIRED' || res.code === 'DRIVE_API_403' || res.code === 'DRIVE_API_401',
+        });
+        return;
+      }
+
+      if (!res.files || !res.files.length) {
+        setDriveStatus({
+          ok: true,
+          message: res.message || 'Folder linked, but no text or markdown documents were found inside.',
+        });
+        return;
+      }
+
+      const imported = res.files.map(f => ({
+        name: f.name,
+        content: f.content,
+        type: f.type || 'text',
+        sourceUrl: f.sourceUrl,
+        source: 'google_drive',
+      }));
+
+      setEvidenceFiles(prev => {
+        const existingUrls = new Set(prev.map(p => (p as any).sourceUrl).filter(Boolean));
+        const filtered = imported.filter(i => !existingUrls.has(i.sourceUrl));
+        return [...prev, ...(filtered.length ? filtered : imported)];
+      });
+
+      setDriveStatus({
+        ok: true,
+        message: `Imported ${res.files.length} document(s) from Google Drive folder for AI context.`,
+      });
+    } catch (err: any) {
+      setDriveStatus({
+        ok: false,
+        message: err?.message || 'Error communicating with Google Drive service.',
+      });
+    } finally {
+      setDriveLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scriptText.trim()) {
+      setError('Please provide script text or select a script file.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await scriptApi.uploadScript({
+        title: title.trim() || scriptFilename || 'Uploaded Script',
+        format: format || null,
+        targetRuntimeSec: minutes * 60,
+        releaseTags: selectedTags.length ? selectedTags : undefined,
+        scriptText,
+        filename: scriptFilename || undefined,
+        evidenceDocs: evidenceFiles.length ? evidenceFiles : undefined,
+        googleDriveFolderUrl: driveFolderUrl.trim() || undefined,
+      });
+      onOpenProject(res.project.id);
+      onClose();
+    } catch (err: any) {
+      setError(err?.message || String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/60">
+          <div className="flex items-center gap-2 text-white font-semibold text-base">
+            <Upload size={18} className="text-indigo-400" /> Upload Script & Evidence
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={16} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 text-xs text-slate-200">
+          {error && (
+            <div className="rounded-md border border-rose-700/60 bg-rose-950/40 p-2.5 text-xs text-rose-200">
+              {error}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">Script Title</label>
+              <input
+                className={cx(input, 'w-full')}
+                placeholder="e.g. The Insider Dossier"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-medium text-slate-400 mb-1">Episode Format</label>
+              <select
+                className={cx(input, 'w-full')}
+                value={format}
+                onChange={e => setFormat(e.target.value as EpisodeFormat)}
+              >
+                {EPISODE_FORMATS.map(f => (
+                  <option key={f} value={f}>{FORMAT_LABELS[f]}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-medium text-slate-300">
+                Script Content (Markdown, Plain Text, or JSON)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={scriptFileRef}
+                  type="file"
+                  accept=".txt,.md,.markdown,.json,.text"
+                  className="hidden"
+                  onChange={handleScriptFile}
+                />
+                <button
+                  type="button"
+                  className={btnGhost}
+                  onClick={() => scriptFileRef.current?.click()}
+                >
+                  <Upload size={11} /> Choose Script File
+                </button>
+                {scriptFilename && (
+                  <span className="text-[11px] text-indigo-300 font-mono">{scriptFilename}</span>
+                )}
+              </div>
+            </div>
+            <textarea
+              className={cx(input, 'w-full h-40 font-mono text-[11px] resize-y leading-relaxed')}
+              placeholder="# Act 1: The Investigation&#10;## Scene 1: Introduction&#10;Logan: Here is what we found...&#10;[Pause: 1.5s]&#10;[Music: sting - dramatic tension]"
+              value={scriptText}
+              onChange={e => setScriptText(e.target.value)}
+            />
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              Markdown headings (# Act, ## Scene) automatically split into segments and scenes. Tags like [Pause: 2s] and [Music: sting] are preserved.
+            </div>
+          </div>
+
+          <div className="border-t border-slate-800 pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+                  <BookOpen size={13} className="text-indigo-400" /> Evidence & Context Documents for AI
+                </label>
+                <div className="text-[10px] text-slate-400">
+                  Upload background documents (articles, memos, transcripts, notes) for the AI models to gather facts and context from.
+                </div>
+              </div>
+              <input
+                ref={evidenceFileRef}
+                type="file"
+                multiple
+                accept=".txt,.md,.json,.csv,.text"
+                className="hidden"
+                onChange={handleEvidenceFiles}
+              />
+              <button
+                type="button"
+                className={btnGhost}
+                onClick={() => evidenceFileRef.current?.click()}
+              >
+                <Upload size={11} /> Upload Evidence Files
+              </button>
+            </div>
+
+            {evidenceFiles.length > 0 && (
+              <div className="space-y-1 max-h-32 overflow-y-auto rounded border border-slate-800 p-1.5 bg-slate-950">
+                {evidenceFiles.map((doc, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-[11px] text-slate-300 px-1 py-0.5">
+                    <FileText size={11} className="text-slate-400 shrink-0" />
+                    <span className="truncate flex-1 font-medium">{doc.name}</span>
+                    <span className="text-[10px] text-slate-500">
+                      {Math.round(doc.content.length / 1024) || 1} KB
+                    </span>
+                    <button
+                      type="button"
+                      className="text-slate-500 hover:text-rose-400"
+                      onClick={() => removeEvidence(idx)}
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <details className="text-[11px] text-slate-400">
+              <summary className="cursor-pointer hover:text-slate-200">Or paste custom evidence / notes</summary>
+              <div className="mt-2 space-y-1.5">
+                <input
+                  className={cx(input, 'w-full')}
+                  placeholder="Evidence document title (e.g., Leaked Email 2024)"
+                  value={customEvidenceName}
+                  onChange={e => setCustomEvidenceName(e.target.value)}
+                />
+                <textarea
+                  className={cx(input, 'w-full h-20 font-mono text-[11px] resize-y')}
+                  placeholder="Paste context, quotes, or article contents..."
+                  value={customEvidenceText}
+                  onChange={e => setCustomEvidenceText(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className={btnGhost}
+                  disabled={!customEvidenceText.trim()}
+                  onClick={addCustomEvidence}
+                >
+                  <Plus size={11} /> Add to Evidence List
+                </button>
+              </div>
+            </details>
+          </div>
+
+          <div className="border-t border-slate-800 pt-3 flex items-center justify-between shrink-0">
+            <button type="button" className={btnGhost} onClick={onClose}>Cancel</button>
+            <button
+              type="submit"
+              className={btnPrimary}
+              disabled={!scriptText.trim() || submitting}
+            >
+              {submitting ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+              Create Project from Script
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function UploadVersionModal({
+  isOpen,
+  onClose,
+  projectId,
+  onUploaded,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  projectId: string;
+  onUploaded: () => void;
+}) {
+  const [scriptText, setScriptText] = useState('');
+  const [label, setLabel] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  if (!isOpen) return null;
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      setScriptText(text);
+      if (!label) setLabel(`Uploaded: ${file.name}`);
+    } catch (err: any) {
+      setError(err?.message || 'Could not read file.');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scriptText.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await scriptApi.uploadScript({
+        projectId,
+        scriptText,
+        label: label.trim() || 'Uploaded script edit',
+      });
+      onUploaded();
+      onClose();
+    } catch (err: any) {
+      setError(err?.message || String(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="w-full max-w-xl flex flex-col rounded-xl border border-slate-700 bg-slate-900 shadow-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/60">
+          <div className="flex items-center gap-2 text-white font-semibold text-sm">
+            <Upload size={16} className="text-indigo-400" /> Upload Script Version
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={15} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs text-slate-200">
+          {error && <div className="rounded border border-rose-700/60 bg-rose-950/40 p-2 text-rose-200">{error}</div>}
+
+          <div>
+            <label className="block text-[11px] font-medium text-slate-400 mb-1">Version Label</label>
+            <input className={cx(input, 'w-full')} placeholder="e.g. Uploaded: revised_draft.md" value={label} onChange={e => setLabel(e.target.value)} />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-medium text-slate-300">Script Content</label>
+              <button type="button" className={btnGhost} onClick={() => fileRef.current?.click()}><Upload size={11} /> Choose File</button>
+              <input ref={fileRef} type="file" accept=".txt,.md,.json" className="hidden" onChange={handleFile} />
+            </div>
+            <textarea className={cx(input, 'w-full h-48 font-mono text-[11px] resize-y')} placeholder="Paste updated script or markdown here..." value={scriptText} onChange={e => setScriptText(e.target.value)} />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+            <button type="button" className={btnGhost} onClick={onClose}>Cancel</button>
+            <button type="submit" className={btnPrimary} disabled={!scriptText.trim() || submitting}>
+              {submitting ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Save as New Version
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------------------------------------- */
 /* Setup screen                                                                                    */
 /* ---------------------------------------------------------------------------------------------- */
@@ -77,6 +520,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
   const [tab, setTab] = useState<'projects' | 'style' | 'quality'>('projects');
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -112,7 +556,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const fbOk = status && status.providers['ci:claude-haiku-5.5']?.ok && status.providers['ci:gpt-6-luna']?.ok;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-5">
+    <div className="h-full w-full overflow-y-auto p-6 md:p-8 max-w-5xl mx-auto space-y-5 pb-32">
       <div>
         <h1 className="text-xl font-semibold text-white flex items-center gap-2"><FileText size={18} className="text-indigo-400" /> Script Studio</h1>
         <p className="text-sm text-slate-400 mt-1">Turns one recording, or several for a thematic or investigative episode, into a documentary script with narration and clips in Logan's voice, then refines it in the background. Every quote is checked against the transcript in code.</p>
@@ -180,6 +624,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
         <div className="flex items-center gap-3 text-xs text-slate-300">
           <label className="flex items-center gap-2">Target length <input type="number" min={1} max={240} className={cx(input, 'w-20')} value={minutes} onChange={e => setMinutes(Math.max(1, Number(e.target.value) || 1))} /> min</label>
           <div className="flex-1" />
+          <button type="button" className={btnGhost} onClick={() => setUploadModalOpen(true)}><Upload size={12} /> Upload Script & Evidence</button>
           <button className={btnPrimary} disabled={!picked.length || creating} onClick={create}>{creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create project</button>
         </div>
       </section>
@@ -187,7 +632,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
       <section className={cx(card, 'p-4')}>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-semibold text-slate-100">Saved projects</h2>
-          <button className={btnGhost} onClick={() => fileRef.current?.click()}><Upload size={12} /> Import project JSON</button>
+          <div className="flex items-center gap-1.5"><button type="button" className={btnGhost} onClick={() => setUploadModalOpen(true)}><Upload size={12} /> Upload manual script</button><button className={btnGhost} onClick={() => fileRef.current?.click()}><Upload size={12} /> Import project JSON</button></div>
           <input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ''; }} />
         </div>
         {projects.length === 0 ? <div className="text-xs text-slate-500">No projects yet.</div> : (
@@ -204,6 +649,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
         )}
       </section>
       </>}
+      <UploadScriptModal isOpen={uploadModalOpen} onClose={() => setUploadModalOpen(false)} onOpenProject={onOpen} initialTags={picked} episodes={episodes} />
     </div>
   );
 }
@@ -322,6 +768,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const [viewVersion, setViewVersion] = useState<{ id: string; diff: { blockId: string; change: string }[] } | null>(null);
   const [viewTag, setViewTag] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [showUploadVersionModal, setShowUploadVersionModal] = useState(false);
   const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const dirtyRef = useRef(false);
@@ -486,7 +933,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   return (
     <div className="h-full flex flex-col bg-slate-950 text-slate-200">
       {/* Header */}
-      <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-2">
+      <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-2 shrink-0">
         <button className={btnGhost} onClick={() => { if (dirty && !window.confirm('Discard unsaved edits?')) return; setProjectId(null); setRunId(null); }}><ChevronLeft size={12} /> Projects</button>
         <input className={cx(input, 'w-64 font-semibold')} value={project.title} onChange={e => setData(d => (d ? { ...d, project: { ...d.project, title: e.target.value } } : d))}
           onBlur={e => void scriptApi.updateProject(project.id, { title: e.target.value }).catch(setError)} />
@@ -514,7 +961,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         {run && <span className="text-xs text-slate-400">Run: <span className={cx(run.status === 'running' && 'text-indigo-300', run.status === 'paused_limit' && 'text-amber-300', run.status === 'finished' && 'text-emerald-300', run.status === 'failed' && 'text-rose-300')}>{run.status.replace('_', ' ')}</span>{run.status === 'running' ? `, round ${run.currentRound + 1} of ${run.maxRounds}` : ''}{run.mode === 'fallback' ? `, $${run.spentUsd.toFixed(4)} of $${run.maxUsd.toFixed(2)}` : ''}</span>}
       </div>
       {showRoles && (
-        <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/50">
+        <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/50 shrink-0">
           <label className="flex items-center gap-1">Mode
             <select className={input} value={roles.mode} onChange={e => setRoles(r => ({ ...r, mode: e.target.value as RoleChoice['mode'], roleMap: {} }))}>
               <option value="subscription">Subscriptions (Claude Code + Codex)</option>
@@ -538,7 +985,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
           <span className="text-slate-500">Judge and fact check must be a different model family from the reviser; the server refuses otherwise.</span>
         </div>
       )}
-      {(error || busy) && <div className="px-4 pt-2 space-y-2">
+      {(error || busy) && <div className="px-4 pt-2 space-y-2 shrink-0">
         {busy && <div className="text-xs text-indigo-300 flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> {busy}…</div>}
         <ErrorBox error={error} onClose={() => setError(null)} />
       </div>}
@@ -563,6 +1010,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
           {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
           {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
+          <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
 
           {data?.transcriptChanged.length ? <div className="text-[11px] text-amber-300">The transcript changed on disk since this project was created. Re-run the analysis.</div> : null}
 
@@ -655,6 +1103,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             <div className="flex-1" />
             {dirty && <span className="text-xs text-amber-300">Unsaved edits</span>}
             <button className={btnGhost} disabled={!dirty} onClick={() => { setSegments(data?.head?.segments || null); setDirty(false); }}><RotateCcw size={12} /> Discard</button>
+            <button className={btnGhost} onClick={() => setShowUploadVersionModal(true)} title="Upload a script file or paste text to replace/update this script"><Upload size={12} /> Upload script</button>
             <button className={btnPrimary} disabled={!dirty || !!busy} onClick={() => void save()}><Save size={12} /> Save version</button>
           </div>
           {data?.gates && (data.gates.failures.length ? (
@@ -699,6 +1148,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             </section>
           ))}
         </main>
+
+        <UploadVersionModal isOpen={showUploadVersionModal} onClose={() => setShowUploadVersionModal(false)} projectId={project.id} onUploaded={() => void load(project.id)} />
 
         {/* Right: run, critiques, candidates, versions */}
         <aside className="border-l border-slate-800 overflow-y-auto p-3 space-y-4 text-xs">

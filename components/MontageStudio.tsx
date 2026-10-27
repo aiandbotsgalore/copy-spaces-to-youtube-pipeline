@@ -314,7 +314,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
 
       // 3. Fetch clips_catalog.json (Releases catalog)
       try {
-        const catRes = await fetch('clips/clips_catalog.json');
+        const catRes = await fetch(`clips/clips_catalog.json?t=${Date.now()}`, { cache: 'no-store' });
         if (catRes.ok) {
           const catData: RawCatalogClip[] = await catRes.json();
           catData.forEach((c, idx) => {

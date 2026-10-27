@@ -15,6 +15,7 @@ import { RawJsonViewerModal } from './voice/RawJsonViewerModal';
 import { PipelineArchitectureModal } from './voice/PipelineArchitectureModal';
 import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
 import { AudioPreCheckResult } from './voice/types';
+import { resizeImageToDataUrl } from '../utils/imageResize';
 
 interface Props {
   config: EnhancedConfig;
@@ -259,9 +260,8 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   const handleUploadSpeakerAvatar = async (speakerName: string, file?: File | null) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
+    try {
+      const { dataUrl, base64: base64Data } = await resizeImageToDataUrl(file, 512, 0.85);
       const nextCatalog = { ...catalog };
       const p = nextCatalog.profiles[speakerName];
       if (p) {
@@ -273,7 +273,6 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         try {
           const slug = speakerName.toLowerCase().replace(/[^a-z0-9]/g, '_');
           const fileName = `public/avatars/${slug}.jpg`;
-          const base64Data = dataUrl.split(',')[1];
           await writeRepositoryBinaryFile(
             config.githubToken,
             owner,
@@ -306,8 +305,9 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         setStatusMsg({ type: 'success', text: `Avatar updated locally for ${speakerName}!` });
       }
       setTimeout(() => setStatusMsg(null), 5000);
-    };
-    reader.readAsDataURL(file);
+    } catch (err: any) {
+      setStatusMsg({ type: 'error', text: `Failed to process image: ${err.message}` });
+    }
   };
 
   // Sync to localStorage

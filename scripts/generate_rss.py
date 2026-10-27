@@ -27,6 +27,17 @@ from datetime import datetime, timezone
 import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 
+# XML 1.0 disallowed control characters
+XML_INVALID_CTRL_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]')
+
+def xml_text(v) -> str:
+    cleaned = XML_INVALID_CTRL_RE.sub('', str(v or ''))
+    return escape(cleaned)
+
+def xml_attr(v) -> str:
+    cleaned = XML_INVALID_CTRL_RE.sub('', str(v or ''))
+    return escape(cleaned, {'"': '&quot;', "'": '&apos;'})
+
 # Maximum YouTube length buffer (11h 58m)
 MAX_YOUTUBE_DURATION_SECONDS = 11 * 3600 + 58 * 60
 
@@ -106,21 +117,21 @@ def build_channel_xml(
   xmlns:atom="http://www.w3.org/2005/Atom"
   xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>{escape(title)}</title>
-    <link>{link}</link>
-    <atom:link href="{feed_url}" rel="self" type="application/rss+xml"/>
-    <description>{escape(description)}</description>
+    <title>{xml_text(title)}</title>
+    <link>{xml_attr(link)}</link>
+    <atom:link href="{xml_attr(feed_url)}" rel="self" type="application/rss+xml"/>
+    <description>{xml_text(description)}</description>
     <language>en-us</language>
-    <itunes:author>{escape(author)}</itunes:author>
+    <itunes:author>{xml_text(author)}</itunes:author>
     <itunes:owner>
-      <itunes:name>{escape(author)}</itunes:name>
-      <itunes:email>{escape(email)}</itunes:email>
+      <itunes:name>{xml_text(author)}</itunes:name>
+      <itunes:email>{xml_text(email)}</itunes:email>
     </itunes:owner>
-    <itunes:image href="{image_url}"/>
+    <itunes:image href="{xml_attr(image_url)}"/>
     <image>
-      <url>{image_url}</url>
-      <title>{escape(title)}</title>
-      <link>{link}</link>
+      <url>{xml_attr(image_url)}</url>
+      <title>{xml_text(title)}</title>
+      <link>{xml_attr(link)}</link>
     </image>
     <itunes:category text="Technology"/>
     <itunes:explicit>no</itunes:explicit>
@@ -212,7 +223,7 @@ def fetch_all_releases(repo: str, token: str) -> list:
 
     if releases:
         with open("releases.json", "w", encoding="utf-8") as f:
-            json.dump(releases, f)
+            json.dump(releases, f, ensure_ascii=False)
     return releases
 
 
@@ -271,18 +282,18 @@ def generate_podcast_rss():
             else:
                 part_dur_str = duration
 
-            full_desc = escape(body[:800])
+            full_desc = xml_text(body[:800])
             item_desc = full_desc.replace(f"Duration: {duration}", f"Duration: {part_dur_str} (Total: {duration})") if is_multi else full_desc
 
             item_xml = f"""    <item>
-      <title>{escape(item_title)}</title>
+      <title>{xml_text(item_title)}</title>
       <description>{item_desc}</description>
       <pubDate>{rfc822}</pubDate>
-      <enclosure url="{asset['browser_download_url']}" length="{asset['size']}" type="audio/mpeg"/>
-      <guid isPermaLink="false">{item_guid}</guid>
-      <itunes:author>{escape(d['author'])}</itunes:author>
+      <enclosure url="{xml_attr(asset['browser_download_url'])}" length="{asset['size']}" type="audio/mpeg"/>
+      <guid isPermaLink="false">{xml_text(item_guid)}</guid>
+      <itunes:author>{xml_text(d['author'])}</itunes:author>
       <itunes:summary>{item_desc}</itunes:summary>
-      <itunes:duration>{part_dur_str}</itunes:duration>
+      <itunes:duration>{xml_text(part_dur_str)}</itunes:duration>
       <itunes:explicit>no</itunes:explicit>
       <itunes:episodeType>full</itunes:episodeType>
     </item>"""
@@ -429,22 +440,22 @@ def generate_clips_rss():
             desc_parts.append(f"\nOriginal Space: {ep_title}")
         desc_parts.append(f"\nDirect Audio: {url}")
 
-        full_desc = escape("\n".join(desc_parts))
-        clean_title = escape(f"[{category}] {raw_title}")
+        full_desc = xml_text("\n".join(desc_parts))
+        clean_title = xml_text(f"[{category}] {raw_title}")
 
         title_slug = re.sub(r'[^a-z0-9]', '', raw_title.lower())[:12]
         guid = f"clip_{asset['id']}_{title_slug}" if asset and asset.get("id") else f"clip_{abs(hash(url + raw_title))}"
-        tags = escape(f"Twitter Space,X Space,Highlights,{category},{speakers},{d['author']},viral clip")
+        tags = xml_text(f"Twitter Space,X Space,Highlights,{category},{speakers},{d['author']},viral clip")
 
         item_xml = f"""    <item>
       <title>{clean_title}</title>
       <description>{full_desc}</description>
       <pubDate>{pub_date_str}</pubDate>
-      <enclosure url="{url}" length="{size}" type="audio/mpeg"/>
-      <guid isPermaLink="false">{guid}</guid>
-      <itunes:author>{escape(d['author'])}</itunes:author>
+      <enclosure url="{xml_attr(url)}" length="{size}" type="audio/mpeg"/>
+      <guid isPermaLink="false">{xml_text(guid)}</guid>
+      <itunes:author>{xml_text(d['author'])}</itunes:author>
       <itunes:summary>{full_desc}</itunes:summary>
-      <itunes:duration>{duration_str}</itunes:duration>
+      <itunes:duration>{xml_text(duration_str)}</itunes:duration>
       <itunes:keywords>{tags}</itunes:keywords>
       <itunes:explicit>yes</itunes:explicit>
     </item>"""
@@ -453,21 +464,21 @@ def generate_clips_rss():
     rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>{escape(clips_title)}</title>
-    <link>{d['pages_url']}</link>
-    <atom:link href="{feed_url}" rel="self" type="application/rss+xml"/>
-    <description>The best curated highlights, viral moments, debates, and comedy clips from {escape(d['podcast_title'])}.</description>
+    <title>{xml_text(clips_title)}</title>
+    <link>{xml_attr(d['pages_url'])}</link>
+    <atom:link href="{xml_attr(feed_url)}" rel="self" type="application/rss+xml"/>
+    <description>The best curated highlights, viral moments, debates, and comedy clips from {xml_text(d['podcast_title'])}.</description>
     <language>en-us</language>
-    <itunes:author>{escape(d['author'])}</itunes:author>
+    <itunes:author>{xml_text(d['author'])}</itunes:author>
     <itunes:owner>
-      <itunes:name>{escape(d['author'])}</itunes:name>
-      <itunes:email>{escape(d['email'])}</itunes:email>
+      <itunes:name>{xml_text(d['author'])}</itunes:name>
+      <itunes:email>{xml_text(d['email'])}</itunes:email>
     </itunes:owner>
-    <itunes:image href="{d['image_url']}"/>
+    <itunes:image href="{xml_attr(d['image_url'])}"/>
     <image>
-      <url>{d['image_url']}</url>
-      <title>{escape(clips_title)}</title>
-      <link>{d['pages_url']}</link>
+      <url>{xml_attr(d['image_url'])}</url>
+      <title>{xml_text(clips_title)}</title>
+      <link>{xml_attr(d['pages_url'])}</link>
     </image>
     <itunes:category text="Technology"/>
     <itunes:category text="Comedy"/>

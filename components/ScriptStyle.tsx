@@ -3,8 +3,9 @@
  * The card is built automatically from every segment Logan speaks in the archive plus his narration
  * examples; Logan never picks episodes. Everything shown comes from /api/script.
  */
-import { useCallback, useEffect, useState } from 'react';
-import { BookOpen, Loader2, Plus, RefreshCw, Search, Trash2, Wand2, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { BookOpen, CloudDownload, ExternalLink, FileText, FolderSync, Link2, Loader2, Plus, RefreshCw, Search, Trash2, Upload, Wand2, X } from 'lucide-react';
+import type { ScriptEvidenceDoc, ScriptProject } from '../utils/scriptTypes';
 import {
   loadRoleChoice, scriptApi, type PaperTrailPair, type ProjectResponse, type RelatedHit, type StyleState,
 } from '../utils/scriptClient';
@@ -209,6 +210,253 @@ export function PaperTrailPanel({ projectId, sourceTags, act }: { projectId: str
             : <button key={t} className={btnGhost} onClick={() => void act('Adding recording', () => scriptApi.updateProject(projectId, { addSourceTags: [t] }))}><Plus size={11} /> Add {t}</button>)}
         </div>
       ))}
+    </div>
+  );
+}
+
+
+export function EvidencePanel({ project, onReload, act }: { project: ScriptProject; onReload: () => void; act: (label: string, fn: () => Promise<unknown>) => Promise<void> }) {
+  const [adding, setAdding] = useState(false);
+  const [docName, setDocName] = useState('');
+  const [docContent, setDocContent] = useState('');
+  const [docType, setDocType] = useState<'text' | 'markdown' | 'notes'>('text');
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [driveOpen, setDriveOpen] = useState(false);
+  const [driveFolderUrl, setDriveFolderUrl] = useState(project.googleDriveFolderUrl || '');
+  const [driveApiKey, setDriveApiKey] = useState(() => {
+    try { return localStorage.getItem('spacepipe_gdrive_api_key') || ''; } catch { return ''; }
+  });
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveStatus, setDriveStatus] = useState<{ ok: boolean; message: string; needsKey?: boolean } | null>(null);
+
+  const docs = project.evidenceDocs || [];
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const documents: { name: string; content: string; type: string }[] = [];
+    for (const f of files) {
+      const text = await f.text();
+      documents.push({
+        name: f.name,
+        content: text,
+        type: f.name.endsWith('.md') ? 'markdown' : 'text',
+      });
+    }
+    await act('Adding evidence files', async () => {
+      await scriptApi.addEvidence(project.id, documents);
+      onReload();
+    });
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleManualAdd = async () => {
+    if (!docContent.trim()) return;
+    await act('Adding evidence text', async () => {
+      await scriptApi.addEvidence(project.id, [{
+        name: docName.trim() || 'Research Notes',
+        content: docContent.trim(),
+        type: docType,
+      }]);
+      setDocName('');
+      setDocContent('');
+      setAdding(false);
+      onReload();
+    });
+  };
+
+  const handleRemove = async (docId: string) => {
+    await act('Removing evidence', async () => {
+      await scriptApi.removeEvidence(project.id, docId);
+      onReload();
+    });
+  };
+
+  const handleSyncDrive = async (overrideKey?: string) => {
+    if (!driveFolderUrl.trim()) return;
+    setDriveLoading(true);
+    setDriveStatus(null);
+    const keyToUse = overrideKey !== undefined ? overrideKey : driveApiKey;
+    try {
+      if (keyToUse.trim()) {
+        try { localStorage.setItem('spacepipe_gdrive_api_key', keyToUse.trim()); } catch { /* ignore */ }
+      }
+      const res = await scriptApi.fetchGoogleDrive({
+        url: driveFolderUrl.trim(),
+        apiKey: keyToUse.trim() || undefined,
+      });
+
+      if (!res.ok) {
+        setDriveStatus({
+          ok: false,
+          message: res.message || 'Could not fetch Google Drive folder.',
+          needsKey: res.code === 'AUTH_REQUIRED' || res.code === 'DRIVE_API_403' || res.code === 'DRIVE_API_401',
+        });
+        return;
+      }
+
+      if (!res.files || !res.files.length) {
+        setDriveStatus({
+          ok: true,
+          message: res.message || 'No text or markdown documents found in folder.',
+        });
+        return;
+      }
+
+      const imported = res.files.map(f => ({
+        name: f.name,
+        content: f.content,
+        type: f.type || 'text',
+        sourceUrl: f.sourceUrl,
+        source: 'google_drive',
+      }));
+
+      await act('Importing Google Drive evidence', async () => {
+        await scriptApi.addEvidence(project.id, imported, driveFolderUrl.trim());
+        onReload();
+      });
+
+      setDriveStatus({
+        ok: true,
+        message: `Imported ${res.files.length} document(s) from Google Drive folder.`,
+      });
+    } catch (err: any) {
+      setDriveStatus({
+        ok: false,
+        message: err?.message || 'Error communicating with Google Drive service.',
+      });
+    } finally {
+      setDriveLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] uppercase tracking-wide text-slate-500 flex items-center gap-1.5 font-semibold">
+          <BookOpen size={12} className="text-indigo-400" /> Evidence & Context ({docs.length})
+        </div>
+        <div className="flex items-center gap-1">
+          <button className={btnGhost} onClick={() => fileRef.current?.click()} title="Upload evidence files (.txt, .md, .json, .csv)">
+            <Upload size={11} /> File
+          </button>
+          <button className={btnGhost} onClick={() => setAdding(a => !a)} title="Type or paste evidence">
+            <Plus size={11} /> Paste
+          </button>
+          <button
+            className={cx(btnGhost, (driveOpen || project.googleDriveFolderUrl) && 'text-indigo-300 border-indigo-500/50 bg-indigo-950/40')}
+            onClick={() => setDriveOpen(d => !d)}
+            title="Connect or sync Google Drive folder"
+          >
+            <FolderSync size={11} /> Drive
+          </button>
+          <input ref={fileRef} type="file" multiple accept=".txt,.md,.json,.csv,.text" className="hidden" onChange={handleFileUpload} />
+        </div>
+      </div>
+      <div className="text-[11px] text-slate-500">
+        AI models gather factual context and quotes from these reference documents during outline, draft, and refinement.
+      </div>
+
+      {(driveOpen || (project.googleDriveFolderUrl && !driveStatus && !adding)) && (
+        <div className="rounded border border-indigo-800/60 bg-indigo-950/30 p-2.5 space-y-2 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-indigo-300 text-[11px] flex items-center gap-1.5">
+              <FolderSync size={12} className="text-indigo-400" /> Google Drive Evidence Folder
+            </span>
+            {(project.googleDriveFolderUrl || driveFolderUrl) && (
+              <a
+                href={(project.googleDriveFolderUrl || driveFolderUrl).startsWith('http') ? (project.googleDriveFolderUrl || driveFolderUrl) : `https://drive.google.com/drive/folders/${project.googleDriveFolderUrl || driveFolderUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-indigo-400 hover:text-indigo-200 flex items-center gap-1"
+              >
+                Open in Drive <ExternalLink size={9} />
+              </a>
+            )}
+          </div>
+          <div className="text-[10px] text-slate-400">
+            Provide a Google Drive folder link. The AI reads all files in the folder for research context.
+          </div>
+          <div className="flex items-center gap-1.5">
+            <input
+              className={cx(input, 'flex-1 text-[11px]')}
+              placeholder="https://drive.google.com/drive/folders/your-folder-id"
+              value={driveFolderUrl}
+              onChange={e => {
+                setDriveFolderUrl(e.target.value);
+                setDriveStatus(null);
+              }}
+            />
+            <button
+              className={btnPrimary}
+              disabled={!driveFolderUrl.trim() || driveLoading}
+              onClick={() => handleSyncDrive()}
+              title="Sync documents from Google Drive into project evidence"
+            >
+              {driveLoading ? <Loader2 size={11} className="animate-spin" /> : <CloudDownload size={11} />}
+              Sync
+            </button>
+          </div>
+          {driveStatus && (
+            <div className={cx('text-[11px] p-2 rounded border', driveStatus.ok ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300' : 'bg-amber-950/40 border-amber-800 text-amber-300')}>
+              <div>{driveStatus.message}</div>
+              {driveStatus.needsKey && (
+                <div className="pt-1.5 border-t border-amber-800/40 mt-1 space-y-1">
+                  <div className="text-[10px] text-amber-200">Google Drive API Key or OAuth Token:</div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="password"
+                      className={cx(input, 'flex-1 text-[10px] h-6')}
+                      placeholder="AIzaSy... or OAuth Bearer Token"
+                      value={driveApiKey}
+                      onChange={e => setDriveApiKey(e.target.value)}
+                    />
+                    <button className={btnGhost} disabled={!driveApiKey.trim() || driveLoading} onClick={() => handleSyncDrive(driveApiKey)}>
+                      Retry
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {adding && (
+        <div className="rounded border border-slate-700 bg-slate-900/80 p-2 space-y-2 text-xs">
+          <input className={cx(input, 'w-full')} placeholder="Document title (e.g., Leaked Memo, Interview Notes)" value={docName} onChange={e => setDocName(e.target.value)} />
+          <textarea className={cx(input, 'w-full h-24 font-mono text-[11px] resize-y')} placeholder="Paste reference text or evidence here..." value={docContent} onChange={e => setDocContent(e.target.value)} />
+          <div className="flex justify-end gap-1.5">
+            <button className={btnGhost} onClick={() => { setAdding(false); setDocContent(''); }}>Cancel</button>
+            <button className={btnPrimary} disabled={!docContent.trim()} onClick={handleManualAdd}>Add Document</button>
+          </div>
+        </div>
+      )}
+
+      {docs.length === 0 ? (
+        <div className="text-[11px] text-slate-500 italic">No reference documents attached yet.</div>
+      ) : (
+        <div className="space-y-1.5">
+          {docs.map((doc: ScriptEvidenceDoc) => (
+            <div key={doc.id} className="rounded border border-slate-800 bg-slate-950/40 p-1.5 text-[11px] space-y-1">
+              <div className="flex items-center gap-1">
+                <FileText size={12} className="text-slate-400 shrink-0" />
+                <span className="font-medium text-slate-200 truncate flex-1" title={doc.name}>{doc.name}</span>
+                {((doc as any).source === 'google_drive' || (doc as any).sourceUrl?.includes('drive.google.com')) && (
+                  <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/60 shrink-0">
+                    Drive
+                  </span>
+                )}
+                <span className="text-[10px] text-slate-500">{doc.sizeBytes ? `${Math.round(doc.sizeBytes / 1024)} KB` : ''}</span>
+                <button className="text-slate-500 hover:text-rose-400 p-0.5" title="Remove evidence document" onClick={() => handleRemove(doc.id)}>
+                  <Trash2 size={11} />
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 line-clamp-2 font-mono whitespace-pre-wrap">{doc.content.slice(0, 160)}...</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

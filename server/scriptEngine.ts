@@ -211,6 +211,8 @@ export function createEngine(deps: EngineDeps) {
       analysis: JSON.stringify({
         themes: analysis.themes, dynamics: analysis.dynamics, moments: analysis.moments.map(m => ({ id: m.id, kind: m.kind, why: m.why, speakers: m.speakers, themes: m.themes, ...(isMulti(project) ? { recorded: dateOfTag(m.releaseTag) } : {}) })), openQuestions: analysis.openQuestions,
         ...(project.format === 'investigative' ? { paperTrail: paperTrailView(project) } : {}),
+        ...(project.evidenceDocs?.length ? { evidenceDocuments: project.evidenceDocs.map(d => ({ name: d.name, excerpt: d.content.slice(0, 1000) })) } : {}),
+        ...(project.googleDriveFolderUrl ? { googleDriveEvidenceFolder: project.googleDriveFolderUrl } : {}),
       }),
       clips: JSON.stringify(project.clips.map(c => clipView(c, 280, isMulti(project)))),
     }), { ...ctx, label: 'outline' });
@@ -271,6 +273,15 @@ export function createEngine(deps: EngineDeps) {
       budget -= lines.length;
       if (corpus.multi) out.push(`# ${rec.key}, recorded ${rec.date || 'date unknown'}: ${rec.t.title}`);
       out.push(...lines);
+    }
+    if (project.evidenceDocs && project.evidenceDocs.length > 0) {
+      out.push('\n--- UPLOADED EVIDENCE & CONTEXT DOCUMENTS ---');
+      out.push('Use these reference documents for factual background, context, quotes, and research information when drafting or revising:');
+      for (const doc of project.evidenceDocs) {
+        out.push('\n[Evidence Document: ' + doc.name + ']');
+        out.push(doc.content);
+      }
+      out.push('--- END UPLOADED EVIDENCE ---\n');
     }
     return out.join('\n');
   }
@@ -537,7 +548,8 @@ export function createEngine(deps: EngineDeps) {
             const fmt = formatChecks([{ ...seg, scenes }], project.format, formatOpts(project));
             const notes = spoken
               ? scenes.flatMap(spokenChecks)
-              : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message)];
+              : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message), ...(project.evidenceDocs?.length ? [`${project.evidenceDocs.length} evidence document(s) uploaded for context: ${project.evidenceDocs.map(d => d.name).join(', ')}`] : []),
+                ...(project.googleDriveFolderUrl ? [`Google Drive evidence folder connected: ${project.googleDriveFolderUrl}`] : [])];
             const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken, voice: voiceSummary(deps.store) }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
             if (!r.ok) {
               if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;

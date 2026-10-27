@@ -71,12 +71,22 @@ def find_ffmpeg() -> str:
 FFMPEG_EXE = find_ffmpeg()
 
 
+WINDOWS_RESERVED_NAMES = {
+    "con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5",
+    "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5",
+    "lpt6", "lpt7", "lpt8", "lpt9"
+}
+
 def sanitize_filename(name: str) -> str:
     """Sanitizes strings for Windows/URL filesystem safety."""
     clean = name.replace("&", "and").replace("'", "").replace('"', "")
     clean = re.sub(r'[\\/*?:"<>|!,.;#%`]', "", clean)
     clean = re.sub(r'\s+', "_", clean).strip(" ._")
-    return clean[:50] if clean else "clip"
+    if not clean:
+        return "clip"
+    if clean.lower() in WINDOWS_RESERVED_NAMES:
+        clean = f"{clean}_safe"
+    return clean[:50]
 
 
 def format_seconds_to_timestamp(sec: float) -> str:
@@ -510,6 +520,56 @@ def update_markdown_catalog(catalog_file: str, all_clips: List[Dict[str, Any]]):
         f.write("\n".join(lines))
 
 
+def merge_into_public_catalog(new_clips: List[Dict[str, Any]], public_clips_dir: str = "public/clips"):
+    """Safely merges newly extracted clips into the public catalog without erasing existing clips."""
+    if not new_clips:
+        return
+    os.makedirs(public_clips_dir, exist_ok=True)
+    catalog_path = os.path.join(public_clips_dir, "clips_catalog.json")
+    existing_clips = []
+    if os.path.exists(catalog_path):
+        try:
+            with open(catalog_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    existing_clips = data
+        except Exception as e:
+            print(f"[!] Warning reading existing public catalog: {e}")
+
+    def clip_key(c: Dict[str, Any]) -> str:
+        fp = Path(c.get("file_path", "")).name.lower()
+        if fp and fp.endswith(".mp3"):
+            return fp
+        dl = Path(c.get("download_url", "")).name.lower()
+        if dl and dl.endswith(".mp3"):
+            return dl
+        ep = str(c.get("episode", "")).strip().lower()
+        start = round(float(c.get("start_seconds", 0)))
+        return f"{ep}_{start}"
+
+    existing_dict = {}
+    for c in existing_clips:
+        k = clip_key(c)
+        if k:
+            existing_dict[k] = c
+
+    for nc in new_clips:
+        k = clip_key(nc)
+        if k:
+            existing_dict[k] = nc
+        else:
+            existing_clips.append(nc)
+
+    merged = list(existing_dict.values()) if existing_dict else existing_clips
+
+    with open(catalog_path, "w", encoding="utf-8") as f:
+        json.dump(merged, f, indent=2)
+    print(f"    Safely merged {len(new_clips)} clips into public catalog (Total: {len(merged)} clips): {catalog_path}")
+
+    pub_md = os.path.join(public_clips_dir, "CLIPS_CATALOG.md")
+    update_markdown_catalog(pub_md, merged)
+
+
 def process_single_episode(
     json_path: str,
     audio_path: str,
@@ -621,7 +681,7 @@ def process_single_episode(
         if success:
             h["episode"] = ep_title
             h["duration"] = duration
-            h["file_path"] = out_clip_path
+            h["file_path"] = out_clip_path.replace("\\", "/")
             saved_clips.append(h)
 
     return saved_clips
@@ -881,16 +941,22 @@ def main():
     public_clips = os.path.join("public", "clips")
     if os.path.exists("public"):
         os.makedirs(public_clips, exist_ok=True)
-        for item in os.listdir(args.output_dir):
-            s = os.path.join(args.output_dir, item)
-            d = os.path.join(public_clips, item)
-            if os.path.isdir(s):
-                if os.path.exists(d):
-                    shutil.rmtree(d)
-                shutil.copytree(s, d)
-            else:
-                shutil.copy2(s, d)
-        print(f"    Synchronized to web UI: {os.path.abspath(public_clips)}")
+        if os.path.abspath(args.output_dir) != os.path.abspath(public_clips):
+            for item in os.listdir(args.output_dir):
+                if item in ("clips_catalog.json", "CLIPS_CATALOG.md"):
+                    continue  # Safely merged below
+                s = os.path.join(args.output_dir, item)
+                d = os.path.join(public_clips, item)
+                if os.path.isdir(s):
+                    if os.path.exists(d):
+                        shutil.rmtree(d)
+                    shutil.copytree(s, d)
+                else:
+                    shutil.copy2(s, d)
+            merge_into_public_catalog(all_extracted_clips, public_clips)
+            print(f"    Synchronized to web UI: {os.path.abspath(public_clips)}")
+        else:
+            update_markdown_catalog(os.path.join(public_clips, "CLIPS_CATALOG.md"), all_extracted_clips)
 
     print(f"\n[✓] All clips processed successfully!")
     print(f"    Saved clips directory: {os.path.abspath(args.output_dir)}")

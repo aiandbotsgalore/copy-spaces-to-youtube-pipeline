@@ -22,8 +22,8 @@ import { randomUUID } from 'node:crypto';
 import { parseJsonLoose } from '../utils/directorValidate';
 import type { Role, RoleMap } from '../utils/scriptTypes';
 
-export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli';
-export type Family = 'anthropic' | 'openai';
+export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli' | 'ollama' | 'groq' | 'openai_compatible';
+export type Family = 'anthropic' | 'openai' | 'meta' | 'google' | 'mistral' | 'open_source';
 export type FailCode = 'NO_KEY' | 'NOT_INSTALLED' | 'NOT_SIGNED_IN' | 'RATE_LIMIT' | 'USAGE_LIMIT'
   | 'BUDGET_EXCEEDED' | 'TIMEOUT' | 'BAD_OUTPUT' | 'UPSTREAM' | 'ABORTED' | 'NOT_ALLOWED';
 
@@ -497,13 +497,25 @@ export const FALLBACK_ROLE_MAP: RoleMap = {
   judge: 'ci:gpt-6-luna', factcheck: 'ci:gpt-6-luna', polish: 'ci:claude-sonnet-5.5',
 };
 
-export type RoleSpec = { provider: 'claude_cli'; model: 'sonnet' | 'haiku' } | { provider: 'codex_cli'; model: string } | { provider: 'cheaperinference'; model: string };
+export type RoleSpec =
+  | { provider: 'claude_cli'; model: 'sonnet' | 'haiku' }
+  | { provider: 'codex_cli'; model: string }
+  | { provider: 'cheaperinference'; model: string }
+  | { provider: 'ollama'; model: string }
+  | { provider: 'groq'; model: string }
+  | { provider: 'openai_compatible'; model: string };
 
 export function parseRoleSpec(spec: string): RoleSpec | null {
   if (spec === 'claude_cli:sonnet' || spec === 'claude_cli:haiku') return { provider: 'claude_cli', model: spec.split(':')[1] as 'sonnet' | 'haiku' };
   if (spec === 'codex_cli') return { provider: 'codex_cli', model: CODEX_MODEL };
-  const m = /^ci:(.+)$/.exec(spec);
-  if (m && CI_PRICES[m[1]]) return { provider: 'cheaperinference', model: m[1] };
+  const ciMatch = /^ci:(.+)$/.exec(spec);
+  if (ciMatch && CI_PRICES[ciMatch[1]]) return { provider: 'cheaperinference', model: ciMatch[1] };
+  const ollamaMatch = /^ollama:(.+)$/.exec(spec);
+  if (ollamaMatch) return { provider: 'ollama', model: ollamaMatch[1] };
+  const groqMatch = /^groq:(.+)$/.exec(spec);
+  if (groqMatch) return { provider: 'groq', model: groqMatch[1] };
+  const compatMatch = /^openai_compatible:(.+)$/.exec(spec);
+  if (compatMatch) return { provider: 'openai_compatible', model: compatMatch[1] };
   return null;
 }
 
@@ -512,7 +524,8 @@ export function familyOf(spec: string): Family | null {
   if (!p) return null;
   if (p.provider === 'claude_cli') return 'anthropic';
   if (p.provider === 'codex_cli') return 'openai';
-  return CI_PRICES[p.model]?.family ?? null;
+  if (p.provider === 'ollama' || p.provider === 'groq' || p.provider === 'openai_compatible') return 'open_source';
+  return CI_PRICES[p.model]?.family ?? 'open_source';
 }
 
 /** Refuses a role map whose judge or fact check is in the reviser's model family. */

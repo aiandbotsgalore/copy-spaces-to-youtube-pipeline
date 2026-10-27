@@ -72,6 +72,8 @@ import {
 } from './scriptHandoff';
 import { PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
+import { parseUploadedScript } from '../utils/scriptUpload';
+import { fetchGoogleDriveEvidence } from './googleDriveService';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
 import type { AsyncSynth } from './voxSynthesize';
 import { callStats, collectPairs, promptOutcomes, qualityReport, summarizeLog, type LogEntry } from '../utils/scriptQuality';
@@ -411,6 +413,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       if (body.speakerNames !== undefined) p.speakerNames = sanitizeNames(body.speakerNames);
       if (typeof body.title === 'string') p.title = body.title.slice(0, 200);
       if (typeof body.thesis === 'string') p.thesis = body.thesis.trim().slice(0, 500) || undefined;
+      if (typeof body.googleDriveFolderUrl === 'string') p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
       if (Array.isArray(body.addSourceTags)) addSources(p, body.addSourceTags);
       if (Array.isArray(body.removeSourceTags)) removeSources(p, body.removeSourceTags);
       if (Array.isArray(body.removeClipIds)) {
@@ -450,6 +453,138 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       if (!p.clips.some(c => c.clipId === clip.clipId)) p.clips.push(clip);
       touch(p);
       return send(res, 200, { ok: true, clip, project: p });
+    }
+
+    if (route === '/project/upload-script' && method === 'POST') {
+      const body = await readBody(req);
+      const scriptText = String(body?.scriptText || '').trim();
+      if (!scriptText) throw new StepError('BAD_REQUEST', 'scriptText is required.');
+
+      let p: ScriptProject;
+      let isNew = false;
+      if (body?.projectId) {
+        p = getProject(body.projectId);
+      } else {
+        isNew = true;
+        const availableEpisodes = listEpisodes(opts.root);
+        const tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length
+          ? body.releaseTags
+          : (body?.releaseTag ? [body.releaseTag] : (availableEpisodes[0]?.releaseTag ? [availableEpisodes[0].releaseTag] : []));
+        if (tags.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
+        if (!tags.length) throw new StepError('BAD_REQUEST', 'No available episode recordings found to associate with project.');
+        const t = loadSource(tags[0]);
+        const tag = t.releaseTag;
+        const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
+        p = {
+          id: newId('prj'),
+          title: String(body?.title || (body?.filename ? body.filename.replace(/\.[^/.]+$/, '') : 'Uploaded Script')).slice(0, 200),
+          createdAt: now(),
+          updatedAt: now(),
+          format: EPISODE_FORMATS.includes(body?.format) ? body.format : null,
+          sourceTags: [tag],
+          targetRuntimeSec: Math.max(30, Number(body?.targetRuntimeSec) || 900),
+          transcriptHashes: { [tag]: t.hash },
+          speakerNames: sanitizeNames(body?.speakerNames),
+          clips,
+          excludedClips: excluded,
+          headVersionId: null,
+          evidenceDocs: [],
+        };
+        if (typeof body?.thesis === 'string' && body.thesis.trim()) p.thesis = body.thesis.trim().slice(0, 500);
+        if (typeof body?.googleDriveFolderUrl === 'string' && body.googleDriveFolderUrl.trim()) {
+          p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim();
+        }
+        if (tags.length > 1) addSources(p, tags.slice(1));
+      }
+
+      if (!isNew && typeof body?.googleDriveFolderUrl === 'string') {
+        p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
+      }
+
+      if (Array.isArray(body?.evidenceDocs) && body.evidenceDocs.length) {
+        p.evidenceDocs = p.evidenceDocs || [];
+        for (const doc of body.evidenceDocs) {
+          if (doc?.content && typeof doc.content === 'string') {
+            p.evidenceDocs.push({
+              id: newId('doc'),
+              name: String(doc.name || 'Evidence Document').slice(0, 100),
+              type: String(doc.type || 'text') as any,
+              content: String(doc.content).slice(0, 500_000),
+              addedAt: now(),
+              sizeBytes: Buffer.byteLength(doc.content, 'utf8'),
+              sourceUrl: typeof doc.sourceUrl === 'string' ? doc.sourceUrl : undefined,
+              source: doc.source || (doc.sourceUrl?.includes('drive.google.com') ? 'google_drive' : 'upload'),
+            });
+          }
+        }
+      }
+
+      const parsed = parseUploadedScript(scriptText, { idGenerator: newId, defaultTitle: p.title });
+      const segments = withTakes(validateSegments(parsed, p));
+      const v: ScriptVersion = {
+        id: newId('v'),
+        parentId: p.headVersionId,
+        projectId: p.id,
+        createdAt: now(),
+        author: 'logan',
+        label: String(body?.label || (body?.filename ? `Uploaded: ${body.filename}` : 'Uploaded script')).slice(0, 80),
+        segments,
+      };
+      store.saveVersion(v);
+      p.headVersionId = v.id;
+      touch(p);
+      return send(res, isNew ? 201 : 200, { ok: true, project: p, version: v, gates: codeGates(segments, { ...engine.gateContext(p, segments), changedBlockIds: undefined }) });
+    }
+
+    if (route === '/project/evidence' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      p.evidenceDocs = p.evidenceDocs || [];
+      if (typeof body?.googleDriveFolderUrl === 'string') {
+        p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
+      }
+      const docs = Array.isArray(body?.documents) ? body.documents : (body?.document ? [body.document] : []);
+      if (!docs.length) throw new StepError('BAD_REQUEST', 'No documents provided.');
+      for (const d of docs) {
+        if (!d?.content || typeof d.content !== 'string') continue;
+        p.evidenceDocs.push({
+          id: newId('doc'),
+          name: String(d.name || 'Evidence Document').slice(0, 100),
+          type: String(d.type || 'text') as any,
+          content: String(d.content).slice(0, 500_000),
+          addedAt: now(),
+          sizeBytes: Buffer.byteLength(d.content, 'utf8'),
+          sourceUrl: typeof d.sourceUrl === 'string' ? d.sourceUrl : undefined,
+          source: d.source || (d.sourceUrl?.includes('drive.google.com') ? 'google_drive' : 'manual'),
+        });
+      }
+      touch(p);
+      return send(res, 200, { ok: true, project: p });
+    }
+
+    if (route === '/project/evidence/remove' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const docId = String(body?.documentId || '');
+      p.evidenceDocs = (p.evidenceDocs || []).filter(d => d.id !== docId);
+      touch(p);
+      return send(res, 200, { ok: true, project: p });
+    }
+
+    if (route === '/google-drive/fetch' && method === 'POST') {
+      const body = await readBody(req);
+      const url = String(body?.url || body?.folderUrl || '').trim();
+      if (!url) throw new StepError('BAD_REQUEST', 'Google Drive folder or document URL is required.');
+      const apiKey = typeof body?.apiKey === 'string' ? body.apiKey.trim() : undefined;
+      const accessToken = typeof body?.accessToken === 'string' ? body.accessToken.trim() : undefined;
+      const result = await fetchGoogleDriveEvidence({
+        urlOrId: url,
+        apiKey,
+        accessToken,
+        env: opts.getEnv(),
+        fetchImpl: opts.fetchImpl ?? fetch,
+      });
+      return send(res, 200, result);
     }
 
     if (route === '/analyze' && method === 'POST') {

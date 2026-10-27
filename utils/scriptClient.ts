@@ -151,6 +151,10 @@ export const scriptApi = {
   renderAudioUrl: (projectId: string, versionId: string) => `/api/script/render/audio?projectId=${encodeURIComponent(projectId)}&versionId=${encodeURIComponent(versionId)}`,
   renderManifestUrl: (projectId: string, versionId: string) => `/api/script/render/manifest?projectId=${encodeURIComponent(projectId)}&versionId=${encodeURIComponent(versionId)}`,
   exportUrl: (projectId: string) => `/api/script/export?projectId=${encodeURIComponent(projectId)}`,
+  uploadScript: (data: { projectId?: string; title?: string; releaseTags?: string[]; scriptText: string; format?: EpisodeFormat | null; targetRuntimeSec?: number; evidenceDocs?: { name: string; content: string; type?: string; sourceUrl?: string; source?: string }[]; googleDriveFolderUrl?: string; label?: string; filename?: string }) => call<{ project: ScriptProject; version: ScriptVersion }>('POST', '/project/upload-script', data),
+  addEvidence: (projectId: string, documents: { name: string; content: string; type?: string; sourceUrl?: string; source?: string }[], googleDriveFolderUrl?: string) => call<{ project: ScriptProject }>('POST', '/project/evidence', { projectId, documents, googleDriveFolderUrl }),
+  removeEvidence: (projectId: string, documentId: string) => call<{ project: ScriptProject }>('POST', '/project/evidence/remove', { projectId, documentId }),
+  fetchGoogleDrive: (data: { url: string; apiKey?: string; accessToken?: string }) => call<{ ok: boolean; folderId: string | null; folderUrl: string; folderName?: string; files: { id: string; name: string; content: string; type: 'text' | 'markdown'; sizeBytes: number; sourceUrl: string }[]; code?: string; message?: string }>('POST', '/google-drive/fetch', data),
   importProject: (data: unknown, overwrite: boolean) => call<{ project: ScriptProject }>('POST', '/import', { ...(data as object), overwrite }),
 };
 
@@ -163,7 +167,7 @@ export function streamRun(projectId: string, runId: string, onEvent: (e: RunEven
   return () => es.close();
 }
 
-export const ROLE_SPECS = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna', 'ci:claude-sonnet-5.5'];
+export const ROLE_SPECS = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna', 'ci:claude-sonnet-5.5', 'ollama:llama3', 'groq:llama-3.3-70b', 'openai_compatible:custom'];
 
 export function loadRoleChoice(): RoleChoice {
   try {

@@ -27,6 +27,10 @@ on:
         description: 'JSON map of speaker name to avatar photo URL'
         required: false
         default: '{}'
+      speaker_segments_json:
+        description: 'JSON array of clip-relative speaker turns: [{speaker,start,end}]'
+        required: false
+        default: '[]'
       prompt:
         description: 'Visual direction and caption bar title'
         required: false
@@ -79,6 +83,7 @@ jobs:
           LAYOUT: ${{ inputs.layout || 'stage_grid' }}
           SPEAKERS_JSON: ${{ inputs.speakers_json || '[]' }}
           SPEAKER_AVATARS_JSON: ${{ inputs.speaker_avatars_json || '{}' }}
+          SPEAKER_SEGMENTS_JSON: ${{ inputs.speaker_segments_json || '[]' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
           TARGET_RELEASE_TAG: ${{ inputs.target_release_tag }}
@@ -92,6 +97,7 @@ jobs:
           os.environ["LAYOUT"] = "${{ inputs.layout || 'stage_grid' }}"
           os.environ["SPEAKERS_JSON"] = '''${{ inputs.speakers_json || '[]' }}'''
           os.environ["SPEAKER_AVATARS_JSON"] = '''${{ inputs.speaker_avatars_json || '{}' }}'''
+          os.environ["SPEAKER_SEGMENTS_JSON"] = '''${{ inputs.speaker_segments_json || '[]' }}'''
           os.environ["PROMPT"] = "${{ inputs.prompt }}"
           os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
           os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag }}"

@@ -223,6 +223,8 @@ def main():
                 ],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 env=env,
             )
             if dl.returncode == 0:
@@ -316,7 +318,7 @@ def main():
 
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:
-        json.dump(index, f)
+        json.dump(index, f, ensure_ascii=False)
 
     if DIST_INDEX_PATH.parent.exists():
         shutil.copyfile(INDEX_PATH, DIST_INDEX_PATH)
@@ -340,7 +342,7 @@ def main():
         })
 
     with open(SUMMARY_INDEX_PATH, "w", encoding="utf-8") as f:
-        json.dump(summary, f, indent=2)
+        json.dump(summary, f, indent=2, ensure_ascii=False)
 
     if DIST_SUMMARY_INDEX_PATH.parent.exists():
         shutil.copyfile(SUMMARY_INDEX_PATH, DIST_SUMMARY_INDEX_PATH)
@@ -360,7 +362,7 @@ def main():
                 "published_at": ep["published_at"],
                 "audio_url": ep.get("audio_url", ""),
                 "segments": ep.get("segments", []),
-            }, f)
+            }, f, ensure_ascii=False)
         if DIST_EPISODES_DIR.exists():
             shutil.copyfile(ep_file, DIST_EPISODES_DIR / f"{ep['release_tag']}.json")
 
