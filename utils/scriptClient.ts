@@ -31,10 +31,12 @@ export interface ProjectResponse {
   project: ScriptProject; versions: VersionMeta[]; runs: RunMeta[]; head: ScriptVersion | null;
   speakerStats: Record<string, SpeakerStats>; analyses: Record<string, EpisodeAnalysis | null>; transcriptChanged: string[];
   gates: (GateResult & { ok: boolean }) | null;
+  formatChecks: { hard: { key: string; message: string }[]; soft: { key: string; message: string }[] } | null;
 }
 export type { BlockDiff };
 export interface RunResponse { run: ScriptRun & { active: boolean }; candidates: { id: string; parentId: string | null; decision?: ScriptVersion['decision']; diff: BlockDiff[] }[]; diffFromBase: BlockDiff[] }
-export interface RoleChoice { mode: 'subscription' | 'fallback'; roleMap: Partial<RoleMap>; maxUsd: number }
+export interface RoleChoice { mode: 'subscription' | 'fallback'; roleMap: Partial<RoleMap>; maxUsd: number; episodePass?: boolean; polish?: boolean }
+export type Tagging = { tagged: number; cached: boolean } | { error: string; code: string };
 
 export const scriptApi = {
   status: () => call<StatusResponse>('GET', '/status'),
@@ -44,13 +46,18 @@ export const scriptApi = {
   project: (id: string) => call<ProjectResponse>('GET', `/project?id=${encodeURIComponent(id)}`),
   updateProject: (id: string, patch: Record<string, unknown>) => call<{ project: ScriptProject }>('POST', '/project/update', { id, ...patch }),
   addClip: (id: string, fromId: string, toId: string) => call<{ project: ScriptProject }>('POST', '/project/add-clip', { id, fromId, toId }),
-  analyze: (projectId: string, roles: RoleChoice, force = false) => call<{ analyses: Record<string, EpisodeAnalysis> }>('POST', '/analyze', { projectId, force, ...roles }),
+  analyze: (projectId: string, roles: RoleChoice, force = false) => call<{ analyses: Record<string, EpisodeAnalysis>; tagging: Tagging }>('POST', '/analyze', { projectId, force, ...roles }),
+  tagClips: (projectId: string, roles: RoleChoice, force = false) => call<{ project: ScriptProject; tagged: number; cached: boolean }>('POST', '/tag-clips', { projectId, force, ...roles }),
+  retagClip: (id: string, clipId: string, fn: string | null) => call<{ project: ScriptProject }>('POST', '/project/update', { id, retagClips: [{ clipId, fn }] }),
   outline: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion }>('POST', '/outline', { projectId, ...roles }),
   draft: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion; gates: GateResult }>('POST', '/draft', { projectId, ...roles }),
   saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult }>('POST', '/version', { projectId, parentId, segments, label }),
   version: (projectId: string, id: string) => call<{ version: ScriptVersion; diff: BlockDiff[] }>('GET', `/version?projectId=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`),
   setHead: (projectId: string, versionId: string) => call<{ project: ScriptProject }>('POST', '/head', { projectId, versionId }),
-  refine: (projectId: string, roles: RoleChoice, targetSceneIds?: string[]) => call<{ runId: string }>('POST', '/refine', { projectId, targetSceneIds, ...roles }),
+  refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
+    projectId, ...roles, targetSceneIds: opts.targetSceneIds, critiqueOnly: !!opts.critiqueOnly,
+    episodePass: roles.episodePass !== false, polish: roles.mode === 'fallback' && !!roles.polish,
+  }),
   run: (projectId: string, runId: string) => call<RunResponse>('GET', `/run?projectId=${encodeURIComponent(projectId)}&runId=${encodeURIComponent(runId)}`),
   cancel: (projectId: string, runId: string) => call<{ ok: boolean }>('POST', '/cancel', { projectId, runId }),
   resume: (projectId: string, runId: string, switchRole?: { role: string; spec: string }, maxUsd?: number) => call<{ runId: string }>('POST', '/resume', { projectId, runId, switchRole, maxUsd }),
@@ -73,8 +80,8 @@ export const ROLE_SPECS = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli',
 export function loadRoleChoice(): RoleChoice {
   try {
     const j = JSON.parse(localStorage.getItem(ROLE_STORAGE_KEY) || 'null');
-    if (j && (j.mode === 'subscription' || j.mode === 'fallback')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 0 };
+    if (j && (j.mode === 'subscription' || j.mode === 'fallback')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 0, episodePass: j.episodePass !== false, polish: !!j.polish };
   } catch { /* ignore */ }
-  return { mode: 'subscription', roleMap: {}, maxUsd: 0 };
+  return { mode: 'subscription', roleMap: {}, maxUsd: 0, episodePass: true, polish: false };
 }
 export function saveRoleChoice(c: RoleChoice) { try { localStorage.setItem(ROLE_STORAGE_KEY, JSON.stringify(c)); } catch { /* ignore */ } }

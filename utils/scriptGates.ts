@@ -260,6 +260,8 @@ export interface GateContext {
   format: EpisodeFormat | null;
   /** Only these block ids are checked for claims and attribution (the changed ones); all when omitted. */
   changedBlockIds?: Set<string>;
+  /** Format rules (utils/scriptFormats.ts). With changedBlockIds, only findings new against the baseline fail. */
+  formatCheck?: (segments: Segment[]) => { hard: { key: string; message: string }[] };
 }
 
 export function changedBlockIds(baseline: Segment[], candidate: Segment[]): Set<string> {
@@ -297,6 +299,12 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
   }
   const lockFailures = locksIntact(ctx.baseline, candidate);
   failures.push(...lockFailures);
+  if (ctx.format && ctx.formatCheck) {
+    const cand = ctx.formatCheck(candidate);
+    const base = ctx.formatCheck(ctx.baseline);
+    const added = ctx.changedBlockIds ? cand.hard.filter(f => !base.hard.some(b => b.key === f.key)) : cand.hard;
+    if (added.length) { faithful = false; failures.push(...added.map(f => f.message)); }
+  }
   const rt = estimateRuntime(candidate);
   const rtOk = runtimeWithin(rt.sec, ctx.targetRuntimeSec);
   if (!rtOk) failures.push(`Runtime ${Math.round(rt.sec)}s${rt.estimated ? ' (estimated)' : ''} is not within 10% of the ${ctx.targetRuntimeSec}s target.`);
@@ -389,4 +397,47 @@ export function boundaryLines(scene: Scene | undefined): { first: string; last: 
   const lines = scene.blocks.map(b => (b.kind === 'narration' ? b.text : b.kind === 'clip' ? b.keptText : '')).filter(Boolean);
   if (!lines.length) return null;
   return { first: lines[0].slice(0, 300), last: lines[lines.length - 1].slice(0, 300) };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Episode structure                                                                                 */
+/* ------------------------------------------------------------------------------------------------ */
+
+/**
+ * Applies a proposed scene order. Every existing segment must appear once, and every scene exactly once
+ * (scenes may move between segments; none added or dropped). Blocks are untouched.
+ */
+export function reorderScenes(segments: Segment[], order: { segmentId: string; sceneIds: string[] }[]):
+  { ok: true; segments: Segment[]; moved: string[] } | { ok: false; reason: string } {
+  const segById = new Map(segments.map(s => [s.id, s]));
+  const sceneById = new Map(segments.flatMap(s => s.scenes.map(sc => [sc.id, sc] as const)));
+  if (order.length !== segments.length || new Set(order.map(o => o.segmentId)).size !== order.length || order.some(o => !segById.has(o.segmentId))) {
+    return { ok: false, reason: 'The proposed order does not list every segment exactly once.' };
+  }
+  const seen = new Set<string>();
+  for (const o of order) for (const id of o.sceneIds) {
+    if (!sceneById.has(id)) return { ok: false, reason: `The proposed order names unknown scene ${id}.` };
+    if (seen.has(id)) return { ok: false, reason: `The proposed order lists scene ${id} twice.` };
+    seen.add(id);
+  }
+  if (seen.size !== sceneById.size) return { ok: false, reason: `The proposed order drops ${[...sceneById.keys()].filter(id => !seen.has(id)).join(', ')}.` };
+  const before = segments.map(s => `${s.id}:${s.scenes.map(sc => sc.id).join(',')}`).join('|');
+  const next: Segment[] = order.map(o => ({ ...segById.get(o.segmentId)!, scenes: o.sceneIds.map(id => sceneById.get(id)!) }));
+  const after = next.map(s => `${s.id}:${s.scenes.map(sc => sc.id).join(',')}`).join('|');
+  if (before === after) return { ok: false, reason: 'The proposed order is the current order.' };
+  const pos = (segs: Segment[]) => new Map(segs.flatMap((s, si) => s.scenes.map((sc, i) => [sc.id, `${si}.${i}`] as const)));
+  const a = pos(segments); const b = pos(next);
+  return { ok: true, segments: next, moved: [...a.keys()].filter(id => a.get(id) !== b.get(id)) };
+}
+
+/** What the episode pass and its judge see: titles, purposes, first and last lines and seconds; no ids for the judge. */
+export function episodeOutlineView(segments: Segment[], withIds: boolean): unknown {
+  return segments.map(seg => ({
+    ...(withIds ? { segmentId: seg.id } : {}), title: seg.title,
+    scenes: seg.scenes.map(sc => {
+      const b = boundaryLines(sc);
+      const seconds = Math.round(sc.blocks.reduce((s, x) => s + blockSeconds(x).sec, 0));
+      return { ...(withIds ? { sceneId: sc.id } : {}), title: sc.title, purpose: sc.purpose, first: b?.first ?? '', last: b?.last ?? '', seconds };
+    }),
+  }));
 }

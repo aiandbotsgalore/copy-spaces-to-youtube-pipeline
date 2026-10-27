@@ -394,7 +394,7 @@ export default function ScriptStudio() {
 
   const run = runInfo?.run;
   const runActive = !!run?.active;
-  const critiques = events.filter(e => e.type === 'critique').slice(-1)[0]?.data as any[] | undefined;
+  const critiques = (run?.critiques || (events.filter(e => e.type === 'critique').slice(-1)[0]?.data as any[] | undefined)) as any[] | undefined;
 
   const searchRows = (() => {
     const q = query.trim().toLowerCase();
@@ -436,6 +436,10 @@ export default function ScriptStudio() {
           <button className={btnPrimary} disabled={!stage.draft || !!busy || dirty} title={dirty ? 'Save your edits first' : ''}
             onClick={() => void act('Starting refinement', async () => { const r = await scriptApi.refine(project.id, roles); setRunId(r.runId); })}><Wand2 size={12} /> Refine</button>
         )}
+        {!runActive && (
+          <button className={btnGhost} disabled={!stage.draft || !!busy || dirty} title="Critique every segment once and change nothing"
+            onClick={() => void act('Critiquing', async () => { const r = await scriptApi.refine(project.id, roles, { critiqueOnly: true }); setRunId(r.runId); })}>Critique only</button>
+        )}
         {run && <span className="text-xs text-slate-400">Run: <span className={cx(run.status === 'running' && 'text-indigo-300', run.status === 'paused_limit' && 'text-amber-300', run.status === 'finished' && 'text-emerald-300', run.status === 'failed' && 'text-rose-300')}>{run.status.replace('_', ' ')}</span>{run.status === 'running' ? `, round ${run.currentRound + 1} of ${run.maxRounds}` : ''}{run.mode === 'fallback' ? `, $${run.spentUsd.toFixed(4)} of $${run.maxUsd.toFixed(2)}` : ''}</span>}
       </div>
       {showRoles && (
@@ -458,6 +462,8 @@ export default function ScriptStudio() {
             );
           })}
           <label className="flex items-center gap-1">Dollar cap per run <input type="number" min={0} step={0.05} className={cx(input, 'w-20')} value={roles.maxUsd} onChange={e => setRoles(r => ({ ...r, maxUsd: Math.max(0, Number(e.target.value) || 0) }))} /></label>
+          <label className="flex items-center gap-1"><input type="checkbox" checked={roles.episodePass !== false} onChange={e => setRoles(r => ({ ...r, episodePass: e.target.checked }))} /> Episode structure pass after the scene rounds</label>
+          {roles.mode === 'fallback' && <label className="flex items-center gap-1" title="One claude-sonnet-5.5 call through CheaperInference; the result waits for your review"><input type="checkbox" checked={!!roles.polish} onChange={e => setRoles(r => ({ ...r, polish: e.target.checked }))} /> Final narration polish</label>}
           <span className="text-slate-500">Judge and fact check must be a different model family from the reviser; the server refuses otherwise.</span>
         </div>
       )}
@@ -472,7 +478,10 @@ export default function ScriptStudio() {
           <div className="space-y-1.5">
             <div className="text-[11px] uppercase tracking-wide text-slate-500">Stages</div>
             <StageRow done={stage.analysis} label="Analyse the episode" note={analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes${analysis.chunks.some(c => !c.ok) ? `; ${analysis.chunks.filter(c => !c.ok).length} chunk(s) failed` : ''}` : undefined}
-              action={<button className={btnGhost} disabled={!!busy} onClick={() => void act('Analysing (one model call per transcript chunk)', () => scriptApi.analyze(project.id, roles, stage.analysis))}>{stage.analysis ? 'Re-run' : 'Run'}</button>} />
+              action={<button className={btnGhost} disabled={!!busy} onClick={() => void act('Analysing (one model call per transcript chunk), then tagging clips', async () => {
+                const r = await scriptApi.analyze(project.id, roles, stage.analysis);
+                if ('error' in r.tagging) setError(new ScriptApiError(0, r.tagging.code, `The analysis is saved, but clip tagging failed: ${r.tagging.error}`));
+              })}>{stage.analysis ? 'Re-run' : 'Run'}</button>} />
             <StageRow done={stage.outline} label="Outline" action={<button className={btnGhost} disabled={!!busy || !stage.analysis} onClick={() => void act('Outlining', () => scriptApi.outline(project.id, roles))}>{stage.outline ? 'New outline' : 'Run'}</button>} />
             <StageRow done={stage.draft} label="Draft narration and clips" action={<button className={btnGhost} disabled={!!busy || !stage.outline} onClick={() => void act('Drafting each segment', () => scriptApi.draft(project.id, roles))}>Run</button>} />
             <StageRow done={run?.status === 'finished'} label="Refine (background)" note={run ? `${run.status.replace('_', ' ')}${run.stopReason ? `: ${run.stopReason.replace(/_/g, ' ')}` : ''}` : 'Use Refine in the header.'} />
@@ -519,7 +528,11 @@ export default function ScriptStudio() {
           </div>
 
           <div className="space-y-1.5">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Clip bin ({project.clips.length})</div>
+            <div className="flex items-center gap-1">
+              <div className="text-[11px] uppercase tracking-wide text-slate-500 flex-1">Clip bin ({project.clips.length})</div>
+              <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with its narrative function (your own tags are kept)"
+                onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag clips</button>
+            </div>
             {project.clips.length === 0 && <div className="text-[11px] text-slate-500">No catalog clips for this episode. Add clips from the transcript above.</div>}
             {[...NARRATIVE_FUNCTIONS, undefined].map(fn => {
               const list = project.clips.filter(c => c.fn === fn);
@@ -528,8 +541,13 @@ export default function ScriptStudio() {
                 <div key={fn || 'untagged'}>
                   <div className="text-[11px] text-slate-400">{fn ? fn.replace('_', ' ') : 'untagged'}</div>
                   {list.map(c => (
-                    <div key={c.clipId} className="flex items-center gap-1 text-[11px] text-slate-300 py-0.5" title={c.fnRationale || c.text}>
+                    <div key={c.clipId} className="flex items-center gap-1 text-[11px] text-slate-300 py-0.5" title={c.fnRationale ? `${c.fnRationale}\n\n${c.text}` : c.text}>
                       <span className="truncate flex-1">{c.title}</span><span className="text-slate-500">{hms(c.durationSec)}</span>
+                      <select className="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 max-w-[6.5rem]" value={c.fn || ''} title="Narrative function"
+                        onChange={e => void act('Retagging', () => scriptApi.retagClip(project.id, c.clipId, e.target.value || null))}>
+                        <option value="">untagged</option>
+                        {NARRATIVE_FUNCTIONS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
+                      </select>
                       <button className="text-slate-500 hover:text-rose-400" title="Remove from project" onClick={() => void act('Removing clip', () => scriptApi.updateProject(project.id, { removeClipIds: [c.clipId] }))}><Trash2 size={11} /></button>
                     </div>
                   ))}
@@ -568,6 +586,14 @@ export default function ScriptStudio() {
               {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
             </div>
           ) : <div className="text-[11px] text-emerald-400 flex items-center gap-1"><Check size={11} /> Quotes verbatim, clip cuts in bounds, locks intact, runtime within 10% of target.</div>)}
+          {data?.formatChecks && project.format && (data.formatChecks.hard.length > 0 || data.formatChecks.soft.length > 0) && (
+            <div className="rounded-md border border-slate-800 bg-slate-900/40 p-2 text-[11px] space-y-0.5">
+              <div className="font-semibold text-slate-300">{FORMAT_LABELS[project.format]} format</div>
+              {data.formatChecks.hard.map(f => <div key={f.key} className="text-amber-300">• {f.message}</div>)}
+              {data.formatChecks.soft.map(f => <div key={f.key} className="text-slate-400">· {f.message}</div>)}
+              {data.formatChecks.hard.length > 0 && <div className="text-slate-500">Rules in amber are checked in code: the loop rejects candidates that break them further.</div>}
+            </div>
+          )}
           {!segments && <div className="text-sm text-slate-500">Run the analysis, then the outline and the draft from the left.</div>}
           {segments?.map((seg, segI) => (
             <section key={seg.id} className="space-y-3">
@@ -620,7 +646,7 @@ export default function ScriptStudio() {
               <div className="text-[11px] uppercase tracking-wide text-slate-500">Latest critiques</div>
               {critiques.map((c: any) => (
                 <div key={c.id} className="rounded border border-slate-800 p-1.5">
-                  <div className={cx('font-medium', c.severity === 'blocker' ? 'text-rose-300' : c.severity === 'major' ? 'text-amber-300' : 'text-slate-300')}>{c.severity} · {c.criterion}</div>
+                  <div className={cx('font-medium', c.severity === 'blocker' ? 'text-rose-300' : c.severity === 'major' ? 'text-amber-300' : 'text-slate-300')}>{c.severity} · {c.criterion}{c.level === 'episode' ? ` · structure (${c.structuralKind || 'arc'})` : ''}</div>
                   <div className="text-slate-300">{c.issue}</div>
                   <div className="text-slate-500">Fix: {c.proposedFix}</div>
                 </div>
@@ -636,11 +662,16 @@ export default function ScriptStudio() {
                   <div key={c.id} className={cx('rounded-md border p-2 space-y-1', d?.loopAccepted ? 'border-emerald-700/60' : 'border-slate-800')}>
                     <div className="flex items-center gap-1">
                       <span className="font-medium text-slate-100">{c.id}</span>
-                      <span className={d?.loopAccepted ? 'text-emerald-300' : 'text-slate-400'}>{d?.loopAccepted ? 'loop: better' : 'loop: not better'}</span>
+                      {(() => {
+                        const better = d?.reviewOnly ? !!d.judge && d.judge.consensus !== 'rejected' : !!d?.loopAccepted;
+                        const label = d?.reviewOnly ? (d.judge ? (better ? 'judge: better' : 'judge: not better') : 'not judged') : better ? 'loop: better' : 'loop: not better';
+                        return <span className={better ? 'text-emerald-300' : 'text-slate-400'}>{label}</span>;
+                      })()}
                       {d?.loganDecision && <span className="text-indigo-300">you: {d.loganDecision}</span>}
                     </div>
                     {d?.gates.failures.map((f, i) => <div key={i} className="text-amber-300">• {f}</div>)}
                     {d?.gates.factcheck?.map((f, i) => <div key={i} className={f.label === 'supported' ? 'text-emerald-300/80' : 'text-amber-300'}>Fact check: {f.label}. {f.note}</div>)}
+                    {d?.reviewOnly && <div className="text-indigo-300">{d.reviewOnly}</div>}
                     {d?.notJudged && <div className="text-slate-400">{d.notJudged}</div>}
                     {d?.judge && <div className="text-slate-300">Judge {d.judge.model}: AB={d.judge.winnerAB}, BA={d.judge.winnerBA} ({d.judge.consensus.replace(/_/g, ' ')}). {d.judge.reasons.join(' ')}</div>}
                     <DiffList diff={c.diff} />
