@@ -7,6 +7,7 @@ import { createDirectorMiddleware } from './server/directorMiddleware';
 import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
 import { searchTranscriptLexical } from './server/transcriptSearchService';
 import { createVoxSynthesizeHandler } from './server/voxSynthesize';
+import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -216,6 +217,14 @@ export default defineConfig(({ mode }) => {
   // AI Prompt Director API. Reads .env.local per request (server-side only; the key never reaches the client bundle).
   const director = createDirectorMiddleware({ getEnv: () => loadEnv(mode, '.', '') });
   const audioProxy = createAudioProxy({ allowRemote: () => loadEnv(mode, '.', '').DIRECTOR_ALLOW_REMOTE === '1' });
+  // Script Studio API (server/scriptStudioMiddleware.ts). State lives in .spacepipe-studio/ (watch-ignored).
+  // Created only when a dev or preview server starts (not for builds or tests), because creating it marks
+  // runs left 'running' by a previous server as 'interrupted'.
+  let scriptStudioInstance: ReturnType<typeof createScriptStudioMiddleware> | null = null;
+  const scriptStudio = (req: any, res: any) => {
+    scriptStudioInstance ??= createScriptStudioMiddleware({ root: __dirname, getEnv: () => ({ ...process.env, ...loadEnv(mode, '.', '') }) });
+    return scriptStudioInstance(req, res);
+  };
   return {
     base: './',
     server: {
@@ -244,10 +253,12 @@ export default defineConfig(({ mode }) => {
         configureServer(server) {
           server.middlewares.use('/api/montage/direct', director);
           server.middlewares.use(AUDIO_PROXY_PATH, audioProxy);
+          server.middlewares.use('/api/script', scriptStudio);
         },
         configurePreviewServer(server) {
           server.middlewares.use('/api/montage/direct', director);
           server.middlewares.use(AUDIO_PROXY_PATH, audioProxy);
+          server.middlewares.use('/api/script', scriptStudio);
         },
       }
     ],

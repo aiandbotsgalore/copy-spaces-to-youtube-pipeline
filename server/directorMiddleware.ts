@@ -162,7 +162,7 @@ function readBody(req: IncomingMessage): Promise<{ ok: true; text: string } | { 
   });
 }
 
-class Limiter {
+export class Limiter {
   private active = 0;
   private queue: Array<() => void> = [];
   constructor(private max: number) {}
