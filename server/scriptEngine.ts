@@ -16,6 +16,7 @@ import {
 } from '../utils/scriptGates';
 import { formatChecks } from '../utils/scriptFormats';
 import { makeClipTrim } from '../utils/scriptTrim';
+import { attachTakes, countTakes, spokenChecks, spokenSceneView } from '../utils/scriptAudio';
 import * as P from './scriptPrompts';
 import {
   chunkUtterances, displayName, namedSegments, readTranscript, toEvidenceRefs, utteranceLine,
@@ -322,12 +323,18 @@ export function createEngine(deps: EngineDeps) {
     bus.emit(run.id, ev);
   }
   function save(run: ScriptRun) { deps.store.saveRun(run); }
+  /** Real Vox durations for narration whose text has a cached take (stale takes are dropped). */
+  function withTakes(segments: Segment[]): Segment[] { return attachTakes(segments, deps.store.getTakes()); }
 
   function createRun(project: ScriptProject, opts: { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number; targetSceneIds?: string[]; maxRounds?: number; options?: RunOptions }): ScriptRun {
     if (opts.options?.polish && !opts.roleMap.polish) throw new StepError('NO_ROLE', 'Polish needs a polish model (fallback mode, ci:claude-sonnet-5.5).');
     const cross = verifyCrossFamily(opts.roleMap);
     if (cross.ok === false) throw new StepError('CROSS_FAMILY', cross.reason);
     if (!project.headVersionId) throw new StepError('NO_SCRIPT', 'The project has no script version to refine yet.');
+    if (opts.options?.spoken) {
+      const head = deps.store.getVersion(project.id, project.headVersionId);
+      if (!head || countTakes(withTakes(head.segments)).withTake === 0) throw new StepError('NO_TAKES', 'Critiquing the sound needs Vox takes: preview the audio first.');
+    }
     const maxUsd = opts.mode === 'subscription' ? 0 : Math.max(0, Number(opts.maxUsd) || 0);
     if (roleMapNeedsBudget(opts.roleMap) && !(maxUsd > 0)) throw new StepError('NO_BUDGET', 'Fallback models need a dollar cap above $0 for this run.');
     const run: ScriptRun = {
@@ -335,7 +342,7 @@ export function createEngine(deps: EngineDeps) {
       maxUsd, spentUsd: 0, roleMap: opts.roleMap, baseVersionId: project.headVersionId, bestVersionId: project.headVersionId,
       currentRound: 0, maxRounds: Math.min(MAX_ROUNDS, Math.max(1, opts.maxRounds || MAX_ROUNDS)), staleCount: 0,
       targetSceneIds: opts.targetSceneIds?.length ? opts.targetSceneIds : undefined, refinedSceneIds: [], candidateIds: [], events: [],
-      stage: 'scenes', options: { critiqueOnly: !!opts.options?.critiqueOnly, episodePass: opts.options?.episodePass !== false, polish: !!opts.options?.polish },
+      stage: 'scenes', options: { critiqueOnly: !!opts.options?.critiqueOnly, episodePass: opts.options?.spoken ? !!opts.options?.episodePass : opts.options?.episodePass !== false, polish: !!opts.options?.polish, spoken: !!opts.options?.spoken },
     };
     emit(run, { type: 'status', message: 'Run created.' });
     save(run);
@@ -403,7 +410,8 @@ export function createEngine(deps: EngineDeps) {
       const memory = deps.store.getMemory();
       const loaded = deps.store.getVersion(project.id, run.bestVersionId);
       if (!loaded) throw new StepError('NO_VERSION', `Version ${run.bestVersionId} is missing.`);
-      let best: ScriptVersion = loaded;
+      let best: ScriptVersion = { ...loaded, segments: withTakes(loaded.segments) };
+      const spoken = !!run.options?.spoken;
       const targetIds = new Set(run.targetSceneIds || best.segments.flatMap(s => s.scenes.map(sc => sc.id)));
       const notRefined = () => [...targetIds].filter(id => !run.refinedSceneIds.includes(id)).join(', ') || 'none';
 
@@ -438,13 +446,17 @@ export function createEngine(deps: EngineDeps) {
             const seg = best.segments[si];
             const scenes = seg.scenes.filter(sc => targetIds.has(sc.id));
             if (!scenes.length) continue;
-            const view = { segmentId: seg.id, title: seg.title, scenes: scenes.map(sc => ({ sceneId: sc.id, title: sc.title, purpose: sc.purpose, blocks: sc.blocks.filter(b => !b.locked).map(b => anonymousBlock(b, clipsById)) })) };
+            const view = spoken
+              ? { segmentId: seg.id, title: seg.title, scenes: scenes.map(sc => spokenSceneView(sc, clipsById)) }
+              : { segmentId: seg.id, title: seg.title, scenes: scenes.map(sc => ({ sceneId: sc.id, title: sc.title, purpose: sc.purpose, blocks: sc.blocks.filter(b => !b.locked).map(b => anonymousBlock(b, clipsById)) })) };
             const prev = boundaryLines(best.segments[si - 1]?.scenes.slice(-1)[0]);
             const next = boundaryLines(best.segments[si + 1]?.scenes[0]);
             const neighbours = [prev ? `Before: ...${prev.last}` : '', next ? `After: ${next.first}...` : ''].filter(Boolean).join('\n');
             const fmt = formatChecks([{ ...seg, scenes }], project.format, formatOpts(project));
-            const notes = [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message)];
-            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n') }), ctxFor(`critique ${seg.title}`));
+            const notes = spoken
+              ? scenes.flatMap(spokenChecks)
+              : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message)];
+            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
             if (!r.ok) {
               if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
               emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
@@ -502,6 +514,7 @@ export function createEngine(deps: EngineDeps) {
           }
           const cand: ScriptVersion = { ...patched.version, label: `Round ${round + 1}: ${loc.scene.title}`, changedScope: { level: 'scene', ids: [loc.scene.id] } };
           const changed = changedBlockIds(best.segments, cand.segments);
+          cand.segments = withTakes(cand.segments);
           const gates = codeGates(cand.segments, { ...gateContext(project, best.segments), changedBlockIds: changed });
           const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round, promptVersion: P.PROMPT_VERSIONS.revise, gates, loopAccepted: false };
 
@@ -597,6 +610,7 @@ export function createEngine(deps: EngineDeps) {
             id: newId('v'), parentId: best.id, projectId: project!.id, createdAt: now(), author: 'loop', label: `Structure: ${c.structuralKind || 'order'}`,
             segments: re.segments, changedScope: { level: 'episode', ids: re.moved },
           };
+          cand.segments = withTakes(cand.segments);
           const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: new Set() });
           const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round: run!.currentRound, promptVersion: P.PROMPT_VERSIONS.episodeCritique, gates, loopAccepted: false, reviewOnly: 'Structural moves always wait for Logan.' };
           if (gates.ok) {
@@ -660,7 +674,8 @@ export function createEngine(deps: EngineDeps) {
         const segments: Segment[] = best.segments.map(seg => ({ ...seg, scenes: seg.scenes.map(sc => ({ ...sc, blocks: sc.blocks.map(b => (b.kind === 'narration' && edits.has(b.id) ? { ...b, text: edits.get(b.id)!, mode: 'polished' as const, takeUrl: undefined, takeSec: undefined, takeTextHash: undefined } : b)) })) }));
         const cand: ScriptVersion = { id: newId('v'), parentId: best.id, projectId: project!.id, createdAt: now(), author: 'loop', label: 'Polish', segments, changedScope: { level: 'episode', ids: [...edits.keys()] } };
         const changed = changedBlockIds(best.segments, cand.segments);
-        const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: changed });
+        cand.segments = withTakes(cand.segments);
+          const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: changed });
         const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round: run!.currentRound, promptVersion: P.PROMPT_VERSIONS.polish, gates, loopAccepted: false, reviewOnly: 'A polish is never accepted by the loop; compare it and decide.' };
         if (gates.ok && await factcheck(cand, changed, decision)) return true;
         emit(run!, { type: 'gates', message: decision.gates.failures.length ? `Polish gates failed: ${decision.gates.failures.join(' | ')}` : 'Polish gates passed.', data: decision.gates });

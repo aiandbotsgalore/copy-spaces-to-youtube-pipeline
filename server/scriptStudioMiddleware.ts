@@ -25,8 +25,18 @@
  *   GET  /log?runId              the call log of a run
  *   GET  /logs                   every call log with a summary (calls, failures, time, cost)
  *   GET  /quality                judge vs Logan's decisions, judge order consistency, prompt version comparisons
+ *   POST /preview                speak the narration (whole script or one scene) in Logan's Vox voice -> 202 { job }
+ *   GET  /preview?projectId      progress of the latest preview job
+ *   POST /preview/cancel         stop a preview job after the take in progress
+ *   POST /render                 the manifest of a finished episode render (before its audio)
+ *   PUT  /render/audio?projectId&versionId   the rendered WAV (raw body), saved under the project's renders/
+ *   GET  /render/audio?projectId&versionId   the saved WAV, with byte ranges for the player
+ *   GET  /render/manifest?projectId&versionId
+ *   GET  /renders?projectId      saved renders of a project
+ *   GET  /clip-audio?projectId&clipId   a transcript cut as WAV (ffmpeg reads only that window of the episode)
  *
- * Loopback only unless DIRECTOR_ALLOW_REMOTE=1. Nothing here publishes or uploads anything.
+ * Loopback only unless DIRECTOR_ALLOW_REMOTE=1. Nothing here publishes anything; the only outside call
+ * besides the model CLIs is Vox synthesis on Logan's own Hugging Face Space.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,12 +47,15 @@ import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
 import { codeGates, diffVersions } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
-import { catalogClipsForRelease, clipFromUtterances, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
+import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
 import { recordDecision } from './scriptMemory';
 import { PROMPT_VERSIONS } from './scriptPrompts';
+import { attachTakes } from '../utils/scriptAudio';
+import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
+import type { AsyncSynth } from './voxSynthesize';
 import { callStats, collectPairs, promptOutcomes, qualityReport, summarizeLog, type LogEntry } from '../utils/scriptQuality';
 
 export interface ScriptStudioOptions {
@@ -53,6 +66,10 @@ export interface ScriptStudioOptions {
   platform?: NodeJS.Platform;
   resolveOverride?: (name: 'claude' | 'codex') => Promise<ResolvedBinary>;
   now?: () => number;
+  /** Vox synthesis and duration probe (defaults: the HF Space script and ffprobe). */
+  synth?: AsyncSynth;
+  probe?: (fullPath: string) => Promise<number | null>;
+  ffmpeg?: FfmpegRunner;
 }
 
 const BODY_LIMIT = 8_000_000;
@@ -86,7 +103,7 @@ const STATUS_FOR_CODE: Record<string, number> = {
   BAD_REQUEST: 400, BAD_JSON: 400, TOO_LARGE: 413, NOT_FOUND: 404, CONFLICT: 409, CROSS_FAMILY: 400, NO_BUDGET: 400,
   NO_TRANSCRIPT: 404, INVENTED_CLIP: 422, BAD_OUTPUT: 502, UPSTREAM: 502, TIMEOUT: 504, RATE_LIMIT: 429, USAGE_LIMIT: 429,
   NOT_SIGNED_IN: 401, NOT_INSTALLED: 503, NO_KEY: 503, BUDGET_EXCEEDED: 402, ANALYSIS_FAILED: 502, ABORTED: 499, NOT_ALLOWED: 400,
-  NO_SCRIPT: 409, NO_ROLE: 400, NO_VERSION: 404,
+  NO_SCRIPT: 409, NO_ROLE: 400, NO_VERSION: 404, NO_TAKES: 409, VOX_UNAVAILABLE: 502, NO_EPISODE_AUDIO: 502, NO_FFMPEG: 503,
 };
 
 export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number } {
@@ -112,6 +129,8 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
   const registry = createProviderRegistry({ env: opts.getEnv, runner: opts.runner, fetchImpl: opts.fetchImpl, platform: opts.platform, resolveOverride: opts.resolveOverride });
   const engine: Engine = createEngine({ root: opts.root, store, registry, now: opts.now });
   const now = opts.now ?? Date.now;
+  const audio: AudioService = createAudioService({ root: opts.root, store, getEnv: opts.getEnv, synth: opts.synth, probe: opts.probe, ffmpeg: opts.ffmpeg, now });
+  const withTakes = (segments: Segment[]) => attachTakes(segments, store.getTakes());
   let interruptedAtStart = 0;
   try { interruptedAtStart = engine.markInterrupted(); } catch { interruptedAtStart = 0; }
 
@@ -166,7 +185,8 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const p = getProject(q('id'));
       const versions = store.listVersions(p.id).map(v => ({ id: v.id, parentId: v.parentId, createdAt: v.createdAt, author: v.author, label: v.label, decision: v.decision }));
       const runs = store.listRuns(p.id).map(r => ({ ...r, events: undefined, eventCount: r.events.length, active: engine.isActive(r.id) }));
-      const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+      const stored = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+      const head = stored ? { ...stored, segments: withTakes(stored.segments) } : null;
       const stats: Record<string, unknown> = {};
       const analyses: Record<string, unknown> = {};
       const transcriptChanged: string[] = [];
@@ -216,7 +236,14 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const tag = String(body?.releaseTag || p.sourceTags[0]);
       if (!p.sourceTags.includes(tag)) throw new StepError('BAD_REQUEST', `${tag} is not a source of this project.`);
       const t = engine.transcript(tag);
-      const audioUrl = typeof body?.audioUrl === 'string' && /^https:\/\/github\.com\//.test(body.audioUrl) ? body.audioUrl : t.audioUrl;
+      let audioUrl = typeof body?.audioUrl === 'string' && /^https:\/\/github\.com\//.test(body.audioUrl) ? body.audioUrl : undefined;
+      if (!audioUrl) {
+        // Transcript times are episode times, so the cut must point into the full recording, not a clip file.
+        const env = opts.getEnv();
+        const r = await resolveEpisodeAudio(t, opts.fetchImpl ?? fetch, env.GITHUB_TOKEN);
+        if (r.ok === false) throw new StepError('NO_EPISODE_AUDIO', `Could not cut a clip: ${r.reason}`);
+        audioUrl = r.url;
+      }
       const clip = clipFromUtterances(t, String(body?.fromId), String(body?.toId || body?.fromId), p.speakerNames || {}, audioUrl);
       if (!clip) throw new StepError('BAD_REQUEST', 'Could not cut a clip: unknown utterance ids, or the episode has no audio URL.');
       if (!p.clips.some(c => c.clipId === clip.clipId)) p.clips.push(clip);
@@ -283,7 +310,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       if ((body?.parentId ?? null) !== p.headVersionId) throw new StepError('CONFLICT', 'This edit is based on an older version than the current head. Reload the project before saving.');
-      const segments = validateSegments(body?.segments, p);
+      const segments = withTakes(validateSegments(body?.segments, p)); // take fields come only from the take index
       const v: ScriptVersion = { id: newId('v'), parentId: p.headVersionId, projectId: p.id, createdAt: now(), author: 'logan', label: String(body?.label || 'Edit').slice(0, 80), segments };
       store.saveVersion(v);
       p.headVersionId = v.id;
@@ -311,7 +338,8 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       const { roleMap, mode, maxUsd } = resolveRoleMap(body);
-      const options = { critiqueOnly: !!body?.critiqueOnly, episodePass: body?.episodePass !== false, polish: !!body?.polish };
+      const spoken = !!body?.spoken;
+      const options = { critiqueOnly: !!body?.critiqueOnly, episodePass: spoken ? body?.episodePass === true : body?.episodePass !== false, polish: !!body?.polish, spoken };
       const run = engine.createRun(p, { roleMap, mode, maxUsd, targetSceneIds: Array.isArray(body?.targetSceneIds) ? body.targetSceneIds.map(String) : undefined, maxRounds: Number(body?.maxRounds) || undefined, options });
       engine.start(run);
       return send(res, 202, { ok: true, runId: run.id });
@@ -447,6 +475,62 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       });
     }
 
+    /* ------------------------------------ audio ------------------------------------ */
+
+    if (route === '/preview' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const stored = getVersion(p, body?.versionId || p.headVersionId);
+      const sceneId = typeof body?.sceneId === 'string' && body.sceneId ? body.sceneId : null;
+      const job = audio.startPreview(p, stored, sceneId);
+      return send(res, 202, { ok: true, job });
+    }
+    if (route === '/preview' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      return send(res, 200, { ok: true, job: audio.previewJob(p.id) });
+    }
+    if (route === '/preview/cancel' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      return send(res, 200, { ok: true, cancelled: audio.cancelPreview(p.id) });
+    }
+    if (route === '/render' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const v = getVersion(p, body?.versionId);
+      return send(res, 200, { ok: true, render: audio.saveManifest(p, v, body?.manifest) });
+    }
+    if (route === '/render/audio' && (method === 'PUT' || method === 'POST')) {
+      const p = getProject(q('projectId'));
+      const v = getVersion(p, q('versionId'));
+      const ct = String(req.headers['content-type'] || '');
+      if (!/^audio\/(wav|x-wav|wave)\b/.test(ct)) throw new StepError('BAD_REQUEST', 'Send the render as audio/wav.');
+      return send(res, 200, { ok: true, render: await audio.receiveWav(req, p, v.id) });
+    }
+    if (route === '/render/audio' && (method === 'GET' || method === 'HEAD')) {
+      const p = getProject(q('projectId'));
+      const versionId = String(q('versionId') || '');
+      if (!isSafeId(versionId)) throw new StepError('BAD_REQUEST', 'Invalid version id.');
+      return audio.serveWav(req, res, p.id, versionId);
+    }
+    if (route === '/render/manifest' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const versionId = String(q('versionId') || '');
+      if (!isSafeId(versionId)) throw new StepError('BAD_REQUEST', 'Invalid version id.');
+      const r = audio.readRender(p.id, versionId);
+      if (!r) throw new StepError('NOT_FOUND', 'No saved render for this version.');
+      res.setHeader('Content-Disposition', `attachment; filename="render-${p.id}-${versionId}.json"`);
+      return send(res, 200, r.manifest);
+    }
+    if (route === '/clip-audio' && (method === 'GET' || method === 'HEAD')) {
+      const p = getProject(q('projectId'));
+      return audio.serveClipCut(req, res, p, String(q('clipId') || ''));
+    }
+    if (route === '/renders' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      return send(res, 200, { ok: true, renders: audio.listRenders(p.id).map(r => ({ ...r, manifest: undefined, measured: r.manifest.measured ?? null, items: r.manifest.items.length, musicMarkers: r.manifest.musicMarkers.length })) });
+    }
+
     return send(res, 404, { ok: false, code: 'NOT_FOUND', message: `No route ${method} ${route}.` });
   }
 
@@ -463,7 +547,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       return send(res, 500, { ok: false, code: 'INTERNAL', message: e?.message || String(e) });
     }
   };
-  return Object.assign(middleware, { engine, store, registry });
+  return Object.assign(middleware, { engine, store, registry, audio });
 }
 
 function sanitizeNames(v: unknown): Record<string, string> {

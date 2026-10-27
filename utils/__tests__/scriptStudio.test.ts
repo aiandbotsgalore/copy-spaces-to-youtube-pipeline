@@ -11,7 +11,7 @@ import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createScriptStudioMiddleware } from '../../server/scriptStudioMiddleware';
 import { chunkUtterances, readTranscript } from '../../server/scriptData';
-import { makeFakeCli, type CliCall, type Responder } from './helpers/fakeCli';
+import { FULL_EPISODE_URL, makeFakeCli, releaseResponse, type CliCall, type Responder } from './helpers/fakeCli';
 import type { RunOutcome } from '../../server/scriptProviders';
 
 const TAG = '20260826_1AxRnZYBVdrxl';
@@ -26,7 +26,8 @@ let mw: ReturnType<typeof createScriptStudioMiddleware>;
 const calls: CliCall[] = [];
 let critiqueRound = 0;
 const gatewayBodies: any[] = [];
-const fetchImpl = (async (_url: any, init: any) => {
+const fetchImpl = (async (url: any, init: any) => {
+  if (String(url).startsWith('https://api.github.com/repos/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/tags/')) return releaseResponse();
   const body = JSON.parse(init.body);
   gatewayBodies.push(body);
   const items = JSON.parse(/<<<TRANSCRIPT_DATA[^\n]*\n([\s\S]*?)\n<<<END_TRANSCRIPT_DATA>>>/.exec(body.messages[1].content)![1]);
@@ -135,7 +136,7 @@ describe('Script Studio API end to end', () => {
     const u = await api('POST', '/project/update', { id: projectId, format: 'narrative_doc' });
     expect(u.json.project.format).toBe('narrative_doc');
     const c = await api('POST', '/project/add-clip', { id: projectId, fromId: 'u92', toId: 'u93' });
-    expect(c.json.clip).toMatchObject({ clipId: CLIP_ID, audioOffsetSec: 1207.94, speaker: 'Oor' });
+    expect(c.json.clip).toMatchObject({ clipId: CLIP_ID, audioOffsetSec: 1207.94, speaker: 'Oor', audioUrl: FULL_EPISODE_URL });
   });
   it('analyses with code-validated moments', async () => {
     const r = await api('POST', '/analyze', { projectId });

@@ -143,3 +143,57 @@ export function createVoxSynthesizeHandler(deps: VoxDeps) {
     });
   };
 }
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Async synthesis for Script Studio previews                                                         */
+/* ------------------------------------------------------------------------------------------------ */
+
+/** Writes outFullPath or rejects with the real error (exit code and the script's last stderr lines). */
+export type AsyncSynth = (args: { text: string; speaker: string; outFullPath: string; env: Record<string, string | undefined> }) => Promise<void>;
+
+/**
+ * Same HF Space script as /api/vox/synthesize, but spawned asynchronously so a long take never blocks the
+ * dev server. Tries `python`, then `python3` when `python` is not on PATH.
+ */
+export function defaultRunHfSynthAsync(rootDir: string, timeoutMs = 180_000): AsyncSynth {
+  const pyScript = path.resolve(rootDir, 'scripts', 'cloud_voice', 'synthesize_hf.py');
+  const runWith = (bin: string, args: string[], env: NodeJS.ProcessEnv) => new Promise<void>((resolve, reject) => {
+    child_process.execFile(bin, args, { timeout: timeoutMs, env, maxBuffer: 4 * 1024 * 1024 }, (err, _stdout, stderr) => {
+      if (!err) return resolve();
+      const e: any = err;
+      e.stderr = String(stderr || '');
+      reject(e);
+    });
+  });
+  return async ({ text, speaker, outFullPath, env }) => {
+    const args = [pyScript, '--text-b64', Buffer.from(text, 'utf8').toString('base64'), '--speaker', speaker, '--out', outFullPath];
+    const fullEnv = { ...process.env, ...env } as NodeJS.ProcessEnv;
+    try {
+      await runWith('python', args, fullEnv);
+    } catch (e: any) {
+      if (e?.code !== 'ENOENT') throw e;
+      await runWith('python3', args, fullEnv);
+    }
+  };
+}
+
+/** Async ffprobe duration in seconds (rounded to 0.01), or null when it cannot be probed. */
+export function defaultProbeDurationAsync(fullPath: string): Promise<number | null> {
+  return new Promise(resolve => {
+    child_process.execFile('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', fullPath], { timeout: 30_000 }, (err, stdout) => {
+      if (err) return resolve(null);
+      const d = parseFloat(String(stdout).trim());
+      resolve(Number.isFinite(d) && d > 0 ? Math.round(d * 100) / 100 : null);
+    });
+  });
+}
+
+/** Short, readable reason for a failed synthesis (exit 2 = HF queue full, exit 3 = ZeroGPU quota). */
+export function synthFailureMessage(e: any): string {
+  const stderr = e?.stderr ? String(e.stderr).trim().split('\n').slice(-3).join(' ').slice(-400) : '';
+  if (e?.code === 'ENOENT') return 'Python is not installed or not on PATH.';
+  if (e?.killed) return 'The Hugging Face Space did not answer in time.';
+  if (e?.code === 2) return `The Hugging Face Space queue is full. ${stderr}`.trim();
+  if (e?.code === 3) return `The ZeroGPU quota of the Hugging Face Space is used up. ${stderr}`.trim();
+  return `${e?.message || e}${stderr && !String(e?.message || '').includes(stderr) ? ` (${stderr})` : ''}`;
+}

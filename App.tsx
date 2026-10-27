@@ -631,7 +631,7 @@ function AppContent() {
         )}
 
         {activePanel === 'script-studio' && (
-          <ScriptStudio />
+          <ScriptStudio onOpenMontage={() => setActivePanel('montage')} />
         )}
 
         {activePanel === 'investigative-radar' && (

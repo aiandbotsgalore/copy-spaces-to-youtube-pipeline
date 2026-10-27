@@ -10,6 +10,7 @@
  *  - applyPatch: replaces one scene's blocks; refuses to drop or edit a locked block, or to name an
  *    unknown block or clip. Locked blocks are never silently re-inserted.
  */
+import { hasValidTake } from './scriptAudio';
 import { findExcerpt, normalizeText } from './directorValidate';
 import type {
   Block, Critique, EpisodeFormat, EvidenceRef, GateResult, JudgeConsensus, JudgeWinner, NarrativeFunction,
@@ -81,7 +82,7 @@ export const wordCount = (s: string) => (s || '').trim().split(/\s+/).filter(Boo
 export function blockSeconds(b: Block, wpm = DEFAULT_NARRATION_WPM): { sec: number; estimated: boolean } {
   switch (b.kind) {
     case 'narration':
-      if (b.takeSec && b.takeSec > 0) return { sec: b.takeSec, estimated: false };
+      if (hasValidTake(b)) return { sec: b.takeSec, estimated: false };
       return { sec: (wordCount(b.text) / wpm) * 60, estimated: true };
     case 'clip': return { sec: Math.max(0, b.outSec - b.inSec), estimated: false };
     case 'pause': return { sec: Math.max(0, b.sec), estimated: false };
@@ -132,7 +133,12 @@ export function findScene(segments: Segment[], sceneId: string): { segment: Segm
   return null;
 }
 
-const stable = (b: Block) => JSON.stringify(b);
+/** Block content for comparisons. Vox take fields are audio metadata derived from the text, not content. */
+const stable = (b: Block) => {
+  if (b.kind !== 'narration') return JSON.stringify(b);
+  const { takeUrl: _u, takeSec: _s, takeTextHash: _h, ...rest } = b;
+  return JSON.stringify(rest);
+};
 
 export function locksIntact(baseline: Segment[], candidate: Segment[]): string[] {
   const cand = new Map(allBlocks(candidate).map(b => [b.id, b]));
