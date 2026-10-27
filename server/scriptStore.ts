@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import type { TakeIndex, TakeRecord } from '../utils/scriptAudio';
 import type { EditorialMemory, EpisodeAnalysis, ScriptProject, ScriptRun, ScriptVersion } from '../utils/scriptTypes';
 
 export class StoreError extends Error {
@@ -107,6 +108,22 @@ export function createScriptStore(root: string) {
     readQualityHistory(): Record<string, unknown>[] {
       try { return fs.readFileSync(p('quality-history.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch { return []; }
     },
+    /** Vox take index (text hash -> take). Takes whose file is gone are dropped on read. */
+    getTakes(): TakeIndex {
+      const idx = readJson<TakeIndex>(p('takes.json')) || {};
+      const out: TakeIndex = {};
+      for (const [h, t] of Object.entries(idx)) {
+        if (t && typeof t.url === 'string' && t.url.startsWith('/output/vox/') && fs.existsSync(path.join(root, 'public', t.url))) out[h] = t;
+      }
+      return out;
+    },
+    saveTake(t: TakeRecord) {
+      const idx = readJson<TakeIndex>(p('takes.json')) || {};
+      idx[t.hash] = t;
+      writeJson(p('takes.json'), idx);
+    },
+    renderDir: (projectId: string) => p('projects', must(projectId), 'renders'),
+
     readLog(runId: string): Record<string, unknown>[] {
       try {
         return fs.readFileSync(p('logs', `${must(runId)}.jsonl`), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));

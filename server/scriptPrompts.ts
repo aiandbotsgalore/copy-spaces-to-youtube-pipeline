@@ -17,6 +17,7 @@ export const PROMPT_VERSIONS = {
   outline: 'outline.v2',
   draft: 'draft.v2',
   critique: 'critique.v2',
+  critiqueSpoken: 'critique-spoken.v1',
   revise: 'revise.v2',
   judge: 'judge.v2',
   episodeCritique: 'episode-critique.v1',
@@ -220,9 +221,9 @@ ${dataBlock(args.evidence)}`,
 
 export function critiquePrompt(args: { format: EpisodeFormat | null; segment: string; neighbours: string; localNotes: string; memory: string; spoken?: boolean }): Prompt {
   return {
-    version: PROMPT_VERSIONS.critique, schemaName: 'critique', schema: CRITIQUE_SCHEMA, maxTokens: 1500,
+    version: args.spoken ? PROMPT_VERSIONS.critiqueSpoken : PROMPT_VERSIONS.critique, schemaName: 'critique', schema: CRITIQUE_SCHEMA, maxTokens: 1500,
     system: `${BASE_RULES}
-Task: critique the scenes of one script segment${args.spoken ? ' as SPOKEN audio (rhythm, breath points, repeated transitions, narration-to-clip handoffs, rushed lines)' : ''}. At most 3 critiques per scene. Each names the scene id in targetId, the issue, its consequence for the listener, the rubric criterion, a severity (blocker: factual or fairness problem or broken flow; major: clearly weakens the scene; minor: polish) and a concrete fix. Return an empty list if nothing is worth changing. Locked blocks are Logan's and are not critiqued.
+Task: critique the scenes of one script segment${args.spoken ? ` as SPOKEN audio: rhythm, breath points, repeated transitions, rushed or dragging lines, and the handoffs between narration and clips. Each block carries its length in seconds; durationSource "vox" is measured from the real narration take, "estimated" is a word-count estimate, so do not rest a pacing critique on an estimated length alone. wordsPerSec is given for measured takes. Critique how it will sound, not the facts` : ''}. At most 3 critiques per scene. Each names the scene id in targetId, the issue, its consequence for the listener, the rubric criterion, a severity (blocker: factual or fairness problem or broken flow; major: clearly weakens the scene; minor: polish) and a concrete fix. Return an empty list if nothing is worth changing. Locked blocks are Logan's and are not critiqued.
 ${formatBrief(args.format)}`,
     user: `Local checks already run (do not repeat them, but weigh them):
 ${args.localNotes || '(none)'}

@@ -1,6 +1,7 @@
 /** Browser client for the Script Studio API (/api/script, served by the app's own Vite server). */
 import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
+import type { RenderManifest } from './scriptCompile';
 import type { EpisodeAnalysis, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment } from './scriptTypes';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
@@ -37,6 +38,16 @@ export interface ProjectResponse {
 export type { BlockDiff };
 export interface RunResponse { run: ScriptRun & { active: boolean }; candidates: { id: string; parentId: string | null; decision?: ScriptVersion['decision']; diff: BlockDiff[] }[]; diffFromBase: BlockDiff[] }
 export interface RoleChoice { mode: 'subscription' | 'fallback'; roleMap: Partial<RoleMap>; maxUsd: number; episodePass?: boolean; polish?: boolean }
+export interface PreviewJob {
+  id: string; projectId: string; versionId: string; sceneId: string | null; state: 'running' | 'finished' | 'failed' | 'cancelled';
+  total: number; done: number; cached: number; synthesized: number; current: string | null;
+  failures: { blockId: string; message: string }[]; unavailable: string | null; startedAt: number; finishedAt: number | null;
+}
+export interface RenderSummary {
+  versionId: string; createdAt: number; totalSec: number; status: 'pending' | 'complete'; items: number; musicMarkers: number;
+  measured: { integratedLufs: number; samplePeakDb: number } | null;
+  audio?: { bytes: number; durationSec: number; sampleRate: number; channels: number; savedAt: number };
+}
 export type Tagging = { tagged: number; cached: boolean } | { error: string; code: string };
 
 export const scriptApi = {
@@ -55,9 +66,9 @@ export const scriptApi = {
   saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult }>('POST', '/version', { projectId, parentId, segments, label }),
   version: (projectId: string, id: string) => call<{ version: ScriptVersion; diff: BlockDiff[] }>('GET', `/version?projectId=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`),
   setHead: (projectId: string, versionId: string) => call<{ project: ScriptProject }>('POST', '/head', { projectId, versionId }),
-  refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
-    projectId, ...roles, targetSceneIds: opts.targetSceneIds, critiqueOnly: !!opts.critiqueOnly,
-    episodePass: roles.episodePass !== false, polish: roles.mode === 'fallback' && !!roles.polish,
+  refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean; spoken?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
+    projectId, ...roles, targetSceneIds: opts.targetSceneIds, critiqueOnly: !!opts.critiqueOnly, spoken: !!opts.spoken,
+    episodePass: opts.spoken ? false : roles.episodePass !== false, polish: !opts.spoken && roles.mode === 'fallback' && !!roles.polish,
   }),
   run: (projectId: string, runId: string) => call<RunResponse>('GET', `/run?projectId=${encodeURIComponent(projectId)}&runId=${encodeURIComponent(runId)}`),
   cancel: (projectId: string, runId: string) => call<{ ok: boolean }>('POST', '/cancel', { projectId, runId }),
@@ -66,6 +77,21 @@ export const scriptApi = {
   quality: () => call<{ report: QualityReport; prompts: PromptOutcomeRow[]; calls: CallStatsRow[]; history: { at: number; pairs: number; conclusive: number; agreementRate: number | null; kappa: number | null }[]; currentPromptVersions: Record<string, string> }>('GET', '/quality'),
   logs: () => call<{ logs: LogSummary[] }>('GET', '/logs'),
   log: (runId: string) => call<{ entries: LogEntry[] }>('GET', `/log?runId=${encodeURIComponent(runId)}`),
+  preview: (projectId: string, sceneId?: string) => call<{ job: PreviewJob }>('POST', '/preview', { projectId, sceneId }),
+  previewStatus: (projectId: string) => call<{ job: PreviewJob | null }>('GET', `/preview?projectId=${encodeURIComponent(projectId)}`),
+  cancelPreview: (projectId: string) => call<{ cancelled: boolean }>('POST', '/preview/cancel', { projectId }),
+  saveRenderManifest: (projectId: string, versionId: string, manifest: RenderManifest) => call<{ render: RenderSummary }>('POST', '/render', { projectId, versionId, manifest }),
+  async uploadRender(projectId: string, versionId: string, wav: Blob): Promise<RenderSummary> {
+    const res = await fetch(`/api/script/render/audio?projectId=${encodeURIComponent(projectId)}&versionId=${encodeURIComponent(versionId)}`, { method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, body: wav });
+    let j: any = null;
+    try { j = await res.json(); } catch { /* not JSON */ }
+    if (!res.ok || !j?.ok) throw new ScriptApiError(res.status, j?.code || `HTTP_${res.status}`, j?.message || `Saving the render failed (${res.status}).`);
+    return j.render;
+  },
+  clipAudioUrl: (projectId: string, clipId: string) => `/api/script/clip-audio?projectId=${encodeURIComponent(projectId)}&clipId=${encodeURIComponent(clipId)}`,
+  renders: (projectId: string) => call<{ renders: RenderSummary[] }>('GET', `/renders?projectId=${encodeURIComponent(projectId)}`),
+  renderAudioUrl: (projectId: string, versionId: string) => `/api/script/render/audio?projectId=${encodeURIComponent(projectId)}&versionId=${encodeURIComponent(versionId)}`,
+  renderManifestUrl: (projectId: string, versionId: string) => `/api/script/render/manifest?projectId=${encodeURIComponent(projectId)}&versionId=${encodeURIComponent(versionId)}`,
   exportUrl: (projectId: string) => `/api/script/export?projectId=${encodeURIComponent(projectId)}`,
   importProject: (data: unknown, overwrite: boolean) => call<{ project: ScriptProject }>('POST', '/import', { ...(data as object), overwrite }),
 };
