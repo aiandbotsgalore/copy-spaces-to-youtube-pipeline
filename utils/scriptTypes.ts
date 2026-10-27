@@ -121,7 +121,7 @@ export interface ScriptProject {
 export type RunStatus = 'queued' | 'running' | 'paused_limit' | 'interrupted' | 'cancelled' | 'failed' | 'finished';
 export type StopReason = 'no_major_issues' | 'marginal_gains' | 'max_rounds' | 'budget' | 'cancelled' | 'error' | 'critique_only';
 export type RunStage = 'scenes' | 'episode' | 'polish' | 'done';
-export interface RunOptions { critiqueOnly?: boolean; episodePass?: boolean; polish?: boolean }
+export interface RunOptions { critiqueOnly?: boolean; episodePass?: boolean; polish?: boolean; spoken?: boolean }
 
 export interface RunEvent {
   seq: number; at: number;
