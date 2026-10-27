@@ -1,5 +1,6 @@
 /** Browser client for the Script Studio API (/api/script, served by the app's own Vite server). */
 import type { BlockDiff } from './scriptGates';
+import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
 import type { EpisodeAnalysis, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment } from './scriptTypes';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
@@ -62,6 +63,9 @@ export const scriptApi = {
   cancel: (projectId: string, runId: string) => call<{ ok: boolean }>('POST', '/cancel', { projectId, runId }),
   resume: (projectId: string, runId: string, switchRole?: { role: string; spec: string }, maxUsd?: number) => call<{ runId: string }>('POST', '/resume', { projectId, runId, switchRole, maxUsd }),
   decide: (projectId: string, candidateId: string, decision: 'accept' | 'reject', reason = '') => call<{ project: ScriptProject }>('POST', '/decide', { projectId, candidateId, decision, reason }),
+  quality: () => call<{ report: QualityReport; prompts: PromptOutcomeRow[]; calls: CallStatsRow[]; history: { at: number; pairs: number; conclusive: number; agreementRate: number | null; kappa: number | null }[]; currentPromptVersions: Record<string, string> }>('GET', '/quality'),
+  logs: () => call<{ logs: LogSummary[] }>('GET', '/logs'),
+  log: (runId: string) => call<{ entries: LogEntry[] }>('GET', `/log?runId=${encodeURIComponent(runId)}`),
   exportUrl: (projectId: string) => `/api/script/export?projectId=${encodeURIComponent(projectId)}`,
   importProject: (data: unknown, overwrite: boolean) => call<{ project: ScriptProject }>('POST', '/import', { ...(data as object), overwrite }),
 };
