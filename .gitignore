@@ -63,3 +63,6 @@ podcast*.xml
 *.zip
 *.lnk
 
+
+real_avatar_output/
+.agents/
