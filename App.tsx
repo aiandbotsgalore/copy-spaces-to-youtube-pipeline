@@ -25,6 +25,7 @@ const TranscriptPanel = React.lazy(() => import('./components/TranscriptPanel'))
 const ClipsPanel = React.lazy(() => import('./components/ClipsPanel').then(m => ({ default: m.ClipsPanel })));
 const InvestigativeRadar = React.lazy(() => import('./components/InvestigativeRadar').then(m => ({ default: m.InvestigativeRadar })));
 const MontageStudio = React.lazy(() => import('./components/MontageStudio'));
+const ScriptStudio = React.lazy(() => import('./components/ScriptStudio'));
 const VoiceProfileLibrary = React.lazy(() => import('./components/VoiceProfileLibrary'));
 const VoxStudio = React.lazy(() => import('./components/VoxStudio'));
 const AvatarStudio = React.lazy(() => import('./components/AvatarStudio'));
@@ -169,6 +170,7 @@ type Panel =
   | 'investigative-radar'
   | 'clips'
   | 'montage'
+  | 'script-studio'
   | 'voice-profiles'
   | 'vox-studio'
   | 'avatar-studio'
@@ -364,6 +366,12 @@ function AppContent() {
                 label="Montage Studio"
                 active={activePanel === 'montage'}
                 onClick={() => setActivePanel('montage')}
+              />
+              <NavItem
+                icon={<FileText size={15} />}
+                label="Script Studio"
+                active={activePanel === 'script-studio'}
+                onClick={() => setActivePanel('script-studio')}
               />
               <NavItem
                 icon={<AudioWaveform size={15} />}
@@ -620,6 +628,10 @@ function AppContent() {
 
         {activePanel === 'montage' && (
           <MontageStudio config={config} />
+        )}
+
+        {activePanel === 'script-studio' && (
+          <ScriptStudio />
         )}
 
         {activePanel === 'investigative-radar' && (
