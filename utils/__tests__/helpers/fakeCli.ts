@@ -15,6 +15,7 @@ export function schemaKind(schema: any): string {
     'dynamics,ledger,moments,openQuestions,themes': 'analysis',
     'dynamics,keepMomentIds,openQuestions,themes': 'reduce',
     tags: 'clipTags',
+    structuralCritiques: 'structuralCritiques',
     segments: 'outline',
     scenes: 'draft',
     'blocks,summary': 'revise',

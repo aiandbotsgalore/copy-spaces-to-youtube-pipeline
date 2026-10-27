@@ -4,14 +4,17 @@
  * injected process runners and no real CLI or network.
  */
 import { EventEmitter } from 'node:events';
+import path from 'node:path';
 import type {
-  Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent,
-  ScriptProject, ScriptRun, ScriptVersion, Segment, StudioClip,
+  Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
+  ScriptProject, ScriptRun, ScriptVersion, Segment, StudioClip, NarrativeFunction,
 } from '../utils/scriptTypes';
+import { NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 import {
-  allBlocks, anonymousScene, applyPatch, boundaryLines, changedBlockIds, codeGates, findScene, judgeConsensus,
-  localTextChecks, materializeBlocks, mostConsequential, verifyVerbatim, type PatchBlock, type TrimFn,
+  allBlocks, anonymousScene, applyPatch, boundaryLines, changedBlockIds, codeGates, episodeOutlineView, findScene, judgeConsensus,
+  localTextChecks, materializeBlocks, mostConsequential, reorderScenes, verifyVerbatim, type PatchBlock, type TrimFn,
 } from '../utils/scriptGates';
+import { formatChecks } from '../utils/scriptFormats';
 import { makeClipTrim } from '../utils/scriptTrim';
 import * as P from './scriptPrompts';
 import {
@@ -166,14 +169,24 @@ export function createEngine(deps: EngineDeps) {
 
   const clipView = (c: StudioClip, maxText = 280) => ({ clipId: c.clipId, title: c.title, speaker: c.speaker, fn: c.fn ?? null, durationSec: c.durationSec, text: c.text.slice(0, maxText) });
 
-  async function tagClips(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx): Promise<StudioClip[]> {
-    if (!project.clips.length) return project.clips;
+  /** Tags clips with a narrative function (one analyst call). Logan's own tags are kept. Saves the project. */
+  async function tagClips(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx, force = false): Promise<{ project: ScriptProject; tagged: number; cached: boolean }> {
+    const key = `${analysis.transcriptHash}|${P.PROMPT_VERSIONS.clipTags}|${project.clips.map(c => c.clipId).sort().join(',')}`;
+    const open = project.clips.filter(c => c.fnRationale !== 'Set by Logan.');
+    if (!open.length || (!force && project.clipTagsKey === key)) return { project, tagged: 0, cached: project.clipTagsKey === key };
     const summary = JSON.stringify({ themes: analysis.themes.map(t => ({ label: t.label, summary: t.summary })), moments: analysis.moments.slice(0, 40).map(m => ({ kind: m.kind, why: m.why })) });
-    const r = await call('analyst', P.clipTagsPrompt({ analysisSummary: summary, clips: JSON.stringify(project.clips.map(c => clipView(c))) }), { ...ctx, label: 'clip tags' });
+    const r = await call('analyst', P.clipTagsPrompt({ analysisSummary: summary, clips: JSON.stringify(open.map(c => clipView(c))) }), { ...ctx, label: 'clip tags' });
     if (!r.ok) throw failToError(r, 'Clip tagging');
-    const tags = new Map<string, { fn: any; rationale: string }>();
-    for (const t of (r.json as any)?.tags || []) if (t?.clipId) tags.set(String(t.clipId), { fn: t.fn, rationale: String(t.rationale || '') });
-    return project.clips.map(c => (tags.has(c.clipId) ? { ...c, fn: tags.get(c.clipId)!.fn, fnRationale: tags.get(c.clipId)!.rationale } : c));
+    const ids = new Set(open.map(c => c.clipId));
+    const tags = new Map<string, { fn: NarrativeFunction; rationale: string }>();
+    for (const t of (r.json as any)?.tags || []) {
+      if (t?.clipId && ids.has(String(t.clipId)) && NARRATIVE_FUNCTIONS.includes(t.fn)) tags.set(String(t.clipId), { fn: t.fn, rationale: String(t.rationale || '') });
+    }
+    project.clips = project.clips.map(c => (tags.has(c.clipId) ? { ...c, fn: tags.get(c.clipId)!.fn, fnRationale: tags.get(c.clipId)!.rationale } : c));
+    project.clipTagsKey = key;
+    project.updatedAt = now();
+    deps.store.saveProject(project);
+    return { project, tagged: tags.size, cached: false };
   }
 
   /* ---------------------------------------------------------------------------------------------- */
@@ -244,7 +257,20 @@ export function createEngine(deps: EngineDeps) {
   function gateContext(project: ScriptProject, baseline: Segment[]) {
     const tr: Record<string, ReturnType<typeof namedSegments>> = {};
     for (const tag of project.sourceTags) { try { tr[tag] = namedSegments(transcript(tag), project.speakerNames || {}); } catch { /* missing */ } }
-    return { baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])), targetRuntimeSec: project.targetRuntimeSec, format: project.format as EpisodeFormat | null };
+    return {
+      baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])), targetRuntimeSec: project.targetRuntimeSec, format: project.format as EpisodeFormat | null,
+      formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
+    };
+  }
+
+  function formatOpts(project: ScriptProject) {
+    return { clipTags: Object.fromEntries(project.clips.map(c => [c.clipId, c.releaseTag])), sourceCount: project.sourceTags.length };
+  }
+
+  /** The style card text for the polish role (same sources as the draft). */
+  function draftStyleFor(): string {
+    const card = deps.store.readJson<{ text: string }>(path.join(deps.store.base, 'style-card.json'));
+    return card?.text || '';
   }
 
   async function draft(project: ScriptProject, base: ScriptVersion, analysis: EpisodeAnalysis | null, ctx: CallCtx, styleCard = '', approvedPassages = ''): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
@@ -297,7 +323,8 @@ export function createEngine(deps: EngineDeps) {
   }
   function save(run: ScriptRun) { deps.store.saveRun(run); }
 
-  function createRun(project: ScriptProject, opts: { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number; targetSceneIds?: string[]; maxRounds?: number }): ScriptRun {
+  function createRun(project: ScriptProject, opts: { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number; targetSceneIds?: string[]; maxRounds?: number; options?: RunOptions }): ScriptRun {
+    if (opts.options?.polish && !opts.roleMap.polish) throw new StepError('NO_ROLE', 'Polish needs a polish model (fallback mode, ci:claude-sonnet-5.5).');
     const cross = verifyCrossFamily(opts.roleMap);
     if (cross.ok === false) throw new StepError('CROSS_FAMILY', cross.reason);
     if (!project.headVersionId) throw new StepError('NO_SCRIPT', 'The project has no script version to refine yet.');
@@ -308,6 +335,7 @@ export function createEngine(deps: EngineDeps) {
       maxUsd, spentUsd: 0, roleMap: opts.roleMap, baseVersionId: project.headVersionId, bestVersionId: project.headVersionId,
       currentRound: 0, maxRounds: Math.min(MAX_ROUNDS, Math.max(1, opts.maxRounds || MAX_ROUNDS)), staleCount: 0,
       targetSceneIds: opts.targetSceneIds?.length ? opts.targetSceneIds : undefined, refinedSceneIds: [], candidateIds: [], events: [],
+      stage: 'scenes', options: { critiqueOnly: !!opts.options?.critiqueOnly, episodePass: opts.options?.episodePass !== false, polish: !!opts.options?.polish },
     };
     emit(run, { type: 'status', message: 'Run created.' });
     save(run);
@@ -343,7 +371,8 @@ export function createEngine(deps: EngineDeps) {
     const syncBudget = () => { run.spentUsd = budget.spentUsd; };
     run.status = 'running';
     run.pausedInfo = undefined;
-    emit(run, { type: 'status', message: run.currentRound > 0 ? `Resumed at round ${run.currentRound + 1}.` : 'Started.' });
+    run.stage ??= 'scenes';
+    emit(run, { type: 'status', message: run.currentRound > 0 || run.stage !== 'scenes' ? `Resumed (${run.stage === 'scenes' ? `round ${run.currentRound + 1}` : `${run.stage} pass`}).` : 'Started.' });
     save(run);
 
     const handleFail = (role: string, r: Extract<CompleteResult, { ok: false }>): 'pause' | 'budget' | 'cancel' | 'skip' => {
@@ -353,6 +382,13 @@ export function createEngine(deps: EngineDeps) {
       if (r.code === 'BUDGET_EXCEEDED') return 'budget';
       if (PAUSE_CODES.has(r.code)) { pause(run, role, r); return 'pause'; }
       return 'skip';
+    };
+    /** Handles a failed call that ends the run (pause, cancel, budget). Returns true when the job must stop. */
+    const halted = (h: ReturnType<typeof handleFail>, budgetMsg: string): boolean => {
+      if (h === 'pause') return true;
+      if (h === 'cancel') { finish(run, 'cancelled', 'Cancelled.'); return true; }
+      if (h === 'budget') { finish(run, 'budget', budgetMsg); return true; }
+      return false;
     };
     const okCall = (role: string, r: Extract<CompleteResult, { ok: true }>, what: string) => {
       syncBudget();
@@ -369,141 +405,272 @@ export function createEngine(deps: EngineDeps) {
       if (!loaded) throw new StepError('NO_VERSION', `Version ${run.bestVersionId} is missing.`);
       let best: ScriptVersion = loaded;
       const targetIds = new Set(run.targetSceneIds || best.segments.flatMap(s => s.scenes.map(sc => sc.id)));
+      const notRefined = () => [...targetIds].filter(id => !run.refinedSceneIds.includes(id)).join(', ') || 'none';
 
-      for (let round = run.currentRound; round < run.maxRounds; round++) {
-        emit(run, { type: 'round', message: `Round ${round + 1} of ${run.maxRounds}.` });
-        // CRITIQUE: one call per segment that contains target scenes; locked blocks excluded.
-        const crits: Critique[] = [];
-        for (let si = 0; si < best.segments.length; si++) {
-          const seg = best.segments[si];
-          const scenes = seg.scenes.filter(sc => targetIds.has(sc.id));
-          if (!scenes.length) continue;
-          const view = { segmentId: seg.id, title: seg.title, scenes: scenes.map(sc => ({ sceneId: sc.id, title: sc.title, purpose: sc.purpose, blocks: sc.blocks.filter(b => !b.locked).map(b => anonymousBlock(b, clipsById)) })) };
-          const prev = boundaryLines(best.segments[si - 1]?.scenes.slice(-1)[0]);
-          const next = boundaryLines(best.segments[si + 1]?.scenes[0]);
-          const neighbours = [prev ? `Before: ...${prev.last}` : '', next ? `After: ${next.first}...` : ''].filter(Boolean).join('\n');
-          const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: scenes.flatMap(localTextChecks).join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n') }), ctxFor(`critique ${seg.title}`));
-          if (!r.ok) {
-            const h = handleFail('critic', r);
-            if (h === 'pause') return;
-            if (h === 'cancel') return finish(run, 'cancelled', 'Cancelled.');
-            if (h === 'budget') return finish(run, 'budget', `Stopped at budget. Scenes not yet refined: ${[...targetIds].filter(id => !run.refinedSceneIds.includes(id)).join(', ') || 'none'}.`);
-            emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
-            continue;
-          }
-          okCall('critic', r, `critiqued "${seg.title}"`);
-          const sceneIds = new Set(scenes.map(s => s.id));
-          for (const c of (r.json as any)?.critiques || []) {
-            if (!sceneIds.has(String(c?.targetId))) continue;
-            crits.push({ id: newId('cr'), versionId: best.id, level: 'scene', targetId: String(c.targetId), issue: String(c.issue), consequence: String(c.consequence), criterion: c.criterion, severity: c.severity, proposedFix: String(c.proposedFix) });
-          }
+      /** Fact check of changed claims; returns true when the run must stop. */
+      const factcheck = async (cand: ScriptVersion, changed: Set<string>, decision: RefinementDecision): Promise<boolean> => {
+        const claims = allBlocks(cand.segments).filter(b => b.kind === 'narration' && changed.has(b.id) && b.claims.length)
+          .map((b, index) => ({ index, narration: (b as any).text, excerpts: (b as any).claims.map((c: any) => `${c.speaker}: ${c.verbatim}`) }));
+        if (!claims.length) return false;
+        const fc = await call('factcheck', P.factcheckPrompt({ claims: JSON.stringify(claims) }), ctxFor('fact check'));
+        if (!fc.ok) {
+          const h = handleFail('factcheck', fc);
+          if (h === 'pause' || h === 'cancel') { if (h === 'cancel') finish(run, 'cancelled', 'Cancelled.'); return true; }
+          decision.notJudged = `Fact check failed: ${fc.code}: ${fc.message}`;
+          return false;
         }
-        emit(run, { type: 'critique', message: `${crits.length} critiques.`, data: crits });
-        save(run);
-        const target = mostConsequential(crits);
-        if (!target || target.severity === 'minor') return finish(run, 'no_major_issues', target ? 'Only minor critiques left.' : 'No critiques left.');
+        okCall('factcheck', fc, `checked ${claims.length} claims`);
+        const labels = ((fc.json as any)?.claims || []).map((c: any) => ({ claim: claims[c.index]?.narration?.slice(0, 200) || `#${c.index}`, label: c.label, note: String(c.note || '') }));
+        decision.gates.factcheck = labels;
+        const bad = labels.filter((l: any) => l.label !== 'supported');
+        if (bad.length) { decision.gates.factual = 'fail'; decision.gates.failures.push(...bad.map((l: any) => `Fact check: "${l.claim.slice(0, 80)}" is ${l.label}: ${l.note}`)); }
+        return false;
+      };
 
-        // REVISE the one target scene.
-        const loc = findScene(best.segments, target.targetId)!;
-        const lockedIds = loc.scene.blocks.filter(b => b.locked).map(b => b.id);
-        const neighbourScenes = [loc.segment.scenes[loc.sceneIndex - 1], loc.segment.scenes[loc.sceneIndex + 1]];
-        const neighbours = neighbourScenes.map((s, i) => { const b = boundaryLines(s); return b ? `${i === 0 ? 'Before' : 'After'}: ${i === 0 ? b.last : b.first}` : ''; }).filter(Boolean).join('\n');
-        const sceneClips = [...new Set([...(loc.scene.suggestedClipIds || []), ...loc.scene.blocks.filter(b => b.kind === 'clip').map(b => (b as any).clipId)])].map(id => clipsById[id]).filter(Boolean);
-        const claimUtts = loc.scene.blocks.flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
-          const t = transcript(c.releaseTag);
-          return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => u.id);
-        });
-        const rev = await call('reviser', P.revisePrompt({
-          format: project.format, critique: JSON.stringify(target), neighbours, lockedIds,
-          scene: JSON.stringify({ sceneId: loc.scene.id, title: loc.scene.title, purpose: loc.scene.purpose, blocks: loc.scene.blocks }),
-          evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200))),
-          styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'),
-        }), ctxFor(`revise ${loc.scene.title}`));
-        if (!rev.ok) {
-          const h = handleFail('reviser', rev);
-          if (h === 'pause') return;
-          if (h === 'cancel') return finish(run, 'cancelled', 'Cancelled.');
-          if (h === 'budget') return finish(run, 'budget', 'Stopped at budget.');
-          run.staleCount++; run.currentRound = round + 1; save(run);
-          if (run.staleCount >= 2) break;
-          continue;
-        }
-        okCall('reviser', rev, `revised "${loc.scene.title}"`);
-        const conv = toPatch((rev.json as any)?.blocks || [], project);
-        const patched: { ok: true; version: ScriptVersion } | { ok: false; reason: string } = conv.ok
-          ? await applyPatch(best, loc.scene.id, conv.patch, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'reject', newVersionId: newId('v'), now: now() })
-          : conv;
-        if (patched.ok === false) {
-          emit(run, { type: 'gates', message: `Revision rejected: ${patched.reason}` });
-          run.staleCount++; run.currentRound = round + 1; save(run);
-          if (run.staleCount >= 2) break;
-          continue;
-        }
-        const cand: ScriptVersion = patched.version;
-        const changed = changedBlockIds(best.segments, cand.segments);
-        const gates = codeGates(cand.segments, { ...gateContext(project, best.segments), changedBlockIds: changed });
-        const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round, promptVersion: P.PROMPT_VERSIONS.revise, gates, loopAccepted: false };
-
-        // FACT CHECK (different family from the writer) on the changed claims.
-        if (gates.ok) {
-          const claims = allBlocks(cand.segments).filter(b => b.kind === 'narration' && changed.has(b.id) && b.claims.length)
-            .map((b, index) => ({ index, narration: (b as any).text, excerpts: (b as any).claims.map((c: any) => `${c.speaker}: ${c.verbatim}`) }));
-          if (claims.length) {
-            const fc = await call('factcheck', P.factcheckPrompt({ claims: JSON.stringify(claims) }), ctxFor('fact check'));
-            if (!fc.ok) {
-              const h = handleFail('factcheck', fc);
-              if (h === 'pause') return;
-              if (h === 'cancel') return finish(run, 'cancelled', 'Cancelled.');
-              decision.notJudged = `Fact check failed: ${fc.code}: ${fc.message}`;
-            } else {
-              okCall('factcheck', fc, `checked ${claims.length} claims`);
-              const labels = ((fc.json as any)?.claims || []).map((c: any) => ({ claim: claims[c.index]?.narration?.slice(0, 200) || `#${c.index}`, label: c.label, note: String(c.note || '') }));
-              decision.gates.factcheck = labels;
-              const bad = labels.filter((l: any) => l.label !== 'supported');
-              if (bad.length) { decision.gates.factual = 'fail'; decision.gates.failures.push(...bad.map((l: any) => `Fact check: "${l.claim.slice(0, 80)}" is ${l.label}: ${l.note}`)); }
+      /* -------------------------------- Scene rounds -------------------------------- */
+      if (run.stage === 'scenes') {
+        let sceneEnd: ScriptRun['sceneStop'];
+        for (let round = run.currentRound; round < run.maxRounds; round++) {
+          emit(run, { type: 'round', message: `Round ${round + 1} of ${run.maxRounds}.` });
+          // CRITIQUE: one call per segment that contains target scenes; locked blocks excluded.
+          const crits: Critique[] = [];
+          for (let si = 0; si < best.segments.length; si++) {
+            const seg = best.segments[si];
+            const scenes = seg.scenes.filter(sc => targetIds.has(sc.id));
+            if (!scenes.length) continue;
+            const view = { segmentId: seg.id, title: seg.title, scenes: scenes.map(sc => ({ sceneId: sc.id, title: sc.title, purpose: sc.purpose, blocks: sc.blocks.filter(b => !b.locked).map(b => anonymousBlock(b, clipsById)) })) };
+            const prev = boundaryLines(best.segments[si - 1]?.scenes.slice(-1)[0]);
+            const next = boundaryLines(best.segments[si + 1]?.scenes[0]);
+            const neighbours = [prev ? `Before: ...${prev.last}` : '', next ? `After: ${next.first}...` : ''].filter(Boolean).join('\n');
+            const fmt = formatChecks([{ ...seg, scenes }], project.format, formatOpts(project));
+            const notes = [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message)];
+            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n') }), ctxFor(`critique ${seg.title}`));
+            if (!r.ok) {
+              if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
+              emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
+              continue;
+            }
+            okCall('critic', r, `critiqued "${seg.title}"`);
+            const sceneIds = new Set(scenes.map(s => s.id));
+            const perScene = new Map<string, number>();
+            for (const c of (r.json as any)?.critiques || []) {
+              const tid = String(c?.targetId);
+              if (!sceneIds.has(tid) || (perScene.get(tid) || 0) >= 3) continue;
+              perScene.set(tid, (perScene.get(tid) || 0) + 1);
+              crits.push({ id: newId('cr'), versionId: best.id, level: 'scene', targetId: tid, issue: String(c.issue), consequence: String(c.consequence), criterion: c.criterion, severity: c.severity, proposedFix: String(c.proposedFix) });
             }
           }
-        }
-        emit(run, { type: 'gates', message: decision.gates.failures.length ? `Gates failed: ${decision.gates.failures.join(' | ')}` : decision.notJudged || 'Gates passed.', data: decision.gates });
-        const gatesPass = decision.gates.failures.length === 0;
+          run.critiques = crits;
+          emit(run, { type: 'critique', message: `${crits.length} critiques.`, data: crits });
+          save(run);
+          if (run.options?.critiqueOnly) return finish(run, 'critique_only', `Critique only: ${crits.length} critiques, nothing revised.`);
+          const target = mostConsequential(crits);
+          if (!target || target.severity === 'minor') { sceneEnd = { reason: 'no_major_issues', message: target ? 'Only minor critiques left.' : 'No critiques left.' }; break; }
 
-        if (gatesPass && !decision.notJudged) {
-          // BLIND PAIRWISE JUDGE, both orders at once.
-          const baseView = anonymousScene(loc.scene, clipsById);
-          const candView = anonymousScene(findScene(cand.segments, loc.scene.id)!.scene, clipsById);
-          const [ab, ba] = await Promise.all([
-            call('judge', P.judgePrompt({ format: project.format, a: baseView, b: candView }), ctxFor('judge A=baseline')),
-            call('judge', P.judgePrompt({ format: project.format, a: candView, b: baseView }), ctxFor('judge A=candidate')),
-          ]);
-          const failed = [ab, ba].find(x => !x.ok) as Extract<CompleteResult, { ok: false }> | undefined;
-          if (failed) {
-            const h = handleFail('judge', failed);
-            if (h === 'pause') { cand.decision = { ...decision, notJudged: `Judge paused: ${failed.code}` }; deps.store.saveVersion(cand); run.candidateIds.push(cand.id); save(run); return; }
-            if (h === 'cancel') return finish(run, 'cancelled', 'Cancelled.');
-            decision.notJudged = `Judge failed: ${failed.code}: ${failed.message}`;
-          } else {
-            const A = ab as Extract<CompleteResult, { ok: true }>;
-            const B = ba as Extract<CompleteResult, { ok: true }>;
-            okCall('judge', A, 'judged order AB'); okCall('judge', B, 'judged order BA');
-            const wAB = (A.json as any)?.winner;
-            const wBA = (B.json as any)?.winner;
-            const verdict = judgeConsensus(wAB, wBA, target.severity);
-            decision.judge = { provider: A.provider, model: A.model, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
-            decision.loopAccepted = verdict.win;
-            emit(run, { type: 'judge', message: `Judge: AB=${wAB}, BA=${wBA} -> ${verdict.consensus}.`, data: decision.judge });
+          // REVISE the one target scene.
+          const loc = findScene(best.segments, target.targetId)!;
+          const lockedIds = loc.scene.blocks.filter(b => b.locked).map(b => b.id);
+          const neighbourScenes = [loc.segment.scenes[loc.sceneIndex - 1], loc.segment.scenes[loc.sceneIndex + 1]];
+          const neighbours = neighbourScenes.map((s, i) => { const b = boundaryLines(s); return b ? `${i === 0 ? 'Before' : 'After'}: ${i === 0 ? b.last : b.first}` : ''; }).filter(Boolean).join('\n');
+          const sceneClips = [...new Set([...(loc.scene.suggestedClipIds || []), ...loc.scene.blocks.filter(b => b.kind === 'clip').map(b => (b as any).clipId)])].map(id => clipsById[id]).filter(Boolean);
+          const claimUtts = loc.scene.blocks.flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
+            const t = transcript(c.releaseTag);
+            return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => u.id);
+          });
+          const rev = await call('reviser', P.revisePrompt({
+            format: project.format, critique: JSON.stringify(target), neighbours, lockedIds,
+            scene: JSON.stringify({ sceneId: loc.scene.id, title: loc.scene.title, purpose: loc.scene.purpose, blocks: loc.scene.blocks }),
+            evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200))),
+            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'),
+          }), ctxFor(`revise ${loc.scene.title}`));
+          if (!rev.ok) {
+            if (halted(handleFail('reviser', rev), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
+            run.staleCount++; run.currentRound = round + 1; save(run);
+            if (run.staleCount >= 2) break;
+            continue;
           }
+          okCall('reviser', rev, `revised "${loc.scene.title}"`);
+          const conv = toPatch((rev.json as any)?.blocks || [], project);
+          const patched: { ok: true; version: ScriptVersion } | { ok: false; reason: string } = conv.ok
+            ? await applyPatch(best, loc.scene.id, conv.patch, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'reject', newVersionId: newId('v'), now: now() })
+            : conv;
+          if (patched.ok === false) {
+            emit(run, { type: 'gates', message: `Revision rejected: ${patched.reason}` });
+            run.staleCount++; run.currentRound = round + 1; save(run);
+            if (run.staleCount >= 2) break;
+            continue;
+          }
+          const cand: ScriptVersion = { ...patched.version, label: `Round ${round + 1}: ${loc.scene.title}`, changedScope: { level: 'scene', ids: [loc.scene.id] } };
+          const changed = changedBlockIds(best.segments, cand.segments);
+          const gates = codeGates(cand.segments, { ...gateContext(project, best.segments), changedBlockIds: changed });
+          const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round, promptVersion: P.PROMPT_VERSIONS.revise, gates, loopAccepted: false };
+
+          if (gates.ok && await factcheck(cand, changed, decision)) return;
+          emit(run, { type: 'gates', message: decision.gates.failures.length ? `Gates failed: ${decision.gates.failures.join(' | ')}` : decision.notJudged || 'Gates passed.', data: decision.gates });
+
+          if (decision.gates.failures.length === 0 && !decision.notJudged) {
+            // BLIND PAIRWISE JUDGE, both orders at once.
+            const baseView = anonymousScene(loc.scene, clipsById);
+            const candView = anonymousScene(findScene(cand.segments, loc.scene.id)!.scene, clipsById);
+            const [ab, ba] = await Promise.all([
+              call('judge', P.judgePrompt({ format: project.format, a: baseView, b: candView }), ctxFor('judge A=baseline')),
+              call('judge', P.judgePrompt({ format: project.format, a: candView, b: baseView }), ctxFor('judge A=candidate')),
+            ]);
+            const failed = [ab, ba].find(x => !x.ok) as Extract<CompleteResult, { ok: false }> | undefined;
+            if (failed) {
+              const h = handleFail('judge', failed);
+              if (h === 'pause') { cand.decision = { ...decision, notJudged: `Judge paused: ${failed.code}` }; deps.store.saveVersion(cand); run.candidateIds.push(cand.id); save(run); return; }
+              if (h === 'cancel') return finish(run, 'cancelled', 'Cancelled.');
+              decision.notJudged = `Judge failed: ${failed.code}: ${failed.message}`;
+            } else {
+              const A = ab as Extract<CompleteResult, { ok: true }>;
+              const B = ba as Extract<CompleteResult, { ok: true }>;
+              okCall('judge', A, 'judged order AB'); okCall('judge', B, 'judged order BA');
+              const wAB = (A.json as any)?.winner;
+              const wBA = (B.json as any)?.winner;
+              const verdict = judgeConsensus(wAB, wBA, target.severity);
+              decision.judge = { provider: A.provider, model: A.model, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
+              decision.loopAccepted = verdict.win;
+              emit(run, { type: 'judge', message: `Judge: AB=${wAB}, BA=${wBA} -> ${verdict.consensus}.`, data: decision.judge });
+            }
+          }
+          cand.decision = decision;
+          deps.store.saveVersion(cand);
+          run.candidateIds.push(cand.id);
+          if (!run.refinedSceneIds.includes(loc.scene.id)) run.refinedSceneIds.push(loc.scene.id);
+          emit(run, { type: 'decision', message: decision.loopAccepted ? `Candidate ${cand.id} accepted by the loop.` : `Candidate ${cand.id} not accepted${decision.notJudged ? ` (${decision.notJudged})` : ''}.`, data: { candidateId: cand.id, loopAccepted: decision.loopAccepted } });
+          if (decision.loopAccepted) { best = cand; run.bestVersionId = cand.id; run.staleCount = 0; } else run.staleCount++;
+          run.currentRound = round + 1;
+          save(run);
+          if (run.staleCount >= 2) break;
         }
+        run.sceneStop = sceneEnd ?? (run.staleCount >= 2
+          ? { reason: 'marginal_gains', message: 'Stopped after two rounds without a win.' }
+          : { reason: 'max_rounds', message: 'Reached the round limit.' });
+        run.stage = 'episode';
+        save(run);
+      }
+
+      /* -------------------------------- Episode pass -------------------------------- */
+      if (run.stage === 'episode') {
+        if (run.options?.episodePass !== false && !run.targetSceneIds) {
+          if (await episodePass()) return;
+        }
+        run.stage = 'polish';
+        save(run);
+      }
+
+      /* -------------------------------- Optional polish ------------------------------ */
+      if (run.stage === 'polish') {
+        if (run.options?.polish && run.roleMap.polish) {
+          if (await polishPass()) return;
+        }
+        run.stage = 'done';
+        save(run);
+      }
+      const stop = run.sceneStop ?? { reason: 'max_rounds' as const, message: 'Done.' };
+      return finish(run, stop.reason, stop.message);
+
+      /** Structural critique of the whole episode; proposals become review-only candidates. True = stop. */
+      async function episodePass(): Promise<boolean> {
+        emit(run!, { type: 'round', message: 'Episode pass: structure (order, arc, payoff).' });
+        const r = await call('critic', P.episodeCritiquePrompt({ format: project!.format, targetRuntimeSec: project!.targetRuntimeSec, outline: JSON.stringify(episodeOutlineView(best.segments, true)), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n') }), ctxFor('episode critique'));
+        if (!r.ok) {
+          if (halted(handleFail('critic', r), 'Stopped at budget before the episode pass.')) return true;
+          emit(run!, { type: 'error', message: 'The episode pass critique failed and was skipped.' });
+          return false;
+        }
+        okCall('critic', r, 'critiqued the episode structure');
+        const raw: any[] = ((r.json as any)?.structuralCritiques || []).slice(0, 3);
+        const crits: Critique[] = raw.map(c => ({
+          id: newId('cr'), versionId: best.id, level: 'episode', targetId: 'episode', issue: String(c.issue), consequence: String(c.consequence),
+          criterion: c.criterion, severity: c.severity, proposedFix: String(c.proposedFix), structuralKind: c.kind, proposedOrder: Array.isArray(c.proposedOrder) ? c.proposedOrder : null,
+        }));
+        run!.critiques = [...(run!.critiques || []).filter(c => c.level !== 'episode'), ...crits];
+        emit(run!, { type: 'critique', message: `Episode pass: ${crits.length} structural critiques.`, data: crits });
+        save(run!);
+        for (const c of crits) {
+          if (!c.proposedOrder) continue;
+          const re = reorderScenes(best.segments, c.proposedOrder);
+          if (re.ok === false) { emit(run!, { type: 'gates', message: `Structural proposal rejected: ${re.reason}` }); continue; }
+          const cand: ScriptVersion = {
+            id: newId('v'), parentId: best.id, projectId: project!.id, createdAt: now(), author: 'loop', label: `Structure: ${c.structuralKind || 'order'}`,
+            segments: re.segments, changedScope: { level: 'episode', ids: re.moved },
+          };
+          const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: new Set() });
+          const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round: run!.currentRound, promptVersion: P.PROMPT_VERSIONS.episodeCritique, gates, loopAccepted: false, reviewOnly: 'Structural moves always wait for Logan.' };
+          if (gates.ok) {
+            const a = episodeOutlineView(best.segments, false);
+            const b = episodeOutlineView(cand.segments, false);
+            const [ab, ba] = await Promise.all([
+              call('judge', P.judgePrompt({ format: project!.format, a, b, level: 'episode' }), ctxFor('episode judge A=baseline')),
+              call('judge', P.judgePrompt({ format: project!.format, a: b, b: a, level: 'episode' }), ctxFor('episode judge A=candidate')),
+            ]);
+            const failed = [ab, ba].find(x => !x.ok) as Extract<CompleteResult, { ok: false }> | undefined;
+            if (failed) {
+              const h = handleFail('judge', failed);
+              if (h === 'pause' || h === 'cancel') {
+                cand.decision = { ...decision, notJudged: `Judge ${h === 'pause' ? 'paused' : 'cancelled'}: ${failed.code}` };
+                deps.store.saveVersion(cand); run!.candidateIds.push(cand.id); save(run!);
+                if (h === 'cancel') finish(run!, 'cancelled', 'Cancelled.');
+                return true;
+              }
+              decision.notJudged = `Judge failed: ${failed.code}: ${failed.message}`;
+            } else {
+              const A = ab as Extract<CompleteResult, { ok: true }>;
+              const B = ba as Extract<CompleteResult, { ok: true }>;
+              okCall('judge', A, 'judged structure AB'); okCall('judge', B, 'judged structure BA');
+              const verdict = judgeConsensus((A.json as any)?.winner, (B.json as any)?.winner, c.severity);
+              decision.judge = { provider: A.provider, model: A.model, winnerAB: (A.json as any)?.winner, winnerBA: (B.json as any)?.winner, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
+              decision.loopAccepted = verdict.win;
+              emit(run!, { type: 'judge', message: `Structure judge: AB=${decision.judge.winnerAB}, BA=${decision.judge.winnerBA} -> ${verdict.consensus}.`, data: decision.judge });
+            }
+          } else emit(run!, { type: 'gates', message: `Structural proposal failed gates: ${gates.failures.join(' | ')}`, data: gates });
+          cand.decision = decision;
+          deps.store.saveVersion(cand);
+          run!.candidateIds.push(cand.id);
+          emit(run!, { type: 'decision', message: `Structural proposal ${cand.id} saved for your review${decision.loopAccepted ? ' (the judge preferred it)' : ''}.`, data: { candidateId: cand.id, loopAccepted: decision.loopAccepted, reviewOnly: true } });
+          save(run!);
+        }
+        return false;
+      }
+
+      /** One optional line edit of all unlocked narration by the polish role; a review-only candidate. True = stop. */
+      async function polishPass(): Promise<boolean> {
+        emit(run!, { type: 'round', message: `Polish pass (${run!.roleMap.polish}).` });
+        const blocks = best.segments.flatMap(s => s.scenes.flatMap(sc => sc.blocks));
+        const items = blocks.map((b, i) => ({ b, i })).filter(({ b }) => b.kind === 'narration' && !b.locked).map(({ b, i }) => {
+          const n = b as Extract<typeof b, { kind: 'narration' }>;
+          const near = (d: -1 | 1) => { const x = blocks[i + d]; return x?.kind === 'clip' ? x.keptText.slice(0, 200) : ''; };
+          return { id: n.id, text: n.text, quotes: n.claims.map(c => c.verbatim), clipBefore: near(-1), clipAfter: near(1) };
+        });
+        if (!items.length) { emit(run!, { type: 'status', message: 'Polish skipped: no unlocked narration.' }); return false; }
+        const style = draftStyleFor();
+        const r = await call('polish', P.polishPrompt({ format: project!.format, narration: JSON.stringify(items), styleCard: style }), ctxFor('polish'));
+        if (!r.ok) {
+          if (halted(handleFail('polish', r), 'Stopped at budget before the polish pass.')) return true;
+          emit(run!, { type: 'error', message: 'The polish pass failed and was skipped.' });
+          return false;
+        }
+        okCall('polish', r, 'polished narration');
+        const allowed = new Set(items.map(x => x.id));
+        const edits = new Map<string, string>();
+        for (const e of (r.json as any)?.blocks || []) if (allowed.has(String(e?.id)) && typeof e.text === 'string' && e.text.trim()) edits.set(String(e.id), e.text.trim());
+        if (!edits.size) { emit(run!, { type: 'status', message: 'Polish proposed no changes.' }); return false; }
+        const segments: Segment[] = best.segments.map(seg => ({ ...seg, scenes: seg.scenes.map(sc => ({ ...sc, blocks: sc.blocks.map(b => (b.kind === 'narration' && edits.has(b.id) ? { ...b, text: edits.get(b.id)!, mode: 'polished' as const, takeUrl: undefined, takeSec: undefined, takeTextHash: undefined } : b)) })) }));
+        const cand: ScriptVersion = { id: newId('v'), parentId: best.id, projectId: project!.id, createdAt: now(), author: 'loop', label: 'Polish', segments, changedScope: { level: 'episode', ids: [...edits.keys()] } };
+        const changed = changedBlockIds(best.segments, cand.segments);
+        const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: changed });
+        const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round: run!.currentRound, promptVersion: P.PROMPT_VERSIONS.polish, gates, loopAccepted: false, reviewOnly: 'A polish is never accepted by the loop; compare it and decide.' };
+        if (gates.ok && await factcheck(cand, changed, decision)) return true;
+        emit(run!, { type: 'gates', message: decision.gates.failures.length ? `Polish gates failed: ${decision.gates.failures.join(' | ')}` : 'Polish gates passed.', data: decision.gates });
         cand.decision = decision;
         deps.store.saveVersion(cand);
-        run.candidateIds.push(cand.id);
-        if (!run.refinedSceneIds.includes(loc.scene.id)) run.refinedSceneIds.push(loc.scene.id);
-        emit(run, { type: 'decision', message: decision.loopAccepted ? `Candidate ${cand.id} accepted by the loop.` : `Candidate ${cand.id} not accepted${decision.notJudged ? ` (${decision.notJudged})` : ''}.`, data: { candidateId: cand.id, loopAccepted: decision.loopAccepted } });
-        if (decision.loopAccepted) { best = cand; run.bestVersionId = cand.id; run.staleCount = 0; } else run.staleCount++;
-        run.currentRound = round + 1;
-        save(run);
-        if (run.staleCount >= 2) break;
+        run!.candidateIds.push(cand.id);
+        emit(run!, { type: 'decision', message: `Polish ${cand.id} (${edits.size} blocks) saved for your review.`, data: { candidateId: cand.id, loopAccepted: false, reviewOnly: true } });
+        save(run!);
+        return false;
       }
-      return finish(run, run.currentRound >= run.maxRounds ? 'max_rounds' : 'marginal_gains', run.staleCount >= 2 ? 'Stopped after two rounds without a win.' : 'Reached the round limit.');
     } catch (e: any) {
       syncBudget();
       if (e instanceof StepError && PAUSE_CODES.has(e.code)) { pause(run, 'unknown', e); return; }

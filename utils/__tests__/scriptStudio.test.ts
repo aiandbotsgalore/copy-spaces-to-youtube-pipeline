@@ -25,6 +25,14 @@ let base = '';
 let mw: ReturnType<typeof createScriptStudioMiddleware>;
 const calls: CliCall[] = [];
 let critiqueRound = 0;
+const gatewayBodies: any[] = [];
+const fetchImpl = (async (_url: any, init: any) => {
+  const body = JSON.parse(init.body);
+  gatewayBodies.push(body);
+  const items = JSON.parse(/<<<TRANSCRIPT_DATA[^\n]*\n([\s\S]*?)\n<<<END_TRANSCRIPT_DATA>>>/.exec(body.messages[1].content)![1]);
+  const content = JSON.stringify({ blocks: [{ id: items[0].id, text: `${items[0].text.replace(/\.$/, '')}, which is the whole point.` }, { id: 'not-a-block', text: 'x' }], notes: 'Smoother.' });
+  return new Response(JSON.stringify({ model: body.model, choices: [{ message: { content } }], usage: { prompt_tokens: 2000, completion_tokens: 300 } }), { status: 200 });
+}) as typeof fetch;
 let limitNext = false;
 
 const sceneIdIn = (p: string) => /"sceneId":"(sc_[A-Za-z0-9]+)"/.exec(p)?.[1] || '';
@@ -35,6 +43,20 @@ const responder: Responder = (kind, prompt) => {
     return { __fail: fail };
   }
   switch (kind) {
+    case 'clipTags': {
+      const ids = [...prompt.matchAll(/"clipId":"([^"]+)"/g)].map(m => m[1]);
+      return { tags: [...ids.map(id => ({ clipId: id, fn: 'evidence', rationale: 'Shows the claim.' })), { clipId: 'invented', fn: 'payoff', rationale: 'x' }] };
+    }
+    case 'structuralCritiques': {
+      const scenes = [...prompt.matchAll(/"sceneId":"(sc_[A-Za-z0-9]+)"/g)].map(m => m[1]);
+      const seg = /"segmentId":"(seg_[A-Za-z0-9]+)"/.exec(prompt)?.[1];
+      if (scenes.length < 2 || !seg) return { structuralCritiques: [] };
+      return { structuralCritiques: [
+        { issue: 'The payoff comes first.', consequence: 'No suspense.', kind: 'order', criterion: 'curiosity', severity: 'major', proposedFix: 'Swap the scenes.', proposedOrder: [{ segmentId: seg, sceneIds: [...scenes].reverse() }] },
+        { issue: 'Drops a scene.', consequence: 'x', kind: 'order', criterion: 'payoff', severity: 'major', proposedFix: 'x', proposedOrder: [{ segmentId: seg, sceneIds: [scenes[0]] }] },
+        { issue: 'Arc is flat.', consequence: 'x', kind: 'arc', criterion: 'resonance', severity: 'minor', proposedFix: 'Raise the stakes.', proposedOrder: null },
+      ] };
+    }
     case 'analysis': return {
       ledger: 'Oor is eating a cake.', openQuestions: [],
       themes: [{ id: 't1', label: 'Food', summary: 'Oor narrates a cake.', momentIds: ['c0-1'] }],
@@ -61,6 +83,7 @@ const responder: Responder = (kind, prompt) => {
     ] };
     case 'factcheck': return { claims: [{ index: 0, label: 'supported', note: 'Matches the excerpt.' }] };
     case 'judge': {
+      if (/episode structure/.test(prompt)) return { winner: 'tie', reasons: ['Both orders work.'] };
       const [a] = prompt.split('Version B (JSON):');
       return { winner: a.includes('According to Oor') ? 'A' : 'B', reasons: ['Names the speaker.'] };
     }
@@ -84,7 +107,7 @@ beforeAll(async () => {
   fs.mkdirSync(path.join(root, 'public', 'transcripts', 'episodes'), { recursive: true });
   fs.copyFileSync(SRC, path.join(root, 'public', 'transcripts', 'episodes', `${TAG}.json`));
   mw = createScriptStudioMiddleware({
-    root, getEnv: () => ({ PATH: '/bin', ANTHROPIC_API_KEY: 'must-be-stripped' }), runner: makeFakeCli(responder, calls),
+    root, getEnv: () => ({ PATH: '/bin', ANTHROPIC_API_KEY: 'must-be-stripped', CHEAPER_INFERENCE_API_KEY: 'ci-test-key' }), runner: makeFakeCli(responder, calls), fetchImpl,
     resolveOverride: async name => ({ ok: true, file: `/usr/local/bin/${name}`, prefixArgs: [], via: 'path', found: `/usr/local/bin/${name}` }),
   });
   server = http.createServer((req, res) => { req.url = (req.url || '').replace(/^\/api\/script/, '') || '/'; void mw(req, res); });
@@ -100,7 +123,8 @@ describe('Script Studio API end to end', () => {
     expect(r.status).toBe(200);
     expect(r.json.providers['claude_cli:sonnet']).toMatchObject({ ok: true, detail: 'Signed in (claude.ai subscription).' });
     expect(r.json.providers['codex_cli']).toMatchObject({ ok: true, model: 'gpt-6.1-sol' });
-    expect(r.json.providers['ci:gpt-6-luna']).toMatchObject({ ok: false, code: 'NO_KEY' });
+    expect(r.json.providers['ci:gpt-6-luna']).toMatchObject({ ok: true, detail: 'Key configured; gpt-6-luna.' });
+    expect(JSON.stringify(r.json)).not.toContain('ci-test-key');
   });
   it('lists episodes and creates a project', async () => {
     expect((await api('GET', '/episodes')).json.episodes).toEqual([{ releaseTag: TAG, title: expect.any(String) }]);
@@ -121,11 +145,22 @@ describe('Script Studio API end to end', () => {
     expect(a.moments[0].evidence).toHaveLength(1);
     expect(a.moments[0].evidence[0]).toMatchObject({ speaker: 'Oor', segStart: 1207.94, segEnd: 1242.38 });
     const t = readTranscript(root, TAG)!;
-    expect(chunkUtterances(t.utterances, {}).length).toBe(calls.filter(c => c.args[0] === '-p').length);
-    // Second call is served from the cache.
+    expect(chunkUtterances(t.utterances, {}).length + 1).toBe(calls.filter(c => c.args[0] === '-p').length); // chunks + clip tags
+    expect(r.json.tagging).toEqual({ tagged: 1, cached: false });
+    const p = (await api('GET', `/project?id=${projectId}`)).json.project;
+    expect(p.clips.find((c: any) => c.clipId === CLIP_ID)).toMatchObject({ fn: 'evidence', fnRationale: 'Shows the claim.' });
+    // Second call is served from the cache (analysis and tags).
     const before = calls.length;
-    await api('POST', '/analyze', { projectId });
+    const again = await api('POST', '/analyze', { projectId });
+    expect(again.json.tagging).toEqual({ tagged: 0, cached: true });
     expect(calls.length).toBe(before);
+  });
+  it('keeps Logan\'s own clip tags when re-tagging', async () => {
+    expect((await api('POST', '/project/update', { id: projectId, retagClips: [{ clipId: CLIP_ID, fn: 'payoff' }] })).status).toBe(200);
+    const r = await api('POST', '/tag-clips', { projectId, force: true });
+    expect(r.status).toBe(200);
+    expect(r.json.project.clips.find((c: any) => c.clipId === CLIP_ID)).toMatchObject({ fn: 'payoff', fnRationale: 'Set by Logan.' });
+    expect((await api('POST', '/project/update', { id: projectId, retagClips: [{ clipId: CLIP_ID, fn: 'nonsense' }] })).status).toBe(400);
   });
   it('outlines, drafts and computes clip times in code', async () => {
     expect((await api('POST', '/outline', { projectId })).status).toBe(200);
@@ -142,6 +177,18 @@ describe('Script Studio API end to end', () => {
   it('rejects an edit based on a stale head', async () => {
     const r = await api('POST', '/version', { projectId, parentId: 'v_old', segments: [] });
     expect(r.status).toBe(409);
+  });
+  it('validates clip words and bounds on saves', async () => {
+    const pr = (await api('GET', `/project?id=${projectId}`)).json;
+    const segs = JSON.parse(JSON.stringify(pr.head.segments));
+    const clip = segs[0].scenes[0].blocks.find((b: any) => b.kind === 'clip');
+    clip.keptText = 'words nobody said';
+    let r = await api('POST', '/version', { projectId, parentId: pr.project.headVersionId, segments: segs });
+    expect(r).toMatchObject({ status: 400, json: { message: expect.stringMatching(/not a contiguous excerpt/) } });
+    clip.keptText = "it's orange citrus. Delicious.";
+    clip.outSec = 99;
+    r = await api('POST', '/version', { projectId, parentId: pr.project.headVersionId, segments: segs });
+    expect(r).toMatchObject({ status: 400, json: { message: expect.stringMatching(/outside 0 to 34.44s/) } });
   });
   it('refuses a same-family judge', async () => {
     const r = await api('POST', '/refine', { projectId, roleMap: { judge: 'claude_cli:haiku' } });
@@ -179,10 +226,64 @@ describe('Script Studio API end to end', () => {
     expect(dec.json.project.headVersionId).toBe(accepted.id);
     expect(mw.store.getMemory().approvedPassages.length).toBeGreaterThan(0);
   });
+  it('critique-only runs critique and stop without revising', async () => {
+    critiqueRound = 0;
+    const before = calls.filter(c => c.args[0] === '-p').length;
+    const start = await api('POST', '/refine', { projectId, critiqueOnly: true });
+    const events = await waitRun(projectId, start.json.runId);
+    expect(events.at(-1)).toMatchObject({ type: 'finished', data: { stopReason: 'critique_only' } });
+    expect(calls.filter(c => c.args[0] === '-p').length - before).toBe(1);
+    const run = (await api('GET', `/run?projectId=${projectId}&runId=${start.json.runId}`)).json.run;
+    expect(run.critiques).toHaveLength(1);
+    expect(run.candidateIds).toEqual([]);
+  });
+  it('episode pass: a valid reorder becomes a review-only candidate; invalid ones are rejected in code', async () => {
+    const pr = (await api('GET', `/project?id=${projectId}`)).json;
+    const segs = JSON.parse(JSON.stringify(pr.head.segments));
+    segs[0].scenes.push({ id: 'sc_after', title: 'After', purpose: 'Reflect.', blocks: [{ id: 'b_after', kind: 'narration', text: 'Was it worth it?', mode: 'live', claims: [] }] });
+    const saved = await api('POST', '/version', { projectId, parentId: pr.project.headVersionId, segments: segs, label: 'Two scenes' });
+    expect(saved.status).toBe(200);
+    critiqueRound = 1; // only minor critiques: scene rounds end at once, then the episode pass runs
+    const start = await api('POST', '/refine', { projectId });
+    const events = await waitRun(projectId, start.json.runId);
+    expect(events.some((e: any) => e.message === 'Structural proposal rejected: The proposed order drops sc_after.' || /Structural proposal rejected: The proposed order drops/.test(e.message))).toBe(true);
+    const r = await api('GET', `/run?projectId=${projectId}&runId=${start.json.runId}`);
+    expect(r.json.run.stage).toBe('done');
+    expect(r.json.run.critiques.filter((c: any) => c.level === 'episode')).toHaveLength(3);
+    expect(r.json.candidates).toHaveLength(1);
+    const cand = r.json.candidates[0];
+    expect(cand.decision).toMatchObject({ reviewOnly: 'Structural moves always wait for Logan.', loopAccepted: false, judge: { consensus: 'rejected' } });
+    expect(r.json.run.bestVersionId).toBe(saved.json.version.id);
+    const v = (await api('GET', `/version?projectId=${projectId}&id=${cand.id}`)).json.version;
+    expect(v.segments[0].scenes.map((s: any) => s.id)).toEqual(['sc_after', segs[0].scenes[0].id]);
+    expect(v.changedScope.level).toBe('episode');
+    expect([...v.changedScope.ids].sort()).toEqual(['sc_after', segs[0].scenes[0].id].sort());
+    const dec = await api('POST', '/decide', { projectId, candidateId: cand.id, decision: 'accept' });
+    expect(dec.json.project.headVersionId).toBe(cand.id);
+  });
+  it('optional polish through the gateway under the dollar cap is saved for review, never accepted', async () => {
+    critiqueRound = 1;
+    expect((await api('POST', '/refine', { projectId, polish: true })).json.code).toBe('NO_ROLE'); // subscription mode has no polish role
+    const roleMap = { analyst: 'claude_cli:sonnet', reviser: 'claude_cli:sonnet', critic: 'claude_cli:haiku', judge: 'codex_cli', factcheck: 'codex_cli' };
+    expect((await api('POST', '/refine', { projectId, polish: true, mode: 'fallback', roleMap })).json.code).toBe('NO_BUDGET');
+    const start = await api('POST', '/refine', { projectId, polish: true, episodePass: false, mode: 'fallback', roleMap, maxUsd: 0.5 });
+    expect(start.status).toBe(202);
+    const events = await waitRun(projectId, start.json.runId);
+    expect(events.at(-1).type).toBe('finished');
+    expect(gatewayBodies).toHaveLength(1);
+    expect(gatewayBodies[0]).toMatchObject({ model: 'claude-sonnet-5.5', response_format: { type: 'json_schema', json_schema: { strict: true } } });
+    const r = await api('GET', `/run?projectId=${projectId}&runId=${start.json.runId}`);
+    expect(r.json.run.spentUsd).toBeCloseTo((2000 * 1.602 + 300 * 8.011) / 1e6, 10);
+    const cand = r.json.candidates[0];
+    expect(cand.decision).toMatchObject({ loopAccepted: false, reviewOnly: expect.stringMatching(/never accepted by the loop/) });
+    expect(cand.diff).toHaveLength(1);
+    expect(cand.diff[0].after.text).toMatch(/which is the whole point\.$/);
+    expect(cand.diff[0].after.mode).toBe('polished');
+  });
   it('sent no API key to the CLIs and used the subscription argv', () => {
     const cliRuns = calls.filter(c => c.args[0] === '-p' || c.args[0] === 'exec');
     expect(cliRuns.length).toBeGreaterThan(5);
-    for (const c of cliRuns) expect(c.env.ANTHROPIC_API_KEY).toBeUndefined();
+    for (const c of cliRuns) { expect(c.env.ANTHROPIC_API_KEY).toBeUndefined(); expect(c.env.CHEAPER_INFERENCE_API_KEY).toBeUndefined(); }
     expect(calls.filter(c => c.cli === 'codex' && c.args[0] === 'exec').every(c => c.args.includes('gpt-6.1-sol'))).toBe(true);
   });
   it('logs every call, exports and re-imports the project', async () => {

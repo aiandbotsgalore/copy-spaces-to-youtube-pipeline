@@ -76,6 +76,8 @@ export interface Critique {
   id: string; versionId: string; level: 'scene' | 'segment' | 'episode'; targetId: string;
   issue: string; consequence: string; criterion: FormatCriterion;
   severity: 'blocker' | 'major' | 'minor'; proposedFix: string;
+  structuralKind?: 'order' | 'arc' | 'payoff';                       // episode pass only
+  proposedOrder?: { segmentId: string; sceneIds: string[] }[] | null; // episode pass only
 }
 
 export type JudgeWinner = 'A' | 'B' | 'tie';
@@ -94,6 +96,7 @@ export interface RefinementDecision {
             consensus: JudgeConsensus; reasons: string[] };
   notJudged?: string;
   loopAccepted: boolean;                       // the loop's verdict
+  reviewOnly?: string;                         // why this candidate never becomes the loop's best (structural moves, polish)
   loganDecision?: 'accept' | 'reject';         // final say
 }
 
@@ -112,10 +115,13 @@ export interface ScriptProject {
   speakerNames: Record<string, string>;      // raw label -> display name (Logan's renames)
   clips: StudioClip[]; excludedClips: { clipId: string; reason: string }[];
   headVersionId: string | null;
+  clipTagsKey?: string;                      // analysis hash + clip-tags prompt version of the last tagging
 }
 
 export type RunStatus = 'queued' | 'running' | 'paused_limit' | 'interrupted' | 'cancelled' | 'failed' | 'finished';
-export type StopReason = 'no_major_issues' | 'marginal_gains' | 'max_rounds' | 'budget' | 'cancelled' | 'error';
+export type StopReason = 'no_major_issues' | 'marginal_gains' | 'max_rounds' | 'budget' | 'cancelled' | 'error' | 'critique_only';
+export type RunStage = 'scenes' | 'episode' | 'polish' | 'done';
+export interface RunOptions { critiqueOnly?: boolean; episodePass?: boolean; polish?: boolean }
 
 export interface RunEvent {
   seq: number; at: number;
@@ -135,6 +141,10 @@ export interface ScriptRun {
   targetSceneIds?: string[];
   refinedSceneIds: string[];
   candidateIds: string[];
+  stage?: RunStage;                            // scene rounds, then the episode pass, then the optional polish
+  options?: RunOptions;
+  sceneStop?: { reason: StopReason; message: string };
+  critiques?: Critique[];                      // the latest critiques (critique-only runs and the episode pass)
   pausedInfo?: { role: string; provider: string; code: string; message: string; at: number };
   error?: string;
   events: RunEvent[];

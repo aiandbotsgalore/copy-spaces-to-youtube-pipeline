@@ -8,7 +8,8 @@
  *   GET  /project?id=            project, versions, runs, cached analysis, speaker stats
  *   POST /project/update         format, runtime, speaker renames, clip removals, title
  *   POST /project/add-clip       add a clip cut from transcript utterances
- *   POST /analyze                chunked episode analysis (cached by transcript hash + prompt version)
+ *   POST /analyze                chunked episode analysis (cached by transcript hash + prompt version), then clip tags
+ *   POST /tag-clips              narrative-function tags for the project's clips (Logan's own tags are kept)
  *   POST /outline                beat outline -> new version
  *   POST /draft                  draft every segment -> new version, with code-gate results
  *   POST /version                save Logan's edit (rejected unless its parent is the current head)
@@ -29,7 +30,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { EpisodeFormat, RoleMap, ScriptProject, ScriptVersion, Segment } from '../utils/scriptTypes';
-import { EPISODE_FORMATS } from '../utils/scriptTypes';
+import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
+import { formatChecks } from '../utils/scriptFormats';
+import { findExcerpt } from '../utils/directorValidate';
 import { codeGates, diffVersions } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
@@ -171,7 +174,8 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         if (p.transcriptHashes[tag] && p.transcriptHashes[tag] !== t.hash) transcriptChanged.push(tag);
       }
       const gates = head ? codeGates(head.segments, { ...engine.gateContext(p, head.segments), changedBlockIds: undefined }) : null;
-      return send(res, 200, { ok: true, project: p, versions, runs, head, speakerStats: stats, analyses, transcriptChanged, gates });
+      const format = head ? formatChecks(head.segments, p.format, { clipTags: Object.fromEntries(p.clips.map(c => [c.clipId, c.releaseTag])), sourceCount: p.sourceTags.length }) : null;
+      return send(res, 200, { ok: true, project: p, versions, runs, head, speakerStats: stats, analyses, transcriptChanged, gates, formatChecks: format });
     }
 
     if (route === '/project/update' && method === 'POST') {
@@ -192,7 +196,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       if (Array.isArray(body.retagClips)) {
         for (const t of body.retagClips) {
           const c = p.clips.find(x => x.clipId === t?.clipId);
-          if (c && typeof t.fn === 'string') { c.fn = t.fn; c.fnRationale = 'Set by Logan.'; }
+          if (!c) continue;
+          if (t.fn === null) { c.fn = undefined; c.fnRationale = undefined; } // back to untagged; the next tagging may set it
+          else if (NARRATIVE_FUNCTIONS.includes(t.fn)) { c.fn = t.fn; c.fnRationale = 'Set by Logan.'; }
+          else throw new StepError('BAD_REQUEST', `Unknown narrative function ${t.fn}.`);
         }
       }
       touch(p);
@@ -219,7 +226,26 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const ctx = interactiveCtx(body, 'analysis');
       const out: Record<string, unknown> = {};
       for (const tag of p.sourceTags) out[tag] = await engine.analyze(p, tag, ctx, !!body?.force);
-      return send(res, 200, { ok: true, analyses: out, spentUsd: ctx.budget.spentUsd });
+      // Clip tags follow the analysis; a tagging failure is reported, never hidden, and does not lose the analysis.
+      let tagging: { tagged: number; cached: boolean } | { error: string; code: string };
+      try {
+        const r = await engine.tagClips(p, out[p.sourceTags[0]] as any, ctx);
+        tagging = { tagged: r.tagged, cached: r.cached };
+      } catch (e: any) {
+        tagging = { error: e?.message || String(e), code: e?.code || 'INTERNAL' };
+      }
+      return send(res, 200, { ok: true, analyses: out, tagging, spentUsd: ctx.budget.spentUsd });
+    }
+
+    if (route === '/tag-clips' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const ctx = interactiveCtx(body, 'clip tags');
+      const t = engine.transcript(p.sourceTags[0]);
+      const analysis = store.getAnalysis(p.sourceTags[0], PROMPT_VERSIONS.analysis, t.hash);
+      if (!analysis) throw new StepError('BAD_REQUEST', 'Run the episode analysis first.');
+      const r = await engine.tagClips(p, analysis, ctx, !!body?.force);
+      return send(res, 200, { ok: true, project: r.project, tagged: r.tagged, cached: r.cached, spentUsd: ctx.budget.spentUsd });
     }
 
     if (route === '/outline' && method === 'POST') {
@@ -281,7 +307,8 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       const { roleMap, mode, maxUsd } = resolveRoleMap(body);
-      const run = engine.createRun(p, { roleMap, mode, maxUsd, targetSceneIds: Array.isArray(body?.targetSceneIds) ? body.targetSceneIds.map(String) : undefined, maxRounds: Number(body?.maxRounds) || undefined });
+      const options = { critiqueOnly: !!body?.critiqueOnly, episodePass: body?.episodePass !== false, polish: !!body?.polish };
+      const run = engine.createRun(p, { roleMap, mode, maxUsd, targetSceneIds: Array.isArray(body?.targetSceneIds) ? body.targetSceneIds.map(String) : undefined, maxRounds: Number(body?.maxRounds) || undefined, options });
       engine.start(run);
       return send(res, 202, { ok: true, runId: run.id });
     }
@@ -423,7 +450,7 @@ function sanitizeNames(v: unknown): Record<string, string> {
 /** Shape-checks an edited script and resolves nothing: clip times stay as code computed them. */
 export function validateSegments(raw: unknown, p: ScriptProject): Segment[] {
   if (!Array.isArray(raw)) throw new StepError('BAD_REQUEST', 'segments must be an array.');
-  const clipIds = new Set(p.clips.map(c => c.clipId));
+  const clips = new Map(p.clips.map(c => [c.clipId, c]));
   const ids = new Set<string>();
   const checkId = (id: unknown) => {
     if (typeof id !== 'string' || !isSafeId(id) || ids.has(id)) throw new StepError('BAD_REQUEST', `Invalid or duplicate id ${String(id)}.`);
@@ -438,7 +465,20 @@ export function validateSegments(raw: unknown, p: ScriptProject): Segment[] {
       for (const b of sc.blocks) {
         checkId(b?.id);
         if (!['narration', 'clip', 'pause', 'music'].includes(b?.kind)) throw new StepError('BAD_REQUEST', `Block ${b?.id} has unknown kind ${b?.kind}.`);
-        if (b.kind === 'clip' && !clipIds.has(b.clipId)) throw new StepError('BAD_REQUEST', `Block ${b.id} names unknown clip ${b.clipId}.`);
+        if (b.kind === 'clip') {
+          const clip = clips.get(b.clipId);
+          if (!clip) throw new StepError('BAD_REQUEST', `Block ${b.id} names unknown clip ${b.clipId}.`);
+          if (typeof b.keptText !== 'string' || !b.keptText.trim() || !findExcerpt(clip.text, b.keptText)) {
+            throw new StepError('BAD_REQUEST', `Clip block ${b.id}: the kept words are not a contiguous excerpt of clip ${b.clipId}.`);
+          }
+          if (!(Number.isFinite(b.inSec) && Number.isFinite(b.outSec) && b.inSec >= 0 && b.inSec < b.outSec && b.outSec <= clip.durationSec + 1e-6)) {
+            throw new StepError('BAD_REQUEST', `Clip block ${b.id}: ${b.inSec}s to ${b.outSec}s is outside 0 to ${clip.durationSec}s.`);
+          }
+          if (!['segment', 'silence', 'estimated', 'full'].includes(b.trimBasis)) throw new StepError('BAD_REQUEST', `Clip block ${b.id}: unknown trim basis ${b.trimBasis}.`);
+          if (!NARRATIVE_FUNCTIONS.includes(b.fn)) throw new StepError('BAD_REQUEST', `Clip block ${b.id}: unknown narrative function ${b.fn}.`);
+        }
+        if (b.kind === 'pause' && !(Number.isFinite(b.sec) && b.sec >= 0 && b.sec <= 30)) throw new StepError('BAD_REQUEST', `Pause ${b.id} must be 0 to 30 seconds.`);
+        if (b.kind === 'music' && !['sting', 'bed_in', 'bed_out', 'transition'].includes(b.cue)) throw new StepError('BAD_REQUEST', `Music marker ${b.id} has unknown cue ${b.cue}.`);
         if (b.kind === 'narration' && (typeof b.text !== 'string' || !Array.isArray(b.claims))) throw new StepError('BAD_REQUEST', `Narration ${b.id} needs text and claims.`);
       }
     }
