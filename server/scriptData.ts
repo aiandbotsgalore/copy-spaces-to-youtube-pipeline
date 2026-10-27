@@ -197,7 +197,7 @@ export function clipFromUtterances(t: LoadedTranscript, fromId: string, toId: st
 /* Full-episode audio for transcript cuts                                                            */
 /* ------------------------------------------------------------------------------------------------ */
 
-const RELEASE_URL_RE = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/;
+export const RELEASE_URL_RE = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/;
 const AUDIO_EXT_RE = /\.(mp3|m4a|wav|ogg|opus|aac)$/i;
 
 /**

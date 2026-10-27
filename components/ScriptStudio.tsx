@@ -17,6 +17,7 @@ import { estimateRuntime } from '../utils/scriptGates';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
 import { PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
+import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
 import type { LogEntry } from '../utils/scriptQuality';
@@ -769,6 +770,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               })}
             </div>
           )}
+          <HandoffPanel projectId={project.id} headVersionId={project.headVersionId} sourceTags={project.sourceTags} act={act} dirty={dirty} DiffView={DiffList} />
           <div className="space-y-1">
             <div className="text-[11px] uppercase tracking-wide text-slate-500 flex items-center gap-1"><History size={11} /> Versions</div>
             {[...(data?.versions || [])].reverse().map(v => (
