@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { DEFAULT_COPILOT_MODEL, normalizeCopilotModel } from '../utils/copilotModels';
 import type {
   CopilotAction,
   CopilotMessage,
@@ -76,9 +77,9 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const [model, setModelState] = useState<string>(() => {
     try {
-      return localStorage.getItem(COPILOT_MODEL_KEY) || 'claude-sonnet-5.5';
+      return normalizeCopilotModel(localStorage.getItem(COPILOT_MODEL_KEY));
     } catch {
-      return 'claude-sonnet-5.5';
+      return DEFAULT_COPILOT_MODEL;
     }
   });
 
@@ -435,7 +436,7 @@ const FALLBACK_COPILOT_CONTEXT: CopilotContextType = {
   messages: [],
   loading: false,
   error: null,
-  model: 'gemini-2.5-flash',
+  model: DEFAULT_COPILOT_MODEL,
   setModel: () => {},
   autoApply: false,
   setAutoApply: () => {},
