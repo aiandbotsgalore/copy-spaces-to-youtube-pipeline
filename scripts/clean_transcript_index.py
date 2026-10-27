@@ -1,3 +1,4 @@
+import unicodedata
 #!/usr/bin/env python3
 """
 scripts/clean_transcript_index.py
@@ -16,7 +17,7 @@ from pathlib import Path
 
 INDEX_PATH = Path("public/transcripts/transcripts_search_index.json")
 
-def clean_episode_segments(segments, title=""):
+def clean_episode_segments(segments, title="", host_handle=""):
     if not segments:
         return segments
 
@@ -105,6 +106,30 @@ def clean_episode_segments(segments, title=""):
         dur = curr_s["end"] - curr_s["start"]
         if prev_s["speaker"] == next_s["speaker"] and dur < 1.8:
             curr_s["speaker"] = prev_s["speaker"]
+
+    # 5.5 If host is known and dominant speaker is still generic "Speaker X", map it directly to the host
+    if host_handle:
+        norm_h = unicodedata.normalize('NFKD', host_handle).lower()
+        host_target = None
+        if "logan" in norm_h:
+            host_target = "Logan"
+        elif "angelamaggard3" in norm_h or ("txrrxstrxxl" in norm_h and "king oor" not in norm_h) or "angela" in norm_h:
+            host_target = "Angela"
+        elif "king oor" in norm_h:
+            host_target = "Oor"
+        elif "eric" in norm_h and ("hecker" in norm_h or "deciphering" in norm_h):
+            host_target = "Eric Hecker"
+
+        if host_target and not any(s["speaker"].lower() == host_target.lower() for s in cleaned_segments):
+            generic_counts = {}
+            for s in cleaned_segments:
+                if s["speaker"].startswith("Speaker "):
+                    generic_counts[s["speaker"]] = generic_counts.get(s["speaker"], 0) + 1
+            if generic_counts:
+                top_generic = max(generic_counts.keys(), key=lambda k: generic_counts[k])
+                for s in cleaned_segments:
+                    if s["speaker"] == top_generic:
+                        s["speaker"] = host_target
 
     # 6. Re-number any remaining generic "Speaker N" cleanly from Speaker 1 to Speaker K
     generic_encountered = {}

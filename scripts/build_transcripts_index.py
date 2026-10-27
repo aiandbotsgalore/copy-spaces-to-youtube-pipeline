@@ -280,9 +280,10 @@ def main():
             if len(segments) == 1319 and rel_tag != "20260826_1AxRnZYBVdrxl":
                 continue
 
-            cleaned_segments = clean_episode_segments(segments, rel_name)
-            total_segments += len(cleaned_segments)
             body = r.get("body") or ""
+            host_h = _host_handle(body)
+            cleaned_segments = clean_episode_segments(segments, rel_name, host_h or "")
+            total_segments += len(cleaned_segments)
             date_m = re.search(r"METADATA::(?:EPISODE_DATE|DATE)::(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
             ep_date = f"{date_m.group(1)}-{date_m.group(2)}-{date_m.group(3)}" if date_m else None
             index.append(
@@ -299,6 +300,19 @@ def main():
                 }
             )
             print(f"  [✓] {rel_name[:36]:36} : {len(cleaned_segments)} turns", flush=True)
+
+    # Apply voice profile matching and dialogue heuristics across index
+    try:
+        from scripts.apply_voice_profiles_to_transcripts import analyze_episode_speakers, build_dialogue_patterns
+        patterns = build_dialogue_patterns()
+        for ep in index:
+            mappings = analyze_episode_speakers(ep, ep, patterns)
+            if mappings:
+                for s in ep.get("segments", []):
+                    if s.get("speaker") in mappings:
+                        s["speaker"] = mappings[s["speaker"]]
+    except Exception as e:
+        print(f"  [!] Post-index voice profile mapping skipped: {e}")
 
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:

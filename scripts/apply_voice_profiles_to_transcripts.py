@@ -16,6 +16,7 @@ import sys
 import re
 import json
 import time
+import unicodedata
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple, Set
 
@@ -63,15 +64,17 @@ MASTER_KEYWORD_REGEX = re.compile(
 
 def extract_host_handle(ep_summary: Dict[str, Any]) -> str:
     h = ep_summary.get("host_handle") or ""
+    if not h:
+        body = ep_summary.get("body") or ""
+        m = re.search(r'METADATA::HOST::([^\r\n]+)', body)
+        if m:
+            h = m.group(1).strip()
+        else:
+            m2 = re.search(r'\*\*Host:\*\*\s*([^\r\n]+)', body)
+            if m2:
+                h = m2.group(1).strip()
     if h:
-        return h
-    body = ep_summary.get("body") or ""
-    m = re.search(r'METADATA::HOST::([^\r\n]+)', body)
-    if m:
-        return m.group(1).strip()
-    m2 = re.search(r'\*\*Host:\*\*\s*([^\r\n]+)', body)
-    if m2:
-        return m2.group(1).strip()
+        return unicodedata.normalize('NFKD', h)
     return ""
 
 
@@ -173,6 +176,20 @@ def analyze_episode_speakers(
             for spk_cand, dur in sorted_by_duration:
                 if spk_cand in generic_speakers:
                     mappings[spk_cand] = "Oor"
+                    generic_speakers.remove(spk_cand)
+                    break
+
+    if "eric hecker" not in [s.lower() for s in existing_speakers] and "eric" not in [s.lower() for s in existing_speakers]:
+        is_eric_host = (
+            "eric j. hecker" in host_handle or
+            "decipheringtv" in host_handle or
+            "deciphering.tv" in host_handle or
+            (host_handle.startswith("eric") and "hecker" in host_handle)
+        )
+        if is_eric_host:
+            for spk_cand, dur in sorted_by_duration:
+                if spk_cand in generic_speakers:
+                    mappings[spk_cand] = "Eric Hecker"
                     generic_speakers.remove(spk_cand)
                     break
 

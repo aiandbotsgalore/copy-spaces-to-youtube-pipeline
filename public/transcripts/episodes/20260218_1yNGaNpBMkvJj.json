@@ -1,1 +1,18 @@
-{"release_id": 287495007, "release_tag": "20260218_1yNGaNpBMkvJj", "title": "MUSICK HOUR w/ FRED ROGERSS", "published_at": "2026-02-18T02:42:25Z", "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNGaNpBMkvJj/20260218_1yNGaNpBMkvJj_MUSICK_HOUR_w_FRED_ROGERSS.mp3", "segments": [{"start": 1.84, "end": 2.58, "speaker": "Speaker 0", "text": "Good evening."}]}
+{
+  "release_id": 287495007,
+  "release_tag": "20260218_1yNGaNpBMkvJj",
+  "title": "MUSICK HOUR w/ FRED ROGERSS",
+  "published_at": "2026-02-18T02:42:25Z",
+  "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNGaNpBMkvJj/20260218_1yNGaNpBMkvJj_MUSICK_HOUR_w_FRED_ROGERSS.mp3",
+  "segments": [
+    {
+      "start": 1.84,
+      "end": 2.58,
+      "speaker": "Logan",
+      "text": "Good evening."
+    }
+  ],
+  "speakers": [
+    "Logan"
+  ]
+}

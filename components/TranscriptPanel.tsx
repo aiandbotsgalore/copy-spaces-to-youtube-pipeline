@@ -1489,6 +1489,146 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
+  // Dynamically resolve generic speaker labels ("Speaker 1", "Speaker 2", etc.) to canonical profiles
+  // using host metadata, summary index records, dialogue cues, and user manual overrides.
+  const effectiveSpeakerMap = useMemo(() => {
+    const map: Record<string, string> = { ...speakerMap };
+    if (!parsedUtterances || parsedUtterances.length === 0) return map;
+
+    // Identify which raw speakers are generic (e.g. "Speaker 1", "speaker_0", "SPEAKER_00", "Speaker")
+    const rawSpeakers = Array.from(new Set(parsedUtterances.map(u => u.rawSpeaker)));
+    const genericSpeakers = rawSpeakers.filter(spk => {
+      if (map[spk]) return false; // user manual rename takes precedence
+      const lower = spk.toLowerCase().trim();
+      return lower.startsWith('speaker') || lower === 'speaker' || lower.startsWith('spk_') || /^spk\d+$/i.test(lower);
+    });
+
+    if (genericSpeakers.length === 0) return map;
+
+    // Calculate total duration / turn counts for generic speakers
+    const spkDurations = new Map<string, number>();
+    for (const u of parsedUtterances) {
+      const dur = Math.max(0.5, (u.rawEndSec ?? (u.rawStartSec + 3)) - u.rawStartSec);
+      spkDurations.set(u.rawSpeaker, (spkDurations.get(u.rawSpeaker) || 0) + dur);
+    }
+    const sortedGeneric = [...genericSpeakers].sort((a, b) => (spkDurations.get(b) || 0) - (spkDurations.get(a) || 0));
+
+    // Find host handle from selectedRelease or summaryIndex
+    const currentTag = selectedRelease?.tag_name || '';
+    const currentId = selectedRelease?.id;
+    const epSum = summaryIndex?.find(s => s.release_tag === currentTag || s.release_id === currentId);
+
+    let hostHandle = (epSum?.host_handle || '').toLowerCase();
+    if (!hostHandle && selectedRelease?.body) {
+      const mHost = selectedRelease.body.match(/METADATA::HOST::([^\r\n]+)/i) || selectedRelease.body.match(/\*\*Host:\*\*\s*([^\r\n]+)/i);
+      if (mHost) hostHandle = mHost[1].toLowerCase().trim();
+    }
+    const title = ((selectedRelease?.name || epSum?.title || '') + ' ' + (selectedRelease?.body || '')).toLowerCase();
+
+    // Set of already resolved names (lowercase)
+    const assignedNames = new Set<string>();
+    Object.values(map).forEach(v => assignedNames.add(v.toLowerCase()));
+    parsedUtterances.forEach(u => {
+      const l = u.speaker.toLowerCase().trim();
+      if (!l.startsWith('speaker')) assignedNames.add(l);
+    });
+
+    // 1. Host Resolution
+    const isLoganHost = !assignedNames.has('logan') && (
+      hostHandle.includes('logan') ||
+      hostHandle.includes('loganblack') ||
+      title.includes('logan black')
+    );
+    if (isLoganHost && sortedGeneric.length > 0) {
+      const primarySpk = sortedGeneric.shift()!;
+      map[primarySpk] = 'Logan';
+      assignedNames.add('logan');
+    }
+
+    const isAngelaHost = !assignedNames.has('angela') && (
+      hostHandle.includes('angelamaggard3') ||
+      (hostHandle.includes('txrrxstrxxl') && !hostHandle.includes('king oor')) ||
+      hostHandle.includes('angela')
+    );
+    if (isAngelaHost && sortedGeneric.length > 0) {
+      const primarySpk = sortedGeneric.shift()!;
+      map[primarySpk] = 'Angela';
+      assignedNames.add('angela');
+    }
+
+    const isOorHost = !assignedNames.has('oor') && (
+      hostHandle.includes('king oor') ||
+      (hostHandle.includes('txrrxstrxxl') && assignedNames.has('angela'))
+    );
+    if (isOorHost && sortedGeneric.length > 0) {
+      const primarySpk = sortedGeneric.shift()!;
+      map[primarySpk] = 'Oor';
+      assignedNames.add('oor');
+    }
+
+    const isEricHost = !assignedNames.has('eric hecker') && !assignedNames.has('eric') && (
+      hostHandle.includes('eric') ||
+      hostHandle.includes('hecker') ||
+      hostHandle.includes('decipheringtv') ||
+      hostHandle.includes('deciphering.tv')
+    );
+    if (isEricHost && sortedGeneric.length > 0) {
+      const primarySpk = sortedGeneric.shift()!;
+      map[primarySpk] = 'Eric Hecker';
+      assignedNames.add('eric hecker');
+    }
+
+    // 2. Summary Index Alignment: if summary index already has known speaker names that aren't mapped yet, assign them!
+    if (epSum?.speakers && epSum.speakers.length > 0 && sortedGeneric.length > 0) {
+      const knownUnassigned = epSum.speakers.filter(s => {
+        const sl = s.toLowerCase().trim();
+        return !sl.startsWith('speaker') && !assignedNames.has(sl);
+      });
+      for (const knownName of knownUnassigned) {
+        if (sortedGeneric.length === 0) break;
+        const targetSpk = sortedGeneric.shift()!;
+        map[targetSpk] = knownName;
+        assignedNames.add(knownName.toLowerCase());
+      }
+    }
+
+    // 3. Fast Dialogue Cues for remaining generic speakers
+    if (sortedGeneric.length > 0) {
+      const knownProfiles = [
+        { name: 'Logan', regexIntro: /\b(?:this is|i'm|it's)\s+logan\b/i },
+        { name: 'Angela', regexIntro: /\b(?:this is|i'm|it's)\s+angela\b/i },
+        { name: 'Eric Hecker', regexIntro: /\b(?:this is|i'm|it's)\s+eric\b/i },
+        { name: 'Oor', regexIntro: /\b(?:this is|i'm|it's)\s+oor\b/i },
+        { name: 'God Sauce', regexIntro: /\b(?:this is|i'm|it's)\s+god\s*sauce\b/i },
+        { name: 'Rose', regexIntro: /\b(?:this is|i'm|it's)\s+rose\b/i },
+        { name: 'Brian', regexIntro: /\b(?:this is|i'm|it's)\s+brian\b/i },
+        { name: 'Shane', regexIntro: /\b(?:this is|i'm|it's)\s+shane\b/i },
+        { name: 'Tom', regexIntro: /\b(?:this is|i'm|it's)\s+tom\b/i },
+        { name: 'Mary', regexIntro: /\b(?:this is|i'm|it's)\s+mary\b/i },
+        { name: 'teejay', regexIntro: /\b(?:this is|i'm|it's)\s+(?:teejay|tj)\b/i },
+        { name: 'ConsciousCulprit', regexIntro: /\b(?:this is|i'm|it's)\s+(?:conscious\s+culprit|culprit)\b/i },
+        { name: 'Linn', regexIntro: /\b(?:this is|i'm|it's)\s+linn\b/i },
+        { name: 'Daz', regexIntro: /\b(?:this is|i'm|it's)\s+daz\b/i },
+        { name: 'Grider', regexIntro: /\b(?:this is|i'm|it's)\s+grider\b/i },
+      ];
+
+      for (const prof of knownProfiles) {
+        if (assignedNames.has(prof.name.toLowerCase()) || sortedGeneric.length === 0) continue;
+        for (const u of parsedUtterances) {
+          if (sortedGeneric.includes(u.rawSpeaker) && prof.regexIntro.test(u.text)) {
+            map[u.rawSpeaker] = prof.name;
+            assignedNames.add(prof.name.toLowerCase());
+            const idx = sortedGeneric.indexOf(u.rawSpeaker);
+            if (idx > -1) sortedGeneric.splice(idx, 1);
+            break;
+          }
+        }
+      }
+    }
+
+    return map;
+  }, [parsedUtterances, speakerMap, selectedRelease, summaryIndex]);
+
   const utterances = useMemo(() => parsedUtterances.map(u => {
     const adjustedStart = Math.max(0, u.rawStartSec + timeOffsetSec);
     const adjustedEnd = u.rawEndSec !== null ? Math.max(0, u.rawEndSec + timeOffsetSec) : null;
@@ -1503,10 +1643,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       endSec: adjustedEnd,
       startLabel: formatSeconds(adjustedStart),
       endLabel: adjustedEnd !== null ? formatSeconds(adjustedEnd) : '',
-      speaker: speakerMap[u.rawSpeaker] || u.speaker,
+      speaker: effectiveSpeakerMap[u.rawSpeaker] || speakerMap[u.rawSpeaker] || u.speaker,
       words: adjustedWords,
     };
-  }), [parsedUtterances, speakerMap, timeOffsetSec]);
+  }), [parsedUtterances, speakerMap, effectiveSpeakerMap, timeOffsetSec]);
 
   useEffect(() => {
     if (targetScrollRef.current && utterances.length > 0 && selectedRelease) {
@@ -1545,9 +1685,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     const counts = new Map<string, number>();
     parsedUtterances.forEach(u => counts.set(u.rawSpeaker, (counts.get(u.rawSpeaker) || 0) + 1));
     return Array.from(counts.entries()).map(([rawSpeaker, count]) => ({
-      rawSpeaker, displayName: speakerMap[rawSpeaker] || rawSpeaker, count,
+      rawSpeaker, displayName: effectiveSpeakerMap[rawSpeaker] || speakerMap[rawSpeaker] || rawSpeaker, count,
     }));
-  }, [parsedUtterances, speakerMap]);
+  }, [parsedUtterances, speakerMap, effectiveSpeakerMap]);
 
   const uniqueDisplaySpeakers = useMemo(() => {
     const s = new Set<string>();
@@ -1557,7 +1697,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const openQuickRename = (rawSpeaker: string, currentName: string) => {
     const turns = speakerStats.find(st => st.rawSpeaker === rawSpeaker)?.count || 0;
-    setQuickRenameTarget({ rawSpeaker, currentName, turnCount: turns });
+    const effectiveName = effectiveSpeakerMap[rawSpeaker] || speakerMap[rawSpeaker] || currentName;
+    setQuickRenameTarget({ rawSpeaker, currentName: effectiveName, turnCount: turns });
   };
 
 
@@ -3935,7 +4076,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </button>
                       )}
                       {speakerStats.length > 0 && (
-                        <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && timeOffsetSec === 0)}
+                        <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && !Object.keys(effectiveSpeakerMap).length && timeOffsetSec === 0)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/40 cursor-pointer shadow-sm">
                           {savingGitHub ? <Loader size={12} className="animate-spin text-emerald-400" /> : <Save size={12} />}
                           {savingGitHub ? 'Saving…' : 'Save to GitHub'}
