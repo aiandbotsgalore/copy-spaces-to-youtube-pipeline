@@ -341,8 +341,21 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
     if hf_token:
         try:
             print("[*] Performing neural speaker diarization (pyannote.audio)...")
-            diarize_pipeline = whisperx.DiarizationPipeline(use_auth_token=hf_token, device=device)
-            diarize_segments = diarize_pipeline(audio)
+            try:
+                from whisperx.diarize import DiarizationPipeline
+            except (ImportError, AttributeError):
+                from whisperx import DiarizationPipeline
+
+            try:
+                diarize_pipeline = DiarizationPipeline(use_auth_token=hf_token, device=device)
+            except TypeError:
+                diarize_pipeline = DiarizationPipeline(token=hf_token, device=device)
+
+            try:
+                diarize_segments = diarize_pipeline(audio)
+            except Exception:
+                diarize_segments = diarize_pipeline(str(audio_path))
+
             final_result = whisperx.assign_word_speakers(diarize_segments, aligned_result)
             print(f"[✓] Diarization completed in {time.time() - t2:.1f}s")
         except Exception as e:

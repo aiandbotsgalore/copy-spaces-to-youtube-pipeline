@@ -60,3 +60,9 @@ The project follows a flat directory structure where source files are located di
 *   **State Management:** Local React state (`useState`) in `App.tsx` manages the configuration object.
 *   **File Generation:** logical separation between the UI (`App.tsx`) and the content generation (`utils/templates.ts`). When adding new output files, add the generator function in `templates.ts` and register it in the `FILES` array in `App.tsx`.
 *   **Imports:** The project uses path aliases (configured in `vite.config.ts`), though the current codebase primarily uses relative imports.
+
+# YouTube Podcast & Audio Rules
+
+*   **YouTube Duration Compliance:** All episodes (new or old) MUST comply with YouTube's 12-hour maximum upload limit. Any episode longer than 10 hours (36,000 seconds) must be sliced into sequential chunks labeled `(Part 1)`, `(Part 2)`, `(Part 3)`, etc.
+*   **RSS Feed Separation:** Monolithic audio files exceeding 11h 58m must never enter `podcast.xml` (they belong in `podcast_archive.xml`).
+*   **Highlight Clips Distinction:** Highlight clips (starting with timestamp patterns or `clip_`) must never be confused with multi-part episode chunks in `podcast.xml`. They belong exclusively in `clips.xml` and `public/clips/clips_catalog.json`.

@@ -31,6 +31,23 @@ from typing import List, Dict, Any, Optional
 import requests
 import shutil
 
+def load_env_files():
+    """Auto-load .env and .env.local into os.environ if present."""
+    for env_name in ['.env.local', '.env']:
+        p = Path(env_name)
+        if p.exists():
+            try:
+                with open(p, 'r', encoding='utf-8') as f_env:
+                    for line in f_env:
+                        line = line.strip()
+                        if line and not line.startswith('#') and '=' in line:
+                            k, v = line.split('=', 1)
+                            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            except Exception:
+                pass
+
+load_env_files()
+
 def find_ffmpeg() -> str:
     """Finds ffmpeg executable across Linux, macOS, and Windows environments."""
     cand = shutil.which("ffmpeg")
@@ -508,12 +525,19 @@ def process_single_episode(
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    segments = data.get("segments", [])
+    if isinstance(data, list):
+        segments = data
+        ep_title = Path(json_path).stem
+    elif isinstance(data, dict):
+        segments = data.get("segments") or data.get("utterances") or data.get("chunks") or []
+        ep_title = data.get("title") or Path(json_path).stem
+    else:
+        segments = []
+        ep_title = Path(json_path).stem
+
     if not segments:
         print("[!] No segments found in transcript JSON.")
         return []
-
-    ep_title = data.get("title") or Path(json_path).stem
 
     # Gemini 2.5 Flash has a 1,000,000 token context window.
     # We analyze up to 1,500 turns in one call (~25k tokens), eliminating fragmented rate-limit loops.
@@ -522,7 +546,17 @@ def process_single_episode(
     highlights = []
     
     if len(segments) <= WINDOW_SIZE:
-        dialogue_lines = [f"[{s['start']:.1f}s - {s['end']:.1f}s] {s.get('speaker', 'Speaker')}: {s['text']}" for s in segments]
+        dialogue_lines = []
+        for s in segments:
+            if isinstance(s, dict) and (s.get("text") or s.get("words")):
+                st = float(s.get("start", 0.0) or 0.0)
+                en = float(s.get("end", st + 3.0) or (st + 3.0))
+                spk = s.get("speaker") or "Speaker"
+                txt = (s.get("text") or "").strip()
+                if not txt and isinstance(s.get("words"), list):
+                    txt = " ".join(w.get("word", "") for w in s["words"]).strip()
+                if txt:
+                    dialogue_lines.append(f"[{st:.1f}s - {en:.1f}s] {spk}: {txt}")
         print(f"[*] Sending {len(segments)} dialogue turns to Gemini in a single pass...")
         highlights = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=limit, category_filter=category)
     else:
@@ -535,7 +569,17 @@ def process_single_episode(
             sub_segs = segments[start_i:end_i]
             if not sub_segs:
                 break
-            dialogue_lines = [f"[{s['start']:.1f}s - {s['end']:.1f}s] {s.get('speaker', 'Speaker')}: {s['text']}" for s in sub_segs]
+            dialogue_lines = []
+            for s in sub_segs:
+                if isinstance(s, dict) and (s.get("text") or s.get("words")):
+                    st = float(s.get("start", 0.0) or 0.0)
+                    en = float(s.get("end", st + 3.0) or (st + 3.0))
+                    spk = s.get("speaker") or "Speaker"
+                    txt = (s.get("text") or "").strip()
+                    if not txt and isinstance(s.get("words"), list):
+                        txt = " ".join(w.get("word", "") for w in s["words"]).strip()
+                    if txt:
+                        dialogue_lines.append(f"[{st:.1f}s - {en:.1f}s] {spk}: {txt}")
             print(f"  [Window {w_idx + 1}/{num_windows}] Analyzing turns {start_i}-{end_i}...")
             try:
                 cand = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=max(2, limit // 2), category_filter=category)

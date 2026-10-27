@@ -241,12 +241,14 @@ def generate_podcast_rss():
         yt_status = yt_match.group(1).upper() if yt_match else "APPROVED"
         is_yt_approved = yt_status not in ["UNLISTED", "REJECTED", "EXCLUDED"]
 
+        # Genuine episode audio assets (exclude highlight clips and short preview reels)
         mp3_assets = [
             a for a in rel.get("assets", [])
             if a["name"].endswith(".mp3")
             and not a["name"].endswith("_clips.json")
             and not a["name"].endswith("_short.mp4")
             and not a["name"].startswith("clip_")
+            and not re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s_", a["name"])
         ]
 
         if not mp3_assets:
@@ -256,12 +258,14 @@ def generate_podcast_rss():
         is_multi = len(mp3_assets) > 1
 
         for part_idx, asset in enumerate(mp3_assets, start=1):
-            item_title = f"{rel['name']} (Part {part_idx})" if is_multi else rel["name"]
-            item_guid = f"{rel['id']}_part{part_idx}" if is_multi else str(rel["id"])
+            m_part = re.search(r"[-_]Part(\d+)\.mp3$", asset["name"], re.IGNORECASE)
+            part_num = int(m_part.group(1)) if m_part else part_idx
+            item_title = f"{rel['name']} (Part {part_num})" if is_multi else rel["name"]
+            item_guid = f"{rel['id']}_part{part_num}" if is_multi else str(rel["id"])
 
             if is_multi and dur_seconds > 0:
                 CHUNK_SECS = 36000
-                part_start = (part_idx - 1) * CHUNK_SECS
+                part_start = (part_num - 1) * CHUNK_SECS
                 part_dur_sec = max(0, min(CHUNK_SECS, dur_seconds - part_start))
                 part_dur_str = f"{part_dur_sec // 3600:02d}:{(part_dur_sec % 3600) // 60:02d}:{part_dur_sec % 60:02d}"
             else:
@@ -285,10 +289,14 @@ def generate_podcast_rss():
 
             archive_items.append(item_xml)
 
+            # Check if this item qualifies for YouTube Podcasts:
+            # Must be approved AND must NOT exceed YouTube's maximum duration (11h 58m buffer)
             if not is_yt_approved:
                 unlisted_episodes.append((rel["name"], yt_status))
             elif not is_multi and dur_seconds > MAX_YOUTUBE_DURATION_SECONDS:
                 over_limit_episodes.append((rel["name"], duration))
+            elif is_multi and parse_duration_seconds(part_dur_str) > MAX_YOUTUBE_DURATION_SECONDS:
+                over_limit_episodes.append((item_title, part_dur_str))
             else:
                 yt_items.append(item_xml)
 
