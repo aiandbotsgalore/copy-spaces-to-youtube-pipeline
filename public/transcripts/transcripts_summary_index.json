@@ -15,6 +15,32 @@
     ]
   },
   {
+    "release_id": 425644470,
+    "release_tag": "20261026_1mxPaZyerNgKN",
+    "title": "Cawffee_Tawk_Made_with_Oor_s_tears",
+    "published_at": "2026-10-27T15:32:16Z",
+    "episode_date": "2026-10-26",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261026_1mxPaZyerNgKN/20261026_1mxPaZyerNgKN_Cawffee_Tawk_Made_with_Oor_s_tears.mp3",
+    "segment_count": 1112,
+    "body": "- **Space Title:** Cawffee_Tawk_Made_with_Oor_s_tears\n- **Duration:** 07:50:55\n- **Processed:** 20261026_1mxPaZyerNgKN\n- **Source ID:** 1mxPaZyerNgKN\n\n---\nMETADATA::DURATION::07:50:55\nMETADATA::SOURCE_ID::1mxPaZyerNgKN\nMETADATA::EPISODE_DATE::20261026\nMETADATA::HOST::DecipheringTV\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 28255,
+    "host_handle": "DecipheringTV",
+    "speakers": [
+      "Daz",
+      "Eric Hecker",
+      "SPEAKER_02",
+      "SPEAKER_04",
+      "SPEAKER_05",
+      "SPEAKER_08",
+      "SPEAKER_09",
+      "SPEAKER_14",
+      "SPEAKER_15",
+      "SPEAKER_16",
+      "SPEAKER_19",
+      "SPEAKER_21"
+    ]
+  },
+  {
     "release_id": 425408158,
     "release_tag": "20260930_1DGleVqAneDJL",
     "title": "The_Social_Cost_of_Taking_a_Suicide_Threat_Seriously",
