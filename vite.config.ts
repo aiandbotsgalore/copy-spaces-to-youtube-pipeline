@@ -1,12 +1,12 @@
 import path from 'path';
 import fs from 'fs';
-import child_process from 'child_process';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { createDirectorMiddleware } from './server/directorMiddleware';
 import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
 import { searchTranscriptLexical } from './server/transcriptSearchService';
+import { createVoxSynthesizeHandler } from './server/voxSynthesize';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -106,128 +106,8 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
   });
 
 
-  // VoxCPM-2 Speech Synthesis & Voice Cloning API
-  middlewares.use('/api/vox/synthesize', async (req: any, res: any) => {
-    if (req.method !== 'POST') {
-      res.statusCode = 405;
-      res.end('Method Not Allowed');
-      return;
-    }
-    const chunks: Buffer[] = [];
-    req.on('data', (c: any) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c)));
-    req.on('end', async () => {
-      try {
-        const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-        const { speaker, text, preset, settings } = body;
-        const words = (text || '').trim().split(/\s+/).filter(Boolean);
-        const wpm = Number(settings?.wpm) || 155;
-        const estDuration = Math.max(2, Math.round(((words.length / wpm) * 60) * 10) / 10);
-
-        const voxApiUrl = process.env.VOXCPM_API_URL;
-        if (voxApiUrl) {
-          try {
-            const upstream = await fetch(`${voxApiUrl}/synthesize`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body),
-            });
-            if (upstream.ok) {
-              const data = await upstream.json();
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify(data));
-              return;
-            }
-          } catch {}
-        }
-
-        let resolvedAudioUrl = '/output/vox/dessa_speech_logan.mp3';
-        if (!fs.existsSync(path.resolve(__dirname, 'public/output/vox/dessa_speech_logan.mp3'))) {
-          resolvedAudioUrl = '/output/vox/LOGAN_001.mp3';
-        }
-
-        // On-demand voice clone synthesis via free Hugging Face Spaces (OpenBMB VoxCPM-2)
-        if (text && text.trim().length > 0) {
-          const isDessaSpeech = /ladies and gentlemen/i.test(text) || (/dessa/i.test(text) && /block/i.test(text));
-          if (isDessaSpeech && fs.existsSync(path.resolve(__dirname, 'public/output/vox/dessa_speech_logan.mp3'))) {
-            resolvedAudioUrl = '/output/vox/dessa_speech_logan.mp3';
-          } else {
-            try {
-              const clipId = 'take_' + Date.now();
-              const outRelPath = '/output/vox/' + clipId + '.mp3';
-              const outFullPath = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '.mp3');
-              const pyScript = path.resolve(__dirname, 'scripts', 'cloud_voice', 'synthesize_hf.py');
-              const textB64 = Buffer.from(text, 'utf8').toString('base64');
-              const pyCmd = `python "${pyScript}" --text-b64 "${textB64}" --speaker "${speaker || 'Logan'}" --out "${outFullPath}"`;
-              child_process.execSync(pyCmd, {
-                timeout: 90000,
-                stdio: 'pipe',
-                env: {
-                  ...process.env,
-                  VOXCPM_SPACE: process.env.VOXCPM_SPACE || 'loganblack0/voxcpm-voice-clone',
-                  HF_TOKEN: process.env.HF_TOKEN
-                }
-              });
-              if (fs.existsSync(outFullPath)) {
-                resolvedAudioUrl = outRelPath;
-              }
-            } catch (cloudErr: any) {
-              console.warn('[!] Cloud synthesis notice: ' + (cloudErr?.message || 'Quota/congested'));
-              // Resilient local acoustic fallback with Logan formant mastering so generation NEVER fails
-              try {
-                const clipId = 'take_' + Date.now();
-                const outRelPath = '/output/vox/' + clipId + '.mp3';
-                const outFullPath = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '.mp3');
-                const tempWav = path.resolve(__dirname, 'public', 'output', 'vox', clipId + '_temp.wav');
-                const textB64 = Buffer.from(text.slice(0, 800), 'utf8').toString('base64');
-                const psCmd = `powershell -NoProfile -Command "$bytes = [System.Convert]::FromBase64String('${textB64}'); $plain = [System.Text.Encoding]::UTF8.GetString($bytes); Add-Type -AssemblyName System.Speech; $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer; $synth.SetOutputToWaveFile('${tempWav}'); $synth.Speak($plain); $synth.Dispose()"`;
-                child_process.execSync(psCmd, { stdio: 'pipe' });
-                if (fs.existsSync(tempWav)) {
-                  child_process.execSync(`ffmpeg -y -i "${tempWav}" -af "equalizer=f=125:width_type=o:width=2:g=5,equalizer=f=3000:width_type=o:width=1.5:g=2,aresample=48000" -codec:a libmp3lame -b:a 192k "${outFullPath}"`, { stdio: 'pipe' });
-                  try { fs.unlinkSync(tempWav); } catch {}
-                  if (fs.existsSync(outFullPath)) {
-                    resolvedAudioUrl = outRelPath;
-                  }
-                }
-              } catch (fallbackErr: any) {
-                console.warn('[!] Acoustic fallback notice:', fallbackErr?.message);
-              }
-            }
-          }
-        }
-
-        let realDuration = estDuration;
-        try {
-          const fullAudioPath = path.resolve(__dirname, 'public', resolvedAudioUrl.replace(/^\//, ''));
-          if (fs.existsSync(fullAudioPath)) {
-            const probe = child_process.execSync(
-              `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${fullAudioPath}"`,
-              { stdio: 'pipe' }
-            ).toString().trim();
-            const parsedDur = parseFloat(probe);
-            if (!isNaN(parsedDur) && parsedDur > 0) {
-              realDuration = Math.round(parsedDur * 10) / 10;
-            }
-          }
-        } catch {}
-
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({
-          status: 'success',
-          speaker: speaker || 'Logan',
-          duration: realDuration,
-          model: 'openbmb/VoxCPM2 (Hugging Face Cloud)',
-          sampleRate: 48000,
-          latencyMs: 280,
-          preset: preset || 'conversational',
-          wordCount: words.length,
-          audioUrl: resolvedAudioUrl
-        }));
-      } catch (err: any) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: err.message || 'Synthesis failed' }));
-      }
-    });
-  });
+  // VoxCPM-2 Speech Synthesis & Voice Cloning API (server/voxSynthesize.ts). Fails honestly; no substitute voice.
+  middlewares.use('/api/vox/synthesize', createVoxSynthesizeHandler({ rootDir: __dirname, getEnv: () => process.env }));
 
   // Neural Video Avatar & LivePortrait Render API
   middlewares.use('/api/avatar/render', async (req: any, res: any) => {
@@ -342,6 +222,10 @@ export default defineConfig(({ mode }) => {
       port: 5000,
       host: '0.0.0.0',
       allowedHosts: true,
+      // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
+      watch: {
+        ignored: ['**/.spacepipe-studio/**', '**/public/output/**'],
+      },
     },
     plugins: [
       react(),
@@ -367,10 +251,6 @@ export default defineConfig(({ mode }) => {
         },
       }
     ],
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
