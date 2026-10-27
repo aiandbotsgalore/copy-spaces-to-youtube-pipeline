@@ -41,6 +41,7 @@ export interface SavedSpeaker {
   id: string;
   name: string;
   avatarEmoji?: string;
+  avatarUrl?: string;
   color?: string;
   role?: string;
 }
@@ -393,9 +394,19 @@ export function getAutoSpeakerEmoji(name: string): string {
   return DIVERSE_EMOJIS[Math.abs(hash) % DIVERSE_EMOJIS.length];
 }
 
-export function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
+export function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []): {
+  bg: string;
+  text: string;
+  border: string;
+  badge: string;
+  dot: string;
+  avatar: string;
+  emoji?: string;
+  role?: string;
+  avatarUrl?: string;
+} {
   if (!displayName) {
-    return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, role: undefined, avatarUrl: undefined };
   }
   const cleanName = displayName.trim();
   const match = savedSpeakers.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
@@ -412,13 +423,13 @@ export function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker
       }
     }
     const resolvedColor = (colorKey && SPEAKER_COLOR_MAP[colorKey]) ? colorKey : getAutoSpeakerColor(cleanName);
-    return { ...SPEAKER_COLOR_MAP[resolvedColor], emoji, role: match.role };
+    return { ...SPEAKER_COLOR_MAP[resolvedColor], emoji, role: match.role, avatarUrl: match.avatarUrl };
   }
 
   // Check official default speakers list
   const defaultMatch = DEFAULT_SAVED_SPEAKERS.find(s => s.name.toLowerCase() === cleanName.toLowerCase());
   if (defaultMatch && defaultMatch.color && SPEAKER_COLOR_MAP[defaultMatch.color]) {
-    return { ...SPEAKER_COLOR_MAP[defaultMatch.color], emoji: defaultMatch.avatarEmoji, role: defaultMatch.role };
+    return { ...SPEAKER_COLOR_MAP[defaultMatch.color], emoji: defaultMatch.avatarEmoji, role: defaultMatch.role, avatarUrl: undefined };
   }
 
   // Handle "Speaker 1", "Speaker 2", "Speaker_1", etc.
@@ -428,7 +439,7 @@ export function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker
     // 1-indexed: Speaker 1 -> DYNAMIC_COLOR_ORDER[0] (emerald), Speaker 2 -> DYNAMIC_COLOR_ORDER[1] (amber), etc.
     const colorIdx = (num > 0 ? num - 1 : 0) % DYNAMIC_COLOR_ORDER.length;
     const colorKey = DYNAMIC_COLOR_ORDER[colorIdx];
-    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined, avatarUrl: undefined };
   }
 
   // Handle "Speaker A", "Speaker B", "Speaker_C", etc.
@@ -436,13 +447,13 @@ export function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker
   if (letterMatch) {
     const charCode = letterMatch[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, ...
     const colorKey = DYNAMIC_COLOR_ORDER[((charCode % DYNAMIC_COLOR_ORDER.length) + DYNAMIC_COLOR_ORDER.length) % DYNAMIC_COLOR_ORDER.length];
-    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined, avatarUrl: undefined };
   }
 
   // Stable deterministic hash for any other speaker name (e.g. "Rotary", "Dave", "Snuggles", "Sarah", "Presenter")
   const colorKey = getAutoSpeakerColor(cleanName);
   const emoji = getAutoSpeakerEmoji(cleanName);
-  return { ...SPEAKER_COLOR_MAP[colorKey], emoji, role: undefined };
+  return { ...SPEAKER_COLOR_MAP[colorKey], emoji, role: undefined, avatarUrl: undefined };
 }
 
 export interface WordTimingSource {

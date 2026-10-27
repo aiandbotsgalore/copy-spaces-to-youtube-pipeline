@@ -27,5 +27,21 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "components/**/*",
+    "utils/**/*",
+    "server/**/*",
+    "*.ts",
+    "*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public",
+    "transcripts",
+    "batches",
+    "work",
+    "real_avatar_output"
+  ]
 }

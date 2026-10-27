@@ -118,6 +118,7 @@ export interface EpisodeSummary {
   segment_count: number;
   body?: string;
   speakers?: string[];
+  host_handle?: string | null;
 }
 
 export interface GlobalSearchResult {
@@ -425,7 +426,17 @@ export function getAutoSpeakerEmoji(name: string): string {
   return DIVERSE_EMOJIS[Math.abs(hash) % DIVERSE_EMOJIS.length];
 }
 
-function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []) {
+function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []): {
+  bg: string;
+  text: string;
+  border: string;
+  badge: string;
+  dot: string;
+  avatar: string;
+  emoji?: string;
+  role?: string;
+  avatarUrl?: string;
+} {
   if (!displayName) {
     return { ...SPEAKER_COLOR_MAP.indigo, emoji: undefined, avatarUrl: undefined, role: undefined };
   }
@@ -460,7 +471,7 @@ function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []
     // 1-indexed: Speaker 1 -> DYNAMIC_COLOR_ORDER[0] (emerald), Speaker 2 -> DYNAMIC_COLOR_ORDER[1] (amber), etc.
     const colorIdx = (num > 0 ? num - 1 : 0) % DYNAMIC_COLOR_ORDER.length;
     const colorKey = DYNAMIC_COLOR_ORDER[colorIdx];
-    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined, avatarUrl: undefined };
   }
 
   // Handle "Speaker A", "Speaker B", "Speaker_C", etc.
@@ -468,13 +479,13 @@ function getSpeakerTheme(displayName: string, savedSpeakers: SavedSpeaker[] = []
   if (letterMatch) {
     const charCode = letterMatch[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, ...
     const colorKey = DYNAMIC_COLOR_ORDER[((charCode % DYNAMIC_COLOR_ORDER.length) + DYNAMIC_COLOR_ORDER.length) % DYNAMIC_COLOR_ORDER.length];
-    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined };
+    return { ...SPEAKER_COLOR_MAP[colorKey], emoji: undefined, role: undefined, avatarUrl: undefined };
   }
 
   // Stable deterministic hash for any other speaker name (e.g. "Rotary", "Dave", "Snuggles", "Sarah", "Presenter")
   const colorKey = getAutoSpeakerColor(cleanName);
   const emoji = getAutoSpeakerEmoji(cleanName);
-  return { ...SPEAKER_COLOR_MAP[colorKey], emoji, role: undefined };
+  return { ...SPEAKER_COLOR_MAP[colorKey], emoji, role: undefined, avatarUrl: undefined };
 }
 
 const POPULAR_SEARCH_TOPICS = [

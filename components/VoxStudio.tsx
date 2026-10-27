@@ -542,12 +542,13 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       title: `[VOX] ${target.title}`,
       quote: target.text,
       speaker: target.speaker,
+      sourceTitle: 'VoxCPM-2 Synthesized Voice',
       audioUrl: target.audioUrl,
-      durationSec: target.duration,
       startSec: 0,
       endSec: target.duration,
+      sourceDurationSec: target.duration,
       category: 'VoxCPM-2 Synthesized Voice',
-      tensionScore: 8.5
+      severity: 8
     });
 
     montage.openDrawer();
