@@ -51,11 +51,15 @@ export interface ProviderAdapter {
 /* ------------------------------------------------------------------------------------------------ */
 
 export interface RunOptions { cwd: string; env: Record<string, string | undefined>; stdin?: Buffer; timeoutMs: number; signal?: AbortSignal }
-export interface RunOutcome { code: number | null; stdout: string; stderr: string; timedOut: boolean; aborted: boolean; spawnError?: string }
+export interface RunOutcome { code: number | null; stdout: string; stderr: string; timedOut: boolean; aborted: boolean; spawnError?: string; signal?: string }
 export type ProcessRunner = (file: string, args: string[], opts: RunOptions) => Promise<RunOutcome>;
 
 export const spawnRunner: ProcessRunner = (file, args, opts) =>
   new Promise(resolve => {
+    if (!fs.existsSync(opts.cwd)) {
+      resolve({ code: null, stdout: '', stderr: '', timedOut: false, aborted: false, spawnError: `working directory ${opts.cwd} does not exist` });
+      return;
+    }
     let child;
     try {
       child = spawn(file, args, { cwd: opts.cwd, env: opts.env as NodeJS.ProcessEnv, shell: false, windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'] });
@@ -75,10 +79,20 @@ export const spawnRunner: ProcessRunner = (file, args, opts) =>
     child.stdout.on('data', (c: Buffer) => out.push(c));
     child.stderr.on('data', (c: Buffer) => err.push(c));
     child.on('error', (e: Error) => finish({ code: null, stdout: Buffer.concat(out).toString('utf8'), stderr: Buffer.concat(err).toString('utf8'), timedOut, aborted, spawnError: e.message }));
-    child.on('close', (code: number | null) => finish({ code, stdout: Buffer.concat(out).toString('utf8'), stderr: Buffer.concat(err).toString('utf8'), timedOut, aborted }));
+    child.on('close', (code: number | null, sig: NodeJS.Signals | null) => finish({ code, stdout: Buffer.concat(out).toString('utf8'), stderr: Buffer.concat(err).toString('utf8'), timedOut, aborted, ...(sig ? { signal: sig } : {}) }));
     child.stdin.on('error', () => {});
     child.stdin.end(opts.stdin ?? Buffer.alloc(0));
   });
+
+/** One line on how a process ended, for status details: never just "exited null". */
+export function describeExit(r: RunOutcome, what: string): string {
+  const text = (r.stdout + r.stderr).trim().slice(0, 300);
+  if (r.spawnError) return `${what} could not be started: ${r.spawnError}.`;
+  if (r.timedOut) return `${what} did not finish in time${text ? `: ${text}` : '.'}`;
+  if (r.aborted) return `${what} was cancelled.`;
+  if (r.code === null) return `${what} was ended by ${r.signal ? `signal ${r.signal}` : 'the system'} without an exit code${text ? `: ${text}` : ' and printed nothing.'}`;
+  return `${what} exited ${r.code}${text ? `: ${text}` : ' and printed nothing.'}`;
+}
 
 /* ------------------------------------------------------------------------------------------------ */
 /* Environment and directories                                                                       */
@@ -106,6 +120,9 @@ export function cliDirs(tmp = os.tmpdir()) {
   return { sandbox, io };
 }
 
+/** Status checks run in the sandbox too, so it must exist before any CLI is spawned there. */
+export function ensureSandboxDir(dir: string) { fs.mkdirSync(dir, { recursive: true }); }
+
 /** The sandbox must stay empty: it is only the CLI's working directory. */
 export function ensureEmptySandbox(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
@@ -117,7 +134,7 @@ export function ensureEmptySandbox(dir: string) {
 /* ------------------------------------------------------------------------------------------------ */
 
 export type ResolvedBinary =
-  | { ok: true; file: string; prefixArgs: string[]; via: 'exe' | 'npm-shim' | 'path'; found: string }
+  | { ok: true; file: string; prefixArgs: string[]; via: 'exe' | 'npm-shim' | 'npm-shim-exe' | 'path'; found: string }
   | { ok: false; detail: string };
 
 export interface ResolveDeps {
@@ -129,11 +146,15 @@ export interface ResolveDeps {
   env: Record<string, string | undefined>;
 }
 
-/** Reads an npm cmd-shim and returns the absolute path of the JS entry it runs, or null. */
+/**
+ * Reads an npm cmd-shim and returns the absolute path of what it runs, or null: a JS entry (run with
+ * node), or a native .exe (Claude Code 2.x ships bin/claude.exe and its shim runs it directly).
+ */
 export function parseCmdShim(shimText: string, shimPath: string): string | null {
-  const m = /"%~?dp0%?\\([^"]+?\.(?:js|cjs|mjs))"/i.exec(shimText);
-  if (!m) return null;
-  return path.win32.join(path.win32.dirname(shimPath), m[1]);
+  const targets = [...shimText.matchAll(/"%~?dp0%?\\([^"]+?\.(?:js|cjs|mjs|exe))"/gi)].map(m => m[1]);
+  // A node-script shim also names "%dp0%\node.exe" (the bundled-node check); that is the interpreter, not the target.
+  const pick = targets.find(t => /\.(?:js|cjs|mjs)$/i.test(t)) ?? targets.find(t => !/(^|\\)node\.exe$/i.test(t));
+  return pick ? path.win32.join(path.win32.dirname(shimPath), pick) : null;
 }
 
 export async function resolveCliBinary(name: 'claude' | 'codex', deps: ResolveDeps): Promise<ResolvedBinary> {
@@ -149,9 +170,11 @@ export async function resolveCliBinary(name: 'claude' | 'codex', deps: ResolveDe
     let text = '';
     try { text = deps.readFile(f); } catch { continue; }
     const entry = parseCmdShim(text, f);
-    if (entry && deps.exists(entry)) return { ok: true, file: deps.nodePath, prefixArgs: [entry], via: 'npm-shim', found: f };
+    if (!entry || !deps.exists(entry)) continue;
+    if (/\.exe$/i.test(entry)) return { ok: true, file: entry, prefixArgs: [], via: 'npm-shim-exe', found: f };
+    return { ok: true, file: deps.nodePath, prefixArgs: [entry], via: 'npm-shim', found: f };
   }
-  return { ok: false, detail: `${name} found at ${found.join(', ')}, but it is neither a .exe nor an npm .cmd shim with a readable JS entry. It is not run through a shell.` };
+  return { ok: false, detail: `${name} found at ${found.join(', ')}, but it is neither a .exe nor an npm .cmd shim that runs an existing JS entry or .exe. It is not run through a shell.` };
 }
 
 /* ------------------------------------------------------------------------------------------------ */
@@ -229,6 +252,15 @@ function writeIo(io: string, name: string, content: string): string {
 }
 const rmQuiet = (p: string) => { try { fs.rmSync(p, { force: true }); } catch { /* ignore */ } };
 
+/** Claude's --output-format json envelope: the last JSON object on stdout with type "result" (hooks may print before it). */
+export function claudeEnvelope(stdout: string): any {
+  const objs = jsonObjects(stdout).filter(o => o && typeof o === 'object');
+  const res = [...objs].reverse().find(o => o.type === 'result');
+  if (res) return res;
+  const loose = parseJsonLoose(stdout) as any;
+  return loose && typeof loose === 'object' ? loose : null;
+}
+
 export function claudeArgs(model: 'sonnet' | 'haiku', schema: object, sysPromptPath: string): string[] {
   return [
     '-p', '--output-format', 'json',
@@ -253,8 +285,10 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
     async available() {
       const bin = await deps.resolve();
       if (bin.ok === false) return { ok: false, detail: bin.detail, code: 'NOT_INSTALLED' };
+      ensureSandboxDir(dirs.sandbox);
       const r = await deps.runner(bin.file, [...bin.prefixArgs, 'auth', 'status'], { cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), timeoutMs: 20_000 });
-      if (r.code !== 0) return { ok: false, detail: `claude auth status exited ${r.code}: ${(r.stdout + r.stderr).trim().slice(0, 300)}`, binPath: bin.found, code: 'NOT_SIGNED_IN' };
+      if (r.spawnError) return { ok: false, detail: describeExit(r, 'claude auth status'), binPath: bin.found, code: 'NOT_INSTALLED' };
+      if (r.code !== 0) return { ok: false, detail: describeExit(r, 'claude auth status'), binPath: bin.found, code: r.timedOut ? 'TIMEOUT' : 'NOT_SIGNED_IN' };
       const parsed = parseJsonLoose(r.stdout) as any;
       const method = parsed?.authMethod ?? /authMethod"?\s*[:=]\s*"?([\w.-]+)/i.exec(r.stdout)?.[1];
       if (method && method !== 'claude.ai') return { ok: false, detail: `Signed in with ${method}, not the claude.ai subscription.`, binPath: bin.found, code: 'NOT_SIGNED_IN' };
@@ -271,8 +305,11 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
           cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), stdin: Buffer.from(req.user, 'utf8'), timeoutMs: req.timeoutMs, signal: req.signal,
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
-        const env = parseJsonLoose(r.stdout) as any;
-        if (r.code === 0 && env && env.structured_output !== undefined && env.structured_output !== null && env.is_error !== true) {
+        const env = claudeEnvelope(r.stdout);
+        // The result envelope decides, not stderr: a user-level hook (e.g. a SessionEnd hook that needs
+        // a missing runtime) can print errors, or even change the exit code, after a successful result.
+        const success = !!env && (env.type === undefined || env.type === 'result') && env.is_error !== true && (env.subtype === undefined || env.subtype === 'success');
+        if (!r.aborted && success && env.structured_output !== undefined && env.structured_output !== null) {
           const u = env.usage || {};
           return {
             ok: true, json: env.structured_output, provider: 'claude_cli', model: String(env.model || model), durationMs: now() - started,
@@ -311,9 +348,11 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
     async available() {
       const bin = await deps.resolve();
       if (bin.ok === false) return { ok: false, detail: bin.detail, code: 'NOT_INSTALLED' };
+      ensureSandboxDir(dirs.sandbox);
       const r = await deps.runner(bin.file, [...bin.prefixArgs, 'login', 'status'], { cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), timeoutMs: 20_000 });
       const text = (r.stdout + r.stderr).trim();
-      if (r.code !== 0) return { ok: false, detail: `codex login status exited ${r.code}: ${text.slice(0, 300)}`, binPath: bin.found, code: 'NOT_SIGNED_IN' };
+      if (r.spawnError) return { ok: false, detail: describeExit(r, 'codex login status'), binPath: bin.found, code: 'NOT_INSTALLED' };
+      if (r.code !== 0) return { ok: false, detail: describeExit(r, 'codex login status'), binPath: bin.found, code: r.timedOut ? 'TIMEOUT' : 'NOT_SIGNED_IN' };
       return { ok: true, detail: text.split(/\r?\n/)[0]?.slice(0, 200) || 'Logged in.', binPath: bin.found };
     },
     async complete(req) {
@@ -532,7 +571,7 @@ export function createProviderRegistry(deps: RegistryDeps) {
     },
     async health() {
       const noBudget = { maxUsd: 0, spentUsd: 0 };
-      const specs = ['claude_cli:sonnet', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna'];
+      const specs = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna'];
       const out: Record<string, Availability & { provider: ProviderId; model: string }> = {};
       for (const s of specs) {
         const a = this.adapterFor(s, noBudget)!;
