@@ -32,6 +32,32 @@
     ]
   },
   {
+    "release_id": 425846631,
+    "release_tag": "20261027_1DGleVzAEgNJL",
+    "title": "Sunshine_and_lollipops",
+    "published_at": "2026-10-27T18:40:02Z",
+    "episode_date": "2026-10-27",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261027_1DGleVzAEgNJL/20261027_1DGleVzAEgNJL_Sunshine_and_lollipops.mp3",
+    "segment_count": 1408,
+    "body": "- **Space Title:** Sunshine_and_lollipops\n- **Duration:** 08:43:09\n- **Processed:** 20261027_1DGleVzAEgNJL\n- **Source ID:** 1DGleVzAEgNJL\n\n---\nMETADATA::DURATION::08:43:09\nMETADATA::SOURCE_ID::1DGleVzAEgNJL\nMETADATA::EPISODE_DATE::20261027\nMETADATA::HOST::LoganBlack\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 31389,
+    "host_handle": "LoganBlack",
+    "speakers": [
+      "Logan",
+      "SPEAKER_01",
+      "SPEAKER_03",
+      "SPEAKER_05",
+      "SPEAKER_06",
+      "SPEAKER_07",
+      "SPEAKER_08",
+      "SPEAKER_11",
+      "SPEAKER_16",
+      "SPEAKER_22",
+      "SPEAKER_32",
+      "Tom"
+    ]
+  },
+  {
     "release_id": 425644470,
     "release_tag": "20261026_1mxPaZyerNgKN",
     "title": "Cawffee_Tawk_Made_with_Oor_s_tears",
