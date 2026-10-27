@@ -42,6 +42,7 @@ import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate
 import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
+import { getEpisodeSegments } from '../utils/transcriptData';
 
 import { ClipItem } from "../utils/contracts/clipCatalog";
 import {
@@ -187,6 +188,44 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       const speakersList = clip.speakers && clip.speakers.length > 0 ? clip.speakers : ['Logan', 'Guest'];
       const primaryAvatar = speakerAvatarMap[speakersList[0]] || getDefaultSpeakerAvatarUrl(speakersList[0]);
 
+      // The clip catalog only stores the speaker names. Resolve the source
+      // episode turns here so the cloud worker can mute each speaker's track
+      // outside their actual turns and animate the correct tile.
+      const releaseTag = (() => {
+        const candidates = [clip.episode, clip.file_path, clip.download_url].filter(Boolean).map(String);
+        for (const candidate of candidates) {
+          const fromReleaseUrl = candidate.match(/\/releases\/download\/([^/]+)/i)?.[1];
+          if (fromReleaseUrl) return fromReleaseUrl;
+          const fromTag = candidate.match(/(\d{8}_[A-Za-z0-9]+)/)?.[1];
+          if (fromTag) return fromTag;
+        }
+        return '';
+      })();
+
+      let speakerSegments: Array<{ speaker: string; start: number; end: number }> = [];
+      if (releaseTag) {
+        try {
+          const normalizeSpeaker = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+          const sourceSegments = await getEpisodeSegments(releaseTag, owner, repo);
+          const clipStart = Math.max(0, Number(clip.start_seconds) || 0);
+          const clipEnd = Math.max(clipStart, Number(clip.end_seconds) || clipStart + (clip.duration || 0));
+          speakerSegments = sourceSegments
+            .map((segment) => {
+              const start = Math.max(clipStart, Number(segment.start) || 0);
+              const end = Math.min(clipEnd, Number(segment.end ?? segment.start) || start);
+              return {
+                speaker: String(segment.speaker || '').trim(),
+                start: Math.max(0, start - clipStart),
+                end: Math.max(0, end - clipStart),
+              };
+            })
+            .filter((segment) => segment.speaker && segment.end > segment.start)
+            .filter((segment) => speakersList.some((speaker) => normalizeSpeaker(speaker) === normalizeSpeaker(segment.speaker)));
+        } catch (segmentErr) {
+          console.warn('Could not resolve speaker timing for avatar render:', segmentErr);
+        }
+      }
+
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
@@ -207,6 +246,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             layout: avatarLayoutMode,
             speakers_json: JSON.stringify(speakersList),
             speaker_avatars_json: JSON.stringify(speakerAvatarMap),
+            speaker_segments_json: JSON.stringify(speakerSegments),
             prompt: `Twitter Spaces ${avatarLayoutMode} audio presentation for: ${clip.title}`
           }
         })
@@ -365,6 +405,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     transcript_snippet: `Highlight moment from ${relTitle}`,
                     episode: relTitle,
                     file_path: a.browser_download_url,
+                    download_url: a.browser_download_url,
                   });
                 }
               }

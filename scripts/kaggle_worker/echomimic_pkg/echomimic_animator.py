@@ -1,273 +1,368 @@
 #!/usr/bin/env python3
 """
-scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py
+Cloud worker for the Spaces Live Stage avatar render.
 
-Cloud-executed Kaggle GPU worker for true audio-driven talking avatar generation using Wav2Lip + GAN.
-Produces high-definition, photorealistic talking avatars with phoneme-accurate lip-synchronization
-from any input portrait image and speech audio track.
-
-Runs strictly in the cloud on Kaggle Nvidia Tesla T4 (16GB VRAM).
-Zero local execution or local storage required.
+The workflow dispatches this packaged worker (rather than the older root-level
+prototype). It renders one Wav2Lip stream per participating speaker, mutes that
+stream outside the speaker's transcript turns, and composites all streams into
+a stage grid or split-screen layout.
 """
 
-import os
-import sys
 import json
-import time
+import os
+import re
 import shutil
 import subprocess
+import sys
 import urllib.request
 from pathlib import Path
+from typing import Dict, Iterable, List, Tuple
+
 
 def run_cmd(cmd, check=True, cwd=None):
-    cmd_str = ' '.join(cmd) if isinstance(cmd, list) else cmd
+    cmd_str = " ".join(cmd) if isinstance(cmd, list) else cmd
     print(f"[*] Running: {cmd_str}")
-    res = subprocess.run(
+    result = subprocess.run(
         cmd,
         shell=isinstance(cmd, str),
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
-        cwd=cwd
+        cwd=cwd,
     )
-    if res.stdout:
-        print(res.stdout[-1000:])
-    if res.stderr and res.returncode != 0:
-        print(f"[!] Stderr: {res.stderr[-1000:]}")
-    if check and res.returncode != 0:
-        raise RuntimeError(f"Command failed with code {res.returncode}")
-    return res
+    if result.stdout:
+        print(result.stdout[-1200:])
+    if result.stderr and result.returncode != 0:
+        print(f"[!] Stderr: {result.stderr[-1200:]}")
+    if check and result.returncode != 0:
+        raise RuntimeError(f"Command failed with code {result.returncode}")
+    return result
+
 
 def download_file(url: str, dest_path: Path):
     if dest_path.exists() and dest_path.stat().st_size > 1000:
         print(f"[✓] File already present: {dest_path.name}")
         return
     print(f"[*] Downloading {dest_path.name} from {url}...")
-    headers = {"User-Agent": "SpacePipe-TalkingAvatarGenerator/1.0"}
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req) as response, open(dest_path, 'wb') as out_file:
-        shutil.copyfileobj(response, out_file)
-    print(f"[✓] Downloaded {dest_path.name} ({dest_path.stat().st_size / (1024*1024):.1f} MB)")
+    request = urllib.request.Request(url, headers={"User-Agent": "SpacePipe-TalkingAvatarGenerator/2.0"})
+    with urllib.request.urlopen(request) as response, open(dest_path, "wb") as output:
+        shutil.copyfileobj(response, output)
+    print(f"[✓] Downloaded {dest_path.name} ({dest_path.stat().st_size / (1024 * 1024):.1f} MB)")
+
+
+def parse_json(value: str, fallback):
+    try:
+        return json.loads(value or "")
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return fallback
+
+
+def slug(value: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9_-]+", "_", value).strip("_") or "speaker"
+
+
+def speaker_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
+def escape_drawtext(value: str) -> str:
+    """Escape text for ffmpeg's drawtext=text='...' expression."""
+    return (
+        str(value or "")
+        .replace("\\", r"\\")
+        .replace("'", r"\'")
+        .replace(":", r"\:")
+        .replace("%", r"\%")
+        .replace("[", r"\[")
+        .replace("]", r"\]")
+        .replace("\n", " ")
+    )
+
+
+def parse_speakers(raw: str) -> List[str]:
+    values = parse_json(raw, [])
+    if not isinstance(values, list):
+        return []
+    result: List[str] = []
+    seen = set()
+    for value in values:
+        name = str(value or "").strip()
+        key = speaker_key(name)
+        if name and key and key not in seen:
+            result.append(name)
+            seen.add(key)
+    return result[:8]
+
+
+def parse_segments(raw: str, speakers: Iterable[str], duration: float) -> Dict[str, List[Tuple[float, float]]]:
+    """Normalize clip-relative transcript turns into intervals by speaker."""
+    by_key = {speaker_key(name): name for name in speakers}
+    intervals: Dict[str, List[Tuple[float, float]]] = {name: [] for name in speakers}
+    values = parse_json(raw, [])
+    if isinstance(values, list):
+        for value in values:
+            if not isinstance(value, dict):
+                continue
+            canonical = by_key.get(speaker_key(value.get("speaker", "")))
+            if not canonical:
+                continue
+            try:
+                start = max(0.0, min(duration, float(value.get("start", 0))))
+                end = max(0.0, min(duration, float(value.get("end", start))))
+            except (TypeError, ValueError):
+                continue
+            if end > start:
+                intervals[canonical].append((start, end))
+    for name in intervals:
+        intervals[name].sort()
+    return intervals
+
+
+def build_fallback_intervals(speakers: List[str], duration: float) -> Dict[str, List[Tuple[float, float]]]:
+    """Keep every participant visible when the source transcript is unavailable."""
+    if not speakers or duration <= 0:
+        return {name: [] for name in speakers}
+    slice_length = duration / len(speakers)
+    return {
+        name: [(index * slice_length, duration if index == len(speakers) - 1 else (index + 1) * slice_length)]
+        for index, name in enumerate(speakers)
+    }
+
+
+def run_ffprobe_duration(path: Path) -> float:
+    result = run_cmd(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+        check=False,
+    )
+    try:
+        return max(0.1, float(result.stdout.strip()))
+    except (TypeError, ValueError):
+        return 1.0
+
 
 def patch_wav2lip(repo_dir: Path):
-    """Patch modern PyTorch and NumPy 2.x breaking changes in Wav2Lip repository."""
+    """Patch modern PyTorch and NumPy compatibility issues in Wav2Lip."""
     for py_file in repo_dir.rglob("*.py"):
         try:
             content = py_file.read_text(encoding="utf-8")
             modified = False
-            # Fix torchvision import removal
-            if "from torchvision.models.utils import load_state_dict_from_url" in content:
-                content = content.replace(
-                    "from torchvision.models.utils import load_state_dict_from_url",
-                    "from torch.hub import load_state_dict_from_url"
-                )
-                modified = True
-            # Fix deprecated np.float and np.int
-            if "np.float" in content:
-                content = content.replace("np.float", "float")
-                modified = True
-            if "np.int" in content:
-                content = content.replace("np.int", "int")
-                modified = True
+            for old, new in {
+                "from torchvision.models.utils import load_state_dict_from_url": "from torch.hub import load_state_dict_from_url",
+                "np.float": "float",
+                "np.int": "int",
+            }.items():
+                if old in content:
+                    content = content.replace(old, new)
+                    modified = True
             if modified:
                 py_file.write_text(content, encoding="utf-8")
-                print(f"[✓] Applied modern PyTorch/NumPy patch to {py_file.name}")
-        except Exception as e:
-            pass
+        except OSError:
+            continue
+
+
+def prepare_wav2lip(work_dir: Path, repo_dir: Path, gh_token: str, repo: str) -> Tuple[Path, Path]:
+    if not repo_dir.exists():
+        clone_url = f"https://x-access-token:{gh_token}@github.com/{repo}.git" if gh_token else f"https://github.com/{repo}.git"
+        run_cmd(["git", "clone", "--depth", "1", clone_url, str(repo_dir)])
+
+    wav2lip_dir = work_dir / "Wav2Lip"
+    if not wav2lip_dir.exists():
+        run_cmd(["git", "clone", "--depth", "1", "https://github.com/Rudrabha/Wav2Lip.git", str(wav2lip_dir)])
+    patch_wav2lip(wav2lip_dir)
+
+    checkpoints_dir = wav2lip_dir / "checkpoints"
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+    face_detect_dir = wav2lip_dir / "face_detection/detection/sfd"
+    face_detect_dir.mkdir(parents=True, exist_ok=True)
+    wav2lip_model = checkpoints_dir / "wav2lip_gan.pth"
+    s3fd_model = face_detect_dir / "s3fd.pth"
+    download_file("https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth", wav2lip_model)
+    download_file("https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/s3fd-619a316812.pth", s3fd_model)
+    return wav2lip_dir, wav2lip_model
+
+
+def build_speaker_audio(source_audio: Path, output_audio: Path, intervals: List[Tuple[float, float]]):
+    if not intervals:
+        return False
+    condition = "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in intervals)
+    # Keep the original timeline and mute everything outside this speaker's turns.
+    volume_filter = f"volume=0:enable='not({condition})'"
+    run_cmd([
+        "ffmpeg", "-y", "-i", str(source_audio), "-af", volume_filter,
+        "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", str(output_audio),
+    ])
+    return output_audio.exists() and output_audio.stat().st_size > 1000
+
+
+def render_static_avatar(image: Path, output: Path, duration: float):
+    run_cmd([
+        "ffmpeg", "-y", "-loop", "1", "-i", str(image), "-t", f"{duration:.3f}",
+        "-vf", "scale=512:512:force_original_aspect_ratio=increase,crop=512:512,format=yuv420p",
+        "-r", "25", "-an", str(output),
+    ])
+
+
+def render_talking_avatar(wav2lip_dir: Path, checkpoint: Path, image: Path, audio: Path, output: Path):
+    command = [
+        sys.executable, "inference.py", "--checkpoint_path", str(checkpoint),
+        "--face", str(image), "--audio", str(audio), "--outfile", str(output),
+        "--pads", "0", "10", "0", "0", "--resize_factor", "1",
+    ]
+    try:
+        run_cmd(command, cwd=str(wav2lip_dir))
+    except Exception as error:
+        print(f"[!] Wav2Lip render failed ({error}); keeping this speaker as a still portrait.")
+        render_static_avatar(image, output, run_ffprobe_duration(audio))
+
+
+def canvas_for_ratio(ratio: str) -> Tuple[int, int]:
+    return {"1:1": (1080, 1080), "16:9": (1920, 1080)}.get(ratio, (1080, 1920))
+
+
+def layout_geometry(layout: str, ratio: str, speaker_count: int):
+    width, height = canvas_for_ratio(ratio)
+    caption_height = max(180, round(height * 0.22))
+    stage_height = height - caption_height
+    margin = max(20, round(width * 0.025))
+    if layout == "split_screen":
+        cols = 1
+        rows = max(1, min(3, speaker_count))
+    else:
+        cols = 2 if speaker_count <= 4 else 3
+        rows = max(1, (speaker_count + cols - 1) // cols)
+    # Keep tile dimensions even for yuv420p. Odd pad targets make FFmpeg reject
+    # an otherwise valid portrait stream on some builds.
+    tile_width = max(160, ((width - margin * (cols + 1)) // cols) // 2 * 2)
+    tile_height = max(140, ((stage_height - margin * (rows + 1)) // rows) // 2 * 2)
+    return width, height, caption_height, margin, cols, tile_width, tile_height
+
+
+def compose_stage(output: Path, audio: Path, videos: List[Path], speakers: List[str], intervals: Dict[str, List[Tuple[float, float]]], prompt: str, layout: str, ratio: str, duration: float):
+    width, height, caption_height, margin, cols, tile_width, tile_height = layout_geometry(layout, ratio, len(speakers))
+    font_file = os.environ.get("AVATAR_FONT_FILE", "")
+    if not font_file:
+        linux_font = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+        if linux_font.exists():
+            font_file = str(linux_font)
+    font_option = f"fontfile='{escape_drawtext(font_file)}':" if font_file else ""
+    inputs = ["-f", "lavfi", "-i", f"color=c=0x0b0f19:s={width}x{height}:r=25:d={duration:.3f}"]
+    for video in videos:
+        inputs.extend(["-i", str(video)])
+    inputs.extend(["-i", str(audio)])
+
+    filters = ["[0:v]format=yuv420p[base]"]
+    last = "base"
+    for index, speaker in enumerate(speakers):
+        row, col = divmod(index, cols)
+        x = margin + col * (tile_width + margin)
+        y = margin + row * (tile_height + margin)
+        active = "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in intervals.get(speaker, [])) or "0"
+        tile = f"tile{index}"
+        filters.append(
+            f"[{index + 1}:v]fps=25,scale={tile_width}:{tile_height}:force_original_aspect_ratio=decrease,"
+            f"pad={tile_width}:{tile_height}:(ow-iw)/2:(oh-ih)/2:color=0x111827,"
+            f"drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x334155:t=8,"
+            f"drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x10b981:t=12:enable='{active}',"
+            f"drawtext=text='{escape_drawtext(speaker)}':{font_option}fontcolor=white:fontsize={max(18, tile_width // 22)}:x=(w-text_w)/2:y=h-45:shadowcolor=black:shadowx=2:shadowy=2[{tile}]"
+        )
+        filters.append(f"[{last}][{tile}]overlay={x}:{y}:shortest=1[stage{index}]")
+        last = f"stage{index}"
+
+    filters.append(
+        f"[{last}]drawbox=y={height - caption_height}:w={width}:h={caption_height}:color=0x020617@0.92:t=fill,"
+        f"drawtext=text='SPACES LIVE STAGE':{font_option}fontcolor=0xa855f7:fontsize={max(22, width // 45)}:x=(w-text_w)/2:y={height - caption_height + 28}:shadowcolor=black:shadowx=2:shadowy=2,"
+        f"drawtext=text='{escape_drawtext(prompt[:90])}':{font_option}fontcolor=white:fontsize={max(20, width // 52)}:x=(w-text_w)/2:y={height - caption_height + 85}:shadowcolor=black:shadowx=2:shadowy=2[outv]"
+    )
+
+    run_cmd([
+        "ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filters),
+        "-map", "[outv]", "-map", f"{len(videos) + 1}:a", "-t", f"{duration:.3f}",
+        "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k", "-shortest", str(output),
+    ])
+
 
 def main():
     print("=" * 70)
-    print("    NEURAL TALKING AVATAR GENERATOR (WAV2LIP + GAN)")
-    print("    CLOUD GPU WORKER ON NVIDIA TESLA T4 16GB")
+    print("    SPACES LIVE STAGE MULTI-SPEAKER AVATAR GENERATOR")
+    print("    Wav2Lip streams + transcript-timed stage compositing")
     print("=" * 70)
 
-    # 1. Environment & Parameters
     image_input = os.environ.get("AVATAR_IMAGE", "")
     audio_input = os.environ.get("SPEECH_AUDIO", "")
-    prompt_text = os.environ.get("PROMPT", "Logan Black Talking Avatar Presentation")
-    layout = os.environ.get("LAYOUT", "solo")
-    target_rel = os.environ.get("TARGET_RELEASE_TAG", "")
+    prompt = os.environ.get("PROMPT", "Twitter Spaces Live Stage")
+    ratio = os.environ.get("ASPECT_RATIO", "9:16")
+    layout = os.environ.get("LAYOUT", "stage_grid")
+    speakers = parse_speakers(os.environ.get("SPEAKERS_JSON", "[]")) or ["Logan", "Guest"]
+    speaker_avatars = parse_json(os.environ.get("SPEAKER_AVATARS_JSON", "{}"), {})
+    speaker_avatars = speaker_avatars if isinstance(speaker_avatars, dict) else {}
+    raw_segments = os.environ.get("SPEAKER_SEGMENTS_JSON", "[]")
     gh_token = os.environ.get("GH_TOKEN", "")
     repo = os.environ.get("GITHUB_REPOSITORY", "aiandbotsgalore/copy-spaces-to-youtube-pipeline")
+    target_release = os.environ.get("TARGET_RELEASE_TAG", "")
 
     work_dir = Path("/kaggle/working") if Path("/kaggle/working").exists() else Path("kaggle_work")
     work_dir.mkdir(parents=True, exist_ok=True)
     out_dir = work_dir / "avatar_output"
     out_dir.mkdir(parents=True, exist_ok=True)
+    local_audio = work_dir / "speech_input"
 
-    # Clone repository for default assets if not already cloned
-    repo_dir = work_dir / "repo"
-    if not repo_dir.exists():
-        clone_url = f"https://x-access-token:{gh_token}@github.com/{repo}.git" if gh_token else f"https://github.com/{repo}.git"
-        print(f"[*] Cloning repository {repo}...")
-        run_cmd(["git", "clone", "--depth", "1", clone_url, str(repo_dir)])
-
-    # 2. Acquire Audio Input
-    local_audio = work_dir / "speech.wav"
     if audio_input.startswith("http"):
         download_file(audio_input, local_audio)
     elif audio_input and Path(audio_input).exists():
         shutil.copy2(audio_input, local_audio)
     else:
-        # Default fallback to master reference audio
-        cand_audio = [
-            repo_dir / "public/speaker_samples/Logan/master_reference.wav",
-            repo_dir / "public/output/vox/LOGAN_001.wav",
-            repo_dir / "speaker_samples/Logan/master_reference.wav"
-        ]
-        found = False
-        for ca in cand_audio:
-            if ca.exists():
-                shutil.copy2(ca, local_audio)
-                found = True
-                break
-        if not found:
-            print("[!] Generating synthetic speech tone fallback...")
-            run_cmd(f"ffmpeg -y -f lavfi -i 'sine=frequency=220:duration=5' -ar 16000 -ac 1 '{local_audio}'")
+        print("[!] No speech audio found; cannot render a stage video.")
+        sys.exit(1)
 
-    # Normalize audio to 16kHz mono WAV for Wav2Lip mel-spectrogram extractor
     norm_audio = work_dir / "speech_16k.wav"
-    run_cmd(f"ffmpeg -y -i '{local_audio}' -ar 16000 -ac 1 '{norm_audio}'")
-    print(f"[✓] Speech audio ready: {norm_audio} ({norm_audio.stat().st_size / 1024:.1f} KB)")
+    run_cmd(["ffmpeg", "-y", "-i", str(local_audio), "-ar", "16000", "-ac", "1", str(norm_audio)])
+    duration = run_ffprobe_duration(norm_audio)
+    intervals = parse_segments(raw_segments, speakers, duration)
+    if not any(intervals.values()):
+        print("[!] No transcript turns were supplied; using round-robin speaker timing fallback.")
+        intervals = build_fallback_intervals(speakers, duration)
+    print(f"[*] Rendering {len(speakers)} speakers across {duration:.2f}s ({layout}, {ratio})")
 
-    # 3. Acquire Portrait Avatar Image
-    local_avatar = work_dir / "avatar_source.jpg"
-    if image_input.startswith("http"):
-        download_file(image_input, local_avatar)
-    elif image_input and Path(image_input).exists():
-        shutil.copy2(image_input, local_avatar)
-    else:
-        cand_img = repo_dir / "public/avatars/logan.jpg"
-        if cand_img.exists():
-            shutil.copy2(cand_img, local_avatar)
+    repo_dir = work_dir / "repo"
+    wav2lip_dir, checkpoint = prepare_wav2lip(work_dir, repo_dir, gh_token, repo)
+
+    avatar_files: Dict[str, Path] = {}
+    for index, speaker in enumerate(speakers):
+        avatar = work_dir / f"avatar_{index}_{slug(speaker)}.jpg"
+        url = speaker_avatars.get(speaker)
+        if not url:
+            url = next((value for key, value in speaker_avatars.items() if speaker_key(key) == speaker_key(speaker)), "")
+        if isinstance(url, str) and url.startswith("http"):
+            try:
+                download_file(url, avatar)
+            except Exception as error:
+                print(f"[!] Avatar download failed for {speaker}: {error}")
+        if not avatar.exists() or avatar.stat().st_size < 1000:
+            color = ["0x4f46e5", "0xdb2777", "0x059669", "0xd97706", "0x0284c7", "0x7c3aed"][index % 6]
+            run_cmd(["ffmpeg", "-y", "-f", "lavfi", "-i", f"color=c={color}:s=512x512:d=1", "-frames:v", "1", str(avatar)])
+        face = work_dir / f"face_{index}_{slug(speaker)}.jpg"
+        run_cmd(["ffmpeg", "-y", "-i", str(avatar), "-vf", "scale=512:512:force_original_aspect_ratio=increase,crop=512:512", "-frames:v", "1", str(face)])
+        avatar_files[speaker] = face
+
+    rendered_videos: List[Path] = []
+    for speaker in speakers:
+        speaker_audio = work_dir / f"audio_{slug(speaker)}.wav"
+        video = work_dir / f"talking_{slug(speaker)}.mp4"
+        if build_speaker_audio(norm_audio, speaker_audio, intervals.get(speaker, [])):
+            render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
         else:
-            print("[!] Avatar image not found; generating color card fallback...")
-            run_cmd(f"ffmpeg -y -f lavfi -i 'color=c=0x4f46e5:s=512x512:d=1' -frames:v 1 '{local_avatar}'")
+            render_static_avatar(avatar_files[speaker], video, duration)
+        rendered_videos.append(video)
 
-    # Crop and scale avatar to a clean 512x512 portrait square
-    face_input = work_dir / "face_512.jpg"
-    run_cmd(f"ffmpeg -y -i '{local_avatar}' -vf 'scale=512:512:force_original_aspect_ratio=increase,crop=512:512' -frames:v 1 '{face_input}'")
-    print(f"[✓] Avatar source ready: {face_input} ({face_input.stat().st_size / 1024:.1f} KB)")
+    output = out_dir / "talking_avatar_short.mp4"
+    compose_stage(output, norm_audio, rendered_videos, speakers, intervals, prompt, layout, ratio, duration)
+    print(f"[✓] Multi-speaker Spaces Live Stage video rendered: {output} ({output.stat().st_size / (1024 * 1024):.2f} MB)")
 
-    # 4. Install Wav2Lip Dependencies
-    print("\n[*] Setting up Wav2Lip neural dependencies...")
-    run_cmd([
-        sys.executable, "-m", "pip", "install",
-        "--upgrade", "pip", "wheel", "setuptools"
-    ])
-    run_cmd([
-        sys.executable, "-m", "pip", "install",
-        "numpy<2.0", "librosa==0.9.2", "numba", "tqdm",
-        "opencv-python-headless", "resampy", "torchvision"
-    ])
+    if target_release and gh_token:
+        run_cmd(f"gh release upload {target_release} '{output}' --repo {repo} --clobber || true", check=False)
 
-    # 5. Clone Wav2Lip and Setup Neural Checkpoints
-    wav2lip_dir = work_dir / "Wav2Lip"
-    if not wav2lip_dir.exists():
-        print("[*] Cloning Wav2Lip repository...")
-        run_cmd(["git", "clone", "--depth", "1", "https://github.com/Rudrabha/Wav2Lip.git", str(wav2lip_dir)])
-
-    # Patch code for PyTorch 2.x and NumPy compatibility
-    patch_wav2lip(wav2lip_dir)
-
-    # Prepare Checkpoint Directories
-    checkpoints_dir = wav2lip_dir / "checkpoints"
-    checkpoints_dir.mkdir(parents=True, exist_ok=True)
-    face_detect_dir = wav2lip_dir / "face_detection/detection/sfd"
-    face_detect_dir.mkdir(parents=True, exist_ok=True)
-
-    wav2lip_model = checkpoints_dir / "wav2lip_gan.pth"
-    s3fd_model = face_detect_dir / "s3fd.pth"
-
-    # Download pre-trained weights
-    download_file(
-        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth",
-        wav2lip_model
-    )
-    download_file(
-        "https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/s3fd-619a316812.pth",
-        s3fd_model
-    )
-
-    # 6. Execute Neural Talking Head Synthesis
-    print("\n[*] Executing Wav2Lip Neural Lip-Sync Generation...")
-    raw_talking_mp4 = work_dir / "talking_head_raw.mp4"
-    start_t = time.time()
-
-    infer_cmd = [
-        sys.executable, "inference.py",
-        "--checkpoint_path", "checkpoints/wav2lip_gan.pth",
-        "--face", str(face_input),
-        "--audio", str(norm_audio),
-        "--outfile", str(raw_talking_mp4),
-        "--pads", "0", "10", "0", "0",
-        "--resize_factor", "1"
-    ]
-
-    try:
-        run_cmd(infer_cmd, cwd=str(wav2lip_dir))
-    except Exception as infer_err:
-        print(f"[!] Primary inference failed ({infer_err}), trying fallback without GAN...")
-        # Fallback to standard wav2lip checkpoint if gan hit an edge case
-        infer_cmd_fallback = [
-            sys.executable, "inference.py",
-            "--checkpoint_path", "checkpoints/wav2lip_gan.pth",
-            "--face", str(face_input),
-            "--audio", str(norm_audio),
-            "--outfile", str(raw_talking_mp4),
-            "--nosmooth"
-        ]
-        run_cmd(infer_cmd_fallback, cwd=str(wav2lip_dir))
-
-    elapsed = round(time.time() - start_t, 2)
-    print(f"\n[✓] Neural Talking Head Generated in {elapsed}s!")
-    print(f"    Raw Output: {raw_talking_mp4} ({raw_talking_mp4.stat().st_size / 1024:.1f} KB)")
-
-    # 7. Broadcast Layout Compositing (1080x1920 Vertical 9:16)
-    final_output = out_dir / "talking_avatar_short.mp4"
-    print("\n[*] Compositing broadcast-ready 1080x1920 Short with active talking head...")
-
-    # Build sleek vertical presentation:
-    # - Blurred ambient background
-    # - Centered talking portrait
-    # - Lower third title card with speaker identity & topic
-    filter_complex = (
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=25:10[bg];"
-        "[0:v]scale=860:860:force_original_aspect_ratio=decrease[fg];"
-        "[bg][fg]overlay=(W-w)/2:(H-h)/2-140[v1];"
-        "[v1]drawbox=y=1340:w=1080:h=460:color=0x020617@0.88:t=fill,"
-        "drawtext=text='LOGAN BLACK':fontcolor=0xa855f7:fontsize=38:x=(w-text_w)/2:y=1380:shadowcolor=black:shadowx=2:shadowy=2,"
-        "drawtext=text='🟢 NEURAL TALKING HEAD (ACTIVE SPEAKING)':fontcolor=0x10b981:fontsize=22:x=(w-text_w)/2:y=1435,"
-        f"drawtext=text='{prompt_text[:50]}':fontcolor=white:fontsize=28:x=(w-text_w)/2:y=1500:shadowcolor=black:shadowx=2:shadowy=2[outv]"
-    )
-
-    comp_cmd = [
-        "ffmpeg", "-y",
-        "-i", str(raw_talking_mp4),
-        "-filter_complex", filter_complex,
-        "-map", "[outv]",
-        "-map", "0:a",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "18",
-        "-c:a", "aac", "-b:a", "192k",
-        "-shortest", str(final_output)
-    ]
-    run_cmd(comp_cmd)
-
-    print("\n" + "=" * 70)
-    print(f"[✓] Broadcast Talking Avatar Short successfully rendered!")
-    print(f"    File: {final_output}")
-    print(f"    Size: {final_output.stat().st_size / (1024*1024):.2f} MB")
-    print("=" * 70)
-
-    # 8. Attach to GitHub Release if requested
-    if target_rel and gh_token:
-        try:
-            print(f"\n[*] Uploading {final_output.name} to GitHub Release {target_rel}...")
-            run_cmd(f"gh release upload {target_rel} '{final_output}' --repo {repo} --clobber || true", check=False)
-            print("[✓] Release upload completed.")
-        except Exception as up_err:
-            print(f"[!] Notice: Release upload skipped: {up_err}")
 
 if __name__ == "__main__":
     main()

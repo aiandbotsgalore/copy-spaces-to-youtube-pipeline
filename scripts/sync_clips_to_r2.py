@@ -102,8 +102,8 @@ def load_release_assets_map() -> Dict[str, str]:
 def extract_filename(clip: Dict[str, Any]) -> str:
     """Extracts a clean, safe filename for the clip."""
     fp = clip.get("file_path") or clip.get("download_url") or ""
-    parsed = urllib.parse.urlparse(fp)
-    fname = os.path.basename(parsed.path)
+    clean_path = fp.replace("\\", "/")
+    fname = clean_path.split("/")[-1].split("?")[0]
     if fname and fname.endswith(".mp3"):
         return urllib.parse.unquote(fname)
 
@@ -289,7 +289,7 @@ def main():
                     updated_catalog_count += 1
 
         with open(CATALOG_PATH, "w", encoding="utf-8") as f:
-            json.dump(catalog, f, indent=2)
+            json.dump(catalog, f, indent=2, ensure_ascii=False)
 
         print(f"\n[✓] Successfully updated {CATALOG_PATH}: {updated_catalog_count} clips now point to Cloudflare R2!")
 
