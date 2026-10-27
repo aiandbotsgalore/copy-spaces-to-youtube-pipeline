@@ -93,7 +93,7 @@ export interface RefinementDecision {
   candidateId: string; baselineId: string; round: number; promptVersion: string;
   gates: GateResult;
   judge?: { provider: string; model: string; winnerAB: JudgeWinner; winnerBA: JudgeWinner;
-            consensus: JudgeConsensus; reasons: string[] };
+            consensus: JudgeConsensus; reasons: string[]; promptVersion?: string };
   notJudged?: string;
   loopAccepted: boolean;                       // the loop's verdict
   reviewOnly?: string;                         // why this candidate never becomes the loop's best (structural moves, polish)

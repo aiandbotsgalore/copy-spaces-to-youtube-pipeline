@@ -14,6 +14,8 @@ import {
   type ProjectResponse, type RoleChoice, type RunResponse, type StatusResponse,
 } from '../utils/scriptClient';
 import { estimateRuntime } from '../utils/scriptGates';
+import ScriptQuality, { LogTable } from './ScriptQuality';
+import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 
@@ -67,6 +69,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const [minutes, setMinutes] = useState(15);
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
+  const [tab, setTab] = useState<'projects' | 'quality'>('projects');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -105,6 +108,11 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
         <p className="text-sm text-slate-400 mt-1">Turns one episode transcript into a documentary script with narration and clips, then refines it in the background. Every quote is checked against the transcript in code.</p>
       </div>
       <ErrorBox error={error} onClose={() => setError(null)} />
+      <div className="flex gap-1">
+        <button className={tab === 'projects' ? btnPrimary : btnGhost} onClick={() => setTab('projects')}>Projects</button>
+        <button className={tab === 'quality' ? btnPrimary : btnGhost} onClick={() => setTab('quality')}>Quality and logs</button>
+      </div>
+      {tab === 'quality' ? <section className={cx(card, 'p-4')}><ScriptQuality onOpenProject={onOpen} /></section> : <>
       <section className={cx(card, 'p-4')}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-100">Model providers on this computer</h2>
@@ -167,6 +175,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
           </ul>
         )}
       </section>
+      </>}
     </div>
   );
 }
@@ -272,6 +281,7 @@ export default function ScriptStudio() {
   const [focusTime, setFocusTime] = useState<number | null>(null);
   const [sel, setSel] = useState<{ from?: number; to?: number }>({});
   const [renames, setRenames] = useState<Record<string, string>>({});
+  const [logEntries, setLogEntries] = useState<LogEntry[] | null>(null);
   const [viewVersion, setViewVersion] = useState<{ id: string; diff: { blockId: string; change: string }[] } | null>(null);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const stopStream = useRef<(() => void) | null>(null);
@@ -586,12 +596,11 @@ export default function ScriptStudio() {
               {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
             </div>
           ) : <div className="text-[11px] text-emerald-400 flex items-center gap-1"><Check size={11} /> Quotes verbatim, clip cuts in bounds, locks intact, runtime within 10% of target.</div>)}
-          {data?.formatChecks && project.format && (data.formatChecks.hard.length > 0 || data.formatChecks.soft.length > 0) && (
+          {data?.formatChecks && project.format && data.formatChecks.soft.length > 0 && (
             <div className="rounded-md border border-slate-800 bg-slate-900/40 p-2 text-[11px] space-y-0.5">
-              <div className="font-semibold text-slate-300">{FORMAT_LABELS[project.format]} format</div>
-              {data.formatChecks.hard.map(f => <div key={f.key} className="text-amber-300">• {f.message}</div>)}
+              <div className="font-semibold text-slate-300">{FORMAT_LABELS[project.format]} format notes</div>
               {data.formatChecks.soft.map(f => <div key={f.key} className="text-slate-400">· {f.message}</div>)}
-              {data.formatChecks.hard.length > 0 && <div className="text-slate-500">Rules in amber are checked in code: the loop rejects candidates that break them further.</div>}
+              <div className="text-slate-500">Notes go to the critic; they never block a change. Hard format rules appear under the checks above.</div>
             </div>
           )}
           {!segments && <div className="text-sm text-slate-500">Run the analysis, then the outline and the draft from the left.</div>}
@@ -632,6 +641,8 @@ export default function ScriptStudio() {
                 </div>
               )}
               {run.status === 'interrupted' && !run.pausedInfo && <button className={btnGhost} onClick={() => void act('Resuming', async () => { await scriptApi.resume(project.id, run.id); setRunId(null); setTimeout(() => setRunId(run.id), 0); })}><Play size={12} /> Resume at round {run.currentRound + 1}</button>}
+              <button className={btnGhost} onClick={() => logEntries ? setLogEntries(null) : void scriptApi.log(run.id).then(r => setLogEntries(r.entries)).catch(setError)}>{logEntries ? 'Hide call log' : 'Call log'}</button>
+              {logEntries && <LogTable entries={logEntries} />}
               <ol className="space-y-0.5 max-h-56 overflow-y-auto">
                 {events.map(e => (
                   <li key={e.seq} className={cx('text-[11px]', e.type === 'error' ? 'text-rose-300' : e.type === 'judge' || e.type === 'decision' ? 'text-indigo-200' : 'text-slate-400')}>
