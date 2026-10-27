@@ -4,7 +4,6 @@
  * injected process runners and no real CLI or network.
  */
 import { EventEmitter } from 'node:events';
-import path from 'node:path';
 import type {
   Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
   ScriptProject, ScriptRun, ScriptVersion, Segment, StudioClip, NarrativeFunction,
@@ -19,9 +18,13 @@ import { makeClipTrim } from '../utils/scriptTrim';
 import { attachTakes, countTakes, spokenChecks, spokenSceneView } from '../utils/scriptAudio';
 import * as P from './scriptPrompts';
 import {
-  chunkUtterances, displayName, namedSegments, readTranscript, toEvidenceRefs, utteranceLine,
+  chunkUtterances, displayName, namedSegments, readTranscript, toEvidenceRefs,
   type LoadedTranscript,
 } from './scriptData';
+import { buildCorpus, namesForTag, type Corpus } from './scriptCorpus';
+import { readCard, voiceSummary } from './scriptStyle';
+import { linkQuoteIds, loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
+import { dateOfTag } from '../utils/scriptFormats';
 import { roleMapNeedsBudget, verifyCrossFamily, type Budget, type CompleteResult, type ProviderRegistry } from './scriptProviders';
 import { newId, StoreError, type ScriptStore } from './scriptStore';
 import { Limiter } from './directorMiddleware';
@@ -92,7 +95,7 @@ export function createEngine(deps: EngineDeps) {
 
   async function analyze(project: ScriptProject, releaseTag: string, ctx: CallCtx, force = false): Promise<EpisodeAnalysis> {
     const t = transcript(releaseTag);
-    const names = project.speakerNames || {};
+    const names = namesForTag(project.speakerNames, releaseTag);
     if (!force) {
       const cached = deps.store.getAnalysis(releaseTag, P.PROMPT_VERSIONS.analysis, t.hash);
       if (cached) return cached;
@@ -168,7 +171,12 @@ export function createEngine(deps: EngineDeps) {
   /* Clips                                                                                          */
   /* ---------------------------------------------------------------------------------------------- */
 
-  const clipView = (c: StudioClip, maxText = 280) => ({ clipId: c.clipId, title: c.title, speaker: c.speaker, fn: c.fn ?? null, durationSec: c.durationSec, text: c.text.slice(0, maxText) });
+  const clipView = (c: StudioClip, maxText = 280, multi = false) => ({
+    clipId: c.clipId, title: c.title, speaker: c.speaker, fn: c.fn ?? null, durationSec: c.durationSec, text: c.text.slice(0, maxText),
+    ...(multi ? { recorded: dateOfTag(c.releaseTag) } : {}),
+  });
+  const corpusFor = (project: ScriptProject): Corpus => buildCorpus(project, transcript);
+  const isMulti = (project: ScriptProject) => project.sourceTags.length > 1;
 
   /** Tags clips with a narrative function (one analyst call). Logan's own tags are kept. Saves the project. */
   async function tagClips(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx, force = false): Promise<{ project: ScriptProject; tagged: number; cached: boolean }> {
@@ -199,8 +207,12 @@ export function createEngine(deps: EngineDeps) {
   async function outline(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx): Promise<ScriptVersion> {
     const r = await call('reviser', P.outlinePrompt({
       format: project.format, targetRuntimeSec: project.targetRuntimeSec, memory: memoryText(),
-      analysis: JSON.stringify({ themes: analysis.themes, dynamics: analysis.dynamics, moments: analysis.moments.map(m => ({ id: m.id, kind: m.kind, why: m.why, speakers: m.speakers, themes: m.themes })), openQuestions: analysis.openQuestions }),
-      clips: JSON.stringify(project.clips.map(c => clipView(c))),
+      recordings: corpusFor(project).legend(), thesis: project.thesis || '',
+      analysis: JSON.stringify({
+        themes: analysis.themes, dynamics: analysis.dynamics, moments: analysis.moments.map(m => ({ id: m.id, kind: m.kind, why: m.why, speakers: m.speakers, themes: m.themes, ...(isMulti(project) ? { recorded: dateOfTag(m.releaseTag) } : {}) })), openQuestions: analysis.openQuestions,
+        ...(project.format === 'investigative' ? { paperTrail: paperTrailView(project) } : {}),
+      }),
+      clips: JSON.stringify(project.clips.map(c => clipView(c, 280, isMulti(project)))),
     }), { ...ctx, label: 'outline' });
     if (!r.ok) throw failToError(r, 'Outline');
     const clipIds = new Set(project.clips.map(c => c.clipId));
@@ -222,30 +234,55 @@ export function createEngine(deps: EngineDeps) {
     return v;
   }
 
-  function trimFor(project: ScriptProject): TrimFn {
-    return makeClipTrim(tag => { try { return namedSegments(transcript(tag), project.speakerNames || {}); } catch { return undefined; } });
+  /** Logan's curated contradiction pairs and quotes (The Paper Trail) that touch this project's recordings. */
+  function paperTrailView(project: ScriptProject) {
+    const pt = paperTrailFor(loadPaperTrail(deps.root), project.sourceTags);
+    if (!pt.pairs.length && !pt.quotes.length) return undefined;
+    return {
+      note: "Logan's curated quotes and contradiction pairs. Context for structure only: cite the transcript lines themselves.",
+      pairs: pt.pairs.map(p => ({ title: p.title, before: { date: p.pre.date, speaker: p.preQuote?.speaker, quote: p.preQuote?.text.slice(0, 400) }, after: { date: p.post.date, speaker: p.postQuote?.speaker, quote: p.postQuote?.text.slice(0, 400) }, bothRecordingsInProject: !p.missingTags.length })),
+      quotes: pt.quotes.slice(0, 30).map(q => ({ date: q.date, speaker: q.speaker, category: q.category, quote: q.text.slice(0, 300) })),
+    };
   }
 
+  function trimFor(project: ScriptProject): TrimFn {
+    return makeClipTrim(tag => { try { return namedSegments(transcript(tag), namesForTag(project.speakerNames, tag)); } catch { return undefined; } });
+  }
+
+  /** Transcript lines (two either side) around the cited moments and utterances, grouped per recording. Ids may be qualified (E1.u92). */
   function evidenceLines(project: ScriptProject, analysis: EpisodeAnalysis | null, momentIds: string[], extraUtteranceIds: string[] = []): string {
-    const tag = project.sourceTags[0];
-    const t = transcript(tag);
-    const names = project.speakerNames || {};
-    const idx = new Set<number>();
-    const byId = new Map(t.utterances.map((u, i) => [u.id, i]));
-    const add = (id: string) => { const i = byId.get(id); if (i == null) return; for (let k = Math.max(0, i - 2); k <= Math.min(t.utterances.length - 1, i + 2); k++) idx.add(k); };
+    const corpus = corpusFor(project);
+    const picked = new Map<string, Set<number>>();
+    const add = (qid: string) => {
+      const hit = corpus.resolve(qid);
+      if (!hit) return;
+      const set = picked.get(hit.rec.tag) || new Set<number>();
+      for (let k = Math.max(0, hit.index - 2); k <= Math.min(hit.rec.t.utterances.length - 1, hit.index + 2); k++) set.add(k);
+      picked.set(hit.rec.tag, set);
+    };
     for (const m of analysis?.moments || []) if (momentIds.includes(m.id)) m.utteranceIds.forEach(add);
     extraUtteranceIds.forEach(add);
-    return [...idx].sort((a, b) => a - b).slice(0, 400).map(i => utteranceLine(t.utterances[i], names)).join('\n');
+    const out: string[] = [];
+    let budget = 400;
+    for (const rec of corpus.recordings) {
+      const set = picked.get(rec.tag);
+      if (!set || budget <= 0) continue;
+      const lines = [...set].sort((a, b) => a - b).slice(0, budget).map(i => corpus.line(rec, i));
+      budget -= lines.length;
+      if (corpus.multi) out.push(`# ${rec.key}, recorded ${rec.date || 'date unknown'}: ${rec.t.title}`);
+      out.push(...lines);
+    }
+    return out.join('\n');
   }
 
   function toPatch(blocks: any[], project: ScriptProject): { ok: true; patch: PatchBlock[] } | { ok: false; reason: string } {
-    const t = transcript(project.sourceTags[0]);
+    const corpus = corpusFor(project);
     const out: PatchBlock[] = [];
     for (const b of blocks || []) {
       if (b?.kind === 'narration') {
-        const ev = toEvidenceRefs(b.claims, t, project.speakerNames || {});
+        const ev = corpus.toEvidenceRefs(b.claims);
         if (ev.ok === false) return ev;
-        out.push({ kind: 'narration', text: String(b.text || ''), mode: b.mode === 'polished' ? 'polished' : 'live', claims: ev.refs });
+        out.push({ kind: 'narration', text: String(b.text || ''), mode: b.mode === 'polished' ? 'polished' : 'live', claims: linkQuoteIds(ev.refs, loadPaperTrail(deps.root)) });
       } else if (b?.kind === 'keep') out.push({ kind: 'keep', id: String(b.id) });
       else if (b?.kind === 'clip') out.push({ kind: 'clip', clipId: String(b.clipId), keptText: String(b.keptText || ''), fn: b.fn || undefined, rationale: String(b.rationale || '') });
       else if (b?.kind === 'pause') out.push({ kind: 'pause', sec: Number(b.sec) });
@@ -257,7 +294,7 @@ export function createEngine(deps: EngineDeps) {
 
   function gateContext(project: ScriptProject, baseline: Segment[]) {
     const tr: Record<string, ReturnType<typeof namedSegments>> = {};
-    for (const tag of project.sourceTags) { try { tr[tag] = namedSegments(transcript(tag), project.speakerNames || {}); } catch { /* missing */ } }
+    for (const tag of project.sourceTags) { try { tr[tag] = namedSegments(transcript(tag), namesForTag(project.speakerNames, tag)); } catch { /* missing */ } }
     return {
       baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])), targetRuntimeSec: project.targetRuntimeSec, format: project.format as EpisodeFormat | null,
       formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
@@ -270,8 +307,7 @@ export function createEngine(deps: EngineDeps) {
 
   /** The style card text for the polish role (same sources as the draft). */
   function draftStyleFor(): string {
-    const card = deps.store.readJson<{ text: string }>(path.join(deps.store.base, 'style-card.json'));
-    return card?.text || '';
+    return readCard(deps.store)?.text || '';
   }
 
   async function draft(project: ScriptProject, base: ScriptVersion, analysis: EpisodeAnalysis | null, ctx: CallCtx, styleCard = '', approvedPassages = ''): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
@@ -281,10 +317,11 @@ export function createEngine(deps: EngineDeps) {
     for (const seg of base.segments) {
       const sceneView = seg.scenes.map(sc => ({ sceneId: sc.id, title: sc.title, purpose: sc.purpose, clipIds: sc.suggestedClipIds || [], lockedBlocks: sc.blocks.filter(b => b.locked) }));
       const usedClipIds = [...new Set(seg.scenes.flatMap(sc => sc.suggestedClipIds || []))];
-      const clips = (usedClipIds.length ? usedClipIds.map(id => clipsById[id]).filter(Boolean) : project.clips).map(c => clipView(c, 1200));
+      const clips = (usedClipIds.length ? usedClipIds.map(id => clipsById[id]).filter(Boolean) : project.clips).map(c => clipView(c, 1200, isMulti(project)));
       const momentIds = seg.scenes.flatMap(sc => sc.momentIds || []);
       const r = await call('reviser', P.draftPrompt({
         format: project.format, segmentTitle: seg.title, scenes: JSON.stringify(sceneView), styleCard, approvedPassages,
+        recordings: corpusFor(project).legend(), thesis: project.thesis || '',
         evidence: evidenceLines(project, analysis, momentIds), clips: JSON.stringify(clips), memory: memoryText(),
       }), { ...ctx, label: `draft ${seg.title}` });
       if (!r.ok) {
@@ -456,7 +493,7 @@ export function createEngine(deps: EngineDeps) {
             const notes = spoken
               ? scenes.flatMap(spokenChecks)
               : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message)];
-            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
+            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken, voice: voiceSummary(deps.store) }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
             if (!r.ok) {
               if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
               emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
@@ -487,13 +524,14 @@ export function createEngine(deps: EngineDeps) {
           const sceneClips = [...new Set([...(loc.scene.suggestedClipIds || []), ...loc.scene.blocks.filter(b => b.kind === 'clip').map(b => (b as any).clipId)])].map(id => clipsById[id]).filter(Boolean);
           const claimUtts = loc.scene.blocks.flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
             const t = transcript(c.releaseTag);
-            return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => u.id);
+            return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => corpusFor(project!).qualify(c.releaseTag, u.id));
           });
           const rev = await call('reviser', P.revisePrompt({
             format: project.format, critique: JSON.stringify(target), neighbours, lockedIds,
             scene: JSON.stringify({ sceneId: loc.scene.id, title: loc.scene.title, purpose: loc.scene.purpose, blocks: loc.scene.blocks }),
-            evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200))),
-            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'),
+            evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200, isMulti(project!)))),
+            recordings: corpusFor(project!).legend(),
+            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), styleCard: draftStyleFor(),
           }), ctxFor(`revise ${loc.scene.title}`));
           if (!rev.ok) {
             if (halted(handleFail('reviser', rev), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
