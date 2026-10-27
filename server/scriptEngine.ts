@@ -529,7 +529,7 @@ export function createEngine(deps: EngineDeps) {
               const wAB = (A.json as any)?.winner;
               const wBA = (B.json as any)?.winner;
               const verdict = judgeConsensus(wAB, wBA, target.severity);
-              decision.judge = { provider: A.provider, model: A.model, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
+              decision.judge = { provider: A.provider, model: A.model, promptVersion: P.PROMPT_VERSIONS.judge, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
               decision.loopAccepted = verdict.win;
               emit(run, { type: 'judge', message: `Judge: AB=${wAB}, BA=${wBA} -> ${verdict.consensus}.`, data: decision.judge });
             }
@@ -621,7 +621,7 @@ export function createEngine(deps: EngineDeps) {
               const B = ba as Extract<CompleteResult, { ok: true }>;
               okCall('judge', A, 'judged structure AB'); okCall('judge', B, 'judged structure BA');
               const verdict = judgeConsensus((A.json as any)?.winner, (B.json as any)?.winner, c.severity);
-              decision.judge = { provider: A.provider, model: A.model, winnerAB: (A.json as any)?.winner, winnerBA: (B.json as any)?.winner, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
+              decision.judge = { provider: A.provider, model: A.model, promptVersion: P.PROMPT_VERSIONS.judge, winnerAB: (A.json as any)?.winner, winnerBA: (B.json as any)?.winner, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
               decision.loopAccepted = verdict.win;
               emit(run!, { type: 'judge', message: `Structure judge: AB=${decision.judge.winnerAB}, BA=${decision.judge.winnerBA} -> ${verdict.consensus}.`, data: decision.judge });
             }

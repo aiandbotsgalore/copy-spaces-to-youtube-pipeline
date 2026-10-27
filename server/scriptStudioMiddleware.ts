@@ -23,6 +23,8 @@
  *   GET  /export?projectId       one JSON with project, versions, runs and memory
  *   POST /import                 restore an exported project
  *   GET  /log?runId              the call log of a run
+ *   GET  /logs                   every call log with a summary (calls, failures, time, cost)
+ *   GET  /quality                judge vs Logan's decisions, judge order consistency, prompt version comparisons
  *
  * Loopback only unless DIRECTOR_ALLOW_REMOTE=1. Nothing here publishes or uploads anything.
  */
@@ -41,6 +43,7 @@ import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleS
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
 import { recordDecision } from './scriptMemory';
 import { PROMPT_VERSIONS } from './scriptPrompts';
+import { callStats, collectPairs, promptOutcomes, qualityReport, summarizeLog, type LogEntry } from '../utils/scriptQuality';
 
 export interface ScriptStudioOptions {
   root: string;
@@ -125,6 +128,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     return v;
   };
   const touch = (p: ScriptProject) => { p.updatedAt = now(); store.saveProject(p); };
+  const allPairs = () => collectPairs(store.listProjects().flatMap(pr => store.listVersions(pr.id)));
   const interactiveCtx = (body: any, label: string) => {
     const { roleMap, maxUsd } = resolveRoleMap(body);
     return { roleMap, budget: { maxUsd, spentUsd: 0 }, signal: new AbortController().signal, label };
@@ -394,6 +398,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const parent = cand.parentId ? store.getVersion(p.id, cand.parentId) : null;
       recordDecision(store, p, parent, cand, decision, String(body?.reason || ''));
       if (decision === 'accept') { p.headVersionId = cand.id; touch(p); }
+      // Quality history: recomputed after every decision, so the judge check needs nothing set up.
+      if (cand.decision.judge) {
+        try {
+          const o = qualityReport(allPairs()).overall;
+          store.appendQualityHistory({ at: now(), candidateId: cand.id, decision, pairs: o.pairs, conclusive: o.conclusive, agreementRate: o.agreementRate, kappa: o.kappa });
+        } catch { /* the decision itself is saved; history is best effort and recomputed on read */ }
+      }
       return send(res, 200, { ok: true, project: p, version: cand });
     }
 
@@ -418,6 +429,22 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const runId = String(q('runId') || '');
       if (!isSafeId(runId)) throw new StepError('BAD_REQUEST', 'Invalid run id.');
       return send(res, 200, { ok: true, entries: store.readLog(runId) });
+    }
+
+    if (route === '/logs' && method === 'GET') {
+      const runProject = new Map(store.allRuns().map(r => [r.id, r.projectId]));
+      const logs = store.listLogIds().map(id => summarizeLog(id, runProject.get(id) ?? null, store.readLog(id) as LogEntry[]))
+        .sort((a, b) => (b.lastAt ?? 0) - (a.lastAt ?? 0));
+      return send(res, 200, { ok: true, logs });
+    }
+
+    if (route === '/quality' && method === 'GET') {
+      const versions = store.listProjects().flatMap(pr => store.listVersions(pr.id));
+      const entries = store.listLogIds().flatMap(id => store.readLog(id) as LogEntry[]);
+      return send(res, 200, {
+        ok: true, report: qualityReport(collectPairs(versions)), prompts: promptOutcomes(versions), calls: callStats(entries),
+        history: store.readQualityHistory().slice(-200), currentPromptVersions: PROMPT_VERSIONS,
+      });
     }
 
     return send(res, 404, { ok: false, code: 'NOT_FOUND', message: `No route ${method} ${route}.` });

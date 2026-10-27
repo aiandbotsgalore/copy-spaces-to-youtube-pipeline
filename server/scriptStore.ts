@@ -94,6 +94,19 @@ export function createScriptStore(root: string) {
         throw new StoreError(file, e?.message || String(e));
       }
     },
+    listLogIds(): string[] {
+      const dir = p('logs');
+      if (!fs.existsSync(dir)) return [];
+      return fs.readdirSync(dir).filter(f => f.endsWith('.jsonl')).map(f => f.slice(0, -6)).filter(isSafeId);
+    },
+    appendQualityHistory(entry: Record<string, unknown>) {
+      const file = p('quality-history.jsonl');
+      try { fs.mkdirSync(base, { recursive: true }); fs.appendFileSync(file, JSON.stringify(entry) + '\n', 'utf8'); }
+      catch (e: any) { throw new StoreError(file, e?.message || String(e)); }
+    },
+    readQualityHistory(): Record<string, unknown>[] {
+      try { return fs.readFileSync(p('quality-history.jsonl'), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)); } catch { return []; }
+    },
     readLog(runId: string): Record<string, unknown>[] {
       try {
         return fs.readFileSync(p('logs', `${must(runId)}.jsonl`), 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l));

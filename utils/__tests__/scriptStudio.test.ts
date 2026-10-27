@@ -280,6 +280,22 @@ describe('Script Studio API end to end', () => {
     expect(cand.diff[0].after.text).toMatch(/which is the whole point\.$/);
     expect(cand.diff[0].after.mode).toBe('polished');
   });
+  it('quality: compares the judge with Logan\'s decisions and lists every call log', async () => {
+    const q = await api('GET', '/quality');
+    expect(q.status).toBe(200);
+    // Run 1: judge two wins, Logan accepted (agree). Episode pass: tie/tie, Logan accepted (inconclusive).
+    expect(q.json.report.overall).toMatchObject({ pairs: 2, conclusive: 1, agree: 1, inconclusive: 1, agreementRate: 1 });
+    expect(q.json.report.order).toMatchObject({ judged: 2, consistent: 2, sameLetter: 0 });
+    expect(q.json.report.byLevel.episode).toMatchObject({ pairs: 1, inconclusive: 1 });
+    expect(q.json.prompts.map((r: any) => r.promptVersion)).toEqual(expect.arrayContaining(['revise.v2', 'episode-critique.v1', 'polish.v1']));
+    expect(q.json.calls.find((r: any) => r.promptVersion === 'judge.v2' && r.role === 'judge')).toMatchObject({ provider: 'codex_cli', model: 'gpt-6.1-sol' });
+    expect(q.json.calls.some((r: any) => r.failureCodes.USAGE_LIMIT === 1)).toBe(true);
+    expect(q.json.history.length).toBe(2);
+    expect(q.json.history.at(-1)).toMatchObject({ decision: 'accept', pairs: 2, conclusive: 1, agreementRate: 1 });
+    const logs = await api('GET', '/logs');
+    expect(logs.json.logs.find((l: any) => l.runId === 'interactive')).toMatchObject({ projectId: null });
+    expect(logs.json.logs.filter((l: any) => l.projectId === projectId).length).toBeGreaterThanOrEqual(4);
+  });
   it('sent no API key to the CLIs and used the subscription argv', () => {
     const cliRuns = calls.filter(c => c.args[0] === '-p' || c.args[0] === 'exec');
     expect(cliRuns.length).toBeGreaterThan(5);
