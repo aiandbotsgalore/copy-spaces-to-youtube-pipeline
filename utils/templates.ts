@@ -1,6 +1,7 @@
 import { EnhancedConfig } from '../types';
 import { escapeYamlDoubleQuote, escapeYamlSingleQuote } from './escape';
 import { buildPythonRSSScript } from './templates/pythonRss';
+import { normalizeLineEndings } from './posixUtils';
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
   const transcriptionStep = config.enableTranscription ? `
@@ -48,7 +49,7 @@ export const generateIngestYaml = (config: EnhancedConfig): string => {
 
   const pythonScript = buildPythonRSSScript();
 
-  return `name: Ingest Space
+  return normalizeLineEndings(`name: Ingest Space
 run-name: Ingest \${{ inputs.release_tag || inputs.space_url || 'Queue' }}
 
 on:
@@ -201,10 +202,16 @@ ${slackStep}${discordStep}
           PODCAST_EMAIL: "${escapeYamlDoubleQuote(config.email)}"
           PODCAST_IMAGE: "${escapeYamlDoubleQuote(config.imageUrl)}"
         run: |
-          cat <<'PYEOF' > generate_rss.py
+          if [[ -f "scripts/generate_rss.py" ]]; then
+            echo "Running repository scripts/generate_rss.py --all"
+            python3 scripts/generate_rss.py --all
+          else
+            echo "Falling back to inline generate_rss.py"
+            cat <<'PYEOF' > generate_rss.py
 ${pythonScript}
 PYEOF
-          python3 generate_rss.py
+            python3 generate_rss.py
+          fi
 
       - name: Validate RSS
         run: |
@@ -222,10 +229,10 @@ PYEOF
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-`;
+`);
 };
 
-export const generateMonitorYaml = (config: EnhancedConfig): string => `name: Monitor Batch Queue
+export const generateMonitorYaml = (config: EnhancedConfig): string => normalizeLineEndings(`name: Monitor Batch Queue
 
 on:
   schedule:
@@ -277,9 +284,9 @@ jobs:
 
           # Explicitly trigger ingest workflow to avoid GITHUB_TOKEN push loop suppression
           gh workflow run ingest.yml -f space_url="$NEXT_URL" || echo "Direct workflow dispatch skipped"
-`;
+`);
 
-export const generateIngestScript = (_config: EnhancedConfig): string => `#!/bin/bash
+export const generateIngestScript = (_config: EnhancedConfig): string => normalizeLineEndings(`#!/bin/bash
 set -euo pipefail
 
 # ==============================================================================
@@ -519,14 +526,14 @@ if [[ -n "\${GITHUB_OUTPUT:-}" ]]; then
 fi
 
 echo "Done."
-`;
+`);
 
 export const generateReadme = (config: EnhancedConfig): string => {
   const safeTitle = (config.podcastTitle || 'Spaces Archive').replace(/[\r\n]+/g, ' ').trim();
   const safeAuthor = (config.authorName || 'Spaces Host').replace(/[\r\n]+/g, ' ').trim();
   const safeEmail = (config.email || '').replace(/[\r\n]+/g, ' ').trim();
 
-  return `# ${safeTitle} — SpacePipe
+  return normalizeLineEndings(`# ${safeTitle} — SpacePipe
 
 Automated audio ingestion pipeline powered by GitHub Actions. Supports Twitter/X Spaces, YouTube, Clubhouse, LinkedIn Audio, and any platform supported by yt-dlp.
 
@@ -596,17 +603,17 @@ Submit this URL to Apple Podcasts, YouTube Podcasts, Spotify, etc.
 ## Author
 
 ${safeAuthor}${safeEmail ? ` · ${safeEmail}` : ''}
-`;
+`);
 };
 
 export const generateQueueFile = (config: EnhancedConfig): string => {
   if (config.batchUrls && config.batchUrls.filter(u => u.trim()).length > 0) {
-    return config.batchUrls.filter(u => u.trim()).join('\n') + '\n';
+    return normalizeLineEndings(config.batchUrls.filter(u => u.trim()).join('\n') + '\n');
   }
   return '';
 };
 
-export const generateTestAudioYaml = (_config: EnhancedConfig): string => `name: Test Audio Tools
+export const generateTestAudioYaml = (_config: EnhancedConfig): string => normalizeLineEndings(`name: Test Audio Tools
 
 on: [workflow_dispatch]
 
@@ -624,4 +631,4 @@ jobs:
       - name: Check yt-dlp supports key platforms
         run: |
           yt-dlp --list-extractors | grep -E "twitter|youtube|clubhouse|linkedin" | head -10
-`;
+`);

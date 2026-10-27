@@ -25,12 +25,25 @@ export function createScriptStore(root: string) {
   const base = path.join(root, '.spacepipe-studio');
   const p = (...parts: string[]) => path.join(base, ...parts);
 
+  function safeReplace(tmp: string, target: string) {
+    try {
+      fs.renameSync(tmp, target);
+    } catch (err: any) {
+      if (err?.code === 'EPERM' || err?.code === 'EBUSY' || err?.code === 'EEXIST') {
+        fs.copyFileSync(tmp, target);
+        try { fs.unlinkSync(tmp); } catch { /* ignore */ }
+        return;
+      }
+      throw err;
+    }
+  }
+
   function writeJson(file: string, data: unknown) {
     const tmp = `${file}.${randomUUID().slice(0, 8)}.tmp`;
     try {
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
-      fs.renameSync(tmp, file);
+      safeReplace(tmp, file);
     } catch (e: any) {
       try { fs.rmSync(tmp, { force: true }); } catch { /* ignore */ }
       throw new StoreError(file, e?.message || String(e));

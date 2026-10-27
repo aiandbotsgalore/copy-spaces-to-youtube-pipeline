@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Copy, Check, Download, Bot } from 'lucide-react';
 import { PipelineFile, EnhancedConfig } from '../types';
+import { normalizeLineEndings } from '../utils/posixUtils';
 
 interface FileViewerProps {
   file: PipelineFile;
@@ -10,11 +11,11 @@ interface FileViewerProps {
 
 const FileViewer: React.FC<FileViewerProps> = ({ file, config, onAskAi }) => {
   const [copied, setCopied] = useState(false);
-  const content = useMemo(() => file.content(config), [file, config]);
+  const content = useMemo(() => normalizeLineEndings(file.content(config)), [file, config]);
   const lines = useMemo(() => content.split('\n'), [content]);
 
   const handleCopy = () => {
-    const cleanContent = content.replace(/\r\n/g, '\n');
+    const cleanContent = normalizeLineEndings(content);
     navigator.clipboard.writeText(cleanContent)
       .then(() => {
         setCopied(true);
@@ -26,7 +27,7 @@ const FileViewer: React.FC<FileViewerProps> = ({ file, config, onAskAi }) => {
   };
 
   const handleDownload = () => {
-    const cleanContent = content.replace(/\r\n/g, '\n');
+    const cleanContent = normalizeLineEndings(content);
     const mimeType = file.language === 'bash' ? 'text/x-shellscript;charset=utf-8' : 'text/plain;charset=utf-8';
     const blob = new Blob([cleanContent], { type: mimeType });
     const url = URL.createObjectURL(blob);

@@ -1,11 +1,9 @@
 import JSZip from 'jszip';
 import { PipelineFile, EnhancedConfig } from '../types';
+import { normalizeLineEndings as normalizeLf, toPosixPath } from './posixUtils';
 
-export function normalizeLineEndings(content: string, language: string): string {
-  if (language === 'bash' || language === 'yaml' || language === 'text' || language === 'markdown') {
-    return content.replace(/\r\n/g, '\n');
-  }
-  return content;
+export function normalizeLineEndings(content: string, _language?: string): string {
+  return normalizeLf(content);
 }
 
 export async function exportPipelineZip(files: PipelineFile[], config: EnhancedConfig): Promise<void> {
@@ -14,10 +12,17 @@ export async function exportPipelineZip(files: PipelineFile[], config: EnhancedC
   for (const file of files) {
     const rawContent = file.content(config);
     const cleanContent = normalizeLineEndings(rawContent, file.language);
-    zip.file(file.path, cleanContent);
+    const isExecutable = file.path.endsWith('.sh') || file.language === 'bash';
+
+    zip.file(toPosixPath(file.path), cleanContent, {
+      unixPermissions: isExecutable ? 0o755 : 0o644,
+    });
   }
 
-  const content = await zip.generateAsync({ type: 'blob' });
+  const content = await zip.generateAsync({
+    type: 'blob',
+    platform: 'UNIX',
+  });
   const url = URL.createObjectURL(content);
   const a = document.createElement('a');
   a.href = url;

@@ -126,6 +126,16 @@ describe('Template Generation & Escaping Safety', () => {
     expect(pythonScript).toContain('def xml_attr(');
     expect(pythonScript).toContain('<?xml version="1.0" encoding="UTF-8"?>');
   });
+
+  it("enforces multi-feed RSS isolation and repository script priority", () => {
+    const yaml = generateIngestYaml(mockConfig);
+    expect(yaml).toContain("scripts/generate_rss.py --all");
+
+    const pythonScript = buildPythonRSSScript();
+    expect(pythonScript).toContain("podcast_archive.xml");
+    expect(pythonScript).toContain("podcast.xml");
+    expect(pythonScript).toContain("(11 * 3600 + 58 * 60)");
+  });
 });
 
 describe('Validation Engine', () => {

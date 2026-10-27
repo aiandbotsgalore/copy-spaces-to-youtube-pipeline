@@ -49,9 +49,15 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
       }
       const upstreamRes = await fetch(targetUrl, { headers });
       res.statusCode = upstreamRes.status;
-      const text = await upstreamRes.text();
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-      res.end(text);
+      const contentType = upstreamRes.headers.get('content-type') || 'text/plain; charset=utf-8';
+      res.setHeader('Content-Type', contentType);
+      const contentLength = upstreamRes.headers.get('content-length');
+      if (contentLength) res.setHeader('Content-Length', contentLength);
+      if (!upstreamRes.body) return res.end();
+      const { Readable } = await import('node:stream');
+      Readable.fromWeb(upstreamRes.body as any)
+        .on('error', () => { if (!res.headersSent) res.statusCode = 502; res.destroy(); })
+        .pipe(res);
     } catch (err: any) {
       res.statusCode = 500;
       res.end(err.message || 'Error proxying asset');

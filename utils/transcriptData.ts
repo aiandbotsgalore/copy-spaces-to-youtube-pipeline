@@ -1,4 +1,5 @@
 import type { Release } from '../types';
+import { parseEpisodeSummaries } from './contracts/transcript';
 
 export interface UtteranceWord {
   word: string;
@@ -504,6 +505,18 @@ export function getUtteranceWords(source: WordTimingSource): UtteranceWord[] {
 }
 
 export const EPISODE_SEGMENTS_CACHE = new Map<string, SearchIndexSegment[]>();
+const MAX_CACHED_EPISODES = 30;
+
+export function cacheEpisodeSegments(tag: string, segs: SearchIndexSegment[]): void {
+  if (EPISODE_SEGMENTS_CACHE.has(tag)) {
+    // Refresh position for LRU
+    EPISODE_SEGMENTS_CACHE.delete(tag);
+  } else if (EPISODE_SEGMENTS_CACHE.size >= MAX_CACHED_EPISODES) {
+    const oldestKey = EPISODE_SEGMENTS_CACHE.keys().next().value;
+    if (oldestKey) EPISODE_SEGMENTS_CACHE.delete(oldestKey);
+  }
+  EPISODE_SEGMENTS_CACHE.set(tag, segs);
+}
 
 export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<EpisodeSummary[]> {
   const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
@@ -525,7 +538,8 @@ export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<
         if (contentType.includes('text/html')) {
           continue;
         }
-        return await res.json();
+        const json = await res.json();
+        return parseEpisodeSummaries(json);
       }
     } catch (e) {
       lastErr = e;
@@ -570,7 +584,7 @@ export async function getEpisodeSegments(releaseTag: string, owner?: string, rep
   try {
     const data = JSON.parse(text);
     const segs: SearchIndexSegment[] = Array.isArray(data.segments) ? data.segments : [];
-    EPISODE_SEGMENTS_CACHE.set(releaseTag, segs);
+    cacheEpisodeSegments(releaseTag, segs);
     return segs;
   } catch {
     return [];

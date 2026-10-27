@@ -914,7 +914,9 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                   const a = document.createElement('a');
                   a.href = renderedJob.videoUrl;
                   a.download = `${renderedJob.jobId}.mp4`;
+                  document.body.appendChild(a);
                   a.click();
+                  document.body.removeChild(a);
                 } else {
                   handleRenderVideo();
                 }

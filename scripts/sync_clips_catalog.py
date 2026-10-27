@@ -207,6 +207,12 @@ def main():
     other_entries = []
     for c in existing_clips:
         fp = c.get("file_path") or ""
+        if fp and "\\" in fp:
+            c["file_path"] = fp.replace("\\", "/")
+            fp = c["file_path"]
+        dl = c.get("download_url") or ""
+        if dl and "\\" in dl:
+            c["download_url"] = dl.replace("\\", "/")
         fname = Path(fp).name.lower()
         is_placeholder = "AI selected highlight moment from" in c.get("reason", "")
         if fname and fname.endswith(".mp3"):
@@ -228,7 +234,7 @@ def main():
     # Save merged catalog
     PUBLIC_CATALOG.parent.mkdir(parents=True, exist_ok=True)
     with open(PUBLIC_CATALOG, "w", encoding="utf-8") as f:
-        json.dump(final_clips, f, indent=2)
+        json.dump(final_clips, f, indent=2, ensure_ascii=False)
 
     print(f"\n[✓] Successfully updated {PUBLIC_CATALOG}: {len(final_clips)} total clips ({new_clips_added} new cloud clips added).")
 
