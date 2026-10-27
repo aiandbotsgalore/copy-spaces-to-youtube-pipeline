@@ -198,7 +198,7 @@ describe('spoken critique', () => {
     expect(spokenPrompt).toContain('"durationSource":"clip"');
     expect(spokenPrompt).toContain('2 narration lines in this scene open with "and that".');
     const log = mw.store.readLog(start.json.runId) as any[];
-    expect(log.some(e => e.promptVersion === 'critique-spoken.v1')).toBe(true);
+    expect(log.some(e => e.promptVersion === 'critique-spoken.v2')).toBe(true);
   });
 });
 
