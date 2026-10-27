@@ -8,16 +8,19 @@
  */
 import type { EpisodeFormat, FormatCriterion, NarrativeFunction } from '../utils/scriptTypes';
 import { NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
+import { FORMAT_SPECS, rubricText } from '../utils/scriptFormats';
 
 export const PROMPT_VERSIONS = {
   analysis: 'analysis.v1',
   reduce: 'analysis-reduce.v1',
   clipTags: 'clip-tags.v1',
-  outline: 'outline.v1',
-  draft: 'draft.v1',
-  critique: 'critique.v1',
-  revise: 'revise.v1',
-  judge: 'judge.v1',
+  outline: 'outline.v2',
+  draft: 'draft.v2',
+  critique: 'critique.v2',
+  revise: 'revise.v2',
+  judge: 'judge.v2',
+  episodeCritique: 'episode-critique.v1',
+  polish: 'polish.v1',
   factcheck: 'factcheck.v1',
 } as const;
 
@@ -36,20 +39,12 @@ Hard rules:
 /* Formats                                                                                           */
 /* ------------------------------------------------------------------------------------------------ */
 
-export const FORMAT_CONVENTIONS: Record<EpisodeFormat, { label: string; structure: string; criteria: FormatCriterion[] }> = {
-  narrative_doc: { label: 'Narrative documentary', structure: 'Cold open near the payoff, then chronology with withheld information; scenes end on open questions.', criteria: ['curiosity', 'momentum', 'resonance'] },
-  investigative: { label: 'Investigative deep dive', structure: 'Claim, then evidence clip, then counterpoint, then what remains unproven. A claim needs two sources or attribution wording ("according to", "alleges").', criteria: ['fairness', 'clarity'] },
-  best_of: { label: 'Best-of', structure: 'Clip-dominant, narration under 15 percent of runtime, thematic chapters.', criteria: ['clip_choice', 'pacing'] },
-  interview: { label: 'Interview', structure: 'Guest arc (who, why now, the turn, the surprise); narration only bridges cuts.', criteria: ['authenticity'] },
-  thematic_multi: { label: 'Thematic multi-recording', structure: 'A thesis question across dates, with a date on every clip.', criteria: ['clarity', 'payoff'] },
-  commentary: { label: 'Commentary', structure: 'Host-led argument with clips as exhibits; explicit opinion markers.', criteria: ['authenticity', 'clarity'] },
-  short_highlight: { label: 'Short highlight', structure: '30 to 90 seconds, one moment, at most one setup line, every clip self-contained.', criteria: ['clip_choice', 'payoff'] },
-};
+export const FORMAT_CONVENTIONS = FORMAT_SPECS;
 
 export function formatBrief(format: EpisodeFormat | null): string {
   if (!format) return 'Format: not chosen yet.';
   const f = FORMAT_CONVENTIONS[format];
-  return `Format: ${f.label}. Structure: ${f.structure} Rubric emphasis: ${f.criteria.join(', ')}.`;
+  return `Format: ${f.label}. Structure: ${f.structure}\nRubric (judge against these):\n${rubricText(format)}`;
 }
 
 /* ------------------------------------------------------------------------------------------------ */
@@ -106,6 +101,15 @@ export const CRITIQUE_SCHEMA = obj({
     severity: en(['blocker', 'major', 'minor']), proposedFix: str,
   })),
 });
+export const EPISODE_CRITIQUE_SCHEMA = obj({
+  structuralCritiques: arr(obj({
+    issue: str, consequence: str, kind: en(['order', 'arc', 'payoff']),
+    criterion: en(['curiosity', 'momentum', 'clarity', 'pacing', 'authenticity', 'clip_choice', 'resonance', 'payoff', 'fairness']),
+    severity: en(['blocker', 'major', 'minor']), proposedFix: str,
+    proposedOrder: { type: ['array', 'null'], items: obj({ segmentId: str, sceneIds: strArr }) },
+  })),
+});
+export const POLISH_SCHEMA = obj({ blocks: arr(obj({ id: str, text: str })), notes: str });
 export const JUDGE_SCHEMA = obj({ winner: en(['A', 'B', 'tie']), reasons: strArr });
 export const FACTCHECK_SCHEMA = obj({ claims: arr(obj({ index: { type: 'integer' }, label: en(['supported', 'overstated', 'unsupported']), note: str })) });
 
@@ -284,5 +288,34 @@ export function factcheckPrompt(args: { claims: string }): Prompt {
 Task: fact-check narration against the transcript excerpts it cites. For each claim index, label it supported (the narration says no more than the excerpt), overstated (goes beyond it, or states an allegation as fact) or unsupported (the excerpt does not back it), with a one-line note.`,
     user: `Claims (JSON: index, narration, excerpts):
 ${dataBlock(args.claims)}`,
+  };
+}
+
+export function episodeCritiquePrompt(args: { format: EpisodeFormat | null; targetRuntimeSec: number; outline: string; memory: string }): Prompt {
+  return {
+    version: PROMPT_VERSIONS.episodeCritique, schemaName: 'episode_critique', schema: EPISODE_CRITIQUE_SCHEMA, maxTokens: 1500,
+    system: `${BASE_RULES}
+Task: one structural pass over a whole episode script. You see each segment's scenes with their title, purpose and first and last line only, not the full prose. Give at most 3 structural critiques about scene ORDER, the overall ARC, or PAYOFF of set-ups. Do not critique wording.
+When a better order of scenes would fix the critique, give proposedOrder: every segment id in its new order, each with ALL of its scene ids in their new order (scenes may move between segments; no scene may be added or dropped). Otherwise proposedOrder is null.
+Return an empty list if the structure works.
+${formatBrief(args.format)}
+Target runtime: about ${Math.round(args.targetRuntimeSec / 60)} minutes.`,
+    user: `Editorial rules learned from Logan:
+${args.memory || '(none yet)'}
+
+Episode structure (JSON: segments with scenes {sceneId, title, purpose, first, last, seconds}):
+${dataBlock(args.outline)}`,
+  };
+}
+
+export function polishPrompt(args: { format: EpisodeFormat | null; narration: string; styleCard: string }): Prompt {
+  return {
+    version: PROMPT_VERSIONS.polish, schemaName: 'narration_polish', schema: POLISH_SCHEMA, maxTokens: 8000,
+    system: `${BASE_RULES}
+Task: a final line edit of the narration of a finished episode script, for the ear: smoother transitions, no repeated openers, varied sentence length, spoken rhythm. Keep every fact, name and attribution exactly as it is, keep each block's meaning, and keep quoted words verbatim. Return only the blocks you changed, by id, with their full new text. "notes": one line on what you changed.
+${formatBrief(args.format)}
+${args.styleCard ? `Logan's voice (style card):\n${args.styleCard}` : ''}`,
+    user: `Narration blocks in order (JSON: id, text, quotes it relies on, the clip words before and after):
+${dataBlock(args.narration)}`,
   };
 }
