@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-27T00:49:13.759893+00:00",
-  "total_episodes_with_audio": 830,
-  "transcribed_count": 685,
+  "last_updated": "2026-10-27T05:24:22.772349+00:00",
+  "total_episodes_with_audio": 831,
+  "transcribed_count": 686,
   "untranscribed_count": 145,
-  "percent_complete": 82.5,
+  "percent_complete": 82.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -24,14 +24,19 @@
       "last_attempt": "2026-10-25T16:31:18.720212+00:00"
     },
     "20261025_1rGmqpPWWRzGy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-27T00:47:52.285606+00:00"
+      "last_attempt": "2026-10-27T05:22:58.159090+00:00"
     },
     "20261026_1OGwbnXEYjvKB": {
+      "attempts": 2,
+      "last_error": "AttributeError: 'list' object has no attribute 'get'",
+      "last_attempt": "2026-10-27T05:22:58.159086+00:00"
+    },
+    "20261027_1vKpPNybwLVKE": {
       "attempts": 1,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-27T00:47:52.285578+00:00"
+      "last_attempt": "2026-10-27T05:22:58.159062+00:00"
     }
   },
   "next_in_queue": [
