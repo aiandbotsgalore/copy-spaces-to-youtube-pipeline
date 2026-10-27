@@ -2,7 +2,7 @@
  * Server side of the AI Prompt Director (runs inside the Vite dev/preview server, never in the browser).
  *
  *   GET  /api/montage/direct/status   key/model status (never returns the key)
- *   GET  /api/montage/direct/models   claude-* models from the gateway
+ *   GET  /api/montage/direct/models   every model id the gateway lists (any family)
  *   POST /api/montage/direct/test     tiny completion to test the connection
  *   POST /api/montage/direct          generate one cut / refine the current timeline
  *   POST /api/montage/direct/sort     AI Sort: order the reel's clips (permutation only)
@@ -77,6 +77,15 @@ export interface DirectorMiddlewareOptions {
 const DEFAULT_BASE_URL = 'https://api.cheaperinference.com/v1';
 const BODY_LIMIT = 1_000_000;
 const MAX_CONCURRENT = 3;
+
+/**
+ * A gateway model id from any family (claude-*, gpt-*, gemini-*, ...). Only the character set is checked,
+ * so a request cannot smuggle whitespace or control characters into the upstream body; whether the id
+ * exists is the gateway's answer (a missing model returns MODEL_NOT_FOUND after the documented fallback).
+ */
+export function isValidModelId(id: string): boolean {
+  return /^[a-z0-9][a-z0-9._:\/-]{0,99}$/i.test(id);
+}
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Small utilities                                                                                 */
@@ -400,7 +409,7 @@ function parseRequest(raw: any): { ok: true; req: DirectorRequest } | { ok: fals
       textTruncated: !!c.textTruncated,
     });
   }
-  const model = typeof raw.model === 'string' && /^claude-[a-z0-9._-]+$/i.test(raw.model) ? raw.model : undefined;
+  const model = typeof raw.model === 'string' && isValidModelId(raw.model) ? raw.model : undefined;
   const base = { cutId: raw.cutId as CutId, userPrompt, targetWindowSec: target, candidates, model };
   if (mode === 'generate') return { ok: true, req: { mode, ...base } };
 
@@ -580,7 +589,7 @@ function parseSortRequest(raw: any): { ok: true; req: SortRequest } | { ok: fals
     });
   }
   const theme = typeof raw.theme === 'string' ? raw.theme.trim().slice(0, 500) : '';
-  const model = typeof raw.model === 'string' && /^claude-[a-z0-9._-]+$/i.test(raw.model) ? raw.model : undefined;
+  const model = typeof raw.model === 'string' && isValidModelId(raw.model) ? raw.model : undefined;
   return { ok: true, req: { items, theme: theme || undefined, model } };
 }
 
@@ -847,7 +856,9 @@ async function runCopilot(
         });
         turnMessages.push({
           role: 'user',
-          content: `[Tool Result: search_transcripts]\nFound ${searchRes.matches.length} matching dialogue turns across the archive (Tier ${searchRes.tier}):\n${JSON.stringify(searchRes.matches, null, 2)}\n\nPlease synthesize your final response for the user quoting the speaker, episode title, and timestamp (e.g. [${searchRes.matches[0]?.formatted_time || 'timestamp'}]). Do NOT repeat the search_transcripts tool call; present these findings directly to the user.`,
+          content: searchRes.matches.length > 0
+            ? `[Tool Result: search_transcripts]\nThe search returned ${searchRes.matches.length} matching dialogue turns (Tier ${searchRes.tier}):\n${JSON.stringify(searchRes.matches, null, 2)}\n\nAnswer the user from these turns only, quoting the speaker, episode title, and timestamp (e.g. [${searchRes.matches[0]?.formatted_time}]). Do NOT repeat the search_transcripts tool call.`
+            : `[Tool Result: search_transcripts]\nThe search for "${searchRes.queryUsed}" returned no matching turns. Tell the user plainly that nothing matched; do not guess or invent quotes. Do NOT repeat the search_transcripts tool call.`,
         });
       }
 
@@ -939,7 +950,7 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
         if (!r.ok) return fail(res, 'UPSTREAM', `Gateway error ${r.status}.`);
         const j: any = await r.json().catch(() => ({}));
         const list: any[] = Array.isArray(j?.data) ? j.data : Array.isArray(j) ? j : [];
-        const models = list.map(m => m?.id).filter((id: unknown): id is string => typeof id === 'string' && id.startsWith('claude-')).sort();
+        const models = list.map(m => m?.id).filter((id: unknown): id is string => typeof id === 'string' && isValidModelId(id)).sort();
         return send(res, 200, { models, default: cfg.defaultModel });
       }
 
