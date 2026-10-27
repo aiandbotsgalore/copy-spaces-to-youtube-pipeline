@@ -100,12 +100,41 @@ export interface RefinementDecision {
   loganDecision?: 'accept' | 'reject';         // final say
 }
 
+export interface StyleRule { rule: string; source: 'approved' | 'rejected' | 'explicit'; weight: number; addedAt?: number }
+export interface DistillStatus {
+  at: number; ok: boolean; message: string; decisions: number; promptVersion: string;
+  provider?: string; model?: string; added?: number; kept?: number; removed?: number;
+}
 export interface EditorialMemory {
-  styleRules: { rule: string; source: 'approved' | 'rejected' | 'explicit'; weight: number }[];
+  styleRules: StyleRule[];
   approvedPassages: { text: string; projectId: string }[];
   rejectedRewrites: { before: string; after: string; reason: string }[];
   unresolved: { projectId: string; question: string }[];
   decisionsSinceDistill?: number;
+  lastDistill?: DistillStatus;
+  removedRules?: string[];                   // learned rules Logan removed; never re-learned
+}
+
+export interface StyleTrait { trait: string; examples: string[] }
+export interface StyleCard {
+  promptVersion: string; traitsPromptVersion: string; createdAt: number; provider: string; model: string; batchProvider: string; batchModel: string;
+  live: { summary: string; traits: StyleTrait[] };
+  polished: { summary: string; traits: StyleTrait[] };
+  avoid: string[];
+  stats: {
+    recordingsScanned: number; recordingsWithLogan: number; segments: number; words: number; speakingMinutes: number;
+    shareOfSpeech: number; wordsPerMinute: number; turns: number; meanTurnWords: number; medianTurnWords: number;
+    meanSentenceWords: number; shortSentenceShare: number; questionShare: number;
+    fillersPer100Words: Record<string, number>; topOpeners: { opener: string; share: number }[];
+    signaturePhrases: { phrase: string; per10kWords: number; ratio: number }[];
+    firstDate: string | null; lastDate: string | null;
+  };
+  sourceHash: string; narrationHash: string;
+  coverage: {
+    segmentsMeasured: number; recordingsWithLogan: number; recordingsScanned: number; turnsRead: number; recordingsRead: number;
+    batches: number; batchesFailed: string[]; narrationFiles: string[]; examplesDropped: number; recordingTags: string[];
+  };
+  text: string;
 }
 
 export interface ScriptProject {
@@ -115,6 +144,8 @@ export interface ScriptProject {
   speakerNames: Record<string, string>;      // raw label -> display name (Logan's renames)
   clips: StudioClip[]; excludedClips: { clipId: string; reason: string }[];
   headVersionId: string | null;
+  thesis?: string;
+  sourceKeys?: Record<string, string>;       // releaseTag -> recording key (E1, E2...) in multi-recording prompts; never reused                           // thematic and investigative episodes: the question the episode answers
   clipTagsKey?: string;                      // analysis hash + clip-tags prompt version of the last tagging
 }
 

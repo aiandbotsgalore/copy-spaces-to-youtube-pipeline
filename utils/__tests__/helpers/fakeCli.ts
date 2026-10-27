@@ -22,6 +22,9 @@ export function schemaKind(schema: any): string {
     critiques: 'critique',
     'reasons,winner': 'judge',
     claims: 'factcheck',
+    'avoid,traits': 'styleTraits',
+    'avoid,live,polished': 'styleCard',
+    rules: 'distill',
   };
   return map[p] || p;
 }

@@ -9,7 +9,7 @@ function v(ab: 'A' | 'B' | 'tie', ba: 'A' | 'B' | 'tie', logan?: 'accept' | 'rej
   return {
     id: `v${n}`, parentId: 'v0', projectId: 'p', createdAt: n, author: 'loop', segments: [],
     decision: {
-      candidateId: `v${n}`, baselineId: 'v0', round: 0, promptVersion: 'revise.v2', gates: { ...gates, failures: [] }, loopAccepted: judgePreference(ab, ba) === 'candidate',
+      candidateId: `v${n}`, baselineId: 'v0', round: 0, promptVersion: 'revise.v3', gates: { ...gates, failures: [] }, loopAccepted: judgePreference(ab, ba) === 'candidate',
       judge: { provider: 'codex_cli', model: 'gpt-6.1-sol', winnerAB: ab, winnerBA: ba, consensus: judgePreference(ab, ba) === 'candidate' ? 'two_wins' : 'rejected', reasons: [], promptVersion: 'judge.v2' },
       loganDecision: logan, ...extra,
     },
@@ -33,7 +33,7 @@ describe('judge vs Logan', () => {
   ]);
   it('collects only judged candidates', () => {
     expect(pairs).toHaveLength(6);
-    expect(pairs[0]).toMatchObject({ judgeModel: 'codex_cli:gpt-6.1-sol', judgePromptVersion: 'judge.v2', revisePromptVersion: 'revise.v2', level: 'scene' });
+    expect(pairs[0]).toMatchObject({ judgeModel: 'codex_cli:gpt-6.1-sol', judgePromptVersion: 'judge.v2', revisePromptVersion: 'revise.v3', level: 'scene' });
   });
   it('counts agreement and Cohen kappa on conclusive decided pairs', () => {
     const a = agreement(pairs);
@@ -67,7 +67,7 @@ describe('prompt versions and logs', () => {
     const rows = promptOutcomes([v('B', 'A', 'accept'), v('A', 'B', 'reject'), v('B', 'A', undefined, { promptVersion: 'revise.v1' }), v('B', 'A', 'accept', { promptVersion: 'manual' })]);
     expect(rows).toEqual([
       { promptVersion: 'revise.v1', candidates: 1, gatesPassed: 1, judged: 1, loopAccepted: 1, loganAccepted: 0, loganRejected: 0, pending: 1 },
-      { promptVersion: 'revise.v2', candidates: 2, gatesPassed: 2, judged: 2, loopAccepted: 1, loganAccepted: 1, loganRejected: 1, pending: 0 },
+      { promptVersion: 'revise.v3', candidates: 2, gatesPassed: 2, judged: 2, loopAccepted: 1, loganAccepted: 1, loganRejected: 1, pending: 0 },
     ]);
   });
   it('summarises call logs by prompt version, role and model', () => {

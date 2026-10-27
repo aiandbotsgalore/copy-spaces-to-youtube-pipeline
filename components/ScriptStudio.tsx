@@ -1,5 +1,5 @@
 /**
- * Script Studio: write and refine a documentary script for one episode, on Logan's machine.
+ * Script Studio: write and refine a documentary script from one or several of Logan's recordings, on his machine.
  * Talks only to /api/script (server/scriptStudioMiddleware.ts). Every status shown comes from the
  * server: provider health checks, run events, gate results and judge reasons. Nothing is published.
  */
@@ -16,6 +16,8 @@ import {
 import { estimateRuntime } from '../utils/scriptGates';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
+import { PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
+import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
 import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
@@ -67,11 +69,13 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
   const [projects, setProjects] = useState<{ id: string; title: string; updatedAt: number; sourceTags: string[] }[]>([]);
   const [filter, setFilter] = useState('');
-  const [tag, setTag] = useState('');
+  const [picked, setPicked] = useState<string[]>([]);
   const [minutes, setMinutes] = useState(15);
+  const [newFormat, setNewFormat] = useState<EpisodeFormat | ''>('');
+  const [thesis, setThesis] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'quality'>('projects');
+  const [tab, setTab] = useState<'projects' | 'style' | 'quality'>('projects');
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -85,7 +89,10 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
 
   const create = async () => {
     setCreating(true); setError(null);
-    try { const r = await scriptApi.createProject(tag, minutes * 60); onOpen(r.project.id); } catch (e) { setError(e); } finally { setCreating(false); }
+    try {
+      const r = await scriptApi.createProject(picked, minutes * 60, { format: newFormat || (picked.length > 1 ? 'thematic_multi' : null), thesis: thesis.trim() || undefined });
+      onOpen(r.project.id);
+    } catch (e) { setError(e); } finally { setCreating(false); }
   };
   const importFile = async (f: File) => {
     setError(null);
@@ -107,14 +114,15 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
     <div className="p-6 max-w-5xl mx-auto space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-white flex items-center gap-2"><FileText size={18} className="text-indigo-400" /> Script Studio</h1>
-        <p className="text-sm text-slate-400 mt-1">Turns one episode transcript into a documentary script with narration and clips, then refines it in the background. Every quote is checked against the transcript in code.</p>
+        <p className="text-sm text-slate-400 mt-1">Turns one recording, or several for a thematic or investigative episode, into a documentary script with narration and clips in Logan's voice, then refines it in the background. Every quote is checked against the transcript in code.</p>
       </div>
       <ErrorBox error={error} onClose={() => setError(null)} />
       <div className="flex gap-1">
         <button className={tab === 'projects' ? btnPrimary : btnGhost} onClick={() => setTab('projects')}>Projects</button>
+        <button className={tab === 'style' ? btnPrimary : btnGhost} onClick={() => setTab('style')}>Logan's style</button>
         <button className={tab === 'quality' ? btnPrimary : btnGhost} onClick={() => setTab('quality')}>Quality and logs</button>
       </div>
-      {tab === 'quality' ? <section className={cx(card, 'p-4')}><ScriptQuality onOpenProject={onOpen} /></section> : <>
+      {tab === 'style' ? <section className={cx(card, 'p-4')}><StylePanel /></section> : tab === 'quality' ? <section className={cx(card, 'p-4')}><ScriptQuality onOpenProject={onOpen} /></section> : <>
       <section className={cx(card, 'p-4')}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-100">Model providers on this computer</h2>
@@ -148,13 +156,30 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
           <Search size={13} className="text-slate-500" />
           <input className={cx(input, 'flex-1')} placeholder="Filter episodes by title or tag" value={filter} onChange={e => setFilter(e.target.value)} />
         </div>
-        <select className={cx(input, 'w-full')} size={8} value={tag} onChange={e => setTag(e.target.value)}>
-          {shown.map(e => <option key={e.releaseTag} value={e.releaseTag}>{e.title} ({e.releaseTag})</option>)}
-        </select>
+        <div className="max-h-56 overflow-y-auto rounded-md border border-slate-700 bg-slate-950">
+          {shown.map(e => {
+            const on = picked.includes(e.releaseTag);
+            return (
+              <label key={e.releaseTag} className={cx('flex items-center gap-2 px-2 py-1 text-xs cursor-pointer', on ? 'bg-indigo-950/60 text-white' : 'text-slate-300 hover:bg-slate-900')}>
+                <input type="checkbox" checked={on} onChange={() => setPicked(p => (on ? p.filter(t => t !== e.releaseTag) : [...p, e.releaseTag].slice(0, 12)))} />
+                <span className="truncate flex-1">{e.title}</span><span className="text-slate-500">{e.releaseTag}</span>
+              </label>
+            );
+          })}
+        </div>
+        <div className="text-[11px] text-slate-500">{picked.length === 0 ? 'Pick one recording, or several (up to 12) for a thematic or investigative episode. You can add more later.' : `${picked.length} picked: ${picked.join(', ')}`}</div>
+        {picked.length > 1 && (
+          <div className="flex items-center gap-2 text-xs text-slate-300">
+            <select className={input} value={newFormat || 'thematic_multi'} onChange={e => setNewFormat(e.target.value as EpisodeFormat)}>
+              {EPISODE_FORMATS.map(f => <option key={f} value={f}>{FORMAT_LABELS[f]}</option>)}
+            </select>
+            <input className={cx(input, 'flex-1')} placeholder="Thesis question the episode answers (optional)" value={thesis} onChange={e => setThesis(e.target.value)} />
+          </div>
+        )}
         <div className="flex items-center gap-3 text-xs text-slate-300">
           <label className="flex items-center gap-2">Target length <input type="number" min={1} max={240} className={cx(input, 'w-20')} value={minutes} onChange={e => setMinutes(Math.max(1, Number(e.target.value) || 1))} /> min</label>
           <div className="flex-1" />
-          <button className={btnPrimary} disabled={!tag || creating} onClick={create}>{creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create project</button>
+          <button className={btnPrimary} disabled={!picked.length || creating} onClick={create}>{creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create project</button>
         </div>
       </section>
 
@@ -294,6 +319,9 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const [renames, setRenames] = useState<Record<string, string>>({});
   const [logEntries, setLogEntries] = useState<LogEntry[] | null>(null);
   const [viewVersion, setViewVersion] = useState<{ id: string; diff: { blockId: string; change: string }[] } | null>(null);
+  const [viewTag, setViewTag] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
+  const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
@@ -333,12 +361,10 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
       if (!r) return;
       const live = r.runs.find(x => x.active) || r.runs.find(x => x.status === 'paused_limit' || x.status === 'interrupted');
       if (live) setRunId(live.id);
-      const tag = r.project.sourceTags[0];
-      fetch(`/transcripts/episodes/${encodeURIComponent(tag)}.json`).then(res => res.json()).then(j => {
-        setRows((j.segments || []).map((s: any, i: number) => ({ id: `u${i}`, start: Number(s.start) || 0, end: Number(s.end) || 0, speaker: String(s.speaker || 'Unknown'), text: String(s.text || '') })));
-      }).catch(() => setRows([]));
+      setViewTag(r.project.sourceTags[0]);
     });
   }, [projectId, load]);
+  useEffect(() => { if (projectId && !episodes.length) scriptApi.episodes().then(r => setEpisodes(r.episodes)).catch(() => undefined); }, [projectId, episodes.length]);
 
   // Follow a run's events.
   const refreshRun = useCallback(async (pid: string, rid: string) => {
@@ -364,12 +390,21 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   }, [player.currentTime, player.current, player.isPlaying, player]);
 
   const project = data?.project;
-  const tag = project?.sourceTags[0] || '';
+  const tag = project && project.sourceTags.includes(viewTag) ? viewTag : project?.sourceTags[0] || '';
+  // The transcript shown on the left: one recording of the project at a time.
+  useEffect(() => {
+    if (!tag) { setRows([]); return; }
+    setSel({}); setFocusTime(null);
+    fetch(`/transcripts/episodes/${encodeURIComponent(tag)}.json`).then(res => res.json()).then(j => {
+      setRows((j.segments || []).map((s: any, i: number) => ({ id: `u${i}`, start: Number(s.start) || 0, end: Number(s.end) || 0, speaker: String(s.speaker || 'Unknown'), text: String(s.text || '') })));
+    }).catch(() => setRows([]));
+  }, [tag]);
   const analysis = data?.analyses[tag] || null;
+  const allAnalysed = !!project && project.sourceTags.every(t => data?.analyses[t]);
   const stats = data?.speakerStats[tag];
   const clipsById = useMemo(() => Object.fromEntries((project?.clips || []).map(c => [c.clipId, c])), [project]);
   const runtime = useMemo(() => (segments ? estimateRuntime(segments) : null), [segments]);
-  const names = project?.speakerNames || {};
+  const names = namesForTag(project?.speakerNames, tag);
 
   const act = async (label: string, fn: () => Promise<unknown>) => {
     if (dirty && !window.confirm('You have unsaved edits. Continue and discard them?')) return;
@@ -443,7 +478,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const pick = (i: number) => setSel(s => (s.from == null || s.to != null ? { from: i } : i < s.from ? { from: i, to: s.from } : { from: s.from, to: i }));
 
   const stage = {
-    analysis: !!analysis, outline: !!data?.head, draft: !!data?.head?.segments.some(s => s.scenes.some(sc => sc.blocks.length)),
+    analysis: allAnalysed, outline: !!data?.head, draft: !!data?.head?.segments.some(s => s.scenes.some(sc => sc.blocks.length)),
   };
   const headVersion = data?.versions.find(v => v.id === project.headVersionId);
 
@@ -512,15 +547,21 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         <aside className="border-r border-slate-800 overflow-y-auto p-3 space-y-4">
           <div className="space-y-1.5">
             <div className="text-[11px] uppercase tracking-wide text-slate-500">Stages</div>
-            <StageRow done={stage.analysis} label="Analyse the episode" note={analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes${analysis.chunks.some(c => !c.ok) ? `; ${analysis.chunks.filter(c => !c.ok).length} chunk(s) failed` : ''}` : undefined}
+            <StageRow done={stage.analysis} label={project.sourceTags.length > 1 ? `Analyse the ${project.sourceTags.length} recordings` : 'Analyse the episode'} note={project.sourceTags.length > 1 ? `${project.sourceTags.filter(t => data?.analyses[t]).length} of ${project.sourceTags.length} analysed` : analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes${analysis.chunks.some(c => !c.ok) ? `; ${analysis.chunks.filter(c => !c.ok).length} chunk(s) failed` : ''}` : undefined}
               action={<button className={btnGhost} disabled={!!busy} onClick={() => void act('Analysing (one model call per transcript chunk), then tagging clips', async () => {
                 const r = await scriptApi.analyze(project.id, roles, stage.analysis);
                 if ('error' in r.tagging) setError(new ScriptApiError(0, r.tagging.code, `The analysis is saved, but clip tagging failed: ${r.tagging.error}`));
               })}>{stage.analysis ? 'Re-run' : 'Run'}</button>} />
             <StageRow done={stage.outline} label="Outline" action={<button className={btnGhost} disabled={!!busy || !stage.analysis} onClick={() => void act('Outlining', () => scriptApi.outline(project.id, roles))}>{stage.outline ? 'New outline' : 'Run'}</button>} />
-            <StageRow done={stage.draft} label="Draft narration and clips" action={<button className={btnGhost} disabled={!!busy || !stage.outline} onClick={() => void act('Drafting each segment', () => scriptApi.draft(project.id, roles))}>Run</button>} />
+            <StageRow done={stage.draft} label="Draft narration and clips" action={<button className={btnGhost} disabled={!!busy || !stage.outline} title="The first draft builds Logan's style card from the whole archive if there is none yet"
+              onClick={() => void act('Drafting each segment (building the style card first if needed)', async () => { const r = await scriptApi.draft(project.id, roles); setNotice(r.style.warning || (r.style.built ? "Built Logan's style card from the archive before drafting." : null)); })}>Run</button>} />
             <StageRow done={run?.status === 'finished'} label="Refine (background)" note={run ? `${run.status.replace('_', ' ')}${run.stopReason ? `: ${run.stopReason.replace(/_/g, ' ')}` : ''}` : 'Use Refine in the header.'} />
           </div>
+
+          {notice && <div className="text-[11px] text-indigo-200 flex items-start gap-1"><span className="flex-1">{notice}</span><button onClick={() => setNotice(null)}><X size={11} /></button></div>}
+
+          {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
+          {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
 
           {data?.transcriptChanged.length ? <div className="text-[11px] text-amber-300">The transcript changed on disk since this project was created. Re-run the analysis.</div> : null}
 
@@ -532,12 +573,12 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                   <input className={cx(input, 'flex-1')} placeholder="Name" value={renames[u.speaker] ?? names[u.speaker] ?? ''} onChange={e => setRenames(r => ({ ...r, [u.speaker]: e.target.value }))} />
                 </label>
               ))}
-              <button className={btnGhost} onClick={() => void act('Saving names', () => scriptApi.updateProject(project.id, { speakerNames: { ...names, ...renames } }))}>Save names</button>
+              <button className={btnGhost} onClick={() => void act('Saving names', () => scriptApi.updateProject(project.id, { speakerNames: { ...project.speakerNames, ...Object.fromEntries(Object.entries(renames).map(([raw, v]) => [renameKey(project.sourceTags.length, tag, raw), v])) } }).then(() => setRenames({})))}>Save names</button>
             </div>
           )}
 
           <div className="space-y-1.5">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Transcript</div>
+            <div className="text-[11px] uppercase tracking-wide text-slate-500">Transcript{project.sourceTags.length > 1 ? ` (${data?.recordings.find(r => r.releaseTag === tag)?.key || ''} ${data?.recordings.find(r => r.releaseTag === tag)?.date || ''})` : ''}</div>
             <input className={cx(input, 'w-full')} placeholder="Search words or speaker" value={query} onChange={e => { setQuery(e.target.value); setFocusTime(null); }} />
             <div className="text-[11px] text-slate-500">Click a line, then another, to select a range to add as a clip.</div>
             <ul className="space-y-0.5 max-h-80 overflow-y-auto">
@@ -556,7 +597,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             </ul>
             {sel.from != null && (
               <div className="flex items-center gap-1">
-                <button className={btnGhost} onClick={() => void act('Adding clip', () => scriptApi.addClip(project.id, `u${sel.from}`, `u${sel.to ?? sel.from}`)).then(() => setSel({}))}><Scissors size={12} /> Add u{sel.from}{sel.to != null ? `–u${sel.to}` : ''} as a clip</button>
+                <button className={btnGhost} onClick={() => void act('Adding clip', () => scriptApi.addClip(project.id, `u${sel.from}`, `u${sel.to ?? sel.from}`, tag)).then(() => setSel({}))}><Scissors size={12} /> Add u{sel.from}{sel.to != null ? `–u${sel.to}` : ''} as a clip</button>
                 <button className="text-slate-500 hover:text-white" onClick={() => setSel({})}><X size={12} /></button>
               </div>
             )}
@@ -577,7 +618,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                   <div className="text-[11px] text-slate-400">{fn ? fn.replace('_', ' ') : 'untagged'}</div>
                   {list.map(c => (
                     <div key={c.clipId} className="flex items-center gap-1 text-[11px] text-slate-300 py-0.5" title={c.fnRationale ? `${c.fnRationale}\n\n${c.text}` : c.text}>
-                      <span className="truncate flex-1">{c.title}</span><span className="text-slate-500">{hms(c.durationSec)}</span>
+                      <span className="truncate flex-1">{project.sourceTags.length > 1 && <span className="text-indigo-300">{data?.recordings.find(r => r.releaseTag === c.releaseTag)?.key} </span>}{c.title}</span><span className="text-slate-500">{hms(c.durationSec)}</span>
                       <select className="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 max-w-[6.5rem]" value={c.fn || ''} title="Narrative function"
                         onChange={e => void act('Retagging', () => scriptApi.retagClip(project.id, c.clipId, e.target.value || null))}>
                         <option value="">untagged</option>
@@ -719,8 +760,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                     <DiffList diff={c.diff} />
                     {!d?.loganDecision && (
                       <div className="flex gap-1">
-                        <button className={btnPrimary} disabled={dirty} onClick={() => void act('Accepting', () => scriptApi.decide(project.id, c.id, 'accept'))}><Check size={12} /> Accept</button>
-                        <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason)); }}><CircleSlash size={12} /> Reject</button>
+                        <button className={btnPrimary} disabled={dirty} onClick={() => void act('Accepting', () => scriptApi.decide(project.id, c.id, 'accept', '', roles))}><Check size={12} /> Accept</button>
+                        <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason, roles)); }}><CircleSlash size={12} /> Reject</button>
                       </div>
                     )}
                   </div>

@@ -4,9 +4,9 @@
  *   GET  /status                 provider health (real available() checks) and store location
  *   GET  /episodes               transcripts on disk
  *   GET  /projects               saved projects
- *   POST /project                create a project for one episode
+ *   POST /project                create a project for one recording, or several (releaseTags[]) for thematic and investigative episodes
  *   GET  /project?id=            project, versions, runs, cached analysis, speaker stats
- *   POST /project/update         format, runtime, speaker renames, clip removals, title
+ *   POST /project/update         format, runtime, thesis, speaker renames, clip removals, title, add or remove source recordings
  *   POST /project/add-clip       add a clip cut from transcript utterances
  *   POST /analyze                chunked episode analysis (cached by transcript hash + prompt version), then clip tags
  *   POST /tag-clips              narrative-function tags for the project's clips (Logan's own tags are kept)
@@ -34,6 +34,12 @@
  *   GET  /render/manifest?projectId&versionId
  *   GET  /renders?projectId      saved renders of a project
  *   GET  /clip-audio?projectId&clipId   a transcript cut as WAV (ffmpeg reads only that window of the episode)
+ *   GET  /related?projectId&q    code search (BM25) over every transcript for recordings related to the thesis
+ *   GET  /paper-trail?projectId  Logan's curated quotes and contradiction pairs that touch the project's recordings
+ *   GET  /style                  the style card, its coverage and freshness, learned rules, distill status
+ *   POST /style/build            rebuild the style card from all of Logan's speech and his narration examples -> 202
+ *   POST /style/rules            add or remove one of Logan's explicit rules, or remove a learned one
+ *   POST /style/distill          distil learned rules from Logan's decisions now (also automatic every 10 decisions)
  *
  * Loopback only unless DIRECTOR_ALLOW_REMOTE=1. Nothing here publishes anything; the only outside call
  * besides the model CLIs is Vox synthesis on Logan's own Hugging Face Space.
@@ -41,7 +47,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'http';
-import type { EpisodeFormat, RoleMap, ScriptProject, ScriptVersion, Segment } from '../utils/scriptTypes';
+import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, RoleMap, ScriptProject, ScriptVersion, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
@@ -51,7 +57,12 @@ import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafe
 import { createEngine, StepError, type Engine } from './scriptEngine';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
-import { recordDecision } from './scriptMemory';
+import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule } from './scriptMemory';
+import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNamesToTag } from './scriptCorpus';
+import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard, readNarrationExamples, scanCorpus, type CorpusScan, type Renames } from './scriptStyle';
+import { searchRecordings } from './scriptSearch';
+import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
+import { dateOfTag } from '../utils/scriptFormats';
 import { PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
@@ -104,7 +115,10 @@ const STATUS_FOR_CODE: Record<string, number> = {
   NO_TRANSCRIPT: 404, INVENTED_CLIP: 422, BAD_OUTPUT: 502, UPSTREAM: 502, TIMEOUT: 504, RATE_LIMIT: 429, USAGE_LIMIT: 429,
   NOT_SIGNED_IN: 401, NOT_INSTALLED: 503, NO_KEY: 503, BUDGET_EXCEEDED: 402, ANALYSIS_FAILED: 502, ABORTED: 499, NOT_ALLOWED: 400,
   NO_SCRIPT: 409, NO_ROLE: 400, NO_VERSION: 404, NO_TAKES: 409, VOX_UNAVAILABLE: 502, NO_EPISODE_AUDIO: 502, NO_FFMPEG: 503,
+  NO_LOGAN_SPEECH: 409, STYLE_FAILED: 502, SOURCE_IN_USE: 409,
 };
+
+export const MAX_SOURCES = 12;
 
 export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number } {
   const mode = body?.mode === 'fallback' ? 'fallback' : 'subscription';
@@ -153,6 +167,166 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     return { roleMap, budget: { maxUsd, spentUsd: 0 }, signal: new AbortController().signal, label };
   };
 
+  /* Sources ------------------------------------------------------------------------------------ */
+
+  function loadSource(tag: unknown) {
+    const t = String(tag || '');
+    if (!isSafeTag(t)) throw new StepError('BAD_REQUEST', `Missing or invalid release tag ${JSON.stringify(tag)}.`);
+    const tr = readTranscript(opts.root, t);
+    if (!tr) throw new StepError('NO_TRANSCRIPT', `No transcript yet for ${t}.`);
+    return tr;
+  }
+
+  function addSources(p: ScriptProject, tags: unknown[]) {
+    const fresh = [...new Set(tags.map(String))].filter(t => !p.sourceTags.includes(t));
+    if (p.sourceTags.length + fresh.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
+    const loaded = fresh.map(loadSource);
+    if (!loaded.length) return;
+    if (p.sourceTags.length === 1) p.speakerNames = scopeNamesToTag(p.speakerNames, p.sourceTags[0]);
+    for (const t of loaded) {
+      p.sourceTags.push(t.releaseTag);
+      p.transcriptHashes[t.releaseTag] = t.hash;
+      const { clips, excluded } = catalogClipsForRelease(opts.root, t.releaseTag);
+      const have = new Set(p.clips.map(c => c.clipId));
+      p.clips.push(...clips.filter(c => !have.has(c.clipId)));
+      p.excludedClips.push(...excluded);
+    }
+    p.clipTagsKey = undefined;
+    assignSourceKeys(p);
+  }
+
+  function removeSources(p: ScriptProject, tags: unknown[]) {
+    const rm = new Set(tags.map(String).filter(t => p.sourceTags.includes(t)));
+    if (!rm.size) return;
+    if (rm.size >= p.sourceTags.length) throw new StepError('BAD_REQUEST', 'A project needs at least one recording.');
+    const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+    if (head) {
+      const clipTag = new Map(p.clips.map(c => [c.clipId, c.releaseTag]));
+      for (const b of head.segments.flatMap(sg => sg.scenes.flatMap(sc => sc.blocks))) {
+        const tag = b.kind === 'clip' ? clipTag.get(b.clipId) : b.kind === 'narration' ? b.claims.find(c => rm.has(c.releaseTag))?.releaseTag : undefined;
+        if (tag && rm.has(tag)) throw new StepError('SOURCE_IN_USE', `The current script still uses ${tag} (block ${b.id}). Remove those blocks first.`);
+      }
+    }
+    p.sourceTags = p.sourceTags.filter(t => !rm.has(t));
+    for (const t of rm) delete p.transcriptHashes[t];
+    p.clips = p.clips.filter((c: StudioClip) => !rm.has(c.releaseTag));
+    p.speakerNames = Object.fromEntries(Object.entries(p.speakerNames || {}).filter(([k]) => ![...rm].some(t => k.startsWith(`${t}::`))));
+    p.clipTagsKey = undefined;
+  }
+
+  /** The analysis of every recording, combined; with `required`, every recording must be analysed. */
+  function projectAnalysis(p: ScriptProject, required: boolean): EpisodeAnalysis | null {
+    const analyses: Record<string, EpisodeAnalysis> = {};
+    const missing: string[] = [];
+    for (const tag of p.sourceTags) {
+      const a = store.getAnalysis(tag, PROMPT_VERSIONS.analysis, engine.transcript(tag).hash);
+      if (a) analyses[tag] = a; else missing.push(tag);
+    }
+    if (required && missing.length) throw new StepError('BAD_REQUEST', p.sourceTags.length === 1 ? 'Run the episode analysis first.' : `Run the analysis first; not analysed yet: ${missing.join(', ')}.`);
+    return combineAnalyses(buildCorpus(p, engine.transcript), analyses);
+  }
+
+  /* Style card ---------------------------------------------------------------------------------- */
+
+  const style: {
+    building: Promise<unknown> | null; progress: string; lastError: { code: string; message: string; at: number } | null;
+    scan: CorpusScan | null; scanKey: string; tags: string[]; tagsKey: string; distilling: Promise<DistillStatus> | null;
+  } = { building: null, progress: '', lastError: null, scan: null, scanKey: '', tags: [], tagsKey: '', distilling: null };
+
+  /** Logan's renames from every project, plus the transcript viewer's (sent by the browser). */
+  function allRenames(body: any): Renames {
+    const out: Renames = {};
+    for (const pr of store.listProjects()) for (const tag of pr.sourceTags) out[tag] = { ...(out[tag] || {}), ...namesForTag(pr.speakerNames, tag) };
+    const extra = body?.renames && typeof body.renames === 'object' ? body.renames : {};
+    for (const [tag, names] of Object.entries<any>(extra)) if (isSafeTag(tag)) out[tag] = { ...(out[tag] || {}), ...sanitizeNames(names) };
+    return out;
+  }
+
+  function archiveKey(renames: Renames): string {
+    const dir = path.join(opts.root, 'public', 'transcripts', 'episodes');
+    let key = JSON.stringify(renames);
+    try {
+      for (const f of fs.readdirSync(dir).sort()) { if (!f.endsWith('.json')) continue; const st = fs.statSync(path.join(dir, f)); key += `|${f}:${st.size}:${st.mtimeMs}`; }
+    } catch { /* no transcripts */ }
+    return key;
+  }
+
+  /** The full measurement of Logan's speech (every segment), cached until a transcript or rename changes. */
+  async function corpusScan(body: any): Promise<CorpusScan> {
+    const renames = allRenames(body);
+    const key = archiveKey(renames);
+    if (style.scan && style.scanKey === key) return style.scan;
+    style.scan = await scanCorpus(opts.root, renames);
+    style.scanKey = key;
+    return style.scan;
+  }
+
+  /** Quick check of which recordings have Logan in them, for the card's freshness. */
+  function loganTags(body: any): { recordingTags: string[] } {
+    const renames = allRenames(body);
+    const key = archiveKey(renames);
+    if (style.tagsKey !== key) { style.tags = style.scanKey === key && style.scan ? style.scan.recordingTags : loganRecordingTags(opts.root, renames); style.tagsKey = key; }
+    return { recordingTags: style.tags };
+  }
+
+  function startStyleBuild(body: any): Promise<unknown> {
+    if (style.building) return style.building;
+    const ctx = interactiveCtx(body, 'style card');
+    style.lastError = null;
+    style.progress = 'Measuring every segment Logan speaks in the archive';
+    style.building = corpusScan(body).then(scan => buildStyleCard({
+      root: opts.root, store, now,
+      call: (role, prompt, label) => engine.call(role, prompt, { ...ctx, label }),
+      scan,
+      onProgress: m => { style.progress = m; },
+    })).catch((e: any) => {
+      style.lastError = { code: e?.code || 'STYLE_FAILED', message: e?.message || String(e), at: now() };
+      throw e;
+    }).finally(() => { style.building = null; style.progress = ''; });
+    style.building.catch(() => undefined);
+    return style.building;
+  }
+
+  /** Built automatically: when there is no card, or the archive or examples changed, the draft builds one first. */
+  async function ensureStyleCard(body: any): Promise<{ built: boolean; warning?: string }> {
+    const fr = cardFreshness(readCard(store), loganTags(body), readNarrationExamples(opts.root).hash);
+    if (fr.fresh) return { built: false };
+    try {
+      await startStyleBuild(body);
+      return { built: true };
+    } catch (e: any) {
+      const card = readCard(store);
+      return { built: false, warning: `${card ? 'Drafted with the previous style card' : 'Drafted without a style card'}: ${e?.message || e}` };
+    }
+  }
+
+  function startDistill(body: any): Promise<DistillStatus> {
+    if (style.distilling) return style.distilling;
+    const ctx = interactiveCtx(body, 'distill rules');
+    style.distilling = distillRules(store, (prompt, label) => engine.call('critic', prompt, { ...ctx, label }), now)
+      .catch((e: any) => {
+        const st: DistillStatus = { at: now(), ok: false, message: `Rules not updated: ${e?.message || e}`, decisions: store.getMemory().decisionsSinceDistill || 0, promptVersion: PROMPT_VERSIONS.distill };
+        const mem = store.getMemory(); mem.lastDistill = st; store.saveMemory(mem);
+        return st;
+      })
+      .finally(() => { style.distilling = null; });
+    return style.distilling;
+  }
+
+  function styleState(body: any) {
+    const card = readCard(store);
+    const tags = loganTags(body);
+    const mem = store.getMemory();
+    const fresh = cardFreshness(card, tags, readNarrationExamples(opts.root).hash);
+    return {
+      card: card ? { ...card, coverage: { ...card.coverage, recordingTags: undefined } } : null,
+      freshness: fresh, recordingsWithLogan: tags.recordingTags.length, building: !!style.building, progress: style.progress, lastError: style.lastError,
+      narrationFiles: readNarrationExamples(opts.root).files,
+      rules: mem.styleRules, lastDistill: mem.lastDistill || null, decisionsSinceDistill: mem.decisionsSinceDistill || 0, distillEvery: DISTILL_EVERY,
+      distilling: !!style.distilling, removedRules: mem.removedRules || [],
+    };
+  }
+
   async function handle(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url || '/', 'http://local');
     const route = url.pathname.replace(/\/+$/, '') || '/';
@@ -167,16 +341,19 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
 
     if (route === '/project' && method === 'POST') {
       const body = await readBody(req);
-      const tag = String(body?.releaseTag || '');
-      if (!isSafeTag(tag)) throw new StepError('BAD_REQUEST', 'Missing or invalid releaseTag.');
-      const t = readTranscript(opts.root, tag);
-      if (!t) throw new StepError('NO_TRANSCRIPT', `No transcript yet for ${tag}.`);
+      const tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length ? body.releaseTags : [body?.releaseTag];
+      if (tags.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
+      const t = loadSource(tags[0]);
+      const tag = t.releaseTag;
       const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
       const p: ScriptProject = {
         id: newId('prj'), title: String(body?.title || t.title).slice(0, 200), createdAt: now(), updatedAt: now(),
         format: null, sourceTags: [tag], targetRuntimeSec: Math.max(30, Number(body?.targetRuntimeSec) || 900),
         transcriptHashes: { [tag]: t.hash }, speakerNames: sanitizeNames(body?.speakerNames), clips, excludedClips: excluded, headVersionId: null,
       };
+      if (typeof body?.thesis === 'string' && body.thesis.trim()) p.thesis = body.thesis.trim().slice(0, 500);
+      if (EPISODE_FORMATS.includes(body?.format)) p.format = body.format;
+      if (tags.length > 1) addSources(p, tags.slice(1));
       store.saveProject(p);
       return send(res, 201, { ok: true, project: p });
     }
@@ -193,13 +370,18 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       for (const tag of p.sourceTags) {
         const t = readTranscript(opts.root, tag);
         if (!t) continue;
-        stats[tag] = speakerStats(t.utterances, p.speakerNames || {});
+        stats[tag] = speakerStats(t.utterances, namesForTag(p.speakerNames, tag));
         analyses[tag] = store.getAnalysis(tag, PROMPT_VERSIONS.analysis, t.hash);
         if (p.transcriptHashes[tag] && p.transcriptHashes[tag] !== t.hash) transcriptChanged.push(tag);
       }
       const gates = head ? codeGates(head.segments, { ...engine.gateContext(p, head.segments), changedBlockIds: undefined }) : null;
       const format = head ? formatChecks(head.segments, p.format, { clipTags: Object.fromEntries(p.clips.map(c => [c.clipId, c.releaseTag])), sourceCount: p.sourceTags.length }) : null;
-      return send(res, 200, { ok: true, project: p, versions, runs, head, speakerStats: stats, analyses, transcriptChanged, gates, formatChecks: format });
+      const corpus = buildCorpus(p, engine.transcript);
+      const recordings = p.sourceTags.map(tag => {
+        const r = corpus.byTag(tag);
+        return { releaseTag: tag, key: r?.key || '', date: dateOfTag(tag), title: r?.t.title || tag, clips: p.clips.filter(c => c.releaseTag === tag).length, analysed: !!analyses[tag] };
+      });
+      return send(res, 200, { ok: true, project: p, versions, runs, head, speakerStats: stats, analyses, transcriptChanged, gates, formatChecks: format, recordings });
     }
 
     if (route === '/project/update' && method === 'POST') {
@@ -212,6 +394,9 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       if (body.targetRuntimeSec !== undefined) p.targetRuntimeSec = Math.max(30, Math.min(4 * 3600, Number(body.targetRuntimeSec) || p.targetRuntimeSec));
       if (body.speakerNames !== undefined) p.speakerNames = sanitizeNames(body.speakerNames);
       if (typeof body.title === 'string') p.title = body.title.slice(0, 200);
+      if (typeof body.thesis === 'string') p.thesis = body.thesis.trim().slice(0, 500) || undefined;
+      if (Array.isArray(body.addSourceTags)) addSources(p, body.addSourceTags);
+      if (Array.isArray(body.removeSourceTags)) removeSources(p, body.removeSourceTags);
       if (Array.isArray(body.removeClipIds)) {
         const rm = new Set(body.removeClipIds.map(String));
         for (const c of p.clips) if (rm.has(c.clipId)) p.excludedClips.push({ clipId: c.clipId, reason: 'Removed by Logan.' });
@@ -244,7 +429,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         if (r.ok === false) throw new StepError('NO_EPISODE_AUDIO', `Could not cut a clip: ${r.reason}`);
         audioUrl = r.url;
       }
-      const clip = clipFromUtterances(t, String(body?.fromId), String(body?.toId || body?.fromId), p.speakerNames || {}, audioUrl);
+      const clip = clipFromUtterances(t, String(body?.fromId), String(body?.toId || body?.fromId), namesForTag(p.speakerNames, tag), audioUrl);
       if (!clip) throw new StepError('BAD_REQUEST', 'Could not cut a clip: unknown utterance ids, or the episode has no audio URL.');
       if (!p.clips.some(c => c.clipId === clip.clipId)) p.clips.push(clip);
       touch(p);
@@ -260,7 +445,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       // Clip tags follow the analysis; a tagging failure is reported, never hidden, and does not lose the analysis.
       let tagging: { tagged: number; cached: boolean } | { error: string; code: string };
       try {
-        const r = await engine.tagClips(p, out[p.sourceTags[0]] as any, ctx);
+        const r = await engine.tagClips(p, projectAnalysis(p, true)!, ctx);
         tagging = { tagged: r.tagged, cached: r.cached };
       } catch (e: any) {
         tagging = { error: e?.message || String(e), code: e?.code || 'INTERNAL' };
@@ -272,9 +457,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       const ctx = interactiveCtx(body, 'clip tags');
-      const t = engine.transcript(p.sourceTags[0]);
-      const analysis = store.getAnalysis(p.sourceTags[0], PROMPT_VERSIONS.analysis, t.hash);
-      if (!analysis) throw new StepError('BAD_REQUEST', 'Run the episode analysis first.');
+      const analysis = projectAnalysis(p, true)!;
       const r = await engine.tagClips(p, analysis, ctx, !!body?.force);
       return send(res, 200, { ok: true, project: r.project, tagged: r.tagged, cached: r.cached, spentUsd: ctx.budget.spentUsd });
     }
@@ -283,9 +466,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       const ctx = interactiveCtx(body, 'outline');
-      const t = engine.transcript(p.sourceTags[0]);
-      const analysis = store.getAnalysis(p.sourceTags[0], PROMPT_VERSIONS.analysis, t.hash);
-      if (!analysis) throw new StepError('BAD_REQUEST', 'Run the episode analysis first.');
+      const analysis = projectAnalysis(p, true)!;
       const v = await engine.outline(p, analysis, ctx);
       p.headVersionId = v.id;
       touch(p);
@@ -297,13 +478,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const p = getProject(body?.projectId);
       const base = getVersion(p, body?.versionId || p.headVersionId);
       const ctx = interactiveCtx(body, 'draft');
-      const t = engine.transcript(p.sourceTags[0]);
-      const analysis = store.getAnalysis(p.sourceTags[0], PROMPT_VERSIONS.analysis, t.hash);
-      const style = draftStyle(store, opts.root);
-      const out = await engine.draft(p, base, analysis, ctx, style.styleCard, style.approvedPassages);
+      const analysis = projectAnalysis(p, false);
+      const styleStatus = await ensureStyleCard(body);
+      const styleIn = draftStyle(store, opts.root);
+      const out = await engine.draft(p, base, analysis, ctx, styleIn.styleCard, styleIn.approvedPassages);
       p.headVersionId = out.version.id;
       touch(p);
-      return send(res, 200, { ok: true, version: out.version, gates: out.gates, spentUsd: ctx.budget.spentUsd });
+      return send(res, 200, { ok: true, version: out.version, gates: out.gates, spentUsd: ctx.budget.spentUsd, style: styleStatus });
     }
 
     if (route === '/version' && method === 'POST') {
@@ -424,7 +605,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       cand.decision.loganDecision = decision;
       store.saveVersion(cand);
       const parent = cand.parentId ? store.getVersion(p.id, cand.parentId) : null;
-      recordDecision(store, p, parent, cand, decision, String(body?.reason || ''));
+      const mem = recordDecision(store, p, parent, cand, decision, String(body?.reason || ''));
+      // Every 10 decisions the critic distils learned rules in the background; Logan's explicit rules are never touched.
+      let distill: 'started' | 'running' | null = null;
+      if (dueForDistill(mem)) {
+        distill = style.distilling ? 'running' : 'started';
+        try { void startDistill(body); } catch { distill = null; /* a bad role map leaves the counter for the next decision */ }
+      }
       if (decision === 'accept') { p.headVersionId = cand.id; touch(p); }
       // Quality history: recomputed after every decision, so the judge check needs nothing set up.
       if (cand.decision.judge) {
@@ -433,7 +620,44 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
           store.appendQualityHistory({ at: now(), candidateId: cand.id, decision, pairs: o.pairs, conclusive: o.conclusive, agreementRate: o.agreementRate, kappa: o.kappa });
         } catch { /* the decision itself is saved; history is best effort and recomputed on read */ }
       }
-      return send(res, 200, { ok: true, project: p, version: cand });
+      return send(res, 200, { ok: true, project: p, version: cand, distill });
+    }
+
+    if (route === '/related' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const query = String(q('q') || p.thesis || p.title).slice(0, 300);
+      const r = searchRecordings(opts.root, query, { exclude: p.sourceTags, limit: 10 });
+      return send(res, 200, { ok: true, query, ...r });
+    }
+
+    if (route === '/paper-trail' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const pt = paperTrailFor(loadPaperTrail(opts.root), p.sourceTags);
+      const onDisk = new Set(listEpisodes(opts.root).map(e => e.releaseTag));
+      return send(res, 200, { ok: true, quotes: pt.quotes, pairs: pt.pairs.map(x => ({ ...x, missingTranscripts: x.missingTags.filter(t => !onDisk.has(t)) })) });
+    }
+
+    if (route === '/style' && method === 'GET') return send(res, 200, { ok: true, ...styleState({}) });
+
+    if (route === '/style/build' && method === 'POST') {
+      const body = await readBody(req);
+      void startStyleBuild(body).catch(() => undefined);
+      return send(res, 202, { ok: true, ...styleState(body) });
+    }
+
+    if (route === '/style/rules' && method === 'POST') {
+      const body = await readBody(req);
+      try {
+        if (typeof body?.add === 'string') addExplicitRule(store, body.add, now);
+        if (typeof body?.remove === 'string') removeRule(store, body.remove);
+      } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+      return send(res, 200, { ok: true, ...styleState(body) });
+    }
+
+    if (route === '/style/distill' && method === 'POST') {
+      const body = await readBody(req);
+      const status = await startDistill(body);
+      return send(res, 200, { ok: true, status, ...styleState(body) });
     }
 
     if (route === '/export' && method === 'GET') {
@@ -553,7 +777,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
 function sanitizeNames(v: unknown): Record<string, string> {
   const out: Record<string, string> = {};
   if (v && typeof v === 'object') for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-    if (typeof val === 'string' && val.trim() && k.length < 100) out[k] = val.trim().slice(0, 100);
+    if (typeof val === 'string' && val.trim() && k.length < 200) out[k] = val.trim().slice(0, 100);
   }
   return out;
 }
@@ -597,16 +821,4 @@ export function validateSegments(raw: unknown, p: ScriptProject): Segment[] {
   return raw as Segment[];
 }
 
-/** Phase 1 style input: the committed canonical narration example plus Logan's approved passages. */
-export function draftStyle(store: ScriptStore, root: string): { styleCard: string; approvedPassages: string } {
-  const mem = store.getMemory();
-  const approved = mem.approvedPassages.slice(-3).map(p => `- ${p.text}`).join('\n');
-  let example = '';
-  try {
-    const f = path.join(root, 'speaker_samples', 'Logan', 'narration_examples', 'gary_mckinnon_narration.txt');
-    if (fs.existsSync(f)) example = fs.readFileSync(f, 'utf8').slice(0, 3000);
-  } catch { example = ''; }
-  const card = store.readJson<{ text: string }>(path.join(store.base, 'style-card.json'));
-  const styleCard = [card?.text, example ? `Example of Logan's narration (excerpt):\n${example}` : ''].filter(Boolean).join('\n\n');
-  return { styleCard, approvedPassages: approved };
-}
+export { draftStyle };
