@@ -1,5 +1,20 @@
 [
   {
+    "release_id": 424909073,
+    "release_tag": "20261026_1OGwbnXEYjvKB",
+    "title": "pure_evil",
+    "published_at": "2026-10-27T00:25:07Z",
+    "episode_date": "2026-10-26",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261026_1OGwbnXEYjvKB/20261026_1OGwbnXEYjvKB_pure_evil.mp3",
+    "segment_count": 38,
+    "body": "- **Space Title:** pure_evil\n- **Duration:** 01:05:22\n- **Processed:** 20261026_1OGwbnXEYjvKB\n- **Source ID:** 1OGwbnXEYjvKB\n\n---\nMETADATA::DURATION::01:05:22\nMETADATA::SOURCE_ID::1OGwbnXEYjvKB\nMETADATA::EPISODE_DATE::20261026\nMETADATA::HOST::txrrxstrxxl\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 3922,
+    "host_handle": "txrrxstrxxl",
+    "speakers": [
+      "Speaker 1"
+    ]
+  },
+  {
     "release_id": 423509672,
     "release_tag": "20261025_1rGmqpPWWRzGy",
     "title": "UFOX_PSA",
