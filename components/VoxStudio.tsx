@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useAudioLevelMeter } from '../hooks/useAudioLevelMeter';
 import {
   Mic2,
   Play,
@@ -253,9 +254,6 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
 
   const [activeClip, setActiveClip] = useState<VoiceClipItem>(() => generatedClips[0] || DEFAULT_GENERATED_CLIPS[0]);
 
-  // Visual VU meter simulation
-  const [vuLeft, setVuLeft] = useState(0.08);
-  const [vuRight, setVuRight] = useState(0.08);
   const [copiedStatus, setCopiedStatus] = useState(false);
 
   // Dedicated HTML5 Audio Player Reference
@@ -314,22 +312,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     }
   }, [volume, isMuted]);
 
-  // Smooth VU meter animation while playing
-  useEffect(() => {
-    let animId: number;
-    if (isPlaying) {
-      const updateVu = () => {
-        setVuLeft(0.4 + Math.random() * 0.55);
-        setVuRight(0.35 + Math.random() * 0.58);
-        animId = requestAnimationFrame(updateVu);
-      };
-      animId = requestAnimationFrame(updateVu);
-    } else {
-      setVuLeft(0.08);
-      setVuRight(0.08);
-    }
-    return () => cancelAnimationFrame(animId);
-  }, [isPlaying]);
+  // Real VU meter: levels come from a Web Audio AnalyserNode on the playing audio element.
+  const vu = useAudioLevelMeter(audioRef, isPlaying, activeClip?.audioUrl);
+  const vuLeft = vu.left;
+  const vuRight = vu.right;
 
   // Update preset parameters
   const handleSelectPreset = (preset: DeliveryPreset) => {
@@ -472,12 +458,18 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       });
 
       if (!res.ok) {
-        throw new Error(`Synthesis HTTP ${res.status}`);
+        let detail = `HTTP ${res.status}`;
+        try {
+          const errBody = await res.json();
+          detail = [errBody.error, ...(Array.isArray(errBody.details) ? errBody.details : [])].filter(Boolean).join(': ') || detail;
+        } catch {}
+        throw new Error(detail);
       }
 
       const data = await res.json();
-      const realDur = Number(data.duration) || 5.0;
-      const audioUrl = data.audioUrl || '/output/vox/dessa_speech_logan.mp3';
+      if (!data.audioUrl) throw new Error('Server returned no audio file');
+      const realDur = Number(data.duration) || 0;
+      const audioUrl = data.audioUrl;
       const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 42) + '...';
 
       const newClip: VoiceClipItem = {
@@ -508,7 +500,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s)!`);
     } catch (err: any) {
       console.warn('Synthesis notice:', err);
-      showToast(`⚠️ Synthesis completed via fallback take: ready in library!`);
+      showToast(`⚠️ Synthesis failed, no take was created: ${err?.message || err}`);
     } finally {
       setIsSynthesizing(false);
     }
@@ -912,9 +904,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                 </div>
               </div>
 
-              {/* Dual VU Meter Simulation */}
+              {/* Dual VU meter (real levels from Web Audio) */}
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                <div
+                  className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800"
+                  title={vu.available ? 'Live RMS level of the playing take (-60 to 0 dBFS)' : 'Level unavailable for this source (cross-origin audio cannot be analysed)'}
+                >
                   <span className="text-[9px] font-mono text-slate-500 font-bold">L</span>
                   <div className="w-16 h-2 bg-slate-800 rounded-full overflow-hidden">
                     <div
@@ -968,14 +963,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                 style={{ width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1)) * 100))}%` }}
               />
 
-              {/* Waveform Bars */}
+              {/* Seek bar segments */}
               {Array.from({ length: 64 }).map((_, i) => {
                 const progressRatio = i / 64;
                 const isPlayed = progressRatio <= currentTime / (duration || 1);
-                const barHeight = Math.max(
-                  15,
-                  Math.sin(i * 0.3) * 35 + Math.cos(i * 0.7) * 20 + 30 + (isPlaying ? Math.random() * 15 : 0)
-                );
+                // Uniform seek bar: no per-take waveform data is computed, so none is drawn.
+                const barHeight = 40;
                 return (
                   <div
                     key={i}
@@ -1162,6 +1155,10 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               <RotateCcw size={11} /> Reset
             </button>
           </div>
+          <p className="text-[10px] text-amber-300/80 leading-tight -mt-3">
+            The Hugging Face Space synthesis path uses only the text and speaker. Diffusion steps, temperature,
+            language and accent below are sent to a custom VOXCPM_API_URL server if one is configured, and are otherwise not applied.
+          </p>
 
           {/* Diffusion Steps Slider */}
           <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
@@ -1203,11 +1200,11 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
             </p>
           </div>
 
-          {/* Pacing & WPM Slider */}
+          {/* Playback speed (HTMLMediaElement.playbackRate) */}
           <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300 font-semibold">Pacing / WPM</span>
-              <span className="font-mono text-indigo-400 font-bold">{wpm} WPM</span>
+              <span className="text-slate-300 font-semibold">Playback speed</span>
+              <span className="font-mono text-indigo-400 font-bold">{Math.max(0.7, Math.min(1.8, wpm / 150)).toFixed(2)}x ({wpm} WPM est.)</span>
             </div>
             <input
               type="range"
@@ -1219,7 +1216,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               className="w-full accent-indigo-500 cursor-pointer"
             />
             <p className="text-[10px] text-slate-500 leading-tight">
-              Adjusts the syllable delivery speed without altering vocal pitch.
+              Changes the playback rate of the take in this player (rate = WPM / 150). It does not change how the voice is synthesized.
             </p>
           </div>
 

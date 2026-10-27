@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   Scale,
   Search,
-  Sparkles,
   Clock,
   User,
   ArrowRight,
@@ -16,7 +15,6 @@ import {
   RefreshCw,
   ExternalLink,
   ChevronRight,
-  Database,
   Headphones,
   Check
 } from 'lucide-react';
@@ -133,18 +131,13 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
   const globalPlayer = usePlayer();
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'matrix' | 'quotes' | 'qdrant'>('matrix');
+  const [activeTab, setActiveTab] = useState<'matrix' | 'quotes'>('matrix');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpeaker, setSelectedSpeaker] = useState('ALL');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedFallout, setSelectedFallout] = useState<'ALL' | 'PRE-FALLOUT' | 'POST-FALLOUT'>('ALL');
-
-  // Qdrant Cloud Search State
-  const [qdrantQuery, setQdrantQuery] = useState('');
-  const [qdrantLoading, setQdrantLoading] = useState(false);
-  const [qdrantResults, setQdrantResults] = useState<any[]>([]);
 
   // 1. Load Knowledge Graph
   useEffect(() => {
@@ -522,9 +515,6 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
             <div>
               <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 Investigative Radar & Contradiction Board
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono border border-indigo-500/30">
-                  GraphRAG + Qdrant Cloud
-                </span>
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
                 Relational evidence graph mapping narrative shifts, contradictions, and evidentiary callbacks.
@@ -552,15 +542,6 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
           >
             <Layers size={13} />
             Curated Claims ({data?.stats.total_curated_quotes || 0})
-          </button>
-          <button
-            onClick={() => setActiveTab('qdrant')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === 'qdrant' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Database size={13} className="text-emerald-400" />
-            Qdrant Cloud Search
           </button>
         </div>
       </header>
@@ -834,108 +815,6 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
               </div>
             )}
 
-            {/* ── TAB 3: QDRANT CLOUD SEARCH ── */}
-            {activeTab === 'qdrant' && (
-              <div className="space-y-6 max-w-4xl mx-auto">
-                <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-xl">
-                  <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs tracking-wider uppercase">
-                    <Database size={15} /> Connected to Qdrant Cloud Cluster (Google Cloud us-central1)
-                  </div>
-                  <h2 className="text-base font-bold text-white">Semantic Vector Intelligence Search</h2>
-                  <p className="text-xs text-slate-400">
-                    Query conceptual topics across the entire audio archive. Type questions in natural English to retrieve moments
-                    based on meaning rather than literal word matches.
-                  </p>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                      <input
-                        type="text"
-                        value={qdrantQuery}
-                        onChange={e => setQdrantQuery(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            setQdrantLoading(true);
-                            setTimeout(() => {
-                              const q = qdrantQuery.toLowerCase();
-                              const hits = (data?.quotes || [])
-                                .filter(
-                                  item =>
-                                    item.exact_quote.toLowerCase().includes(q) ||
-                                    (item.why_it_matters || '').toLowerCase().includes(q) ||
-                                    (item.category || '').toLowerCase().includes(q)
-                                )
-                                .slice(0, 5);
-                              setQdrantResults(hits);
-                              setQdrantLoading(false);
-                            }, 300);
-                          }
-                        }}
-                        placeholder="e.g., 'Angela talking about emergency backups', 'receipts and wire transfers', 'admissions of doxxing'..."
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
-                    <button
-                      onClick={() => {
-                        setQdrantLoading(true);
-                        setTimeout(() => {
-                          const q = qdrantQuery.toLowerCase();
-                          const hits = (data?.quotes || [])
-                            .filter(
-                              item =>
-                                item.exact_quote.toLowerCase().includes(q) ||
-                                (item.why_it_matters || '').toLowerCase().includes(q) ||
-                                (item.category || '').toLowerCase().includes(q)
-                            )
-                            .slice(0, 5);
-                          setQdrantResults(hits);
-                          setQdrantLoading(false);
-                        }, 300);
-                      }}
-                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
-                    >
-                      <Sparkles size={13} /> Search Cloud
-                    </button>
-                  </div>
-                </div>
-
-                {/* Results List */}
-                {qdrantLoading && (
-                  <div className="h-32 flex flex-col items-center justify-center gap-2">
-                    <RefreshCw className="w-5 h-5 text-indigo-400 animate-spin" />
-                    <span className="text-xs text-slate-400">Scanning vector embeddings...</span>
-                  </div>
-                )}
-
-                {!qdrantLoading && qdrantResults.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
-                      Semantic Matches ({qdrantResults.length})
-                    </h3>
-                    {qdrantResults.map((hit, idx) => (
-                      <div key={idx} className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-indigo-400 font-bold">
-                              {hit.quote_id || `MATCH-${idx + 1}`}
-                            </span>
-                            <span className="font-semibold text-slate-200">{hit.speaker}</span>
-                          </div>
-                          <span className="text-[11px] font-mono text-slate-500">{hit.date}</span>
-                        </div>
-                        <p className="text-xs text-slate-300 italic">"{hit.exact_quote}"</p>
-                        {hit.why_it_matters && (
-                          <p className="text-[11px] text-slate-400 bg-slate-950/50 p-2 rounded border border-slate-800/50">
-                            <strong>Context:</strong> {hit.why_it_matters}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </>
         )}
       </div>
