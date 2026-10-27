@@ -40,6 +40,9 @@
  *   POST /style/build            rebuild the style card from all of Logan's speech and his narration examples -> 202
  *   POST /style/rules            add or remove one of Logan's explicit rules, or remove a learned one
  *   POST /style/distill          distil learned rules from Logan's decisions now (also automatic every 10 decisions)
+ *   POST /handoff/export         pack.json for an optional Grok Bot deep pass (refine, factcheck, storyline); nothing is pushed
+ *   GET  /handoffs?projectId     exported packs and what was imported from them
+ *   POST /handoff/import         a returned result.json, checked in code; candidates wait for Logan's decision
  *
  * Loopback only unless DIRECTOR_ALLOW_REMOTE=1. Nothing here publishes anything; the only outside call
  * besides the model CLIs is Vox synthesis on Logan's own Hugging Face Space.
@@ -63,6 +66,10 @@ import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard
 import { searchRecordings } from './scriptSearch';
 import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
 import { dateOfTag } from '../utils/scriptFormats';
+import {
+  buildPack, checkFactchecks, checkRecordings, checkResultHeader, HANDOFF_KINDS, packHash,
+  type HandoffKind, type HandoffRecord, type ImportSummary,
+} from './scriptHandoff';
 import { PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
@@ -115,7 +122,7 @@ const STATUS_FOR_CODE: Record<string, number> = {
   NO_TRANSCRIPT: 404, INVENTED_CLIP: 422, BAD_OUTPUT: 502, UPSTREAM: 502, TIMEOUT: 504, RATE_LIMIT: 429, USAGE_LIMIT: 429,
   NOT_SIGNED_IN: 401, NOT_INSTALLED: 503, NO_KEY: 503, BUDGET_EXCEEDED: 402, ANALYSIS_FAILED: 502, ABORTED: 499, NOT_ALLOWED: 400,
   NO_SCRIPT: 409, NO_ROLE: 400, NO_VERSION: 404, NO_TAKES: 409, VOX_UNAVAILABLE: 502, NO_EPISODE_AUDIO: 502, NO_FFMPEG: 503,
-  NO_LOGAN_SPEECH: 409, STYLE_FAILED: 502, SOURCE_IN_USE: 409,
+  NO_LOGAN_SPEECH: 409, STYLE_FAILED: 502, SOURCE_IN_USE: 409, BAD_RESULT: 422,
 };
 
 export const MAX_SOURCES = 12;
@@ -325,6 +332,15 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       rules: mem.styleRules, lastDistill: mem.lastDistill || null, decisionsSinceDistill: mem.decisionsSinceDistill || 0, distillEvery: DISTILL_EVERY,
       distilling: !!style.distilling, removedRules: mem.removedRules || [],
     };
+  }
+
+  /* Grok Bot handoff (files only) ------------------------------------------------------------------ */
+
+  const handoffPath = (projectId: string, requestId: string) => path.join(store.base, 'projects', projectId, 'handoffs', `${requestId}.json`);
+  function listHandoffs(projectId: string): HandoffRecord[] {
+    const dir = path.join(store.base, 'projects', projectId, 'handoffs');
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir).filter(f => f.endsWith('.json')).map(f => store.readJson<HandoffRecord>(path.join(dir, f))).filter((x): x is HandoffRecord => !!x).sort((a, b) => b.createdAt - a.createdAt);
   }
 
   async function handle(req: IncomingMessage, res: ServerResponse) {
@@ -658,6 +674,85 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const status = await startDistill(body);
       return send(res, 200, { ok: true, status, ...styleState(body) });
+    }
+
+    if (route === '/handoff/export' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const kind = String(body?.kind) as HandoffKind;
+      if (!HANDOFF_KINDS.includes(kind)) throw new StepError('BAD_REQUEST', `kind must be one of ${HANDOFF_KINDS.join(', ')}.`);
+      const id = body?.versionId || p.headVersionId;
+      if (!id) throw new StepError('NO_SCRIPT', 'There is no script version to hand off yet. Outline or draft first.');
+      const base = getVersion(p, id);
+      if (kind === 'factcheck' && !base.segments.some(sg => sg.scenes.some(sc => sc.blocks.some(b => b.kind === 'narration')))) throw new StepError('NO_SCRIPT', 'This version has no narration to fact-check.');
+      const requestId = newId('ho');
+      const mem = store.getMemory();
+      const corpus = engine.corpusFor(p);
+      const pack = buildPack({
+        kind, requestId, createdAt: now(), project: p, base, corpus, analysis: projectAnalysis(p, false),
+        clips: p.clips, styleCard: draftStyle(store, opts.root).styleCard,
+        rules: mem.styleRules.map(r => r.rule), approvedPassages: mem.approvedPassages.slice(-5).map(x => x.text),
+      });
+      const json = JSON.stringify(pack, null, 1);
+      const rec: HandoffRecord = {
+        requestId, projectId: p.id, kind, baseVersionId: base.id, createdAt: now(), promptVersion: PROMPT_VERSIONS.handoff,
+        packHash: packHash(json), packBytes: Buffer.byteLength(json), note: String(body?.note || '').slice(0, 300), status: 'exported', imports: [],
+      };
+      store.writeJson(handoffPath(p.id, requestId), rec);
+      res.setHeader('Content-Disposition', `attachment; filename="spacepipe-pack-${requestId}.json"`);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Request-Id', requestId);
+      res.end(json);
+      return;
+    }
+
+    if (route === '/handoffs' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      // Each imported candidate with Logan's decision so far and its changes against the version it was exported from.
+      const handoffs = listHandoffs(p.id).map(h => {
+        const baseV = store.getVersion(p.id, h.baseVersionId);
+        return {
+          ...h,
+          candidates: h.imports.flatMap(im => im.candidates.filter(c => c.versionId).map(c => {
+            const v = store.getVersion(p.id, c.versionId!);
+            return { versionId: c.versionId!, label: c.label, loganDecision: v?.decision?.loganDecision || null, diff: baseV && v ? diffVersions(baseV.segments, v.segments) : [] };
+          })),
+        };
+      });
+      return send(res, 200, { ok: true, handoffs });
+    }
+
+    if (route === '/handoff/import' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const raw = body?.result;
+      const requestId = String(raw?.requestId || '');
+      const rec = isSafeId(requestId) ? store.readJson<HandoffRecord>(handoffPath(p.id, requestId)) : null;
+      if (!rec) throw new StepError('NOT_FOUND', `No exported pack ${requestId || '(missing requestId)'} for this project. Import the result into the project it was exported from.`);
+      const bad = checkResultHeader(raw, rec);
+      if (bad) throw new StepError('BAD_RESULT', bad);
+      const base = getVersion(p, rec.baseVersionId);
+      const warnings: string[] = [];
+      const cache = new Map();
+      const summary: ImportSummary = { at: now(), report: String(raw.report || '').slice(0, 20_000), warnings, candidates: [], factchecks: [], recordings: [] };
+      if (rec.kind !== 'refine' && raw.candidates?.length) warnings.push(`A ${rec.kind} pass should not return candidates; ${raw.candidates.length} ignored.`);
+      if (rec.kind === 'refine') {
+        for (const c of (raw.candidates || []).slice(0, 5)) {
+          const label = `Grok Bot: ${String(c?.label || 'candidate')}`;
+          const r = await engine.importCandidate(p, base, Array.isArray(c?.scenes) ? c.scenes : [], { label, promptVersion: `${PROMPT_VERSIONS.handoff}:${rec.kind}` });
+          summary.candidates.push(r.ok
+            ? { label, summary: String(c?.summary || '').slice(0, 1000), versionId: r.version.id, gatesOk: r.gates.ok, failures: r.gates.failures }
+            : { label, summary: String(c?.summary || '').slice(0, 1000), error: r.reason });
+        }
+      }
+      if (rec.kind === 'factcheck') summary.factchecks = checkFactchecks(opts.root, raw.factchecks, base, cache, warnings);
+      if (rec.kind === 'storyline') summary.recordings = checkRecordings(opts.root, raw.recordings, p, cache, warnings);
+      rec.imports.push(summary);
+      rec.status = 'imported';
+      store.writeJson(handoffPath(p.id, rec.requestId), rec);
+      return send(res, 200, { ok: true, handoff: rec, summary });
     }
 
     if (route === '/export' && method === 'GET') {

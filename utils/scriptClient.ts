@@ -2,6 +2,7 @@
 import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
 import type { RenderManifest } from './scriptCompile';
+import type { HandoffKind, HandoffRecord, ImportSummary } from '../server/scriptHandoff';
 import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
@@ -35,6 +36,9 @@ export interface ProjectResponse {
   gates: (GateResult & { ok: boolean }) | null;
   formatChecks: { hard: { key: string; message: string }[]; soft: { key: string; message: string }[] } | null;
   recordings: RecordingInfo[];
+}
+export interface HandoffView extends HandoffRecord {
+  candidates: { versionId: string; label: string; loganDecision: 'accept' | 'reject' | null; diff: BlockDiff[] }[];
 }
 export interface RecordingInfo { releaseTag: string; key: string; date: string | null; title: string; clips: number; analysed: boolean }
 export interface StyleState {
@@ -105,6 +109,25 @@ export const scriptApi = {
   decide: (projectId: string, candidateId: string, decision: 'accept' | 'reject', reason = '', roles?: RoleChoice) => call<{ project: ScriptProject; distill: 'started' | 'running' | null }>('POST', '/decide', { projectId, candidateId, decision, reason, ...(roles || loadRoleChoice()) }),
   related: (projectId: string, q: string) => call<{ query: string; terms: string[]; hits: RelatedHit[]; scanned: number }>('GET', `/related?projectId=${encodeURIComponent(projectId)}&q=${encodeURIComponent(q)}`),
   paperTrail: (projectId: string) => call<{ quotes: CuratedQuote[]; pairs: PaperTrailPair[] }>('GET', `/paper-trail?projectId=${encodeURIComponent(projectId)}`),
+  /** Builds pack.json for a Grok Bot deep pass and saves it as a download; the request is recorded in the project. */
+  exportHandoff: async (projectId: string, kind: HandoffKind, note = '') => {
+    const res = await fetch('/api/script/handoff/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId, kind, note }) });
+    if (!res.ok) {
+      let j: any = null;
+      try { j = await res.json(); } catch { /* not JSON */ }
+      throw new ScriptApiError(res.status, j?.code || `HTTP_${res.status}`, j?.message || `Script Studio API returned ${res.status}.`);
+    }
+    const blob = await res.blob();
+    const requestId = res.headers.get('X-Request-Id') || 'pack';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `spacepipe-pack-${requestId}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+    return { requestId, bytes: blob.size };
+  },
+  handoffs: (projectId: string) => call<{ handoffs: HandoffView[] }>('GET', `/handoffs?projectId=${encodeURIComponent(projectId)}`),
+  importHandoff: (projectId: string, result: unknown) => call<{ handoff: HandoffRecord; summary: ImportSummary }>('POST', '/handoff/import', { projectId, result }),
   style: () => call<StyleState>('GET', '/style'),
   buildStyle: (roles: RoleChoice) => call<StyleState>('POST', '/style/build', { ...roles, renames: transcriptViewerRenames() }),
   styleRule: (change: { add?: string; remove?: string }) => call<StyleState>('POST', '/style/rules', change),

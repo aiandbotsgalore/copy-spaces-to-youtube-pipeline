@@ -349,6 +349,51 @@ export function createEngine(deps: EngineDeps) {
     return { version: v, gates: codeGates(segments, { ...gateContext(project, base.segments), changedBlockIds: undefined }) };
   }
 
+  /**
+   * A candidate written outside the loop (the optional Grok Bot deep pass): scene block lists in the same
+   * block format the draft uses. Converted and checked exactly like a draft: ids resolve to real
+   * utterances, clip times are computed in code from the kept words, locked blocks must survive, and the
+   * code gates run against the base. Saved as a candidate (author grok_bot) for Logan to accept or reject.
+   */
+  async function importCandidate(project: ScriptProject, base: ScriptVersion, scenes: { sceneId: string; blocks: unknown[] }[], meta: { label: string; promptVersion: string }):
+    Promise<{ ok: true; version: ScriptVersion; gates: ReturnType<typeof codeGates> } | { ok: false; reason: string }> {
+    const clipsById = Object.fromEntries(project.clips.map(c => [c.clipId, c]));
+    const trim = trimFor(project);
+    const byScene = new Map(scenes.map(s => [String(s.sceneId), s.blocks]));
+    const known = new Set(base.segments.flatMap(sg => sg.scenes.map(sc => sc.id)));
+    const unknown = [...byScene.keys()].filter(id => !known.has(id));
+    if (unknown.length) return { ok: false, reason: `Unknown scene ids ${unknown.join(', ')}.` };
+    if (!byScene.size) return { ok: false, reason: 'The candidate changes no scene.' };
+    const segments: Segment[] = [];
+    for (const seg of base.segments) {
+      const out = [];
+      for (const sc of seg.scenes) {
+        const blocks = byScene.get(sc.id);
+        if (!blocks) { out.push(sc); continue; }
+        if (!Array.isArray(blocks)) return { ok: false, reason: `Scene ${sc.id}: blocks must be a list.` };
+        const conv = toPatch(blocks as any[], project);
+        if (conv.ok === false) return { ok: false, reason: `Scene ${sc.id}: ${conv.reason}` };
+        const existing = new Map(sc.blocks.map(b => [b.id, b]));
+        const mat = await materializeBlocks(conv.patch, existing, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'flag' });
+        if (mat.ok === false) return { ok: false, reason: `Scene ${sc.id}: ${mat.reason}` };
+        const missing = sc.blocks.filter(b => b.locked && !mat.blocks.some(x => x.id === b.id));
+        if (missing.length) return { ok: false, reason: `Scene ${sc.id} dropped Logan's locked block ${missing[0].id}.` };
+        out.push({ ...sc, blocks: mat.blocks });
+      }
+      segments.push({ ...seg, scenes: out });
+    }
+    const changed = changedBlockIds(base.segments, segments);
+    const gates = codeGates(segments, { ...gateContext(project, base.segments), changedBlockIds: changed });
+    const id = newId('v');
+    const version: ScriptVersion = {
+      id, parentId: base.id, projectId: project.id, createdAt: now(), author: 'grok_bot', label: meta.label.slice(0, 80), segments,
+      changedScope: { level: 'scene', ids: [...byScene.keys()] },
+      decision: { candidateId: id, baselineId: base.id, round: -1, promptVersion: meta.promptVersion, gates, loopAccepted: false, notJudged: 'Imported from a Grok Bot deep pass; not judged in the app.' },
+    };
+    deps.store.saveVersion(version);
+    return { ok: true, version, gates };
+  }
+
   /* ---------------------------------------------------------------------------------------------- */
   /* Refinement runs                                                                                */
   /* ---------------------------------------------------------------------------------------------- */
@@ -744,7 +789,7 @@ export function createEngine(deps: EngineDeps) {
   }
 
   return {
-    bus, call, analyze, tagClips, outline, draft, transcript, gateContext, createRun, runJob,
+    bus, call, analyze, tagClips, outline, draft, transcript, gateContext, createRun, runJob, importCandidate, corpusFor,
     start(run: ScriptRun) { void runJob(run.id, run.projectId); },
     cancel(projectId: string, runId: string): boolean {
       const c = controllers.get(runId);
