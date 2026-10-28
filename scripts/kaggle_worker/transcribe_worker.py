@@ -15,6 +15,7 @@ Runs on Kaggle Dual Tesla T4 GPUs with WhisperX:
 import os
 import sys
 import json
+import re
 import time
 import shutil
 import tempfile
@@ -101,6 +102,7 @@ def get_untranscribed_releases(repo: str, gh_token: str, limit: int = 5) -> List
                     "release_id": rel["id"],
                     "tag_name": rel["tag_name"],
                     "title": rel.get("name") or rel["tag_name"],
+                    "body": rel.get("body") or "",
                     "mp3_asset": mp3_assets[0],
                     "upload_url": rel["upload_url"]
                 })
@@ -123,8 +125,44 @@ def download_asset(url: str, dest_path: Path, gh_token: str):
     print(f"[✓] Downloaded {dest_path.stat().st_size / (1024*1024):.1f} MB")
 
 
-def upload_asset_to_release(upload_url_template: str, file_path: Path, content_type: str, gh_token: str):
-    """Uploads a generated transcript to GitHub Release."""
+def delete_release_asset_if_exists(repo: str, release_id: int, asset_name: str, gh_token: str):
+    """If an asset with asset_name already exists in the release, delete it so re-upload succeeds."""
+    if not (repo and release_id and gh_token):
+        return
+    headers = {
+        "Authorization": f"token {gh_token}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "SpacePipe-Kaggle-Worker"
+    }
+    url = f"https://api.github.com/repos/{repo}/releases/{release_id}/assets"
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            assets = json.loads(resp.read().decode())
+        for asset in assets:
+            if asset.get("name") == asset_name:
+                del_url = f"https://api.github.com/repos/{repo}/releases/assets/{asset['id']}"
+                del_req = urllib.request.Request(del_url, headers=headers, method="DELETE")
+                try:
+                    with urllib.request.urlopen(del_req) as del_resp:
+                        print(f"[*] Deleted existing asset {asset_name} (id: {asset['id']}) for clean overwrite.")
+                except Exception as del_err:
+                    print(f"[!] Note: Could not delete asset {asset_name}: {del_err}")
+    except Exception as e:
+        print(f"[!] Note: Could not check existing assets for {asset_name}: {e}")
+
+
+def upload_asset_to_release(upload_url_template: str, file_path: Path, content_type: str, gh_token: str, repo: str = "", release_id: int = 0):
+    """Uploads a generated transcript to GitHub Release, cleanly overwriting if an asset of the same name exists."""
+    if not repo or not release_id:
+        m = re.search(r'/repos/([^/]+/[^/]+)/releases/(\d+)', upload_url_template)
+        if m:
+            repo = repo or m.group(1)
+            release_id = release_id or int(m.group(2))
+
+    if repo and release_id and gh_token:
+        delete_release_asset_if_exists(repo, release_id, file_path.name, gh_token)
+
     base_upload_url = upload_url_template.split("{?")[0]
     upload_url = f"{base_upload_url}?name={urllib.parse.quote(file_path.name)}"
     
@@ -144,14 +182,28 @@ def upload_asset_to_release(upload_url_template: str, file_path: Path, content_t
             if resp.getcode() in (200, 201):
                 print(f"[✓] Successfully uploaded {file_path.name}")
     except urllib.error.HTTPError as e:
-        print(f"[!] Warning: Upload of {file_path.name} returned HTTP {e.code}: {e.read().decode()}")
+        err_body = e.read().decode()
+        if e.code == 422 and "already_exists" in err_body and repo and release_id:
+            print(f"[*] Asset already exists, deleting and retrying upload for {file_path.name}...")
+            delete_release_asset_if_exists(repo, release_id, file_path.name, gh_token)
+            time.sleep(1.0)
+            try:
+                retry_req = urllib.request.Request(upload_url, data=data, headers=headers, method="POST")
+                with urllib.request.urlopen(retry_req) as retry_resp:
+                    if retry_resp.getcode() in (200, 201):
+                        print(f"[✓] Successfully uploaded {file_path.name} on retry")
+                        return
+            except Exception as retry_err:
+                print(f"[!] Warning: Retry upload failed for {file_path.name}: {retry_err}")
+        print(f"[!] Warning: Upload of {file_path.name} returned HTTP {e.code}: {err_body}")
 
 
 def resolve_speakers_with_voiceprints(
     final_result: Dict[str, Any],
     audio_data: Any,
     title: str,
-    device: str
+    device: str,
+    body: str = ""
 ) -> Dict[str, str]:
     """
     Matches speaker clusters (e.g. SPEAKER_00) against enrolled 192-dim voiceprints
@@ -268,25 +320,62 @@ def resolve_speakers_with_voiceprints(
 
     # 3. Host Anchor Fallback
     title_lower = title.lower()
-    if "Logan" not in matched_map.values():
-        is_logan_host = "logan" in title_lower or os.environ.get("SPACE_HOST", "").lower() in ["loganblack", "logan"]
-        if is_logan_host and spk_turns:
-            sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
-            for spk_tag, _ in sorted_spks:
-                if spk_tag not in matched_map:
-                    matched_map[spk_tag] = "Logan"
-                    print(f"[✓] Host Anchor Match: {spk_tag} -> Logan")
-                    break
+    host_handle = os.environ.get("SPACE_HOST", "").lower()
+    if not host_handle and body:
+        m_h = re.search(r'METADATA::HOST::@?([A-Za-z0-9_.\-]+)', body)
+        if m_h:
+            host_handle = m_h.group(1).lower().strip()
+        else:
+            m_h2 = re.search(r'-\s*\*\*Host:\*\*\s*@?([^\r\n]+)', body, re.IGNORECASE)
+            if m_h2:
+                host_handle = m_h2.group(1).lower().strip()
 
-    if "Angela" not in matched_map.values():
-        is_angela_host = "angela" in title_lower or os.environ.get("SPACE_HOST", "").lower() in ["angelamaggard3", "txrrxstrxxl"]
-        if is_angela_host and spk_turns:
-            sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
-            for spk_tag, _ in sorted_spks:
-                if spk_tag not in matched_map:
-                    matched_map[spk_tag] = "Angela"
-                    print(f"[✓] Host Anchor Match: {spk_tag} -> Angela")
-                    break
+    if host_handle:
+        import unicodedata
+        host_handle = unicodedata.normalize('NFKD', host_handle).lower()
+
+    # Guard: only apply host anchor if we have multiple distinct speaker clusters
+    # to avoid turning an un-diarized transcript into a 100% single-speaker monologue.
+    if len(spk_turns) >= 2 or len(segments) <= 15:
+        if "Logan" not in matched_map.values():
+            is_logan_host = "logan" in host_handle or "loganblack" in host_handle or "logan" in title_lower
+            if is_logan_host and spk_turns:
+                sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+                for spk_tag, _ in sorted_spks:
+                    if spk_tag not in matched_map:
+                        matched_map[spk_tag] = "Logan"
+                        print(f"[✓] Host Anchor Match: {spk_tag} -> Logan")
+                        break
+
+        if "Angela" not in matched_map.values():
+            is_angela_host = "angelamaggard3" in host_handle or ("txrrxstrxxl" in host_handle and "king oor" not in host_handle) or "angela" in host_handle or "angela" in title_lower
+            if is_angela_host and spk_turns:
+                sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+                for spk_tag, _ in sorted_spks:
+                    if spk_tag not in matched_map:
+                        matched_map[spk_tag] = "Angela"
+                        print(f"[✓] Host Anchor Match: {spk_tag} -> Angela")
+                        break
+
+        if "Oor" not in matched_map.values():
+            is_oor_host = "king oor" in host_handle or ("txrrxstrxxl" in host_handle and "Angela" in matched_map.values())
+            if is_oor_host and spk_turns:
+                sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+                for spk_tag, _ in sorted_spks:
+                    if spk_tag not in matched_map:
+                        matched_map[spk_tag] = "Oor"
+                        print(f"[✓] Host Anchor Match: {spk_tag} -> Oor")
+                        break
+
+        if "Eric Hecker" not in matched_map.values():
+            is_eric_host = "eric j. hecker" in host_handle or "decipheringtv" in host_handle or "deciphering.tv" in host_handle or (host_handle.startswith("eric") and "hecker" in host_handle)
+            if is_eric_host and spk_turns:
+                sorted_spks = sorted(spk_turns.items(), key=lambda x: sum(t.get("end", 0) - t.get("start", 0) for t in x[1]), reverse=True)
+                for spk_tag, _ in sorted_spks:
+                    if spk_tag not in matched_map:
+                        matched_map[spk_tag] = "Eric Hecker"
+                        print(f"[✓] Host Anchor Match: {spk_tag} -> Eric Hecker")
+                        break
 
     # 4. Apply matched names
     if matched_map:
@@ -338,6 +427,7 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
 
     # 3. Speaker Diarization (PyAnnote Audio)
     t2 = time.time()
+    diarization_succeeded = False
     if hf_token:
         try:
             print("[*] Performing neural speaker diarization (pyannote.audio)...")
@@ -352,11 +442,12 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
                 diarize_pipeline = DiarizationPipeline(token=hf_token, device=device)
 
             try:
-                diarize_segments = diarize_pipeline(audio)
-            except Exception:
                 diarize_segments = diarize_pipeline(str(audio_path))
+            except Exception:
+                diarize_segments = diarize_pipeline(audio)
 
             final_result = whisperx.assign_word_speakers(diarize_segments, aligned_result)
+            diarization_succeeded = True
             print(f"[✓] Diarization completed in {time.time() - t2:.1f}s")
         except Exception as e:
             print(f"[!] Warning: PyAnnote diarization failed ({e}). Using aligned segments directly.")
@@ -366,10 +457,11 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
         final_result = aligned_result
 
     # 3b. Neural Voiceprint & Speaker Matching via ECAPA-TDNN (100% Cloud GPU)
-    try:
-        resolve_speakers_with_voiceprints(final_result, audio, title, device)
-    except Exception as e:
-        print(f"[!] Warning: Voice profile resolution skipped ({e})")
+    if diarization_succeeded:
+        try:
+            resolve_speakers_with_voiceprints(final_result, audio, title, device, body=item.get("body", ""))
+        except Exception as e:
+            print(f"[!] Warning: Voice profile resolution skipped ({e})")
 
     # 4. Format outputs to exact SpacePipe schema
     stem = Path(mp3_asset["name"]).stem
@@ -385,7 +477,7 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
         start = round(float(seg.get("start", 0.0)), 2)
         end = round(float(seg.get("end", 0.0)), 2)
         text = str(seg.get("text", "")).strip()
-        speaker = str(seg.get("speaker") or "Speaker A").strip()
+        speaker = str(seg.get("speaker") or "Speaker 1").strip()
 
         words = []
         for w in seg.get("words", []):
@@ -421,9 +513,10 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
 
     # 5. Upload files back to GitHub Release
     if gh_token:
-        upload_asset_to_release(upload_url_template, json_path, "application/json", gh_token)
-        upload_asset_to_release(upload_url_template, srt_path, "text/plain", gh_token)
-        upload_asset_to_release(upload_url_template, txt_path, "text/plain", gh_token)
+        rel_id = item.get("release_id", 0)
+        upload_asset_to_release(upload_url_template, json_path, "application/json", gh_token, release_id=rel_id)
+        upload_asset_to_release(upload_url_template, srt_path, "text/plain", gh_token, release_id=rel_id)
+        upload_asset_to_release(upload_url_template, txt_path, "text/plain", gh_token, release_id=rel_id)
 
     # Clean up local scratch audio
     if audio_path.exists():
@@ -462,6 +555,7 @@ def main():
                 "release_id": rel["id"],
                 "tag_name": rel["tag_name"],
                 "title": rel.get("name") or rel["tag_name"],
+                "body": rel.get("body") or "",
                 "mp3_asset": mp3_assets[0],
                 "upload_url": rel["upload_url"]
             }, hf_token, gh_token, work_dir)

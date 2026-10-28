@@ -1,4 +1,3 @@
-import unicodedata
 #!/usr/bin/env python3
 """
 scripts/clean_transcript_index.py
@@ -13,6 +12,8 @@ Post-processes and cleans existing transcripts in public/transcripts/transcripts
 """
 
 import json
+import re
+import unicodedata
 from pathlib import Path
 
 INDEX_PATH = Path("public/transcripts/transcripts_search_index.json")
@@ -125,7 +126,11 @@ def clean_episode_segments(segments, title="", host_handle=""):
             for s in cleaned_segments:
                 if s["speaker"].startswith("Speaker "):
                     generic_counts[s["speaker"]] = generic_counts.get(s["speaker"], 0) + 1
-            if generic_counts:
+            # Only map the dominant generic speaker to the host if there are multiple speakers
+            # or if the episode is genuinely short (<= 15 turns).
+            # If an episode has 50+ turns and only 1 cluster, diarization failed; do not label 100% as host.
+            total_distinct = len(set(s["speaker"] for s in cleaned_segments))
+            if generic_counts and (total_distinct > 1 or len(cleaned_segments) <= 15):
                 top_generic = max(generic_counts.keys(), key=lambda k: generic_counts[k])
                 for s in cleaned_segments:
                     if s["speaker"] == top_generic:
@@ -143,11 +148,21 @@ def clean_episode_segments(segments, title="", host_handle=""):
             s["speaker"] = generic_encountered[spk]
 
     # 7. Merge consecutive segments from same speaker
+    # Guard: only merge if gap < 1.2s, combined duration < 24s, and not exceeding ~50 words
+    # to preserve natural speech pacing and avoid giant monologue blobs.
     merged = []
     for s in cleaned_segments:
         if not s["text"]:
             continue
-        if merged and merged[-1]["speaker"] == s["speaker"] and (s["start"] - merged[-1]["end"]) < 2.5:
+        can_merge = False
+        if merged and merged[-1]["speaker"] == s["speaker"]:
+            gap = s["start"] - merged[-1]["end"]
+            combined_dur = s["end"] - merged[-1]["start"]
+            combined_words = len(merged[-1]["text"].split()) + len(s["text"].split())
+            if gap < 1.2 and combined_dur < 24.0 and combined_words < 50:
+                can_merge = True
+
+        if can_merge:
             merged[-1]["end"] = s["end"]
             merged[-1]["text"] += " " + s["text"]
         else:
@@ -175,7 +190,16 @@ def main():
         old_spks = len(set(s["speaker"] for s in old_segs))
         total_before_speakers += old_spks
 
-        new_segs = clean_episode_segments(old_segs, title)
+        host_h = ep.get("host_handle") or ""
+        if not host_h and ep.get("body"):
+            m = re.search(r'METADATA::HOST::([^\r\n]+)', ep["body"])
+            if m:
+                host_h = m.group(1).strip()
+            else:
+                m2 = re.search(r'-\s*\*\*Host:\*\*\s*([^\r\n]+)', ep["body"])
+                if m2:
+                    host_h = m2.group(1).strip()
+        new_segs = clean_episode_segments(old_segs, title, host_h)
         new_spks = len(set(s["speaker"] for s in new_segs))
         total_after_speakers += new_spks
 
@@ -189,7 +213,7 @@ def main():
         json.dump(episodes, f)
 
     print(f"\n[🎉 Complete] Cleaned all {len(episodes)} episodes!")
-    print(f"Total Speaker Labels: {total_before_speakers} -> {total_after_speakers} (reduced by {100 - (total_after_speakers/total_before_speakers*100):.1f}%)")
+    print(f"Total Speaker Labels: {total_before_speakers} -> {total_after_speakers} (reduced by {((100 - (total_after_speakers/total_before_speakers*100)) if total_before_speakers > 0 else 0):.1f}%)")
     print(f"File size: {INDEX_PATH.stat().st_size / (1024*1024):.2f} MB")
 
 if __name__ == "__main__":

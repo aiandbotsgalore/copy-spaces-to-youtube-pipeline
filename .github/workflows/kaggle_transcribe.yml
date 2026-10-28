@@ -52,14 +52,20 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           echo "[*] Injecting environment parameters into Kaggle worker script..."
+          HOST_HANDLE=""
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            HOST_HANDLE=$(gh api "repos/${{ github.repository }}/releases/tags/${{ inputs.release_tag }}" --jq '.body' 2>/dev/null | grep -oP 'METADATA::HOST::@?\K[A-Za-z0-9_.-]+' || echo "")
+            echo "[*] Extracted host handle for ${{ inputs.release_tag }}: $HOST_HANDLE"
+          fi
           # Prepend environment variables so the worker runs with runtime tokens
-          cat << 'EOF' > scripts/kaggle_worker/env_bootstrap.py
+          cat << EOF > scripts/kaggle_worker/env_bootstrap.py
           import os
           os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.release_tag }}"
           os.environ["BATCH_LIMIT"] = "${{ inputs.batch_limit || '5' }}"
           os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
           os.environ["HF_TOKEN"] = "${{ secrets.HF_TOKEN }}"
           os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
+          os.environ["SPACE_HOST"] = "${HOST_HANDLE}"
           EOF
           
           # Combine bootstrap with worker
