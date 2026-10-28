@@ -825,7 +825,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
                     </div>
 
                     <button type="button" className={cx(secondaryButton, 'w-full')} onClick={() => setUploadModalOpen(true)}>
-                      <Upload size={15} /> Upload script or evidence
+                      <Upload size={15} /> Upload script & evidence
                     </button>
 
                     <div className="border-t border-[#313A4C] pt-5">
