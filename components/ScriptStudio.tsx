@@ -527,135 +527,406 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const [creating, setCreating] = useState(false);
   const [tab, setTab] = useState<'projects' | 'style' | 'quality'>('projects');
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [onlySelected, setOnlySelected] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(60);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(true);
+  const [limitNotice, setLimitNotice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const statusTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    scriptApi.episodes().then(r => setEpisodes(r.episodes)).catch(setError);
+    scriptApi.episodes().then(r => setEpisodes(r.episodes)).catch(setError).finally(() => setLoadingEpisodes(false));
     scriptApi.projects().then(r => setProjects(r.projects)).catch(setError);
   }, []);
-  const shown = useMemo(() => {
+
+  useEffect(() => { setVisibleCount(60); }, [filter, onlySelected]);
+
+  useEffect(() => {
+    if (!statusOpen) return;
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setStatusOpen(false);
+        statusTriggerRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [statusOpen]);
+
+  const matches = useMemo(() => {
     const f = filter.trim().toLowerCase();
-    return episodes.filter(e => !f || e.title.toLowerCase().includes(f) || e.releaseTag.toLowerCase().includes(f)).slice(0, 200);
-  }, [episodes, filter]);
+    return episodes.filter(e =>
+      (!onlySelected || picked.includes(e.releaseTag)) &&
+      (!f || e.title.toLowerCase().includes(f) || e.releaseTag.toLowerCase().includes(f))
+    );
+  }, [episodes, filter, onlySelected, picked]);
+  const shown = matches.slice(0, visibleCount);
+  const format = newFormat || (picked.length > 1 ? 'thematic_multi' : 'narrative_doc');
+  const subscriptionReady = !!(status?.providers['claude_cli:sonnet']?.ok && status?.providers['codex_cli']?.ok);
+  const fallbackReady = !!(status?.providers['ci:claude-haiku-5.5']?.ok && status?.providers['ci:gpt-6-luna']?.ok);
+  const ready = subscriptionReady || fallbackReady;
+  const providerCount = status ? Object.values(status.providers).filter(h => h.ok).length : 0;
+  const providerTotal = status ? Object.keys(status.providers).length : 0;
+  const recentProjects = [...projects].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
+  const panel = 'rounded-xl border border-[#313A4C] bg-[#12161F]';
+  const field = 'w-full rounded-lg border border-[#394256] bg-[#0B0D11] px-3 py-2.5 text-sm text-[#F4F6FA] outline-none transition-colors placeholder:text-[#8994A8] focus:border-[#A496FF] focus:ring-2 focus:ring-[#7357E9]/25';
+  const secondaryButton = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#394256] bg-[#1A2030] px-3 text-sm font-medium text-[#E6EBF4] transition-colors hover:bg-[#273044] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A496FF]';
+
+  const toggleRecording = (id: string) => {
+    if (picked.includes(id)) {
+      setPicked(p => p.filter(t => t !== id));
+      setLimitNotice(false);
+    } else if (picked.length >= 12) {
+      setLimitNotice(true);
+    } else {
+      setPicked(p => [...p, id]);
+      setLimitNotice(false);
+    }
+  };
+
+  const closeStatus = () => {
+    setStatusOpen(false);
+    statusTriggerRef.current?.focus();
+  };
 
   const create = async () => {
-    setCreating(true); setError(null);
+    if (creating || !picked.length) return;
+    setCreating(true);
+    setError(null);
     try {
-      const r = await scriptApi.createProject(picked, minutes * 60, { format: newFormat || (picked.length > 1 ? 'thematic_multi' : null), thesis: thesis.trim() || undefined });
+      const r = await scriptApi.createProject(picked, minutes * 60, {
+        format, thesis: thesis.trim() || undefined,
+      });
       onOpen(r.project.id);
     } catch (e) { setError(e); } finally { setCreating(false); }
   };
+
   const importFile = async (f: File) => {
     setError(null);
     try {
       const data = JSON.parse(await f.text());
       let r;
       try { r = await scriptApi.importProject(data, false); } catch (e) {
-        if (e instanceof ScriptApiError && e.code === 'CONFLICT' && window.confirm(`${e.message}\n\nReplace the existing project?`)) r = await scriptApi.importProject(data, true);
+        if (e instanceof ScriptApiError && e.code === 'CONFLICT' && window.confirm(e.message + '\n\nReplace the existing project?')) r = await scriptApi.importProject(data, true);
         else throw e;
       }
       onOpen(r.project.id);
     } catch (e) { setError(e); }
   };
 
-  const subOk = status && status.providers['claude_cli:sonnet']?.ok && status.providers['codex_cli']?.ok;
-  const fbOk = status && status.providers['ci:claude-haiku-5.5']?.ok && status.providers['ci:gpt-6-luna']?.ok;
+  const providerName = (spec: string) => {
+    const names: Record<string, string> = {
+      'claude_cli:sonnet': 'Claude Sonnet',
+      'claude_cli:haiku': 'Claude Haiku',
+      codex_cli: 'Codex CLI',
+      'ci:claude-haiku-5.5': 'Claude Haiku 5.5',
+      'ci:gpt-6-luna': 'GPT-6 Luna',
+    };
+    return names[spec] || spec;
+  };
 
   return (
-    <div className="h-full w-full overflow-y-auto p-6 md:p-8 max-w-5xl mx-auto space-y-5 pb-32">
-      <div>
-        <h1 className="text-xl font-semibold text-white flex items-center gap-2"><FileText size={18} className="text-indigo-400" /> Script Studio</h1>
-        <p className="text-sm text-slate-400 mt-1">Turns one recording, or several for a thematic or investigative episode, into a documentary script with narration and clips in Logan's voice, then refines it in the background. Every quote is checked against the transcript in code.</p>
-      </div>
-      <ErrorBox error={error} onClose={() => setError(null)} />
-      <div className="flex gap-1">
-        <button className={tab === 'projects' ? btnPrimary : btnGhost} onClick={() => setTab('projects')}>Projects</button>
-        <button className={tab === 'style' ? btnPrimary : btnGhost} onClick={() => setTab('style')}>Logan's style</button>
-        <button className={tab === 'quality' ? btnPrimary : btnGhost} onClick={() => setTab('quality')}>Quality and logs</button>
-      </div>
-      {tab === 'style' ? <section className={cx(card, 'p-4')}><StylePanel /></section> : tab === 'quality' ? <section className={cx(card, 'p-4')}><ScriptQuality onOpenProject={onOpen} /></section> : <>
-      <section className={cx(card, 'p-4')}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-slate-100">Model providers on this computer</h2>
-          <button className={btnGhost} onClick={onRecheck} disabled={checking}>{checking ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />} Check again</button>
+    <div className="h-full w-full overflow-y-auto bg-[#0B0D11] font-sans text-[#F4F6FA]">
+      <div className="mx-auto w-full max-w-[1540px] px-4 pb-20 pt-5 sm:px-6 lg:px-8">
+        <header className="mb-7 flex flex-wrap items-center justify-between gap-4 border-b border-[#252C3A] pb-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-400/20 bg-[#211D40]">
+              <FileText size={18} className="text-[#A496FF]" />
+            </div>
+            <div>
+              <div className="text-base font-semibold tracking-tight text-[#F4F6FA]">SpacePipe Studio</div>
+              <div className="text-xs text-[#ABB5C7]">Script Studio / Workspace</div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <nav aria-label="Script Studio sections" className="flex items-center gap-1 rounded-lg border border-[#313A4C] bg-[#12161F] p-1">
+              {([
+                ['projects', 'Projects'],
+                ['style', "Logan's Style"],
+                ['quality', 'Quality & Logs'],
+              ] as const).map(([key, label]) => (
+                <button key={key} type="button" aria-current={tab === key ? 'page' : undefined} onClick={() => setTab(key)}
+                  className={cx('rounded-md px-3 py-2 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]',
+                    tab === key ? 'bg-[#282146] text-white shadow-sm' : 'text-[#ABB5C7] hover:bg-[#1A2030] hover:text-white')}>
+                  {label}
+                </button>
+              ))}
+            </nav>
+            <button ref={statusTriggerRef} type="button" onClick={() => setStatusOpen(true)}
+              aria-label="Open models and connections" aria-haspopup="dialog"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#313A4C] bg-[#12161F] px-3 text-xs text-[#D8E0ED] transition-colors hover:bg-[#1A2030] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]">
+              <span className={cx('h-2 w-2 rounded-full', !status ? 'bg-[#E9BD67]' : ready ? 'bg-[#55C9A2]' : 'bg-[#E9BD67]')} />
+              <span className="hidden sm:inline">{!status ? 'Checking models' : ready ? 'Models available' : 'Model setup needed'}</span>
+              <ChevronDown size={13} className="text-[#ABB5C7]" />
+            </button>
+          </div>
+        </header>
+
+        <div className="mb-6">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#A496FF]">Documentary production</div>
+          <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-[30px]">Create a documentary project</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#ABB5C7]">
+            Build documentary scripts from your recordings and source material.
+            Select what to investigate, then shape the story in your project workspace.
+          </p>
         </div>
-        {!status ? <div className="text-xs text-slate-400">Checking…</div> : (
-          <div className="grid md:grid-cols-2 gap-2">
-            {Object.entries(status.providers).map(([spec, h]) => (
-              <div key={spec} className="rounded-md border border-slate-800 bg-slate-950/60 p-2.5">
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-100">
-                  {h.ok ? <CheckCircle2 size={13} className="text-emerald-400" /> : <XCircle size={13} className="text-rose-400" />}
-                  {spec} <span className="text-slate-500 font-normal">({h.model})</span>
+
+        <ErrorBox error={error} onClose={() => setError(null)} />
+
+        {tab === 'style' ? (
+          <section className={cx(panel, 'mt-5 p-5')}><StylePanel /></section>
+        ) : tab === 'quality' ? (
+          <section className={cx(panel, 'mt-5 p-5')}><ScriptQuality onOpenProject={onOpen} /></section>
+        ) : (
+          <>
+            <button type="button" onClick={() => setStatusOpen(true)}
+              className={cx(panel, 'mb-6 flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#1A2030] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]')}>
+              <span className="flex items-center gap-3">
+                <span className={cx('h-2.5 w-2.5 shrink-0 rounded-full', !status ? 'bg-[#E9BD67]' : ready ? 'bg-[#55C9A2]' : 'bg-[#E9BD67]')} />
+                <span className="text-sm font-medium text-[#E6EBF4]">
+                  {!status ? 'Checking AI connections…' : subscriptionReady ? 'Subscription tools available' : fallbackReady ? 'Fallback models available' : 'AI connections need attention'}
+                </span>
+                {status && <span className="hidden text-xs text-[#ABB5C7] sm:inline">{providerCount} of {providerTotal} providers available</span>}
+              </span>
+              <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-[#B8ACFF]">
+                View details <ChevronRight size={14} />
+              </span>
+            </button>
+
+            <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_392px] xl:gap-6">
+              <section aria-labelledby="recording-library-heading" className={cx(panel, 'min-w-0 overflow-hidden')}>
+                <div className="border-b border-[#313A4C] px-4 pb-4 pt-5 sm:px-5">
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 id="recording-library-heading" className="text-lg font-semibold tracking-tight text-[#F4F6FA]">Recording library</h2>
+                      <p className="mt-1 text-xs text-[#ABB5C7]">Choose up to 12 source recordings for this project.</p>
+                    </div>
+                    <span className="rounded-full border border-[#394256] bg-[#1A2030] px-2.5 py-1 text-xs tabular-nums text-[#C4CCDA]">{episodes.length} recordings</span>
+                  </div>
+                  <div className="relative">
+                    <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8994A8]" />
+                    <input aria-label="Search titles or recording IDs" className={cx(field, 'h-11 pl-10 pr-10')}
+                      placeholder="Search titles or recording IDs…" value={filter} onChange={e => setFilter(e.target.value)} />
+                    {filter && <button type="button" aria-label="Clear search" onClick={() => setFilter('')}
+                      className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-[#ABB5C7] hover:bg-[#273044] hover:text-white"><X size={14} /></button>}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex gap-2">
+                      <button type="button" aria-pressed={!onlySelected} onClick={() => setOnlySelected(false)}
+                        className={cx('rounded-full border px-3 py-1.5 text-xs font-medium transition-colors', !onlySelected ? 'border-[#7357E9] bg-[#272141] text-[#DFD8FF]' : 'border-[#394256] text-[#ABB5C7] hover:text-white')}>All recordings</button>
+                      <button type="button" aria-pressed={onlySelected} onClick={() => setOnlySelected(true)}
+                        className={cx('rounded-full border px-3 py-1.5 text-xs font-medium transition-colors', onlySelected ? 'border-[#7357E9] bg-[#272141] text-[#DFD8FF]' : 'border-[#394256] text-[#ABB5C7] hover:text-white')}>Selected</button>
+                    </div>
+                    <span className="text-xs font-medium tabular-nums text-[#D8E0ED]">{picked.length} / 12 selected</span>
+                  </div>
                 </div>
-                <div className="text-[11px] text-slate-400 mt-1 break-words">{h.detail}{h.binPath ? ` — ${h.binPath}` : ''}</div>
+
+                <div className="flex items-center justify-between border-b border-[#252C3A] bg-[#10141C] px-4 py-2.5 sm:px-5">
+                  <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#8994A8]">Source recordings</span>
+                  {picked.length > 0 && <button type="button" onClick={() => { setPicked([]); setLimitNotice(false); }}
+                    className="text-xs font-medium text-[#B8ACFF] hover:text-white">Clear selection</button>}
+                </div>
+
+                <div className="max-h-[520px] min-h-[260px] overflow-y-auto overscroll-contain" role="group" aria-label="Available recordings">
+                  {loadingEpisodes ? (
+                    <div className="flex min-h-[260px] items-center justify-center gap-2 text-sm text-[#ABB5C7]"><Loader2 size={16} className="animate-spin" /> Loading recordings…</div>
+                  ) : shown.length === 0 ? (
+                    <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 p-6 text-center">
+                      <Search size={24} className="text-[#8994A8]" />
+                      <div className="text-sm font-medium text-[#E6EBF4]">{onlySelected && !picked.length ? 'No recordings selected' : 'No recordings match your search'}</div>
+                      <div className="text-xs text-[#ABB5C7]">{onlySelected ? 'Select recordings from the library to see them here.' : 'Try another title or recording ID.'}</div>
+                      {(filter || onlySelected) && <button type="button" className="text-xs font-medium text-[#B8ACFF] hover:text-white" onClick={() => { setFilter(''); setOnlySelected(false); }}>Show all recordings</button>}
+                    </div>
+                  ) : shown.map(e => {
+                    const selected = picked.includes(e.releaseTag);
+                    const atLimit = picked.length >= 12 && !selected;
+                    return (
+                      <label key={e.releaseTag} className={cx('group flex min-h-[64px] cursor-pointer items-center gap-3 border-b border-[#252C3A] px-4 py-3 transition-colors last:border-b-0 sm:px-5',
+                        selected ? 'bg-[#23213D] hover:bg-[#2C274D]' : atLimit ? 'cursor-not-allowed opacity-55' : 'hover:bg-[#1A2030]')}>
+                        <input type="checkbox" checked={selected} disabled={atLimit} onChange={() => toggleRecording(e.releaseTag)}
+                          aria-label={'Select ' + e.title}
+                          className="h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#7357E9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A496FF]" />
+                        <span className="min-w-0 flex-1">
+                          <span className={cx('block truncate text-sm font-medium', selected ? 'text-[#F4F6FA]' : 'text-[#D8E0ED]')} title={e.title}>{e.title.replace(/_/g, ' ')}</span>
+                          <span className="mt-1 block truncate font-mono text-[11px] text-[#8994A8]" title={e.releaseTag}>{e.releaseTag}</span>
+                        </span>
+                        {selected && <Check size={15} className="shrink-0 text-[#A496FF]" aria-hidden="true" />}
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#313A4C] px-4 py-3 sm:px-5">
+                  <span className="text-xs tabular-nums text-[#ABB5C7]">
+                    {loadingEpisodes ? 'Loading…' : 'Showing ' + shown.length + ' of ' + matches.length + ' matching recordings'}
+                  </span>
+                  {visibleCount < matches.length && <button type="button" onClick={() => setVisibleCount(n => n + 60)}
+                    className="text-xs font-medium text-[#B8ACFF] hover:text-white">Load more</button>}
+                </div>
+              </section>
+
+              <aside className="min-w-0 space-y-4 xl:sticky xl:top-5" aria-label="Project setup">
+                <section className={cx(panel, 'p-5 sm:p-6')}>
+                  <div className="mb-5 flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-lg font-semibold tracking-tight">New project</h2>
+                      <p className="mt-1 text-xs text-[#ABB5C7]">Configure your script workspace</p>
+                    </div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#211D40] text-[#A496FF]"><Film size={18} /></div>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs font-medium text-[#D8E0ED]">Selected sources</span>
+                        <span className="text-xs tabular-nums text-[#ABB5C7]">{picked.length} / 12</span>
+                      </div>
+                      {picked.length ? (
+                        <div className="flex max-h-32 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-[#313A4C] bg-[#0B0D11] p-2">
+                          {picked.map(id => {
+                            const episode = episodes.find(e => e.releaseTag === id);
+                            return <span key={id} className="inline-flex max-w-full items-center gap-1 rounded-md border border-[#403B65] bg-[#23213D] px-2 py-1 text-[11px] text-[#E6E1FF]">
+                              <span className="max-w-[220px] truncate">{(episode?.title || id).replace(/_/g, ' ')}</span>
+                              <button type="button" aria-label={'Remove ' + (episode?.title || id)} onClick={() => toggleRecording(id)}
+                                className="rounded-sm p-0.5 hover:bg-[#403B65]"><X size={12} /></button>
+                            </span>;
+                          })}
+                        </div>
+                      ) : <div className="rounded-lg border border-dashed border-[#394256] bg-[#10141C] px-3 py-4 text-center text-xs text-[#8994A8]">Choose recordings from the library</div>}
+                      {(limitNotice || picked.length === 12) && <p className="mt-2 text-xs text-[#E9BD67]" role="status">Maximum 12 recordings. Remove one to select another.</p>}
+                    </div>
+
+                    <div>
+                      <label htmlFor="studio-documentary-format" className="mb-1.5 block text-xs font-medium text-[#D8E0ED]">Documentary format</label>
+                      <select id="studio-documentary-format" className={field} value={format} onChange={e => setNewFormat(e.target.value as EpisodeFormat)}>
+                        {EPISODE_FORMATS.map(f => <option key={f} value={f}>{FORMAT_LABELS[f]}</option>)}
+                      </select>
+                    </div>
+
+                    {picked.length > 1 && <div>
+                      <label htmlFor="studio-central-question" className="mb-1.5 block text-xs font-medium text-[#D8E0ED]">Central question <span className="font-normal text-[#8994A8]">(optional)</span></label>
+                      <textarea id="studio-central-question" rows={2} className={cx(field, 'resize-y')} value={thesis}
+                        onChange={e => setThesis(e.target.value)} placeholder="What question should this story answer?" />
+                      <p className="mt-1.5 text-[11px] leading-4 text-[#8994A8]">Give multi-recording stories a shared focus.</p>
+                    </div>}
+
+                    <div>
+                      <label htmlFor="studio-target-minutes" className="mb-2 block text-xs font-medium text-[#D8E0ED]">Target length</label>
+                      <div className="mb-2 grid grid-cols-4 gap-1.5">
+                        {[10, 15, 30, 45].map(n => <button type="button" key={n} onClick={() => setMinutes(n)} aria-pressed={minutes === n}
+                          className={cx('min-h-9 rounded-lg border text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]',
+                            minutes === n ? 'border-[#7357E9] bg-[#282146] text-[#E6E1FF]' : 'border-[#394256] bg-[#1A2030] text-[#ABB5C7] hover:text-white')}>{n}m</button>)}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input id="studio-target-minutes" type="number" min={1} max={240} className={cx(field, 'w-24 tabular-nums')} value={minutes}
+                          onChange={e => setMinutes(Math.min(240, Math.max(1, Number(e.target.value) || 1)))} />
+                        <span className="text-xs text-[#ABB5C7]">minutes</span>
+                      </div>
+                    </div>
+
+                    <button type="button" className={cx(secondaryButton, 'w-full')} onClick={() => setUploadModalOpen(true)}>
+                      <Upload size={15} /> Upload script or evidence
+                    </button>
+
+                    <div className="border-t border-[#313A4C] pt-5">
+                      <button type="button" disabled={!picked.length || creating} onClick={() => void create()}
+                        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7357E9] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#856EFA] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A496FF] disabled:cursor-not-allowed disabled:bg-[#343044] disabled:text-[#8994A8]">
+                        {creating ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                        {creating ? 'Creating project…' : 'Create project'}
+                      </button>
+                      <p className="mt-2.5 text-center text-[11px] leading-4 text-[#ABB5C7]">
+                        {!picked.length ? 'Select at least one recording to continue.' : 'Creates a workspace. Drafting happens inside the project.'}
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                <section className={cx(panel, 'p-5')} aria-labelledby="studio-recent-heading">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h2 id="studio-recent-heading" className="text-sm font-semibold text-[#F4F6FA]">Recent projects</h2>
+                    <span className="text-xs tabular-nums text-[#8994A8]">{projects.length} total</span>
+                  </div>
+                  {recentProjects.length ? <div className="divide-y divide-[#313A4C]">
+                    {recentProjects.map(p => <div key={p.id} className="flex items-center gap-3 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium text-[#E6EBF4]" title={p.title}>{p.title}</div>
+                        <div className="mt-1 text-[11px] text-[#8994A8]">{new Date(p.updatedAt).toLocaleDateString()} · {p.sourceTags.length} source{p.sourceTags.length === 1 ? '' : 's'}</div>
+                      </div>
+                      <button type="button" onClick={() => onOpen(p.id)}
+                        className="rounded-lg border border-[#394256] px-3 py-2 text-xs font-medium text-[#E6EBF4] hover:bg-[#273044] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]">Open</button>
+                    </div>)}
+                  </div> : <div className="py-4 text-xs text-[#8994A8]">No projects yet. Your projects will appear here.</div>}
+                </section>
+                <button type="button" onClick={() => fileRef.current?.click()}
+                  className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#ABB5C7] transition-colors hover:bg-[#1A2030] hover:text-white">
+                  <Upload size={14} /> Import project JSON
+                </button>
+              </aside>
+            </div>
+          </>
+        )}
+        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ''; }} />
+        <UploadScriptModal isOpen={uploadModalOpen} onClose={() => setUploadModalOpen(false)} onOpenProject={onOpen} initialTags={picked} episodes={episodes} />
+      </div>
+
+      {statusOpen && <div className="fixed inset-0 z-40">
+        <button type="button" aria-label="Close models and connections" onClick={closeStatus} className="absolute inset-0 h-full w-full cursor-default bg-[#05070C]/75" />
+        <aside role="dialog" aria-modal="true" aria-label="Models and connections" className="absolute inset-y-0 right-0 flex w-full max-w-[420px] flex-col border-l border-[#313A4C] bg-[#12161F] shadow-2xl">
+          <div className="flex items-start justify-between gap-3 border-b border-[#313A4C] px-6 py-5">
+            <div>
+              <h2 className="text-lg font-semibold">Models &amp; connections</h2>
+              <p className="mt-1 text-xs text-[#ABB5C7]">Availability on this computer</p>
+            </div>
+            <button type="button" aria-label="Close panel" onClick={closeStatus}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-[#ABB5C7] hover:bg-[#273044] hover:text-white"><X size={18} /></button>
+          </div>
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-[#ABB5C7]">{!status ? 'Checking model availability…' : providerCount + ' of ' + providerTotal + ' providers available'}</span>
+              <button type="button" className={secondaryButton} disabled={checking} onClick={onRecheck}>
+                {checking ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Check connections
+              </button>
+            </div>
+            {!status ? <div className="text-sm text-[#ABB5C7]">Checking local and fallback providers…</div> : (
+              <div className="space-y-2">
+                {Object.entries(status.providers).map(([spec, h]) => (
+                  <div key={spec} className="rounded-lg border border-[#313A4C] bg-[#0B0D11] p-3.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        {h.ok ? <CheckCircle2 size={15} className="shrink-0 text-[#55C9A2]" /> : <XCircle size={15} className="shrink-0 text-[#E9BD67]" />}
+                        <span className="truncate text-sm font-medium text-[#E6EBF4]">{providerName(spec)}</span>
+                      </div>
+                      <span className={cx('shrink-0 text-[11px]', h.ok ? 'text-[#55C9A2]' : 'text-[#E9BD67]')}>{h.ok ? 'Available' : 'Needs attention'}</span>
+                    </div>
+                    <div className="mt-1.5 truncate pl-[23px] font-mono text-[11px] text-[#ABB5C7]" title={h.model}>{h.model}</div>
+                    <details className="mt-2 pl-[23px] text-xs text-[#ABB5C7]">
+                      <summary className="cursor-pointer text-[#B8ACFF]">Technical details</summary>
+                      <p className="mt-2 break-words leading-5">{h.detail}</p>
+                      {h.binPath && <p className="mt-1 break-all font-mono text-[11px]">{h.binPath}</p>}
+                    </details>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            {status && <>
+              <div className="rounded-lg border border-[#313A4C] p-4">
+                <h3 className="text-sm font-semibold">AI routing</h3>
+                <div className="mt-3 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Subscription tools</span><span className={subscriptionReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{subscriptionReady ? 'Ready' : 'Needs setup'}</span></div>
+                <div className="mt-2 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Fallback models</span><span className={fallbackReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{fallbackReady ? 'Configured' : 'Needs setup'}</span></div>
+                <p className="mt-3 text-[11px] leading-4 text-[#8994A8]">Availability does not mean a model is running. Choose model roles inside a project.</p>
+              </div>
+              {status.interruptedAtStart > 0 && <div className="rounded-lg border border-[#7B633D] bg-[#292315] p-3 text-xs leading-5 text-[#E9BD67]" role="status">
+                {status.interruptedAtStart} interrupted run(s) from the last server restart. Open the relevant project to resume.
+              </div>}
+              <details className="rounded-lg border border-[#313A4C] p-4">
+                <summary className="cursor-pointer text-sm font-semibold">Local project storage</summary>
+                <p className="mt-3 break-all font-mono text-xs leading-5 text-[#ABB5C7]">{status.storeDir}</p>
+              </details>
+            </>}
           </div>
-        )}
-        {status && (
-          <div className="mt-3 text-[11px] text-slate-400 space-y-1">
-            <div>Default (subscriptions): Claude Code writes and critiques, Codex ({status.defaults.subscription.judge}) judges and fact-checks. {subOk ? <span className="text-emerald-400">Ready.</span> : <span className="text-amber-400">Install and sign in to both CLIs (claude, then codex login) to use it.</span>}</div>
-            <div>Fallback (CheaperInference, per-run dollar cap): {fbOk ? <span className="text-emerald-400">key configured.</span> : <span className="text-slate-500">needs CHEAPER_INFERENCE_API_KEY in .env.local.</span>}</div>
-            <div>Projects are saved in {status.storeDir}.{status.interruptedAtStart ? ` ${status.interruptedAtStart} run(s) were interrupted by the last server restart and can be resumed.` : ''}</div>
-          </div>
-        )}
-      </section>
-
-      <section className={cx(card, 'p-4 space-y-3')}>
-        <h2 className="text-sm font-semibold text-slate-100">New script</h2>
-        <div className="flex items-center gap-2">
-          <Search size={13} className="text-slate-500" />
-          <input className={cx(input, 'flex-1')} placeholder="Filter episodes by title or tag" value={filter} onChange={e => setFilter(e.target.value)} />
-        </div>
-        <div className="max-h-56 overflow-y-auto rounded-md border border-slate-700 bg-slate-950">
-          {shown.map(e => {
-            const on = picked.includes(e.releaseTag);
-            return (
-              <label key={e.releaseTag} className={cx('flex items-center gap-2 px-2 py-1 text-xs cursor-pointer', on ? 'bg-indigo-950/60 text-white' : 'text-slate-300 hover:bg-slate-900')}>
-                <input type="checkbox" checked={on} onChange={() => setPicked(p => (on ? p.filter(t => t !== e.releaseTag) : [...p, e.releaseTag].slice(0, 12)))} />
-                <span className="truncate flex-1">{e.title}</span><span className="text-slate-500">{e.releaseTag}</span>
-              </label>
-            );
-          })}
-        </div>
-        <div className="text-[11px] text-slate-500">{picked.length === 0 ? 'Pick one recording, or several (up to 12) for a thematic or investigative episode. You can add more later.' : `${picked.length} picked: ${picked.join(', ')}`}</div>
-        {picked.length > 1 && (
-          <div className="flex items-center gap-2 text-xs text-slate-300">
-            <select className={input} value={newFormat || 'thematic_multi'} onChange={e => setNewFormat(e.target.value as EpisodeFormat)}>
-              {EPISODE_FORMATS.map(f => <option key={f} value={f}>{FORMAT_LABELS[f]}</option>)}
-            </select>
-            <input className={cx(input, 'flex-1')} placeholder="Thesis question the episode answers (optional)" value={thesis} onChange={e => setThesis(e.target.value)} />
-          </div>
-        )}
-        <div className="flex items-center gap-3 text-xs text-slate-300">
-          <label className="flex items-center gap-2">Target length <input type="number" min={1} max={240} className={cx(input, 'w-20')} value={minutes} onChange={e => setMinutes(Math.max(1, Number(e.target.value) || 1))} /> min</label>
-          <div className="flex-1" />
-          <button type="button" className={btnGhost} onClick={() => setUploadModalOpen(true)}><Upload size={12} /> Upload Script & Evidence</button>
-          <button className={btnPrimary} disabled={!picked.length || creating} onClick={create}>{creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create project</button>
-        </div>
-      </section>
-
-      <section className={cx(card, 'p-4')}>
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-slate-100">Saved projects</h2>
-          <div className="flex items-center gap-1.5"><button type="button" className={btnGhost} onClick={() => setUploadModalOpen(true)}><Upload size={12} /> Upload manual script</button><button className={btnGhost} onClick={() => fileRef.current?.click()}><Upload size={12} /> Import project JSON</button></div>
-          <input ref={fileRef} type="file" accept="application/json" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ''; }} />
-        </div>
-        {projects.length === 0 ? <div className="text-xs text-slate-500">No projects yet.</div> : (
-          <ul className="divide-y divide-slate-800">
-            {projects.map(p => (
-              <li key={p.id} className="py-2 flex items-center gap-2 text-xs">
-                <span className="text-slate-100 flex-1 truncate">{p.title}</span>
-                <span className="text-slate-500">{p.sourceTags.join(', ')}</span>
-                <span className="text-slate-500">{new Date(p.updatedAt).toLocaleString()}</span>
-                <button className={btnGhost} onClick={() => onOpen(p.id)}>Open</button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-      </>}
-      <UploadScriptModal isOpen={uploadModalOpen} onClose={() => setUploadModalOpen(false)} onOpenProject={onOpen} initialTags={picked} episodes={episodes} />
+        </aside>
+      </div>}
     </div>
   );
 }
