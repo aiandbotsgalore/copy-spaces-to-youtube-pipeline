@@ -31,3 +31,7 @@ jobs:
         run: npm run build
       - name: Transcript layout tests
         run: npx vitest run components/transcript/__tests__/transcriptLayout.test.ts
+      - name: Install Chromium for browser acceptance
+        run: npx playwright install --with-deps chromium
+      - name: Browser acceptance tests
+        run: npx playwright test --config playwright.transcripts.config.ts
