@@ -12,7 +12,7 @@
  */
 
 import { execSync } from 'child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
@@ -149,6 +149,25 @@ function getExistingReleases() {
   }
 }
 
+const QUARANTINE_FILE = path.resolve('config/quarantined_spaces.json');
+
+function loadQuarantinedSpaces() {
+  if (!existsSync(QUARANTINE_FILE)) return new Map();
+  try {
+    const raw = JSON.parse(readFileSync(QUARANTINE_FILE, 'utf-8'));
+    const list = Array.isArray(raw) ? raw : (raw.quarantined_spaces || []);
+    const map = new Map();
+    for (const item of list) {
+      const id = item.space_id || item.spaceId;
+      if (id) map.set(id, item);
+    }
+    return map;
+  } catch (err) {
+    console.warn(`⚠️  Could not parse ${QUARANTINE_FILE}: ${err.message}`);
+    return new Map();
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function run() {
@@ -195,10 +214,13 @@ async function run() {
   const newSpaces = [];
   const alreadyArchivedSpaces = [];
 
+  const quarantinedMap = loadQuarantinedSpaces();
   for (const [spaceId, spaceInfo] of allDiscovered.entries()) {
     if (existingReleasesText.includes(spaceId)) {
       alreadyArchivedSpaces.push(spaceInfo);
       console.log(`✓ Space ${spaceId} already archived`);
+    } else if (quarantinedMap.has(spaceId)) {
+      console.log(`⛔ Space ${spaceId} is quarantined (${quarantinedMap.get(spaceId).reason || 'dead'}) — skipping`);
     } else {
       newSpaces.push(spaceInfo);
       console.log(`⭐ NEW Space found via @${spaceInfo.foundVia}: ${spaceInfo.url}`);

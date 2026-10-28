@@ -144,54 +144,57 @@ def analyze_episode_speakers(
     title = (ep_summary.get("title") or ep_data.get("title") or "").lower()
 
     # --- Phase 1: Host Resolution ---
-    if "logan" not in [s.lower() for s in existing_speakers]:
-        is_logan_host = (
-            "logan" in host_handle or
-            "loganblack" in host_handle or
-            host_handle == "loganblack" or
-            "logan black" in host_handle
-        )
-        if is_logan_host:
-            for spk_cand, dur in sorted_by_duration:
-                if spk_cand in generic_speakers:
-                    mappings[spk_cand] = "Logan"
-                    generic_speakers.remove(spk_cand)
-                    break
+    # Guard: only apply host anchor if there are multiple speaker clusters or genuinely short space (<= 15 turns).
+    # If an episode has 50+ turns and only 1 cluster, diarization failed; do not label 100% of turns as host.
+    if len(existing_speakers) >= 2 or len(segs) <= 15:
+        if "logan" not in [s.lower() for s in existing_speakers]:
+            is_logan_host = (
+                "logan" in host_handle or
+                "loganblack" in host_handle or
+                host_handle == "loganblack" or
+                "logan black" in host_handle
+            )
+            if is_logan_host:
+                for spk_cand, dur in sorted_by_duration:
+                    if spk_cand in generic_speakers:
+                        mappings[spk_cand] = "Logan"
+                        generic_speakers.remove(spk_cand)
+                        break
 
-    if "angela" not in [s.lower() for s in existing_speakers]:
-        is_angela_host = (
-            "angelamaggard3" in host_handle or
-            "angela" in host_handle or
-            "txrrxstrxxl" in host_handle
-        )
-        if is_angela_host:
-            for spk_cand, dur in sorted_by_duration:
-                if spk_cand in generic_speakers:
-                    mappings[spk_cand] = "Angela"
-                    generic_speakers.remove(spk_cand)
-                    break
+        if "angela" not in [s.lower() for s in existing_speakers]:
+            is_angela_host = (
+                "angelamaggard3" in host_handle or
+                "angela" in host_handle or
+                "txrrxstrxxl" in host_handle
+            )
+            if is_angela_host:
+                for spk_cand, dur in sorted_by_duration:
+                    if spk_cand in generic_speakers:
+                        mappings[spk_cand] = "Angela"
+                        generic_speakers.remove(spk_cand)
+                        break
 
-    if "oor" not in [s.lower() for s in existing_speakers]:
-        if "king oor" in host_handle or (host_handle == "txrrxstrxxl" and "Angela" in mappings.values()):
-            for spk_cand, dur in sorted_by_duration:
-                if spk_cand in generic_speakers:
-                    mappings[spk_cand] = "Oor"
-                    generic_speakers.remove(spk_cand)
-                    break
+        if "oor" not in [s.lower() for s in existing_speakers]:
+            if "king oor" in host_handle or (host_handle == "txrrxstrxxl" and "Angela" in mappings.values()):
+                for spk_cand, dur in sorted_by_duration:
+                    if spk_cand in generic_speakers:
+                        mappings[spk_cand] = "Oor"
+                        generic_speakers.remove(spk_cand)
+                        break
 
-    if "eric hecker" not in [s.lower() for s in existing_speakers] and "eric" not in [s.lower() for s in existing_speakers]:
-        is_eric_host = (
-            "eric j. hecker" in host_handle or
-            "decipheringtv" in host_handle or
-            "deciphering.tv" in host_handle or
-            (host_handle.startswith("eric") and "hecker" in host_handle)
-        )
-        if is_eric_host:
-            for spk_cand, dur in sorted_by_duration:
-                if spk_cand in generic_speakers:
-                    mappings[spk_cand] = "Eric Hecker"
-                    generic_speakers.remove(spk_cand)
-                    break
+        if "eric hecker" not in [s.lower() for s in existing_speakers] and "eric" not in [s.lower() for s in existing_speakers]:
+            is_eric_host = (
+                "eric j. hecker" in host_handle or
+                "decipheringtv" in host_handle or
+                "deciphering.tv" in host_handle or
+                (host_handle.startswith("eric") and "hecker" in host_handle)
+            )
+            if is_eric_host:
+                for spk_cand, dur in sorted_by_duration:
+                    if spk_cand in generic_speakers:
+                        mappings[spk_cand] = "Eric Hecker"
+                        generic_speakers.remove(spk_cand)
+                        break
 
     # --- Phase 2: High-Speed Dialogue Heuristics ---
     if generic_speakers:

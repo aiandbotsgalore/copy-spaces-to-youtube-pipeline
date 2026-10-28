@@ -32,6 +32,7 @@ jobs:
       - name: Parse DLQ Metadata and Trigger Re-dispatch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT_USER: ${{ github.event.comment.user.login }}
@@ -43,6 +44,7 @@ jobs:
           issue_body = os.environ.get("ISSUE_BODY", "")
           issue_number = os.environ.get("ISSUE_NUMBER", "")
           user = os.environ.get("COMMENT_USER", "user")
+          repo = os.environ.get("REPO", "")
 
           # Parse embedded metadata block
           wf_match = re.search(r"workflow=(.+)", issue_body)
@@ -53,23 +55,24 @@ jobs:
 
           print(f"[*] Dispatching retry for workflow: '{workflow_name}', target: '{target}' requested by @{user}")
 
+          repo_args = ["-R", repo] if repo else []
           cmd = []
           if "Enroll Voice Profile" in workflow_name:
-              cmd = ["gh", "workflow", "run", "enroll_voice.yml", "-f", f"speaker_name={target}"]
+              cmd = ["gh", "workflow", "run", "enroll_voice.yml"] + repo_args + ["-f", f"speaker_name={target}"]
           elif "Ingest Space" in workflow_name:
               if target.startswith("http"):
-                  cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"space_url={target}"]
+                  cmd = ["gh", "workflow", "run", "ingest.yml"] + repo_args + ["-f", f"space_url={target}"]
               else:
-                  cmd = ["gh", "workflow", "run", "ingest.yml", "-f", f"release_tag={target}"]
+                  cmd = ["gh", "workflow", "run", "ingest.yml"] + repo_args + ["-f", f"release_tag={target}"]
           elif "Batch Transcribe" in workflow_name:
-              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml", "-f", "batch_limit=5"]
+              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml"] + repo_args + ["-f", "batch_limit=5"]
           elif "Transcribe Episode" in workflow_name:
-              cmd = ["gh", "workflow", "run", "transcribe_episode.yml", "-f", f"release_tag={target}"]
+              cmd = ["gh", "workflow", "run", "transcribe_episode.yml"] + repo_args + ["-f", f"release_tag={target}"]
           elif "Kaggle" in workflow_name:
-              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml", "-f", f"release_tag={target}"]
+              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml"] + repo_args + ["-f", f"release_tag={target}"]
           else:
               # Fallback match by lowercase
-              cmd = ["gh", "workflow", "run", f"{workflow_name.lower().replace(' ', '_')}.yml"]
+              cmd = ["gh", "workflow", "run", f"{workflow_name.lower().replace(' ', '_')}.yml"] + repo_args
 
           try:
               res = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -77,7 +80,7 @@ jobs:
           except Exception as e:
               comment_body = f"⚠️ **Retry Dispatch Failed**:\n```\n{e}\n```"
 
-          subprocess.run(["gh", "issue", "comment", str(issue_number), "-b", comment_body])
+          subprocess.run(["gh", "issue", "comment", str(issue_number)] + repo_args + ["-b", comment_body])
           EOF
 
   # -------------------------------------------------------------
@@ -90,21 +93,27 @@ jobs:
       - name: Scan & Close Matching DLQ Issues
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          REPO: ${{ github.repository }}
           WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_TITLE: ${{ github.event.workflow_run.display_title }}
         run: |
           python3 - <<'EOF'
-          import os, json, subprocess
+          import os, json, subprocess, re
 
+          repo = os.environ.get("REPO", "")
           wf_name = os.environ.get("WORKFLOW_NAME", "")
           run_id = os.environ.get("RUN_ID", "")
           run_url = os.environ.get("RUN_URL", "")
+          run_title = os.environ.get("RUN_TITLE", "")
 
-          print(f"[*] Checking for open DLQ issues matching successful run #{run_id} ({wf_name})...")
+          print(f"[*] Checking for open DLQ issues matching successful run #{run_id} ('{run_title}' / '{wf_name}')...")
 
-          # List open DLQ issues
-          res = subprocess.run(["gh", "issue", "list", "--label", "dlq-quarantine", "--state", "open", "--json", "number,title,body"], capture_output=True, text=True)
+          repo_args = ["-R", repo] if repo else []
+          cmd = ["gh", "issue", "list", "--label", "dlq-quarantine", "--state", "open", "--json", "number,title,body"] + repo_args
+          res = subprocess.run(cmd, capture_output=True, text=True)
           if res.returncode != 0:
               print(f"[!] Could not list issues: {res.stderr}")
               exit(0)
@@ -115,10 +124,33 @@ jobs:
               title = iss.get("title", "")
               body = iss.get("body", "")
 
-              # Match if workflow name appears in title/body
-              if wf_name.lower() in title.lower() or wf_name.lower() in body.lower():
-                  print(f"[✓] Auto-closing DLQ Issue #{num} due to successful re-run #{run_id}!")
-                  close_comment = f"✅ **Self-Healing Succeeded!**\n\nThe subsequent run [{wf_name} #{run_id}]({run_url}) succeeded.\nClosing this Dead-Letter Queue issue automatically."
-                  subprocess.run(["gh", "issue", "comment", str(num), "-b", close_comment])
-                  subprocess.run(["gh", "issue", "close", str(num), "--reason", "completed"])
+              # Extract target from issue body metadata: target=(.+)
+              tg_match = re.search(r"target=(.+)", body)
+              target = tg_match.group(1).strip() if tg_match else ""
+
+              # Extract space ID or release tag
+              space_id = ""
+              sid_match = re.search(r"([a-zA-Z0-9]{13})", f"{title} {target}")
+              if sid_match:
+                  space_id = sid_match.group(1)
+
+              tag_match = re.search(r"(\d{8}_[a-zA-Z0-9_]+)", f"{title} {target}")
+              rel_tag = tag_match.group(1) if tag_match else ""
+
+              # Check if this target was resolved in this specific run
+              matched = False
+              search_corpus = f"{run_title} {wf_name}".lower()
+
+              if target and target.lower() in search_corpus:
+                  matched = True
+              elif space_id and space_id.lower() in search_corpus:
+                  matched = True
+              elif rel_tag and rel_tag.lower() in search_corpus:
+                  matched = True
+
+              if matched:
+                  print(f"[✓] Auto-closing DLQ Issue #{num} ({title}) due to successful re-run #{run_id}!")
+                  close_comment = f"✅ **Self-Healing Succeeded!**\n\nThe subsequent run [{run_title or wf_name} #{run_id}]({run_url}) succeeded for target `{target or space_id or rel_tag}`.\nClosing this Dead-Letter Queue issue automatically."
+                  subprocess.run(["gh", "issue", "comment", str(num)] + repo_args + ["-b", close_comment])
+                  subprocess.run(["gh", "issue", "close", str(num)] + repo_args + ["--reason", "completed"])
           EOF

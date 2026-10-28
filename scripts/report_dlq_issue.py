@@ -60,6 +60,21 @@ def diagnose_root_cause(log_path: str, fallback_error: str) -> tuple[str, str]:
             "Transient HuggingFace/SpeechBrain Rate Limit or Timeout",
             "Hugging Face hub returned 429 Too Many Requests or network timeout. Auto-remediation with cache or exponential backoff will resolve this on retry."
         )
+    if "Twitter Space ended and replay is disabled" in combined or "replay is disabled" in combined:
+        return (
+            "Twitter Space Replay Disabled by Host (Permanent Failure)",
+            "The host ended this Twitter Space without enabling recording/replay. Audio cannot be retrieved and this space should be quarantined."
+        )
+    if "Twitter Space not found" in combined:
+        return (
+            "Twitter Space Not Found (Deleted or Invalid ID - Permanent Failure)",
+            "The Twitter Space has been deleted from X or the Space ID is invalid. This space should be quarantined."
+        )
+    if "Denied by access control" in combined or "Authorization: Denied" in combined:
+        return (
+            "Twitter Space Access Denied (Private / Restricted Space)",
+            "The Twitter Space is restricted, private, or denied by X access control. Guest tokens cannot access this broadcast."
+        )
     if "No MP3 file was generated" in combined or "yt-dlp" in combined:
         return (
             "yt-dlp Download Failure (Space Unavailable or Expired)",

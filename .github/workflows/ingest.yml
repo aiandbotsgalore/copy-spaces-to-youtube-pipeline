@@ -77,7 +77,9 @@ jobs:
           RECORD_LIVE: ${{ inputs.record_live || 'false' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: bash ./scripts/ingest.sh
+        run: |
+          set -o pipefail
+          bash ./scripts/ingest.sh 2>&1 | tee ingest.log
 
       - name: Extract MP3 Duration
         id: duration
@@ -135,7 +137,8 @@ jobs:
           python3 scripts/report_dlq_issue.py \
             --workflow "Ingest Space" \
             --run-id "${{ github.run_id }}" \
-            --target "${{ inputs.release_tag || inputs.space_url || 'Queue Item' }}" || true
+            --target "${{ inputs.release_tag || inputs.space_url || 'Queue Item' }}" \
+            --log-file "ingest.log" || true
 
 
       - name: Create Release
