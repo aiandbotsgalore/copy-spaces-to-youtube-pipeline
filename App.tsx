@@ -241,7 +241,23 @@ function AppContent() {
   const [studioSidebarCollapsed, setStudioSidebarCollapsed] = useState(true);
   const [isExportingZip, setIsExportingZip] = useState(false);
 
-  const isSidebarRail = activePanel === 'script-studio' && studioSidebarCollapsed;
+  const [transcriptNavCollapsed, setTranscriptNavCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('spacepipe:transcripts:nav-collapsed:v1') === 'true'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('spacepipe:transcripts:nav-collapsed:v1', String(transcriptNavCollapsed)); } catch {}
+  }, [transcriptNavCollapsed]);
+  useEffect(() => {
+    const handlePreset = (event: Event) => {
+      const preset = (event as CustomEvent<{ preset?: string }>).detail?.preset;
+      if (preset === 'full') setTranscriptNavCollapsed(false);
+      if (preset === 'compact' || preset === 'minimal') setTranscriptNavCollapsed(true);
+    };
+    window.addEventListener('spacepipe:transcript-layout', handlePreset);
+    return () => window.removeEventListener('spacepipe:transcript-layout', handlePreset);
+  }, []);
+  const isSidebarRail = (activePanel === 'script-studio' && studioSidebarCollapsed) ||
+    (activePanel === 'transcripts' && transcriptNavCollapsed);
 
   // Panels that live in the collapsed "Settings & Pipeline" group: open it so the active item is visible.
   useEffect(() => {
@@ -339,9 +355,11 @@ function AppContent() {
                 </div>
               )}
             </div>
-            {activePanel === 'script-studio' && (
+            {(activePanel === 'script-studio' || activePanel === 'transcripts') && (
               <button
-                onClick={() => setStudioSidebarCollapsed(c => !c)}
+                onClick={() => activePanel === 'transcripts'
+                  ? setTranscriptNavCollapsed(c => !c)
+                  : setStudioSidebarCollapsed(c => !c)}
                 className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
                 title={isSidebarRail ? "Expand Studio Sidebar" : "Collapse to 56px Rail"}
               >
