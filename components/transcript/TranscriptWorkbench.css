@@ -140,3 +140,5 @@
 @media (max-width:860px){.sp-tw .sp-episode-rail{position:absolute;z-index:11;left:0;top:0;bottom:0;max-width:85vw;box-shadow:10px 0 30px #0009}.sp-tw .sp-episode-divider{display:none}.sp-tw .sp-main .sp-episode-header{padding:9px}.sp-tw .sp-turn-body{display:block}.sp-tw .sp-turn-meta{display:flex;justify-content:space-between;gap:8px;margin-bottom:5px}.sp-tw .sp-turn-actions{align-self:auto}.sp-tw .sp-turn-copy{margin-top:7px}}
 @media (max-width:640px){.sp-tw .sp-topbar{padding:8px}.sp-tw .sp-topbar h2{font-size:16px}.sp-tw .sp-layout-bar{gap:4px}.sp-tw .sp-layout-select{width:94px}.sp-tw .sp-timeline{padding:9px}.sp-tw .sp-audio-controls{gap:4px}.sp-tw .sp-audio-time{font-size:10px}.sp-tw .sp-audio-right input[type=range]{width:52px}}
 @media (prefers-reduced-motion:reduce){.sp-tw *{transition:none!important;scroll-behavior:auto!important}}
+
+.sp-tw .sp-hidden-time{display:none!important}
