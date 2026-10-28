@@ -354,6 +354,7 @@ def main():
 
     for ep in index:
         ep_file = EPISODES_DIR / f"{ep['release_tag']}.json"
+        ep_spks = sorted(list(set(s.get("speaker", "").strip() for s in ep.get("segments", []) if s.get("speaker", "").strip())))
         with open(ep_file, "w", encoding="utf-8") as f:
             json.dump({
                 "release_id": ep["release_id"],
@@ -361,6 +362,7 @@ def main():
                 "title": ep["title"],
                 "published_at": ep["published_at"],
                 "audio_url": ep.get("audio_url", ""),
+                "speakers": ep_spks,
                 "segments": ep.get("segments", []),
             }, f, ensure_ascii=False)
         if DIST_EPISODES_DIR.exists():
