@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
 import './transcript/TranscriptWorkbench.css';
+import { TranscriptInspector } from './transcript/TranscriptInspector';
+import { TranscriptWorkspaceViews } from './transcript/TranscriptWorkspaceViews';
 import {
   TRANSCRIPT_LAYOUT_KEY, DEFAULT_TRANSCRIPT_LAYOUT, restoreTranscriptLayout,
   layoutForPreset, clampPanelWidth, normalizeTag,
@@ -4191,7 +4193,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
               ) : (
                 <>
                   {/* Episode Player Header */}
-                  <div className="p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-episode-header p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       {mp3Asset && (
                         <button onClick={handlePlayEpisodeToggle}
@@ -4221,7 +4223,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="sp-episode-actions flex items-center gap-2 flex-wrap">
                       {mp3Asset && (
                         <button
                           onClick={handleToggleCacheCurrentAudio}
@@ -4261,7 +4263,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                         <Star size={12} className="text-amber-400 fill-amber-400/30" /> Saved Speakers ({savedSpeakers.length})
                       </button>
                       {speakerStats.length > 0 && (
-                        <button onClick={() => setShowRenameModal(true)}
+                        <button onClick={() => setLayout(previous => ({ ...previous, inspectorVisible: true, inspectorTab: 'speakers', preset: 'custom' }))}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold rounded-lg transition-colors border border-indigo-500/40 cursor-pointer">
                           <Users size={12} /> Rename Speakers
                         </button>
@@ -4304,8 +4306,71 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     </div>
                   )}
 
+                  {/* Approved functional workspace tabs */}
+                  <div className="sp-episode-tabs" role="tablist" aria-label="Transcript workspace views">
+                    {([
+                      ['transcript', 'Transcript', FileText],
+                      ['speakers', 'Speakers (' + speakerStats.length + ')', Users],
+                      ['timeline', 'Timeline', BarChart3],
+                      ['chapters', 'Chapters', Clock],
+                      ['analysis', 'Analysis', Sparkles],
+                    ] as const).map(([tab, label, Icon]) =>
+                      <button type="button" key={tab} role="tab" className="sp-tab"
+                        aria-selected={workspaceTab === tab}
+                        onClick={() => setWorkspaceTab(tab)}><Icon size={12} /> {label}</button>
+                    )}
+                  </div>
+
+                  {/* Timestamped speech-density timeline and real global audio transport. */}
+                  <div className="sp-timeline">
+                    <div className="sp-timeline-top">
+                      <strong><BarChart3 size={12} className="inline mr-1" /> EPISODE TIMELINE</strong>
+                      <span>{utterances.length.toLocaleString()} turns mapped · Transcript-derived speech density</span>
+                    </div>
+                    <div className="sp-wave" role="group" aria-label="Seek via timestamped speech density timeline">
+                      {conversationHeatmap.length ? (
+                        <>
+                          {conversationHeatmap.map(bucket =>
+                            <button key={bucket.index} type="button"
+                              className={bucket.isHot ? 'sp-wave-hot' : ''}
+                              style={{ height: (15 + Math.round(bucket.density * 79)) + '%' }}
+                              onClick={() => handlePlayUtterance(bucket.startSec)}
+                              title={'Seek ' + bucket.label + ': ' + bucket.count + ' turns' + (bucket.mentionCount ? ', ' + bucket.mentionCount + ' mentions' : '')}
+                              disabled={!mp3Asset}
+                            />
+                          )}
+                          {current?.id === selectedRelease.id && Number.isFinite(currentTime) &&
+                            <div className="sp-wave-playhead" style={{ left: Math.min(100, Math.max(0, currentTime / transcriptDurationSec * 100)) + '%' }} />}
+                        </>
+                      ) : <span className="sp-wave-empty">Timeline available when diarized transcript is loaded</span>}
+                    </div>
+                    <div className="sp-audio-controls">
+                      <button type="button" className="sp-play" onClick={handlePlayEpisodeToggle}
+                        disabled={!mp3Asset} title={isCurrentEpisodePlaying ? 'Pause audio' : 'Play episode'}>
+                        {isCurrentEpisodePlaying ? <Pause size={15} /> : <Play size={15} />}
+                      </button>
+                      <button type="button" title="Skip back 15 seconds"
+                        disabled={current?.id !== selectedRelease.id} onClick={() => skip(-15)}><RotateCcw size={13}/><span className="text-[10px]">15</span></button>
+                      <button type="button" title="Skip forward 15 seconds"
+                        disabled={current?.id !== selectedRelease.id} onClick={() => skip(15)}><span className="text-[10px]">15</span><ArrowRight size={13}/></button>
+                      <label htmlFor="sp-audio-speed" className="sr-only">Playback speed</label>
+                      <select id="sp-audio-speed" aria-label="Playback speed" value={playbackRate}
+                        onChange={event => setPlaybackRate(Number(event.target.value))}>
+                        {[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate.toFixed(2).replace(/0$/, '')}×</option>)}
+                      </select>
+                      <span className="sp-audio-time">{current?.id === selectedRelease.id ? formatSeconds(currentTime) : '00:00'} / {formatSeconds(transcriptDurationSec)}</span>
+                      <div className="sp-audio-right">
+                        <button type="button" onClick={toggleMute} aria-label={isMuted ? 'Unmute audio' : 'Mute audio'} title={isMuted ? 'Unmute' : 'Mute'}>
+                          {isMuted ? <VolumeX size={14} /> : <Volume2 size={14}/>}
+                        </button>
+                        <input type="range" min="0" max="1" step=".01" value={volume} aria-label="Volume"
+                          onChange={event => setVolume(Number(event.target.value))} />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Filter & Sync Toolbar */}
-                  <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-filter-toolbar p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-[280px]">
                       {/* Scope Toggle */}
                       <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
@@ -4398,6 +4463,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                         </div>
                       </div>
 
+                      <button type="button" className="sp-btn" aria-pressed={layout.showTimestamps}
+                        onClick={() => setLayout(previous => ({ ...previous, showTimestamps: !previous.showTimestamps }))}>
+                        <Clock size={12} /> Timestamps {layout.showTimestamps ? 'ON' : 'OFF'}
+                      </button>
                       <button onClick={() => setAutoScroll(!autoScroll)}
                         className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-400 border-slate-800'}`}>
                         <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
