@@ -239,9 +239,17 @@ function AppContent() {
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [studioSidebarCollapsed, setStudioSidebarCollapsed] = useState(true);
+  const [transcriptSidebarCollapsed, setTranscriptSidebarCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem('spacepipe_transcript_nav_collapsed_v2') === 'true'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('spacepipe_transcript_nav_collapsed_v2', String(transcriptSidebarCollapsed)); } catch {}
+  }, [transcriptSidebarCollapsed]);
   const [isExportingZip, setIsExportingZip] = useState(false);
 
-  const isSidebarRail = activePanel === 'script-studio' && studioSidebarCollapsed;
+  const isSidebarRail = activePanel === 'script-studio'
+    ? studioSidebarCollapsed
+    : (activePanel === 'transcripts' && transcriptSidebarCollapsed);
 
   // Panels that live in the collapsed "Settings & Pipeline" group: open it so the active item is visible.
   useEffect(() => {
@@ -339,9 +347,11 @@ function AppContent() {
                 </div>
               )}
             </div>
-            {activePanel === 'script-studio' && (
+            {(activePanel === 'script-studio' || activePanel === 'transcripts') && (
               <button
-                onClick={() => setStudioSidebarCollapsed(c => !c)}
+                onClick={() => activePanel === 'script-studio'
+                  ? setStudioSidebarCollapsed(c => !c)
+                  : setTranscriptSidebarCollapsed(c => !c)}
                 className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
                 title={isSidebarRail ? "Expand Studio Sidebar" : "Collapse to 56px Rail"}
               >
@@ -688,6 +698,9 @@ function AppContent() {
           <TranscriptPanel
             config={config}
             initialReleaseId={selectedTranscriptId}
+            navigationCollapsed={transcriptSidebarCollapsed}
+            onNavigationCollapsedChange={setTranscriptSidebarCollapsed}
+            onOpenCopilot={() => setActivePanel('ai-copilot')}
           />
         )}
 
