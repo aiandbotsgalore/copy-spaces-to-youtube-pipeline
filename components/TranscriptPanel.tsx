@@ -4526,8 +4526,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     </div>
                   )}
 
-                  {/* Transcript Feed */}
-                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
+                  {/* Fixed player and filters sit above an independently scrolling workpane. */}
+                  <div className="sp-workpane">
+                    <div className="sp-transcript-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950"
+                      style={{ display: workspaceTab === 'transcript' ? undefined : 'none' }}>
                     {transcriptLoading && (
                       <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
                         <Loader size={26} className="animate-spin text-indigo-400" />
@@ -4610,51 +4612,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     )}
 
                     {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
-                      <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
-                        {/* Dynamic Episode Confrontation & Density Heatmap */}
-                        {conversationHeatmap.length > 0 && (
-                          <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm mb-4">
-                            <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                              <div className="flex items-center gap-2">
-                                <BarChart3 size={13} className="text-indigo-400" />
-                                <span className="font-semibold text-slate-200">Episode Timeline Heatmap</span>
-                                <span className="text-[11px] text-slate-400">({utterances.length} turns mapped)</span>
-                              </div>
-                              <div className="flex items-center gap-3 text-[11px]">
-                                <span className="flex items-center gap-1.5 text-slate-400">
-                                  <span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block" /> Speech Density
-                                </span>
-                                <span className="flex items-center gap-1.5 text-rose-400 font-medium">
-                                  <span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" /> Confrontation / Mentions
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-end gap-[3px] h-10 w-full bg-slate-950/70 p-1.5 rounded-xl border border-slate-800/80 overflow-hidden">
-                              {conversationHeatmap.map((bucket) => {
-                                const heightPct = Math.max(18, Math.round(bucket.density * 100));
-                                return (
-                                  <button
-                                    key={bucket.index}
-                                    type="button"
-                                    onClick={() => handlePlayUtterance(bucket.startSec)}
-                                    className={`flex-1 rounded-sm transition-all hover:scale-y-110 hover:brightness-125 cursor-pointer relative group ${
-                                      bucket.isHot
-                                        ? 'bg-rose-500 hover:bg-rose-400 shadow-sm'
-                                        : bucket.density > 0.6
-                                        ? 'bg-indigo-500 hover:bg-indigo-400'
-                                        : bucket.density > 0.2
-                                        ? 'bg-indigo-700/60 hover:bg-indigo-600'
-                                        : 'bg-slate-800/60 hover:bg-slate-700'
-                                    }`}
-                                    style={{ height: `${heightPct}%` }}
-                                    title={`Seek to ${bucket.label} (${bucket.count} turns${bucket.mentionCount > 0 ? `, ${bucket.mentionCount} mentions` : ''})`}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
+                      <div className="sp-turn-list max-w-3xl mx-auto space-y-3.5 pb-24">
                         {filteredUtterances.slice(0, utteranceDisplayLimit).map((utterance) => {
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
@@ -4686,7 +4644,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                               id={`utterance-card-${utterance.id}`}
                               key={utterance.id}
                               onClick={() => handlePlayUtterance(utterance.startSec)}
-                              className={`group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
+                              className={`sp-turn ${isPlayingThisUtterance ? 'sp-turn-playing' : ''} group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
                                   ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
@@ -4707,15 +4665,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                               </div>
 
                               {/* Body */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-                                  <div className="flex items-center gap-2 relative">
+                              <div className="sp-turn-body flex-1 min-w-0">
+                                <div className="sp-turn-meta flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                                  <div className="sp-turn-identity flex items-center gap-2 relative">
 
                                     {/* Speaker Tag */}
                                     <button
                                       type="button"
                                       onClick={e => { e.stopPropagation(); openQuickRename(utterance.rawSpeaker, utterance.speaker); }}
-                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge} hover:ring-2 hover:ring-indigo-400/60 hover:brightness-110 transition-all cursor-pointer group/tag shadow-sm`}
+                                      className={`sp-turn-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge} hover:ring-2 hover:ring-indigo-400/60 hover:brightness-110 transition-all cursor-pointer group/tag shadow-sm`}
                                       title={`Click to rename ${utterance.speaker} across this episode`}
                                     >
                                       {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
@@ -4725,7 +4683,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
 
                                     {/* Timestamp seek button */}
                                     <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
-                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
+                                      className={`sp-turn-time ${!layout.showTimestamps ? 'sp-hidden-time' : ''} inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{utterance.startLabel}</span>
                                       {utterance.endLabel && <span className="text-slate-400 font-normal"> – {utterance.endLabel}</span>}
@@ -4746,7 +4704,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                     )}
                                   </div>
 
-                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                  <div className="sp-turn-actions flex items-center gap-1.5 flex-wrap">
                                     <button
                                       type="button"
                                       onClick={e => {
@@ -4803,7 +4761,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                 </div>
 
                                 {isPlayingThisUtterance ? (
-                                  <p className="text-[15px] leading-relaxed transition-colors select-text text-slate-100">
+                                  <p className="sp-turn-copy text-[15px] leading-relaxed transition-colors select-text text-slate-100">
                                     {utteranceWords.map((w, wIdx) => {
                                       const isActiveWord = wIdx === activeWordIndex;
                                       const isPastWord = activeWordIndex >= 0 && wIdx < activeWordIndex;
@@ -4831,7 +4789,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                     })}
                                   </p>
                                 ) : (
-                                  <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
+                                  <p className={`sp-turn-copy text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
                                     {highlightMatch(utterance.text, search)}
                                   </p>
                                 )}
@@ -4872,6 +4830,59 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                           </div>
                         )}
                       </div>
+                    )}
+                    </div>
+                    {workspaceTab !== 'transcript' && (
+                      <TranscriptWorkspaceViews
+                        tab={workspaceTab}
+                        speakerStats={speakerStats}
+                        sections={navigationSections}
+                        buckets={conversationHeatmap}
+                        totalTurns={utterances.length}
+                        totalWords={utterances.reduce((sum, turn) => sum + (turn.wordCount || turn.text.split(/\s+/).filter(Boolean).length), 0)}
+                        onSeek={handlePlayUtterance}
+                        onFilterSpeaker={setSpeakerFilter}
+                        onTranscript={() => setWorkspaceTab('transcript')}
+                      />
+                    )}
+                    {layout.inspectorVisible && (
+                      <>
+                        <div className="sp-divider sp-inspector-divider" role="separator" aria-label="Resize inspector" aria-orientation="vertical" tabIndex={0}
+                          onPointerDown={event => beginPanelResize('inspector', event)} onPointerMove={movePanelResize}
+                          onPointerUp={() => { draggingPanelRef.current = null; }} onPointerCancel={() => { draggingPanelRef.current = null; }}
+                          onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); resizePanel('inspector', event.key === 'ArrowLeft' ? 16 : -16); } }} />
+                        <TranscriptInspector
+                          tab={layout.inspectorTab}
+                          onTabChange={(tab: InspectorTab) => setLayout(previous => ({ ...previous, inspectorTab: tab }))}
+                          onClose={() => setLayout(previous => ({ ...previous, inspectorVisible: false, preset: 'custom' }))}
+                          sectionOpen={layout.sectionOpen}
+                          onToggleSection={toggleInspectorSection}
+                          facts={{
+                            title: selectedRelease.name || selectedRelease.tag_name,
+                            date: getEpisodeRecordedDate(selectedRelease).displayDate,
+                            host: selectedHost,
+                            turns: utterances.length,
+                            speakers: speakerStats.length,
+                            language: transcriptMetadata.language || null,
+                            model: transcriptMetadata.model || null,
+                            audioSize: mp3Asset?.size || null,
+                            duration: formatSeconds(transcriptDurationSec),
+                            sourceUrl: selectedRelease.html_url,
+                            transcriptReady: utterances.length > 0,
+                          }}
+                          speakers={speakerStats}
+                          sections={navigationSections}
+                          clips={activeMontageClips}
+                          tags={activeEpisodeTags}
+                          tagDraft={tagInput}
+                          onTagDraftChange={setTagInput}
+                          onAddTag={addEpisodeTag}
+                          onRemoveTag={removeEpisodeTag}
+                          onEditSpeaker={openQuickRename}
+                          onJump={handlePlayUtterance}
+                          onAI={openCopilotWithTask}
+                        />
+                      </>
                     )}
                   </div>
                 </>
