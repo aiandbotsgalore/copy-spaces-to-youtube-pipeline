@@ -1,0 +1,33 @@
+name: Transcript Workbench Validation
+
+on:
+  push:
+    branches:
+      - design/transcripts-approved-modular-20261028
+  pull_request:
+    paths:
+      - 'App.tsx'
+      - 'components/TranscriptPanel.tsx'
+      - 'components/transcript/**'
+      - '.github/workflows/transcript-workbench.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Transcript layout tests
+        run: npx vitest run components/transcript/__tests__/transcriptLayout.test.ts
