@@ -4473,50 +4473,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                     {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
                       <div className="sp-transcript-list max-w-3xl mx-auto space-y-3.5 pb-24">
-                        {/* Dynamic Episode Confrontation & Density Heatmap */}
-                        {conversationHeatmap.length > 0 && (
-                          <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm mb-4">
-                            <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-                              <div className="flex items-center gap-2">
-                                <BarChart3 size={13} className="text-indigo-400" />
-                                <span className="font-semibold text-slate-200">Episode Timeline Heatmap</span>
-                                <span className="text-[11px] text-slate-400">({utterances.length} turns mapped)</span>
-                              </div>
-                              <div className="flex items-center gap-3 text-[11px]">
-                                <span className="flex items-center gap-1.5 text-slate-400">
-                                  <span className="w-2 h-2 rounded-sm bg-indigo-500 inline-block" /> Speech Density
-                                </span>
-                                <span className="flex items-center gap-1.5 text-rose-400 font-medium">
-                                  <span className="w-2 h-2 rounded-sm bg-rose-500 inline-block" /> Confrontation / Mentions
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-end gap-[3px] h-10 w-full bg-slate-950/70 p-1.5 rounded-xl border border-slate-800/80 overflow-hidden">
-                              {conversationHeatmap.map((bucket) => {
-                                const heightPct = Math.max(18, Math.round(bucket.density * 100));
-                                return (
-                                  <button
-                                    key={bucket.index}
-                                    type="button"
-                                    onClick={() => handlePlayUtterance(bucket.startSec)}
-                                    className={`flex-1 rounded-sm transition-all hover:scale-y-110 hover:brightness-125 cursor-pointer relative group ${
-                                      bucket.isHot
-                                        ? 'bg-rose-500 hover:bg-rose-400 shadow-sm'
-                                        : bucket.density > 0.6
-                                        ? 'bg-indigo-500 hover:bg-indigo-400'
-                                        : bucket.density > 0.2
-                                        ? 'bg-indigo-700/60 hover:bg-indigo-600'
-                                        : 'bg-slate-800/60 hover:bg-slate-700'
-                                    }`}
-                                    style={{ height: `${heightPct}%` }}
-                                    title={`Seek to ${bucket.label} (${bucket.count} turns${bucket.mentionCount > 0 ? `, ${bucket.mentionCount} mentions` : ''})`}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
                         {filteredUtterances.slice(0, utteranceDisplayLimit).map((utterance) => {
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
