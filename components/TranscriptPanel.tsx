@@ -4683,7 +4683,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
 
                                     {/* Timestamp seek button */}
                                     <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
-                                      className={`sp-turn-time ${!layout.showTimestamps ? 'sp-hidden-time' : ''} inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
+                                      className={`sp-turn-time ${!layout.showTimestamps ? 'sp-hidden-time' : ''} inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer`}>
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{utterance.startLabel}</span>
                                       {utterance.endLabel && <span className="text-slate-400 font-normal"> – {utterance.endLabel}</span>}
