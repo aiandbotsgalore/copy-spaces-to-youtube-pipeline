@@ -50,6 +50,19 @@ export function compileScript(project: ScriptProject, version: ScriptVersion, op
       else leadingPauseSec += Math.max(0, b.sec);
       continue;
     }
+    if (b.kind === 'heading') {
+      continue;
+    }
+    if (b.kind === 'cue') {
+      if (b.sec && b.sec > 0) {
+        const last = items[items.length - 1];
+        if (last) last.item.gapAfterSec = Math.round(((last.item.gapAfterSec || 0) + Math.max(0, b.sec)) * 1000) / 1000;
+        else leadingPauseSec += Math.max(0, b.sec);
+      } else if (b.note || b.text) {
+        markers.push({ blockId: b.id, cue: 'sting', note: b.note || b.text || '', beforeItem: items.length, segmentTitle: seg.title, sceneTitle: sc.title });
+      }
+      continue;
+    }
     if (b.kind === 'music') {
       markers.push({ blockId: b.id, cue: b.cue, note: b.note, beforeItem: items.length, segmentTitle: seg.title, sceneTitle: sc.title });
       continue;

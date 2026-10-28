@@ -3,7 +3,8 @@ import {
   Terminal, Settings, FolderGit2, FileText, Zap,
   Github, Eye, History, Rocket, ChevronRight, ChevronDown,
   Mic2, BookOpen, FlaskConical, Clock, Library, FileSearch, PlusCircle, LayoutDashboard, Flame, AudioWaveform,
-  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot, Scale, Video
+  Film, Loader2, Archive, Bookmark, AlertCircle, CheckCircle2, Bot, Scale, Video,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
@@ -185,29 +186,33 @@ interface NavItemProps {
   onClick: () => void;
   badge?: string;
   badgeColor?: string;
+  collapsed?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, badgeColor }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, badgeColor, collapsed }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center justify-between group px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+    title={collapsed ? label : undefined}
+    className={`w-full flex items-center ${collapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} group text-sm font-medium rounded-lg transition-all ${
       active
         ? 'bg-indigo-500/15 text-indigo-300'
         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
     }`}
   >
-    <div className="flex items-center gap-3 min-w-0">
+    <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 min-w-0'}`}>
       <span className={active ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-400'}>{icon}</span>
-      <span className="truncate">{label}</span>
+      {!collapsed && <span className="truncate">{label}</span>}
     </div>
-    <div className="flex items-center gap-1.5 flex-shrink-0">
-      {badge && (
-        <span className={`text-[11px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
-          {badge}
-        </span>
-      )}
-      {active && <ChevronRight size={12} className="opacity-50" />}
-    </div>
+    {!collapsed && (
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {badge && (
+          <span className={`text-[11px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
+            {badge}
+          </span>
+        )}
+        {active && <ChevronRight size={12} className="opacity-50" />}
+      </div>
+    )}
   </button>
 );
 
@@ -233,7 +238,10 @@ function AppContent() {
   const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | string | null>(null);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const [studioSidebarCollapsed, setStudioSidebarCollapsed] = useState(true);
   const [isExportingZip, setIsExportingZip] = useState(false);
+
+  const isSidebarRail = activePanel === 'script-studio' && studioSidebarCollapsed;
 
   // Panels that live in the collapsed "Settings & Pipeline" group: open it so the active item is visible.
   useEffect(() => {
@@ -316,50 +324,71 @@ function AppContent() {
         <CopilotProvider>
         <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
       {/* ── Sidebar ── */}
-      <aside className="w-full md:w-64 flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0">
-        {/* Logo */}
-        <div className="p-5 border-b border-slate-800/80">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-500/15 rounded-xl border border-indigo-500/20">
-              <Mic2 className="text-indigo-400" size={20} />
+      <aside className={`${isSidebarRail ? 'w-14' : 'w-full md:w-64'} flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0 transition-all duration-200 z-20`}>
+        {/* Logo & Collapse button */}
+        <div className={`border-b border-slate-800/80 ${isSidebarRail ? 'p-2.5 flex flex-col items-center gap-2' : 'p-5'}`}>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-indigo-500/15 rounded-xl border border-indigo-500/20 shrink-0">
+                <Mic2 className="text-indigo-400" size={isSidebarRail ? 16 : 20} />
+              </div>
+              {!isSidebarRail && (
+                <div className="min-w-0">
+                  <h1 className="font-bold text-base tracking-tight text-white leading-none truncate">SpacePipe Gen</h1>
+                  <p className="text-[11px] text-slate-500 mt-0.5 truncate">Audio Pipeline Generator</p>
+                </div>
+              )}
             </div>
-            <div>
-              <h1 className="font-bold text-base tracking-tight text-white leading-none">SpacePipe Gen</h1>
-              <p className="text-[11px] text-slate-500 mt-0.5">Audio Pipeline Generator</p>
-            </div>
+            {activePanel === 'script-studio' && (
+              <button
+                onClick={() => setStudioSidebarCollapsed(c => !c)}
+                className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+                title={isSidebarRail ? "Expand Studio Sidebar" : "Collapse to 56px Rail"}
+              >
+                {isSidebarRail ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+        <nav className={`flex-1 overflow-y-auto ${isSidebarRail ? 'py-3 px-1.5 space-y-3' : 'py-4 px-3 space-y-5'}`}>
 
           {/* TIER 1 — STUDIO / DAILY OPERATIONS */}
           <div>
-            <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">🎙️ Studio</p>
+            {!isSidebarRail ? (
+              <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500">🎙️ Studio</p>
+            ) : (
+              <div className="border-b border-slate-800/60 mb-2 mx-1" />
+            )}
             <div className="space-y-1">
               <NavItem
                 icon={<LayoutDashboard size={15} />}
                 label="Command Center"
                 active={activePanel === 'dashboard'}
                 onClick={() => setActivePanel('dashboard')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<PlusCircle size={15} />}
                 label="Ingest"
                 active={activePanel === 'submit-space' || activePanel === 'live-queue'}
                 onClick={() => setActivePanel('submit-space')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Library size={15} />}
                 label="Episode Library"
                 active={activePanel === 'library'}
                 onClick={() => setActivePanel('library')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<FileSearch size={15} />}
                 label="Transcripts"
                 active={activePanel === 'transcripts'}
                 onClick={() => setActivePanel('transcripts')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Scale size={16} />}
@@ -368,30 +397,35 @@ function AppContent() {
                 onClick={() => setActivePanel('investigative-radar')}
                 badge="GraphRAG"
                 badgeColor="bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Flame size={15} />}
                 label="Best Clips"
                 active={activePanel === 'clips'}
                 onClick={() => setActivePanel('clips')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Film size={15} />}
                 label="Montage Studio"
                 active={activePanel === 'montage'}
                 onClick={() => setActivePanel('montage')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<FileText size={15} />}
                 label="Script Studio"
                 active={activePanel === 'script-studio'}
                 onClick={() => setActivePanel('script-studio')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<AudioWaveform size={15} />}
                 label="Voice Profiles"
                 active={activePanel === 'voice-profiles'}
                 onClick={() => setActivePanel('voice-profiles')}
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Mic2 size={15} />}
@@ -400,6 +434,7 @@ function AppContent() {
                 onClick={() => setActivePanel('vox-studio')}
                 badge="VoxCPM-2"
                 badgeColor="bg-violet-500/20 text-violet-300 border border-violet-500/30"
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Video size={15} />}
@@ -408,107 +443,127 @@ function AppContent() {
                 onClick={() => setActivePanel('avatar-studio')}
                 badge="LivePortrait"
                 badgeColor="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                collapsed={isSidebarRail}
               />
               <NavItem
                 icon={<Bot size={15} />}
                 label="AI Copilot"
                 active={activePanel === 'ai-copilot'}
                 onClick={() => setActivePanel('ai-copilot')}
+                collapsed={isSidebarRail}
               />
             </div>
           </div>
 
-          {/* TIER 2 — SETTINGS & PIPELINE (collapsed by default) */}
+          {/* TIER 2 — SETTINGS & PIPELINE */}
           <div>
-            <button
-              onClick={() => setSettingsExpanded(e => !e)}
-              className="w-full flex items-center justify-between px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-400 transition-colors"
-            >
-              <span>⚙️ Settings &amp; Pipeline</span>
-              <ChevronDown size={12} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
-            </button>
-            {settingsExpanded && (
-              <div className="space-y-1">
-                <NavItem
-                  icon={<History size={15} />}
-                  label="Run History"
-                  active={activePanel === 'run-history'}
-                  onClick={() => setActivePanel('run-history')}
-                />
-                <NavItem
-                  icon={<Eye size={15} />}
-                  label="RSS Feed Preview"
-                  active={activePanel === 'rss-preview'}
-                  onClick={() => setActivePanel('rss-preview')}
-                />
+            {isSidebarRail ? (
+              <div className="pt-2 border-t border-slate-800/60">
                 <NavItem
                   icon={<Settings size={15} />}
-                  label="Configuration"
-                  active={activePanel === 'config'}
-                  onClick={() => setActivePanel('config')}
+                  label="Settings & Configuration"
+                  active={settingsExpanded}
+                  onClick={() => { setStudioSidebarCollapsed(false); setSettingsExpanded(true); }}
+                  collapsed={true}
                 />
-                <NavItem
-                  icon={<Zap size={15} />}
-                  label="Feature Toggles"
-                  active={activePanel === 'features'}
-                  onClick={() => setActivePanel('features')}
-                  badge={featuresOn > 0 ? `${featuresOn} on` : undefined}
-                  badgeColor="bg-indigo-500/20 text-indigo-400"
-                />
-                <NavItem
-                  icon={<Rocket size={15} />}
-                  label="Deploy to GitHub"
-                  active={activePanel === 'deploy'}
-                  onClick={() => setActivePanel('deploy')}
-                  badge={githubUser ? 'Ready' : undefined}
-                  badgeColor="bg-emerald-500/20 text-emerald-400"
-                />
-                <NavItem
-                  icon={<Github size={15} />}
-                  label="GitHub Connection"
-                  active={activePanel === 'github'}
-                  onClick={() => setActivePanel('github')}
-                  badge={githubUser ? githubUser.login.slice(0, 10) : 'Connect'}
-                  badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}
-                />
-
-                <div className="flex items-center justify-between px-3 pt-3 pb-1">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Generated Code Files</p>
-                  <button
-                    onClick={handleExportZip}
-                    disabled={isExportingZip}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition-colors"
-                    title="Download all pipeline files as a ZIP archive"
-                  >
-                    <Archive size={12} />
-                    {isExportingZip ? 'Zipping...' : '.ZIP'}
-                  </button>
-                </div>
-                {allFiles.map(file => (
-                  <NavItem
-                    key={file.path}
-                    icon={fileIcon(file.name)}
-                    label={file.name}
-                    active={activePanel === `file:${file.path}`}
-                    onClick={() => setActivePanel(`file:${file.path}`)}
-                  />
-                ))}
               </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setSettingsExpanded(e => !e)}
+                  className="w-full flex items-center justify-between px-3 mb-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-400 transition-colors"
+                >
+                  <span>⚙️ Settings &amp; Pipeline</span>
+                  <ChevronDown size={12} className={`transition-transform ${settingsExpanded ? 'rotate-180' : ''}`} />
+                </button>
+                {settingsExpanded && (
+                  <div className="space-y-1">
+                    <NavItem
+                      icon={<History size={15} />}
+                      label="Run History"
+                      active={activePanel === 'run-history'}
+                      onClick={() => setActivePanel('run-history')}
+                    />
+                    <NavItem
+                      icon={<Eye size={15} />}
+                      label="RSS Feed Preview"
+                      active={activePanel === 'rss-preview'}
+                      onClick={() => setActivePanel('rss-preview')}
+                    />
+                    <NavItem
+                      icon={<Settings size={15} />}
+                      label="Configuration"
+                      active={activePanel === 'config'}
+                      onClick={() => setActivePanel('config')}
+                    />
+                    <NavItem
+                      icon={<Zap size={15} />}
+                      label="Feature Toggles"
+                      active={activePanel === 'features'}
+                      onClick={() => setActivePanel('features')}
+                      badge={featuresOn > 0 ? `${featuresOn} on` : undefined}
+                      badgeColor="bg-indigo-500/20 text-indigo-400"
+                    />
+                    <NavItem
+                      icon={<Rocket size={15} />}
+                      label="Deploy to GitHub"
+                      active={activePanel === 'deploy'}
+                      onClick={() => setActivePanel('deploy')}
+                      badge={githubUser ? 'Ready' : undefined}
+                      badgeColor="bg-emerald-500/20 text-emerald-400"
+                    />
+                    <NavItem
+                      icon={<Github size={15} />}
+                      label="GitHub Connection"
+                      active={activePanel === 'github'}
+                      onClick={() => setActivePanel('github')}
+                      badge={githubUser ? githubUser.login.slice(0, 10) : 'Connect'}
+                      badgeColor={githubUser ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'}
+                    />
+
+                    <div className="flex items-center justify-between px-3 pt-3 pb-1">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Generated Code Files</p>
+                      <button
+                        onClick={handleExportZip}
+                        disabled={isExportingZip}
+                        className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 disabled:opacity-50 transition-colors"
+                        title="Download all pipeline files as a ZIP archive"
+                      >
+                        <Archive size={12} />
+                        {isExportingZip ? 'Zipping...' : '.ZIP'}
+                      </button>
+                    </div>
+                    {allFiles.map(file => (
+                      <NavItem
+                        key={file.path}
+                        icon={fileIcon(file.name)}
+                        label={file.name}
+                        active={activePanel === `file:${file.path}`}
+                        onClick={() => setActivePanel(`file:${file.path}`)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </nav>
 
-        <div className="p-3 border-t border-slate-800/80">
-          <PipelineHealthWidget
-            config={config}
-            compact={true}
-            onNavigateToGitHub={() => setActivePanel('github')}
-          />
-        </div>
+        {!isSidebarRail && (
+          <>
+            <div className="p-3 border-t border-slate-800/80">
+              <PipelineHealthWidget
+                config={config}
+                compact={true}
+                onNavigateToGitHub={() => setActivePanel('github')}
+              />
+            </div>
 
-        <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-500 text-center">
-          Generated files comply with DevOps strict mode
-        </div>
+            <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-500 text-center">
+              Generated files comply with DevOps strict mode
+            </div>
+          </>
+        )}
       </aside>
 
       {/* ── Main Content ── */}

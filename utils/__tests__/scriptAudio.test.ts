@@ -35,6 +35,39 @@ describe('attachTakes', () => {
     expect(b2.takeUrl).toBeUndefined();
     expect(countTakes(out)).toEqual({ withTake: 1, narration: 2 });
   });
+  it('countTakes only counts standard NARRATION blocks toward the Vox take indicator', () => {
+    const text = 'Spoken narrative text.';
+    const hash = takeTextHash(text);
+    const segs: Segment[] = [
+      {
+        id: 'seg1',
+        title: 'Act 1',
+        scenes: [
+          {
+            id: 'sc1',
+            title: 'Scene 1',
+            purpose: 'p',
+            blocks: [
+              // 1. Standard narration with take -> counts as narration & withTake
+              { id: 'b1', kind: 'narration', type: 'NARRATION', text, mode: 'live', claims: [], takeUrl: '/take.mp3', takeSec: 2.1, takeTextHash: hash },
+              // 2. Standard narration without take -> counts as narration
+              { id: 'b2', kind: 'narration', type: 'NARRATION', text: 'Second standard narration.', mode: 'live', claims: [] },
+              // 3. QUOTE_READ -> excluded from standard Vox take indicator
+              { id: 'b3', kind: 'narration', type: 'QUOTE_READ', text: 'LOGAN (READING DM): "Secret message"', mode: 'live', claims: [], readEvidence: true },
+              // 4. CUE -> excluded
+              { id: 'b4', kind: 'cue', type: 'CUE', text: '[SFX: clicks]', sec: 0 },
+              // 5. ARCHIVAL_CLIP -> excluded
+              { id: 'b5', kind: 'clip', type: 'ARCHIVAL_CLIP', clipId: 'c1', keptText: 'Quote', inSec: 0, outSec: 3, trimBasis: 'full', fn: 'evidence', rationale: '' },
+              // 6. HEADING -> excluded
+              { id: 'b6', kind: 'heading', type: 'HEADING', text: 'Section 2', sec: 0 },
+            ],
+          },
+        ],
+      },
+    ];
+    // Exactly 2 standard narration blocks, 1 of which has a valid take!
+    expect(countTakes(segs)).toEqual({ withTake: 1, narration: 2 });
+  });
   it('take fields are not content: no lock break and no changed block', () => {
     const base = seg([narr('b1', text, { locked: true })]);
     const withTake = attachTakes(base, index);

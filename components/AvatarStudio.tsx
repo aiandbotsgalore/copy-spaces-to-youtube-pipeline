@@ -31,6 +31,7 @@ import {
   Grid,
   Settings2,
   Tv,
+  AlertTriangle,
   Image as ImageIcon
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
@@ -56,6 +57,16 @@ interface StudioBackdrop {
   icon: string;
   color: string;
   previewGradient: string;
+}
+
+interface RenderedAvatarJob {
+  jobId: string;
+  resolution: string;
+  fps: number;
+  videoUrl: string;
+  durationSec?: number | null;
+  renderMode?: string;
+  warning?: string;
 }
 
 const AVATAR_PERSONAS: AvatarPersona[] = [
@@ -138,25 +149,26 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
-  const [renderedJob, setRenderedJob] = useState<{
-    jobId: string;
-    resolution: string;
-    fps: number;
-    videoUrl: string;
-  } | null>(() => {
-    return {
-      jobId: 'kaggle_talking_avatar_short',
-      resolution: '1080x1920',
-      fps: 25,
-      videoUrl: '/output/episodes/kaggle_talking_avatar_short.mp4'
-    };
-  });
+  const [renderedJob, setRenderedJob] = useState<RenderedAvatarJob | null>(null);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const [renderWarning, setRenderWarning] = useState<string | null>(null);
+  const renderAbortRef = useRef<AbortController | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const montage = useMontage();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+      toastTimerRef.current = null;
+    }, 4000);
   };
+
+  useEffect(() => () => {
+    renderAbortRef.current?.abort();
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+  }, []);
 
   // Performance Rig Controls
   const [lipSyncTightness, setLipSyncTightness] = useState(96);
@@ -185,10 +197,17 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
     return () => clearInterval(interval);
   }, [isPlaying, totalDuration]);
 
-  // Video Render Engine via API & LivePortrait worker
+  // Video Render Engine via API & LivePortrait worker. Every visible rig
+  // control is sent in one immutable request snapshot; the server validates
+  // and echoes the applied values back in its response.
   const handleRenderVideo = async () => {
+    renderAbortRef.current?.abort();
+    const controller = new AbortController();
+    renderAbortRef.current = controller;
     setIsRendering(true);
     setRenderProgress(12);
+    setRenderError(null);
+    setRenderWarning(null);
 
     const progressTimer = setInterval(() => {
       setRenderProgress(p => (p < 88 ? p + 14 : p));
@@ -198,6 +217,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       const res = await fetch('/api/avatar/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           personaId: selectedPersona.id,
           backdropId: selectedBackdrop.id,
@@ -205,40 +225,69 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
           aspectRatio,
           lipSyncTightness,
           headSwayAmplitude,
+          eyeGazeMode,
           blinkRate,
           microExpressionScale,
-          showPipExhibit
+          showMeshOverlay,
+          showPipExhibit,
         })
       });
 
-      clearInterval(progressTimer);
-      setRenderProgress(100);
-
-      if (res.ok) {
-        const data = await res.json();
-        setRenderedJob({
-          jobId: data.jobId,
-          resolution: data.resolution || '3840x2160',
-          fps: data.fps || 60,
-          videoUrl: data.videoUrl || `/output/episodes/${data.jobId}.mp4`
-        });
-        showToast(`🎬 Rendered ${data.resolution || "4K"} avatar video (${data.jobId})!`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || data.error || `Avatar render failed (HTTP ${res.status}).`);
       }
-    } catch (e) {
-      clearInterval(progressTimer);
+      if (!data || typeof data.jobId !== 'string' || typeof data.videoUrl !== 'string') {
+        throw new Error('Avatar renderer returned an incomplete job response.');
+      }
+      if (renderAbortRef.current !== controller) return;
+
       setRenderProgress(100);
-      showToast("🎬 Rendered new 4K avatar sequence!");
+      setRenderedJob({
+        jobId: data.jobId,
+        resolution: typeof data.resolution === 'string' ? data.resolution : 'unknown resolution',
+        fps: Number.isFinite(Number(data.fps)) ? Number(data.fps) : 30,
+        durationSec: Number.isFinite(Number(data.durationSec)) ? Number(data.durationSec) : null,
+        renderMode: typeof data.renderMode === 'string' ? data.renderMode : undefined,
+        warning: typeof data.warning === 'string' ? data.warning : undefined,
+        videoUrl: data.videoUrl,
+      });
+      if (Number.isFinite(Number(data.durationSec)) && Number(data.durationSec) > 0) {
+        setTotalDuration(Number(data.durationSec));
+        setCurrentTime(0);
+      }
+      if (typeof data.warning === 'string' && data.warning.trim()) {
+        setRenderWarning(data.warning);
+        showToast(`⚠️ ${data.warning}`);
+      } else {
+        showToast(`🎬 Rendered ${data.resolution || 'avatar'} video (${data.jobId}).`);
+      }
+    } catch (e: any) {
+      if (e?.name === 'AbortError' || renderAbortRef.current !== controller) return;
+      const message = e instanceof Error ? e.message : 'Avatar render failed.';
+      setRenderError(message);
+      setRenderedJob(null);
+      setRenderProgress(0);
+      showToast(`❌ ${message}`);
     } finally {
-      setTimeout(() => {
+      clearInterval(progressTimer);
+      if (renderAbortRef.current === controller) {
+        renderAbortRef.current = null;
         setIsRendering(false);
-      }, 400);
+      }
     }
   };
 
   // Route avatar video clip into Montage Studio
   const handleSendToMontage = () => {
-    const clipUrl = renderedJob?.videoUrl || "/output/episodes/kaggle_talking_avatar_short.mp4";
-    const clipId = renderedJob?.jobId || `avatar-${Date.now()}`;
+    if (!renderedJob?.videoUrl) {
+      const message = 'Render an avatar video successfully before sending it to Montage Studio.';
+      setRenderError(message);
+      showToast(`⚠️ ${message}`);
+      return;
+    }
+    const clipUrl = renderedJob.videoUrl;
+    const clipId = renderedJob.jobId;
 
     montage.addClip({
       id: clipId,
@@ -338,6 +387,28 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
           <span>{toastMessage}</span>
         </div>
       )}
+      {(renderError || renderWarning) && (
+        <div className={`mx-6 mt-4 p-3 rounded-xl border text-xs flex items-start gap-2 ${
+          renderError
+            ? 'bg-rose-950/40 border-rose-500/40 text-rose-200'
+            : 'bg-amber-950/40 border-amber-500/40 text-amber-200'
+        }`} role="status" aria-live="polite">
+          <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="font-bold">{renderError ? 'Avatar render failed' : 'Avatar render completed with a warning'}</p>
+            <p className="mt-0.5 break-words">{renderError || renderWarning}</p>
+            {renderError && <p className="mt-1 text-rose-300/80">Check the server response and FFmpeg availability, then retry.</p>}
+          </div>
+          <button
+            type="button"
+            onClick={() => { setRenderError(null); setRenderWarning(null); }}
+            className="ml-auto text-slate-400 hover:text-white"
+            aria-label="Dismiss avatar render status"
+          >
+            ×
+          </button>
+        </div>
+      )}
       {/* ── TOP HEADER / ACCELERATION BADGE ── */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -351,11 +422,11 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
               </h1>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 font-mono border border-cyan-500/30 flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                4K 60FPS LivePortrait Engine Active
+                LivePortrait / EchoMimic Pipeline Ready
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Zero-Shot Photorealistic Talking Head Synthesis Driven Directly by SpacePipe & VoxCPM-2 Audio
+              Validated portrait animation controls with explicit renderer status and audio-driven output
             </p>
           </div>
         </div>
@@ -560,6 +631,11 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                   autoPlay
                   loop
                   playsInline
+                  onError={() => {
+                    const message = `The rendered video could not be loaded from ${renderedJob.videoUrl}.`;
+                    setRenderError(message);
+                    showToast(`❌ ${message}`);
+                  }}
                   className="max-h-[350px] rounded-2xl shadow-2xl border-2 border-indigo-500/60 object-contain bg-black"
                 />
                 <div className="mt-3 flex items-center gap-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-700 shadow-xl">

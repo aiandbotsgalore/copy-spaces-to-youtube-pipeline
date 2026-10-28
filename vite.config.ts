@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -9,6 +8,7 @@ import { searchTranscriptLexical } from './server/transcriptSearchService';
 import { createVoxSynthesizeHandler } from './server/voxSynthesize';
 import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
 import { createOutputStatic } from './server/serveFile';
+import { createAvatarRenderHandler } from './server/avatarRender';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -117,106 +117,13 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
   // VoxCPM-2 Speech Synthesis & Voice Cloning API (server/voxSynthesize.ts). Fails honestly; no substitute voice.
   middlewares.use('/api/vox/synthesize', createVoxSynthesizeHandler({ rootDir: __dirname, getEnv: () => process.env }));
 
-  // Neural Video Avatar & LivePortrait Render API
-  middlewares.use('/api/avatar/render', async (req: any, res: any) => {
-    if (req.method !== 'POST') {
-      res.statusCode = 405;
-      res.end('Method Not Allowed');
-      return;
-    }
-    const chunks: Buffer[] = [];
-    req.on('data', (c: Buffer) => chunks.push(c));
-    req.on('end', async () => {
-      try {
-        const raw = Buffer.concat(chunks).toString('utf-8');
-        const body = raw ? JSON.parse(raw) : {};
-        const {
-          personaId = 'logan-master',
-          backdropId = 'neon-studio',
-          cameraAngle = 'front',
-          aspectRatio = '16-9',
-          lipSyncTightness = 94,
-          headSwayAmplitude = 35,
-          blinkRate = 16,
-          microExpressionScale = 75,
-          showPipExhibit = true
-        } = body;
-
-        const avatarApiUrl = process.env.AVATAR_API_URL || process.env.LIVEPORTRAIT_API_URL;
-        if (avatarApiUrl) {
-          try {
-            const upstream = await fetch(`${avatarApiUrl}/render`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(body),
-            });
-            if (upstream.ok) {
-              const data = await upstream.json();
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify(data));
-              return;
-            }
-          } catch {
-            // Fall through to local simulation
-          }
-        }
-
-        const jobId = `job_avatar_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const resolution = aspectRatio === '9-16' ? '1080x1920' : aspectRatio === '1-1' ? '1080x1080' : '1920x1080';
-        const outDir = path.resolve('public/output/episodes');
-        if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
-        const outFile = path.join(outDir, `${jobId}.mp4`);
-
-        // Pick persona avatar
-        let avatarRel = 'public/avatars/logan.jpg';
-        if (personaId === 'cyber-hologram' && fs.existsSync('public/avatars/speaker_4.jpg')) {
-          avatarRel = 'public/avatars/speaker_4.jpg';
-        } else if (personaId === 'doc-anchor' && fs.existsSync('public/avatars/speaker_3.jpg')) {
-          avatarRel = 'public/avatars/speaker_3.jpg';
-        }
-        const avatarPath = path.resolve(avatarRel);
-        const audioPath = path.resolve('public/speaker_samples/Logan/master_reference.wav');
-
-        const [w, h] = resolution.split('x');
-        const filterStr = `[0:v]scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},zoompan=z='min(zoom+0.001,1.08)':d=125:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${w}x${h},drawbox=y=${Math.floor(Number(h)*0.72)}:w=${w}:h=${Math.floor(Number(h)*0.25)}:color=0x020617@0.85:t=fill[v]`;
-
-        const { spawnSync } = await import('child_process');
-        spawnSync('ffmpeg', [
-          '-y', '-loop', '1', '-i', avatarPath,
-          '-i', audioPath,
-          '-filter_complex', filterStr,
-          '-map', '[v]', '-map', '1:a',
-          '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'fast', '-crf', '22',
-          '-c:a', 'aac', '-b:a', '192k',
-          '-shortest', outFile
-        ], { stdio: 'pipe' });
-
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({
-          status: 'success',
-          jobId,
-          personaId,
-          backdropId,
-          cameraAngle,
-          aspectRatio,
-          resolution,
-          fps: 60,
-          engine: 'FFmpeg-Neural-Compositor',
-          renderTimeMs: 2100,
-          lipSyncTightness,
-          headSwayAmplitude,
-          blinkRate,
-          microExpressionScale,
-          showPipExhibit,
-          videoUrl: `/output/episodes/${jobId}.mp4`,
-          previewPosterUrl: `/output/posters/${jobId}.jpg`
-        }));
-      } catch (err: any) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: err.message || 'Avatar render failed' }));
-      }
-    });
-  });
+  // Neural Video Avatar & LivePortrait Render API. Request validation and
+  // renderer failures live in one async handler so the UI never receives a
+  // false success after a rejected FFmpeg process.
+  middlewares.use('/api/avatar/render', createAvatarRenderHandler({
+    rootDir: __dirname,
+    getEnv: () => ({ ...process.env, ...env }),
+  }));
 }
 
 export default defineConfig(({ mode }) => {

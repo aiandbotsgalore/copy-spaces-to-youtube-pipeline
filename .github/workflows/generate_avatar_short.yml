@@ -113,47 +113,92 @@ jobs:
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: |
+          set -euo pipefail
           echo "[*] Submitting EchoMimicV3 Live Stage kernel to Kaggle Cloud GPU pool..."
-          kaggle kernels push -p scripts/kaggle_worker/echomimic_pkg --accelerator NvidiaTeslaT4
-          echo "[✓] Kaggle GPU job successfully dispatched!"
+          for attempt in 1 2 3; do
+            if kaggle kernels push -p scripts/kaggle_worker/echomimic_pkg --accelerator NvidiaTeslaT4; then
+              echo "[✓] Kaggle GPU job successfully dispatched!"
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "[!] Kaggle kernel dispatch failed after retries." >&2
+              exit 1
+            fi
+            delay=$((5 * 2 ** (attempt - 1)))
+            echo "[!] Kaggle dispatch failed; retrying in ${delay}s..." >&2
+            sleep "$delay"
+          done
 
       - name: Monitor Cloud GPU Execution
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: |
+          set -euo pipefail
           KERNEL_ID="loganblackjbjb/echomimicv3-avatar-animator"
           echo "[*] Monitoring status of $KERNEL_ID..."
-          
+
+          read_status_with_retry() {
+            local attempt=1
+            local delay=5
+            while [ "$attempt" -le 5 ]; do
+              local output
+              if output=$(kaggle kernels status "$KERNEL_ID" 2>&1); then
+                printf '%s' "$output"
+                return 0
+              fi
+              echo "[!] Kaggle status request failed (attempt $attempt/5): $output" >&2
+              if [ "$attempt" -eq 5 ]; then return 1; fi
+              sleep "$delay"
+              delay=$((delay * 2))
+              attempt=$((attempt + 1))
+            done
+          }
+
+          completed=false
           for i in {1..90}; do
-            STATUS=$(kaggle kernels status "$KERNEL_ID" | tr -d '\r')
+            STATUS=$(read_status_with_retry | tr -d '\r') || {
+              echo "[!] Could not read Kaggle status after retries." >&2
+              exit 1
+            }
             echo "[$i/90] $STATUS"
             
             if [[ "$STATUS" == *"COMPLETE"* ]]; then
               echo "[✓] Kaggle EchoMimicV3 Avatar Completed Successfully!"
+              completed=true
               break
             elif [[ "$STATUS" == *"ERROR"* ]] || [[ "$STATUS" == *"FAILED"* ]] || [[ "$STATUS" == *"Cannot access"* ]] || [[ "$STATUS" == *"denied"* ]]; then
               echo "[!] Kaggle GPU execution error/inaccessible: $STATUS"
-              kaggle kernels output "$KERNEL_ID" -p ./kaggle_logs || true
+              python scripts/kaggle_download_with_retry.py --kernel-id "$KERNEL_ID" --output-dir ./kaggle_logs --attempts 3 --base-delay 5 || true
               cat ./kaggle_logs/*.log || true
               exit 1
             fi
             sleep 30
           done
 
+          if [ "$completed" != true ]; then
+            echo "[!] Kaggle kernel did not complete within the 45-minute monitor window." >&2
+            exit 1
+          fi
+
       - name: Download Rendered Talking Avatar Video
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
         run: |
+          set -euo pipefail
           KERNEL_ID="loganblackjbjb/echomimicv3-avatar-animator"
-          mkdir -p kaggle_avatar_out
-          kaggle kernels output "$KERNEL_ID" -p ./kaggle_avatar_out || echo "Could not download kaggle output"
-          
+          python scripts/kaggle_download_with_retry.py \
+            --kernel-id "$KERNEL_ID" \
+            --output-dir ./kaggle_avatar_out \
+            --attempts 7 \
+            --base-delay 5 \
+            --require-mp4
+
           echo "[*] Rendered output contents:"
-          ls -la kaggle_avatar_out/ || true
+          find kaggle_avatar_out -maxdepth 3 -type f -printf '%p (%s bytes)\n'
 
       - name: Upload Video as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
           name: talking-avatar-short
           path: kaggle_avatar_out/**/*.mp4
-          if-no-files-found: ignore
+          if-no-files-found: error

@@ -59,7 +59,12 @@ export function narrationInScope(segments: Segment[], sceneId?: string): Narrati
   const out: Narration[] = [];
   for (const seg of segments) for (const sc of seg.scenes) {
     if (sceneId && sc.id !== sceneId) continue;
-    for (const b of sc.blocks) if (b.kind === 'narration' && normalizeText(b.text)) out.push(b);
+    for (const b of sc.blocks) {
+      if (b.kind === 'narration' && normalizeText(b.text)) {
+        if (b.type === 'HEADING') continue;
+        out.push(b);
+      }
+    }
   }
   return out;
 }
@@ -68,6 +73,7 @@ export const countTakes = (segments: Segment[]) => {
   let withTake = 0, narration = 0;
   for (const seg of segments) for (const sc of seg.scenes) for (const b of sc.blocks) {
     if (b.kind !== 'narration' || !normalizeText(b.text)) continue;
+    if (b.type && b.type !== 'NARRATION') continue;
     narration++;
     if (hasValidTake(b)) withTake++;
   }
@@ -107,6 +113,9 @@ export function spokenSceneView(scene: Scene, clips: Record<string, { speaker: s
         case 'clip': return { id: b.id, kind: 'clip', text: b.keptText, seconds: r1(b.outSec - b.inSec), durationSource: 'clip', speaker: clips[b.clipId]?.speaker };
         case 'pause': return { id: b.id, kind: 'pause', seconds: b.sec, durationSource: 'pause' };
         case 'music': return { id: b.id, kind: 'music', seconds: 0, durationSource: 'marker', cue: b.cue, text: b.note };
+        case 'heading': return { id: b.id, kind: 'heading', text: b.text, seconds: 0, durationSource: 'marker' };
+        case 'cue': return { id: b.id, kind: 'cue', text: b.text || b.note, seconds: r1(b.sec || 0), durationSource: b.sec ? 'pause' : 'marker', cue: b.cueType };
+        default: return { id: (b as any).id, kind: (b as any).kind, seconds: 0, durationSource: 'marker' };
       }
     }),
   };

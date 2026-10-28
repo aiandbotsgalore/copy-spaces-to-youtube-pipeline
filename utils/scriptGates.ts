@@ -80,6 +80,11 @@ export function clipBoundsOk(block: Extract<Block, { kind: 'clip' }>, clip: Stud
 export const wordCount = (s: string) => (s || '').trim().split(/\s+/).filter(Boolean).length;
 
 export function blockSeconds(b: Block, wpm = DEFAULT_NARRATION_WPM): { sec: number; estimated: boolean } {
+  if (b.type === 'HEADING' || b.kind === 'heading') return { sec: 0, estimated: false };
+  if (b.type === 'CUE' || b.kind === 'cue') {
+    const sec = 'sec' in b && typeof (b as any).sec === 'number' ? (b as any).sec : 0;
+    return { sec: Math.max(0, sec), estimated: false };
+  }
   switch (b.kind) {
     case 'narration':
       if (hasValidTake(b)) return { sec: b.takeSec, estimated: false };
@@ -87,6 +92,7 @@ export function blockSeconds(b: Block, wpm = DEFAULT_NARRATION_WPM): { sec: numb
     case 'clip': return { sec: Math.max(0, b.outSec - b.inSec), estimated: false };
     case 'pause': return { sec: Math.max(0, b.sec), estimated: false };
     case 'music': return { sec: 0, estimated: false };
+    default: return { sec: 0, estimated: false };
   }
 }
 

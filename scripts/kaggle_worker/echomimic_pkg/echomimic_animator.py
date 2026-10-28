@@ -336,11 +336,15 @@ def main():
         url = speaker_avatars.get(speaker)
         if not url:
             url = next((value for key, value in speaker_avatars.items() if speaker_key(key) == speaker_key(speaker)), "")
+        if not url:
+            url = image_input
         if isinstance(url, str) and url.startswith("http"):
             try:
                 download_file(url, avatar)
             except Exception as error:
                 print(f"[!] Avatar download failed for {speaker}: {error}")
+        elif isinstance(url, str) and Path(url).exists():
+            shutil.copy2(url, avatar)
         if not avatar.exists() or avatar.stat().st_size < 1000:
             color = ["0x4f46e5", "0xdb2777", "0x059669", "0xd97706", "0x0284c7", "0x7c3aed"][index % 6]
             run_cmd(["ffmpeg", "-y", "-f", "lavfi", "-i", f"color=c={color}:s=512x512:d=1", "-frames:v", "1", str(avatar)])

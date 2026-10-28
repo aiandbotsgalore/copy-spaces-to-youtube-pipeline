@@ -101,9 +101,17 @@ export const PipelineHealthWidget: React.FC<Props> = ({
   const successfulRuns = recentRuns.filter(r => r.conclusion === 'success');
   const recentEnrollments = recentRuns.filter(r => r.name.toLowerCase().includes('enroll') && r.conclusion === 'success');
 
+  const failureHint = (run: WorkflowRun): string => {
+    const label = `${run.name} ${run.path || ''}`.toLowerCase();
+    if (label.includes('avatar')) return 'Avatar generation or Kaggle artifact retrieval failed. Open the run log and inspect the Kaggle output step.';
+    if (label.includes('transcrib')) return 'Transcript generation failed. Check the source audio, Kaggle status, and model download step.';
+    if (label.includes('ingest')) return 'Ingest failed. Check the queued Space URL and the first failed Actions step.';
+    return 'Open the Actions log for the first failed step and retry after correcting its reported input or secret.';
+  };
+
   // Overall Health Assessment
-  const isHealthy = hasToken && tokenValid && unacknowledgedFailedRuns.length === 0 && (rateLimit ? rateLimit.remaining > 50 : true);
-  const isWarning = (hasToken && (unacknowledgedFailedRuns.length > 0 || dlqJobs.length > 0)) || (rateLimit ? rateLimit.remaining <= 100 : false);
+  const isHealthy = hasToken && tokenValid && !runsError && unacknowledgedFailedRuns.length === 0 && (rateLimit ? rateLimit.remaining > 50 : true);
+  const isWarning = !!runsError || (hasToken && (unacknowledgedFailedRuns.length > 0 || dlqJobs.length > 0)) || (rateLimit ? rateLimit.remaining <= 100 : false);
   const isCritical = !hasToken || tokenValid === false;
 
   const handleManualRefresh = () => {
@@ -124,7 +132,8 @@ export const PipelineHealthWidget: React.FC<Props> = ({
 
   const getStatusText = () => {
     if (isCritical) return 'Pipeline Alert';
-    if (unacknowledgedFailedRuns.length > 0) return `${unacknowledgedFailedRuns.length} Failed Run`;
+    if (runsError) return 'Telemetry Error';
+    if (unacknowledgedFailedRuns.length > 0) return `${unacknowledgedFailedRuns.length} Failed Run${unacknowledgedFailedRuns.length === 1 ? '' : 's'}`;
     if (dlqJobs.length > 0) return `${dlqJobs.length} Quarantined (DLQ)`;
     if (recentEnrollments.length > 0) return 'Healthy / Enrolled';
     return 'Pipeline Healthy';
@@ -164,6 +173,12 @@ export const PipelineHealthWidget: React.FC<Props> = ({
               </div>
 
               <div className="space-y-2 text-[11px]">
+                {runsError && (
+                  <div className="p-2.5 bg-amber-950/40 border border-amber-500/30 rounded-lg text-amber-200">
+                    <p className="font-bold">Workflow telemetry unavailable</p>
+                    <p className="mt-0.5">{runsError} Refresh after checking GitHub connectivity and token permissions.</p>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">GitHub Authentication</span>
                   <span className={`font-semibold ${tokenValid ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -240,6 +255,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
                       </button>
                     </div>
                     <p className="truncate">{unacknowledgedFailedRuns[0].name} ({new Date(unacknowledgedFailedRuns[0].created_at).toLocaleTimeString()})</p>
+                    <p className="text-[10px] text-rose-300/90 leading-tight">{failureHint(unacknowledgedFailedRuns[0])}</p>
                     <div className="flex items-center justify-between pt-0.5">
                       <a
                         href={unacknowledgedFailedRuns[0].html_url}
@@ -381,6 +397,13 @@ export const PipelineHealthWidget: React.FC<Props> = ({
         </div>
       </div>
 
+      {runsError && (
+        <div className="p-3 bg-amber-950/35 border border-amber-500/30 rounded-xl text-xs text-amber-200">
+          <p className="font-bold">Workflow telemetry unavailable</p>
+          <p className="mt-0.5">{runsError} Refresh after checking GitHub connectivity and token permissions.</p>
+        </div>
+      )}
+
       {/* Dead-Letter Queue (DLQ) Quarantined Jobs */}
       {dlqJobs.length > 0 && (
         <div className="p-4 bg-rose-950/25 border border-rose-500/35 rounded-xl space-y-3">
@@ -474,6 +497,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
             The latest execution of <strong className="text-white">{unacknowledgedFailedRuns[0].display_title || unacknowledgedFailedRuns[0].name}</strong>
             {unacknowledgedFailedRuns[0].head_branch ? ` (${unacknowledgedFailedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL).
           </p>
+            <p className="text-[11px] text-rose-300/90 leading-relaxed">{failureHint(unacknowledgedFailedRuns[0])}</p>
           <div className="flex items-center gap-2 pt-1 flex-wrap">
             <a
               href={unacknowledgedFailedRuns[0].html_url}

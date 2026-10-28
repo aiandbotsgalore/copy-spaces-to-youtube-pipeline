@@ -5,15 +5,21 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, ArrowDown, BookOpen, ArrowUp, CloudDownload, ExternalLink, FolderSync, Link2, Check, CheckCircle2, ChevronLeft, CircleSlash, Download, FileText, History, Loader2, Lock,
-  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Square, Trash2, Unlock, Upload, Wand2, X, XCircle,
+  AlertTriangle, ArrowDown, BookOpen, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
+  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
+import { useMontage } from '../contexts/MontageContext';
 import {
   loadRoleChoice, PROJECT_STORAGE_KEY, ROLE_SPECS, saveRoleChoice, scriptApi, ScriptApiError, streamRun,
   type ProjectResponse, type RoleChoice, type RunResponse, type StatusResponse,
 } from '../utils/scriptClient';
-import { estimateRuntime } from '../utils/scriptGates';
+import { blockSeconds, estimateRuntime } from '../utils/scriptGates';
+import { compileScript, buildManifest } from '../utils/scriptCompile';
+import { renderCompiled, RenderError } from '../utils/scriptRender';
+import { getSharedAudioContext } from '../utils/sequencePlayer';
+import { getCachedAudioUrl } from '../utils/audioCache';
+import { toFetchableUrl } from '../utils/audioUrl';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
 import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
@@ -655,8 +661,47 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
 }
 
 /* ---------------------------------------------------------------------------------------------- */
-/* Block editor                                                                                    */
+/* Block editor & Auto-growing textarea                                                           */
 /* ---------------------------------------------------------------------------------------------- */
+
+function AutoResizeTextarea({
+  value,
+  onChange,
+  className,
+  placeholder,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  const resize = useCallback(() => {
+    if (ref.current) {
+      ref.current.style.height = 'auto';
+      ref.current.style.height = `${Math.max(38, ref.current.scrollHeight)}px`;
+    }
+  }, []);
+
+  useEffect(() => {
+    resize();
+  }, [value, resize]);
+
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      onChange={e => {
+        onChange(e.target.value);
+        resize();
+      }}
+      placeholder={placeholder}
+      className={cx('resize-none overflow-hidden transition-all', className)}
+    />
+  );
+}
 
 function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, playing }: {
   block: Block; clip?: StudioClip; onChange: (b: Block) => void; onRemove: () => void; onMove: (d: -1 | 1) => void;
@@ -669,29 +714,179 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
   );
   const tools = (
     <div className="flex items-center gap-1.5 shrink-0">
-      {lockBtn}
-      <button className="text-slate-500 hover:text-white" onClick={() => onMove(-1)} title="Move up"><ArrowUp size={13} /></button>
-      <button className="text-slate-500 hover:text-white" onClick={() => onMove(1)} title="Move down"><ArrowDown size={13} /></button>
-      <button className="text-slate-500 hover:text-rose-400" onClick={onRemove} title="Remove block"><Trash2 size={13} /></button>
+      {block.locked && <span title="Locked block"><Lock size={12} className="text-amber-400/80 mr-0.5 group-hover:hidden" /></span>}
+      <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150 flex items-center gap-1.5">
+        {lockBtn}
+        <button className="text-slate-500 hover:text-white" onClick={() => onMove(-1)} title="Move up"><ArrowUp size={13} /></button>
+        <button className="text-slate-500 hover:text-white" onClick={() => onMove(1)} title="Move down"><ArrowDown size={13} /></button>
+        <button className="text-slate-500 hover:text-rose-400" onClick={onRemove} title="Remove block"><Trash2 size={13} /></button>
+      </div>
     </div>
   );
+
+  // 1. Scene / Act Heading (`type: "HEADING"`)
+  if (block.type === 'HEADING' || block.kind === 'heading') {
+    return (
+      <div className="group rounded-md border border-indigo-900/40 bg-indigo-950/20 px-3 py-2 flex items-center gap-2 transition-all">
+        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+          HEADING (0s)
+        </span>
+        <input
+          className="w-full bg-transparent text-sm font-semibold text-slate-100 focus:outline-none"
+          value={block.text}
+          onChange={e => onChange({ ...block, text: e.target.value })}
+          placeholder="Section / Scene Heading..."
+        />
+        <span className="text-[10px] text-slate-500 shrink-0">0s · excluded from Vox</span>
+        {tools}
+      </div>
+    );
+  }
+
+  // 2. Archival Tape / Broadcast Clips (`type: "ARCHIVAL_CLIP"`)
+  if (block.type === 'ARCHIVAL_CLIP' || block.kind === 'clip') {
+    const clipTitle = clip?.title || block.spaceTitle || (block.clipNumber ? `Space Clip #${block.clipNumber}` : block.clipId);
+    const speakerName = clip?.speaker || block.speaker || 'Tape';
+    const durationSec = clip?.durationSec || Math.max(1, block.outSec - block.inSec);
+
+    return (
+      <div className={cx(
+        'group rounded-md border p-3 transition-all',
+        block.locked ? 'border-amber-700/50 bg-amber-950/10' : 'border-teal-800/60 bg-teal-950/15'
+      )}>
+        <div className="flex items-center gap-2 mb-2 text-[11px] uppercase tracking-wide text-slate-400">
+          <button
+            onClick={onPlay}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 hover:text-white transition-colors"
+            title="Play this archival cut"
+          >
+            {playing ? <Pause size={12} /> : <Play size={12} />}
+            <span>{playing ? 'Pause' : 'Play Clip'}</span>
+          </button>
+          <span className="px-1.5 py-0.5 rounded font-bold text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            ARCHIVAL CLIP {block.clipNumber ? `#${block.clipNumber}` : ''}
+          </span>
+          <span className="font-semibold text-teal-200 truncate">{clipTitle}</span>
+          {speakerName && <span className="text-slate-300">· {speakerName}</span>}
+          {block.date && <span className="text-slate-500">· {block.date}</span>}
+          {block.time && <span className="text-slate-500">· {block.time}</span>}
+          <div className="flex-1" />
+          <span className="text-slate-400 text-[10px] font-mono mr-2">
+            {hms(block.inSec)}–{hms(block.outSec)} ({durationSec.toFixed(1)}s)
+          </span>
+          {tools}
+        </div>
+
+        <div className="pl-3 border-l-2 border-teal-500/50 my-1">
+          <p className="text-sm text-slate-200 italic font-serif leading-relaxed">
+            “{block.keptText}”
+          </p>
+        </div>
+
+        {/* Inline Waveform / Play Trigger visualization */}
+        <div className="mt-2.5 flex items-center gap-2 pt-1 border-t border-teal-900/30 text-[10px] text-teal-400/80">
+          <div className="flex items-center gap-0.5 h-3.5 flex-1 opacity-70">
+            {[40, 65, 80, 50, 90, 70, 30, 85, 95, 60, 45, 75, 35, 90, 60, 40, 85, 70, 55, 30, 60, 80, 45, 90, 70, 50, 65, 40].map((h, i) => (
+              <div key={i} className="flex-1 bg-teal-400/60 rounded-full" style={{ height: `${h}%` }} />
+            ))}
+          </div>
+          <span className="text-slate-500 shrink-0 font-mono text-[10px]">Tape Audio ({durationSec.toFixed(1)}s) · Excluded from Vox</span>
+        </div>
+
+        {block.flag && <p className="mt-1 text-[11px] text-amber-300 flex items-center gap-1"><AlertTriangle size={11} /> {block.flag}</p>}
+        {!clip && !block.spaceTitle && <p className="mt-1 text-[11px] text-amber-300">Sync clips to link full audio metadata.</p>}
+      </div>
+    );
+  }
+
+  // 3. SFX, Score, & Stage Direction (`type: "CUE"`)
+  if (block.kind === 'cue' || (block.type === 'CUE' && block.kind !== 'pause' && block.kind !== 'music')) {
+    const cueBlock = block as { id: string; kind: string; sec?: number; text?: string; note?: string; cueType?: string; locked?: boolean };
+    const sec = 'sec' in block && typeof (block as any).sec === 'number' ? (block as any).sec : 0;
+    const isPause = cueBlock.cueType === 'silence' || cueBlock.cueType === 'beat' || sec > 0;
+    const label = 'text' in block && (block as any).text ? (block as any).text : ('note' in block && (block as any).note ? (block as any).note : (isPause ? `${sec}s pause` : 'Cue'));
+    return (
+      <div className="group rounded-md border border-slate-800 bg-slate-950/60 px-3 py-2 flex items-center gap-2 text-xs transition-all">
+        {isPause ? (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0">
+            {cueBlock.cueType === 'beat' ? 'BEAT' : 'SILENCE'}
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 shrink-0">
+            {cueBlock.cueType === 'sfx' ? 'SFX' : cueBlock.cueType === 'theme' ? 'THEME' : 'CUE'}
+          </span>
+        )}
+        <div className="flex-1 min-w-0 text-slate-300 font-mono text-[11px] truncate">
+          {label}
+        </div>
+        <div className="text-[11px] text-slate-500 shrink-0">
+          {isPause ? (
+            <span className="text-amber-400 font-mono">{sec}s pause</span>
+          ) : (
+            <span>0s · direction (excluded from Vox)</span>
+          )}
+        </div>
+        {tools}
+      </div>
+    );
+  }
+
+  // 4. Quoted Transcripts / Evidence Reads (`type: "QUOTE_READ"`)
+  if (block.kind === 'narration' && (block.type === 'QUOTE_READ' || block.readEvidence)) {
+    const estSec = ((block.text.trim().split(/\s+/).filter(Boolean).length / 155) * 60).toFixed(1);
+    return (
+      <div className={cx(
+        'group rounded-md border border-l-4 border-l-cyan-500 border-slate-800 bg-cyan-950/20 p-3 transition-all',
+        block.locked && 'bg-amber-950/10'
+      )}>
+        <div className="flex items-center gap-2 mb-1.5 text-[11px] uppercase tracking-wide">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            LOGAN (READING EVIDENCE)
+          </span>
+          <span className="normal-case text-slate-400 text-[11px]">
+            Spoken quote · about {estSec}s (at 155 wpm)
+          </span>
+          <div className="flex-1" />
+          {tools}
+        </div>
+        <AutoResizeTextarea
+          className="w-full bg-transparent text-sm italic font-serif text-cyan-100 leading-relaxed focus:outline-none"
+          value={block.text}
+          onChange={val => onChange({ ...block, text: val })}
+          placeholder="Logan reading evidence text..."
+        />
+      </div>
+    );
+  }
+
+  // 5. Standard Narration (`type: "NARRATION"`)
   if (block.kind === 'narration') {
     return (
-      <div className={cx('rounded-md border p-2.5', block.locked ? 'border-amber-700/50 bg-amber-950/10' : 'border-slate-800 bg-slate-950/50')}>
+      <div className={cx('group rounded-md border p-3 transition-all', block.locked ? 'border-amber-700/50 bg-amber-950/10' : 'border-slate-800 bg-slate-950/50')}>
         <div className="flex items-center gap-2 mb-1.5 text-[11px] uppercase tracking-wide text-slate-500">
-          <span className="text-indigo-300">Narration</span><span>{block.mode}</span>
+          <span className="text-indigo-300 font-semibold">Narration</span>
+          <span className="text-slate-400">{block.mode}</span>
           {hasValidTake(block) ? (
             <>
-              <button onClick={onPlay} className="text-indigo-300 hover:text-white" title="Play the Vox take">{playing ? <Pause size={13} /> : <Play size={13} />}</button>
-              <span className="normal-case text-slate-300">{block.takeSec.toFixed(1)} s Vox take</span>
+              <button onClick={onPlay} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 hover:text-white" title="Play the Vox take">
+                {playing ? <Pause size={12} /> : <Play size={12} />}
+                <span>{block.takeSec.toFixed(1)}s take</span>
+              </button>
             </>
           ) : (
-            <span className="normal-case" title="Words at 155 per minute; preview the audio for the real length">{block.takeUrl ? 'take is for older wording, ' : ''}about {((block.text.trim().split(/\s+/).filter(Boolean).length / 155) * 60).toFixed(1)} s, estimated</span>
+            <span className="normal-case text-slate-400" title="Words at 155 per minute; preview the audio for the real length">
+              {block.takeUrl ? 'take is for older wording, ' : ''}about {((block.text.trim().split(/\s+/).filter(Boolean).length / 155) * 60).toFixed(1)}s (est)
+            </span>
           )}
-          <div className="flex-1" />{tools}
+          <div className="flex-1" />
+          {tools}
         </div>
-        <textarea className="w-full bg-transparent text-sm text-slate-100 leading-relaxed resize-y min-h-[3rem] focus:outline-none" value={block.text}
-          onChange={e => onChange({ ...block, text: e.target.value })} rows={Math.min(8, Math.max(2, Math.ceil(block.text.length / 90)))} />
+        <AutoResizeTextarea
+          className="w-full bg-transparent text-sm text-slate-100 leading-relaxed focus:outline-none"
+          value={block.text}
+          onChange={val => onChange({ ...block, text: val })}
+          placeholder="Enter narration..."
+        />
         {block.claims.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">
             {block.claims.map((c, i) => (
@@ -705,37 +900,25 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
       </div>
     );
   }
-  if (block.kind === 'clip') {
-    return (
-      <div className={cx('rounded-md border p-2.5', block.locked ? 'border-amber-700/50 bg-amber-950/10' : 'border-emerald-900/50 bg-emerald-950/10')}>
-        <div className="flex items-center gap-2 mb-1 text-[11px] uppercase tracking-wide text-slate-500">
-          <button onClick={onPlay} className="text-emerald-300 hover:text-white" title="Play this cut">{playing ? <Pause size={13} /> : <Play size={13} />}</button>
-          <span className="text-emerald-300">Clip</span>
-          <span className="normal-case text-slate-300 truncate">{clip?.title || block.clipId}</span>
-          <span>{clip?.speaker}</span>
-          <span>{hms(block.inSec)}–{hms(block.outSec)} ({(block.outSec - block.inSec).toFixed(1)} s, {block.trimBasis})</span>
-          <span className="text-slate-400">{block.fn}</span>
-          <div className="flex-1" />{tools}
-        </div>
-        <p className="text-sm text-slate-200 italic">“{block.keptText}”</p>
-        {block.flag && <p className="mt-1 text-[11px] text-amber-300 flex items-center gap-1"><AlertTriangle size={11} /> {block.flag}</p>}
-        {!clip && <p className="mt-1 text-[11px] text-rose-300">This clip is no longer in the project.</p>}
-      </div>
-    );
-  }
+
+  // 6. Pause tag
   if (block.kind === 'pause') {
     return (
-      <div className="rounded-md border border-slate-800 bg-slate-950/40 px-2.5 py-1.5 flex items-center gap-2 text-xs text-slate-400">
+      <div className="group rounded-md border border-slate-800 bg-slate-950/40 px-2.5 py-1.5 flex items-center gap-2 text-xs text-slate-400 transition-all">
         Pause <input type="number" step={0.5} min={0} max={10} className={cx(input, 'w-16')} value={block.sec} onChange={e => onChange({ ...block, sec: Math.max(0, Number(e.target.value) || 0) })} /> s
-        <div className="flex-1" />{tools}
+        <div className="flex-1" />
+        {tools}
       </div>
     );
   }
+
+  // 7. Music marker
   return (
-    <div className="rounded-md border border-fuchsia-900/50 bg-fuchsia-950/10 px-2.5 py-1.5 flex items-center gap-2 text-xs text-fuchsia-200">
+    <div className="group rounded-md border border-fuchsia-900/50 bg-fuchsia-950/10 px-2.5 py-1.5 flex items-center gap-2 text-xs text-fuchsia-200 transition-all">
       Music marker: {block.cue.replace('_', ' ')} <span className="text-slate-400">{block.note}</span>
       <span className="text-[10px] text-slate-500">(label only; music is added outside the app)</span>
-      <div className="flex-1" />{tools}
+      <div className="flex-1" />
+      {tools}
     </div>
   );
 }
@@ -746,6 +929,7 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
 
 export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => void } = {}) {
   const player = usePlayer();
+  const montage = useMontage();
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [checking, setChecking] = useState(false);
   const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_STORAGE_KEY); } catch { return null; } });
@@ -770,9 +954,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const [notice, setNotice] = useState<string | null>(null);
   const [showUploadVersionModal, setShowUploadVersionModal] = useState(false);
   const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
+  const [leftTab, setLeftTab] = useState<'pipeline' | 'evidence' | 'transcripts'>('pipeline');
+  const [drawerOpen, setDrawerOpen] = useState<'refine' | 'versions' | null>(null);
+  const [collapsedScenes, setCollapsedScenes] = useState<Record<string, boolean>>({});
+  const [audioProgress, setAudioProgress] = useState<string | null>(null);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
+
   // When a preview finishes, refresh the takes without throwing away edits made meanwhile.
   const preview = usePreviewJob(projectId, () => {
     if (!projectId) return;
@@ -854,6 +1043,30 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const runtime = useMemo(() => (segments ? estimateRuntime(segments) : null), [segments]);
   const names = namesForTag(project?.speakerNames, tag);
 
+  const allScenes = useMemo(() => {
+    if (!segments) return [];
+    return segments.flatMap(seg => seg.scenes.map(sc => ({ ...sc, segmentTitle: seg.title })));
+  }, [segments]);
+
+  const sceneRuntimes = useMemo(() => {
+    if (!segments) return {};
+    const map: Record<string, number> = {};
+    for (const seg of segments) {
+      for (const sc of seg.scenes) {
+        let sec = 0;
+        for (const b of sc.blocks) {
+          sec += blockSeconds(b).sec;
+        }
+        map[sc.id] = Math.round(sec);
+      }
+    }
+    return map;
+  }, [segments]);
+
+  const takesCount = useMemo(() => {
+    return segments ? countTakes(segments) : { withTake: 0, narration: 0 };
+  }, [segments]);
+
   const act = async (label: string, fn: () => Promise<unknown>) => {
     if (dirty && !window.confirm('You have unsaved edits. Continue and discard them?')) return;
     setBusy(label); setError(null);
@@ -879,20 +1092,34 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     });
     setDirty(true);
   };
+
   const addNarration = (segI: number, scI: number) => {
     setSegments(prev => {
       if (!prev) return prev;
       const copy: Segment[] = JSON.parse(JSON.stringify(prev));
-      copy[segI].scenes[scI].blocks.push({ id: `b_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`, kind: 'narration', text: 'New narration.', mode: 'live', claims: [] });
+      copy[segI].scenes[scI].blocks.push({
+        id: `b_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+        kind: 'narration',
+        type: 'NARRATION',
+        text: 'New narration.',
+        mode: 'live',
+        claims: [],
+      });
       return copy;
     });
     setDirty(true);
   };
+
+  const toggleScene = (scId: string) => {
+    setCollapsedScenes(prev => ({ ...prev, [scId]: !prev[scId] }));
+  };
+
   const save = () => act('Saving', async () => {
     if (!segments) return;
     await scriptApi.saveVersion(project.id, project.headVersionId, segments, 'Edit');
     setDirty(false);
   });
+
   const playTake = (b: Extract<Block, { kind: 'narration' }>) => {
     if (!hasValidTake(b)) return;
     const id = `script:${b.id}`;
@@ -900,6 +1127,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     stopRef.current = null;
     player.play({ id, title: `Narration: ${b.text.slice(0, 60)}`, audioUrl: b.takeUrl });
   };
+
   const playClip = (b: Extract<Block, { kind: 'clip' }>) => {
     const c = clipsById[b.clipId];
     if (!c) return;
@@ -908,6 +1136,122 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     const off = c.audioOffsetSec || 0;
     stopRef.current = { id, at: off + b.outSec };
     player.play({ id, title: c.title, audioUrl: c.audioUrl }, off + b.inSec);
+  };
+
+  const syncClipsFromScript = async () => {
+    if (!segments || !project) return;
+    const detected: { clipNumber: string; spaceTitle?: string; date?: string; time?: string; speaker?: string; quote: string; durationSec: number }[] = [];
+    const seen = new Set<string>();
+
+    for (const seg of segments) {
+      for (const sc of seg.scenes) {
+        for (const b of sc.blocks) {
+          if (b.kind === 'clip' && (b.clipNumber || (b as any).type === 'ARCHIVAL_CLIP')) {
+            const num = b.clipNumber || b.clipId.replace(/^clip_/, '');
+            if (!seen.has(num)) {
+              seen.add(num);
+              detected.push({
+                clipNumber: num,
+                spaceTitle: b.spaceTitle,
+                date: b.date,
+                time: b.time,
+                speaker: b.speaker || 'Unknown',
+                quote: b.keptText || '',
+                durationSec: Math.max(1, b.outSec - b.inSec || 5),
+              });
+            }
+          }
+        }
+      }
+    }
+
+    if (detected.length === 0) {
+      setNotice('No [CLIP #...] archival tags detected in this manuscript to sync.');
+      return;
+    }
+
+    const existingMap = new Map((project.clips || []).map(c => [c.clipId, c]));
+    let addedCount = 0;
+    const updatedClips = [...(project.clips || [])];
+
+    for (const d of detected) {
+      const clipId = `clip_${d.clipNumber}`;
+      if (!existingMap.has(clipId)) {
+        const newStudioClip: StudioClip = {
+          clipId,
+          title: d.spaceTitle ? `${d.spaceTitle} (#${d.clipNumber})` : `Clip #${d.clipNumber}`,
+          speaker: d.speaker || 'Unknown',
+          releaseTag: project.sourceTags[0] || 'catalog',
+          audioUrl: '',
+          durationSec: d.durationSec,
+          text: d.quote,
+          fn: 'evidence',
+          fnRationale: d.spaceTitle ? `Parsed from script (${d.spaceTitle})` : 'Parsed from script',
+        };
+        updatedClips.push(newStudioClip);
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0) {
+      await scriptApi.updateProject(project.id, { clips: updatedClips });
+      await load(project.id);
+      setNotice(`Synced ${addedCount} archival clip(s) from script into audio library.`);
+    } else {
+      setNotice(`All ${detected.length} archival clips from script are already reconciled in audio library.`);
+    }
+  };
+
+  const sendToMontage = () => {
+    if (!data?.head) return;
+    const c = compileScript(project, data.head, { clipAudioUrl: clipId => scriptApi.clipAudioUrl(project.id, clipId) });
+    if (!c || !c.ok) {
+      if (c?.blocked?.length) {
+        alert(`Cannot send to Montage:\n${c.blocked.map(b => `• ${b.sceneTitle}: ${b.reason}`).join('\n')}`);
+      }
+      return;
+    }
+    if (montage.clips.length && !window.confirm(`Replace the ${montage.clips.length} clips on the Montage timeline with this script (${c.items.length} items)? Undo in Montage brings them back.`)) return;
+    montage.replaceClips(c.items.map(i => i.item));
+    setNotice(`Sent ${c.items.length} items to Montage Studio${c.markers.length ? `; ${c.markers.length} music markers listed` : ''}.`);
+    onOpenMontage?.();
+  };
+
+  const finishEpisode = async () => {
+    if (!data?.head) return;
+    const c = compileScript(project, data.head, { clipAudioUrl: clipId => scriptApi.clipAudioUrl(project.id, clipId) });
+    if (!c || !c.ok) {
+      if (c?.blocked?.length) {
+        alert(`Cannot finish episode:\n${c.blocked.map(b => `• ${b.sceneTitle}: ${b.reason}`).join('\n')}`);
+      }
+      return;
+    }
+    setNotice(null);
+    setAudioProgress('Rendering and mastering audio...');
+    try {
+      const audioCtx = getSharedAudioContext();
+      if (audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch { /* ignore */ } }
+      const out = await renderCompiled(c.items, {
+        audioCtx,
+        fetchAudio: async url => {
+          const src = (await getCachedAudioUrl(url)) || url;
+          const res = await fetch(toFetchableUrl(src));
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.arrayBuffer();
+        },
+        onProgress: setAudioProgress,
+      });
+      setAudioProgress('Saving render manifest in project...');
+      const manifest = buildManifest(project, data.head, c, Date.now(), out.renderedSec, out.measured);
+      await scriptApi.saveRenderManifest(project.id, data.head.id, manifest);
+      const saved = await scriptApi.uploadRender(project.id, data.head.id, out.wav);
+      const mmss = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.round(Math.max(0, s) % 60)).padStart(2, '0')}`;
+      setNotice(`Finished episode saved: ${mmss(saved.audio?.durationSec || out.totalSec)}, ${(saved.audio!.bytes / 1e6).toFixed(1)} MB, ${out.measured.integratedLufs} LUFS.`);
+    } catch (e: any) {
+      setError(e instanceof RenderError ? new Error(`Render stopped at block ${e.blockId}: ${e.message}`) : e);
+    } finally {
+      setAudioProgress(null);
+    }
   };
 
   const run = runInfo?.run;
@@ -931,11 +1275,11 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const headVersion = data?.versions.find(v => v.id === project.headVersionId);
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 text-slate-200">
+    <div id="script-studio" className="h-full flex flex-col bg-slate-950 text-slate-200 overflow-hidden relative font-sans">
       {/* Header */}
-      <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-2 shrink-0">
+      <div className="border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center gap-2.5 shrink-0 bg-slate-950 z-20">
         <button className={btnGhost} onClick={() => { if (dirty && !window.confirm('Discard unsaved edits?')) return; setProjectId(null); setRunId(null); }}><ChevronLeft size={12} /> Projects</button>
-        <input className={cx(input, 'w-64 font-semibold')} value={project.title} onChange={e => setData(d => (d ? { ...d, project: { ...d.project, title: e.target.value } } : d))}
+        <input className={cx(input, 'w-60 font-semibold text-white')} value={project.title} onChange={e => setData(d => (d ? { ...d, project: { ...d.project, title: e.target.value } } : d))}
           onBlur={e => void scriptApi.updateProject(project.id, { title: e.target.value }).catch(setError)} />
         <select className={input} value={project.format || ''} onChange={e => void act('Saving format', () => scriptApi.updateProject(project.id, { format: e.target.value || null }))}>
           <option value="">Format: not set</option>
@@ -945,23 +1289,48 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
           <input type="number" min={1} className={cx(input, 'w-16')} defaultValue={Math.round(project.targetRuntimeSec / 60)} key={project.targetRuntimeSec}
             onBlur={e => void act('Saving length', () => scriptApi.updateProject(project.id, { targetRuntimeSec: Math.max(1, Number(e.target.value) || 1) * 60 }))} /> min
         </label>
-        {runtime && segments && <span className={cx('text-xs', data?.gates?.runtimeOk ? 'text-emerald-400' : 'text-amber-400')}>Now {hms(runtime.sec)}{runtime.estimated ? (() => { const t = countTakes(segments); return t.withTake ? ` (${t.withTake} of ${t.narration} narration lines measured from Vox takes, the rest estimated at 155 wpm)` : ' (narration estimated at 155 wpm)'; })() : countTakes(segments).narration ? ' (narration measured from Vox takes)' : ''}</span>}
+        {runtime && segments && (
+          <span className={cx('text-xs font-mono font-medium', data?.gates?.runtimeOk ? 'text-emerald-400' : 'text-amber-400')}>
+            Now {hms(runtime.sec)}
+          </span>
+        )}
         <div className="flex-1" />
-        <button className={btnGhost} onClick={() => setShowRoles(s => !s)}>Models: {roles.mode === 'subscription' ? 'subscriptions' : `fallback, cap $${roles.maxUsd.toFixed(2)}`}</button>
-        {runActive ? (
-          <button className={btnGhost} onClick={() => void scriptApi.cancel(project.id, run!.id).catch(setError)}><Square size={12} /> Cancel run</button>
-        ) : (
-          <button className={btnPrimary} disabled={!stage.draft || !!busy || dirty} title={dirty ? 'Save your edits first' : ''}
-            onClick={() => void act('Starting refinement', async () => { const r = await scriptApi.refine(project.id, roles); setRunId(r.runId); })}><Wand2 size={12} /> Refine</button>
-        )}
-        {!runActive && (
-          <button className={btnGhost} disabled={!stage.draft || !!busy || dirty} title="Critique every segment once and change nothing"
-            onClick={() => void act('Critiquing', async () => { const r = await scriptApi.refine(project.id, roles, { critiqueOnly: true }); setRunId(r.runId); })}>Critique only</button>
-        )}
-        {run && <span className="text-xs text-slate-400">Run: <span className={cx(run.status === 'running' && 'text-indigo-300', run.status === 'paused_limit' && 'text-amber-300', run.status === 'finished' && 'text-emerald-300', run.status === 'failed' && 'text-rose-300')}>{run.status.replace('_', ' ')}</span>{run.status === 'running' ? `, round ${run.currentRound + 1} of ${run.maxRounds}` : ''}{run.mode === 'fallback' ? `, $${run.spentUsd.toFixed(4)} of $${run.maxUsd.toFixed(2)}` : ''}</span>}
+
+        {/* Top Action Bar Group */}
+        <button className={btnGhost} onClick={() => setShowRoles(s => !s)} title="Configure model providers and roles">
+          Models: {roles.mode === 'subscription' ? 'sub' : `$${roles.maxUsd.toFixed(2)}`}
+        </button>
+
+        <button
+          className={cx(btnGhost, drawerOpen === 'refine' && 'bg-indigo-950 border-indigo-500 text-indigo-300')}
+          onClick={() => setDrawerOpen(d => (d === 'refine' ? null : 'refine'))}
+          title="Open AI Refinement & Grok Bot Drawer"
+        >
+          <Wand2 size={12} className="text-indigo-400" />
+          <span>Grok Pass &amp; Refine</span>
+          {runActive && <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />}
+        </button>
+
+        <button
+          className={cx(btnGhost, drawerOpen === 'versions' && 'bg-indigo-950 border-indigo-500 text-indigo-300')}
+          onClick={() => setDrawerOpen(d => (d === 'versions' ? null : 'versions'))}
+          title="Open Version History Drawer"
+        >
+          <History size={12} className="text-slate-400" />
+          <span>Versions ({data?.versions.length || 0})</span>
+        </button>
+
+        <button className={btnGhost} onClick={() => setShowUploadVersionModal(true)} title="Upload a script file or paste text">
+          <Upload size={12} /> Upload
+        </button>
+
+        <button className={btnPrimary} disabled={!dirty || !!busy} onClick={() => void save()}>
+          <Save size={12} /> Save
+        </button>
       </div>
+
       {showRoles && (
-        <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/50 shrink-0">
+        <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/60 shrink-0 z-10">
           <label className="flex items-center gap-1">Mode
             <select className={input} value={roles.mode} onChange={e => setRoles(r => ({ ...r, mode: e.target.value as RoleChoice['mode'], roleMap: {} }))}>
               <option value="subscription">Subscriptions (Claude Code + Codex)</option>
@@ -979,264 +1348,457 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               </label>
             );
           })}
-          <label className="flex items-center gap-1">Dollar cap per run <input type="number" min={0} step={0.05} className={cx(input, 'w-20')} value={roles.maxUsd} onChange={e => setRoles(r => ({ ...r, maxUsd: Math.max(0, Number(e.target.value) || 0) }))} /></label>
-          <label className="flex items-center gap-1"><input type="checkbox" checked={roles.episodePass !== false} onChange={e => setRoles(r => ({ ...r, episodePass: e.target.checked }))} /> Episode structure pass after the scene rounds</label>
-          {roles.mode === 'fallback' && <label className="flex items-center gap-1" title="One claude-sonnet-5.5 call through CheaperInference; the result waits for your review"><input type="checkbox" checked={!!roles.polish} onChange={e => setRoles(r => ({ ...r, polish: e.target.checked }))} /> Final narration polish</label>}
-          <span className="text-slate-500">Judge and fact check must be a different model family from the reviser; the server refuses otherwise.</span>
+          <label className="flex items-center gap-1">Dollar cap <input type="number" min={0} step={0.05} className={cx(input, 'w-20')} value={roles.maxUsd} onChange={e => setRoles(r => ({ ...r, maxUsd: Math.max(0, Number(e.target.value) || 0) }))} /></label>
+          <label className="flex items-center gap-1"><input type="checkbox" checked={roles.episodePass !== false} onChange={e => setRoles(r => ({ ...r, episodePass: e.target.checked }))} /> Episode structure pass</label>
         </div>
       )}
-      {(error || busy) && <div className="px-4 pt-2 space-y-2 shrink-0">
-        {busy && <div className="text-xs text-indigo-300 flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> {busy}…</div>}
-        <ErrorBox error={error} onClose={() => setError(null)} />
-      </div>}
 
-      <div className="flex-1 min-h-0 grid grid-cols-[18rem_minmax(0,1fr)_22rem]">
-        {/* Left: stages, speakers, transcript, clip bin */}
-        <aside className="border-r border-slate-800 overflow-y-auto p-3 space-y-4">
-          <div className="space-y-1.5">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Stages</div>
-            <StageRow done={stage.analysis} label={project.sourceTags.length > 1 ? `Analyse the ${project.sourceTags.length} recordings` : 'Analyse the episode'} note={project.sourceTags.length > 1 ? `${project.sourceTags.filter(t => data?.analyses[t]).length} of ${project.sourceTags.length} analysed` : analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes${analysis.chunks.some(c => !c.ok) ? `; ${analysis.chunks.filter(c => !c.ok).length} chunk(s) failed` : ''}` : undefined}
-              action={<button className={btnGhost} disabled={!!busy} onClick={() => void act('Analysing (one model call per transcript chunk), then tagging clips', async () => {
-                const r = await scriptApi.analyze(project.id, roles, stage.analysis);
-                if ('error' in r.tagging) setError(new ScriptApiError(0, r.tagging.code, `The analysis is saved, but clip tagging failed: ${r.tagging.error}`));
-              })}>{stage.analysis ? 'Re-run' : 'Run'}</button>} />
-            <StageRow done={stage.outline} label="Outline" action={<button className={btnGhost} disabled={!!busy || !stage.analysis} onClick={() => void act('Outlining', () => scriptApi.outline(project.id, roles))}>{stage.outline ? 'New outline' : 'Run'}</button>} />
-            <StageRow done={stage.draft} label="Draft narration and clips" action={<button className={btnGhost} disabled={!!busy || !stage.outline} title="The first draft builds Logan's style card from the whole archive if there is none yet"
-              onClick={() => void act('Drafting each segment (building the style card first if needed)', async () => { const r = await scriptApi.draft(project.id, roles); setNotice(r.style.warning || (r.style.built ? "Built Logan's style card from the archive before drafting." : null)); })}>Run</button>} />
-            <StageRow done={run?.status === 'finished'} label="Refine (background)" note={run ? `${run.status.replace('_', ' ')}${run.stopReason ? `: ${run.stopReason.replace(/_/g, ' ')}` : ''}` : 'Use Refine in the header.'} />
+      {(error || busy || audioProgress) && (
+        <div className="px-4 pt-2 space-y-2 shrink-0 z-10">
+          {busy && <div className="text-xs text-indigo-300 flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> {busy}…</div>}
+          {audioProgress && <div className="text-xs text-teal-300 flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> {audioProgress}</div>}
+          <ErrorBox error={error} onClose={() => setError(null)} />
+        </div>
+      )}
+
+      {/* Main 2-Pane Work Area: Left Tabbed Column (30%) + Center Script Editor (70%) */}
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* Left Consolidated Panel: Top Tabs for Pipeline, Evidence, Transcripts */}
+        <aside className="w-80 md:w-88 shrink-0 border-r border-slate-800 flex flex-col bg-slate-950 overflow-hidden">
+          {/* Top Tabs */}
+          <div className="border-b border-slate-800 bg-slate-950 px-2 pt-2 flex items-center gap-1 shrink-0 text-xs font-medium">
+            <button
+              className={cx('px-3 py-1.5 border-b-2 transition-colors', leftTab === 'pipeline' ? 'border-indigo-500 text-indigo-300 bg-indigo-950/20' : 'border-transparent text-slate-400 hover:text-slate-200')}
+              onClick={() => setLeftTab('pipeline')}
+            >
+              Pipeline &amp; Stages
+            </button>
+            <button
+              className={cx('px-3 py-1.5 border-b-2 transition-colors flex items-center gap-1.5', leftTab === 'evidence' ? 'border-indigo-500 text-indigo-300 bg-indigo-950/20' : 'border-transparent text-slate-400 hover:text-slate-200')}
+              onClick={() => setLeftTab('evidence')}
+            >
+              <span>Evidence &amp; Context</span>
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300 font-mono">
+                {(project.evidenceDocs?.length || 0) + (project.sourceTags?.length || 0)}
+              </span>
+            </button>
+            <button
+              className={cx('px-3 py-1.5 border-b-2 transition-colors', leftTab === 'transcripts' ? 'border-indigo-500 text-indigo-300 bg-indigo-950/20' : 'border-transparent text-slate-400 hover:text-slate-200')}
+              onClick={() => setLeftTab('transcripts')}
+            >
+              Source Transcripts
+            </button>
           </div>
 
-          {notice && <div className="text-[11px] text-indigo-200 flex items-start gap-1"><span className="flex-1">{notice}</span><button onClick={() => setNotice(null)}><X size={11} /></button></div>}
+          {/* Tab 1: Pipeline & Stages */}
+          {leftTab === 'pipeline' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-4">
+              <div className="space-y-1.5">
+                <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Pipeline Stages</div>
+                <StageRow done={stage.analysis} label={project.sourceTags.length > 1 ? `Analyse ${project.sourceTags.length} recordings` : 'Analyse episode'} note={project.sourceTags.length > 1 ? `${project.sourceTags.filter(t => data?.analyses[t]).length} of ${project.sourceTags.length} analysed` : analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes` : undefined}
+                  action={<button className={btnGhost} disabled={!!busy} onClick={() => void act('Analysing recordings', async () => {
+                    const r = await scriptApi.analyze(project.id, roles, stage.analysis);
+                    if ('error' in r.tagging) setError(new ScriptApiError(0, r.tagging.code, `The analysis is saved, but clip tagging failed: ${r.tagging.error}`));
+                  })}>{stage.analysis ? 'Re-run' : 'Run'}</button>} />
+                <StageRow done={stage.outline} label="Outline" action={<button className={btnGhost} disabled={!!busy || !stage.analysis} onClick={() => void act('Outlining', () => scriptApi.outline(project.id, roles))}>{stage.outline ? 'New outline' : 'Run'}</button>} />
+                <StageRow done={stage.draft} label="Draft narration and clips" action={<button className={btnGhost} disabled={!!busy || !stage.outline}
+                  onClick={() => void act('Drafting each segment', async () => { const r = await scriptApi.draft(project.id, roles); setNotice(r.style.warning || (r.style.built ? "Built style card from archive." : null)); })}>Run</button>} />
+                <StageRow done={run?.status === 'finished'} label="Refine &amp; Polish" note={run ? `${run.status.replace('_', ' ')}` : 'Use AI Refine in header.'} />
+              </div>
 
-          {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
-          {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
-          <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
+              {notice && <div className="text-[11px] text-indigo-200 bg-indigo-950/40 p-2 rounded border border-indigo-900/50 flex items-start gap-1"><span className="flex-1">{notice}</span><button onClick={() => setNotice(null)}><X size={11} /></button></div>}
 
-          {data?.transcriptChanged.length ? <div className="text-[11px] text-amber-300">The transcript changed on disk since this project was created. Re-run the analysis.</div> : null}
+              {/* Clip Bin with Catalog Sync action */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+                <div className="flex items-center gap-1 justify-between">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Clip Bin ({project.clips.length})</div>
+                  <div className="flex items-center gap-1">
+                    <button className={btnGhost} onClick={syncClipsFromScript} title="Detect all [CLIP #...] in manuscript and reconcile with audio library">
+                      <FolderSync size={12} className="text-teal-400" /> Sync Clips
+                    </button>
+                    <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with narrative function"
+                      onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag</button>
+                  </div>
+                </div>
+                {project.clips.length === 0 && <div className="text-[11px] text-slate-500 italic">No clips synced yet. Click "Sync Clips" to parse archival tape from manuscript.</div>}
+                {[...NARRATIVE_FUNCTIONS, undefined].map(fn => {
+                  const list = project.clips.filter(c => c.fn === fn);
+                  if (!list.length) return null;
+                  return (
+                    <div key={fn || 'untagged'} className="space-y-1">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">{fn ? fn.replace('_', ' ') : 'untagged'} ({list.length})</div>
+                      {list.map(c => (
+                        <div key={c.clipId} className="flex items-center gap-1 text-[11px] text-slate-300 py-0.5" title={c.fnRationale ? `${c.fnRationale}\n\n${c.text}` : c.text}>
+                          <span className="truncate flex-1">{c.title}</span>
+                          <span className="text-slate-500 font-mono text-[10px]">{hms(c.durationSec)}</span>
+                          <select className="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 max-w-[6rem]" value={c.fn || ''} title="Narrative function"
+                            onChange={e => void act('Retagging', () => scriptApi.retagClip(project.id, c.clipId, e.target.value || null))}>
+                            <option value="">untagged</option>
+                            {NARRATIVE_FUNCTIONS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
+                          </select>
+                          <button className="text-slate-500 hover:text-rose-400" title="Remove from project" onClick={() => void act('Removing clip', () => scriptApi.updateProject(project.id, { removeClipIds: [c.clipId] }))}><Trash2 size={11} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
 
-          {stats && stats.unnamedShare > 0.2 && (
-            <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2 space-y-1.5">
-              <div className="text-[11px] text-amber-200 flex items-center gap-1"><AlertTriangle size={11} /> {Math.round(stats.unnamedShare * 100)}% of speech has no speaker name. Name them so quotes and narration attribute correctly.</div>
-              {stats.topUnnamed.map(u => (
-                <label key={u.speaker} className="flex items-center gap-1 text-[11px] text-slate-300">{u.speaker} ({hms(u.sec)})
-                  <input className={cx(input, 'flex-1')} placeholder="Name" value={renames[u.speaker] ?? names[u.speaker] ?? ''} onChange={e => setRenames(r => ({ ...r, [u.speaker]: e.target.value }))} />
-                </label>
-              ))}
-              <button className={btnGhost} onClick={() => void act('Saving names', () => scriptApi.updateProject(project.id, { speakerNames: { ...project.speakerNames, ...Object.fromEntries(Object.entries(renames).map(([raw, v]) => [renameKey(project.sourceTags.length, tag, raw), v])) } }).then(() => setRenames({})))}>Save names</button>
+              {analysis && (
+                <details className="text-[11px] text-slate-300 pt-2 border-t border-slate-800/80" open={!stage.outline}>
+                  <summary className="text-[11px] uppercase tracking-wide text-slate-500 cursor-pointer font-bold">Analysis Insights ({analysis.provider})</summary>
+                  {analysis.themes.map(t => <div key={t.id} className="mt-1"><span className="text-indigo-300 font-medium">{t.label}:</span> {t.summary}</div>)}
+                  {analysis.moments.map(m => (
+                    <button key={m.id} className="block text-left mt-1 hover:text-white" onClick={() => { setQuery(''); setFocusTime(m.start); setLeftTab('transcripts'); }}>
+                      <span className="text-slate-500 font-mono">{hms(m.start)} {m.kind}</span> {m.why}
+                    </button>
+                  ))}
+                </details>
+              )}
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Transcript{project.sourceTags.length > 1 ? ` (${data?.recordings.find(r => r.releaseTag === tag)?.key || ''} ${data?.recordings.find(r => r.releaseTag === tag)?.date || ''})` : ''}</div>
-            <input className={cx(input, 'w-full')} placeholder="Search words or speaker" value={query} onChange={e => { setQuery(e.target.value); setFocusTime(null); }} />
-            <div className="text-[11px] text-slate-500">Click a line, then another, to select a range to add as a clip.</div>
-            <ul className="space-y-0.5 max-h-80 overflow-y-auto">
-              {searchRows.map(r => {
-                const i = Number(r.id.slice(1));
-                const inSel = sel.from != null && i >= sel.from && i <= (sel.to ?? sel.from);
-                const near = focusTime != null && r.start <= focusTime && r.end >= focusTime;
-                return (
-                  <li key={r.id}>
-                    <button onClick={() => pick(i)} className={cx('w-full text-left text-[11px] rounded px-1.5 py-1', inSel ? 'bg-indigo-900/50' : near ? 'bg-slate-800' : 'hover:bg-slate-900')}>
-                      <span className="text-slate-500">{hms(r.start)} </span><span className="text-indigo-300">{names[r.speaker] || r.speaker}: </span><span className="text-slate-300">{r.text}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            {sel.from != null && (
-              <div className="flex items-center gap-1">
-                <button className={btnGhost} onClick={() => void act('Adding clip', () => scriptApi.addClip(project.id, `u${sel.from}`, `u${sel.to ?? sel.from}`, tag)).then(() => setSel({}))}><Scissors size={12} /> Add u{sel.from}{sel.to != null ? `–u${sel.to}` : ''} as a clip</button>
-                <button className="text-slate-500 hover:text-white" onClick={() => setSel({})}><X size={12} /></button>
-              </div>
-            )}
-          </div>
+          {/* Tab 2: Evidence & Context */}
+          {leftTab === 'evidence' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-4">
+              {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
+              {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
+              <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
 
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
-              <div className="text-[11px] uppercase tracking-wide text-slate-500 flex-1">Clip bin ({project.clips.length})</div>
-              <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with its narrative function (your own tags are kept)"
-                onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag clips</button>
-            </div>
-            {project.clips.length === 0 && <div className="text-[11px] text-slate-500">No catalog clips for this episode. Add clips from the transcript above.</div>}
-            {[...NARRATIVE_FUNCTIONS, undefined].map(fn => {
-              const list = project.clips.filter(c => c.fn === fn);
-              if (!list.length) return null;
-              return (
-                <div key={fn || 'untagged'}>
-                  <div className="text-[11px] text-slate-400">{fn ? fn.replace('_', ' ') : 'untagged'}</div>
-                  {list.map(c => (
-                    <div key={c.clipId} className="flex items-center gap-1 text-[11px] text-slate-300 py-0.5" title={c.fnRationale ? `${c.fnRationale}\n\n${c.text}` : c.text}>
-                      <span className="truncate flex-1">{project.sourceTags.length > 1 && <span className="text-indigo-300">{data?.recordings.find(r => r.releaseTag === c.releaseTag)?.key} </span>}{c.title}</span><span className="text-slate-500">{hms(c.durationSec)}</span>
-                      <select className="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-400 max-w-[6.5rem]" value={c.fn || ''} title="Narrative function"
-                        onChange={e => void act('Retagging', () => scriptApi.retagClip(project.id, c.clipId, e.target.value || null))}>
-                        <option value="">untagged</option>
-                        {NARRATIVE_FUNCTIONS.map(f => <option key={f} value={f}>{f.replace('_', ' ')}</option>)}
-                      </select>
-                      <button className="text-slate-500 hover:text-rose-400" title="Remove from project" onClick={() => void act('Removing clip', () => scriptApi.updateProject(project.id, { removeClipIds: [c.clipId] }))}><Trash2 size={11} /></button>
-                    </div>
+              {stats && stats.unnamedShare > 0.2 && (
+                <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2.5 space-y-1.5">
+                  <div className="text-[11px] text-amber-200 flex items-center gap-1"><AlertTriangle size={11} /> {Math.round(stats.unnamedShare * 100)}% of speech has no speaker name.</div>
+                  {stats.topUnnamed.map(u => (
+                    <label key={u.speaker} className="flex items-center gap-1 text-[11px] text-slate-300">{u.speaker} ({hms(u.sec)})
+                      <input className={cx(input, 'flex-1')} placeholder="Name" value={renames[u.speaker] ?? names[u.speaker] ?? ''} onChange={e => setRenames(r => ({ ...r, [u.speaker]: e.target.value }))} />
+                    </label>
                   ))}
+                  <button className={btnGhost} onClick={() => void act('Saving names', () => scriptApi.updateProject(project.id, { speakerNames: { ...project.speakerNames, ...Object.fromEntries(Object.entries(renames).map(([raw, v]) => [renameKey(project.sourceTags.length, tag, raw), v])) } }).then(() => setRenames({})))}>Save names</button>
                 </div>
-              );
-            })}
-            {project.excludedClips.length > 0 && <details className="text-[11px] text-slate-500"><summary>{project.excludedClips.length} excluded</summary>{project.excludedClips.map(x => <div key={x.clipId}>{x.clipId}: {x.reason}</div>)}</details>}
-          </div>
+              )}
+            </div>
+          )}
 
-          {analysis && (
-            <details className="text-[11px] text-slate-300" open={!stage.outline}>
-              <summary className="text-[11px] uppercase tracking-wide text-slate-500 cursor-pointer">Analysis ({analysis.provider} {analysis.model})</summary>
-              {analysis.themes.map(t => <div key={t.id} className="mt-1"><span className="text-indigo-300">{t.label}:</span> {t.summary}</div>)}
-              {analysis.moments.map(m => (
-                <button key={m.id} className="block text-left mt-1 hover:text-white" onClick={() => { setQuery(''); setFocusTime(m.start); }}>
-                  <span className="text-slate-500">{hms(m.start)} {m.kind}</span> {m.why}
-                </button>
-              ))}
-              {analysis.openQuestions.length > 0 && <div className="mt-1 text-slate-400">Open questions: {analysis.openQuestions.join(' · ')}</div>}
-            </details>
+          {/* Tab 3: Source Transcripts */}
+          {leftTab === 'transcripts' && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Transcript</span>
+                {project.sourceTags.length > 1 && (
+                  <select className={input} value={tag} onChange={e => setViewTag(e.target.value)}>
+                    {project.sourceTags.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                )}
+              </div>
+              <input className={cx(input, 'w-full')} placeholder="Search words or speaker..." value={query} onChange={e => { setQuery(e.target.value); setFocusTime(null); }} />
+              <div className="text-[11px] text-slate-500">Click lines to select quote window and add as clip.</div>
+              <ul className="space-y-0.5 max-h-96 overflow-y-auto">
+                {searchRows.map(r => {
+                  const i = Number(r.id.slice(1));
+                  const inSel = sel.from != null && i >= sel.from && i <= (sel.to ?? sel.from);
+                  const near = focusTime != null && r.start <= focusTime && r.end >= focusTime;
+                  return (
+                    <li key={r.id}>
+                      <button onClick={() => pick(i)} className={cx('w-full text-left text-[11px] rounded px-1.5 py-1 transition-colors', inSel ? 'bg-indigo-900/50' : near ? 'bg-slate-800' : 'hover:bg-slate-900')}>
+                        <span className="text-slate-500 font-mono">{hms(r.start)} </span>
+                        <span className="text-indigo-300 font-semibold">{names[r.speaker] || r.speaker}: </span>
+                        <span className="text-slate-300">{r.text}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              {sel.from != null && (
+                <div className="flex items-center gap-1.5 p-2 rounded bg-indigo-950/40 border border-indigo-900/60">
+                  <button className={btnPrimary} onClick={() => void act('Adding clip', () => scriptApi.addClip(project.id, `u${sel.from}`, `u${sel.to ?? sel.from}`, tag)).then(() => setSel({}))}><Scissors size={12} /> Add u{sel.from}{sel.to != null ? `–u${sel.to}` : ''} as clip</button>
+                  <button className="text-slate-400 hover:text-white" onClick={() => setSel({})}><X size={12} /></button>
+                </div>
+              )}
+            </div>
           )}
         </aside>
 
-        {/* Center: block editor */}
-        <main className="overflow-y-auto p-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="text-sm text-slate-300">{headVersion ? `${headVersion.label || 'Version'} · ${headVersion.author} · ${new Date(headVersion.createdAt).toLocaleString()}` : 'No script yet'}</div>
-            <div className="flex-1" />
-            {dirty && <span className="text-xs text-amber-300">Unsaved edits</span>}
-            <button className={btnGhost} disabled={!dirty} onClick={() => { setSegments(data?.head?.segments || null); setDirty(false); }}><RotateCcw size={12} /> Discard</button>
-            <button className={btnGhost} onClick={() => setShowUploadVersionModal(true)} title="Upload a script file or paste text to replace/update this script"><Upload size={12} /> Upload script</button>
-            <button className={btnPrimary} disabled={!dirty || !!busy} onClick={() => void save()}><Save size={12} /> Save version</button>
+        {/* Center Script Editor (55–65%+ Screen Width) */}
+        <main className="flex-1 min-w-0 flex flex-col overflow-hidden bg-slate-950">
+          {/* Scene Navigator / Minimap Bar */}
+          <div className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur border-b border-slate-800 px-4 py-2 flex items-center gap-2 overflow-x-auto text-xs shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 shrink-0 flex items-center gap-1">
+              <Layers size={13} className="text-indigo-400" /> Scenes ({allScenes.length}):
+            </span>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              {allScenes.map(sc => (
+                <button
+                  key={sc.id}
+                  onClick={() => document.getElementById(`scene-${sc.id}`)?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 hover:border-indigo-500/60 hover:bg-slate-850 text-slate-300 hover:text-white shrink-0 flex items-center gap-1.5 transition-colors"
+                >
+                  <span className="truncate max-w-[140px] font-medium">{sc.title}</span>
+                  <span className="text-[10px] font-mono text-slate-500 bg-slate-950 px-1 py-0.2 rounded border border-slate-800/80">
+                    {hms(sceneRuntimes[sc.id] || 0)}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-          {data?.gates && (data.gates.failures.length ? (
-            <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2 text-[11px] text-amber-200 space-y-0.5">
-              <div className="font-semibold">Checks on the current version</div>
-              {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
-            </div>
-          ) : <div className="text-[11px] text-emerald-400 flex items-center gap-1"><Check size={11} /> Quotes verbatim, clip cuts in bounds, locks intact, runtime within 10% of target.</div>)}
-          {data?.formatChecks && project.format && data.formatChecks.soft.length > 0 && (
-            <div className="rounded-md border border-slate-800 bg-slate-900/40 p-2 text-[11px] space-y-0.5">
-              <div className="font-semibold text-slate-300">{FORMAT_LABELS[project.format]} format notes</div>
-              {data.formatChecks.soft.map(f => <div key={f.key} className="text-slate-400">· {f.message}</div>)}
-              <div className="text-slate-500">Notes go to the critic; they never block a change. Hard format rules appear under the checks above.</div>
-            </div>
-          )}
-          {!segments && <div className="text-sm text-slate-500">Run the analysis, then the outline and the draft from the left.</div>}
-          {segments?.map((seg, segI) => (
-            <section key={seg.id} className="space-y-3">
-              <h2 className="text-base font-semibold text-white">{seg.title}</h2>
-              {seg.notDrafted && <div className="text-xs text-rose-300">Not drafted: {seg.notDrafted}</div>}
-              {seg.scenes.map((sc, scI) => (
-                <div key={sc.id} className={cx(card, 'p-3 space-y-2')}>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-slate-100">{sc.title}</h3>
-                    <span className="text-xs text-slate-500 flex-1 truncate">{sc.purpose}</span>
-                    {run?.refinedSceneIds.includes(sc.id) && <span className="text-[10px] text-indigo-300">refined this run</span>}
-                    {sc.blocks.some(b => b.kind === 'narration') && (
-                      <button className="text-[11px] text-slate-400 hover:text-white disabled:opacity-40" disabled={dirty || preview.running} title={dirty ? 'Save your edits first' : 'Speak this scene\'s narration with Vox'}
-                        onClick={() => void preview.start(sc.id)}>Preview scene</button>
-                    )}
-                  </div>
-                  {sc.blocks.length === 0 && <div className="text-xs text-slate-500">No blocks yet{sc.suggestedClipIds?.length ? `; suggested clips: ${sc.suggestedClipIds.map(id => clipsById[id]?.title || id).join(', ')}` : ''}.</div>}
-                  {sc.blocks.map((b, bI) => (
-                    <BlockView key={b.id} block={b} clip={b.kind === 'clip' ? clipsById[b.clipId] : undefined}
-                      playing={player.current?.id === `script:${b.id}` && player.isPlaying}
-                      onChange={nb => editBlock(segI, scI, bI, nb)} onRemove={() => editBlock(segI, scI, bI, null)} onMove={d => editBlock(segI, scI, bI, null, d)}
-                      onPlay={() => (b.kind === 'clip' ? playClip(b) : b.kind === 'narration' ? playTake(b) : undefined)} onClaim={t => { setQuery(''); setFocusTime(t); }} />
-                  ))}
-                  <button className={btnGhost} onClick={() => addNarration(segI, scI)}><Plus size={12} /> Narration</button>
-                </div>
-              ))}
-            </section>
-          ))}
-        </main>
 
-        <UploadVersionModal isOpen={showUploadVersionModal} onClose={() => setShowUploadVersionModal(false)} projectId={project.id} onUploaded={() => void load(project.id)} />
+          {/* Script Content Area */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5">
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-slate-300 font-medium">
+                {headVersion ? `${headVersion.label || 'Version'} · ${headVersion.author} · ${new Date(headVersion.createdAt).toLocaleTimeString()}` : 'No script loaded yet'}
+              </div>
+              <div className="flex-1" />
+              {dirty && <span className="text-xs text-amber-300 font-medium px-2 py-0.5 rounded bg-amber-950/30 border border-amber-800/40">Unsaved edits</span>}
+              <button className={btnGhost} disabled={!dirty} onClick={() => { setSegments(data?.head?.segments || null); setDirty(false); }}><RotateCcw size={12} /> Discard</button>
+            </div>
 
-        {/* Right: run, critiques, candidates, versions */}
-        <aside className="border-l border-slate-800 overflow-y-auto p-3 space-y-4 text-xs">
-          <AudioPanel project={project} head={data?.head || null} dirty={dirty} roles={roles} runActive={runActive} preview={preview}
-            onRunStarted={id => setRunId(id)} onOpenMontage={onOpenMontage} onError={setError} />
-          {run && (
-            <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-slate-500">Refinement run</div>
-              {run.pausedInfo && (
-                <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2 space-y-1.5">
-                  <div className="text-amber-200">Paused: {run.pausedInfo.role} on {run.pausedInfo.provider}: {run.pausedInfo.code}. {run.pausedInfo.message}</div>
-                  <ResumeControls status={status} run={run} onResume={(sw, cap) => void act('Resuming', async () => { await scriptApi.resume(project.id, run.id, sw, cap); setRunId(null); setTimeout(() => setRunId(run.id), 0); })} />
+            {data?.gates && (data.gates.failures.length ? (
+              <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2.5 text-[11px] text-amber-200 space-y-0.5">
+                <div className="font-semibold">Quality Checks Warning</div>
+                {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
+              </div>
+            ) : <div className="text-[11px] text-emerald-400 flex items-center gap-1"><Check size={12} /> Script verified: quotes verbatim, clip bounds verified, runtime in bounds.</div>)}
+
+            {!segments && <div className="text-sm text-slate-500 py-12 text-center">Run the analysis and outline stages from the left panel to generate your documentary script.</div>}
+
+            {/* Segments & Scenes */}
+            {segments?.map((seg, segI) => (
+              <section key={seg.id} className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-800 pb-1.5">
+                  <h2 className="text-base font-bold text-white tracking-tight">{seg.title}</h2>
+                  <span className="text-xs text-slate-500">({seg.scenes.length} scenes)</span>
                 </div>
-              )}
-              {run.status === 'interrupted' && !run.pausedInfo && <button className={btnGhost} onClick={() => void act('Resuming', async () => { await scriptApi.resume(project.id, run.id); setRunId(null); setTimeout(() => setRunId(run.id), 0); })}><Play size={12} /> Resume at round {run.currentRound + 1}</button>}
-              <button className={btnGhost} onClick={() => logEntries ? setLogEntries(null) : void scriptApi.log(run.id).then(r => setLogEntries(r.entries)).catch(setError)}>{logEntries ? 'Hide call log' : 'Call log'}</button>
-              {logEntries && <LogTable entries={logEntries} />}
-              <ol className="space-y-0.5 max-h-56 overflow-y-auto">
-                {events.map(e => (
-                  <li key={e.seq} className={cx('text-[11px]', e.type === 'error' ? 'text-rose-300' : e.type === 'judge' || e.type === 'decision' ? 'text-indigo-200' : 'text-slate-400')}>
-                    <span className="text-slate-600">{new Date(e.at).toLocaleTimeString()} </span>{e.message}{e.durationMs ? ` (${(e.durationMs / 1000).toFixed(1)} s)` : ''}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-          {critiques && critiques.length > 0 && (
-            <div className="space-y-1">
-              <div className="text-[11px] uppercase tracking-wide text-slate-500">Latest critiques</div>
-              {critiques.map((c: any) => (
-                <div key={c.id} className="rounded border border-slate-800 p-1.5">
-                  <div className={cx('font-medium', c.severity === 'blocker' ? 'text-rose-300' : c.severity === 'major' ? 'text-amber-300' : 'text-slate-300')}>{c.severity} · {c.criterion}{c.level === 'episode' ? ` · structure (${c.structuralKind || 'arc'})` : ''}</div>
-                  <div className="text-slate-300">{c.issue}</div>
-                  <div className="text-slate-500">Fix: {c.proposedFix}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {runInfo && runInfo.candidates.length > 0 && (
-            <div className="space-y-2">
-              <div className="text-[11px] uppercase tracking-wide text-slate-500">Candidates</div>
-              {runInfo.candidates.map(c => {
-                const d = c.decision;
-                return (
-                  <div key={c.id} className={cx('rounded-md border p-2 space-y-1', d?.loopAccepted ? 'border-emerald-700/60' : 'border-slate-800')}>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium text-slate-100">{c.id}</span>
-                      {(() => {
-                        const better = d?.reviewOnly ? !!d.judge && d.judge.consensus !== 'rejected' : !!d?.loopAccepted;
-                        const label = d?.reviewOnly ? (d.judge ? (better ? 'judge: better' : 'judge: not better') : 'not judged') : better ? 'loop: better' : 'loop: not better';
-                        return <span className={better ? 'text-emerald-300' : 'text-slate-400'}>{label}</span>;
-                      })()}
-                      {d?.loganDecision && <span className="text-indigo-300">you: {d.loganDecision}</span>}
+
+                {seg.notDrafted && <div className="text-xs text-rose-300">Not drafted: {seg.notDrafted}</div>}
+
+                {seg.scenes.map((sc, scI) => (
+                  <div id={`scene-${sc.id}`} key={sc.id} className={cx(card, 'p-4 space-y-3 transition-all')}>
+                    <div className="flex items-center gap-2 border-b border-slate-800/60 pb-2">
+                      <button
+                        onClick={() => toggleScene(sc.id)}
+                        className="p-1 rounded text-slate-400 hover:text-white transition-colors"
+                        title={collapsedScenes[sc.id] ? "Expand Scene" : "Collapse Scene"}
+                      >
+                        {collapsedScenes[sc.id] ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+                      </button>
+                      <h3 className="text-sm font-semibold text-white">{sc.title}</h3>
+                      <span className="text-xs text-slate-400 flex-1 truncate">{sc.purpose}</span>
+                      <span className="text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-950 border border-slate-800">
+                        {hms(sceneRuntimes[sc.id] || 0)}
+                      </span>
+                      {sc.blocks.some(b => b.kind === 'narration' && b.type !== 'QUOTE_READ') && (
+                        <button
+                          className="text-[11px] text-slate-400 hover:text-indigo-300 disabled:opacity-40"
+                          disabled={dirty || preview.running}
+                          title="Speak this scene's narration with Vox"
+                          onClick={() => void preview.start(sc.id)}
+                        >
+                          Preview scene
+                        </button>
+                      )}
                     </div>
-                    {d?.gates.failures.map((f, i) => <div key={i} className="text-amber-300">• {f}</div>)}
-                    {d?.gates.factcheck?.map((f, i) => <div key={i} className={f.label === 'supported' ? 'text-emerald-300/80' : 'text-amber-300'}>Fact check: {f.label}. {f.note}</div>)}
-                    {d?.reviewOnly && <div className="text-indigo-300">{d.reviewOnly}</div>}
-                    {d?.notJudged && <div className="text-slate-400">{d.notJudged}</div>}
-                    {d?.judge && <div className="text-slate-300">Judge {d.judge.model}: AB={d.judge.winnerAB}, BA={d.judge.winnerBA} ({d.judge.consensus.replace(/_/g, ' ')}). {d.judge.reasons.join(' ')}</div>}
-                    <DiffList diff={c.diff} />
-                    {!d?.loganDecision && (
-                      <div className="flex gap-1">
-                        <button className={btnPrimary} disabled={dirty} onClick={() => void act('Accepting', () => scriptApi.decide(project.id, c.id, 'accept', '', roles))}><Check size={12} /> Accept</button>
-                        <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason, roles)); }}><CircleSlash size={12} /> Reject</button>
+
+                    {!collapsedScenes[sc.id] && (
+                      <div className="space-y-2.5">
+                        {sc.blocks.length === 0 && <div className="text-xs text-slate-500 italic py-2">No blocks in this scene.</div>}
+                        {sc.blocks.map((b, bI) => (
+                          <BlockView
+                            key={b.id}
+                            block={b}
+                            clip={b.kind === 'clip' ? clipsById[b.clipId] : undefined}
+                            playing={player.current?.id === `script:${b.id}` && player.isPlaying}
+                            onChange={nb => editBlock(segI, scI, bI, nb)}
+                            onRemove={() => editBlock(segI, scI, bI, null)}
+                            onMove={d => editBlock(segI, scI, bI, null, d)}
+                            onPlay={() => (b.kind === 'clip' ? playClip(b) : b.kind === 'narration' ? playTake(b) : undefined)}
+                            onClaim={t => { setQuery(''); setFocusTime(t); setLeftTab('transcripts'); }}
+                          />
+                        ))}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button className={btnGhost} onClick={() => addNarration(segI, scI)}><Plus size={12} /> Narration</button>
+                        </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-          <HandoffPanel projectId={project.id} headVersionId={project.headVersionId} sourceTags={project.sourceTags} act={act} dirty={dirty} DiffView={DiffList} />
-          <div className="space-y-1">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500 flex items-center gap-1"><History size={11} /> Versions</div>
-            {[...(data?.versions || [])].reverse().map(v => (
-              <div key={v.id} className={cx('flex items-center gap-1 rounded px-1 py-0.5', v.id === project.headVersionId && 'bg-slate-800')}>
-                <button className="flex-1 text-left truncate text-slate-300 hover:text-white" onClick={() => void scriptApi.version(project.id, v.id).then(r => setViewVersion({ id: v.id, diff: r.diff })).catch(setError)}>
-                  {new Date(v.createdAt).toLocaleTimeString()} {v.label || v.author}{v.decision?.loganDecision ? ` (${v.decision.loganDecision}ed)` : ''}
-                </button>
-                {v.id !== project.headVersionId && <button className="text-slate-500 hover:text-white" title="Make this the current version" onClick={() => void act('Rolling back', () => scriptApi.setHead(project.id, v.id))}><RotateCcw size={11} /></button>}
-              </div>
+                ))}
+              </section>
             ))}
-            {viewVersion && <div className="rounded border border-slate-800 p-1.5"><div className="flex items-center text-slate-400">Changes in {viewVersion.id} vs its parent <div className="flex-1" /><button onClick={() => setViewVersion(null)}><X size={11} /></button></div><DiffList diff={viewVersion.diff as any} /></div>}
           </div>
-          <a className={btnGhost} href={scriptApi.exportUrl(project.id)} download={`script-project-${project.id}.json`}><Download size={12} /> Export project JSON</a>
-        </aside>
+
+          {/* Sticky Bottom Control Bar for Audio Actions */}
+          <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-20 shrink-0">
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-400">Runtime:</span>
+                <span className={cx('font-semibold font-mono', data?.gates?.runtimeOk ? 'text-emerald-400' : 'text-amber-400')}>
+                  {runtime ? hms(runtime.sec) : '0:00'}
+                </span>
+                <span className="text-slate-500">/ {Math.round(project.targetRuntimeSec / 60)} min target</span>
+              </div>
+              <div className="h-4 w-px bg-slate-800" />
+              <div className="text-slate-300 flex items-center gap-1">
+                <Mic size={12} className="text-indigo-400" />
+                <span>{takesCount.withTake} of {takesCount.narration} narration lines have Vox take</span>
+              </div>
+              {preview.running && (
+                <span className="inline-flex items-center gap-1 text-indigo-300 font-medium animate-pulse">
+                  <Loader2 size={12} className="animate-spin" /> Previewing audio...
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {preview.running ? (
+                <button className={btnGhost} onClick={() => void preview.cancel()}><Square size={12} /> Stop Preview</button>
+              ) : (
+                <button className={btnGhost} disabled={!data?.head || dirty || !takesCount.narration} onClick={() => void preview.start()} title="Preview all narration with Vox">
+                  <Mic size={12} /> Preview audio
+                </button>
+              )}
+              <button className={btnGhost} disabled={!data?.head || dirty} onClick={sendToMontage} title="Send compiled script to Montage Studio timeline">
+                <Film size={12} /> Send to Montage
+              </button>
+              <button className={btnGhost} disabled={!data?.head || dirty || !!audioProgress} onClick={finishEpisode} title="Render and master final audio episode">
+                <Disc size={12} /> Finish episode
+              </button>
+              <button className={btnPrimary} disabled={!dirty || !!busy} onClick={() => void save()}>
+                <Save size={12} /> Save version
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
+
+      <UploadVersionModal isOpen={showUploadVersionModal} onClose={() => setShowUploadVersionModal(false)} projectId={project.id} onUploaded={() => void load(project.id)} />
+
+      {/* On-Demand Slide-Over Drawer for Grok Bot Deep Pass, Refine & Versioning */}
+      {drawerOpen && (
+        <div className="fixed inset-y-0 right-0 w-[500px] max-w-[95vw] z-50 bg-slate-900 border-l border-slate-700 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+          <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-950 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <button
+                className={cx(btn, drawerOpen === 'refine' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-300')}
+                onClick={() => setDrawerOpen('refine')}
+              >
+                <Wand2 size={12} /> Grok Pass &amp; Refine
+              </button>
+              <button
+                className={cx(btn, drawerOpen === 'versions' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-300')}
+                onClick={() => setDrawerOpen('versions')}
+              >
+                <History size={12} /> Versions ({data?.versions.length || 0})
+              </button>
+            </div>
+            <button onClick={() => setDrawerOpen(null)} className="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Close drawer">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+            {drawerOpen === 'refine' && (
+              <>
+                {/* Refinement Run Status */}
+                {run && (
+                  <div className="space-y-2 p-3 rounded-md border border-slate-800 bg-slate-950">
+                    <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Active Refinement Run</div>
+                    <div className="text-slate-300 flex items-center gap-2">
+                      <span className={cx(run.status === 'running' && 'text-indigo-300 font-semibold', run.status === 'finished' && 'text-emerald-300 font-semibold')}>
+                        Status: {run.status.replace('_', ' ')}
+                      </span>
+                      <span>· Round {run.currentRound + 1} of {run.maxRounds}</span>
+                    </div>
+                    {run.pausedInfo && (
+                      <div className="rounded border border-amber-700/50 bg-amber-950/20 p-2 space-y-1 text-amber-200">
+                        <div>Paused: {run.pausedInfo.role} on {run.pausedInfo.provider}: {run.pausedInfo.code}</div>
+                        <ResumeControls status={status} run={run} onResume={(sw, cap) => void act('Resuming', async () => { await scriptApi.resume(project.id, run.id, sw, cap); setRunId(null); setTimeout(() => setRunId(run.id), 0); })} />
+                      </div>
+                    )}
+                    <button className={btnGhost} onClick={() => logEntries ? setLogEntries(null) : void scriptApi.log(run.id).then(r => setLogEntries(r.entries)).catch(setError)}>{logEntries ? 'Hide call log' : 'Show call log'}</button>
+                    {logEntries && <LogTable entries={logEntries} />}
+                    <ol className="space-y-0.5 max-h-48 overflow-y-auto pt-1">
+                      {events.map(e => (
+                        <li key={e.seq} className={cx('text-[11px]', e.type === 'error' ? 'text-rose-300' : e.type === 'judge' || e.type === 'decision' ? 'text-indigo-200' : 'text-slate-400')}>
+                          <span className="text-slate-600">{new Date(e.at).toLocaleTimeString()} </span>{e.message}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                {/* Grok Bot Deep Pass Panel */}
+                <HandoffPanel projectId={project.id} headVersionId={project.headVersionId} sourceTags={project.sourceTags} act={act} dirty={dirty} DiffView={DiffList} />
+
+                {/* Candidates & Critiques */}
+                {critiques && critiques.length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Latest Critiques</div>
+                    {critiques.map((c: any) => (
+                      <div key={c.id} className="rounded border border-slate-800 p-2 space-y-1">
+                        <div className={cx('font-medium', c.severity === 'blocker' ? 'text-rose-300' : c.severity === 'major' ? 'text-amber-300' : 'text-slate-300')}>{c.severity} · {c.criterion}</div>
+                        <div className="text-slate-300">{c.issue}</div>
+                        <div className="text-slate-400">Fix: {c.proposedFix}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {runInfo && runInfo.candidates.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Candidates ({runInfo.candidates.length})</div>
+                    {runInfo.candidates.map(c => {
+                      const d = c.decision;
+                      return (
+                        <div key={c.id} className={cx('rounded-md border p-2.5 space-y-1.5', d?.loopAccepted ? 'border-emerald-700/60' : 'border-slate-800')}>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-slate-100">{c.id}</span>
+                            {d?.loopAccepted && <span className="text-emerald-300">· loop accepted</span>}
+                            {d?.loganDecision && <span className="text-indigo-300">· you: {d.loganDecision}</span>}
+                          </div>
+                          <DiffList diff={c.diff} />
+                          {!d?.loganDecision && (
+                            <div className="flex gap-1.5 pt-1">
+                              <button className={btnPrimary} disabled={dirty} onClick={() => void act('Accepting', () => scriptApi.decide(project.id, c.id, 'accept', '', roles))}><Check size={12} /> Accept</button>
+                              <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason, roles)); }}><CircleSlash size={12} /> Reject</button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {drawerOpen === 'versions' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><History size={12} /> Script Versions</div>
+                  <a className={btnGhost} href={scriptApi.exportUrl(project.id)} download={`script-project-${project.id}.json`}><Download size={12} /> Export JSON</a>
+                </div>
+                <div className="space-y-1">
+                  {[...(data?.versions || [])].reverse().map(v => (
+                    <div key={v.id} className={cx('flex items-center gap-1.5 rounded p-2 border transition-colors', v.id === project.headVersionId ? 'border-indigo-500/60 bg-indigo-950/20' : 'border-slate-800 bg-slate-950')}>
+                      <button className="flex-1 text-left truncate text-slate-300 hover:text-white" onClick={() => void scriptApi.version(project.id, v.id).then(r => setViewVersion({ id: v.id, diff: r.diff })).catch(setError)}>
+                        <span className="font-semibold text-white">{v.label || v.author}</span>
+                        <span className="text-slate-500 text-[10px] ml-2">{new Date(v.createdAt).toLocaleTimeString()}</span>
+                      </button>
+                      {v.id !== project.headVersionId && (
+                        <button className={btnGhost} title="Make this the current version" onClick={() => void act('Rolling back', () => scriptApi.setHead(project.id, v.id))}><RotateCcw size={11} /> Rollback</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {viewVersion && (
+                  <div className="rounded border border-slate-700 bg-slate-950 p-2.5 space-y-1">
+                    <div className="flex items-center text-slate-300 font-semibold">Changes in {viewVersion.id} vs parent <div className="flex-1" /><button onClick={() => setViewVersion(null)}><X size={12} /></button></div>
+                    <DiffList diff={viewVersion.diff as any} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

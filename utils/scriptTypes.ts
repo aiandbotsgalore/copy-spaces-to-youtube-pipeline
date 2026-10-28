@@ -29,15 +29,50 @@ export const NARRATIVE_FUNCTIONS: NarrativeFunction[] = ['establish_question', '
 
 export type MusicCue = 'sting' | 'bed_in' | 'bed_out' | 'transition';
 
+export type BlockType = 'HEADING' | 'ARCHIVAL_CLIP' | 'CUE' | 'QUOTE_READ' | 'NARRATION';
+
 export type Block =
-  | { id: string; kind: 'narration'; text: string; mode: 'live' | 'polished'; claims: EvidenceRef[]; locked?: boolean; takeUrl?: string; takeSec?: number; takeTextHash?: string }
-  | { id: string; kind: 'clip'; clipId: string;
+  | {
+      id: string; kind: 'narration'; text: string; mode: 'live' | 'polished'; claims: EvidenceRef[];
+      locked?: boolean; takeUrl?: string; takeSec?: number; takeTextHash?: string;
+      type?: 'NARRATION' | 'QUOTE_READ' | 'HEADING';
+      readEvidence?: boolean;
+      quoteSpeaker?: string;
+      quoteMeta?: string;
+    }
+  | {
+      id: string; kind: 'clip'; clipId: string;
       keptText: string;                         // model output: a contiguous excerpt of clip.text
       inSec: number; outSec: number;            // code output via trimResolver.resolveTrim, clip-relative
       trimBasis: 'segment' | 'silence' | 'estimated' | 'full';
-      fn: NarrativeFunction; rationale: string; locked?: boolean; flag?: string }
-  | { id: string; kind: 'pause'; sec: number; locked?: boolean }
-  | { id: string; kind: 'music'; cue: MusicCue; note: string; locked?: boolean };
+      fn: NarrativeFunction; rationale: string; locked?: boolean; flag?: string;
+      type?: 'ARCHIVAL_CLIP';
+      clipNumber?: string;
+      spaceTitle?: string;
+      date?: string;
+      time?: string;
+      speaker?: string;
+    }
+  | {
+      id: string; kind: 'pause'; sec: number; locked?: boolean;
+      type?: 'CUE';
+      cueType?: 'silence' | 'beat';
+      label?: string;
+    }
+  | {
+      id: string; kind: 'music'; cue: MusicCue; note: string; locked?: boolean;
+      type?: 'CUE';
+      cueType?: 'music' | 'theme';
+    }
+  | {
+      id: string; kind: 'cue'; text?: string; note?: string; sec?: number; locked?: boolean;
+      type?: 'CUE';
+      cueType?: 'sfx' | 'theme' | 'production_note' | 'silence' | 'beat';
+    }
+  | {
+      id: string; kind: 'heading'; text: string; sec?: number; locked?: boolean; level?: number;
+      type?: 'HEADING';
+    };
   // music = a labeled marker only; the app does no music mixing or sourcing, Logan handles music outside the app
 
 export type BlockKind = Block['kind'];

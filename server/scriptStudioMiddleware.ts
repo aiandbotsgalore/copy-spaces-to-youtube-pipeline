@@ -1029,10 +1029,15 @@ export function validateSegments(raw: unknown, p: ScriptProject): Segment[] {
       if (!Array.isArray(sc?.blocks)) throw new StepError('BAD_REQUEST', `Scene ${sc?.id} has no blocks array.`);
       for (const b of sc.blocks) {
         checkId(b?.id);
-        if (!['narration', 'clip', 'pause', 'music'].includes(b?.kind)) throw new StepError('BAD_REQUEST', `Block ${b?.id} has unknown kind ${b?.kind}.`);
+        if (!['narration', 'clip', 'pause', 'music', 'heading', 'cue'].includes(b?.kind)) throw new StepError('BAD_REQUEST', `Block ${b?.id} has unknown kind ${b?.kind}.`);
         if (b.kind === 'clip') {
           const clip = clips.get(b.clipId);
-          if (!clip) throw new StepError('BAD_REQUEST', `Block ${b.id} names unknown clip ${b.clipId}.`);
+          if (!clip) {
+            if (b.type === 'ARCHIVAL_CLIP' || b.spaceTitle || b.clipNumber) {
+              continue;
+            }
+            throw new StepError('BAD_REQUEST', `Block ${b.id} names unknown clip ${b.clipId}.`);
+          }
           if (typeof b.keptText !== 'string' || !b.keptText.trim() || !findExcerpt(clip.text, b.keptText)) {
             throw new StepError('BAD_REQUEST', `Clip block ${b.id}: the kept words are not a contiguous excerpt of clip ${b.clipId}.`);
           }
@@ -1045,6 +1050,8 @@ export function validateSegments(raw: unknown, p: ScriptProject): Segment[] {
         if (b.kind === 'pause' && !(Number.isFinite(b.sec) && b.sec >= 0 && b.sec <= 30)) throw new StepError('BAD_REQUEST', `Pause ${b.id} must be 0 to 30 seconds.`);
         if (b.kind === 'music' && !['sting', 'bed_in', 'bed_out', 'transition'].includes(b.cue)) throw new StepError('BAD_REQUEST', `Music marker ${b.id} has unknown cue ${b.cue}.`);
         if (b.kind === 'narration' && (typeof b.text !== 'string' || !Array.isArray(b.claims))) throw new StepError('BAD_REQUEST', `Narration ${b.id} needs text and claims.`);
+        if (b.kind === 'cue' && b.sec !== undefined && !(Number.isFinite(b.sec) && b.sec >= 0 && b.sec <= 30)) throw new StepError('BAD_REQUEST', `Cue ${b.id} pause duration must be 0 to 30 seconds.`);
+        if (b.kind === 'heading' && typeof b.text !== 'string') throw new StepError('BAD_REQUEST', `Heading ${b.id} needs text.`);
       }
     }
   }
