@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
+import './transcript/TranscriptWorkbench.css';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
@@ -919,6 +920,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
   const [utteranceDisplayLimit, setUtteranceDisplayLimit] = useState<number>(120);
   const [sidebarDisplayLimit, setSidebarDisplayLimit] = useState<number>(50);
+  const [episodeQuery, setEpisodeQuery] = useState('');
+  const [episodeStatus, setEpisodeStatus] = useState<'all' | 'ready' | 'audio'>('all');
+  const [inspectorTab, setInspectorTab] = useState<'details' | 'speakers' | 'actions'>('details');
+  const [inspectorOpen, setInspectorOpen] = useState(true);
 
   const currentLoadedIdRef = useRef<number | null>(null);
   const transcriptionPollRef = useRef<number | null>(null);
@@ -1025,6 +1030,26 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return sortReleasesByRecordedDate(list, 'desc');
   }, [releases, summaryIndex, globalIndex]);
 
+  const indexedEpisodeIds = useMemo(() => new Set([
+    ...(summaryIndex || []).filter(ep => (ep.segment_count || 0) > 0).flatMap(ep => [String(ep.release_id), ep.release_tag]),
+    ...(globalIndex || []).filter(ep => ep.segments?.length > 0).flatMap(ep => [String(ep.release_id), ep.release_tag]),
+  ]), [summaryIndex, globalIndex]);
+  const episodeHasTranscript = useCallback((release: Release) =>
+    !!pickTranscriptAsset(release) ||
+    indexedEpisodeIds.has(String(release.id)) ||
+    indexedEpisodeIds.has(release.tag_name), [indexedEpisodeIds]);
+  const episodeReadyCount = useMemo(() => effectiveReleases.filter(episodeHasTranscript).length, [effectiveReleases, episodeHasTranscript]);
+  const visibleSidebarReleases = useMemo(() => {
+    const query = episodeQuery.toLowerCase().trim();
+    return effectiveReleases.filter(release => {
+      if (episodeStatus === 'ready' && !episodeHasTranscript(release)) return false;
+      if (episodeStatus === 'audio' && episodeHasTranscript(release)) return false;
+      if (!query) return true;
+      const title = release.name || release.tag_name;
+      const host = (summaryIndex?.find(ep => ep.release_id === release.id || ep.release_tag === release.tag_name)?.host_handle || '').replace(/^@/, '');
+      return [title, release.tag_name, host].some(value => value.toLowerCase().includes(query));
+    });
+  }, [effectiveReleases, episodeHasTranscript, episodeQuery, episodeStatus, summaryIndex]);
   const selectedRelease = useMemo(() => effectiveReleases.find(r => r.id === selectedId), [effectiveReleases, selectedId]);
   // Open an episode requested by tag (e.g. from Investigative Radar) once releases are loaded
   useEffect(() => {
@@ -2662,20 +2687,17 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="h-full overflow-hidden flex flex-col bg-slate-950">
+    <div className="sp-transcripts h-full overflow-hidden flex flex-col bg-slate-950">
 
       {/* ── Top Header ── */}
-      <div className="p-6 md:px-10 md:py-6 border-b border-slate-800 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-900/40">
+      <div className="sp-header p-6 md:px-10 md:py-6 border-b border-slate-800 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-900/40">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Interactive Transcripts</h2>
-            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
-              <Sparkles size={11} /> Diarized & Editable
-            </span>
+          <div className="sp-eyebrow">RESEARCH WORKSPACE <span className="sp-eyebrow-dot" /> SPEAKER-ATTRIBUTED AUDIO</div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Transcripts</h2>
+            <span className="sp-count">{effectiveReleases.length.toLocaleString()} episodes</span>
+            <span className="sp-status"><Sparkles size={11} /> Diarized &amp; Editable</span>
           </div>
-          <p className="text-slate-400 text-xs mt-1">
-            Click any speaker label to rename them across the whole episode. Click quotes to jump audio playback instantly.
-          </p>
           {/* Diagnostic sync readout — only shown while playing */}
           {isPlaying && (
             <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-emerald-400 bg-emerald-950/30 px-3 py-1.5 rounded border border-emerald-900/50">
@@ -2774,10 +2796,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       )}
 
       {effectiveReleases.length > 0 && (
-        <div className="flex-1 flex min-h-0">
+        <div className="sp-body flex-1 flex min-h-0">
 
           {/* ── Sidebar ── */}
-          <div className="w-72 md:w-80 flex-shrink-0 border-r border-slate-800 overflow-y-auto bg-slate-950/70 divide-y divide-slate-900">
+          <div className="sp-episode-rail w-72 md:w-80 flex-shrink-0 border-r border-slate-800 overflow-y-auto bg-slate-950/70 divide-y divide-slate-900">
             {/* Global Search shortcut button */}
             <div className="p-2.5 bg-slate-900/60 border-b border-slate-800">
               <button
@@ -2810,22 +2832,43 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               </button>
             </div>
 
-            <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({effectiveReleases.length})</span>
+            <div className="sp-rail-controls">
+              <div className="sp-rail-heading">
+                <span>EPISODE LIBRARY</span>
+                <span>{visibleSidebarReleases.length.toLocaleString()} / {effectiveReleases.length.toLocaleString()}</span>
+              </div>
+              <label className="sp-episode-search">
+                <Search size={14} />
+                <input
+                  value={episodeQuery}
+                  onChange={e => { setEpisodeQuery(e.target.value); setSidebarDisplayLimit(50); }}
+                  placeholder="Find an episode or host..."
+                  aria-label="Find an episode or host"
+                />
+                {episodeQuery && <button type="button" onClick={() => setEpisodeQuery('')} title="Clear episode search"><X size={12} /></button>}
+              </label>
+              <div className="sp-status-filters" role="group" aria-label="Filter episodes by transcript status">
+                <button type="button" className={episodeStatus === 'all' ? 'active' : ''} onClick={() => { setEpisodeStatus('all'); setSidebarDisplayLimit(50); }}>All <span>{effectiveReleases.length}</span></button>
+                <button type="button" className={episodeStatus === 'ready' ? 'active' : ''} onClick={() => { setEpisodeStatus('ready'); setSidebarDisplayLimit(50); }}>Ready <span>{episodeReadyCount}</span></button>
+                <button type="button" className={episodeStatus === 'audio' ? 'active' : ''} onClick={() => { setEpisodeStatus('audio'); setSidebarDisplayLimit(50); }}>Audio <span>{effectiveReleases.length - episodeReadyCount}</span></button>
+              </div>
             </div>
-            {effectiveReleases.slice(0, sidebarDisplayLimit).map(release => {
-              const hasTxt = !!pickTranscriptAsset(release) || (summaryIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && (ep.segment_count || 0) > 0) ?? false) || (globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0) ?? false);
+            {visibleSidebarReleases.length === 0 && (
+              <div className="sp-no-episodes"><Search size={18} /><span>No matching episodes</span><button onClick={() => { setEpisodeQuery(''); setEpisodeStatus('all'); }}>Clear filters</button></div>
+            )}
+            {visibleSidebarReleases.slice(0, sidebarDisplayLimit).map(release => {
+              const hasTxt = episodeHasTranscript(release);
               const isSelected = searchScope === 'current' && selectedId === release.id;
               const isPlayingThis = current?.id === release.id && isPlaying;
               return (
                 <button key={release.id} onClick={() => { setSearchScope('current'); loadTranscript(release); }}
-                  className={`w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
+                  className={`sp-episode-item w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
                   <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
                     {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap sp-episode-meta">
                       <span className="text-[11px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
                       {(() => {
                         const host = getEpisodeHost(release);
@@ -2844,21 +2887,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                 </button>
               );
             })}
-            {effectiveReleases.length > sidebarDisplayLimit && (
+            {visibleSidebarReleases.length > sidebarDisplayLimit && (
               <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-center">
                 <button
                   type="button"
-                  onClick={() => setSidebarDisplayLimit(prev => Math.min(effectiveReleases.length, prev + 50))}
+                  onClick={() => setSidebarDisplayLimit(prev => Math.min(visibleSidebarReleases.length, prev + 50))}
                   className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
                 >
-                  Show More Episodes ({effectiveReleases.length - sidebarDisplayLimit} remaining)
+                  Show More Episodes ({visibleSidebarReleases.length - sidebarDisplayLimit} remaining)
                 </button>
               </div>
             )}
           </div>
 
           {/* ── Main View ── */}
-          <div className="flex-1 flex flex-col min-w-0 bg-slate-950">
+          <div className="sp-main flex-1 flex flex-col min-w-0 bg-slate-950">
             {searchScope === 'all' ? (
               <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
                 {/* Global Search Header / Filter Bar */}
@@ -4049,7 +4092,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               ) : (
                 <>
                   {/* Episode Player Header */}
-                  <div className="p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-episode-header p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       {mp3Asset && (
                         <button onClick={handlePlayEpisodeToggle}
@@ -4079,7 +4122,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="sp-header-actions flex items-center gap-2 flex-wrap">
+                      <button type="button" className="sp-inspector-toggle" onClick={() => setInspectorOpen(open => !open)} aria-pressed={inspectorOpen} title="Show or hide episode inspector"><Layers size={13} /> Inspector</button>
                       {mp3Asset && (
                         <button
                           onClick={handleToggleCacheCurrentAudio}
@@ -4162,8 +4206,36 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
+                  {/* Playback transport: use the real episode audio and existing seek behavior. */}
+                  {mp3Asset && (
+                    <div className="sp-transport">
+                      <div className="sp-transport-top">
+                        <span className="sp-transport-title"><Radio size={13} /> AUDIO TIMELINE</span>
+                        <span className="sp-transport-time">{current?.id === selectedRelease.id ? formatSeconds(currentTime) : '00:00'} <span>/</span> {formatSeconds(transcriptMetadata.audioDurationSec || utterances[utterances.length - 1]?.endSec || utterances[utterances.length - 1]?.startSec || 0)}</span>
+                      </div>
+                      <div className="sp-transport-bars" role="group" aria-label="Seek using conversation timeline">
+                        {conversationHeatmap.length > 0 ? conversationHeatmap.map(bucket => (
+                          <button key={bucket.index} type="button" onClick={() => handlePlayUtterance(bucket.startSec)}
+                            className={bucket.isHot ? 'sp-bar sp-bar-hot' : 'sp-bar'}
+                            style={{ height: (20 + bucket.density * 80) + '%', opacity: current?.id === selectedRelease.id && currentTime >= bucket.startSec ? 1 : 0.55 }}
+                            title={'Play from ' + bucket.label} />
+                        )) : <span className="sp-wave-empty">Audio timeline will appear after transcription</span>}
+                      </div>
+                      <div className="sp-transport-controls">
+                        <button type="button" onClick={() => current?.id === selectedRelease.id && seek(Math.max(0, currentTime - 15))} disabled={current?.id !== selectedRelease.id} title="Back 15 seconds"><RotateCcw size={14} /><span>15</span></button>
+                        <button type="button" className="sp-transport-play" onClick={handlePlayEpisodeToggle} title={isCurrentEpisodePlaying ? 'Pause audio' : 'Play audio'}>
+                          {isCurrentEpisodePlaying ? <Pause size={16} /> : <Play size={16} />}
+                        </button>
+                        <button type="button" onClick={() => current?.id === selectedRelease.id && seek(currentTime + 15)} disabled={current?.id !== selectedRelease.id} title="Forward 15 seconds"><span>15</span><ArrowRight size={14} /></button>
+                        <div className="sp-transport-separator" />
+                        <span className="sp-transport-state">{isCurrentEpisodePlaying ? 'PLAYING' : 'READY'}</span>
+                        <span className="sp-transport-hint">Select any turn to seek to its exact position</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Filter & Sync Toolbar */}
-                  <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-filter-toolbar p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-[280px]">
                       {/* Scope Toggle */}
                       <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
@@ -4315,8 +4387,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
-                  {/* Transcript Feed */}
-                  <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
+                  {/* Transcript workbench */}
+                  <div className="sp-workbench">
+                  <div className="sp-transcript-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
                     {transcriptLoading && (
                       <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
                         <Loader size={26} className="animate-spin text-indigo-400" />
@@ -4399,7 +4472,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
 
                     {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
-                      <div className="max-w-3xl mx-auto space-y-3.5 pb-24">
+                      <div className="sp-transcript-list max-w-3xl mx-auto space-y-3.5 pb-24">
                         {/* Dynamic Episode Confrontation & Density Heatmap */}
                         {conversationHeatmap.length > 0 && (
                           <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-xl shadow-sm mb-4">
@@ -4475,7 +4548,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                               id={`utterance-card-${utterance.id}`}
                               key={utterance.id}
                               onClick={() => handlePlayUtterance(utterance.startSec)}
-                              className={`group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
+                              className={`sp-utterance group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
                                   ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
@@ -4662,6 +4735,57 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         )}
                       </div>
                     )}
+                  </div>
+                  {inspectorOpen && (
+                    <aside className="sp-inspector" aria-label="Episode inspector">
+                      <div className="sp-inspector-tabs" role="tablist" aria-label="Inspector sections">
+                        <button type="button" role="tab" aria-selected={inspectorTab === 'details'} className={inspectorTab === 'details' ? 'active' : ''} onClick={() => setInspectorTab('details')}>Details</button>
+                        <button type="button" role="tab" aria-selected={inspectorTab === 'speakers'} className={inspectorTab === 'speakers' ? 'active' : ''} onClick={() => setInspectorTab('speakers')}>Speakers</button>
+                        <button type="button" role="tab" aria-selected={inspectorTab === 'actions'} className={inspectorTab === 'actions' ? 'active' : ''} onClick={() => setInspectorTab('actions')}>Tools</button>
+                      </div>
+                      {inspectorTab === 'details' && (
+                        <div className="sp-inspector-section">
+                          <div className="sp-inspector-heading"><div className="sp-inspector-icon"><FileText size={19} /></div><div><strong>{selectedRelease.name || selectedRelease.tag_name}</strong><span>Source recording</span></div></div>
+                          <dl className="sp-inspector-facts">
+                            <div><dt>Recorded</dt><dd>{getEpisodeRecordedDate(selectedRelease).displayDate}</dd></div>
+                            <div><dt>Host</dt><dd>{selectedHost ? '@' + selectedHost : 'Unknown'}</dd></div>
+                            <div><dt>Speaker turns</dt><dd>{utterances.length.toLocaleString()}</dd></div>
+                            <div><dt>Speakers</dt><dd>{speakerStats.length}</dd></div>
+                            <div><dt>Language</dt><dd>{transcriptMetadata.language || 'Not specified'}</dd></div>
+                            <div><dt>Model</dt><dd>{transcriptMetadata.model || 'Not specified'}</dd></div>
+                          </dl>
+                          <div className="sp-inspector-note"><CheckCircle2 size={14} /> {transcriptRaw ? 'Transcript available' : 'Awaiting transcription'}</div>
+                          <a className="sp-inspector-source" href={selectedRelease.html_url} target="_blank" rel="noopener noreferrer"><ExternalLink size={13} /> View GitHub source</a>
+                        </div>
+                      )}
+                      {inspectorTab === 'speakers' && (
+                        <div className="sp-inspector-section">
+                          <div className="sp-inspector-section-title">EPISODE SPEAKERS <span>{speakerStats.length}</span></div>
+                          <div className="sp-speaker-list">
+                            {speakerStats.length === 0 && <p className="sp-inspector-empty">No diarized speakers available.</p>}
+                            {[...speakerStats].sort((a,b) => b.count - a.count).slice(0,30).map(stat => (
+                              <button type="button" key={stat.rawSpeaker} onClick={() => openQuickRename(stat.rawSpeaker, stat.displayName)} title={'Rename ' + stat.displayName}>
+                                <span className="sp-speaker-icon"><User size={13} /></span><span className="sp-speaker-name">{stat.displayName}</span><span className="sp-speaker-count">{stat.count} turns</span><Pencil size={11} />
+                              </button>
+                            ))}
+                          </div>
+                          <button className="sp-inspector-action" onClick={() => setShowRenameModal(true)}><Users size={14} /> Manage all speakers <ArrowRight size={13} /></button>
+                        </div>
+                      )}
+                      {inspectorTab === 'actions' && (
+                        <div className="sp-inspector-section">
+                          <div className="sp-inspector-section-title">TRANSCRIPT TOOLS</div>
+                          <div className="sp-inspector-action-list">
+                            <button onClick={handleCopyTranscript} disabled={!utterances.length}><Copy size={14} /> {copied ? 'Copied transcript' : 'Copy transcript'} <ArrowRight size={13} /></button>
+                            <button onClick={() => handleDownloadTranscript('txt')} disabled={!utterances.length}><Download size={14} /> Export plain text <ArrowRight size={13} /></button>
+                            <button onClick={() => handleDownloadTranscript('json')} disabled={!utterances.length}><Database size={14} /> Export structured JSON <ArrowRight size={13} /></button>
+                            <button onClick={() => setShowSavedSpeakersModal(true)}><Star size={14} /> Saved speaker identities <ArrowRight size={13} /></button>
+                            <button onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}><Search size={14} /> Search entire archive <ArrowRight size={13} /></button>
+                          </div>
+                        </div>
+                      )}
+                    </aside>
+                  )}
                   </div>
                 </>
               )
