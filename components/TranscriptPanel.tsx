@@ -2898,41 +2898,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
           {layout.episodesVisible && (<>
 
           <div className="sp-episode-rail flex-shrink-0 border-r border-slate-800 overflow-y-auto bg-slate-950/70">
-            {/* Global Search shortcut button */}
-            <div className="p-2.5 bg-slate-900/60 border-b border-slate-800">
-              <button
-                onClick={() => {
-                  setSearchScope('all');
-                  loadGlobalIndex();
-                }}
-                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
-                  searchScope === 'all'
-                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg text-white ring-1 ring-indigo-500/40'
-                    : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                  }`}>
-                    <Globe size={16} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold truncate">Search All Transcripts</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 truncate">
-                      {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-500'} />
-              </button>
-            </div>
-
             <div className="sp-rail-controls">
               <div className="sp-rail-title">
-                <strong>Episode Library</strong>
+                <strong>Transcripts</strong>
                 <button type="button" className="sp-icon-btn" title="Hide episode browser"
                   onClick={() => setLayout(previous => ({ ...previous, episodesVisible: false, preset: 'custom' }))}><X size={14} /></button>
               </div>
@@ -2948,6 +2916,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                 <button aria-pressed={episodeStatus === 'ready'} onClick={() => { setEpisodeStatus('ready'); setSidebarDisplayLimit(50); }}>Ready ({readyEpisodeCount})</button>
                 <button aria-pressed={episodeStatus === 'processing'} onClick={() => { setEpisodeStatus('processing'); setSidebarDisplayLimit(50); }}>Pending ({effectiveReleases.length - readyEpisodeCount})</button>
               </div>
+              <button type="button" className="sp-rail-global" onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}>
+                <Globe size={13}/> Search entire transcript archive <ArrowRight size={13} />
+              </button>
             </div>
             {sidebarEpisodes.length === 0 && <div className="sp-rail-empty"><Search size={18}/><span>No matching episodes</span><button onClick={() => { setEpisodeQuery(''); setEpisodeStatus('all'); }}>Clear filters</button></div>}
             <div className="sp-rail-items">
@@ -4330,14 +4301,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     <div className="sp-wave" role="group" aria-label="Seek via timestamped speech density timeline">
                       {conversationHeatmap.length ? (
                         <>
-                          {conversationHeatmap.map(bucket =>
-                            <button key={bucket.index} type="button"
-                              className={bucket.isHot ? 'sp-wave-hot' : ''}
-                              style={{ height: (15 + Math.round(bucket.density * 79)) + '%' }}
-                              onClick={() => handlePlayUtterance(bucket.startSec)}
-                              title={'Seek ' + bucket.label + ': ' + bucket.count + ' turns' + (bucket.mentionCount ? ', ' + bucket.mentionCount + ' mentions' : '')}
-                              disabled={!mp3Asset}
-                            />
+                          {conversationHeatmap.flatMap((bucket, bucketIndex) =>
+                            [0, 1, 2, 3].map(subIndex => {
+                              const next = conversationHeatmap[Math.min(conversationHeatmap.length - 1, bucketIndex + 1)];
+                              const density = bucket.density + (next.density - bucket.density) * subIndex / 4;
+                              return <button key={bucket.index + '-' + subIndex} type="button"
+                                className={bucket.isHot ? 'sp-wave-hot' : ''}
+                                style={{ height: (15 + Math.round(density * 79)) + '%' }}
+                                onClick={() => handlePlayUtterance(bucket.startSec)}
+                                title={'Seek ' + bucket.label + ': ' + bucket.count + ' turns' + (bucket.mentionCount ? ', ' + bucket.mentionCount + ' mentions' : '')}
+                                disabled={!mp3Asset}
+                              />;
+                            })
                           )}
                           {current?.id === selectedRelease.id && Number.isFinite(currentTime) &&
                             <div className="sp-wave-playhead" style={{ left: Math.min(100, Math.max(0, currentTime / transcriptDurationSec * 100)) + '%' }} />}
