@@ -205,16 +205,66 @@ else
     echo "Platform: Generic URL (yt-dlp will attempt download)"
 fi
 
-# 4. Duplicate Detection
+# 4. Duplicate & Quarantine Detection
 # Extract the platform-specific source ID before downloading.
 # We look for git tags or METADATA::SOURCE_ID::<id> in existing releases.
 echo "--- Duplicate check ---"
-SPACE_ID=$(yt-dlp --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+
+# Optional Cookie Authentication Support
+COOKIE_ARGS=()
+if [[ -f "cookies.txt" ]]; then
+    COOKIE_ARGS=(--cookies "cookies.txt")
+elif [[ -n "${TWITTER_COOKIES:-}" ]]; then
+    COOKIE_TMP=$(mktemp)
+    echo "$TWITTER_COOKIES" > "$COOKIE_TMP"
+    COOKIE_ARGS=(--cookies "$COOKIE_TMP")
+elif [[ -n "${COOKIES_DATA:-}" ]]; then
+    COOKIE_TMP=$(mktemp)
+    echo "$COOKIES_DATA" > "$COOKIE_TMP"
+    COOKIE_ARGS=(--cookies "$COOKIE_TMP")
+fi
+
+SPACE_ID=$(yt-dlp "${COOKIE_ARGS[@]}" --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+# Fallback to URL regex if yt-dlp query fails (e.g. rate limit, access control denial)
+if [[ -z "$SPACE_ID" ]]; then
+    if [[ "$TARGET_URL" =~ (twitter\.com|x\.com)/i/spaces/([a-zA-Z0-9]{12,14}) ]]; then
+        SPACE_ID="${BASH_REMATCH[2]}"
+    elif [[ "$TARGET_URL" =~ (youtu\.be/|watch\?v=|shorts/)([a-zA-Z0-9_-]{11}) ]]; then
+        SPACE_ID="${BASH_REMATCH[2]}"
+    fi
+fi
 # Host handle (yt-dlp uploader_id), stored in the release body so the transcript list can show who hosted
-HOST_HANDLE=$(yt-dlp --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+HOST_HANDLE=$(yt-dlp "${COOKIE_ARGS[@]}" --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
+
+    # Fast-check 0: Check config/quarantined_spaces.json
+    if [[ -f "config/quarantined_spaces.json" ]]; then
+        QUARANTINE_REASON=$(python3 -c "
+import json, sys
+sid = sys.argv[1]
+try:
+    with open('config/quarantined_spaces.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    items = data.get('quarantined_spaces', []) if isinstance(data, dict) else data
+    match = next((item for item in items if item.get('space_id') == sid), None)
+    if match:
+        print(match.get('reason', 'Quarantined space'))
+except Exception:
+    pass
+" "$SPACE_ID" 2>/dev/null || echo "")
+
+        if [[ -n "$QUARANTINE_REASON" ]]; then
+            echo "::warning::Source $SPACE_ID is quarantined ($QUARANTINE_REASON) — skipping ingest."
+            if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+                echo "already_exists=true" >> "$GITHUB_OUTPUT"
+                echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+                echo "quarantined=true" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+        fi
+    fi
     # Fast-check 1: Check local or fetched git tags (instant O(1), zero API requests)
     if git tag -l "*_${SPACE_ID}" | grep -q "${SPACE_ID}"; then
         echo "::warning::Source $SPACE_ID is already tagged in git — skipping to avoid duplicate."
@@ -281,7 +331,7 @@ echo "--- End duplicate check ---"
 # Live stream capture will only proceed if RECORD_LIVE is explicitly set to true.
 RECORD_LIVE="${RECORD_LIVE:-false}"
 echo "Checking live stream status..."
-LIVE_STATUS=$(yt-dlp --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
+LIVE_STATUS=$(yt-dlp "${COOKIE_ARGS[@]}" --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
 echo "Live status: $LIVE_STATUS (RECORD_LIVE=$RECORD_LIVE)"
 
 if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" != "true" ]]; then
@@ -319,7 +369,11 @@ else
     # Manual live stream capture resilience: infinite fragment retries and mpegts container buffer
     CONCURRENT_ARGS=(--hls-use-mpegts --fragment-retries infinite)
 fi
+
+DOWNLOAD_LOG=$(mktemp)
+set +e
 yt-dlp \
+    "${COOKIE_ARGS[@]}" \
     "${CONCURRENT_ARGS[@]}" \
     --retries 5 \
     --fragment-retries 5 \
@@ -333,14 +387,71 @@ yt-dlp \
     --embed-metadata \
     --embed-thumbnail \
     --output "$WORK_DIR/%(release_date,upload_date)s_%(id)s_%(title)s.%(ext)s" \
-    "$TARGET_URL"
+    "$TARGET_URL" 2>&1 | tee "$DOWNLOAD_LOG"
+YTDLP_STATUS=${PIPESTATUS[0]}
+set -e
 
-# 7. Verify Output
-MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" | head -n 1)
-if [[ -z "$MP3_FILE" ]]; then
-    echo "::error::No MP3 file was generated."
+# 7. Verify Output & Auto-Quarantine Permanent Errors
+MP3_FILE=$(find "$WORK_DIR" -name "*.mp3" 2>/dev/null | head -n 1 || echo "")
+if [[ -z "$MP3_FILE" || "$YTDLP_STATUS" -ne 0 ]]; then
+    DL_ERROR=$(grep -i "ERROR:" "$DOWNLOAD_LOG" 2>/dev/null | head -n 2 | tr '\n' ' ' || echo "Unknown download error")
+    rm -f "$DOWNLOAD_LOG"
+
+    # Detect permanently unavailable / access-restricted / deleted audio
+    IS_PERMANENT=false
+    if echo "$DL_ERROR" | grep -qi "Denied by access control\|replay is disabled\|not found\|no longer available\|Private video"; then
+        IS_PERMANENT=true
+    fi
+
+    if [[ "$IS_PERMANENT" == "true" ]]; then
+        CLEAN_ERR=$(echo "$DL_ERROR" | sed -E 's/.*ERROR: *(\[[^]]+\])? *//' | cut -c1-120)
+        echo "::warning::Space $SPACE_ID is permanently unavailable: $CLEAN_ERR. Adding to quarantine."
+
+        if [[ -n "$SPACE_ID" && -f "config/quarantined_spaces.json" ]]; then
+            python3 -c "
+import json, sys
+from datetime import datetime, timezone
+sid = sys.argv[1]
+url = sys.argv[2]
+reason = sys.argv[3]
+try:
+    with open('config/quarantined_spaces.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    items = data.get('quarantined_spaces', []) if isinstance(data, dict) else data
+    if not any(item.get('space_id') == sid for item in items):
+        items.append({
+            'space_id': sid,
+            'url': url,
+            'reason': reason,
+            'quarantined_at': datetime.now(timezone.utc).isoformat(),
+            'permanent': True
+        })
+        with open('config/quarantined_spaces.json', 'w', encoding='utf-8') as f:
+            json.dump({'quarantined_spaces': items}, f, indent=2, ensure_ascii=False)
+except Exception:
+    pass
+" "$SPACE_ID" "$TARGET_URL" "$CLEAN_ERR"
+            if [[ -n "${GITHUB_TOKEN:-}" && -n "${GITHUB_REPOSITORY:-}" ]]; then
+                git config user.name "github-actions[bot]" 2>/dev/null || true
+                git config user.email "github-actions[bot]@users.noreply.github.com" 2>/dev/null || true
+                git add config/quarantined_spaces.json 2>/dev/null || true
+                git commit -m "chore(dlq): auto-quarantine dead space $SPACE_ID [skip ci]" 2>/dev/null || true
+                git push 2>/dev/null || true
+            fi
+        fi
+
+        if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+            echo "already_exists=true" >> "$GITHUB_OUTPUT"
+            echo "space_id=$SPACE_ID" >> "$GITHUB_OUTPUT"
+            echo "quarantined=true" >> "$GITHUB_OUTPUT"
+        fi
+        exit 0
+    fi
+
+    echo "::error::Download failed and no MP3 file was generated: $DL_ERROR"
     exit 1
 fi
+rm -f "$DOWNLOAD_LOG"
 echo "Successfully created: $MP3_FILE"
 
 # 8. Extract Metadata Base

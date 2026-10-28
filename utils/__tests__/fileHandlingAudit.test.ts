@@ -62,6 +62,11 @@ describe('Exhaustive File Handling, Serialization & Compatibility Regression Tes
         expect(output.split('\n').length).toBeGreaterThan(1);
       }
     }
+
+    const ingestScript = generateIngestScript(mockConfig);
+    expect(ingestScript).toContain('COOKIE_ARGS');
+    expect(ingestScript).toContain('config/quarantined_spaces.json');
+    expect(ingestScript).toContain('Denied by access control');
   });
 
   it('sets 0755 UNIX permissions and UNIX platform in JSZip bundles for shell scripts', async () => {

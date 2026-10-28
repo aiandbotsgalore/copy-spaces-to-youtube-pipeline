@@ -77,6 +77,7 @@ jobs:
           RECORD_LIVE: ${{ inputs.record_live || 'false' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          TWITTER_COOKIES: ${{ secrets.TWITTER_COOKIES }}
         run: |
           set -o pipefail
           bash ./scripts/ingest.sh 2>&1 | tee ingest.log
