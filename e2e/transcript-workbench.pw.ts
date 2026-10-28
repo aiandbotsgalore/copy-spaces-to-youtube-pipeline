@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'playwright/test';
 
 test('transcript workspace panels, presets, and navigation persist after reload', async ({ page }) => {
   await page.goto('/');
