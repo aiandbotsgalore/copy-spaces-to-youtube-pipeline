@@ -162,7 +162,6 @@ export function getArchiveStats(): {
   allSpeakersSample: string[];
 } {
   const summaries = loadSummaries();
-  const fileMap = getTagToFileMap();
 
   const allSpeakers = new Set<string>();
   for (const s of summaries) {
@@ -175,9 +174,14 @@ export function getArchiveStats(): {
     }
   }
 
+  const episodesDir = resolvePath('public', 'transcripts', 'episodes');
+  const epFilesCount = fs.existsSync(episodesDir)
+    ? fs.readdirSync(episodesDir).filter(f => f.endsWith('.json')).length
+    : summaries.length;
+
   return {
-    totalEpisodes: summaries.length || 656,
-    totalTranscriptsOnDisk: fileMap.size || 523,
+    totalEpisodes: summaries.length || 675,
+    totalTranscriptsOnDisk: epFilesCount || summaries.length || 675,
     allSpeakersSample: Array.from(allSpeakers).slice(0, 15),
   };
 }
