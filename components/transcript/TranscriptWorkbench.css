@@ -142,3 +142,7 @@
 @media (prefers-reduced-motion:reduce){.sp-tw *{transition:none!important;scroll-behavior:auto!important}}
 
 .sp-tw .sp-hidden-time{display:none!important}
+
+.sp-tw .sp-rail-global{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:9px;padding:7px 8px;border:1px solid #343f62;border-radius:7px;background:#161e34;color:#b9b5ff;font-size:11px;cursor:pointer}
+.sp-tw .sp-rail-global svg:last-child{margin-left:auto}
+.sp-tw .sp-rail-global:hover{background:#2c255c;border-color:#7b6df1}
