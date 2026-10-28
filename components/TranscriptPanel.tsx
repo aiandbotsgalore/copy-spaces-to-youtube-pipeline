@@ -617,7 +617,7 @@ export async function getEpisodeSegments(releaseTag: string, owner?: string, rep
   if (!text) return [];
   try {
     const data = JSON.parse(text);
-    const segs: SearchIndexSegment[] = Array.isArray(data.segments) ? data.segments : [];
+    const segs: SearchIndexSegment[] = Array.isArray(data) ? data : (Array.isArray(data?.segments) ? data.segments : []);
     if (EPISODE_SEGMENTS_CACHE.size >= MAX_CACHED_EPISODES) {
       const oldestKey = EPISODE_SEGMENTS_CACHE.keys().next().value;
       if (oldestKey) EPISODE_SEGMENTS_CACHE.delete(oldestKey);
@@ -651,6 +651,7 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
     const addCandidate = (value: unknown) => {
       if (Array.isArray(value) && value.length > 0) candidates.push(value);
     };
+    addCandidate(json);
     addCandidate(json.utterances);
     addCandidate(json.segments);
     addCandidate(json.transcript?.utterances);
@@ -724,6 +725,9 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
   } catch {
     // fall through to plain-text parser
   }
+
+  // Safety guard: If raw content is JSON, NEVER fall through to line-by-line text splitting!
+  if (/^\s*[\[{]/.test(rawContent)) return [];
 
   const lines = rawContent.split(/\r?\n/);
   const utterances: ParsedUtterance[] = [];
@@ -873,8 +877,29 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   // Sync enrolled profiles and avatars from /voice_profiles.json
   useEffect(() => {
-    fetch('/voice_profiles.json')
-      .then(res => res.ok ? res.json() : null)
+    const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
+    const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';
+    const urls = [
+      `${base}/voice_profiles.json`,
+      './voice_profiles.json',
+      '/voice_profiles.json',
+      pathBase ? `${pathBase}/voice_profiles.json` : '',
+    ].filter(Boolean);
+
+    const loadProfiles = async () => {
+      for (const u of Array.from(new Set(urls))) {
+        try {
+          const res = await fetch(u);
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.profiles) return data;
+          }
+        } catch {}
+      }
+      return null;
+    };
+
+    loadProfiles()
       .then(data => {
         if (!data || !data.profiles) return;
         setSavedSpeakers(prev => {
@@ -1337,8 +1362,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         const singleText = await fetchSingleEpisodeTranscript(release.tag_name, owner, repo);
         if (singleText) {
           const parsed = JSON.parse(singleText);
-          if (parsed && parsed.segments && parsed.segments.length > 0) {
-            setTranscriptRaw(JSON.stringify({ segments: parsed.segments }));
+          const segs = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.segments) ? parsed.segments : []);
+          if (segs && segs.length > 0) {
+            setTranscriptRaw(JSON.stringify({ segments: segs }));
             setTranscriptError('');
             setTranscriptLoading(false);
             return;
@@ -1370,6 +1396,24 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     setTranscriptError('');
     setTranscriptRaw('');
 
+    // If no specific asset was manually picked by the user, prefer the cleaned and speaker-labeled
+    // local/repository episode file if available.
+    if (!targetAsset) {
+      try {
+        const singleText = await fetchSingleEpisodeTranscript(release.tag_name, owner, repo);
+        if (singleText) {
+          const parsed = JSON.parse(singleText);
+          const segs = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.segments) ? parsed.segments : []);
+          if (segs && segs.length > 0) {
+            setTranscriptRaw(JSON.stringify({ segments: segs }));
+            setTranscriptError('');
+            setTranscriptLoading(false);
+            return;
+          }
+        }
+      } catch { /* proceed to download release asset */ }
+    }
+
     try {
       const text = await fetchReleaseAssetText(
         config.githubToken, asset, owner, repo, release.tag_name
@@ -1394,8 +1438,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         const singleText = await fetchSingleEpisodeTranscript(release.tag_name, owner, repo);
         if (singleText) {
           const parsed = JSON.parse(singleText);
-          if (parsed && parsed.segments && parsed.segments.length > 0) {
-            setTranscriptRaw(JSON.stringify({ segments: parsed.segments }));
+          const segs = Array.isArray(parsed) ? parsed : (Array.isArray(parsed?.segments) ? parsed.segments : []);
+          if (segs && segs.length > 0) {
+            setTranscriptRaw(JSON.stringify({ segments: segs }));
             setTranscriptError('');
             return;
           }
@@ -2379,7 +2424,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           if (rawText) {
             try {
               const parsed = JSON.parse(rawText);
-              segments = Array.isArray(parsed.segments) ? parsed.segments : [];
+              segments = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.segments) ? parsed.segments : []);
               if (jsonFolder) {
                 jsonFolder.file(`${ep.release_tag}.json`, rawText);
               }

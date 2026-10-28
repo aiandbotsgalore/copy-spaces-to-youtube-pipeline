@@ -1304,7 +1304,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     if (!tag) { setRows([]); return; }
     setSel({}); setFocusTime(null);
     fetch(`/transcripts/episodes/${encodeURIComponent(tag)}.json`).then(res => res.json()).then(j => {
-      setRows((j.segments || []).map((s: any, i: number) => ({ id: `u${i}`, start: Number(s.start) || 0, end: Number(s.end) || 0, speaker: String(s.speaker || 'Unknown'), text: String(s.text || '') })));
+      const segs = Array.isArray(j) ? j : (Array.isArray(j?.segments) ? j.segments : []);
+      setRows(segs.map((s: any, i: number) => ({ id: `u${i}`, start: Number(s.start) || 0, end: Number(s.end) || 0, speaker: String(s.speaker || 'Unknown'), text: String(s.text || '') })));
     }).catch(() => setRows([]));
   }, [tag]);
   const analysis = data?.analyses[tag] || null;

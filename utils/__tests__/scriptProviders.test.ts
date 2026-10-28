@@ -63,7 +63,7 @@ describe('Claude Code adapter', () => {
     expect(a.slice(0, 3)).toEqual(['-p', '--output-format', 'json']);
     expect(a).toContain('--strict-mcp-config');
     expect(a[a.indexOf('--tools') + 1]).toBe('');
-    expect(a[a.indexOf('--max-turns') + 1]).toBe('1');
+    expect(a[a.indexOf('--max-turns') + 1]).toBe('3');
     expect(a).not.toContain('--bare');
   });
   it('sends UTF-8 stdin from an empty sandbox with a stripped env, and returns structured_output', async () => {

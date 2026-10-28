@@ -501,8 +501,13 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
         txt_lines.append(f"[{format_timestamp_srt(start)}] {speaker}: {text}\n")
 
     # Write files
+    payload = {
+        "title": title,
+        "release_tag": rel_tag,
+        "segments": segments
+    }
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(segments, f, indent=2, ensure_ascii=False)
+        json.dump(payload, f, indent=2, ensure_ascii=False)
     with open(srt_path, "w", encoding="utf-8") as f:
         f.writelines("\n".join(srt_lines))
     with open(txt_path, "w", encoding="utf-8") as f:

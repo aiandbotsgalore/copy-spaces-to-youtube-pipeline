@@ -162,6 +162,13 @@ export async function resolveCliBinary(name: 'claude' | 'codex', deps: ResolveDe
     ? await deps.runner('where.exe', [name], { cwd: os.tmpdir(), env: deps.env, timeoutMs: 10_000 })
     : await deps.runner('which', ['-a', name], { cwd: os.tmpdir(), env: deps.env, timeoutMs: 10_000 });
   const found = lookup.code === 0 ? lookup.stdout.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+  if (!found.length && deps.platform === 'win32') {
+    const appData = deps.env.APPDATA || process.env.APPDATA;
+    if (appData) {
+      const p = path.win32.join(appData, 'npm', `${name}.cmd`);
+      if (deps.exists(p)) found.push(p);
+    }
+  }
   if (!found.length) return { ok: false, detail: `${name} was not found on PATH.` };
   if (deps.platform !== 'win32') return { ok: true, file: found[0], prefixArgs: [], via: 'path', found: found[0] };
   const exe = found.find(f => /\.exe$/i.test(f));
@@ -215,7 +222,8 @@ export function classifyCliFailure(o: RunOutcome): { code: FailCode; message: st
     if (/usage_limit|quota/.test(cat)) return { code: 'USAGE_LIMIT', message: msg || 'Usage limit reached.' };
     if (status === 401 || /auth|login/.test(cat)) return { code: 'NOT_SIGNED_IN', message: msg || 'Not signed in.' };
     if (j?.type === 'error' || j?.type === 'turn.failed' || j?.is_error === true) {
-      const m = msg || JSON.stringify(j).slice(0, 300);
+      const termReason = typeof j?.terminal_reason === 'string' && j.terminal_reason !== 'completed' ? `Turn ended: ${j.terminal_reason}` : '';
+      const m = msg || termReason || JSON.stringify(j).slice(0, 300);
       return textClassify(m) ?? { code: 'UPSTREAM', message: m };
     }
   }
@@ -270,7 +278,7 @@ export function claudeArgs(model: 'sonnet' | 'haiku', schema: object, sysPromptP
     '--tools', '',
     '--strict-mcp-config',
     '--disable-slash-commands',
-    '--max-turns', '1', '--no-session-persistence',
+    '--max-turns', '3', '--no-session-persistence',
     '--permission-prompts', 'none',
   ];
 }
@@ -306,17 +314,19 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
         const env = claudeEnvelope(r.stdout);
+        const structured = env?.structured_output ?? (typeof env?.result === 'string' ? parseJsonLoose(env.result) : null);
+        const hasStructured = structured !== undefined && structured !== null && typeof structured === 'object';
         // The result envelope decides, not stderr: a user-level hook (e.g. a SessionEnd hook that needs
         // a missing runtime) can print errors, or even change the exit code, after a successful result.
         const success = !!env && (env.type === undefined || env.type === 'result') && env.is_error !== true && (env.subtype === undefined || env.subtype === 'success');
-        if (!r.aborted && success && env.structured_output !== undefined && env.structured_output !== null) {
-          const u = env.usage || {};
+        if (!r.aborted && (success || hasStructured) && hasStructured) {
+          const u = env?.usage || {};
           return {
-            ok: true, json: env.structured_output, provider: 'claude_cli', model: String(env.model || model), durationMs: now() - started,
+            ok: true, json: structured, provider: 'claude_cli', model: String(env?.model || model), durationMs: now() - started,
             usage: { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, costUsd: 0 },
           };
         }
-        if (r.code === 0 && !r.timedOut && !r.aborted && env && !env.is_error) return fail('BAD_OUTPUT', 'Claude returned no structured_output (the run may have been declined).', raw, started);
+        if (r.code === 0 && !r.timedOut && !r.aborted && env && !env.is_error && !hasStructured) return fail('BAD_OUTPUT', 'Claude returned no structured_output (the run may have been declined).', raw, started);
         const c = classifyCliFailure(r);
         return fail(c.code, c.message, raw, started, { resetHint: resetHint(raw) });
       } finally {
