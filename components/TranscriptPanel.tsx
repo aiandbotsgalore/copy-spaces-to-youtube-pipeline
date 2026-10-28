@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
-import { useTranscriptLayout, TranscriptLayoutPreset } from './transcript/useTranscriptLayout';
+import { useTranscriptLayout } from './transcript/useTranscriptLayout';
+import type { TranscriptLayoutPreset } from './transcript/useTranscriptLayout';
 import './transcript/ApprovedTranscript.css';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
@@ -8,7 +9,7 @@ import {
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
   Save, CheckCircle2, Star, Plus, Trash2, UserPlus, User, Sparkle, Clock,
   Globe, Radio, Layers, ArrowRight, Headphones, Scissors, Film, HardDriveDownload,
-  Database, Tag, BarChart3, ShieldAlert, Bot
+  Database, Tag, BarChart3, ShieldAlert, Bot, PanelLeftOpen, PanelLeftClose, PanelRightOpen, Bookmark, BookOpen
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
