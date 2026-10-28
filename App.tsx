@@ -342,7 +342,7 @@ function AppContent() {
               </div>
               {!isSidebarRail && (
                 <div className="min-w-0">
-                  <h1 className="font-bold text-base tracking-tight text-white leading-none truncate">SpacePipe Gen</h1>
+                  <h1 className="font-bold text-base tracking-tight text-white leading-none truncate">SpacePipe Studio</h1>
                   <p className="text-[11px] text-slate-500 mt-0.5 truncate">Audio Pipeline Generator</p>
                 </div>
               )}
