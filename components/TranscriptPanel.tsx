@@ -1,12 +1,18 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
+import './transcript/TranscriptWorkbench.css';
+import {
+  TRANSCRIPT_LAYOUT_KEY, DEFAULT_TRANSCRIPT_LAYOUT, restoreTranscriptLayout,
+  layoutForPreset, clampPanelWidth, normalizeTag,
+  type TranscriptLayout, type LayoutPreset, type InspectorTab, type WorkspaceTab,
+} from './transcript/transcriptLayout';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
   SlidersHorizontal, ArrowDownCircle, Sparkles, Pencil, Users, X, RotateCcw,
   Save, CheckCircle2, Star, Plus, Trash2, UserPlus, User, Sparkle, Clock,
   Globe, Radio, Layers, ArrowRight, Headphones, Scissors, Film, HardDriveDownload,
-  Database, Tag, BarChart3, ShieldAlert, Bot
+  Database, Tag, BarChart3, ShieldAlert, Bot, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, VolumeX
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
@@ -30,6 +36,9 @@ import {
 interface Props {
   config: EnhancedConfig;
   initialReleaseId?: number | string | null;
+  navigationCollapsed?: boolean;
+  onNavigationCollapsedChange?: (collapsed: boolean) => void;
+  onOpenCopilot?: () => void;
 }
 
 export interface UtteranceWord {
@@ -768,12 +777,15 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
+const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigationCollapsed = false, onNavigationCollapsedChange, onOpenCopilot }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(typeof initialReleaseId === 'number' ? initialReleaseId : null);
+  const [selectedId, setSelectedId] = useState<number | null>(() => {
+    if (typeof initialReleaseId === 'number') return initialReleaseId;
+    try { const saved = Number(localStorage.getItem('spacepipe_transcript_last_episode_v2')); return Number.isSafeInteger(saved) && saved > 0 ? saved : null; } catch { return null; }
+  });
   const [transcriptRaw, setTranscriptRaw] = useState('');
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState('');
@@ -919,6 +931,68 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
   const [utteranceDisplayLimit, setUtteranceDisplayLimit] = useState<number>(120);
   const [sidebarDisplayLimit, setSidebarDisplayLimit] = useState<number>(50);
+  const [episodeQuery, setEpisodeQuery] = useState('');
+  const [episodeStatus, setEpisodeStatus] = useState<'all' | 'ready' | 'processing'>('all');
+  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('transcript');
+  const [layout, setLayout] = useState<TranscriptLayout>(() => {
+    try { return restoreTranscriptLayout(localStorage.getItem(TRANSCRIPT_LAYOUT_KEY)); } catch { return restoreTranscriptLayout(null); }
+  });
+  const [tagInput, setTagInput] = useState('');
+  const [episodeTags, setEpisodeTags] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('spacepipe_transcript_tags_v1') || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    } catch { return {}; }
+  });
+  const draggingPanelRef = useRef<{ side: 'episodes' | 'inspector'; x: number; width: number } | null>(null);
+  useEffect(() => {
+    try { localStorage.setItem(TRANSCRIPT_LAYOUT_KEY, JSON.stringify(layout)); } catch {}
+  }, [layout]);
+  useEffect(() => {
+    try { localStorage.setItem('spacepipe_transcript_tags_v1', JSON.stringify(episodeTags)); } catch {}
+  }, [episodeTags]);
+  useEffect(() => {
+    if (selectedId !== null) {
+      try { localStorage.setItem('spacepipe_transcript_last_episode_v2', String(selectedId)); } catch {}
+    }
+  }, [selectedId]);
+
+  const chooseLayoutPreset = (preset: Exclude<LayoutPreset, 'custom'>) => {
+    setLayout(previous => layoutForPreset(preset, previous));
+    onNavigationCollapsedChange?.(preset === 'compact' || preset === 'focus');
+  };
+  const resetLayout = () => {
+    setLayout({ ...DEFAULT_TRANSCRIPT_LAYOUT, sectionOpen: { ...DEFAULT_TRANSCRIPT_LAYOUT.sectionOpen } });
+    onNavigationCollapsedChange?.(false);
+  };
+  const resizePanel = (side: 'episodes' | 'inspector', delta: number) => {
+    setLayout(previous => ({
+      ...previous, preset: 'custom',
+      ...(side === 'episodes'
+        ? { episodeWidth: clampPanelWidth(previous.episodeWidth + delta) }
+        : { inspectorWidth: clampPanelWidth(previous.inspectorWidth + delta, 240, 440) }),
+    }));
+  };
+  const beginPanelResize = (side: 'episodes' | 'inspector', event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    draggingPanelRef.current = { side, x: event.clientX, width: side === 'episodes' ? layout.episodeWidth : layout.inspectorWidth };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+  const movePanelResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    const drag = draggingPanelRef.current;
+    if (!drag) return;
+    const delta = (event.clientX - drag.x) * (drag.side === 'episodes' ? 1 : -1);
+    setLayout(previous => ({
+      ...previous, preset: 'custom',
+      ...(drag.side === 'episodes'
+        ? { episodeWidth: clampPanelWidth(drag.width + delta) }
+        : { inspectorWidth: clampPanelWidth(drag.width + delta, 240, 440) }),
+    }));
+  };
+  const toggleInspectorSection = (name: keyof TranscriptLayout['sectionOpen']) => {
+    setLayout(previous => ({ ...previous, sectionOpen: { ...previous.sectionOpen, [name]: !previous.sectionOpen[name] } }));
+  };
 
   const currentLoadedIdRef = useRef<number | null>(null);
   const transcriptionPollRef = useRef<number | null>(null);
@@ -926,8 +1000,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const targetScrollSecRef = useRef<number | null>(null);
   const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
 
-  const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
-  const { addClip } = useMontage();
+  const { play, seek, skip, currentTime, duration, isPlaying, current, togglePlay, playbackRate, setPlaybackRate, volume, setVolume, isMuted, toggleMute } = usePlayer();
+  const { addClip, clips: montageClips } = useMontage();
   const copilot = useCopilot();
 
   const openQuickSlicer = (target: SlicerTurnTarget) => {
@@ -1064,6 +1138,23 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [summaryIndex]);
 
   const selectedHost = useMemo(() => getEpisodeHost(selectedRelease), [getEpisodeHost, selectedRelease]);
+  const releaseHasTranscript = useCallback((release: Release) => {
+    if (pickTranscriptAsset(release)) return true;
+    return !!summaryIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && (ep.segment_count || 0) > 0)
+      || !!globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0);
+  }, [summaryIndex, globalIndex]);
+  const readyEpisodeCount = useMemo(() => effectiveReleases.filter(releaseHasTranscript).length, [effectiveReleases, releaseHasTranscript]);
+  const sidebarEpisodes = useMemo(() => {
+    const query = episodeQuery.trim().toLowerCase();
+    return effectiveReleases.filter(release => {
+      const ready = releaseHasTranscript(release);
+      if (episodeStatus === 'ready' && !ready) return false;
+      if (episodeStatus === 'processing' && ready) return false;
+      return !query || (release.name || release.tag_name).toLowerCase().includes(query)
+        || release.tag_name.toLowerCase().includes(query)
+        || (getEpisodeHost(release) || '').toLowerCase().includes(query);
+    });
+  }, [effectiveReleases, releaseHasTranscript, episodeStatus, episodeQuery, getEpisodeHost]);
   const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
   const activePart = useMemo(() => episodeParts.find(p => p.partNumber === selectedPartNum) || episodeParts[0] || null, [episodeParts, selectedPartNum]);
   const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
@@ -1803,6 +1894,67 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       isHot: b.mentionCount > 0,
     }));
   }, [utterances, selectedMentionTarget]);
+
+  const transcriptDurationSec = useMemo(() => {
+    const last = utterances[utterances.length - 1];
+    const fromTranscript = last?.endSec || last?.startSec || 0;
+    const fromPlayer = selectedRelease && current?.id === selectedRelease.id ? duration : 0;
+    return Math.max(1, transcriptMetadata.audioDurationSec || 0, fromTranscript, Number.isFinite(fromPlayer) ? fromPlayer : 0);
+  }, [utterances, transcriptMetadata.audioDurationSec, selectedRelease, current?.id, duration]);
+  const navigationSections = useMemo(() => {
+    if (!utterances.length) return [];
+    const chunk = Math.max(1, Math.ceil(utterances.length / 12));
+    return Array.from({ length: Math.ceil(utterances.length / chunk) }, (_, i) => {
+      const start = utterances[i * chunk];
+      const end = utterances[Math.min(utterances.length - 1, (i + 1) * chunk - 1)];
+      return { index: i, label: 'Section ' + (i + 1), time: start.startSec,
+        timeLabel: start.startLabel, endLabel: end.endLabel || end.startLabel, turns: Math.min(chunk, utterances.length - i * chunk) };
+    });
+  }, [utterances]);
+  const activeEpisodeTags = selectedRelease ? (Array.isArray(episodeTags[selectedRelease.tag_name]) ? episodeTags[selectedRelease.tag_name] : []) : [];
+  const activeMontageClips = selectedRelease ? montageClips.filter(clip => clip.sourceTag === selectedRelease.tag_name) : [];
+  const addEpisodeTag = () => {
+    if (!selectedRelease) return;
+    const next = normalizeTag(tagInput);
+    if (!next) return;
+    setEpisodeTags(previous => {
+      const existing = Array.isArray(previous[selectedRelease.tag_name]) ? previous[selectedRelease.tag_name] : [];
+      if (existing.length >= 24 || existing.some(x => x.toLowerCase() === next.toLowerCase())) return previous;
+      return { ...previous, [selectedRelease.tag_name]: [...existing, next] };
+    });
+    setTagInput('');
+  };
+  const removeEpisodeTag = (tag: string) => {
+    if (!selectedRelease) return;
+    setEpisodeTags(previous => ({ ...previous, [selectedRelease.tag_name]: (previous[selectedRelease.tag_name] || []).filter(item => item !== tag) }));
+  };
+  const openCopilotWithTask = (task: 'summary' | 'topics' | 'moments' | 'chapters') => {
+    if (!selectedRelease || !utterances.length) return;
+    const prompt = {
+      summary: 'Summarize the attached episode excerpts with timestamped findings. Identify uncertain claims and explain any incomplete transcript coverage.',
+      topics: 'Identify the main themes and topics in the attached episode excerpts, with timestamped supporting quotes. Do not infer facts not present in the source.',
+      moments: 'Find the strongest noteworthy moments or soundbites in the attached episode excerpts; give exact timestamps and explain their significance.',
+      chapters: 'Propose meaningful documentary-style chapter boundaries from the attached timestamped episode excerpts. Distinguish proposed chapters from verified full-episode structure.',
+    }[task];
+    const context = {
+      ...copilot.contextPayload,
+      activeTab: 'transcripts',
+      currentEpisode: {
+        releaseId: selectedRelease.id,
+        releaseTag: selectedRelease.tag_name,
+        title: selectedRelease.name || selectedRelease.tag_name,
+        audioUrl: mp3Asset?.browser_download_url,
+        speakers: Array.from(new Set(utterances.map(u => u.speaker))),
+        segmentsSample: utterances.slice(0, 30).map(u => ({ speaker: u.speaker, text: u.text, start: u.startSec, end: u.endSec || u.startSec + 5 })),
+        allSegments: utterances.slice(0, 150).map(u => ({ speaker: u.speaker, text: u.text, start: u.startSec, end: u.endSec || u.startSec + 5 })),
+        totalTurns: utterances.length,
+        durationSec: transcriptDurationSec,
+      },
+    };
+    copilot.setContextPayload(context);
+    void copilot.sendMessage(prompt, context);
+    onOpenCopilot?.();
+  };
 
   const matchCount = useMemo(() => {
     if (!hasActiveSearch) return 0;
