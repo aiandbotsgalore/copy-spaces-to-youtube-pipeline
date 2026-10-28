@@ -1,0 +1,39 @@
+{
+  "quarantined_spaces": [
+    {
+      "space_id": "1yJAPwpqWEWGb",
+      "url": "https://x.com/i/spaces/1yJAPwpqWEWGb",
+      "reason": "Twitter Space ended and replay is disabled by host",
+      "quarantined_at": "2026-10-27T12:08:25Z",
+      "permanent": true
+    },
+    {
+      "space_id": "1qKVmyzwawwxB",
+      "url": "https://x.com/i/spaces/1qKVmyzwawwxB",
+      "reason": "Twitter Space not found (deleted or invalid ID)",
+      "quarantined_at": "2026-10-27T12:08:29Z",
+      "permanent": true
+    },
+    {
+      "space_id": "1yGBePVEngpKN",
+      "url": "https://x.com/i/spaces/1yGBePVEngpKN",
+      "reason": "Twitter Space not found (deleted or invalid ID)",
+      "quarantined_at": "2026-10-27T12:08:31Z",
+      "permanent": true
+    },
+    {
+      "space_id": "1qGoNYPNkRXKv",
+      "url": "https://x.com/i/spaces/1qGoNYPNkRXKv",
+      "reason": "Twitter Space not found (deleted or invalid ID)",
+      "quarantined_at": "2026-10-27T12:08:29Z",
+      "permanent": true
+    },
+    {
+      "space_id": "1vKpPPXyOqkKE",
+      "url": "https://x.com/i/spaces/1vKpPPXyOqkKE",
+      "reason": "Authorization: Denied by access control (private or restricted Space)",
+      "quarantined_at": "2026-10-27T17:59:33Z",
+      "permanent": true
+    }
+  ]
+}
