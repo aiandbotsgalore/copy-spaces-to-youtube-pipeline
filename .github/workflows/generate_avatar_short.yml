@@ -92,8 +92,6 @@ jobs:
           SPEAKER_SEGMENTS_JSON: ${{ inputs.speaker_segments_json || '[]' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
-          TARGET_RELEASE_TAG: ${{ inputs.target_release_tag }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "[*] Injecting environment bootstrap into Kaggle EchoMimic worker..."
           cat << 'EOF' > scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
@@ -106,9 +104,6 @@ jobs:
           os.environ["SPEAKER_SEGMENTS_JSON"] = '''${{ inputs.speaker_segments_json || '[]' }}'''
           os.environ["PROMPT"] = "${{ inputs.prompt }}"
           os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
-          os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag }}"
-          os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
-          os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
           EOF
 
           cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py > scripts/kaggle_worker/echomimic_pkg/worker_final.py
