@@ -389,7 +389,10 @@ def compose_stage_grid(timeline: Mapping[str, Any], speaker_videos: Sequence[Pat
     for index, _video in enumerate(speaker_videos):
         row, col = divmod(index, cols)
         tile = f"tile{index}"
-        filters.append(f"[{index + 1}:v]fps={fps},scale={tile_w}:{tile_h}:force_original_aspect_ratio=decrease,pad={tile_w}:{tile_h}:(ow-iw)/2:(oh-ih)/2:color=0x111827[{tile}]")
+        speaker_id = str(timeline["speakers"][index]["id"])
+        active_windows = [f"between(t,{float(item['start_seconds']):.6f},{float(item['end_seconds']):.6f})" for item in timeline.get("intervals", []) if str(item.get("speaker_id")) == speaker_id]
+        active = "+".join(active_windows) or "0"
+        filters.append(f"[{index + 1}:v]fps={fps},scale={tile_w}:{tile_h}:force_original_aspect_ratio=decrease,pad={tile_w}:{tile_h}:(ow-iw)/2:(oh-ih)/2:color=0x111827,drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x10b981:t=8:enable='{active}'[{tile}]")
         filters.append(f"[{last}][{tile}]overlay={col * tile_w}:{row * tile_h}:shortest=1[stage{index}]")
         last = f"stage{index}"
     font_candidates = [os.environ.get("AVATAR_FONT_FILE", ""), "C:/Windows/Fonts/arial.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]
