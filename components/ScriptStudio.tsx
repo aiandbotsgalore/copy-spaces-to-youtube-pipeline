@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, ArrowDown, BookOpen, BookmarkPlus, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
-  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle,
+  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Star, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -27,6 +27,9 @@ import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
 import { setUnsavedGuard } from '../utils/unsavedGuard';
+import QuoteLibrary, { useLibrary } from './QuoteLibrary';
+import ScriptBoard from './ScriptBoard';
+import type { ListenOption, ViewEntry } from '../utils/quoteView';
 import {
   extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, type ParsedManuscriptClip,
 } from '../utils/scriptUpload';
@@ -1241,6 +1244,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
+  const [mainView, setMainView] = useState<'script' | 'board' | 'library'>('script');
+  const lib = useLibrary(projectId, mainView !== 'script');
 
   // When a preview finishes, refresh the takes without throwing away edits made meanwhile.
   const preview = usePreviewJob(projectId, () => {
@@ -1450,6 +1455,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     if (player.current?.id === id) { player.togglePlay(); return; }
     stopRef.current = null;
     player.play({ id, title: `Narration: ${b.text.slice(0, 60)}`, audioUrl: b.takeUrl });
+  };
+
+  const playingUrl = player.isPlaying ? player.current?.audioUrl ?? null : null;
+  const listenQuote = (e: ViewEntry, o: ListenOption) => {
+    const id = `quote:${e.ref}:${o.kind}`;
+    if (player.current?.id === id) { player.togglePlay(); return; }
+    stopRef.current = null;
+    player.play({ id, title: `${e.aqId}: ${o.label}`, audioUrl: o.url });
   };
 
   const playClip = (b: Extract<Block, { kind: 'clip' }>) => {
@@ -2052,6 +2065,18 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
         {/* Center Script Editor (55–65%+ Screen Width) */}
         <main className="flex-1 min-w-0 flex flex-col overflow-hidden bg-slate-950">
+          {/* Main view: the script, the project's Evidence Board, or the shared Evidence Library */}
+          <div className="shrink-0 border-b border-slate-800 px-4 pt-2 flex items-center gap-1 text-xs bg-slate-950" role="tablist" aria-label="Main view">
+            {([['script', 'Script', FileText], ['board', 'Board', Star], ['library', 'Library', BookOpen]] as const).map(([key, label, Icon]) => (
+              <button key={key} role="tab" aria-selected={mainView === key} onClick={() => setMainView(key)}
+                className={cx('px-3 py-1.5 border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5', mainView === key ? 'border-indigo-500 text-indigo-300' : 'border-transparent text-slate-400 hover:text-slate-200')}>
+                <Icon size={12} /> {label}
+              </button>
+            ))}
+          </div>
+          {mainView === 'board' && <ScriptBoard lib={lib} question={lib.board?.question || project.thesis || ''} onOpenLibrary={() => setMainView('library')} onListen={listenQuote} playingUrl={playingUrl} />}
+          {mainView === 'library' && <QuoteLibrary lib={lib} projectId={project.id} onListen={listenQuote} playingUrl={playingUrl} />}
+          {mainView === 'script' && (<>
           {/* Scene Navigator / Minimap Bar */}
           <div className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur border-b border-slate-800 px-4 py-2 flex items-center gap-2 overflow-x-auto text-xs shrink-0">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 shrink-0 flex items-center gap-1">
@@ -2228,6 +2253,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               </button>
             </div>
           </div>
+          </>)}
         </main>
       </div>
 
