@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spacepipe.local/schemas/avatar.timeline.v1.json",
+  "title": "SpacePipe speaker-aware avatar timeline",
+  "type": "object",
+  "required": ["schema", "duration_seconds", "fps", "source_audio", "speakers", "intervals", "layout", "render"],
+  "properties": {
+    "schema": { "const": "spacepipe.avatar.timeline.v1" },
+    "duration_seconds": { "type": "number", "exclusiveMinimum": 0 },
+    "duration_frames": { "type": "integer", "minimum": 1 },
+    "fps": { "type": "integer", "minimum": 1 },
+    "source_audio": { "type": "object", "required": ["url"], "properties": { "url": { "type": "string", "minLength": 1 } }, "additionalProperties": true },
+    "speakers": { "type": "array", "minItems": 1, "items": { "type": "object", "required": ["id", "name", "avatar"], "properties": { "id": { "type": "string", "minLength": 1 }, "name": { "type": "string", "minLength": 1 }, "avatar": { "type": "object", "required": ["url"], "properties": { "url": { "type": "string", "minLength": 1 } }, "additionalProperties": true } }, "additionalProperties": true } },
+    "intervals": { "type": "array", "minItems": 1, "items": { "type": "object", "required": ["id", "speaker_id", "start_seconds", "end_seconds"], "properties": { "id": { "type": "string" }, "speaker_id": { "type": "string" }, "speaker": { "type": "string" }, "start_seconds": { "type": "number", "minimum": 0 }, "end_seconds": { "type": "number", "exclusiveMinimum": 0 }, "start_frame": { "type": "integer", "minimum": 0 }, "end_frame": { "type": "integer", "minimum": 1 }, "confidence": { "type": ["number", "null"] }, "verified": { "type": "boolean" } }, "additionalProperties": true } },
+    "layout": { "enum": ["stage_grid", "split_screen", "solo"] },
+    "render": { "type": "object", "required": ["model", "settings"], "additionalProperties": true }
+  },
+  "additionalProperties": true
+}
