@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-10-28T02:16:54.546276+00:00",
-  "total_episodes_with_audio": 836,
+  "last_updated": "2026-10-29T20:04:14.538178+00:00",
+  "total_episodes_with_audio": 837,
   "transcribed_count": 691,
-  "untranscribed_count": 145,
-  "percent_complete": 82.7,
+  "untranscribed_count": 146,
+  "percent_complete": 82.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -30,6 +30,11 @@
     }
   },
   "next_in_queue": [
+    {
+      "tag": "20261029_1vKpPNMwnXXKE",
+      "name": "BLESSED_BE_ALL_WHO_PASS_HERE",
+      "date": "Oct 29, 2026"
+    },
     {
       "tag": "20261018_1RJjpbPMOmwKw",
       "name": "5_to_boot_anyone_from_speaker_including_the_host",
@@ -123,11 +128,6 @@
     {
       "tag": "20260220_1djGXlYkooRGZ",
       "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
-      "date": "Jan 19, 2023"
-    },
-    {
-      "tag": "20260216_1BRJjZRlQoeJw",
-      "name": "Space broken?",
       "date": "Jan 19, 2023"
     }
   ]
