@@ -239,3 +239,87 @@ export interface ScriptRun {
 
 export type Role = 'analyst' | 'critic' | 'reviser' | 'judge' | 'factcheck' | 'polish';
 export interface RoleMap { analyst: string; critic: string; reviser: string; judge: string; factcheck: string; polish?: string }
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Evidence library (one file per recording) and project Evidence Board                              */
+/* .spacepipe-studio/library/<releaseTag>.json and .spacepipe-studio/projects/<id>/board.json        */
+/* ------------------------------------------------------------------------------------------------ */
+
+export interface TextCheck {
+  status: 'exact' | 'differs' | 'unlocated';   // exact: the quote is a contiguous excerpt of the located utterances
+  transcriptSpan?: string;                     // the matching transcript wording when status is 'differs'
+  checkedAt: number; transcriptHash: string;   // re-checked in code if the transcript ever changes
+  matchedPct?: number;                         // share of quote words found in order
+  note?: string;                               // why it differs, or why it was not located
+  locator?: number;                            // utils/quoteLocate.ts LOCATOR_VERSION that made this check
+}
+
+/**
+ * Quote audio, verified separately from quote text. `source` says who set the boundaries:
+ * corpus_cut = cut points supplied by the AQ corpus (not re-checked against the audio by this app),
+ * alignment = word alignment in code, manual = Logan listened and approved.
+ */
+export interface AudioBoundary {
+  status: 'none' | 'aligned' | 'needs_review' | 'verified';
+  // aligned: automatic, confident (>= 85% of quote words matched in order, sane length)
+  // needs_review: alignment failed or was uncertain; NOT usable until reviewed
+  // verified: Logan listened and approved (manual), or an AQ cut point the corpus marks as final (corpus_cut)
+  source?: 'alignment' | 'corpus_cut' | 'manual';
+  startSec?: number; endSec?: number;          // episode time; set only for aligned or verified
+  suggestedStartSec?: number; suggestedEndSec?: number;  // shown while reviewing, never used for audio
+  matchedPct?: number; reason?: string; reviewedAt?: number;
+  words?: { w: string; s: number; e: number }[];         // word times of the aligned window
+}
+
+export interface LibraryQuote {
+  id: string;                        // `${releaseTag}:${shortHash}` (stable across projects)
+  releaseTag: string;
+  utteranceIds: string[];            // contiguous, one transcript label
+  speakerLabel: string;              // raw label as transcribed
+  speakerName?: string;              // only after Logan confirms it by listening
+  speakerConfirmed: boolean;         // per quote; a matching label is never treated as proof
+  verbatim: string;                  // exact transcript text (original wording, never edited)
+  segStart: number; segEnd: number;  // original utterance window, never changed
+  text: TextCheck;
+  audio: AudioBoundary;
+  about: string; why: string;
+  type: 'accusation' | 'evidence_claim' | 'motive' | 'threat_or_plan' | 'admission' | 'response' | 'other';
+  status: 'checkable' | 'allegation' | 'opinion';
+  foundBy: { question: string; at: number }[];
+}
+
+/** App side data for an AQ corpus quote. Corpus metadata itself is read live from the master file, never copied. */
+export interface AqLink {
+  aqId: string;                      // e.g. AQ-0263
+  utteranceIds: string[];            // located in the transcript ([] when unlocated)
+  speakerLabels: string[];           // raw transcript labels of those utterances (suggestions, never proof)
+  segStart?: number; segEnd?: number;
+  text: TextCheck;                   // 'differs' is expected for lightly cleaned corpus wording
+  audio: AudioBoundary;              // corpus cut points: verified, source corpus_cut
+  speakerConfirmed?: boolean; speakerName?: string;
+}
+
+export interface RecordingLibrary {
+  version: 1; releaseTag: string; transcriptHash: string;
+  reads: { question: string; at: number; model: string; quoteIds: string[] }[];
+  notes: { at: number; question: string; text: string }[];       // context notes (who is present, label cautions)
+  rejected: { verbatim: string; reason: string; at: number }[];  // failed verification, kept visible
+  quotes: LibraryQuote[];
+  aqLinks: AqLink[];
+}
+
+export interface BoardItem { ref: string; starred?: boolean; excluded?: boolean; note?: string; addedAt: number }
+  // ref: a LibraryQuote id, or 'aq:AQ-0263'
+export interface BoardClaim {
+  id: string; text: string;
+  status: 'verified' | 'allegation' | 'disputed' | 'unsupported';
+  supportRefs: string[]; contradictRefs: string[];   // quote refs or source ids
+  note?: string;
+}
+export interface BoardSource { id: string; docId: string; excerpt: string; label: string }  // exact excerpt of a ScriptEvidenceDoc
+export interface EvidenceBoard {
+  version: 1; question: string;
+  tapeBalance: 'tape_led' | 'balanced' | 'narration_led';
+  recordings: { releaseTag: string; status: 'candidate' | 'read' | 'skipped'; score?: number }[];
+  items: BoardItem[]; claims: BoardClaim[]; sources: BoardSource[];
+}

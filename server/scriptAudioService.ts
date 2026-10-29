@@ -239,7 +239,13 @@ export function createAudioService(deps: AudioServiceDeps) {
     const clip = project.clips.find(c => c.clipId === clipId);
     if (!clip) return Promise.reject(new StepError('NOT_FOUND', `Clip ${clipId} is not in this project.`));
     if (!/^https:\/\/github\.com\//.test(clip.audioUrl)) return Promise.reject(new StepError('BAD_REQUEST', `Clip ${clipId} has no GitHub release audio.`));
-    const off = clip.audioOffsetSec || 0;
+    return windowCut(clip.audioUrl, clip.audioOffsetSec || 0, clip.durationSec, `clip "${clip.title}"`);
+  }
+
+  /** A window of a full recording as a cached WAV (the same cache and ffmpeg call as clip cuts). */
+  function windowCut(audioUrl: string, off: number, durationSec: number, label: string): Promise<string> {
+    if (!/^https:\/\/github\.com\//.test(audioUrl)) return Promise.reject(new StepError('BAD_REQUEST', `No GitHub release audio for ${label}.`));
+    const clip = { audioUrl, durationSec, title: label };
     const key = createHash('sha256').update(`${clip.audioUrl}|${off}|${clip.durationSec}`).digest('hex').slice(0, 16);
     const dir = path.join(deps.store.base, 'clip-cache');
     const out = path.join(dir, `${key}.wav`);
@@ -254,10 +260,10 @@ export function createAudioService(deps: AudioServiceDeps) {
       } catch (e: any) {
         fs.rmSync(tmp, { force: true });
         if (e?.code === 'ENOENT') throw new StepError('NO_FFMPEG', 'ffmpeg is not installed or not on PATH; it is needed to cut clips out of the full episode.');
-        throw new StepError('UPSTREAM', `ffmpeg could not cut clip "${clip.title}": ${String(e?.stderr || e?.message || e).trim().slice(-400)}`);
+        throw new StepError('UPSTREAM', `ffmpeg could not cut ${clip.title}: ${String(e?.stderr || e?.message || e).trim().slice(-400)}`);
       }
       const head = fs.existsSync(tmp) ? fs.readFileSync(tmp).subarray(0, 4096) : Buffer.alloc(0);
-      if (!parseWavHeader(head)) { fs.rmSync(tmp, { force: true }); throw new StepError('UPSTREAM', `ffmpeg wrote no audio for clip "${clip.title}".`); }
+      if (!parseWavHeader(head)) { fs.rmSync(tmp, { force: true }); throw new StepError('UPSTREAM', `ffmpeg wrote no audio for ${clip.title}.`); }
       fs.renameSync(tmp, out);
       return out;
     })().finally(() => cutting.delete(key));
@@ -269,6 +275,9 @@ export function createAudioService(deps: AudioServiceDeps) {
     clipCut,
     async serveClipCut(req: IncomingMessage, res: ServerResponse, project: ScriptProject, clipId: string) {
       serveFile(req, res, await clipCut(project, clipId), 'audio/wav');
+    },
+    async serveWindow(req: IncomingMessage, res: ServerResponse, audioUrl: string, off: number, durationSec: number, label: string) {
+      serveFile(req, res, await windowCut(audioUrl, off, durationSec, label), 'audio/wav');
     },
     startPreview,
     previewJob: (projectId: string) => jobs.get(projectId) || null,

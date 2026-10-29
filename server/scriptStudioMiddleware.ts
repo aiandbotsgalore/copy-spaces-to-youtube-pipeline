@@ -36,9 +36,15 @@
  *   GET  /clip-audio?projectId&clipId   a transcript cut as WAV (ffmpeg reads only that window of the episode)
  *   GET  /related?projectId&q    code search (BM25) over every transcript for recordings related to the thesis
  *   GET  /paper-trail?projectId  Logan's curated quotes and contradiction pairs that touch the project's recordings
+ *   GET  /library?projectId      every AQ quote (live corpus record, library link, WAV); imports the corpus into the library first
+ *   POST /library/speaker        confirm (or clear) who is speaking in a quote, once for every project
+ *   GET  /library/audio?ref&mode usable quote audio cut from the episode; mode=window plays the located transcript window
+ *   GET  /board?projectId        the project's Evidence Board (null until first used)
+ *   POST /board/item             star, exclude or note one quote ref on the project's board
  *   GET  /style                  the style card, its coverage and freshness, learned rules, distill status
  *   POST /style/build            rebuild the style card from all of Logan's speech and his narration examples -> 202
  *   POST /style/rules            add or remove one of Logan's explicit rules, or remove a learned one
+ *   POST /style/passage          save one narration passage as a voice example (only Logan's explicit saves become examples)
  *   POST /style/distill          distil learned rules from Logan's decisions now (also automatic every 10 decisions)
  *   POST /handoff/export         pack.json for an optional Grok Bot deep pass (refine, factcheck, storyline); nothing is pushed
  *   GET  /handoffs?projectId     exported packs and what was imported from them
@@ -54,17 +60,19 @@ import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, RoleMap, ScriptProj
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
-import { codeGates, diffVersions } from '../utils/scriptGates';
+import { changedBlockIds, codeGates, diffVersions } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
-import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule } from './scriptMemory';
+import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule, saveApprovedPassage } from './scriptMemory';
 import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNamesToTag } from './scriptCorpus';
 import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard, readNarrationExamples, scanCorpus, type CorpusScan, type Renames } from './scriptStyle';
 import { searchRecordings } from './scriptSearch';
 import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
+import { createQuoteLibrary } from './quoteLibrary';
+import { setBoardItem } from './evidenceBoard';
 import { dateOfTag } from '../utils/scriptFormats';
 import {
   buildPack, checkFactchecks, checkRecordings, checkResultHeader, HANDOFF_KINDS, packHash,
@@ -154,6 +162,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
   const now = opts.now ?? Date.now;
   const audio: AudioService = createAudioService({ root: opts.root, store, getEnv: opts.getEnv, synth: opts.synth, probe: opts.probe, ffmpeg: opts.ffmpeg, now });
   const withTakes = (segments: Segment[]) => attachTakes(segments, store.getTakes());
+  const library = createQuoteLibrary(opts.root, store, { now });
   let interruptedAtStart = 0;
   try { interruptedAtStart = engine.markInterrupted(); } catch { interruptedAtStart = 0; }
 
@@ -693,11 +702,15 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const p = getProject(body?.projectId);
       if ((body?.parentId ?? null) !== p.headVersionId) throw new StepError('CONFLICT', 'This edit is based on an older version than the current head. Reload the project before saving.');
       const segments = withTakes(validateSegments(body?.segments, p)); // take fields come only from the take index
+      // Checks run against the current head before it moves. Only blocks this edit changed are checked,
+      // so an old failure elsewhere never blocks a save. A failing edit is still saved as a version.
+      const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+      const baseline = head ? head.segments : [];
+      const gates = codeGates(segments, { ...engine.gateContext(p, baseline), changedBlockIds: changedBlockIds(baseline, segments) });
       const v: ScriptVersion = { id: newId('v'), parentId: p.headVersionId, projectId: p.id, createdAt: now(), author: 'logan', label: String(body?.label || 'Edit').slice(0, 80), segments };
       store.saveVersion(v);
-      p.headVersionId = v.id;
-      touch(p);
-      return send(res, 200, { ok: true, version: v, gates: codeGates(segments, { ...engine.gateContext(p, segments), changedBlockIds: undefined }) });
+      if (gates.ok) { p.headVersionId = v.id; touch(p); }
+      return send(res, 200, { ok: true, version: v, gates, headMoved: gates.ok });
     }
 
     if (route === '/head' && method === 'POST') {
@@ -824,6 +837,60 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       return send(res, 200, { ok: true, project: p, version: cand, distill });
     }
 
+    /* ---------------- evidence library and project Evidence Board (no model calls) ---------------- */
+
+    if (route === '/library' && method === 'GET') {
+      const sync = library.syncAq();
+      const pid = q('projectId');
+      return send(res, 200, { ok: true, sync, entries: library.entries(), board: pid ? store.getBoard(getProject(pid).id) : null });
+    }
+
+    if (route === '/library/speaker' && method === 'POST') {
+      const body = await readBody(req);
+      try { return send(res, 200, { ok: true, link: library.confirmSpeaker(String(body?.ref || ''), typeof body?.name === 'string' ? body.name : null) }); }
+      catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+    }
+
+    if (route === '/library/audio' && (method === 'GET' || method === 'HEAD')) {
+      const ref = String(q('ref') || '');
+      const e = library.entries().find(x => x.ref === ref);
+      if (!e?.link) throw new StepError('NOT_FOUND', `Unknown quote ${ref}.`);
+      const a = e.link.audio;
+      // Usable audio (corpus cut or verified boundaries) by default; the transcript window only when asked,
+      // for listening while reviewing, never as the quote's audio.
+      let start: number, end: number, label: string;
+      if (q('mode') === 'window') {
+        if (e.link.segStart === undefined || e.link.segEnd === undefined) throw new StepError('CONFLICT', `${e.aqId} was not located in its transcript.`);
+        start = e.link.segStart; end = e.link.segEnd; label = `${e.aqId} transcript window`;
+      } else {
+        if ((a.status !== 'verified' && a.status !== 'aligned') || a.startSec === undefined || a.endSec === undefined) throw new StepError('CONFLICT', `${e.aqId} has no usable audio yet (${a.reason || a.status}).`);
+        start = a.startSec; end = a.endSec; label = `${e.aqId} audio`;
+      }
+      const t = library.transcript(e.releaseTag);
+      if (!t) throw new StepError('NO_TRANSCRIPT', `No transcript for ${e.releaseTag}.`);
+      const env = opts.getEnv();
+      const src = await resolveEpisodeAudio(t, opts.fetchImpl ?? fetch, env.GITHUB_TOKEN);
+      if (src.ok === false) throw new StepError('NO_EPISODE_AUDIO', src.reason);
+      return audio.serveWindow(req, res, src.url, start, Math.round((end - start) * 1000) / 1000, label);
+    }
+
+    if (route === '/board' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      return send(res, 200, { ok: true, board: store.getBoard(p.id) });
+    }
+
+    if (route === '/board/item' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const patch = {
+        ...(typeof body?.starred === 'boolean' ? { starred: body.starred } : {}),
+        ...(typeof body?.excluded === 'boolean' ? { excluded: body.excluded } : {}),
+        ...(typeof body?.note === 'string' ? { note: body.note } : {}),
+      };
+      try { return send(res, 200, { ok: true, board: setBoardItem(store, p, String(body?.ref || ''), patch, library.hasRef, now) }); }
+      catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+    }
+
     if (route === '/related' && method === 'GET') {
       const p = getProject(q('projectId'));
       const query = String(q('q') || p.thesis || p.title).slice(0, 300);
@@ -852,6 +919,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         if (typeof body?.add === 'string') addExplicitRule(store, body.add, now);
         if (typeof body?.remove === 'string') removeRule(store, body.remove);
       } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+      return send(res, 200, { ok: true, ...styleState(body) });
+    }
+
+    if (route === '/style/passage' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      try { saveApprovedPassage(store, p.id, String(body?.text ?? '')); } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
       return send(res, 200, { ok: true, ...styleState(body) });
     }
 

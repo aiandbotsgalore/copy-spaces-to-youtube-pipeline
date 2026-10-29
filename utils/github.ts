@@ -220,12 +220,29 @@ export async function writeRepositoryTextFile(
   sha?: string
 ): Promise<void> {
   const encodedPath = encodeRepositoryPath(path);
+  let fileSha = sha;
+
+  if (!fileSha) {
+    try {
+      const checkRes = await ghFetch(
+        token,
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`
+      );
+      if (checkRes.ok) {
+        const data = await checkRes.json() as { sha?: string };
+        fileSha = data.sha;
+      }
+    } catch {
+      // file does not exist yet
+    }
+  }
+
   const body: Record<string, string> = {
     message,
     content: encodeText(content),
     branch,
   };
-  if (sha) body.sha = sha;
+  if (fileSha) body.sha = fileSha;
 
   const res = await ghFetch(
     token,

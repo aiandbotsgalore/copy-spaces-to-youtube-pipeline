@@ -13,6 +13,7 @@ import { createAvatarRenderHandler } from './server/avatarRender';
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
     if (env.HF_TOKEN && !process.env.HF_TOKEN) process.env.HF_TOKEN = env.HF_TOKEN;
+    if (env.HF_BACKUP_TOKEN && !process.env.HF_BACKUP_TOKEN) process.env.HF_BACKUP_TOKEN = env.HF_BACKUP_TOKEN;
     if (env.VOXCPM_SPACE && !process.env.VOXCPM_SPACE) process.env.VOXCPM_SPACE = env.VOXCPM_SPACE;
   }
   // Lexical search across every transcript on disk (public/transcripts), for the Transcripts search overlay.
@@ -147,7 +148,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
       watch: {
-        ignored: ['**/.spacepipe-studio/**', '**/public/output/**'],
+        ignored: ['**/.spacepipe-studio/**', '**/.spacepipe-studio-backups/**', '**/public/output/**'],
       },
     },
     plugins: [

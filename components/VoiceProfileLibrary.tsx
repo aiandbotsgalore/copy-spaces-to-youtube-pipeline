@@ -304,6 +304,19 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               `chore(profiles): update avatar_url for ${speakerName}`,
               'master'
             );
+            try {
+              await writeRepositoryTextFile(
+                config.githubToken,
+                owner,
+                repo,
+                'public/voice_profiles.json',
+                content,
+                `chore(profiles): sync public/voice_profiles.json for ${speakerName}`,
+                'master'
+              );
+            } catch {
+              // optional secondary sync
+            }
           }
           setStatusMsg({ type: 'success', text: `🎉 Avatar photo uploaded and saved for ${speakerName}!` });
         } catch (err: any) {
@@ -358,6 +371,19 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         'chore(profiles): update voice_profiles.json via Voice Profile Library',
         'master'
       );
+      try {
+        await writeRepositoryTextFile(
+          config.githubToken,
+          owner,
+          repo,
+          'public/voice_profiles.json',
+          content,
+          'chore(profiles): sync public/voice_profiles.json via Voice Profile Library',
+          'master'
+        );
+      } catch {
+        // optional secondary sync
+      }
       setStatusMsg({ type: 'success', text: 'Successfully committed voice_profiles.json to GitHub repository on master!' });
       setTimeout(() => setStatusMsg(null), 6000);
     } catch (e) {

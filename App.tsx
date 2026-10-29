@@ -19,6 +19,7 @@ import { loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
 import { exportPipelineZip } from './utils/exportZip';
 import { getActivePanelFromHash, syncHashWithPanel } from './components/registry/studios';
+import { confirmLeave } from './utils/unsavedGuard';
 
 // Code-split / Lazy-loaded Panels
 const DashboardOverview = React.lazy(() => import('./components/DashboardOverview'));
@@ -251,7 +252,11 @@ function AppContent() {
   } = useConfig();
   const [activePanel, setActivePanelState] = useState<Panel>(() => (getActivePanelFromHash() as Panel));
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const activePanelRef = useRef(activePanel);
+  activePanelRef.current = activePanel;
+  // A panel with unsaved edits (Script Studio) is unmounted on switch, so ask before leaving it.
   const setActivePanel = useCallback((panel: Panel) => {
+    if (panel !== activePanelRef.current && !confirmLeave()) return;
     setActivePanelState(panel);
     syncHashWithPanel(panel);
     setMobileNavOpen(false);
@@ -260,6 +265,8 @@ function AppContent() {
   useEffect(() => {
     const handleHashChange = () => {
       const p = getActivePanelFromHash() as Panel;
+      if (p === activePanelRef.current) return;
+      if (!confirmLeave()) { syncHashWithPanel(activePanelRef.current); return; }
       setActivePanelState(p);
     };
     window.addEventListener('hashchange', handleHashChange);

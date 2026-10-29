@@ -1,7 +1,7 @@
 /**
  * Editorial memory: Logan's accept and reject decisions on proposed changes, stored in
- * .spacepipe-studio/memory.json. Approved narration becomes approved passages (few-shot examples);
- * rejected rewrites are kept with their before and after text.
+ * .spacepipe-studio/memory.json. Approved passages (few-shot examples) are only the narration Logan
+ * saves explicitly; rejected rewrites are kept with their before and after text.
  */
 import type { DistillStatus, EditorialMemory, ScriptProject, ScriptVersion, StyleRule } from '../utils/scriptTypes';
 import { distillPrompt, PROMPT_VERSIONS, type Prompt } from './scriptPrompts';
@@ -16,16 +16,24 @@ export function recordDecision(store: ScriptStore, project: ScriptProject, paren
   const mem = store.getMemory();
   const diff = parent ? diffVersions(parent.segments, cand.segments) : [];
   const text = (b: any) => (b?.kind === 'narration' ? b.text : b?.kind === 'clip' ? `[clip ${b.clipId}] ${b.keptText}` : '');
-  if (decision === 'accept') {
-    for (const d of diff) if (d.after?.kind === 'narration') mem.approvedPassages.push({ text: d.after.text, projectId: project.id });
-    mem.approvedPassages = mem.approvedPassages.slice(-MAX_PASSAGES);
-  } else {
+  // Accepting a candidate no longer adds approved passages; Logan saves those explicitly (saveApprovedPassage).
+  if (decision === 'reject') {
     const before = diff.map(d => text(d.before)).filter(Boolean).join('\n');
     const after = diff.map(d => text(d.after)).filter(Boolean).join('\n');
     if (before || after) mem.rejectedRewrites.push({ before, after, reason: reason || 'Rejected by Logan.' });
     mem.rejectedRewrites = mem.rejectedRewrites.slice(-MAX_REJECTED);
   }
   mem.decisionsSinceDistill = (mem.decisionsSinceDistill || 0) + 1;
+  store.saveMemory(mem);
+  return mem;
+}
+
+/** Saves one narration passage as a voice example, only when Logan asks. Trimmed, stored once, newest 50 kept. */
+export function saveApprovedPassage(store: ScriptStore, projectId: string, text: string): EditorialMemory {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (!clean) throw new Error('An approved passage needs text.');
+  const mem = store.getMemory();
+  if (!mem.approvedPassages.some(p => p.text === clean)) mem.approvedPassages = [...mem.approvedPassages, { text: clean, projectId }].slice(-MAX_PASSAGES);
   store.saveMemory(mem);
   return mem;
 }

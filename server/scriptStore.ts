@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { TakeIndex, TakeRecord } from '../utils/scriptAudio';
-import type { EditorialMemory, EpisodeAnalysis, ScriptProject, ScriptRun, ScriptVersion } from '../utils/scriptTypes';
+import type { EditorialMemory, EpisodeAnalysis, EvidenceBoard, RecordingLibrary, ScriptProject, ScriptRun, ScriptVersion } from '../utils/scriptTypes';
 
 export class StoreError extends Error {
   constructor(public filePath: string, public osMessage: string) {
@@ -53,6 +53,7 @@ export function createScriptStore(root: string) {
     try { return JSON.parse(fs.readFileSync(file, 'utf8')) as T; } catch { return null; }
   }
   const must = (id: string) => { if (!isSafeId(id)) throw new Error(`Invalid id ${id}`); return id; };
+  const mustTag = (tag: string) => { if (!/^[A-Za-z0-9_.-]{3,120}$/.test(tag) || tag.includes('..')) throw new Error(`Invalid release tag ${tag}`); return tag; };
 
   return {
     base,
@@ -95,6 +96,15 @@ export function createScriptStore(root: string) {
       return a && a.transcriptHash === transcriptHash ? a : null;
     },
     saveAnalysis(a: EpisodeAnalysis) { writeJson(this.analysisPath(a.releaseTag, a.promptVersion), a); },
+
+    /** Shared evidence library, one file per recording (.spacepipe-studio/library/<releaseTag>.json). */
+    libraryPath: (releaseTag: string) => p('library', `${mustTag(releaseTag)}.json`),
+    getLibrary: (releaseTag: string) => readJson<RecordingLibrary>(p('library', `${mustTag(releaseTag)}.json`)),
+    saveLibrary: (lib: RecordingLibrary) => writeJson(p('library', `${mustTag(lib.releaseTag)}.json`), lib),
+    /** A project's Evidence Board (.spacepipe-studio/projects/<id>/board.json); absent until first used. */
+    boardPath: (projectId: string) => p('projects', must(projectId), 'board.json'),
+    getBoard: (projectId: string) => readJson<EvidenceBoard>(p('projects', must(projectId), 'board.json')),
+    saveBoard: (projectId: string, board: EvidenceBoard) => writeJson(p('projects', must(projectId), 'board.json'), board),
 
     getMemory: (): EditorialMemory => ({ ...EMPTY_MEMORY, ...(readJson<EditorialMemory>(p('memory.json')) || {}) }),
     saveMemory: (m: EditorialMemory) => writeJson(p('memory.json'), m),

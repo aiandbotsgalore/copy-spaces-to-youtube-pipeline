@@ -3,7 +3,8 @@ import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
 import type { RenderManifest } from './scriptCompile';
 import type { HandoffKind, HandoffRecord, ImportSummary } from '../server/scriptHandoff';
-import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
+import type { AqLink, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
+import type { ViewEntry } from './quoteView';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
 export const PROJECT_STORAGE_KEY = 'spacepipe_script_project_v1';
@@ -47,6 +48,7 @@ export interface StyleState {
   building: boolean; progress: string; lastError: { code: string; message: string; at: number } | null; narrationFiles: string[];
   rules: StyleRule[]; lastDistill: DistillStatus | null; decisionsSinceDistill: number; distillEvery: number; distilling: boolean; removedRules: string[];
 }
+export interface LibrarySync { quotes: number; located: number; exact: number; differs: number; unlocated: number; updated: string[] }
 export interface RelatedHit { releaseTag: string; title: string; date: string | null; score: number; terms: Record<string, number>; samples: { start: number; speaker: string; text: string }[] }
 export interface CuratedQuote { quoteId: string; speaker: string; releaseTag: string; date: string; text: string; category: string; why: string }
 export interface PaperTrailPair {
@@ -96,7 +98,7 @@ export const scriptApi = {
   retagClip: (id: string, clipId: string, fn: string | null) => call<{ project: ScriptProject }>('POST', '/project/update', { id, retagClips: [{ clipId, fn }] }),
   outline: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion }>('POST', '/outline', { projectId, ...roles }),
   draft: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion; gates: GateResult; style: { built: boolean; warning?: string } }>('POST', '/draft', { projectId, ...roles, renames: transcriptViewerRenames() }),
-  saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult }>('POST', '/version', { projectId, parentId, segments, label }),
+  saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult & { ok?: boolean }; headMoved: boolean }>('POST', '/version', { projectId, parentId, segments, label }),
   version: (projectId: string, id: string) => call<{ version: ScriptVersion; diff: BlockDiff[] }>('GET', `/version?projectId=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`),
   setHead: (projectId: string, versionId: string) => call<{ project: ScriptProject }>('POST', '/head', { projectId, versionId }),
   refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean; spoken?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
@@ -131,6 +133,10 @@ export const scriptApi = {
   style: () => call<StyleState>('GET', '/style'),
   buildStyle: (roles: RoleChoice) => call<StyleState>('POST', '/style/build', { ...roles, renames: transcriptViewerRenames() }),
   styleRule: (change: { add?: string; remove?: string }) => call<StyleState>('POST', '/style/rules', change),
+  library: (projectId?: string | null) => call<{ sync: LibrarySync; entries: ViewEntry[]; board: EvidenceBoard | null }>('GET', `/library${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
+  confirmSpeaker: (ref: string, name: string | null) => call<{ link: AqLink }>('POST', '/library/speaker', { ref, name }),
+  boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
+  savePassage: (projectId: string, text: string) => call<StyleState>('POST', '/style/passage', { projectId, text }),
   distill: (roles: RoleChoice) => call<StyleState & { status: DistillStatus }>('POST', '/style/distill', roles),
   quality: () => call<{ report: QualityReport; prompts: PromptOutcomeRow[]; calls: CallStatsRow[]; history: { at: number; pairs: number; conclusive: number; agreementRate: number | null; kappa: number | null }[]; currentPromptVersions: Record<string, string> }>('GET', '/quality'),
   logs: () => call<{ logs: LogSummary[] }>('GET', '/logs'),
