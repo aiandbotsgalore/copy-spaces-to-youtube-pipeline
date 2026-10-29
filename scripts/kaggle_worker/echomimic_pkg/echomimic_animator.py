@@ -3,12 +3,15 @@
 Cloud worker for the Spaces Live Stage avatar render.
 
 The workflow dispatches this packaged worker (rather than the older root-level
-prototype). It renders one Wav2Lip stream per participating speaker, mutes that
-stream outside the speaker's transcript turns, and composites all streams into
-a stage grid or split-screen layout.
+prototype). Each speaker with transcript turns in the clip gets a Wav2Lip stream
+driven by audio muted outside those turns; speakers with no turns stay on stage
+as still, quiet listeners. When no transcript turns are supplied, detected speech
+is given to the primary speaker only. All tiles are composited into a stage grid
+or split-screen layout, and a tile is highlighted only during its own turns.
 """
 
 import json
+import math
 import os
 import re
 import shutil
@@ -86,18 +89,26 @@ def speaker_key(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
 
 
-def escape_drawtext(value: str) -> str:
-    """Escape text for ffmpeg's drawtext=text='...' expression."""
-    return (
-        str(value or "")
-        .replace("\\", r"\\")
-        .replace("'", r"\'")
-        .replace(":", r"\:")
-        .replace("%", r"\%")
-        .replace("[", r"\[")
-        .replace("]", r"\]")
-        .replace("\n", " ")
-    )
+def escape_option_path(value: str) -> str:
+    """Escape a filesystem path for an FFmpeg filter option value.
+
+    Paths are wrapped in single quotes at the call site, which protects every character except a
+    colon (FFmpeg still splits options on an unescaped ':'), so only that needs a backslash.
+    """
+    return str(value or "").replace("\\", "/").replace(":", r"\:")
+
+
+def write_drawtext_text(text_dir: Path, file_name: str, value: str) -> str:
+    """Store caption text in a file and return the drawtext option that reads it.
+
+    Speaker names and clip titles cannot be embedded in the filtergraph safely: an apostrophe ends
+    a quoted value and a comma splits the filter chain. FFmpeg's textfile option sidesteps the
+    parser entirely, so names like O'Brien, Jr. or titles full of quotes and emoji render as text.
+    """
+    text_dir.mkdir(parents=True, exist_ok=True)
+    target = text_dir / file_name
+    target.write_text(str(value or "").replace("\r", " ").replace("\n", " "), encoding="utf-8")
+    return f"textfile='{escape_option_path(str(target))}'"
 
 
 def parse_speakers(raw: str) -> List[str]:
@@ -128,10 +139,15 @@ def parse_segments(raw: str, speakers: Iterable[str], duration: float) -> Dict[s
             if not canonical:
                 continue
             try:
-                start = max(0.0, min(duration, float(value.get("start", 0))))
-                end = max(0.0, min(duration, float(value.get("end", start))))
+                start = float(value.get("start", 0))
+                end = float(value.get("end", start))
             except (TypeError, ValueError):
                 continue
+            # NaN/inf (json.loads accepts NaN) would poison the FFmpeg between() expression.
+            if not (math.isfinite(start) and math.isfinite(end)):
+                continue
+            start = max(0.0, min(duration, start))
+            end = max(0.0, min(duration, end))
             if end > start:
                 intervals[canonical].append((start, end))
     for name in intervals:
@@ -139,15 +155,70 @@ def parse_segments(raw: str, speakers: Iterable[str], duration: float) -> Dict[s
     return intervals
 
 
-def build_fallback_intervals(speakers: List[str], duration: float) -> Dict[str, List[Tuple[float, float]]]:
-    """Keep every participant visible when the source transcript is unavailable."""
-    if not speakers or duration <= 0:
-        return {name: [] for name in speakers}
-    slice_length = duration / len(speakers)
-    return {
-        name: [(index * slice_length, duration if index == len(speakers) - 1 else (index + 1) * slice_length)]
-        for index, name in enumerate(speakers)
-    }
+MIN_RENDER_SECONDS = 0.5    # shorter clips cannot produce a meaningful stage video
+SILENCE_NOISE_DB = -35      # quieter than this counts as silence
+SILENCE_MIN_SEC = 0.35      # a pause must last this long to split speech
+MIN_SPEECH_SEC = 0.25       # shorter bursts (clicks, breaths) are not speech
+
+
+def parse_silencedetect(stderr: str, duration: float) -> List[Tuple[float, float]]:
+    """Read FFmpeg silencedetect output into (start, end) silences. A silence still open at the end runs to the end."""
+    silences: List[Tuple[float, float]] = []
+    start = None
+    for line in (stderr or "").splitlines():
+        opened = re.search(r"silence_start:\s*(-?[\d.]+)", line)
+        if opened:
+            start = max(0.0, float(opened.group(1)))
+            continue
+        closed = re.search(r"silence_end:\s*([\d.]+)", line)
+        if closed and start is not None:
+            silences.append((start, min(duration, float(closed.group(1)))))
+            start = None
+    if start is not None and start < duration:
+        silences.append((start, duration))
+    return silences
+
+
+def speech_from_silences(silences: List[Tuple[float, float]], duration: float, min_speech: float = MIN_SPEECH_SEC) -> List[Tuple[float, float]]:
+    """Speech is whatever lies between the silences, ignoring bursts shorter than min_speech."""
+    speech: List[Tuple[float, float]] = []
+    cursor = 0.0
+    for start, end in sorted(silences):
+        if start - cursor >= min_speech:
+            speech.append((round(cursor, 3), round(start, 3)))
+        cursor = max(cursor, end)
+    if duration - cursor >= min_speech:
+        speech.append((round(cursor, 3), round(duration, 3)))
+    return speech
+
+
+def detect_speech_intervals(audio: Path, duration: float) -> List[Tuple[float, float]]:
+    """Find the parts of the clip where someone is talking, using FFmpeg silencedetect."""
+    result = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-nostats", "-i", str(audio),
+         "-af", f"silencedetect=noise={SILENCE_NOISE_DB}dB:d={SILENCE_MIN_SEC}", "-f", "null", "-"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        print("[!] Speech detection failed; treating the whole clip as speech for the primary speaker.")
+        return [(0.0, round(duration, 3))]
+    return speech_from_silences(parse_silencedetect(result.stderr, duration), duration)
+
+
+def resolve_intervals(raw_segments: str, speakers: List[str], duration: float, vad) -> Tuple[Dict[str, List[Tuple[float, float]]], str]:
+    """Speaking turns per stage speaker.
+
+    Transcript turns are used when any of them belong to someone on stage. Otherwise the detected
+    speech (vad) goes to the primary speaker only; everyone else stays a quiet listener.
+    Returns (intervals, source) where source is "transcript" or "voice_activity".
+    """
+    intervals = parse_segments(raw_segments, speakers, duration)
+    if any(intervals.values()):
+        return intervals, "transcript"
+    result: Dict[str, List[Tuple[float, float]]] = {name: [] for name in speakers}
+    if speakers:
+        result[speakers[0]] = list(vad())
+    return result, "voice_activity"
 
 
 def run_ffprobe_duration(path: Path) -> float:
@@ -238,15 +309,38 @@ def render_talking_avatar(wav2lip_dir: Path, checkpoint: Path, image: Path, audi
         raise RuntimeError(f"Wav2Lip produced no usable video for {image.name}")
 
 
-def motion_score(path: Path, active_intervals: List[Tuple[float, float]] | None = None) -> float:
-    """Return mouth-region frame change during speaking time."""
+MOTION_WINDOW_SEC = 3.0     # measure motion inside one turn, so pauses do not dilute the score
+
+
+class MotionCheckUnavailable(RuntimeError):
+    """The generated video is too short to compare frames; the motion check cannot run."""
+
+
+def motion_window(active_intervals: List[Tuple[float, float]]) -> Tuple[float, float]:
+    """The longest speaking turn, capped to MOTION_WINDOW_SEC.
+
+    Trimming from the first turn's start to the last turn's end would include other speakers'
+    turns and every pause, which can push a moving mouth below the still-image threshold.
+    """
+    start, end = max(active_intervals, key=lambda interval: interval[1] - interval[0])
+    start = float(start)
+    return start, min(float(end), start + MOTION_WINDOW_SEC)
+
+
+def motion_score(path: Path, active_intervals: List[Tuple[float, float]] | None = None,
+                 region: Tuple[int, int, int, int] | None = None) -> float:
+    """Return mouth-region frame change during speaking time.
+
+    region (x, y, w, h) limits the measurement to one tile of a composite; the mouth area is then
+    taken inside that tile instead of inside the whole frame.
+    """
     trim = ""
     if active_intervals:
-        start = min(interval[0] for interval in active_intervals)
-        end = max(interval[1] for interval in active_intervals)
+        start, end = motion_window(active_intervals)
         trim = f"trim=start={start:.3f}:end={end:.3f},setpts=PTS-STARTPTS,"
+    tile = f"crop={region[2]}:{region[3]}:{region[0]}:{region[1]}," if region else ""
     result = subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"{trim}fps=5,crop=iw*0.6:ih*0.35:iw*0.2:ih*0.42,scale=96:56,format=gray", "-f", "rawvideo", "-"],
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"{trim}fps=5,{tile}crop=iw*0.6:ih*0.35:iw*0.2:ih*0.42,scale=96:56,format=gray", "-f", "rawvideo", "-"],
         capture_output=True,
     )
     if result.returncode != 0:
@@ -254,9 +348,72 @@ def motion_score(path: Path, active_intervals: List[Tuple[float, float]] | None 
     frames = np.frombuffer(result.stdout, dtype=np.uint8)
     frame_size = 96 * 56
     if frames.size < frame_size * 2:
-        raise RuntimeError(f"Generated video is too short to verify motion: {path.name}")
+        raise MotionCheckUnavailable(f"Generated video is too short to verify motion: {path.name}")
     frames = frames[: frames.size // frame_size * frame_size].reshape(-1, 56, 96)
     return float(np.abs(np.diff(frames.astype(np.float32), axis=0)).mean())
+
+
+def render_speaker_tiles(speakers: List[str], intervals: Dict[str, List[Tuple[float, float]]], avatar_files: Dict[str, Path],
+                         norm_audio: Path, work_dir: Path, duration: float,
+                         talking_fn, static_fn=None, audio_fn=None, score_fn=None) -> Tuple[List[Path], Dict[str, dict]]:
+    """One video per stage speaker, in stage order.
+
+    Speakers with turns get a Wav2Lip video driven by audio muted outside their turns, and must show
+    real motion. Speakers without turns are quiet listeners: a still tile with no lip sync and no
+    motion check, so a participant who never talks cannot fail the render.
+    """
+    static_fn = static_fn or render_static_avatar
+    audio_fn = audio_fn or build_speaker_audio
+    score_fn = score_fn or motion_score
+    videos: List[Path] = []
+    report: Dict[str, dict] = {}
+    for speaker in speakers:
+        turns = intervals.get(speaker, [])
+        name = slug(speaker)
+        if not turns:
+            video = work_dir / f"listening_{name}.mp4"
+            static_fn(avatar_files[speaker], video, duration)
+            print(f"[*] {speaker} does not speak in this clip; showing a quiet listener tile.")
+            report[speaker] = {"role": "listening", "speaking_seconds": 0.0, "motion_checked": False}
+            videos.append(video)
+            continue
+        speaker_audio = work_dir / f"audio_{name}.wav"
+        video = work_dir / f"talking_{name}.mp4"
+        if not audio_fn(norm_audio, speaker_audio, turns):
+            raise RuntimeError(f"Could not build the speaking audio track for {speaker}")
+        talking_fn(avatar_files[speaker], speaker_audio, video)
+        speaking_seconds = round(sum(end - start for start, end in turns), 3)
+        try:
+            score = score_fn(video, turns)
+            static_probe = work_dir / f"static_probe_{name}.mp4"
+            static_fn(avatar_files[speaker], static_probe, duration)
+            baseline = score_fn(static_probe, turns)
+        except MotionCheckUnavailable as error:
+            # A clip shorter than a couple of frames is not evidence of a broken render.
+            print(f"[!] {error}; skipping the motion check for {speaker}.")
+            report[speaker] = {
+                "role": "speaking",
+                "speaking_seconds": speaking_seconds,
+                "motion_checked": False,
+                "motion_note": str(error),
+            }
+            videos.append(video)
+            continue
+        print(f"[*] Verified motion for {speaker}: {score:.3f} (static baseline {baseline:.3f})")
+        if score <= baseline + 0.01:
+            raise RuntimeError(
+                f"Generated video for {speaker} appears to be a still image "
+                f"(motion {score:.3f}, static baseline {baseline:.3f})"
+            )
+        report[speaker] = {
+            "role": "speaking",
+            "speaking_seconds": speaking_seconds,
+            "motion_checked": True,
+            "motion_score": score,
+            "static_baseline": baseline,
+        }
+        videos.append(video)
+    return videos, report
 
 
 def canvas_for_ratio(ratio: str) -> Tuple[int, int]:
@@ -268,7 +425,10 @@ def layout_geometry(layout: str, ratio: str, speaker_count: int):
     caption_height = max(180, round(height * 0.22))
     stage_height = height - caption_height
     margin = max(20, round(width * 0.025))
-    if layout == "split_screen":
+    if layout == "solo":
+        # One full-width closeup: the same geometry the split screen uses, with a single tile.
+        cols, rows = 1, 1
+    elif layout == "split_screen":
         cols = 1
         rows = max(1, min(3, speaker_count))
     else:
@@ -281,45 +441,80 @@ def layout_geometry(layout: str, ratio: str, speaker_count: int):
     return width, height, caption_height, margin, cols, tile_width, tile_height
 
 
-def compose_stage(output: Path, audio: Path, videos: List[Path], speakers: List[str], intervals: Dict[str, List[Tuple[float, float]]], prompt: str, layout: str, ratio: str, duration: float):
+def tile_rect(layout: str, ratio: str, speaker_count: int, index: int) -> Tuple[int, int, int, int]:
+    """(x, y, w, h) of a speaker's tile on the stage."""
+    _, _, _, margin, cols, tile_width, tile_height = layout_geometry(layout, ratio, speaker_count)
+    row, col = divmod(index, cols)
+    return margin + col * (tile_width + margin), margin + row * (tile_height + margin), tile_width, tile_height
+
+
+def build_stage_filtergraph(speakers: List[str], intervals: Dict[str, List[Tuple[float, float]]], prompt: str, layout: str, ratio: str, font_option: str, text_dir: Path) -> str:
+    """FFmpeg filtergraph for the stage. Input 0 is the background, inputs 1..N are the speaker tiles.
+
+    A tile gets the green border and the Speaking badge only while t is inside that speaker's own
+    turns; the rest of the time it reads Listening. A speaker with no turns never lights up.
+    """
     width, height, caption_height, margin, cols, tile_width, tile_height = layout_geometry(layout, ratio, len(speakers))
+    badge_size = max(16, tile_width // 30)
+    badge_w, badge_h = badge_size * 6, round(badge_size * 1.8)
+    badge_text_y = 16 + (badge_h - badge_size) // 2
+    filters = ["[0:v]format=yuv420p[base]"]
+    last = "base"
+    for index, speaker in enumerate(speakers):
+        x, y, _, _ = tile_rect(layout, ratio, len(speakers), index)
+        turns = intervals.get(speaker, [])
+        active = "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in turns)
+        listening = [
+            f"drawbox=x=16:y=16:w={badge_w}:h={badge_h}:color=0x0f172a@0.85:t=fill",
+            f"drawtext=text='Listening':{font_option}fontcolor=0xcbd5e1:fontsize={badge_size}:x=16+{badge_size // 2}:y={badge_text_y}",
+        ]
+        parts = [
+            f"[{index + 1}:v]fps=25,scale={tile_width}:{tile_height}:force_original_aspect_ratio=decrease",
+            f"pad={tile_width}:{tile_height}:(ow-iw)/2:(oh-ih)/2:color=0x111827",
+            "drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x334155:t=8",
+        ]
+        if active:
+            parts += [f"{item}:enable='not({active})'" for item in listening]
+            parts += [
+                f"drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x10b981:t=12:enable='{active}'",
+                f"drawbox=x=16:y=16:w={badge_w}:h={badge_h}:color=0x10b981@0.9:t=fill:enable='{active}'",
+                f"drawtext=text='Speaking':{font_option}fontcolor=white:fontsize={badge_size}:x=16+{badge_size // 2}:y={badge_text_y}:enable='{active}'",
+            ]
+        else:
+            parts += listening
+        name_option = write_drawtext_text(text_dir, f"name_{index}.txt", speaker)
+        parts.append(
+            f"drawtext={name_option}:{font_option}fontcolor=white:fontsize={max(18, tile_width // 22)}:x=(w-text_w)/2:y=h-45:shadowcolor=black:shadowx=2:shadowy=2[tile{index}]"
+        )
+        filters.append(",".join(parts))
+        filters.append(f"[{last}][tile{index}]overlay={x}:{y}:shortest=1[stage{index}]")
+        last = f"stage{index}"
+
+    prompt_option = write_drawtext_text(text_dir, "prompt.txt", prompt[:90])
+    filters.append(
+        f"[{last}]drawbox=y={height - caption_height}:w={width}:h={caption_height}:color=0x020617@0.92:t=fill,"
+        f"drawtext=text='SPACES LIVE STAGE':{font_option}fontcolor=0xa855f7:fontsize={max(22, width // 45)}:x=(w-text_w)/2:y={height - caption_height + 28}:shadowcolor=black:shadowx=2:shadowy=2,"
+        f"drawtext={prompt_option}:{font_option}fontcolor=white:fontsize={max(20, width // 52)}:x=(w-text_w)/2:y={height - caption_height + 85}:shadowcolor=black:shadowx=2:shadowy=2[outv]"
+    )
+    return ";".join(filters)
+
+
+def compose_stage(output: Path, audio: Path, videos: List[Path], speakers: List[str], intervals: Dict[str, List[Tuple[float, float]]], prompt: str, layout: str, ratio: str, duration: float):
+    width, height, *_ = layout_geometry(layout, ratio, len(speakers))
     font_file = os.environ.get("AVATAR_FONT_FILE", "")
     if not font_file:
         linux_font = Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
         if linux_font.exists():
             font_file = str(linux_font)
-    font_option = f"fontfile='{escape_drawtext(font_file)}':" if font_file else ""
+    font_option = f"fontfile='{escape_option_path(font_file)}':" if font_file else ""
     inputs = ["-f", "lavfi", "-i", f"color=c=0x0b0f19:s={width}x{height}:r=25:d={duration:.3f}"]
     for video in videos:
         inputs.extend(["-i", str(video)])
     inputs.extend(["-i", str(audio)])
-
-    filters = ["[0:v]format=yuv420p[base]"]
-    last = "base"
-    for index, speaker in enumerate(speakers):
-        row, col = divmod(index, cols)
-        x = margin + col * (tile_width + margin)
-        y = margin + row * (tile_height + margin)
-        active = "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in intervals.get(speaker, [])) or "0"
-        tile = f"tile{index}"
-        filters.append(
-            f"[{index + 1}:v]fps=25,scale={tile_width}:{tile_height}:force_original_aspect_ratio=decrease,"
-            f"pad={tile_width}:{tile_height}:(ow-iw)/2:(oh-ih)/2:color=0x111827,"
-            f"drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x334155:t=8,"
-            f"drawbox=x=0:y=0:w=iw-1:h=ih-1:color=0x10b981:t=12:enable='{active}',"
-            f"drawtext=text='{escape_drawtext(speaker)}':{font_option}fontcolor=white:fontsize={max(18, tile_width // 22)}:x=(w-text_w)/2:y=h-45:shadowcolor=black:shadowx=2:shadowy=2[{tile}]"
-        )
-        filters.append(f"[{last}][{tile}]overlay={x}:{y}:shortest=1[stage{index}]")
-        last = f"stage{index}"
-
-    filters.append(
-        f"[{last}]drawbox=y={height - caption_height}:w={width}:h={caption_height}:color=0x020617@0.92:t=fill,"
-        f"drawtext=text='SPACES LIVE STAGE':{font_option}fontcolor=0xa855f7:fontsize={max(22, width // 45)}:x=(w-text_w)/2:y={height - caption_height + 28}:shadowcolor=black:shadowx=2:shadowy=2,"
-        f"drawtext=text='{escape_drawtext(prompt[:90])}':{font_option}fontcolor=white:fontsize={max(20, width // 52)}:x=(w-text_w)/2:y={height - caption_height + 85}:shadowcolor=black:shadowx=2:shadowy=2[outv]"
-    )
+    graph = build_stage_filtergraph(speakers, intervals, prompt, layout, ratio, font_option, text_dir=output.parent / "stage_text")
 
     run_cmd([
-        "ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filters),
+        "ffmpeg", "-y", *inputs, "-filter_complex", graph,
         "-map", "[outv]", "-map", f"{len(videos) + 1}:a", "-t", f"{duration:.3f}",
         "-c:v", "libx264", "-preset", "fast", "-crf", "20", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k", "-shortest", str(output),
@@ -361,11 +556,18 @@ def main():
     norm_audio = work_dir / "speech_16k.wav"
     run_cmd(["ffmpeg", "-y", "-i", str(local_audio), "-ar", "16000", "-ac", "1", str(norm_audio)])
     duration = run_ffprobe_duration(norm_audio)
-    intervals = parse_segments(raw_segments, speakers, duration)
-    if not any(intervals.values()):
-        print("[!] No transcript turns were supplied; using round-robin speaker timing fallback.")
-        intervals = build_fallback_intervals(speakers, duration)
-    print(f"[*] Rendering {len(speakers)} speakers across {duration:.2f}s ({layout}, {ratio})")
+    if duration < MIN_RENDER_SECONDS:
+        raise RuntimeError(
+            f"Clip audio is too short to render a stage video ({duration:.2f}s); "
+            f"at least {MIN_RENDER_SECONDS:.1f}s is required."
+        )
+    intervals, timing_source = resolve_intervals(raw_segments, speakers, duration, vad=lambda: detect_speech_intervals(norm_audio, duration))
+    if timing_source == "voice_activity":
+        print(f"[!] No transcript turns for anyone on stage; detected speech is assigned to {speakers[0]} only, everyone else listens.")
+    for speaker in speakers:
+        turns = intervals.get(speaker, [])
+        print(f"[*] {speaker}: {len(turns)} turns, {sum(end - start for start, end in turns):.1f}s speaking")
+    print(f"[*] Rendering {len(speakers)} speakers across {duration:.2f}s ({layout}, {ratio}), timing from {timing_source}")
 
     wav2lip_dir, checkpoint = prepare_wav2lip(work_dir)
 
@@ -381,7 +583,12 @@ def main():
             try:
                 download_file(url, avatar)
             except Exception as error:
-                print(f"[!] Avatar download failed for {speaker}: {error}")
+                print(f"[!] Avatar download failed for {speaker}: {error}; falling back to the primary portrait.")
+                if image_input and image_input.startswith("http"):
+                    try:
+                        download_file(image_input, avatar)
+                    except Exception as fallback_error:
+                        print(f"[!] Primary portrait download failed too: {fallback_error}")
         elif isinstance(url, str) and Path(url).exists():
             shutil.copy2(url, avatar)
         if not avatar.exists() or avatar.stat().st_size < 1000:
@@ -390,35 +597,37 @@ def main():
         run_cmd(["ffmpeg", "-y", "-i", str(avatar), "-vf", "scale=512:512:force_original_aspect_ratio=increase,crop=512:512", "-frames:v", "1", str(face)])
         avatar_files[speaker] = face
 
-    rendered_videos: List[Path] = []
-    motion_report = {"animated": False, "speakers": {}, "composite_score": None}
-    for speaker in speakers:
-        speaker_audio = work_dir / f"audio_{slug(speaker)}.wav"
-        video = work_dir / f"talking_{slug(speaker)}.mp4"
-        if not build_speaker_audio(norm_audio, speaker_audio, intervals.get(speaker, [])):
-            raise RuntimeError(f"No speaking audio interval was created for {speaker}")
-        render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
-        score = motion_score(video, intervals.get(speaker, []))
-        static_probe = work_dir / f"static_probe_{slug(speaker)}.mp4"
-        render_static_avatar(avatar_files[speaker], static_probe, duration)
-        baseline = motion_score(static_probe, intervals.get(speaker, []))
-        print(f"[*] Verified motion for {speaker}: {score:.3f} (static baseline {baseline:.3f})")
-        if score <= baseline + 0.01:
-            raise RuntimeError(
-                f"Generated video for {speaker} appears to be a still image "
-                f"(motion {score:.3f}, static baseline {baseline:.3f})"
-            )
-        motion_report["speakers"][speaker] = {"motion_score": score, "static_baseline": baseline}
-        rendered_videos.append(video)
+    rendered_videos, speaker_report = render_speaker_tiles(
+        speakers, intervals, avatar_files, norm_audio, work_dir, duration,
+        talking_fn=lambda image, audio, output: render_talking_avatar(wav2lip_dir, checkpoint, image, audio, output),
+    )
+    anyone_speaks = any(intervals.get(speaker) for speaker in speakers)
+    motion_report = {"animated": False, "timing_source": timing_source, "speakers": speaker_report, "composite_score": None}
 
     output = out_dir / "talking_avatar_short.mp4"
-    compose_stage(output, norm_audio, rendered_videos, speakers, intervals, prompt, layout, ratio, duration)
-    composite_score = motion_score(output)
-    print(f"[*] Verified composite stage motion: frame-change score {composite_score:.3f}")
-    if composite_score <= 0.01:
-        raise RuntimeError(f"Composite stage video appears to be static (motion score {composite_score:.3f})")
-    motion_report["animated"] = True
-    motion_report["composite_score"] = composite_score
+    # The untouched original clip audio is the master track; speech_16k.wav exists only to drive
+    # lip sync and voice activity detection, so it must never be muxed into the deliverable.
+    compose_stage(output, local_audio, rendered_videos, speakers, intervals, prompt, layout, ratio, duration)
+    if anyone_speaks:
+        # Check each speaking tile inside the composite, during that speaker's own turns.
+        composite_scores = {}
+        for index, speaker in enumerate(speakers):
+            turns = intervals.get(speaker, [])
+            if not turns:
+                continue
+            try:
+                score = motion_score(output, turns, region=tile_rect(layout, ratio, len(speakers), index))
+            except MotionCheckUnavailable as error:
+                print(f"[!] {error}; skipping the composite motion check for {speaker}.")
+                continue
+            composite_scores[speaker] = score
+            print(f"[*] Verified composite stage motion for {speaker}: frame-change score {score:.3f}")
+            if score <= 0.01:
+                raise RuntimeError(f"{speaker}'s tile in the composite stage appears to be static (motion score {score:.3f})")
+        motion_report["animated"] = True
+        motion_report["composite_score"] = composite_scores
+    else:
+        print("[!] No speech was found in this clip, so every participant is shown as a quiet listener.")
     (out_dir / "motion_report.json").write_text(json.dumps(motion_report, indent=2), encoding="utf-8")
     print(f"[✓] Multi-speaker Spaces Live Stage video rendered: {output} ({output.stat().st_size / (1024 * 1024):.2f} MB)")
 

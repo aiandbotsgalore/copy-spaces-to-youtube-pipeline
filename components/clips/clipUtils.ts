@@ -1,6 +1,8 @@
 import { getClipRecordedDate } from '../../utils/dates';
 import { ClipItem } from '../../utils/contracts/clipCatalog';
 
+export const CLOUDFLARE_R2_BASE_URL = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
+
 export const formatEpisodeTitle = (ep?: string): string => {
   if (!ep) return 'Unknown Space';
   let clean = ep.replace(/^20\d{6}_[a-zA-Z0-9]+_/, '');
@@ -51,6 +53,10 @@ export const getAudioUrl = (clip: ClipItem): string => {
   }
   if (clip.file_path) {
     if (clip.file_path.startsWith('http')) return clip.file_path;
+    const cleanFn = clip.file_path.split(/[\\/]/).pop();
+    if (cleanFn && (cleanFn.endsWith('.mp3') || cleanFn.endsWith('.wav'))) {
+      return `${CLOUDFLARE_R2_BASE_URL}/${encodeURIComponent(cleanFn)}`;
+    }
     const base = ((import.meta as any).env?.BASE_URL || '/').replace(/\/$/, '');
     const cleanPath = clip.file_path.replace(/^\.?\/?public\//, '').replace(/^\.?\//, '');
     return `${base}/${cleanPath}`;

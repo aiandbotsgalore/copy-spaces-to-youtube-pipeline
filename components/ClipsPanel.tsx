@@ -42,7 +42,8 @@ import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate
 import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
-import { getEpisodeSegments } from '../utils/transcriptData';
+import { getEpisodeSegments, fetchSummaryIndex } from '../utils/transcriptData';
+import { cleanClipSpeakers, MAX_STAGE_SPEAKERS, planAvatarStage, resolveClipReleaseTag } from '../utils/avatarStage';
 
 import { ClipItem } from "../utils/contracts/clipCatalog";
 import {
@@ -112,23 +113,27 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   // Sync avatarModalClip speakers with Voice Profile Library
   useEffect(() => {
-    if (avatarModalClip) {
+    if (!avatarModalClip) return;
+    // Clip catalogs are not schema validated, so speaker lists can be missing, out of shape or
+    // full of placeholders; cleanClipSpeakers gives the same stage list the worker will use.
+    const spks = cleanClipSpeakers(avatarModalClip.speakers);
+    const stageSpeakers = (spks.length ? spks : ['Logan', 'Guest']).slice(0, MAX_STAGE_SPEAKERS);
+    let profiles: Record<string, { avatar_url?: string }> = {};
+    try {
       const saved = localStorage.getItem('spacepipe_voice_profiles_catalog');
-      const profiles = saved ? JSON.parse(saved)?.profiles || {} : {};
-      const initialMap: Record<string, string> = {};
-      const spks = avatarModalClip.speakers && avatarModalClip.speakers.length > 0
-        ? avatarModalClip.speakers
-        : ['Logan', 'Guest'];
-
-      spks.forEach((spk: string) => {
-        if (profiles[spk]?.avatar_url) {
-          initialMap[spk] = profiles[spk].avatar_url;
-        } else {
-          initialMap[spk] = getDefaultSpeakerAvatarUrl(spk);
-        }
-      });
-      setSpeakerAvatarMap(initialMap);
+      const parsed = saved ? JSON.parse(saved) : null;
+      profiles = parsed && typeof parsed === 'object' && parsed.profiles && typeof parsed.profiles === 'object'
+        ? parsed.profiles
+        : {};
+    } catch (err) {
+      console.warn('Saved voice profile catalog is unreadable; using default avatar photos:', err);
     }
+    const initialMap: Record<string, string> = {};
+    for (const speaker of stageSpeakers) {
+      const savedAvatar = profiles[speaker]?.avatar_url;
+      initialMap[speaker] = typeof savedAvatar === 'string' && savedAvatar ? savedAvatar : getDefaultSpeakerAvatarUrl(speaker);
+    }
+    setSpeakerAvatarMap(initialMap);
   }, [avatarModalClip]);
 
   const handleUploadPhotoForSpeaker = async (speaker: string, file?: File | null) => {
@@ -195,51 +200,67 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     }
   }, [globalPlayer.isPlaying, isPlaying]);
 
+  // The worker downloads avatars by URL, so a locally cropped data URL cannot be sent.
+  const resolveDispatchAvatarUrl = (speaker: string): string => {
+    const configured = speakerAvatarMap[speaker];
+    if (configured && /^https?:\/\//i.test(configured)) return configured;
+    return getDefaultSpeakerAvatarUrl(speaker);
+  };
+
   const handleDispatchAvatar = async (clip: ClipItem) => {
     setIsDispatchingAvatar(true);
     setAvatarDispatchStatus(null);
     try {
       const audioUrl = getAudioUrl(clip);
-      const speakersList = clip.speakers && clip.speakers.length > 0 ? clip.speakers : ['Logan', 'Guest'];
-      const primaryAvatar = speakerAvatarMap[speakersList[0]] || getDefaultSpeakerAvatarUrl(speakersList[0]);
+      if (!/^https?:\/\//i.test(audioUrl)) {
+        setAvatarDispatchStatus(
+          `error: This clip has no public audio URL (${audioUrl || 'none'}), so the cloud worker cannot download it.`
+        );
+        return;
+      }
 
-      // The clip catalog only stores the speaker names. Resolve the source
-      // episode turns here so the cloud worker can mute each speaker's track
-      // outside their actual turns and animate the correct tile.
-      const releaseTag = (() => {
-        const candidates = [clip.episode, clip.file_path, clip.download_url].filter(Boolean).map(String);
-        for (const candidate of candidates) {
-          const fromReleaseUrl = candidate.match(/\/releases\/download\/([^/]+)/i)?.[1];
-          if (fromReleaseUrl) return fromReleaseUrl;
-          const fromTag = candidate.match(/(\d{8}_[A-Za-z0-9]+)/)?.[1];
-          if (fromTag) return fromTag;
+      // The clip catalog only stores speaker names, often stale ones. Find the
+      // source episode (by tag, Space ID, title or audio file name) and let its
+      // transcript decide who talks when, so the worker animates only the person
+      // speaking and keeps everyone else on stage as a quiet listener.
+      let releaseTag = resolveClipReleaseTag(clip, []);
+      if (!releaseTag) {
+        try {
+          releaseTag = resolveClipReleaseTag(clip, await fetchSummaryIndex(owner, repo));
+        } catch (indexErr) {
+          console.warn('Could not load the transcript index to find the clip episode:', indexErr);
         }
-        return '';
-      })();
-
-      let speakerSegments: Array<{ speaker: string; start: number; end: number }> = [];
+      }
+      let sourceSegments: Awaited<ReturnType<typeof getEpisodeSegments>> = [];
       if (releaseTag) {
         try {
-          const normalizeSpeaker = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
-          const sourceSegments = await getEpisodeSegments(releaseTag, owner, repo);
-          const clipStart = Math.max(0, Number(clip.start_seconds) || 0);
-          const clipEnd = Math.max(clipStart, Number(clip.end_seconds) || clipStart + (clip.duration || 0));
-          speakerSegments = sourceSegments
-            .map((segment) => {
-              const start = Math.max(clipStart, Number(segment.start) || 0);
-              const end = Math.min(clipEnd, Number(segment.end ?? segment.start) || start);
-              return {
-                speaker: String(segment.speaker || '').trim(),
-                start: Math.max(0, start - clipStart),
-                end: Math.max(0, end - clipStart),
-              };
-            })
-            .filter((segment) => segment.speaker && segment.end > segment.start)
-            .filter((segment) => speakersList.some((speaker) => normalizeSpeaker(speaker) === normalizeSpeaker(segment.speaker)));
+          sourceSegments = await getEpisodeSegments(releaseTag, owner, repo);
         } catch (segmentErr) {
           console.warn('Could not resolve speaker timing for avatar render:', segmentErr);
         }
       }
+      const { speakers: speakersList, segments: speakerSegments } = planAvatarStage(clip, sourceSegments);
+      const dispatchNotes: string[] = [];
+      if (!speakerSegments.length) {
+        console.warn(`No transcript turns for "${clip.title}" (episode ${releaseTag || 'not found'}); the worker will detect speech and give it to ${speakersList[0]} only.`);
+        dispatchNotes.push(
+          `there is no transcript timing for this clip, so ${speakersList[0]} will get all detected speech`
+        );
+      }
+      // Every speaker on stage needs a URL the worker can fetch; otherwise the whole stage falls
+      // back to the single primary portrait and everyone looks like the same person.
+      const dispatchAvatars: Record<string, string> = {};
+      let unhostedPhotos = 0;
+      for (const speaker of speakersList) {
+        dispatchAvatars[speaker] = resolveDispatchAvatarUrl(speaker);
+        if (speakerAvatarMap[speaker] && speakerAvatarMap[speaker] !== dispatchAvatars[speaker]) unhostedPhotos += 1;
+      }
+      if (unhostedPhotos) {
+        dispatchNotes.push(
+          `${unhostedPhotos} locally cropped photo${unhostedPhotos === 1 ? '' : 's'} could not be sent to the cloud worker; the public profile photo is used instead`
+        );
+      }
+      const primaryAvatar = dispatchAvatars[speakersList[0]] || getDefaultSpeakerAvatarUrl(speakersList[0]);
 
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
@@ -260,7 +281,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             aspect_ratio: avatarRatio,
             layout: avatarLayoutMode,
             speakers_json: JSON.stringify(speakersList),
-            speaker_avatars_json: JSON.stringify(speakerAvatarMap),
+            speaker_avatars_json: JSON.stringify(dispatchAvatars),
             speaker_segments_json: JSON.stringify(speakerSegments),
             prompt: `Twitter Spaces ${avatarLayoutMode} audio presentation for: ${clip.title}`
           }
@@ -268,13 +289,19 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       });
 
       if (res.ok || res.status === 204) {
-        setAvatarDispatchStatus('success');
+        setAvatarDispatchStatus(dispatchNotes.length ? `success: ${dispatchNotes.join('; ')}` : 'success');
       } else {
-        const errData = await res.json().catch(() => ({}));
-        setAvatarDispatchStatus(`error: ${errData.message || res.statusText || 'Check GitHub token with actions:write permission'}`);
+        const errData = (await res.json().catch(() => null)) as { message?: string } | null;
+        const reason = errData?.message || res.statusText || 'GitHub did not accept the workflow dispatch';
+        const hint = res.status === 401 || res.status === 403
+          ? ' (the saved GitHub token needs workflow / actions:write access)'
+          : res.status === 404
+          ? ' (check the repo name and that generate_avatar_short.yml exists on master)'
+          : '';
+        setAvatarDispatchStatus(`error: ${reason}${hint}`);
       }
-    } catch (e: any) {
-      setAvatarDispatchStatus(`error: ${e.message}`);
+    } catch (e) {
+      setAvatarDispatchStatus(`error: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setIsDispatchingAvatar(false);
     }
@@ -573,20 +600,6 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     });
     return Object.fromEntries(sortedEntries) as Record<string, ClipItem[]>;
   }, [filteredClips]);
-
-  const getAudioUrl = (clip: ClipItem): string => {
-    if (!clip.file_path) return '';
-    if (clip.file_path.startsWith('http://') || clip.file_path.startsWith('https://')) {
-      return clip.file_path;
-    }
-    const rel = clip.file_path.replace(/\\/g, '/');
-    const part = rel.includes('best_saved_clips/')
-      ? rel.split('best_saved_clips/')[1]
-      : rel.includes('clips/')
-      ? rel.split('clips/')[1]
-      : rel;
-    return `/clips/${part}`;
-  };
 
   const handlePlayClip = (clip: ClipItem) => {
     if (activeClip && activeClip.title === clip.title && audioRef.current) {
