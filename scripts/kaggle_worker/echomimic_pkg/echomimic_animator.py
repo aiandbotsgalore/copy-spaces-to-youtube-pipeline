@@ -18,6 +18,8 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
+import numpy as np
+
 
 def run_cmd(cmd, check=True, cwd=None):
     cmd_str = " ".join(cmd) if isinstance(cmd, list) else cmd
@@ -40,15 +42,18 @@ def run_cmd(cmd, check=True, cwd=None):
     return result
 
 
-def download_file(url: str, dest_path: Path):
-    if dest_path.exists() and dest_path.stat().st_size > 1000:
+def download_file(url: str, dest_path: Path, min_size: int = 1000):
+    if dest_path.exists() and dest_path.stat().st_size >= min_size:
         print(f"[✓] File already present: {dest_path.name}")
         return
     print(f"[*] Downloading {dest_path.name} from {url}...")
     request = urllib.request.Request(url, headers={"User-Agent": "SpacePipe-TalkingAvatarGenerator/2.0"})
     with urllib.request.urlopen(request) as response, open(dest_path, "wb") as output:
         shutil.copyfileobj(response, output)
-    print(f"[✓] Downloaded {dest_path.name} ({dest_path.stat().st_size / (1024 * 1024):.1f} MB)")
+    size = dest_path.stat().st_size
+    if size < min_size:
+        raise RuntimeError(f"Downloaded file is too small to be valid: {dest_path.name} ({size} bytes)")
+    print(f"[✓] Downloaded {dest_path.name} ({size / (1024 * 1024):.1f} MB)")
 
 
 def parse_json(value: str, fallback):
@@ -151,6 +156,7 @@ def patch_wav2lip(repo_dir: Path):
                 "from torchvision.models.utils import load_state_dict_from_url": "from torch.hub import load_state_dict_from_url",
                 "np.float": "float",
                 "np.int": "int",
+                "checkpoint = torch.load(checkpoint_path)": "checkpoint = torch.load(checkpoint_path, weights_only=False)",
             }.items():
                 if old in content:
                     content = content.replace(old, new)
@@ -177,8 +183,8 @@ def prepare_wav2lip(work_dir: Path, repo_dir: Path, gh_token: str, repo: str) ->
     face_detect_dir.mkdir(parents=True, exist_ok=True)
     wav2lip_model = checkpoints_dir / "wav2lip_gan.pth"
     s3fd_model = face_detect_dir / "s3fd.pth"
-    download_file("https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth", wav2lip_model)
-    download_file("https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/s3fd-619a316812.pth", s3fd_model)
+    download_file("https://huggingface.co/camenduru/Wav2Lip/resolve/main/checkpoints/wav2lip_gan.pth", wav2lip_model, min_size=100_000_000)
+    download_file("https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth", s3fd_model, min_size=1_000_000)
     return wav2lip_dir, wav2lip_model
 
 
@@ -209,11 +215,25 @@ def render_talking_avatar(wav2lip_dir: Path, checkpoint: Path, image: Path, audi
         "--face", str(image), "--audio", str(audio), "--outfile", str(output),
         "--pads", "0", "10", "0", "0", "--resize_factor", "1",
     ]
-    try:
-        run_cmd(command, cwd=str(wav2lip_dir))
-    except Exception as error:
-        print(f"[!] Wav2Lip render failed ({error}); keeping this speaker as a still portrait.")
-        render_static_avatar(image, output, run_ffprobe_duration(audio))
+    run_cmd(command, cwd=str(wav2lip_dir))
+    if not output.exists() or output.stat().st_size < 10_000:
+        raise RuntimeError(f"Wav2Lip produced no usable video for {image.name}")
+
+
+def motion_score(path: Path) -> float:
+    """Return average frame-to-frame pixel change; still fallbacks score near zero."""
+    result = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", "fps=5,scale=64:64,format=gray", "-f", "rawvideo", "-"],
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Could not inspect generated motion in {path.name}")
+    frames = np.frombuffer(result.stdout, dtype=np.uint8)
+    frame_size = 64 * 64
+    if frames.size < frame_size * 2:
+        raise RuntimeError(f"Generated video is too short to verify motion: {path.name}")
+    frames = frames[: frames.size // frame_size * frame_size].reshape(-1, 64, 64)
+    return float(np.abs(np.diff(frames.astype(np.float32), axis=0)).mean())
 
 
 def canvas_for_ratio(ratio: str) -> Tuple[int, int]:
@@ -356,14 +376,21 @@ def main():
     for speaker in speakers:
         speaker_audio = work_dir / f"audio_{slug(speaker)}.wav"
         video = work_dir / f"talking_{slug(speaker)}.mp4"
-        if build_speaker_audio(norm_audio, speaker_audio, intervals.get(speaker, [])):
-            render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
-        else:
-            render_static_avatar(avatar_files[speaker], video, duration)
+        if not build_speaker_audio(norm_audio, speaker_audio, intervals.get(speaker, [])):
+            raise RuntimeError(f"No speaking audio interval was created for {speaker}")
+        render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
+        score = motion_score(video)
+        print(f"[*] Verified motion for {speaker}: frame-change score {score:.3f}")
+        if score < 0.15:
+            raise RuntimeError(f"Generated video for {speaker} appears to be a still image (motion score {score:.3f})")
         rendered_videos.append(video)
 
     output = out_dir / "talking_avatar_short.mp4"
     compose_stage(output, norm_audio, rendered_videos, speakers, intervals, prompt, layout, ratio, duration)
+    composite_score = motion_score(output)
+    print(f"[*] Verified composite stage motion: frame-change score {composite_score:.3f}")
+    if composite_score < 0.15:
+        raise RuntimeError(f"Composite stage video appears to be static (motion score {composite_score:.3f})")
     print(f"[✓] Multi-speaker Spaces Live Stage video rendered: {output} ({output.stat().st_size / (1024 * 1024):.2f} MB)")
 
     if target_release and gh_token:
@@ -372,3 +399,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
