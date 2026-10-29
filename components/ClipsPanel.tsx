@@ -43,6 +43,7 @@ import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { getEpisodeSegments } from '../utils/transcriptData';
+import { buildAvatarRenderManifest } from '../utils/avatarRenderManifest';
 
 import { ClipItem } from "../utils/contracts/clipCatalog";
 import {
@@ -97,6 +98,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [avatarLayoutMode, setAvatarLayoutMode] = useState<'stage_grid' | 'split_screen' | 'solo'>('stage_grid');
   const [avatarRatio, setAvatarRatio] = useState<'9:16' | '1:1' | '16:9'>('9:16');
   const [avatarDispatchStatus, setAvatarDispatchStatus] = useState<string | null>(null);
+  const [avatarRendererMode, setAvatarRendererMode] = useState<'legacy' | 'smart'>('legacy');
   const [isDispatchingAvatar, setIsDispatchingAvatar] = useState(false);
   const [uploadingSpeakerAvatar, setUploadingSpeakerAvatar] = useState<string | null>(null);
   const [avatarCrop, setAvatarCrop] = useState<{ speaker: string; file: File | Blob } | null>(null);
@@ -217,7 +219,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         return '';
       })();
 
-      let speakerSegments: Array<{ speaker: string; start: number; end: number }> = [];
+      let speakerSegments: Array<{ id?: string; speaker: string; start: number; end: number; confidence?: number | null; verified?: boolean }> = [];
       if (releaseTag) {
         try {
           const normalizeSpeaker = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
@@ -229,9 +231,12 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               const start = Math.max(clipStart, Number(segment.start) || 0);
               const end = Math.min(clipEnd, Number(segment.end ?? segment.start) || start);
               return {
+                id: String(segment.id || `turn-${sourceSegments.indexOf(segment) + 1}`),
                 speaker: String(segment.speaker || '').trim(),
                 start: Math.max(0, start - clipStart),
                 end: Math.max(0, end - clipStart),
+                confidence: typeof segment.confidence === 'number' ? segment.confidence : null,
+                verified: Boolean(segment.verified || segment.speaker),
               };
             })
             .filter((segment) => segment.speaker && segment.end > segment.start)
@@ -240,6 +245,18 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           console.warn('Could not resolve speaker timing for avatar render:', segmentErr);
         }
       }
+
+      const manifest = avatarRendererMode === 'smart'
+        ? buildAvatarRenderManifest({
+            clip,
+            audioUrl,
+            speakers: speakersList,
+            avatarMap: speakerAvatarMap,
+            turns: speakerSegments,
+            layout: avatarLayoutMode,
+            aspectRatio: avatarRatio,
+          })
+        : null;
 
       const headers: Record<string, string> = {
         'Accept': 'application/vnd.github.v3+json',
@@ -262,6 +279,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             speakers_json: JSON.stringify(speakersList),
             speaker_avatars_json: JSON.stringify(speakerAvatarMap),
             speaker_segments_json: JSON.stringify(speakerSegments),
+            renderer_mode: avatarRendererMode,
+            manifest_json: manifest ? JSON.stringify(manifest) : '',
             prompt: `Twitter Spaces ${avatarLayoutMode} audio presentation for: ${clip.title}`
           }
         })
@@ -1320,6 +1339,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         setAvatarRatio={setAvatarRatio}
         avatarDispatchStatus={avatarDispatchStatus}
         isDispatchingAvatar={isDispatchingAvatar}
+        avatarRendererMode={avatarRendererMode}
+        setAvatarRendererMode={setAvatarRendererMode}
         onDispatchAvatar={handleDispatchAvatar}
         owner={owner}
         repo={repo}

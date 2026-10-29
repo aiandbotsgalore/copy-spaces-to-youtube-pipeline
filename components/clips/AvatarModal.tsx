@@ -22,6 +22,8 @@ export interface AvatarModalProps {
   setAvatarRatio: (ratio: '9:16' | '1:1' | '16:9') => void;
   avatarDispatchStatus: string | null;
   isDispatchingAvatar: boolean;
+  avatarRendererMode: 'legacy' | 'smart';
+  setAvatarRendererMode: (mode: 'legacy' | 'smart') => void;
   onDispatchAvatar: (clip: ClipItem) => void;
   owner: string;
   repo: string;
@@ -39,6 +41,8 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
   setAvatarRatio,
   avatarDispatchStatus,
   isDispatchingAvatar,
+  avatarRendererMode,
+  setAvatarRendererMode,
   onDispatchAvatar,
   owner,
   repo,
@@ -197,6 +201,27 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mb-5 rounded-xl border border-slate-800 bg-slate-950 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-300">Renderer</p>
+              <p className="text-[11px] text-slate-500 mt-1">Smart mode renders only verified speaking intervals and keeps the legacy renderer available.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={avatarRendererMode === 'smart'}
+              onClick={() => setAvatarRendererMode(avatarRendererMode === 'smart' ? 'legacy' : 'smart')}
+              className={`px-3 py-2 rounded-lg border text-[11px] font-semibold ${avatarRendererMode === 'smart' ? 'border-cyan-500/60 bg-cyan-500/15 text-cyan-200' : 'border-slate-700 text-slate-300'}`}
+            >
+              {avatarRendererMode === 'smart' ? 'Experimental smart' : 'Legacy production'}
+            </button>
+          </div>
+          {avatarRendererMode === 'smart' && (
+            <p className="mt-2 text-[10px] text-amber-300">Smart mode stops before dispatch if transcript speaker timing is unavailable. It never fabricates equal-duration turns.</p>
+          )}
         </div>
 
         {avatarDispatchStatus === 'success' && (
