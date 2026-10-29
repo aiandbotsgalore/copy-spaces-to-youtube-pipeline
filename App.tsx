@@ -761,9 +761,6 @@ function AppContent() {
           <TranscriptPanel
             config={config}
             initialReleaseId={selectedTranscriptId}
-            navigationCollapsed={transcriptSidebarCollapsed}
-            onNavigationCollapsedChange={setTranscriptSidebarCollapsed}
-            onOpenCopilot={() => setActivePanel('ai-copilot')}
           />
         )}
 

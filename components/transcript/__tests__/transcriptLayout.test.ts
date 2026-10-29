@@ -1,47 +1,56 @@
 import { describe, it, expect } from 'vitest';
 import {
-  TRANSCRIPT_LAYOUT_KEY, DEFAULT_TRANSCRIPT_LAYOUT, clampPanelWidth,
-  restoreTranscriptLayout, layoutForPreset, normalizeTag,
-} from '../transcriptLayout';
+  TRANSCRIPT_LAYOUT_KEY, DEFAULT_TRANSCRIPT_LAYOUT, restoreTranscriptLayout, layoutForPreset,
+} from '../useTranscriptLayout';
 
-describe('approved transcript workbench layout', () => {
-  it('uses a versioned storage key and safe defaults', () => {
-    expect(TRANSCRIPT_LAYOUT_KEY).toContain('_v2');
+describe('approved Midnight Console transcript layout', () => {
+  it('uses the approved storage key and safe defaults', () => {
+    expect(TRANSCRIPT_LAYOUT_KEY).toBe('spacepipe:transcripts:approved-layout:v1');
     expect(restoreTranscriptLayout(null)).toEqual(DEFAULT_TRANSCRIPT_LAYOUT);
     expect(restoreTranscriptLayout('{broken')).toEqual(DEFAULT_TRANSCRIPT_LAYOUT);
+    expect(restoreTranscriptLayout('null')).toEqual(DEFAULT_TRANSCRIPT_LAYOUT);
+    expect(restoreTranscriptLayout('[]')).toEqual(DEFAULT_TRANSCRIPT_LAYOUT);
   });
-  it('restores independently hidden panels and collapsed modules', () => {
-    const input = {
+
+  it('restores hidden panels, panel widths, inspector tab and collapsed modules', () => {
+    const stored = {
       ...DEFAULT_TRANSCRIPT_LAYOUT,
-      episodesVisible: false, inspectorVisible: true,
-      episodeWidth: 342, inspectorWidth: 379,
-      sectionOpen: { details: false, actions: true, tags: false },
+      episodeOpen: false,
+      inspectorOpen: true,
+      episodeWidth: 342,
+      inspectorWidth: 379,
       inspectorTab: 'clips',
+      sections: { details: false, actions: true, tags: false },
     };
-    expect(restoreTranscriptLayout(JSON.stringify(input))).toEqual(input);
+    expect(restoreTranscriptLayout(JSON.stringify(stored))).toEqual(stored);
   });
+
   it('rejects malformed widths, tabs and module fields', () => {
     const state = restoreTranscriptLayout(JSON.stringify({
       episodeWidth: -500, inspectorWidth: 10000,
-      inspectorTab: 'invalid', sectionOpen: { details: 'no' },
+      inspectorTab: 'invalid', sections: { details: 'no' },
     }));
     expect(state.episodeWidth).toBe(220);
-    expect(state.inspectorWidth).toBe(440);
+    expect(state.inspectorWidth).toBe(460);
     expect(state.inspectorTab).toBe('details');
-    expect(state.sectionOpen).toEqual({ details: true, actions: true, tags: true });
+    expect(state.sections).toEqual({ details: true, actions: true, tags: true });
+    expect(state.episodeOpen).toBe(true);
+    expect(state.inspectorOpen).toBe(true);
   });
-  it('supports five presets without losing resize preferences', () => {
-    const custom = { ...DEFAULT_TRANSCRIPT_LAYOUT, episodeWidth: 337, inspectorWidth: 345 };
-    expect(layoutForPreset('focus', custom)).toMatchObject({
-      episodesVisible: false, inspectorVisible: false, episodeWidth: 337, inspectorWidth: 345,
-    });
-    expect(layoutForPreset('episodes-hidden', custom).inspectorVisible).toBe(true);
-    expect(layoutForPreset('inspector-hidden', custom).episodesVisible).toBe(true);
-    expect(layoutForPreset('compact', custom).episodeWidth).toBe(252);
-    expect(layoutForPreset('full', custom)).toMatchObject({ episodesVisible: true, inspectorVisible: true, episodeWidth: 296 });
-  });
-  it('normalizes saved tags and constrains panel dimensions', () => {
-    expect(normalizeTag('  UFO   disclosure  ')).toBe('UFO disclosure');
-    expect(clampPanelWidth(NaN)).toBe(220);
+
+  it('applies all five presets without losing resize preferences or the inspector tab', () => {
+    const resized = { ...DEFAULT_TRANSCRIPT_LAYOUT, episodeWidth: 337, inspectorWidth: 345, inspectorTab: 'speakers' as const };
+
+    expect(layoutForPreset('full', resized)).toMatchObject({ episodeOpen: true, inspectorOpen: true });
+    expect(layoutForPreset('compact', resized)).toMatchObject({ episodeOpen: true, inspectorOpen: true });
+    expect(layoutForPreset('no-episodes', resized)).toMatchObject({ episodeOpen: false, inspectorOpen: true });
+    expect(layoutForPreset('no-inspector', resized)).toMatchObject({ episodeOpen: true, inspectorOpen: false });
+    expect(layoutForPreset('minimal', resized)).toMatchObject({ episodeOpen: false, inspectorOpen: false });
+
+    for (const preset of ['full', 'compact', 'no-episodes', 'no-inspector', 'minimal'] as const) {
+      expect(layoutForPreset(preset, resized)).toMatchObject({
+        episodeWidth: 337, inspectorWidth: 345, inspectorTab: 'speakers',
+      });
+    }
   });
 });

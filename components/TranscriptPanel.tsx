@@ -1,13 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
-import './transcript/TranscriptWorkbench.css';
-import { TranscriptInspector } from './transcript/TranscriptInspector';
-import { TranscriptWorkspaceViews } from './transcript/TranscriptWorkspaceViews';
-import {
-  TRANSCRIPT_LAYOUT_KEY, DEFAULT_TRANSCRIPT_LAYOUT, restoreTranscriptLayout,
-  layoutForPreset, clampPanelWidth, normalizeTag,
-  type TranscriptLayout, type LayoutPreset, type InspectorTab, type WorkspaceTab,
-} from './transcript/transcriptLayout';
+import { useTranscriptLayout } from './transcript/useTranscriptLayout';
+import type { TranscriptLayoutPreset } from './transcript/useTranscriptLayout';
+import './transcript/ApprovedTranscript.css';
 import {
   FileText, RefreshCw, AlertCircle, Search, ChevronDown, Loader,
   ExternalLink, Play, Pause, Volume2, Copy, Check, Download,
@@ -15,7 +10,6 @@ import {
   Save, CheckCircle2, Star, Plus, Trash2, UserPlus, User, Sparkle, Clock,
   Globe, Radio, Layers, ArrowRight, Headphones, Scissors, Film, HardDriveDownload,
   Database, Tag, BarChart3, ShieldAlert, Bot, PanelLeftOpen, PanelLeftClose, PanelRightOpen, Bookmark, BookOpen
-  Database, Tag, BarChart3, ShieldAlert, Bot, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, VolumeX
 } from 'lucide-react';
 import { Release, ReleaseAsset, EnhancedConfig, EpisodePart } from '../types';
 import { getReleases, fetchReleaseAssetText, dispatchWorkflow, updateReleaseTranscriptAssets, getReleaseParts } from '../utils/github';
@@ -39,9 +33,6 @@ import {
 interface Props {
   config: EnhancedConfig;
   initialReleaseId?: number | string | null;
-  navigationCollapsed?: boolean;
-  onNavigationCollapsedChange?: (collapsed: boolean) => void;
-  onOpenCopilot?: () => void;
 }
 
 export interface UtteranceWord {
@@ -784,15 +775,12 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigationCollapsed = false, onNavigationCollapsedChange, onOpenCopilot }) => {
+const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(() => {
-    if (typeof initialReleaseId === 'number') return initialReleaseId;
-    try { const saved = Number(localStorage.getItem('spacepipe_transcript_last_episode_v2')); return Number.isSafeInteger(saved) && saved > 0 ? saved : null; } catch { return null; }
-  });
+  const [selectedId, setSelectedId] = useState<number | null>(typeof initialReleaseId === 'number' ? initialReleaseId : null);
   const [transcriptRaw, setTranscriptRaw] = useState('');
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState('');
@@ -959,67 +947,40 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
   const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
   const [utteranceDisplayLimit, setUtteranceDisplayLimit] = useState<number>(120);
   const [sidebarDisplayLimit, setSidebarDisplayLimit] = useState<number>(50);
+  const { layout, update: updateLayout, toggleSection, applyPreset, reset: resetLayout } = useTranscriptLayout();
   const [episodeQuery, setEpisodeQuery] = useState('');
-  const [episodeStatus, setEpisodeStatus] = useState<'all' | 'ready' | 'processing'>('all');
-  const [workspaceTab, setWorkspaceTab] = useState<WorkspaceTab>('transcript');
-  const [layout, setLayout] = useState<TranscriptLayout>(() => {
-    try { return restoreTranscriptLayout(localStorage.getItem(TRANSCRIPT_LAYOUT_KEY)); } catch { return restoreTranscriptLayout(null); }
+  const [episodeFilter, setEpisodeFilter] = useState<'all'|'ready'|'audio'>('all');
+  const [customTags, setCustomTags] = useState<Record<string, string[]>>(() => {
+    try { return JSON.parse(localStorage.getItem('spacepipe:transcripts:tags:v1') || '{}'); } catch { return {}; }
   });
-  const [tagInput, setTagInput] = useState('');
-  const [episodeTags, setEpisodeTags] = useState<Record<string, string[]>>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('spacepipe_transcript_tags_v1') || '{}');
-      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
-    } catch { return {}; }
-  });
-  const draggingPanelRef = useRef<{ side: 'episodes' | 'inspector'; x: number; width: number } | null>(null);
-  useEffect(() => {
-    try { localStorage.setItem(TRANSCRIPT_LAYOUT_KEY, JSON.stringify(layout)); } catch {}
-  }, [layout]);
-  useEffect(() => {
-    try { localStorage.setItem('spacepipe_transcript_tags_v1', JSON.stringify(episodeTags)); } catch {}
-  }, [episodeTags]);
-  useEffect(() => {
-    if (selectedId !== null) {
-      try { localStorage.setItem('spacepipe_transcript_last_episode_v2', String(selectedId)); } catch {}
-    }
-  }, [selectedId]);
-
-  const chooseLayoutPreset = (preset: Exclude<LayoutPreset, 'custom'>) => {
-    setLayout(previous => layoutForPreset(preset, previous));
-    onNavigationCollapsedChange?.(preset === 'compact' || preset === 'focus');
+  useEffect(() => { try { localStorage.setItem('spacepipe:transcripts:tags:v1', JSON.stringify(customTags)); } catch {} }, [customTags]);
+  const startPanelResize = (panel: 'episode'|'inspector', e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = panel === 'episode' ? layout.episodeWidth : layout.inspectorWidth;
+    const move = (event: PointerEvent) => {
+      const delta = event.clientX - startX;
+      updateLayout(panel === 'episode'
+        ? { episodeWidth: Math.min(440, Math.max(220, startWidth + delta)) }
+        : { inspectorWidth: Math.min(460, Math.max(240, startWidth - delta)) });
+    };
+    const stop = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('blur', stop);
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('blur', stop);
   };
-  const resetLayout = () => {
-    setLayout({ ...DEFAULT_TRANSCRIPT_LAYOUT, sectionOpen: { ...DEFAULT_TRANSCRIPT_LAYOUT.sectionOpen } });
-    onNavigationCollapsedChange?.(false);
-  };
-  const resizePanel = (side: 'episodes' | 'inspector', delta: number) => {
-    setLayout(previous => ({
-      ...previous, preset: 'custom',
-      ...(side === 'episodes'
-        ? { episodeWidth: clampPanelWidth(previous.episodeWidth + delta) }
-        : { inspectorWidth: clampPanelWidth(previous.inspectorWidth + delta, 240, 440) }),
-    }));
-  };
-  const beginPanelResize = (side: 'episodes' | 'inspector', event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    draggingPanelRef.current = { side, x: event.clientX, width: side === 'episodes' ? layout.episodeWidth : layout.inspectorWidth };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-  const movePanelResize = (event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = draggingPanelRef.current;
-    if (!drag) return;
-    const delta = (event.clientX - drag.x) * (drag.side === 'episodes' ? 1 : -1);
-    setLayout(previous => ({
-      ...previous, preset: 'custom',
-      ...(drag.side === 'episodes'
-        ? { episodeWidth: clampPanelWidth(drag.width + delta) }
-        : { inspectorWidth: clampPanelWidth(drag.width + delta, 240, 440) }),
-    }));
-  };
-  const toggleInspectorSection = (name: keyof TranscriptLayout['sectionOpen']) => {
-    setLayout(previous => ({ ...previous, sectionOpen: { ...previous.sectionOpen, [name]: !previous.sectionOpen[name] } }));
+  const onResizeKeyboard = (panel: 'episode'|'inspector', e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const dx = (e.key === 'ArrowRight' ? 1 : -1) * 20;
+    updateLayout(panel === 'episode'
+      ? { episodeWidth: Math.min(440, Math.max(220, layout.episodeWidth + dx)) }
+      : { inspectorWidth: Math.min(460, Math.max(240, layout.inspectorWidth - dx)) });
   };
 
   const currentLoadedIdRef = useRef<number | null>(null);
@@ -1028,8 +989,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
   const targetScrollSecRef = useRef<number | null>(null);
   const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
 
-  const { play, seek, skip, currentTime, duration, isPlaying, current, togglePlay, playbackRate, setPlaybackRate, volume, setVolume, isMuted, toggleMute } = usePlayer();
-  const { addClip, clips: montageClips } = useMontage();
+  const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
+  const { addClip } = useMontage();
   const copilot = useCopilot();
 
   const openQuickSlicer = (target: SlicerTurnTarget) => {
@@ -1179,23 +1140,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
   }, [summaryIndex]);
 
   const selectedHost = useMemo(() => getEpisodeHost(selectedRelease), [getEpisodeHost, selectedRelease]);
-  const releaseHasTranscript = useCallback((release: Release) => {
-    if (pickTranscriptAsset(release)) return true;
-    return !!summaryIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && (ep.segment_count || 0) > 0)
-      || !!globalIndex?.some(ep => (ep.release_id === release.id || ep.release_tag === release.tag_name) && ep.segments?.length > 0);
-  }, [summaryIndex, globalIndex]);
-  const readyEpisodeCount = useMemo(() => effectiveReleases.filter(releaseHasTranscript).length, [effectiveReleases, releaseHasTranscript]);
-  const sidebarEpisodes = useMemo(() => {
-    const query = episodeQuery.trim().toLowerCase();
-    return effectiveReleases.filter(release => {
-      const ready = releaseHasTranscript(release);
-      if (episodeStatus === 'ready' && !ready) return false;
-      if (episodeStatus === 'processing' && ready) return false;
-      return !query || (release.name || release.tag_name).toLowerCase().includes(query)
-        || release.tag_name.toLowerCase().includes(query)
-        || (getEpisodeHost(release) || '').toLowerCase().includes(query);
-    });
-  }, [effectiveReleases, releaseHasTranscript, episodeStatus, episodeQuery, getEpisodeHost]);
   const episodeParts = useMemo(() => selectedRelease ? getReleaseParts(selectedRelease) : [], [selectedRelease]);
   const activePart = useMemo(() => episodeParts.find(p => p.partNumber === selectedPartNum) || episodeParts[0] || null, [episodeParts, selectedPartNum]);
   const transcriptMetadata = useMemo(() => parseTranscriptMetadata(transcriptRaw), [transcriptRaw]);
@@ -1955,67 +1899,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
       isHot: b.mentionCount > 0,
     }));
   }, [utterances, selectedMentionTarget]);
-
-  const transcriptDurationSec = useMemo(() => {
-    const last = utterances[utterances.length - 1];
-    const fromTranscript = last?.endSec || last?.startSec || 0;
-    const fromPlayer = selectedRelease && current?.id === selectedRelease.id ? duration : 0;
-    return Math.max(1, transcriptMetadata.audioDurationSec || 0, fromTranscript, Number.isFinite(fromPlayer) ? fromPlayer : 0);
-  }, [utterances, transcriptMetadata.audioDurationSec, selectedRelease, current?.id, duration]);
-  const navigationSections = useMemo(() => {
-    if (!utterances.length) return [];
-    const chunk = Math.max(1, Math.ceil(utterances.length / 12));
-    return Array.from({ length: Math.ceil(utterances.length / chunk) }, (_, i) => {
-      const start = utterances[i * chunk];
-      const end = utterances[Math.min(utterances.length - 1, (i + 1) * chunk - 1)];
-      return { index: i, label: 'Section ' + (i + 1), time: start.startSec,
-        timeLabel: start.startLabel, endLabel: end.endLabel || end.startLabel, turns: Math.min(chunk, utterances.length - i * chunk) };
-    });
-  }, [utterances]);
-  const activeEpisodeTags = selectedRelease ? (Array.isArray(episodeTags[selectedRelease.tag_name]) ? episodeTags[selectedRelease.tag_name] : []) : [];
-  const activeMontageClips = selectedRelease ? montageClips.filter(clip => clip.sourceTag === selectedRelease.tag_name) : [];
-  const addEpisodeTag = () => {
-    if (!selectedRelease) return;
-    const next = normalizeTag(tagInput);
-    if (!next) return;
-    setEpisodeTags(previous => {
-      const existing = Array.isArray(previous[selectedRelease.tag_name]) ? previous[selectedRelease.tag_name] : [];
-      if (existing.length >= 24 || existing.some(x => x.toLowerCase() === next.toLowerCase())) return previous;
-      return { ...previous, [selectedRelease.tag_name]: [...existing, next] };
-    });
-    setTagInput('');
-  };
-  const removeEpisodeTag = (tag: string) => {
-    if (!selectedRelease) return;
-    setEpisodeTags(previous => ({ ...previous, [selectedRelease.tag_name]: (previous[selectedRelease.tag_name] || []).filter(item => item !== tag) }));
-  };
-  const openCopilotWithTask = (task: 'summary' | 'topics' | 'moments' | 'chapters') => {
-    if (!selectedRelease || !utterances.length) return;
-    const prompt = {
-      summary: 'Summarize the attached episode excerpts with timestamped findings. Identify uncertain claims and explain any incomplete transcript coverage.',
-      topics: 'Identify the main themes and topics in the attached episode excerpts, with timestamped supporting quotes. Do not infer facts not present in the source.',
-      moments: 'Find the strongest noteworthy moments or soundbites in the attached episode excerpts; give exact timestamps and explain their significance.',
-      chapters: 'Propose meaningful documentary-style chapter boundaries from the attached timestamped episode excerpts. Distinguish proposed chapters from verified full-episode structure.',
-    }[task];
-    const context = {
-      ...copilot.contextPayload,
-      activeTab: 'transcripts',
-      currentEpisode: {
-        releaseId: selectedRelease.id,
-        releaseTag: selectedRelease.tag_name,
-        title: selectedRelease.name || selectedRelease.tag_name,
-        audioUrl: mp3Asset?.browser_download_url,
-        speakers: Array.from(new Set(utterances.map(u => u.speaker))),
-        segmentsSample: utterances.slice(0, 30).map(u => ({ speaker: u.speaker, text: u.text, start: u.startSec, end: u.endSec || u.startSec + 5 })),
-        allSegments: utterances.slice(0, 150).map(u => ({ speaker: u.speaker, text: u.text, start: u.startSec, end: u.endSec || u.startSec + 5 })),
-        totalTurns: utterances.length,
-        durationSec: transcriptDurationSec,
-      },
-    };
-    copilot.setContextPayload(context);
-    void copilot.sendMessage(prompt, context);
-    onOpenCopilot?.();
-  };
 
   const matchCount = useMemo(() => {
     if (!hasActiveSearch) return 0;
@@ -2908,45 +2791,81 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="sp-tw h-full overflow-hidden flex flex-col bg-slate-950"
-      style={{ '--sp-episode-width': layout.episodeWidth + 'px', '--sp-inspector-width': layout.inspectorWidth + 'px' } as React.CSSProperties}>
+    <div className="sp-approved h-full overflow-hidden flex flex-col bg-slate-950">
 
-      {/* Compact global toolbar. Collapsing a panel does not unmount playback state. */}
-      <div className="sp-topbar">
-        <div className="sp-topbar-title">
-          <h2>Transcripts</h2>
-          <span className="sp-topbar-status"><Sparkles size={11} /> Diarized &amp; Editable</span>
+      {/* ── Top Header ── */}
+      <div className="sp-page-heading p-6 md:px-10 md:py-6 border-b border-slate-800 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-900/40">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Transcripts</h2>
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+              <Sparkles size={11} /> Diarized & Editable
+            </span>
+          </div>
+          <p className="text-slate-400 text-xs mt-1">
+            Click any speaker label to rename them across the whole episode. Click quotes to jump audio playback instantly.
+          </p>
+          {/* Diagnostic sync readout — only shown while playing */}
+          {isPlaying && (
+            <div className="mt-3 flex items-center gap-4 text-[11px] font-mono text-emerald-400 bg-emerald-950/30 px-3 py-1.5 rounded border border-emerald-900/50">
+              <span title="Current audio element time">Audio: {currentTime.toFixed(2)}s ({formatSeconds(currentTime)})</span>
+              <span className="text-emerald-700">|</span>
+              <span title="Currently highlighted segment">
+                Active: {activeUtteranceIndex >= 0
+                  ? `[${utterances[activeUtteranceIndex].startSec.toFixed(2)} – ${utterances[activeUtteranceIndex].endSec?.toFixed(2) ?? '?'}]`
+                  : 'None'}
+              </span>
+              <span className="text-emerald-700">|</span>
+              <span title="Global sync offset">Offset: {timeOffsetSec}s</span>
+            </div>
+          )}
         </div>
-        <div className="sp-layout-bar">
-          <button type="button" className="sp-btn" aria-pressed={navigationCollapsed}
-            title={navigationCollapsed ? 'Expand app navigation' : 'Collapse app navigation'}
-            onClick={() => onNavigationCollapsedChange?.(!navigationCollapsed)}>
-            {navigationCollapsed ? <PanelLeftOpen size={13} /> : <PanelLeftClose size={13} />}
-            <span>Navigation</span>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              if (selectedRelease) {
+                copilot.setContextPayload(prev => ({
+                  ...prev,
+                  activeTab: 'transcripts',
+                  currentEpisode: {
+                    releaseId: selectedRelease.id,
+                    releaseTag: selectedRelease.tag_name,
+                    title: selectedRelease.name || selectedRelease.tag_name,
+                    audioUrl: mp3Asset?.browser_download_url,
+                    speakers: Array.from(new Set(utterances.map(u => u.speaker))),
+                    segmentsSample: utterances.slice(0, 30).map(u => ({
+                      speaker: u.speaker,
+                      text: u.text,
+                      start: u.startSec,
+                      end: u.endSec || u.startSec + 5,
+                    })),
+                    allSegments: utterances.slice(0, 150).map(u => ({
+                      speaker: u.speaker,
+                      text: u.text,
+                      start: u.startSec,
+                      end: u.endSec || u.startSec + 5,
+                    })),
+                    totalTurns: utterances.length,
+                    durationSec: utterances[utterances.length - 1]?.endSec || utterances[utterances.length - 1]?.startSec || 0,
+                  },
+                }));
+              }
+              if (copilot.activePanelNavHandler) {
+                copilot.activePanelNavHandler('ai-copilot');
+              }
+            }}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+            title="Ask AI Copilot about this transcript and extract soundbites"
+          >
+            <Bot size={14} />
+            <span>Ask Copilot</span>
           </button>
-          <button type="button" className="sp-btn" aria-pressed={layout.episodesVisible}
-            onClick={() => setLayout(previous => ({ ...previous, episodesVisible: !previous.episodesVisible, preset: 'custom' }))}>
-            <Layers size={13} /> Episodes
-          </button>
-          <button type="button" className="sp-btn" aria-pressed={layout.inspectorVisible}
-            onClick={() => setLayout(previous => ({ ...previous, inspectorVisible: !previous.inspectorVisible, preset: 'custom' }))}>
-            {layout.inspectorVisible ? <PanelRightClose size={13} /> : <PanelRightOpen size={13} />} Inspector
-          </button>
-          <label className="sr-only" htmlFor="sp-layout-preset">Workspace layout preset</label>
-          <select id="sp-layout-preset" className="sp-layout-select" aria-label="Workspace layout"
-            value={layout.preset} onChange={e => {
-              if (e.target.value !== 'custom') chooseLayoutPreset(e.target.value as Exclude<LayoutPreset, 'custom'>);
-            }}>
-            <option value="full">Full workspace</option>
-            <option value="compact">Compact nav</option>
-            <option value="episodes-hidden">No episode list</option>
-            <option value="inspector-hidden">No inspector</option>
-            <option value="focus">Focus mode</option>
-            {layout.preset === 'custom' && <option value="custom">Custom layout</option>}
-          </select>
-          <button type="button" className="sp-btn" onClick={resetLayout} title="Reset all panel sizes, visibility and navigation"><RotateCcw size={13} /> Reset</button>
-          <button type="button" className="sp-btn" onClick={fetchReleases} disabled={loading || !hasCredentials} title="Refresh recording library">
+
+          <button onClick={fetchReleases} disabled={loading || !hasCredentials}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700 cursor-pointer">
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -2984,49 +2903,68 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
       )}
 
       {effectiveReleases.length > 0 && (
-        <div className="sp-layout flex-1 flex min-h-0">
-
-          {/* ── Independently collapsible and resizable episode rail ── */}
-          {layout.episodesVisible && (<>
-
-          <div className="sp-episode-rail flex-shrink-0 border-r border-slate-800 overflow-y-auto bg-slate-950/70">
-            <div className="sp-rail-controls">
-              <div className="sp-rail-title">
-                <strong>Transcripts</strong>
-                <button type="button" className="sp-icon-btn" title="Hide episode browser"
-                  onClick={() => setLayout(previous => ({ ...previous, episodesVisible: false, preset: 'custom' }))}><X size={14} /></button>
+        <div className="sp-shell flex-1 flex min-h-0">
+          {!layout.episodeOpen && <button type="button" className="sp-reopen" onClick={() => updateLayout({episodeOpen:true})} title="Show episode browser" aria-label="Show episode browser"><PanelLeftOpen size={15}/></button>}
+          {/* ── Sidebar ── */}
+          {layout.episodeOpen && <div className="sp-rail" style={{width:layout.episodeWidth}}>
+              <div className="sp-rail-head">
+                <div className="sp-rail-headline"><span>Transcripts</span><button type="button" title="Hide episode browser" onClick={() => updateLayout({episodeOpen:false})}><PanelLeftClose size={16}/></button></div>
+                <label className="sp-rail-search"><Search size={14}/><input aria-label="Search episodes" placeholder="Search all transcripts..." value={episodeQuery} onChange={e => {setEpisodeQuery(e.target.value);setSidebarDisplayLimit(50);}} /></label>
+                <div className="sp-filter-pills" role="group" aria-label="Episode status">
+                  <button className={episodeFilter==='all'?'active':''} onClick={() => {setEpisodeFilter('all');setSidebarDisplayLimit(50);}}>All ({effectiveReleases.length})</button>
+                  <button className={episodeFilter==='ready'?'active':''} onClick={() => {setEpisodeFilter('ready');setSidebarDisplayLimit(50);}}>Ready ({readyCount})</button>
+                  <button className={episodeFilter==='audio'?'active':''} onClick={() => {setEpisodeFilter('audio');setSidebarDisplayLimit(50);}}>Audio ({effectiveReleases.length-readyCount})</button>
+                </div>
               </div>
-              <label className="sp-search-field">
-                <Search size={14} />
-                <input type="search" value={episodeQuery}
-                  onChange={event => { setEpisodeQuery(event.target.value); setSidebarDisplayLimit(50); }}
-                  aria-label="Search episode titles and hosts" placeholder="Search all transcripts..." />
-              </label>
-              <div className="sp-rail-subtext"><span>{sidebarEpisodes.length.toLocaleString()} matching episodes</span><span>{totalGlobalSegments.toLocaleString()} turns</span></div>
-              <div className="sp-rail-filters" role="group" aria-label="Episode processing status">
-                <button aria-pressed={episodeStatus === 'all'} onClick={() => { setEpisodeStatus('all'); setSidebarDisplayLimit(50); }}>All ({effectiveReleases.length})</button>
-                <button aria-pressed={episodeStatus === 'ready'} onClick={() => { setEpisodeStatus('ready'); setSidebarDisplayLimit(50); }}>Ready ({readyEpisodeCount})</button>
-                <button aria-pressed={episodeStatus === 'processing'} onClick={() => { setEpisodeStatus('processing'); setSidebarDisplayLimit(50); }}>Pending ({effectiveReleases.length - readyEpisodeCount})</button>
-              </div>
-              <button type="button" className="sp-rail-global" onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}>
-                <Globe size={13}/> Search entire transcript archive <ArrowRight size={13} />
+              <div className="sp-rail-scroll">
+            {/* Global Search shortcut button */}
+            <div className="p-2.5 bg-slate-900/60 border-b border-slate-800">
+              <button
+                onClick={() => {
+                  setSearchScope('all');
+                  loadGlobalIndex();
+                }}
+                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
+                  searchScope === 'all'
+                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg text-white ring-1 ring-indigo-500/40'
+                    : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                  }`}>
+                    <Globe size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold truncate">Search All Transcripts</span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 truncate">
+                      {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-500'} />
               </button>
             </div>
-            {sidebarEpisodes.length === 0 && <div className="sp-rail-empty"><Search size={18}/><span>No matching episodes</span><button onClick={() => { setEpisodeQuery(''); setEpisodeStatus('all'); }}>Clear filters</button></div>}
-            <div className="sp-rail-items">
-            {sidebarEpisodes.slice(0, sidebarDisplayLimit).map(release => {
-              const hasTxt = releaseHasTranscript(release);
+
+            <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({effectiveReleases.length})</span>
+            </div>
+            {shownEpisodes.slice(0, sidebarDisplayLimit).map(release => {
+              const hasTxt = transcriptAvailable(release);
               const isSelected = searchScope === 'current' && selectedId === release.id;
               const isPlayingThis = current?.id === release.id && isPlaying;
               return (
-                <button key={release.id} onClick={() => { setWorkspaceTab('transcript'); setSearchScope('current'); loadTranscript(release); }}
-                  className={`sp-episode-item w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
+                <button key={release.id} onClick={() => { setSearchScope('current'); loadTranscript(release); }}
+                  className={`sp-rail-card w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
                   <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
                     {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
-                    <div className="sp-episode-meta flex items-center gap-2 mt-1 flex-wrap">
+                    <div className="sp-rail-meta flex items-center gap-2 mt-1 flex-wrap">
                       <span className="text-[11px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
                       {(() => {
                         const host = getEpisodeHost(release);
@@ -3045,24 +2983,21 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                 </button>
               );
             })}
-            {sidebarEpisodes.length > sidebarDisplayLimit && (
+            {shownEpisodes.length > sidebarDisplayLimit && (
               <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-center">
                 <button
                   type="button"
-                  onClick={() => setSidebarDisplayLimit(prev => Math.min(sidebarEpisodes.length, prev + 50))}
+                  onClick={() => setSidebarDisplayLimit(prev => Math.min(shownEpisodes.length, prev + 50))}
                   className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
                 >
-                  Show More Episodes ({sidebarEpisodes.length - sidebarDisplayLimit} remaining)
+                  Show More Episodes ({shownEpisodes.length - sidebarDisplayLimit} remaining)
                 </button>
               </div>
             )}
-            </div>
-          </div>
-          <div className="sp-divider sp-episode-divider" role="separator" aria-label="Resize episode browser" aria-orientation="vertical" tabIndex={0}
-            onPointerDown={event => beginPanelResize('episodes', event)} onPointerMove={movePanelResize}
-            onPointerUp={() => { draggingPanelRef.current = null; }} onPointerCancel={() => { draggingPanelRef.current = null; }}
-            onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); resizePanel('episodes', event.key === 'ArrowRight' ? 16 : -16); } }} />
-          </>)}
+            {shownEpisodes.length === 0 && <div className="sp-empty">No episodes match your filters.</div>}
+              </div>
+          </div>}
+          {layout.episodeOpen && <div className="sp-resizer" role="separator" tabIndex={0} aria-label="Resize episode browser" aria-orientation="vertical" aria-valuemin={220} aria-valuemax={440} aria-valuenow={layout.episodeWidth} onPointerDown={e => startPanelResize('episode',e)} onKeyDown={e => onResizeKeyboard('episode',e)} />}
 
           {/* ── Main View ── */}
           <div className="sp-main flex-1 flex flex-col min-w-0 bg-slate-950">
@@ -4256,7 +4191,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
               ) : (
                 <>
                   {/* Episode Player Header */}
-                  <div className="sp-episode-header p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-main-header p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       {mp3Asset && (
                         <button onClick={handlePlayEpisodeToggle}
@@ -4286,7 +4221,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                       </div>
                     </div>
 
-                    <div className="sp-episode-actions flex items-center gap-2 flex-wrap">
+                    <div className="sp-main-actions flex items-center gap-2 flex-wrap">
+                      <button type="button" onClick={() => updateLayout({inspectorOpen:!layout.inspectorOpen})} title="Toggle inspector"><Layers size={13}/> {layout.inspectorOpen ? 'Hide Inspector' : 'Inspector'}</button>
                       {mp3Asset && (
                         <button
                           onClick={handleToggleCacheCurrentAudio}
@@ -4326,7 +4262,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                         <Star size={12} className="text-amber-400 fill-amber-400/30" /> Saved Speakers ({savedSpeakers.length})
                       </button>
                       {speakerStats.length > 0 && (
-                        <button onClick={() => setLayout(previous => ({ ...previous, inspectorVisible: true, inspectorTab: 'speakers', preset: 'custom' }))}
+                        <button onClick={() => setShowRenameModal(true)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold rounded-lg transition-colors border border-indigo-500/40 cursor-pointer">
                           <Users size={12} /> Rename Speakers
                         </button>
@@ -4369,75 +4305,42 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     </div>
                   )}
 
-                  {/* Approved functional workspace tabs */}
-                  <div className="sp-episode-tabs" role="tablist" aria-label="Transcript workspace views">
-                    {([
-                      ['transcript', 'Transcript', FileText],
-                      ['speakers', 'Speakers (' + speakerStats.length + ')', Users],
-                      ['timeline', 'Timeline', BarChart3],
-                      ['chapters', 'Chapters', Clock],
-                      ['analysis', 'Analysis', Sparkles],
-                    ] as const).map(([tab, label, Icon]) =>
-                      <button type="button" key={tab} role="tab" className="sp-tab"
-                        aria-selected={workspaceTab === tab}
-                        onClick={() => setWorkspaceTab(tab)}><Icon size={12} /> {label}</button>
-                    )}
+                  <div className="sp-workspace-toolbar">
+                    <span className="sp-layout-label">WORKSPACE</span>
+                    <button type="button" onClick={() => updateLayout({episodeOpen:!layout.episodeOpen})} aria-pressed={layout.episodeOpen}><FileText size={12}/> Episodes</button>
+                    <button type="button" onClick={() => updateLayout({inspectorOpen:!layout.inspectorOpen})} aria-pressed={layout.inspectorOpen}><Layers size={12}/> Inspector</button>
+                    <span className="sp-layout-label">LAYOUT</span>
+                    <select aria-label="Layout preset" defaultValue="" onChange={e => {if (e.target.value) applyPreset(e.target.value as TranscriptLayoutPreset); e.currentTarget.value='';}}>
+                      <option value="" disabled>Choose preset</option>
+                      <option value="full">Full workspace</option>
+                      <option value="compact">Compact navigation</option>
+                      <option value="no-episodes">Hide episode list</option>
+                      <option value="no-inspector">Hide inspector</option>
+                      <option value="minimal">Minimal / focus</option>
+                    </select>
+                    <button type="button" onClick={resetLayout} title="Reset panel widths and visibility"><RotateCcw size={12}/> Reset</button>
                   </div>
-
-                  {/* Timestamped speech-density timeline and real global audio transport. */}
-                  <div className="sp-timeline">
-                    <div className="sp-timeline-top">
-                      <strong><BarChart3 size={12} className="inline mr-1" /> EPISODE TIMELINE</strong>
-                      <span>{utterances.length.toLocaleString()} turns mapped · Transcript-derived speech density</span>
-                    </div>
-                    <div className="sp-wave" role="group" aria-label="Seek via timestamped speech density timeline">
-                      {conversationHeatmap.length ? (
-                        <>
-                          {conversationHeatmap.flatMap((bucket, bucketIndex) =>
-                            [0, 1, 2, 3].map(subIndex => {
-                              const next = conversationHeatmap[Math.min(conversationHeatmap.length - 1, bucketIndex + 1)];
-                              const density = bucket.density + (next.density - bucket.density) * subIndex / 4;
-                              return <button key={bucket.index + '-' + subIndex} type="button"
-                                className={bucket.isHot ? 'sp-wave-hot' : ''}
-                                style={{ height: (15 + Math.round(density * 79)) + '%' }}
-                                onClick={() => handlePlayUtterance(bucket.startSec)}
-                                title={'Seek ' + bucket.label + ': ' + bucket.count + ' turns' + (bucket.mentionCount ? ', ' + bucket.mentionCount + ' mentions' : '')}
-                                disabled={!mp3Asset}
-                              />;
-                            })
-                          )}
-                          {current?.id === selectedRelease.id && Number.isFinite(currentTime) &&
-                            <div className="sp-wave-playhead" style={{ left: Math.min(100, Math.max(0, currentTime / transcriptDurationSec * 100)) + '%' }} />}
-                        </>
-                      ) : <span className="sp-wave-empty">Timeline available when diarized transcript is loaded</span>}
-                    </div>
-                    <div className="sp-audio-controls">
-                      <button type="button" className="sp-play" onClick={handlePlayEpisodeToggle}
-                        disabled={!mp3Asset} title={isCurrentEpisodePlaying ? 'Pause audio' : 'Play episode'}>
-                        {isCurrentEpisodePlaying ? <Pause size={15} /> : <Play size={15} />}
-                      </button>
-                      <button type="button" title="Skip back 15 seconds"
-                        disabled={current?.id !== selectedRelease.id} onClick={() => skip(-15)}><RotateCcw size={13}/><span className="text-[10px]">15</span></button>
-                      <button type="button" title="Skip forward 15 seconds"
-                        disabled={current?.id !== selectedRelease.id} onClick={() => skip(15)}><span className="text-[10px]">15</span><ArrowRight size={13}/></button>
-                      <label htmlFor="sp-audio-speed" className="sr-only">Playback speed</label>
-                      <select id="sp-audio-speed" aria-label="Playback speed" value={playbackRate}
-                        onChange={event => setPlaybackRate(Number(event.target.value))}>
-                        {[0.75, 1, 1.25, 1.5, 1.75, 2].map(rate => <option key={rate} value={rate}>{rate.toFixed(2).replace(/0$/, '')}×</option>)}
-                      </select>
-                      <span className="sp-audio-time">{current?.id === selectedRelease.id ? formatSeconds(currentTime) : '00:00'} / {formatSeconds(transcriptDurationSec)}</span>
-                      <div className="sp-audio-right">
-                        <button type="button" onClick={toggleMute} aria-label={isMuted ? 'Unmute audio' : 'Mute audio'} title={isMuted ? 'Unmute' : 'Mute'}>
-                          {isMuted ? <VolumeX size={14} /> : <Volume2 size={14}/>}
-                        </button>
-                        <input type="range" min="0" max="1" step=".01" value={volume} aria-label="Volume"
-                          onChange={event => setVolume(Number(event.target.value))} />
+                  {mp3Asset && (
+                    <div className="sp-wave" aria-label="Audio timeline">
+                      <div className="sp-wave-caption"><span>EPISODE TIMELINE · {utterances.length} turns</span><span>{isCurrentEpisodePlaying ? 'PLAYING' : 'READY'}</span></div>
+                      <div className="sp-wave-bars">
+                        {conversationHeatmap.length ? conversationHeatmap.map(bucket => (
+                          <button type="button" key={bucket.index} title={'Seek to '+bucket.label} aria-label={'Seek to '+bucket.label} className={bucket.isHot?'hot':''}
+                            style={{height:(14+bucket.density*85)+'%'}} onClick={() => handlePlayUtterance(bucket.startSec)} />
+                        )) : <span className="sp-inspector-note">Timeline appears when transcription is available.</span>}
+                      </div>
+                      <div className="sp-transport">
+                        <button type="button" className="primary" onClick={handlePlayEpisodeToggle}>{isCurrentEpisodePlaying?<Pause size={14}/>:<Play size={14}/>}</button>
+                        <button type="button" disabled={current?.id!==selectedRelease.id} onClick={() => seek(Math.max(0,currentTime-15))}>−15s</button>
+                        <button type="button" disabled={current?.id!==selectedRelease.id} onClick={() => seek(currentTime+15)}>+15s</button>
+                        <time>{current?.id===selectedRelease.id?formatSeconds(currentTime):'00:00'} / {formatSeconds(episodeDuration)}</time>
+                        <span className="sp-inspector-note">Click a transcript turn to seek</span>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Filter & Sync Toolbar */}
-                  <div className="sp-filter-toolbar p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="p-3 md:px-6 bg-slate-900/50 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-[280px]">
                       {/* Scope Toggle */}
                       <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
@@ -4530,10 +4433,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                         </div>
                       </div>
 
-                      <button type="button" className="sp-btn" aria-pressed={layout.showTimestamps}
-                        onClick={() => setLayout(previous => ({ ...previous, showTimestamps: !previous.showTimestamps }))}>
-                        <Clock size={12} /> Timestamps {layout.showTimestamps ? 'ON' : 'OFF'}
-                      </button>
                       <button onClick={() => setAutoScroll(!autoScroll)}
                         className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-400 border-slate-800'}`}>
                         <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
@@ -4593,10 +4492,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                     </div>
                   )}
 
-                  {/* Fixed player and filters sit above an independently scrolling workpane. */}
-                  <div className="sp-workpane">
-                    <div className="sp-transcript-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950"
-                      style={{ display: workspaceTab === 'transcript' ? undefined : 'none' }}>
+                  {/* Transcript Feed */}
+                  <div className="sp-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
                     {transcriptLoading && (
                       <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
                         <Loader size={26} className="animate-spin text-indigo-400" />
@@ -4711,7 +4608,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                               id={`utterance-card-${utterance.id}`}
                               key={utterance.id}
                               onClick={() => handlePlayUtterance(utterance.startSec)}
-                              className={`sp-turn ${isPlayingThisUtterance ? 'sp-turn-playing' : ''} group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
+                              className={`sp-turn group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
                                   ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
@@ -4732,15 +4629,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                               </div>
 
                               {/* Body */}
-                              <div className="sp-turn-body flex-1 min-w-0">
-                                <div className="sp-turn-meta flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-                                  <div className="sp-turn-identity flex items-center gap-2 relative">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                                  <div className="flex items-center gap-2 relative">
 
                                     {/* Speaker Tag */}
                                     <button
                                       type="button"
                                       onClick={e => { e.stopPropagation(); openQuickRename(utterance.rawSpeaker, utterance.speaker); }}
-                                      className={`sp-turn-badge inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge} hover:ring-2 hover:ring-indigo-400/60 hover:brightness-110 transition-all cursor-pointer group/tag shadow-sm`}
+                                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${theme.badge} hover:ring-2 hover:ring-indigo-400/60 hover:brightness-110 transition-all cursor-pointer group/tag shadow-sm`}
                                       title={`Click to rename ${utterance.speaker} across this episode`}
                                     >
                                       {theme.emoji ? <span className="text-xs">{theme.emoji}</span> : <span className={`w-1.5 h-1.5 rounded-full ${theme.dot}`} />}
@@ -4750,7 +4647,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
 
                                     {/* Timestamp seek button */}
                                     <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
-                                      className={`sp-turn-time ${!layout.showTimestamps ? 'sp-hidden-time' : ''} inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer`}>
+                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{utterance.startLabel}</span>
                                       {utterance.endLabel && <span className="text-slate-400 font-normal"> – {utterance.endLabel}</span>}
@@ -4771,7 +4668,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                     )}
                                   </div>
 
-                                  <div className="sp-turn-actions flex items-center gap-1.5 flex-wrap">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <button
                                       type="button"
                                       onClick={e => {
@@ -4828,7 +4725,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                 </div>
 
                                 {isPlayingThisUtterance ? (
-                                  <p className="sp-turn-copy text-[15px] leading-relaxed transition-colors select-text text-slate-100">
+                                  <p className="text-[15px] leading-relaxed transition-colors select-text text-slate-100">
                                     {utteranceWords.map((w, wIdx) => {
                                       const isActiveWord = wIdx === activeWordIndex;
                                       const isPastWord = activeWordIndex >= 0 && wIdx < activeWordIndex;
@@ -4856,7 +4753,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                                     })}
                                   </p>
                                 ) : (
-                                  <p className={`sp-turn-copy text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
+                                  <p className={`text-[15px] leading-relaxed transition-colors select-text ${isPlayingThisUtterance ? 'text-white font-medium' : 'text-slate-100'}`}>
                                     {highlightMatch(utterance.text, search)}
                                   </p>
                                 )}
@@ -4897,59 +4794,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, navigation
                           </div>
                         )}
                       </div>
-                    )}
-                    </div>
-                    {workspaceTab !== 'transcript' && (
-                      <TranscriptWorkspaceViews
-                        tab={workspaceTab}
-                        speakerStats={speakerStats}
-                        sections={navigationSections}
-                        buckets={conversationHeatmap}
-                        totalTurns={utterances.length}
-                        totalWords={utterances.reduce((sum, turn) => sum + (turn.wordCount || turn.text.split(/\s+/).filter(Boolean).length), 0)}
-                        onSeek={handlePlayUtterance}
-                        onFilterSpeaker={setSpeakerFilter}
-                        onTranscript={() => setWorkspaceTab('transcript')}
-                      />
-                    )}
-                    {layout.inspectorVisible && (
-                      <>
-                        <div className="sp-divider sp-inspector-divider" role="separator" aria-label="Resize inspector" aria-orientation="vertical" tabIndex={0}
-                          onPointerDown={event => beginPanelResize('inspector', event)} onPointerMove={movePanelResize}
-                          onPointerUp={() => { draggingPanelRef.current = null; }} onPointerCancel={() => { draggingPanelRef.current = null; }}
-                          onKeyDown={event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); resizePanel('inspector', event.key === 'ArrowLeft' ? 16 : -16); } }} />
-                        <TranscriptInspector
-                          tab={layout.inspectorTab}
-                          onTabChange={(tab: InspectorTab) => setLayout(previous => ({ ...previous, inspectorTab: tab }))}
-                          onClose={() => setLayout(previous => ({ ...previous, inspectorVisible: false, preset: 'custom' }))}
-                          sectionOpen={layout.sectionOpen}
-                          onToggleSection={toggleInspectorSection}
-                          facts={{
-                            title: selectedRelease.name || selectedRelease.tag_name,
-                            date: getEpisodeRecordedDate(selectedRelease).displayDate,
-                            host: selectedHost,
-                            turns: utterances.length,
-                            speakers: speakerStats.length,
-                            language: transcriptMetadata.language || null,
-                            model: transcriptMetadata.model || null,
-                            audioSize: mp3Asset?.size || null,
-                            duration: formatSeconds(transcriptDurationSec),
-                            sourceUrl: selectedRelease.html_url,
-                            transcriptReady: utterances.length > 0,
-                          }}
-                          speakers={speakerStats}
-                          sections={navigationSections}
-                          clips={activeMontageClips}
-                          tags={activeEpisodeTags}
-                          tagDraft={tagInput}
-                          onTagDraftChange={setTagInput}
-                          onAddTag={addEpisodeTag}
-                          onRemoveTag={removeEpisodeTag}
-                          onEditSpeaker={openQuickRename}
-                          onJump={handlePlayUtterance}
-                          onAI={openCopilotWithTask}
-                        />
-                      </>
                     )}
                   </div>
                 </>
