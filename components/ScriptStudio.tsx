@@ -1250,6 +1250,16 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   useEffect(() => { void recheck(); }, [recheck]);
   useEffect(() => { saveRoleChoice(roles); }, [roles]);
   useEffect(() => { try { if (projectId) localStorage.setItem(PROJECT_STORAGE_KEY, projectId); else localStorage.removeItem(PROJECT_STORAGE_KEY); } catch { /* ignore */ } }, [projectId]);
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [dirty]);
 
   const load = useCallback(async (id: string) => {
     try {
@@ -1396,11 +1406,28 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     setCollapsedScenes(prev => ({ ...prev, [scId]: !prev[scId] }));
   };
 
-  const save = () => act('Saving', async () => {
-    if (!segments) return;
-    await scriptApi.saveVersion(project.id, project.headVersionId, segments, 'Edit');
-    setDirty(false);
-  });
+  const save = async (label = 'Edit') => {
+    if (!segments || !project) return;
+    setBusy('Saving version');
+    setError(null);
+    try {
+      // Send current local editor state/buffer directly to persistence endpoint before re-fetch or state refresh
+      const currentSegments = segments;
+      const res = await scriptApi.saveVersion(project.id, project.headVersionId, currentSegments, label);
+      setDirty(false);
+      dirtyRef.current = false;
+      if (projectId) {
+        await load(projectId);
+      }
+      setNotice(`Version saved (${label})`);
+      return res;
+    } catch (e: any) {
+      setError(e);
+      throw e;
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const playTake = (b: Extract<Block, { kind: 'narration' }>) => {
     if (!hasValidTake(b)) return;
@@ -2039,7 +2066,19 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               </div>
               <div className="flex-1" />
               {dirty && <span className="text-xs text-amber-300 font-medium px-2 py-0.5 rounded bg-amber-950/30 border border-amber-800/40">Unsaved edits</span>}
-              <button className={btnGhost} disabled={!dirty} onClick={() => { setSegments(data?.head?.segments || null); setDirty(false); }}><RotateCcw size={12} /> Discard</button>
+              <button
+                className={btnGhost}
+                disabled={!dirty}
+                onClick={() => {
+                  if (window.confirm('Discard all unsaved edits and revert to the saved version?')) {
+                    setSegments(data?.head?.segments || null);
+                    setDirty(false);
+                    dirtyRef.current = false;
+                  }
+                }}
+              >
+                <RotateCcw size={12} /> Discard
+              </button>
             </div>
 
             {data?.gates && (

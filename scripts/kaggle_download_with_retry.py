@@ -67,7 +67,20 @@ def validate_mp4_files(directory: Path, require_mp4: bool) -> list[Path]:
     return files
 
 
-def download_with_retry(kernel_id: str, destination: Path, attempts: int, base_delay: float, require_mp4: bool) -> list[Path]:
+def validate_motion_report(directory: Path, require_motion_report: bool) -> None:
+    reports = list(directory.rglob("motion_report.json"))
+    if not reports:
+        if require_motion_report:
+            raise RuntimeError("Kaggle output did not include motion_report.json.")
+        return
+    report = json.loads(reports[0].read_text(encoding="utf-8"))
+    if report.get("animated") is not True:
+        raise RuntimeError("motion_report.json does not confirm animated output.")
+    if not report.get("speakers") or report.get("composite_score") is None:
+        raise RuntimeError("motion_report.json is missing speaker or composite motion checks.")
+
+
+def download_with_retry(kernel_id: str, destination: Path, attempts: int, base_delay: float, require_mp4: bool, require_motion_report: bool) -> list[Path]:
     destination.parent.mkdir(parents=True, exist_ok=True)
     last_error = "Kaggle output download did not run."
     for attempt in range(1, attempts + 1):
@@ -78,6 +91,7 @@ def download_with_retry(kernel_id: str, destination: Path, attempts: int, base_d
                 last_error = output or f"kaggle kernels output exited with code {code}"
                 raise RuntimeError(last_error)
             validate_json_files(temp_dir)
+            validate_motion_report(temp_dir, require_motion_report)
             files = validate_mp4_files(temp_dir, require_mp4)
             if destination.exists():
                 shutil.rmtree(destination)
@@ -107,10 +121,11 @@ def main() -> int:
     parser.add_argument("--attempts", type=int, default=6)
     parser.add_argument("--base-delay", type=float, default=5.0)
     parser.add_argument("--require-mp4", action="store_true")
+    parser.add_argument("--require-motion-report", action="store_true")
     args = parser.parse_args()
     if args.attempts < 1 or args.base_delay < 0:
         parser.error("--attempts must be >= 1 and --base-delay must be >= 0")
-    download_with_retry(args.kernel_id, Path(args.output_dir), args.attempts, args.base_delay, args.require_mp4)
+    download_with_retry(args.kernel_id, Path(args.output_dir), args.attempts, args.base_delay, args.require_mp4, args.require_motion_report)
     return 0
 
 
