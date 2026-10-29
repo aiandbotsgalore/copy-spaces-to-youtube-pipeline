@@ -1,0 +1,4 @@
+qf 20260903_1dKrPrbywDkJX 35900 ms 7 quotes 7 verified
+qf 20260913_1lJQRWAWpvVxE 67577 ms 29 quotes 29 verified
+qf 20260908_1wxWjlrwXokJQ 68384 ms 26 quotes 26 verified
+qf 20260908_1nGeLMjONkAKX 100191 ms 40 quotes 40 verified

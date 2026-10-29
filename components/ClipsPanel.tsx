@@ -55,6 +55,7 @@ import {
 import { ClipCard } from "./clips/ClipCard";
 import { ClipFilterBar } from "./clips/ClipFilterBar";
 import { AvatarModal } from "./clips/AvatarModal";
+import { AvatarCropModal } from './AvatarCropModal';
 
 export type { ClipItem };
 
@@ -98,6 +99,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
   const [avatarDispatchStatus, setAvatarDispatchStatus] = useState<string | null>(null);
   const [isDispatchingAvatar, setIsDispatchingAvatar] = useState(false);
   const [uploadingSpeakerAvatar, setUploadingSpeakerAvatar] = useState<string | null>(null);
+  const [avatarCrop, setAvatarCrop] = useState<{ speaker: string; file: File | Blob } | null>(null);
 
   const getDefaultSpeakerAvatarUrl = (name: string): string => {
     const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -131,10 +133,23 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   const handleUploadPhotoForSpeaker = async (speaker: string, file?: File | null) => {
     if (!file) return;
+    setAvatarCrop({ speaker, file });
+  };
+
+  const savePhotoForSpeaker = async (speaker: string, file: Blob) => {
     setUploadingSpeakerAvatar(speaker);
     try {
       const { dataUrl, base64 } = await resizeImageToDataUrl(file, 512, 0.85);
       setSpeakerAvatarMap(prev => ({ ...prev, [speaker]: dataUrl }));
+      try {
+        const saved = localStorage.getItem('spacepipe_voice_profiles_catalog');
+        const catalog = saved ? JSON.parse(saved) : { version: '2.0-neural', profiles: {} };
+        catalog.profiles = catalog.profiles || {};
+        catalog.profiles[speaker] = { ...(catalog.profiles[speaker] || {}), name: speaker, avatar_url: dataUrl, last_updated: new Date().toISOString() };
+        localStorage.setItem('spacepipe_voice_profiles_catalog', JSON.stringify(catalog));
+      } catch (persistErr) {
+        console.warn('Could not persist speaker avatar locally:', persistErr);
+      }
 
       // If GitHub token is present, upload optimized binary image to public/avatars/{slug}.jpg
       if (token) {
@@ -1279,6 +1294,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           </div>
         </div>
       )}
+      <AvatarCropModal
+        file={avatarCrop?.file || null}
+        speakerName={avatarCrop?.speaker || ''}
+        onCancel={() => setAvatarCrop(null)}
+        onConfirm={blob => {
+          const speaker = avatarCrop?.speaker;
+          setAvatarCrop(null);
+          if (speaker) void savePhotoForSpeaker(speaker, blob);
+        }}
+      />
             {/* EchoMimicV3 Cloud Talking Avatar Modal */}
       <AvatarModal
         clip={avatarModalClip}

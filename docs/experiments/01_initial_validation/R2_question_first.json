@@ -1,0 +1,1354 @@
+{
+ "20260903_1dKrPrbywDkJX": {
+  "ms": 35900,
+  "context": "Speakers are Angela (host), Sarah, Ophelia, Miss McGillicuddy, Dame, TJ and Carl. Warning: nobody in this recording says the name \"Logan\", and Angela makes no statement about him. The people she accuses or discusses are Victor (also called \"sign\"), plus Gary Grinberg and \"roger\" in passing. The recording gives no basis to identify Logan with any of them, so don't attribute any of these quotes to Logan. The accusations against Victor (child predator, assault of a cousin, drug use, a gas-leak attempt on his sister) are secondhand claims from his sister, relayed by Angela. Angela says she holds no video and has not verified the claims. A space on Saturday is planned by Justin, and Angela plans her own space later that afternoon. A script on this question should say that the recording contains no direct statements by Angela about Logan.",
+  "quotes": [
+   {
+    "utteranceIds": [
+     "u4"
+    ],
+    "verbatim": "she said that her brother was a child predator and that he had sexually assaulted their baby cousin and that the family was protecting him",
+    "speaker": "Angela",
+    "about": "Victor (relayed from his sister). Logan is not named.",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "This is Angela's main accusation in the recording. It is secondhand and about Victor, and the recording never links it to Logan.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u4"
+    ],
+    "verbatim": "there's a video i i don't possess this video but i guess it's gonna come out on saturday",
+    "speaker": "Angela",
+    "about": "Video said to show Victor in California. Held by Justin, not Angela.",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Angela says she does not have the video. Her evidence is secondhand and cannot be checked in the recording.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u4"
+    ],
+    "verbatim": "so i'm not trying to slander him i just want to ask questions if i if he responds i've dm'd him but he he didn't give me a mic in his space either so i i don't know the full truth to that",
+    "speaker": "Angela",
+    "about": "Victor",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "Angela admits she does not know the full truth and frames her statements as questions. This weakens the certainty of her accusations.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u19"
+    ],
+    "verbatim": "i personally don't know um i think he wanted to have a space on saturday to talk about his experience and why everything went down the way it did from what i'm hearing though i think that his arrest was separate from their initial interaction",
+    "speaker": "Angela",
+    "about": "Justin and Victor's falling out, and Victor's arrest",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "Angela concedes she lacks firsthand knowledge. She also says the arrest was separate from the dispute, which limits what she can claim.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u32"
+    ],
+    "verbatim": "i'm not at war with any person i'm at war with complacency because that's the only way that we're going to be able to change things is if we own all of our actions the good the bad and the ugly",
+    "speaker": "Angela",
+    "about": "Her stated motive, with no individual named",
+    "type": "motive",
+    "status": "opinion",
+    "why": "Angela gives her own motive as opposing complacency, not targeting a person. This sits awkwardly beside her accusations.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u32"
+    ],
+    "verbatim": "follow the evidence and then you know what i mean watch and analyze the patterns of behavior because at the end of the freaking day like the evidence is there people will tell you what you want to hear and that's what um victor's sister was saying a lot of his stories are not 100 true",
+    "speaker": "Angela",
+    "about": "Victor",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Angela says the evidence exists but shows none. She relies on the sister's claim that Victor's stories are not fully true.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u35"
+    ],
+    "verbatim": "But I am going to be hosting a space later this afternoon. Just so we can just talk about.",
+    "speaker": "Angela",
+    "about": "Her planned next step",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "This is the only concrete next step Angela states. She frames it as a discussion, not a threat.",
+    "verified": true,
+    "substring": true
+   }
+  ]
+ },
+ "20260913_1lJQRWAWpvVxE": {
+  "ms": 67577,
+  "context": "The recording is Angela's own X Space, held after what she describes as a long day of responding to attacks. She reacts to a different space in which a man allegedly said he wanted to put her in a wood chipper. Besides Angela, three unlabelled participants speak: Speaker 1 (who calls her \"Angie\" and is mostly sympathetic), Speaker 2 and Speaker 3. Logan and Orr do not speak in this recording. The title says \"Oor\"/\"Orr\", and u2 names \"Orr\" in connection with the wood chipper, while u1 places the remark in \"Logan's space\", so the recording leaves unclear whether Logan and Orr are the same person or different people. Every accusation about Logan is Angela's allegation only. She has not listened to all the clips and says she relies partly on typed summaries, and the original space is not in this recording. Her threats (hogtie, headbutt) and her admission that she \"clapped back\" are in the recording and are in the quotes. Much of the second half is unrelated to Logan: her adoption and CIA claims, trafficking talk, and prepping. It was left out except where it bears on her evidence or her motives. Angela does not state a specific legal filing against Logan. Describe her \"legal\" remarks as unspecified intentions.",
+  "quotes": [
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "Today in Logan's space or completely showed his ass again, communicating threats like he's done numerous times in this community. But everybody gives him a get out of free jail card just because he's established trauma and he's gone through things.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "This is her core public accusation: that Logan repeatedly communicates threats and is excused because of his trauma. The recording doesn't contain the space she refers to.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "So when men go through problems in the community, they can habitually hurt other people and threaten them, threaten them with rape, threaten them with murder, threatening people like Ophelia to push her down the stairs at an event that they had coming up to the point where she didn't feel safe going. And now this man who's already threatened me numerous times is talking about wanting to put me in a fucking wood chipper.",
+    "speaker": "Angela",
+    "about": "Logan (the man she says threatened her), plus unnamed men in the community",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "It lists the specific threats she alleges (rape, murder, a stairs incident involving Ophelia, and the wood chipper), and the sentence structure leaves it unclear how far each is pinned on Logan personally.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "And in the same fucking space, you talking about wanting to murder the mother of your child? You sitting here talking about wanting to kill the judge? You know damn well where that shit's going, right?",
+    "speaker": "Angela",
+    "about": "The man she is addressing, apparently Logan",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She adds claims that he spoke of murdering the mother of his child and killing a judge, and implies this is heading toward real consequences.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "Don't co-host fucking people who threaten to murder people and rape people's mothers. Especially people that are already in a manic episode.",
+    "speaker": "Angela",
+    "about": "Logan's co-hosts and, by implication, the people in his spaces",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She extends the accusation to Logan's co-hosts and asserts a manic episode, which is her opinion about someone's mental state.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "So Orr's weapon of choice would be a wood chipper.",
+    "speaker": "Angela",
+    "about": "Orr (possibly a different person from Logan)",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She names \"Orr\" in connection with the wood chipper remark, while u1 attributes it to a man in \"Logan's space\", so the recording leaves unclear who she says made the threat.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "I have not listened to all the clips, but I've heard enough. And thankful for the people that actually type it out for me, so that way I can read it.",
+    "speaker": "Angela",
+    "about": "Her basis for the accusations",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She admits she is relying on partial listening and on others' typed transcripts, which complicates her account.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "And when I get the clip, because I ain't listening to them all yet, but I heard that you had your kid with you and you're sitting there saying that shit in front of him.",
+    "speaker": "Angela",
+    "about": "The man she is addressing, apparently Logan",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She says she has heard secondhand, and has not yet verified, that he made the threats in front of his child.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "Bitch, you live three fucking hours away. Do I need to sign a fucking contract and you put your money in your little fucking jujitsu, little whatever shit to the fucking test? I will hogtie your bitch ass.",
+    "speaker": "Angela",
+    "about": "The man she says threatened her, apparently Logan",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "It is her own recorded threat of physical retaliation, so it counters any portrayal of her as only a target.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "Because I will headbutt you. Fuck throwing hands. Like, I want to be the craziest person in the room. Because who are you talking to like that? Man, I will go sit down with your mama. We're going to wash your mouth out together.",
+    "speaker": "Angela",
+    "about": "The man she is addressing, apparently Logan",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "This is another threat of physical confrontation, mixed with a claim that she wants to confront his mother.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u8"
+    ],
+    "verbatim": "I'm confident. I have a lot of anger, too. I have to always be the bigger person. So honestly, like, that would probably be very therapeutic.",
+    "speaker": "Angela",
+    "about": "A hypothetical fight with the man who made the wood chipper remark",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She says in her own words that a fight would be therapeutic, which complicates her self-presentation as a victim.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u71"
+    ],
+    "verbatim": "See, and this is why people think I'm a violent person. Because I have violent thoughts with people like that. I absolutely would be okay with, like, an arena-style, like, survival of the fittest.",
+    "speaker": "Angela",
+    "about": "Alleged predators in general, not Logan specifically",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She concedes that she has violent thoughts and that this is why people see her as violent, which complicates her account.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u3"
+    ],
+    "verbatim": "And let me make sure I have him unblocked. If I'm talking shit, hold on. What is his handle? Can someone put it down in the chat or whatever? I'll unblock his ass.",
+    "speaker": "Angela",
+    "about": "The man who made the wood chipper remark",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "This is her immediate plan to unblock him and invite him to confront her face to face, as a challenge.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u4"
+    ],
+    "verbatim": "And I have you blocked. Have one of your friends put it in the chat below. Or have him message me. And I'll unblock you so you can come in. Because I'm really done.",
+    "speaker": "Angela",
+    "about": "Those who attack her, including Logan's circle",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She offers to unblock anyone who wants to confront her in the space, which shows what she plans to do next.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "These fuckers. I've literally been running smear campaigns against me for over four days straight. I don't give a fuck. Play all your cards. I'm thankful for the people that are actually documenting and recording this, so that way I can counteract each allegation with facts.",
+    "speaker": "Angela",
+    "about": "Her critics, including Logan's circle",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She alleges a four-day smear campaign and says she will rebut it with facts, which sets out her response plan.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "And while we're doing this, I'm going all the way to the beginning with all these people that I've come in contact with. And reading from the very first message, all the screenshots that I send, vice versa. The way the dialogue was. And I'm taking notes.",
+    "speaker": "Angela",
+    "about": "Her evidence and plan",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She says she is reviewing her message history and screenshots, which is the evidence base she claims to hold.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u16"
+    ],
+    "verbatim": "Oh, years. Years. Years. And I have most of it documented. Like, when they said they were acted on my face. All that shit.",
+    "speaker": "Angela",
+    "about": "Threats and harassment aimed at her",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She claims years of documented threats, though she does not say here whether Logan sent any of them.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u24"
+    ],
+    "verbatim": "So they're editing them now. That's the funny part. Because you act like I didn't screenshot and screen record ahead of time. Because I knew this was going to happen if I'm going to be real a year ago.",
+    "speaker": "Angela",
+    "about": "Her opponents",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She claims to hold screenshots and screen recordings made a year ago, and that her opponents are now altering theirs.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u24"
+    ],
+    "verbatim": "If you have ulterior motives, I absolutely am. I am here for a reason. I am a survivor. I've been through shit. I clock shit fast.",
+    "speaker": "Angela",
+    "about": "Her own motives",
+    "type": "motive",
+    "status": "opinion",
+    "why": "She openly says she has ulterior motives and a purpose for being on the platform, which is a direct statement about her motives.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u24"
+    ],
+    "verbatim": "And that's the great thing about writing everything down every single fucking day. You have a timeline.",
+    "speaker": "Angela",
+    "about": "Her documentation method",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She describes a daily written record that she says amounts to a timeline.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u44"
+    ],
+    "verbatim": "I have a whole timeline since 2023 around October all the way until now. Multiple profiles because when this account was permanently banned for trying to take down a child predator group.",
+    "speaker": "Angela",
+    "about": "Her documentation and her banned accounts",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She states the date range of her timeline and gives her account of why her earlier account was banned.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u37"
+    ],
+    "verbatim": "I'm exposing real shit and I have enough tangible evidence just to circumstantial to say the very least and some very damning, but I don't have all of the evidence for every single chapter.",
+    "speaker": "Angela",
+    "about": "Her overall evidence",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She concedes that part of her evidence is circumstantial and incomplete, which tempers her evidence claims.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u107"
+    ],
+    "verbatim": "A predator is a predator. I'll call you a pedophile if I have solid fucking evidence. In the meantime, I'm going to call you a predator or a predator supporter. Verbiage is very important, especially when it comes to legalities",
+    "speaker": "Angela",
+    "about": "People she calls predators or predator supporters",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She says she chooses her labels deliberately and will use stronger ones only when she has solid evidence, which shows how she weighs her own evidence.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u22"
+    ],
+    "verbatim": "And I'm pissed. And so I've been clapping back in a way that they're going to feel it. So that they can have the narrative war. They can sit here and have your popularity contest. Let's see who's laughing in the end legally.",
+    "speaker": "Angela",
+    "about": "Her opponents, including Logan's circle",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She signals a legal endgame and says she is deliberately hitting back.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u18"
+    ],
+    "verbatim": "They fucked up when they threatened my kids. They made it normal. That's when I did it back. I'm not even going to lie. Like, I did clap back.",
+    "speaker": "Angela",
+    "about": "Her opponents",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She admits she retaliated, citing alleged threats against her children as the reason, and so gives her motive for escalating.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u28"
+    ],
+    "verbatim": "Why the fuck aren't you going and doing things legally? Because I am. Race you to the finish line. Like, all you have to do is tell the fucking truth. All you have to do is own up to your actions. All you have to do is fucking apologize. And leave me the fuck alone.",
+    "speaker": "Angela",
+    "about": "Her opponents",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "She claims she is pursuing legal action and lists the conditions under which she says she would stop, but she gives no details.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u28"
+    ],
+    "verbatim": "if I don't get justice, that's fine. But there are kids still going through what I went through. My parents are dead. I can't get them back. It's not going to be for nothing.",
+    "speaker": "Angela",
+    "about": "Her motives",
+    "type": "motive",
+    "status": "opinion",
+    "why": "She presents her motive as seeking justice and protecting children, which is a different motive from a personal feud with Logan.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u127"
+    ],
+    "verbatim": "there's certain people that have contingency plans. Documents we're not supposed to have. Recordings, evidence, fail-safes. Just because whatever we don't face and we don't accomplish, our kids inherit.",
+    "speaker": "Angela",
+    "about": "Herself and unnamed others",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "She hints at held-back documents and \"fail-safes\" without saying what they are or who they target.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u164"
+    ],
+    "verbatim": "I've been in all the group chats. I've seen the way they move. And I've showed them evidence that I've not been public with. And I didn't make any progress.",
+    "speaker": "Angela",
+    "about": "Logan, Sign and associated space hosts",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She says she holds evidence she has not made public and has shown it privately to the group without result.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u162"
+    ],
+    "verbatim": "Fucking sex cult, for one. And then you got this fucking information warfare going on. They got certain fucking people that are documented. And they got certain fucking people that are just trying to control the conversation. What's being allowed. It's all fucking narrative control. In my opinion.",
+    "speaker": "Angela",
+    "about": "Sign, Logan and the associated space hosts",
+    "type": "accusation",
+    "status": "opinion",
+    "why": "Asked directly about Sign and Logan, she calls the group a sex cult and an information-warfare operation, and she labels it her opinion.",
+    "verified": true,
+    "substring": true
+   }
+  ]
+ },
+ "20260908_1wxWjlrwXokJQ": {
+  "ms": 68384,
+  "context": "The recording is a solo Space hosted by Angela, and the transcript has only her voice. Nobody speaks for Logan, so everything about Logan is her allegation and none of it is corroborated in the audio. She says she is responding to a separate Space hosted by Logan, with Orr, in which her dead baby was allegedly discussed. She has not listened to that Space and says friends sent her clips (u0, u9), and it is not in this recording. Do not state the baby remarks as fact, and note that she variously says Logan, Orr or both made them. The screenshots, DMs, voice clip, phone call and deleted-Space recording that she mentions are not shown or played, and she reads the screenshot text aloud from memory or screen. She refers to the subject as Logan Black. Sav is described as his ex-girlfriend and her friend. She also addresses other people (Lynn or Lana, Sign, Eric, Larry), and some passages (u11, u12) are aimed at them, not Logan. The transcript has apparent errors such as 'suit' for sue and a garbled 'you sent your nude to Logan'. Several threats (lawsuit, releasing medical records, DMs and calls) are stated intentions and no filing or release is shown. She says she is holding back material partly at others' request.",
+  "quotes": [
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "I'm not gonna go listen to your space, but I've been sent the clips and the recordings and play-by-plays and... Fuck you, Logan, and fuck you, Orr. You're trash for talking about my dead baby.",
+    "speaker": "Angela",
+    "about": "Logan and Orr; the trigger for the Space",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "States her core grievance, and also admits she has not listened to the Space herself and is relying on clips sent by others.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "I wanna show your pattern of fucking behavior on how you treat the people you say you fucking care about.",
+    "speaker": "Angela",
+    "about": "Logan's treatment of Sav and others",
+    "type": "motive",
+    "status": "opinion",
+    "why": "Gives her stated purpose for posting the screenshots: to show a pattern of behaviour.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "If I have to post my fucking medical chart again for the second year in a fucking row, I will. But I'm suing you bitches for damages. I'm done. And I'm also gonna expose you for the misogynistic, abusive pieces of shit that you are.",
+    "speaker": "Angela",
+    "about": "Logan, Orr and others in the Space",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Announces a lawsuit for damages, further exposure and possible release of medical records; the recording shows no filing.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u9"
+    ],
+    "verbatim": "And Logan said to her... Go suck all the dicks, whore. And then Sav said... Thank you for showing me how much I really meant to you. Turns out I was just a show. And then Logan said to Sav... You mean nothing. Less than nothing.",
+    "speaker": "Angela",
+    "about": "Logan's alleged messages to Sav",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Example of the screenshot content she reads aloud as proof of abuse. Listeners cannot see the screenshots, so the wording and authenticity cannot be checked from the audio.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u9"
+    ],
+    "verbatim": "And I am intentionally withholding these screenshots... Because I'm going to give you an opportunity to tell the truth. And if you fucking don't... I'll post them all.",
+    "speaker": "Angela",
+    "about": "Logan; withheld screenshots",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Shows the release of evidence is conditional, which is leverage as well as disclosure.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "I am doing this of my own free will, mind, body, and soul. Nobody is asking me to do it. And I am completely disgusted by the misogynistic predator behavior that is happening on this fucking app.",
+    "speaker": "Angela",
+    "about": "Her own motives",
+    "type": "motive",
+    "status": "opinion",
+    "why": "Her stated motive is disgust at alleged predatory behaviour, and she says she is acting independently.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "Next time you want to threaten somebody, don't do it in a voice clip, let alone in their DMs, because that canon will be used against you. And you said, and I quote, bitch, we're coming for your money bags, bitch. We're going to take that bag, bitch.",
+    "speaker": "Angela",
+    "about": "Logan (addressed as 'you'); alleged threats against her",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Claims she holds a voice clip and DMs in which she was threatened with a class action. She does not play the clip, and the 'you' is not clearly identified.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "You can't touch me, dumbass. And I challenge you to do so. Because then I'll flip that uno, flip reverse, and have your ass serve, file a motion for discovery, put everything on fucking record, and it will be public information. Test me.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Sets out a legal counter-strategy: if she is sued, she will seek discovery and make the record public.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "I'll share every fucking DM we've ever talked about going all the way back to 2023 in the Discord. And even the ones where you've edited your messages. Because like I told you, I screenshot in real time.",
+    "speaker": "Angela",
+    "about": "Logan; her archive of DMs",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Claims a large DM archive going back to 2023, including edited messages, and threatens to publish it.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "Also, where do you think I'm getting this stuff from? Dumbass. People that are sitting with you that are too scared to confront you because you have dirt on them. So they sent it to me.",
+    "speaker": "Angela",
+    "about": "Sources of her material",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Says some of her material comes from people close to Logan who fear him, which affects how provenance and motive are judged.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u10"
+    ],
+    "verbatim": "I've been asked to wait a little bit longer before I share the rest of the screenshots. Apparently he's listening and crying about it already.",
+    "speaker": "Angela",
+    "about": "Timing of further releases",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "Complicates the 'nobody is asking me' claim: she says others have asked her to hold back. The claim that Logan is listening is unverified.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u11"
+    ],
+    "verbatim": "Logan, you sent your nude to Logan December 28th of 2025. That's the date of the screenshot that I possess because Logan sent it to Sav to hurt her months later after he gaslit her and said that, you know, this shit didn't happen.",
+    "speaker": "Angela",
+    "about": "Logan; an alleged nude image shared with Sav",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Claims she holds a dated screenshot showing Logan sent a private image to Sav. The sentence is garbled in the transcript and seems addressed to a different person, so the wording needs care.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u12"
+    ],
+    "verbatim": "It is a low blow saying, you know what? You got a lot of nerve talk like that when you got herpes. I should have never said that. Is it a lie, though?",
+    "speaker": "Angela",
+    "about": "Angela's own conduct toward another woman (Lana)",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She concedes making a personal insult about someone's health, which complicates her stance as a defender of women. It concerns a person other than Logan.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "Those are my allegations against Logan Black. Because he's apparently letting people talk shit about my dead baby. So this is my response.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She calls her claims 'allegations' and hedges with 'apparently' about Logan's role in the Space.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "Did she do me dirty? Yeah. Did she apologize? Did she own her actions? She absolutely the fuck did. Am I going to sit here and degrade her because she fucking betrayed me to keep you happy? Fuck no.",
+    "speaker": "Angela",
+    "about": "Sav",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "Complicating detail: she says Sav betrayed her, which bears on her motives, yet she defends Sav against Logan.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "Keep lying. And I'll post the phone call. You know, the one that I'm legally allowed to record because I live in a one-party consent state. And you illegally recorded it because you live in a two-party consent state and then you bragged about it?",
+    "speaker": "Angela",
+    "about": "Logan; a recorded phone call",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Says she holds a recorded call and may release it, and accuses Logan of illegally recording it. Neither the legal claims nor the recording can be checked here.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "And to me, this is a love bombing situation. Some kind of like Stockholm Syndrome. And I'm not saying that to be hurtful or mean. But that's just how I analyze it.",
+    "speaker": "Angela",
+    "about": "Logan's relationship with Sav",
+    "type": "accusation",
+    "status": "opinion",
+    "why": "Labels the relationship as love bombing, but she presents it as her own analysis.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "But you're just building a case against yourself. Because if you haven't quite noticed it yet, you're surrounded. And eventually you're going to understand what I mean by that. But I was never the one that you should have been looking at. You dumb fucks. You're under investigation. You have been for a while now.",
+    "speaker": "Angela",
+    "about": "Logan and associates",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Claims an investigation exists, with no detail on who is investigating.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u13"
+    ],
+    "verbatim": "there's going to be a lot more screenshots and recordings coming out. I'm just letting everybody play all their fucking cards first before I interact in a rebuttal.",
+    "speaker": "Angela",
+    "about": "Her next steps",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "States the plan: more screenshots and recordings will follow, after the other side has acted first.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u14"
+    ],
+    "verbatim": "Now, Logan. Two days ago, that space with Larry was still on your page. Now, I know because I went back and we screen recorded it. And the last 48 hours that you have been running smear campaigns with Sign, you went back to 2024 to delete that space where you, Mistress Morpho, Larry, and a few others were talking about Lolitas and this book and sexually disgusting, disturbing conversations.",
+    "speaker": "Angela",
+    "about": "Logan; a deleted 2024 Space",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "Alleges Logan deleted an old Space to erase evidence, and says she has a screen recording of it. The recording is not played here.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u14"
+    ],
+    "verbatim": "And it's happened more than once. It's happened easily over 10 times that I can prove just with our DMs alone.",
+    "speaker": "Angela",
+    "about": "Alleged abuse in Spaces Logan hosts",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "Claims more than 10 provable incidents and says her DMs with Logan are the proof; the numbers and DMs are not shown.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u14"
+    ],
+    "verbatim": "I offered you money to prove me wrong. Prove that my story was false. Discredit me. Not slander me. Do your due diligence.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "other",
+    "status": "allegation_only",
+    "why": "Says she offered money for Logan to disprove her story, which bears on her claim to want the truth. The offer is not documented here.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u15"
+    ],
+    "verbatim": "for a man to sit here in group chats and give you the definition of what a pedophile is and an, you know, an effobophile, I don't even know what the fucking other word was, and rationalize having relationships with minors and giving you a different definition is very disturbing to say the fucking least.",
+    "speaker": "Angela",
+    "about": "An unnamed man, apparently Logan (referred to as 'he' nearby)",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "A serious allegation about group-chat statements. Angela does not name the man in this sentence, so attribution to Logan is an inference.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u15"
+    ],
+    "verbatim": "I'm not here for content, motherfucker. And I'm damn sure not here to get paid. And I'm not here for followers.",
+    "speaker": "Angela",
+    "about": "Her own motives",
+    "type": "motive",
+    "status": "opinion",
+    "why": "Denies motives of money, content or followers, a self-assessment that cannot be verified.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u15"
+    ],
+    "verbatim": "But I'm being asked to hold shit back. And I'm only doing that because I'm giving the other people involved time to mentally process this next chapter. Because they care about people involved.",
+    "speaker": "Angela",
+    "about": "Timing of further releases",
+    "type": "threat_or_plan",
+    "status": "allegation_only",
+    "why": "Says the release of the remaining material depends on the comfort of unnamed others, which qualifies her 'independent' framing.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u15"
+    ],
+    "verbatim": "But I was really triggered that he talked about my dead baby. And that's the whole reason I wanted to expose him for his true character.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "motive",
+    "status": "opinion",
+    "why": "Her closing statement of motive. Here she says 'he' talked about her baby, while elsewhere she says Logan let Orr do so, so who said what is unclear.",
+    "verified": true,
+    "substring": true
+   }
+  ]
+ },
+ "20260908_1nGeLMjONkAKX": {
+  "ms": 100191,
+  "context": "The recording is a space hosted by Angela, titled \"Hook, Line, Sinker – How Psychological Operations Reel Us In\". Logan is NOT present. Angela addresses him in the second person as an absent party and invites him to join, saying the space is recorded. Everything she says about Logan is therefore one-sided and unanswered here. \"Speaker 1\" is not named in the transcript. Angela refers to her as \"Sav\" (her friend and Logan's partner or girlfriend), so treat that as an inference from Angela's words, not a confirmed label. Speaker 1 speaks mildly, takes responsibility for her own actions and says she does not blame Logan for her mental-health struggles. Speaker 2 is an unnamed guest who joins later and says he knows Angela and Logan only separately and at a distance. Angela also calls the man \"Michael\" once (\"Michael Foy\") in u0 and u8. Do not conflate this with any other identity. The \"evidence\" Angela says she holds (recordings, screenshots, AI porn videos, nudes, DMs) is never played or shown in this recording, so every evidence claim is only her allegation. Angela admits she is \"a reactive person\", admits sharing Sav's screenshots, says she would do so again, and says she has \"set people's names in spaces\" despite promising not to name names. Later passages (u33-u40) are unrelated personal and conspiratorial claims she makes to a random visitor. They are outside this question and omitted. Present all accusations as allegations. In particular, the physical-abuse \"charges\", hacking and dark-web claims, deleted-space claims and informant or paid-operative suggestions are Angela's statements, not established facts.",
+  "quotes": [
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "And the whole time they're running data collection on you. And then silence and suppressing you. Meanwhile, they're propping up and platforming predators. And I am not saying this out of my ass. I have the evidence to prove it.",
+    "speaker": "Angela",
+    "about": "Her general accusation against the 'groups' and 'operations' she says Logan is part of",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "This is her core framing: data collection, suppression and platforming of predators, backed by an unshown claim of evidence.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "I'm going to try my best to not name names and just talk about the tactics that are being utilized. Occasionally a name might get brought up. But I'm going to try really hard to not resort to the same tactics that are being utilized now.",
+    "speaker": "Angela",
+    "about": "Her stated plan for the space",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She promises to avoid names, but she then addresses and names Logan repeatedly, which complicates her account of her own conduct.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "Problem is, I'm like a bull in a china shop. So I show everything all at once. Everyone's going to villainize me. So I have to be slow. So that's why I'm sharing the screenshots in a steady way.",
+    "speaker": "Angela",
+    "about": "Her strategy for releasing evidence",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She says she is drip-feeding screenshots on purpose, which means more material may follow.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "It's also why I've admitted. Like I am a reactive person. I have clacked back to the people that have hurt me. Especially when they brought up my children.",
+    "speaker": "Angela",
+    "about": "Her own behaviour",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She admits to reactive retaliation, which gives context to her motive.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "You're sitting here calling her trash and telling her to act like a dog and all this shit. And then you're giving her stipulations that she sends me the screenshots. You're threatening her.",
+    "speaker": "Angela",
+    "about": "Logan, and his treatment of Sav",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "This is her main personal accusation: that Logan demeaned and threatened Sav, who she says is her friend.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "Have I posted all the abusive messages and the recordings that I have of you and what you've said to her? No.",
+    "speaker": "Angela",
+    "about": "Evidence she says she holds but has not released",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She claims recordings and messages exist and says she has held them back.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "I turned on you when you tried to triangulate me in your relationship with her. And you made this group chat to sit there and shit talk her. And then you three-way called with me and her on the phone.",
+    "speaker": "Angela",
+    "about": "Logan, and why she turned against him",
+    "type": "motive",
+    "status": "allegation_only",
+    "why": "She gives the trigger for the falling-out as triangulation and a group chat, not as Sav's doing.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "It was that phone call that I recorded because I live in a one-party consent state. And you live in a two-party consent state. And you already admitted it. And I have it in screenshot that you recorded it anyway.",
+    "speaker": "Angela",
+    "about": "A recorded phone call with Logan and Sav, and Logan's alleged recording",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She says she recorded a call and holds a screenshot of Logan admitting he recorded it. Neither is in this recording.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "Because not only do I have that, I have the AI porn videos that you've been making. All these different women's nudes that you've collected. The different threats. How you've gone to my inbox to attack people.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She lists specific material she claims to hold: AI porn videos, collected nudes, threats and inbox activity.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "Like, you're going to stop defaming my character. Or I'm going to teach you how it's done. And I will be the full villain. And this is me using my mom voice. Trying to be nice to you. And letting you fucking know. Cease and desist, bitch. Or don't.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "This is her clearest conditional threat of escalation if he keeps 'defaming' her.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0"
+    ],
+    "verbatim": "Yeah, you have charges for physical abuse. I didn't witness that. I met you directly a month after all that shit went down. But the shit that was Sav. I've witnessed it with my own motherfucking eyes.",
+    "speaker": "Angela",
+    "about": "Logan, physical-abuse charges, and the limits of her own knowledge",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She says Logan has physical-abuse charges but admits she did not witness them and that her firsthand knowledge covers only his treatment of Sav.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u0",
+     "u1"
+    ],
+    "verbatim": "You and Sign were the first fucking people on here to let me tell my story. And watching where y'all are sitting at right now is gross. It's fucking gross. We talk about psychological operation. How much y'all getting paid? Are you informants? Is that what is going on?",
+    "speaker": "Angela",
+    "about": "Logan and others in the community",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She suggests, as a question, that Logan and others may be paid or informants, and she offers no proof in the recording.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "And I'm an open fucking book. I would hand my phone over to the feds. That's what you don't get. I would give them access to my account just to prove you fuckers wrong. Could you say the same? Would you take a fucking lie detector test? I would.",
+    "speaker": "Angela",
+    "about": "Her own credibility, as a challenge to Logan",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She offers to hand over her phone and take a lie detector test and challenges Logan to do the same.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "Because then months later, you sent that to her to hurt her because you're like, is this a nude photo? And it's fucking Lynn in a fucking lacy fucking bathing suit, fucking lingerie outfit with a fucking dog collar and a leash. You sent that to your fucking girlfriend.",
+    "speaker": "Angela",
+    "about": "Logan and an image he allegedly sent to Sav",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "This is a specific allegation. She describes a lingerie photo, which differs from her earlier 'AI porn videos' claim, so a scriptwriter should keep the two separate.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "me going back through our DMs and looking at all the times that I brought different screenshots and recordings of predators, people talking about raping babies, and you turning a cheek to them. You telling me, like, you ran cover for a lot of fucking people. At the same time, you said that you were going to help me get justice.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She accuses Logan of shielding predators while promising to help her, and says her DMs hold the proof.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "But I wanted to reiterate, I do have everything you said about her. I have it. And you're not going to sit here and threaten me like you're threatening her because it's not going to fucking work.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She claims to hold everything Logan said about Sav, and says he is threatening both her and Sav.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1"
+    ],
+    "verbatim": "So if any of you can, baby, possibly send Logan a message. Hey, come talk to Angela. She's in a space right now. It's recorded for his security purposes. Come face me like a grown ass man that you say you are.",
+    "speaker": "Angela",
+    "about": "Logan",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She publicly invites Logan to confront her in the recorded space, and later (u44, u46) declines to go into his.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u1",
+     "u2"
+    ],
+    "verbatim": "How did I get access to my birth mother's Twitter account, Logan? You went on the dark web and you got her information, right? You got her password and her login and all that. You broke the law to help me, right?",
+    "speaker": "Angela",
+    "about": "Logan, hacking and the dark web",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She says Logan obtained her late birth mother's login via the dark web, an allegation of illegal conduct that she also describes as help given to her.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "How do I know you're not weaponizing that? How do I know it's not your motherfucking fault? All this shit's happening. I don't. But I've had a lot of fucking people saying, Angela, I don't think that all these accounts that are fake that are harassing you are for no reason. I think they tie to him. And I'm not even going to lie. I believe it.",
+    "speaker": "Angela",
+    "about": "Logan and fake harassing accounts",
+    "type": "accusation",
+    "status": "opinion",
+    "why": "She suggests Logan may be behind fake harassment accounts, but she concedes 'I don't' know, so this is belief and hearsay.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "You deleted the recording in the last two days of the whole Larry situation with the Lolitas and all that stuff. Why did you delete that post? Why did you delete that space after two fucking years, Logan? I know that space was up two days ago because we clipped it just in case.",
+    "speaker": "Angela",
+    "about": "Logan and a deleted recorded space",
+    "type": "evidence_claim",
+    "status": "allegation_only",
+    "why": "She accuses Logan of deleting a space to cover something up and says she holds a clip. She later says it was 'up since 2024' (u19), which differs slightly from 'two years'.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "You're going to sit here and say that I'm reaching out to people's families on this app. No, let's reiterate. Your family's reached out to me on this app.",
+    "speaker": "Angela",
+    "about": "Logan's alleged accusations against her",
+    "type": "other",
+    "status": "allegation_only",
+    "why": "She rebuts a claim she says Logan makes about her, and counters that his family contacted her.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "When someone's suicidal or they're having bad thoughts, you just go open a space and you ignore them for hours on end. Who fucking cared? Angela did. Angela fucking did.",
+    "speaker": "Angela",
+    "about": "Logan's alleged treatment of Sav during a mental-health crisis",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She accuses Logan of neglecting a suicidal partner, and says this was why she intervened.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u2"
+    ],
+    "verbatim": "Because I did share screenshots, bro. Um, but I also think you know why. And I would do it again.",
+    "speaker": "Angela",
+    "about": "Her own sharing of Sav's screenshots, said to Sav",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "She admits she shared Sav's private screenshots and says she would do it again, which complicates the picture of her role.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u8"
+    ],
+    "verbatim": "I put that on record that you didn't ask me to do any of this.",
+    "speaker": "Angela",
+    "about": "Sav, and the origin of her actions against Logan",
+    "type": "motive",
+    "status": "checkable_in_recording",
+    "why": "She says Sav did not ask her to act against Logan, so the motive is her own.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u9"
+    ],
+    "verbatim": "I do not want to add to the shit talking. You know me. I don't like to air out my dirty laundry. Really just like to keep it in them back channels, I guess, as the word on the street is.",
+    "speaker": "Speaker 1",
+    "about": "Angela's public airing of the dispute (Speaker 1 appears to be Sav, per Angela's references)",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "The person Angela says she is defending distances herself from the public airing.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u24"
+    ],
+    "verbatim": "Basically, I do not want to put any blame on him for that. Like, that is, like, my depression. My anxiety. My insecurities. All those things.",
+    "speaker": "Speaker 1",
+    "about": "Logan, and whether he caused Sav's mental-health decline",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "This directly complicates Angela's claim that Logan's treatment harmed Sav's mental health, because Sav declines to blame him.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u18"
+    ],
+    "verbatim": "I really have nothing bad to say. But I just wanted to, like, clear the air of my name just because, like, I didn't want people to think that I'm, like, some, like, cheating, like, whore or whatever.",
+    "speaker": "Speaker 1",
+    "about": "Logan and Angela's account",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "Sav, in the same space, says she has nothing bad to say about Logan. This contrasts with Angela's account.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u27"
+    ],
+    "verbatim": "Logan wanted me to be angry at you. He wanted me to take you the fuck down. I have that in so many screenshots. And evidence of him. Trying to frame my thought process.",
+    "speaker": "Angela",
+    "about": "Logan and his alleged efforts to turn Angela against Sav",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She claims Logan tried to steer her against Sav and says screenshots prove it.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u25"
+    ],
+    "verbatim": "I'm not attacking you. This is a rebuttal. This is clearing the air. Hook, line, and sinker. How psychological operations reel us in. This type of drama stops us from talking about the real legitimate issues.",
+    "speaker": "Angela",
+    "about": "Her stated purpose for the space",
+    "type": "motive",
+    "status": "checkable_in_recording",
+    "why": "She says the space is a rebuttal and a way to clear the air, not an attack, and ties it to her broader theme.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u29"
+    ],
+    "verbatim": "And you're trying to. Expose that there are people on here. Being paid. And switching sides. At. At the. Cost of survivors. And whistleblowers. And so. That's. That's what I'm trying to document.",
+    "speaker": "Angela",
+    "about": "Her stated mission regarding people in the community",
+    "type": "motive",
+    "status": "allegation_only",
+    "why": "She says she is documenting people who are paid and switch sides, but she gives no evidence here.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u19"
+    ],
+    "verbatim": "That's sus as fuck. Especially when we're talking about the sex cult that y'all have on here. And how you guys are weaponizing people and collecting data to exploit them. And then narrative control.",
+    "speaker": "Angela",
+    "about": "Logan and his circle",
+    "type": "accusation",
+    "status": "allegation_only",
+    "why": "She escalates to alleging a 'sex cult', data collection to exploit people and narrative control, with no supporting evidence in the recording.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u42"
+    ],
+    "verbatim": "It's a recorded space, though. See, I ain't got to clip it. I don't delete my shit. He can come back.",
+    "speaker": "Angela",
+    "about": "Logan, contrasting her conduct with his alleged deletions",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "She contrasts herself with Logan's alleged deletion and again invites him to return.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u44"
+    ],
+    "verbatim": "I'm not giving that man my energy. He can come in. You can go in there if you want to, huh?",
+    "speaker": "Angela",
+    "about": "Logan's competing space",
+    "type": "other",
+    "status": "checkable_in_recording",
+    "why": "After repeatedly inviting Logan to face her, she declines to enter his space when told he is holding one, which complicates her call for him to engage.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u46"
+    ],
+    "verbatim": "I can see if I can get a friend to go in there and get a microphone. We could talk through the two. I just don't want to go in their spaces anymore.",
+    "speaker": "Angela",
+    "about": "Logan's competing space",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She floats responding indirectly through a friend and says she will not enter their spaces.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u54"
+    ],
+    "verbatim": "So I established a friendship with him. He had helped me get information about my family and the back channels. And so I defended him relentlessly. And it wasn't until he had a relationship with my friend Sav, who was just in here, that I switched my opinion on him for the simple fact of what I witnessed on how he talks to her.",
+    "speaker": "Angela",
+    "about": "Logan, and the history of their relationship",
+    "type": "motive",
+    "status": "allegation_only",
+    "why": "In her own words, Logan was an early ally who helped her, and her opinion changed because of how she says he treated Sav.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u54"
+    ],
+    "verbatim": "And then to me, he's like, I'm sorry she chose to throw you away. It's not my fault. And I got triggered. And so I sent the screenshot proving he was a liar. And that's when shit hit the fan. And that's where we're standing at now. It's because I proved him wrong. I hit him in his ego.",
+    "speaker": "Angela",
+    "about": "The trigger for the public conflict with Logan",
+    "type": "motive",
+    "status": "allegation_only",
+    "why": "She describes the break as her reaction after being 'triggered', when she sent a screenshot she says proved he lied.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u56"
+    ],
+    "verbatim": "And I'm not doing it to be malicious. I'm holding back a lot. I have a lot.",
+    "speaker": "Angela",
+    "about": "Her evidence and motives",
+    "type": "motive",
+    "status": "allegation_only",
+    "why": "She denies malice and says she holds more material than she has released.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u61"
+    ],
+    "verbatim": "I'm probably going to close this down. And I'll open it at 420. So we can have like a little smoke session. Just talk about it. I'm trying to bring awareness of the operations.",
+    "speaker": "Angela",
+    "about": "Her next steps",
+    "type": "threat_or_plan",
+    "status": "checkable_in_recording",
+    "why": "She states a concrete plan to reopen a follow-up space at '420' (the recording gives no clarification of the time).",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u61"
+    ],
+    "verbatim": "I'm a reactive person. And I've had my kids exploited on here. I've had my life threatened multiple times. And I don't have the capacity to give them the same energy I gave them the first couple years. And so when you hear good things about me. Believe it. But you're going to hear bad things too. Believe them both.",
+    "speaker": "Angela",
+    "about": "Her own reputation and motives",
+    "type": "admission",
+    "status": "allegation_only",
+    "why": "She again admits to being reactive, cites her own victimisation as context and asks listeners to weigh both sides.",
+    "verified": true,
+    "substring": true
+   },
+   {
+    "utteranceIds": [
+     "u61"
+    ],
+    "verbatim": "Because I have set people's names in spaces. I'm not going to beat around the bush. And act like I haven't.",
+    "speaker": "Angela",
+    "about": "Her practice of naming people",
+    "type": "admission",
+    "status": "checkable_in_recording",
+    "why": "This contradicts her opening promise to avoid names and acknowledges that she names people publicly.",
+    "verified": true,
+    "substring": true
+   }
+  ]
+ }
+}

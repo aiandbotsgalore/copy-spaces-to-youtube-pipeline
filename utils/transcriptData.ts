@@ -583,7 +583,7 @@ export async function getEpisodeSegments(releaseTag: string, owner?: string, rep
   if (!text) return [];
   try {
     const data = JSON.parse(text);
-    const segs: SearchIndexSegment[] = Array.isArray(data.segments) ? data.segments : [];
+    const segs: SearchIndexSegment[] = Array.isArray(data) ? data : (Array.isArray(data?.segments) ? data.segments : []);
     cacheEpisodeSegments(releaseTag, segs);
     return segs;
   } catch {

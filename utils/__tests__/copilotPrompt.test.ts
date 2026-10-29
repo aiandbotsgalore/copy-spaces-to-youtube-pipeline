@@ -30,6 +30,8 @@ describe('copilotPrompt', () => {
     });
 
     expect(prompt).toContain('SpacePipe Executive Audio Producer');
+    expect(prompt).toContain('PROMPT INJECTION DEFENSE & SAFETY BOUNDARY');
+    expect(prompt).toContain('UNTRUSTED DATA WARNING');
     expect(prompt).toContain('Toggle Live Studio Canvas');
     expect(prompt).toContain('Target Window Gauge');
     expect(prompt).toContain('Narrative Tension Arc');
@@ -39,6 +41,15 @@ describe('copilotPrompt', () => {
     expect(prompt).toContain('Alice: Hello world');
     expect(prompt).toContain('AGI Prediction');
     expect(prompt).toContain('enableTranscription');
+  });
+
+  it('includes compact state summary when provided', () => {
+    const prompt = buildCopilotSystemPrompt({
+      compactStateSummary: 'TIMESTAMP: 2026-10-28T12:00:00Z\nQUEUE: batch_queue=2, space_queue=0 (github=connected)',
+    });
+    expect(prompt).toContain('LIVE SYSTEM STATE SUMMARY:');
+    expect(prompt).toContain('TIMESTAMP: 2026-10-28T12:00:00Z');
+    expect(prompt).toContain('QUEUE: batch_queue=2');
   });
 
   it('extracts action blocks from response text and cleans user output', () => {

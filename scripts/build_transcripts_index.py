@@ -244,8 +244,11 @@ def main():
                 data = json.loads(raw_str)
             except Exception as e:
                 print(f"[!] JSON decode error for {rel_tag}: {e}")
-                # Try fallback text parser in case JSON is corrupted or plain text inside
-                segments = parse_txt_transcript(raw_str)
+                # Try fallback text parser only if content is NOT JSON syntax
+                if not raw_str.strip().startswith(("{", "[")):
+                    segments = parse_txt_transcript(raw_str)
+                else:
+                    segments = []
                 data = None
 
             if data is not None:

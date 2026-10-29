@@ -1,0 +1,568 @@
+{
+ "timings": {
+  "analysisMs": 1,
+  "tagMs": 19108,
+  "outlineMs": 21209,
+  "draftMs": 100913
+ },
+ "outline": {
+  "id": "v_mvsq1qc98bb2d3a8",
+  "parentId": null,
+  "projectId": "prj_experiment",
+  "createdAt": 1793228666265,
+  "author": "loop",
+  "label": "Outline",
+  "segments": [
+   {
+    "id": "seg_mvsq1qc92a8830ca",
+    "title": "The stated grievance and motive",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc952a3419c",
+      "title": "Why Angela says she is speaking",
+      "purpose": "Attribute to Angela her claim that Logan and Orr talked about her dead baby, let her state her motive in her own words, then note that she says she has not heard the original space, that Logan and Orr are not heard here, and that what was actually said remains unverified.",
+      "blocks": [],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u0_u0",
+       "tr_20260908_1wxWjlrwXokJQ_u5_u5"
+      ],
+      "momentIds": [
+       "c0-m1",
+       "c0-m10"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "seg_mvsq1qc95fea2010",
+    "title": "The evidence she says she holds",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc99519f01d",
+      "title": "Screenshots read aloud, and what cannot be checked",
+      "purpose": "Present, as Angela's allegations, her claim that screenshots show a pattern in how Logan treats his girlfriend, play her own framing of them, then flag that they are her reading, that Logan has not responded, and that authenticity, context and the withheld material remain unproven.",
+      "blocks": [],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u1_u1",
+       "tr_20260908_1wxWjlrwXokJQ_u2_u2",
+       "tr_20260908_1wxWjlrwXokJQ_u8_u8"
+      ],
+      "momentIds": [
+       "c0-m2",
+       "c0-m3",
+       "c0-m4"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "seg_mvsq1qc98d1df1a4",
+    "title": "Threats and what she says comes next",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc9e67933a3",
+      "title": "Ultimatums, legal talk and open questions",
+      "purpose": "Use an excerpt of Angela's own words on what she says she will do next (holding back screenshots until Logan responds, legal posturing, the offer to be proven wrong), state that these are her stated intentions and assertions rather than actions confirmed or legal findings, and close on what is still unknown, including Logan's and Orr's responses and whether any legal action exists.",
+      "blocks": [],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u14_u14"
+      ],
+      "momentIds": [
+       "c0-m1b",
+       "c0-m6",
+       "c0-m9",
+       "c0-m12"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "version": {
+  "id": "v_mvsq3w6q2472eb1f",
+  "parentId": "v_mvsq1qc98bb2d3a8",
+  "projectId": "prj_experiment",
+  "createdAt": 1793228767154,
+  "author": "loop",
+  "label": "Draft",
+  "segments": [
+   {
+    "id": "seg_mvsq1qc92a8830ca",
+    "title": "The stated grievance and motive",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc952a3419c",
+      "title": "Why Angela says she is speaking",
+      "purpose": "Attribute to Angela her claim that Logan and Orr talked about her dead baby, let her state her motive in her own words, then note that she says she has not heard the original space, that Logan and Orr are not heard here, and that what was actually said remains unverified.",
+      "blocks": [
+       {
+        "id": "b_mvsq28xh4542d944",
+        "kind": "narration",
+        "text": "Every grievance has a starting point. For Angela, it is one accusation. She alleges that Logan and Orr talked about her dead baby. Her words, aimed at both men by name: \"You're trash for talking about my dead baby.\" That is an allegation. Hold onto that word.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 4.08,
+          "segEnd": 42.22,
+          "speaker": "Angela",
+          "verbatim": "You're trash for talking about my dead baby."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq28xi65d8b5ad",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u0_u0",
+        "keptText": "This is gonna be like a monologue echo chamber space. This is just for the record. I'm not gonna go listen to your space, but I've been sent the clips and the recordings and play-by-plays and... Fuck you, Logan, and fuck you, Orr. You're trash for talking about my dead baby. First and foremost. And now, let's have a little bit of fun in the comments section down below. I'm gonna be posting a series of screenshots that, um... Well, nobody wants to go out, so fuck it. But let's post this all on here, because, you know, apparently... This is the only way that we can get the truth out there as if I expose it.",
+        "inSec": 0,
+        "outSec": 38.14,
+        "trimBasis": "full",
+        "fn": "establish_question",
+        "rationale": "Angela's own opening accusation, plus her admission of how she knows what was said.",
+        "flag": "Trim not applied: Trim would remove 69% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq28xif7786d20",
+        "kind": "pause",
+        "sec": 1
+       },
+       {
+        "id": "b_mvsq28xifd02bcc1",
+        "kind": "narration",
+        "text": "So why is she speaking? She says it plainly. Here is her stated motive, in her own words.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsq28xid235f430",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u5_u5",
+        "keptText": "And like you said, Logan, you're only posting the truth so that people can, you know, analyze for themselves. That's what you said in this one screenshot. So I'm doing the same. So... Just wanted to put the record out there. The reason why I'm doing this space is because Logan hosted a space with, um... Or... And they're talking about my dead baby. So... I'm trying to let you up. I don't know why it's not letting you. You might have to leave and come back. So I have the... First 12 messages posted. Let's get to the rest.",
+        "inSec": 0,
+        "outSec": 35.32,
+        "trimBasis": "full",
+        "fn": "establish_question",
+        "rationale": "Angela states her motive directly, in her own voice.",
+        "flag": "Trim not applied: Trim would remove 76% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq28xiead45565",
+        "kind": "pause",
+        "sec": 1
+       },
+       {
+        "id": "b_mvsq28xi7968f21f",
+        "kind": "narration",
+        "text": "Now, what that account does not include. By her own statement, Angela has not heard the original space. She says: \"I'm not gonna go listen to your space.\" What she describes comes from clips and recordings she says were sent to her. Logan and Orr are not heard in this segment. Neither has been given a chance here to say what was or was not said. So the claim stands as her account, and nothing more. What was actually said about her baby remains unverified. The motive is on the record. The words that triggered it are not.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 4.08,
+          "segEnd": 42.22,
+          "speaker": "Angela",
+          "verbatim": "I'm not gonna go listen to your space"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 4.08,
+          "segEnd": 42.22,
+          "speaker": "Angela",
+          "verbatim": "I've been sent the clips and the recordings and play-by-plays"
+         }
+        ]
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u0_u0",
+       "tr_20260908_1wxWjlrwXokJQ_u5_u5"
+      ],
+      "momentIds": [
+       "c0-m1",
+       "c0-m10"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "seg_mvsq1qc95fea2010",
+    "title": "The evidence she says she holds",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc99519f01d",
+      "title": "Screenshots read aloud, and what cannot be checked",
+      "purpose": "Present, as Angela's allegations, her claim that screenshots show a pattern in how Logan treats his girlfriend, play her own framing of them, then flag that they are her reading, that Logan has not responded, and that authenticity, context and the withheld material remain unproven.",
+      "blocks": [
+       {
+        "id": "b_mvsq31gof06ce5e9",
+        "kind": "music",
+        "cue": "bed_in",
+        "note": "Low, tense bed under the opening of the evidence segment"
+       },
+       {
+        "id": "b_mvsq31go91d80eb3",
+        "kind": "narration",
+        "text": "Angela's case rests on images. Screenshots, posted in batches while she talks. She says they show how Logan treats the people he says he cares about. Specifically, she says, his girlfriend, Sav. That is her claim. Here is how she puts it.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 44.87,
+          "segEnd": 105.97,
+          "speaker": "Angela",
+          "verbatim": "I wanna show your pattern of fucking behavior on how you treat the people you say you fucking care about."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 44.87,
+          "segEnd": 105.97,
+          "speaker": "Angela",
+          "verbatim": "This is Logan interacting with his supposed love of his life, Sav, his girlfriend."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq31gpce3f0110",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u1_u1",
+        "keptText": "I wanna show your pattern of fucking behavior on how you treat the people you say you fucking care about. Since you wanna sit here and talk shit about my dead baby, let's have a little fun here. So the first four screenshots are down below. More will follow. This is Logan interacting with his supposed love of his life, Sav, his girlfriend. This is how he talks to her. This is the victim that you guys have been protecting. I don't give a fuck if any of you like me from this point on. You guys just sat in a space with this man talking shit about my dead baby. If I have to post my fucking medical chart again for the second year in a fucking row, I will. But I'm suing you bitches for damages. I'm done. And I'm also gonna expose you for the misogynistic, abusive pieces of shit that you are. But... So, um... Some of these screenshots are from today. And then we're gonna... Let's keep going. Let's keep going. We're not gonna sit here and beat around the bush.",
+        "inSec": 0,
+        "outSec": 61.1,
+        "trimBasis": "full",
+        "fn": "complication",
+        "rationale": "Angela's own framing of the screenshots, in her words: who she says is in them and what she says they show.",
+        "flag": "Trim not applied: Trim would remove 76% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq31gp27c0e66c",
+        "kind": "pause",
+        "sec": 0.6
+       },
+       {
+        "id": "b_mvsq31gp6f7d5ac2",
+        "kind": "narration",
+        "text": "Notice the method. She releases them in groups, and says the discussion comes only after the last one is up.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 113.94,
+          "segEnd": 141.82,
+          "speaker": "Angela",
+          "verbatim": "We're gonna do it in increments of four."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq31gp8cca0bbc",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u2_u2",
+        "keptText": "Alright, here's the next four screenshots posted down below. We're gonna do it in increments of four. After I post all these screenshots, then we will talk about it. I just wanna make sure to get this all on the record before, um... Somebody cries in my DM to not share them anymore. And I don't give a fuck. I'm just gonna share them. Cause you're not gonna stay here and do that to my friend. Um... Talking about her kid. Make sure I'm not sending any...",
+        "inSec": 0,
+        "outSec": 27.88,
+        "trimBasis": "full",
+        "fn": "stakes",
+        "rationale": "Shows her stated plan for releasing the material in batches before any discussion.",
+        "flag": "Trim not applied: Trim would remove 63% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq31gp13656372",
+        "kind": "narration",
+        "text": "Over the next several minutes she reads messages aloud, which she presents as exchanges between Logan and Sav. Listeners hear her voice, not the original messages. By her own description, this is \"just me reading out loud.\" Her commentary comes along with it. Of one exchange she asks who does that, and answers that narcissists do. That is her reading of the messages. It is not a finding.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 258.15,
+          "segEnd": 702.53,
+          "speaker": "Angela",
+          "verbatim": "This is just me reading out loud."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 145.23,
+          "segEnd": 148.49,
+          "speaker": "Angela",
+          "verbatim": "Weaponizing fucking sleep. Who the fuck does that?"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 151.1,
+          "segEnd": 153.02,
+          "speaker": "Angela",
+          "verbatim": "Narcissists. Narcissists do that."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq31gpd4bfc0a0",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u8_u8",
+        "keptText": "All right. And now we're getting to the disgusting ones. This is how he talks to his girlfriend. Let's get on to the next series of screenshots. You guys take the time to read these. There's plenty more. Um... And I'll get to those too.",
+        "inSec": 0,
+        "outSec": 16.48,
+        "trimBasis": "full",
+        "fn": "complication",
+        "rationale": "Her framing of the next batch and her claim that more exists, which sets up what is withheld.",
+        "flag": "Trim not applied: Trim would remove 37% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq31gpd6c4fc5b",
+        "kind": "pause",
+        "sec": 1
+       },
+       {
+        "id": "b_mvsq31gp0e03a9c9",
+        "kind": "narration",
+        "text": "Now the other side of the ledger. In the material for this episode, there is no response from Logan to these screenshots. The recording holds only Angela's voice. She says herself that she is waiting on one: \"I will hold the rest until your response.\" So the counterpoint, so far, is silence. Not agreement. Silence.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 705.27,
+          "segEnd": 910.63,
+          "speaker": "Angela",
+          "verbatim": "I will hold the rest until your response."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq31gp6e4fcb16",
+        "kind": "narration",
+        "text": "What remains unproven is most of it. Whether the screenshots are authentic. What came before and after each message. Whether any were edited. She says she screenshots \"in real time\" and has the rest, and that she is \"intentionally withholding\" some. Those are her statements about material nobody else has seen. She also offers her own verdict, calling it, \"in my opinion,\" \"very telltaling and disturbing.\" An opinion is not evidence. A pattern is only a pattern once someone can check the pieces.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 705.27,
+          "segEnd": 910.63,
+          "speaker": "Angela",
+          "verbatim": "Because like I told you, I screenshot in real time."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 258.15,
+          "segEnd": 702.53,
+          "speaker": "Angela",
+          "verbatim": "But I have the rest."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 258.15,
+          "segEnd": 702.53,
+          "speaker": "Angela",
+          "verbatim": "I am intentionally withholding these screenshots"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 705.27,
+          "segEnd": 910.63,
+          "speaker": "Angela",
+          "verbatim": "In my opinion, it's very telltaling and disturbing."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq31gpa99ec1ef",
+        "kind": "music",
+        "cue": "bed_out",
+        "note": "Let the bed fall away after the closing line"
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u1_u1",
+       "tr_20260908_1wxWjlrwXokJQ_u2_u2",
+       "tr_20260908_1wxWjlrwXokJQ_u8_u8"
+      ],
+      "momentIds": [
+       "c0-m2",
+       "c0-m3",
+       "c0-m4"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "seg_mvsq1qc98d1df1a4",
+    "title": "Threats and what she says comes next",
+    "scenes": [
+     {
+      "id": "sc_mvsq1qc9e67933a3",
+      "title": "Ultimatums, legal talk and open questions",
+      "purpose": "Use an excerpt of Angela's own words on what she says she will do next (holding back screenshots until Logan responds, legal posturing, the offer to be proven wrong), state that these are her stated intentions and assertions rather than actions confirmed or legal findings, and close on what is still unknown, including Logan's and Orr's responses and whether any legal action exists.",
+      "blocks": [
+       {
+        "id": "b_mvsq3w6q1b298a01",
+        "kind": "music",
+        "cue": "bed_in",
+        "note": "Low, tense bed under the closing section"
+       },
+       {
+        "id": "b_mvsq3w6qaf5312cd",
+        "kind": "narration",
+        "text": "So what does Angela say comes next? Start with the screenshots. During her September 8th Space she posted several sets of them, and she says she has more. She also says she is not posting them yet. In her words: \"I will hold the rest until your response.\" That is an ultimatum, according to Angela, and it is aimed at Logan. She puts the condition more bluntly elsewhere in the Space. She says she is withholding screenshots to give him \"an opportunity to tell the truth,\" and that if he does not, she will post them all. Nobody outside the Space has confirmed that these screenshots exist in the form she describes. We have heard her read from them. We have not independently verified them.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 705.27,
+          "segEnd": 910.63,
+          "speaker": "Angela",
+          "verbatim": "I will hold the rest until your response."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 258.15,
+          "segEnd": 702.53,
+          "speaker": "Angela",
+          "verbatim": "I am intentionally withholding these screenshots... Because I'm going to give you an opportunity to tell the truth. And if you fucking don't... I'll post them all."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq3w6qd5c6df66",
+        "kind": "pause",
+        "sec": 0.8
+       },
+       {
+        "id": "b_mvsq3w6q9062463e",
+        "kind": "narration",
+        "text": "The threats don't stop at screenshots. She says there is a lot more coming, and in her own words: \"there's going to be a lot more screenshots and recordings coming out.\" She also says she will post a phone call if she believes Logan keeps lying. At one point she says, \"I'm suing you bitches for damages.\" Later she tells a person she calls Sign that if that person challenges her legally, she will \"file a motion for discovery, put everything on fucking record, and it will be public information.\" Note who that last line is addressed to. She says it to Sign, not to Logan. And these are statements of intent. In the material we have, there is no filed complaint, no case number, and no court record. She also tells the people she is addressing: \"You're under investigation. You have been for a while now.\" She names no agency, and nothing here confirms an investigation exists.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 1058.6,
+          "segEnd": 1277.73,
+          "speaker": "Angela",
+          "verbatim": "there's going to be a lot more screenshots and recordings coming out"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 1058.6,
+          "segEnd": 1277.73,
+          "speaker": "Angela",
+          "verbatim": "Keep lying. And I'll post the phone call."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 44.87,
+          "segEnd": 105.97,
+          "speaker": "Angela",
+          "verbatim": "I'm suing you bitches for damages"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 705.27,
+          "segEnd": 910.63,
+          "speaker": "Angela",
+          "verbatim": "file a motion for discovery, put everything on fucking record, and it will be public information"
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 1058.6,
+          "segEnd": 1277.73,
+          "speaker": "Angela",
+          "verbatim": "You're under investigation. You have been for a while now."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq3w6qbdea265d",
+        "kind": "pause",
+        "sec": 0.8
+       },
+       {
+        "id": "b_mvsq3w6q963b779f",
+        "kind": "narration",
+        "text": "Then there is the dare. Here is how Angela frames it herself, in her own voice.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsq3w6q74dfc032",
+        "kind": "clip",
+        "clipId": "tr_20260908_1wxWjlrwXokJQ_u14_u14",
+        "keptText": "And the friends that you think that you have in high places are low compared to mine. And I say that as humbly as possible. But I'm not the liar. I offered you money to prove me wrong. Prove that my story was false. Discredit me. Not slander me. Do your due diligence. Or continue to pop up predator supporters. Now, Logan. Two days ago, that space with Larry was still on your page. Now, I know because I went back and we screen recorded it. And the last 48 hours that you have been running smear campaigns with Sign, you went back to 2024 to delete that space where you, Mistress Morpho, Larry, and a few others were talking about Lolitas and this book and sexually disgusting, disturbing conversations. Why did you wait two years to go back and delete that conversation after I had just re-sent you the other screenshots that I've never, ever publicly shared? What would scare you to the point where you would go and do that? You erasing evidence is playing into my hand. You dumb fuck. Own it. Have some accountability and pivot. Tell people about your emotionally abusive tendencies with women on this app. And how you use triangulation tactics and manipulation to establish trust. And pretend like you're an advocate and like you care. And then, like you said, you shift it. And I have that in your own DMs where you told me you're not the same person you was in 2022, 2023, 2024. So then you've got some multiple personality disorder or schizophrenia or you're on drugs or some shit. Because how you not remember it? And how the fuck y'all staying up for days on end hosting these spaces? Like you don't think that's a red flag in itself? And half the abuse that happens happens in those type of spaces when you're, you allegedly claim that you are no longer like in it. That you've like walked away from your phone. So you try, kind of like try to get yourself out of jail by that. But that's reckless in my opinion. You're intentionally creating a dynamic for other people to be abused where you can just be like, oh, I didn't know blah, blah, blah, blah. And it's happened more than once. It's happened easily over 10 times that I can prove just with our DMs alone.",
+        "inSec": 0,
+        "outSec": 135.79,
+        "trimBasis": "full",
+        "fn": "evidence",
+        "rationale": "Angela's own words on the offer to be proven wrong, which is the clearest statement of her challenge.",
+        "flag": "Trim not applied: Trim would remove 93% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsq3w6qdda89182",
+        "kind": "pause",
+        "sec": 1
+       },
+       {
+        "id": "b_mvsq3w6qb1aa3f9d",
+        "kind": "narration",
+        "text": "Now the counterpoint. Angela says she offered money to be proven wrong. That is her account of an offer. The material for this segment does not show the offer itself, a reply to it, or anyone accepting it. It also contains no response from Logan to the allegations she makes against him. There is nothing here from Orr either, whom she also addresses. Her side of the Space is the only side we can hear. Fairness also means noting that she says she is acting of her own accord. She says nobody asked her to host the Space. That, too, is her statement. It is not something we have checked. She also says she is holding some material back because others involved are still processing, and that she will \"only share bits and pieces that they feel comfortable with.\"",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 1280.77,
+          "segEnd": 1416.56,
+          "speaker": "Angela",
+          "verbatim": "I offered you money to prove me wrong."
+         },
+         {
+          "releaseTag": "20260908_1wxWjlrwXokJQ",
+          "segStart": 1419.16,
+          "segEnd": 1664.88,
+          "speaker": "Angela",
+          "verbatim": "I'll only share bits and pieces that they feel comfortable with"
+         }
+        ]
+       },
+       {
+        "id": "b_mvsq3w6qc1877f03",
+        "kind": "pause",
+        "sec": 1
+       },
+       {
+        "id": "b_mvsq3w6q8b3c08d1",
+        "kind": "narration",
+        "text": "What remains unproven? Most of it. Whether the screenshots are complete and unaltered. Whether Logan has responded or will respond. Whether Orr will. Whether any lawsuit has been filed, or any discovery motion. Whether any investigation exists. All of it rests on Angela's word for now. She has set the terms, the deadline is a reply, and the reply has not been recorded here. A threat is not a filing. A screenshot read aloud is not a verified record. And an open challenge is only as good as the answer it gets.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsq3w6q9d11d4d9",
+        "kind": "music",
+        "cue": "bed_out",
+        "note": "Bed fades after the final line"
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260908_1wxWjlrwXokJQ_u14_u14"
+      ],
+      "momentIds": [
+       "c0-m1b",
+       "c0-m6",
+       "c0-m9",
+       "c0-m12"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "gates": {
+  "factual": "pass",
+  "faithful": "fail",
+  "locksIntact": true,
+  "clipBoundsOk": true,
+  "runtimeOk": false,
+  "failures": [
+   "Narration b_mvsq31gp13656372 rests on one source (Angela) but does not attribute it (\"according to\", \"alleges\", ...).",
+   "Investigative: narration b_mvsq31gp13656372 rests on one source without attribution wording.",
+   "Runtime 694s (estimated) is not within 10% of the 300s target."
+  ],
+  "ok": false
+ }
+}

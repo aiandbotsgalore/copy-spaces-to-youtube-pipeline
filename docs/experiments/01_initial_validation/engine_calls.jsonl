@@ -1,0 +1,10 @@
+{"at":1793227735952,"role":"analyst","label":"analysis chunk 1/1","provider":"claude_cli","model":"sonnet","promptVersion":"analysis.v1","ok":true,"durationMs":54076,"inTok":2,"outTok":5708,"costUsd":0}
+{"at":1793227743442,"role":"analyst","label":"analysis chunk 1/1","provider":"claude_cli","model":"sonnet","promptVersion":"analysis.v1","ok":false,"code":"RATE_LIMIT","durationMs":7490,"message":"You've hit your 5-hour limit · resets 4pm (America/Los_Angeles)"}
+{"at":1793228534810,"role":"analyst","label":"analysis chunk 1/1","provider":"claude_cli","model":"sonnet","promptVersion":"analysis.v1","ok":true,"durationMs":47981,"inTok":2,"outTok":5546,"costUsd":0}
+{"at":1793228544551,"role":"analyst","label":"analysis chunk 1/1","provider":"claude_cli","model":"sonnet","promptVersion":"analysis.v1","ok":true,"durationMs":57723,"inTok":2,"outTok":7172,"costUsd":0}
+{"at":1793228544932,"role":"analyst","label":"analysis chunk 1/1","provider":"claude_cli","model":"sonnet","promptVersion":"analysis.v1","ok":true,"durationMs":58112,"inTok":2,"outTok":6841,"costUsd":0}
+{"at":1793228645056,"role":"analyst","label":"clip tags","provider":"claude_cli","model":"sonnet","promptVersion":"clip-tags.v1","ok":true,"durationMs":19104,"inTok":2,"outTok":1556,"costUsd":0}
+{"at":1793228666264,"role":"reviser","label":"outline","provider":"claude_cli","model":"sonnet","promptVersion":"outline.v3","ok":true,"durationMs":21202,"inTok":2,"outTok":1504,"costUsd":0}
+{"at":1793228690356,"role":"reviser","label":"draft The stated grievance and motive","provider":"claude_cli","model":"sonnet","promptVersion":"draft.v3","ok":true,"durationMs":24085,"inTok":2,"outTok":2163,"costUsd":0}
+{"at":1793228727335,"role":"reviser","label":"draft The evidence she says she holds","provider":"claude_cli","model":"sonnet","promptVersion":"draft.v3","ok":true,"durationMs":36975,"inTok":2,"outTok":4409,"costUsd":0}
+{"at":1793228767153,"role":"reviser","label":"draft Threats and what she says comes next","provider":"claude_cli","model":"sonnet","promptVersion":"draft.v3","ok":true,"durationMs":39815,"inTok":2,"outTok":4858,"costUsd":0}

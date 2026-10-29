@@ -370,7 +370,11 @@ export async function buildStyleCard(args: { root: string; store: ScriptStore; c
   if (!batchNotes.length) throw Object.assign(new Error(`The style card could not be built: ${failed.join('; ')}`), { code: 'STYLE_FAILED' });
   args.onProgress?.('Writing the style card');
   const readOk = okIdx.map(i => batches[i]).join('\n\n');
-  const r = await args.call('analyst', P.styleCardPrompt({ stats, traits: JSON.stringify(batchNotes), narration: narration.text || '(no narration examples)' }), 'style card');
+  let r = await args.call('analyst', P.styleCardPrompt({ stats, traits: JSON.stringify(batchNotes), narration: narration.text || '(no narration examples)' }), 'style card');
+  if (!r.ok && r.code !== 'ABORTED') {
+    args.onProgress?.('Writing the style card (retry)');
+    r = await args.call('analyst', P.styleCardPrompt({ stats, traits: JSON.stringify(batchNotes), narration: narration.text || '(no narration examples)' }), 'style card (retry)');
+  }
   if (!r.ok) throw Object.assign(new Error(`The style card could not be written: ${r.code}: ${r.message}`), { code: r.code });
   const j: any = r.json;
   const live = verifyTraits(j?.live?.traits, readOk, 10);

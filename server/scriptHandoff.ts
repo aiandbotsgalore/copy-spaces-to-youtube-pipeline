@@ -28,7 +28,7 @@ const MAX_ITEMS = 200;
 export interface VerifiedQuote { releaseTag: string; utteranceIds: string[]; speaker: string; verbatim: string; start: number; end: number }
 export interface ImportSummary {
   at: number; report: string; warnings: string[];
-  candidates: { label: string; summary: string; versionId?: string; gatesOk?: boolean; failures?: string[]; error?: string }[];
+  candidates: { label: string; summary: string; versionId?: string; gatesOk?: boolean; failures?: string[]; warnings?: string[]; error?: string }[];
   factchecks: { blockId: string; label: 'supported' | 'overstated' | 'unsupported'; note: string; evidence: VerifiedQuote[]; droppedEvidence: number }[];
   recordings: { releaseTag: string; title: string; date: string | null; why: string; quotes: VerifiedQuote[]; droppedQuotes: number; alreadySource: boolean }[];
 }

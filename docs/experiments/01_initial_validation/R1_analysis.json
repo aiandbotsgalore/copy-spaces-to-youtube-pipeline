@@ -1,0 +1,1975 @@
+{
+ "20260908_1wxWjlrwXokJQ": {
+  "ms": 12,
+  "moments": [
+   {
+    "id": "c0-m1",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 4.08,
+    "end": 42.22,
+    "kind": "emotional",
+    "why": "Opening stakes. Angela states the grievance that drives the space: that her dead baby was discussed in someone else's space. She also admits she has not listened to that space and relies on clips sent to her, which is a key sourcing caveat.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 4.08,
+      "segEnd": 42.22,
+      "speaker": "Angela",
+      "verbatim": "You're trash for talking about my dead baby."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 4.08,
+      "segEnd": 42.22,
+      "speaker": "Angela",
+      "verbatim": "I've been sent the clips and the recordings and play-by-plays"
+     }
+    ],
+    "utteranceIds": [
+     "u0"
+    ]
+   },
+   {
+    "id": "c0-m1b",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 44.87,
+    "end": 105.97,
+    "kind": "claim",
+    "why": "Early legal threat that sets up the later legal posturing. It is stated as intent, not as an action taken.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 44.87,
+      "segEnd": 105.97,
+      "speaker": "Angela",
+      "verbatim": "But I'm suing you bitches for damages."
+     }
+    ],
+    "utteranceIds": [
+     "u1"
+    ]
+   },
+   {
+    "id": "c0-m2",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 113.94,
+    "end": 191.8,
+    "kind": "turn",
+    "why": "The space turns from a statement of grievance into a staged exposé. Screenshots are released in batches of four, and she says she wants them on record before anyone asks her to stop.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 113.94,
+      "segEnd": 141.82,
+      "speaker": "Angela",
+      "verbatim": "We're gonna do it in increments of four."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 156.48,
+      "segEnd": 191.8,
+      "speaker": "Angela",
+      "verbatim": "So I'm doing the same."
+     }
+    ],
+    "utteranceIds": [
+     "u2",
+     "u5"
+    ]
+   },
+   {
+    "id": "c0-m3",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 258.15,
+    "end": 702.53,
+    "kind": "revelation",
+    "why": "Core of the episode. Angela reads out the alleged Logan and Sav exchanges, which include insults, accusations and arguments about sleep and calls. These are her reading of screenshots and cannot be verified from this recording. They also contain Sav's claim that Logan said her kids should be taken, and Angela's claim that Logan told Sav she was a 'terrible mom'. Presented as allegations only.",
+    "themes": [
+     "t2",
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 258.15,
+      "segEnd": 702.53,
+      "speaker": "Angela",
+      "verbatim": "This is between Logan Black. And Sav."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 258.15,
+      "segEnd": 702.53,
+      "speaker": "Angela",
+      "verbatim": "This is who you are behind closed doors."
+     }
+    ],
+    "utteranceIds": [
+     "u9"
+    ]
+   },
+   {
+    "id": "c0-m4",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 258.15,
+    "end": 910.63,
+    "kind": "claim",
+    "why": "Leverage and a conditional ultimatum. She withholds some screenshots, says she will release them if Logan does not tell the truth, and later says she is holding more at others' request. This shapes the story's expected next chapter.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 258.15,
+      "segEnd": 702.53,
+      "speaker": "Angela",
+      "verbatim": "I am intentionally withholding these screenshots"
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 705.27,
+      "segEnd": 910.63,
+      "speaker": "Angela",
+      "verbatim": "I will hold the rest until your response."
+     }
+    ],
+    "utteranceIds": [
+     "u9",
+     "u10"
+    ]
+   },
+   {
+    "id": "c0-m5",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 705.27,
+    "end": 1277.73,
+    "kind": "claim",
+    "why": "She asks the audience to judge who is the victim and who is the abuser. This invites a verdict from partial material. Her later love bombing / Stockholm Syndrome framing is her own analysis and not a finding.",
+    "themes": [
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 705.27,
+      "segEnd": 910.63,
+      "speaker": "Angela",
+      "verbatim": "decide for yourself who is the victim and who is the abuser."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1058.6,
+      "segEnd": 1277.73,
+      "speaker": "Angela",
+      "verbatim": "this is a love bombing situation"
+     }
+    ],
+    "utteranceIds": [
+     "u10",
+     "u13"
+    ]
+   },
+   {
+    "id": "c0-m6",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 705.27,
+    "end": 910.63,
+    "kind": "disagreement",
+    "why": "Alleged threats against Angela and her legal counter-posture. She cites a voice clip about 'money bags' and a class action, says she has a trust, and warns of discovery. This is a second front of conflict that her side presents as retaliation. The counter-claim is unverified.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 705.27,
+      "segEnd": 910.63,
+      "speaker": "Angela",
+      "verbatim": "Because like I told you, I screenshot in real time."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 705.27,
+      "segEnd": 910.63,
+      "speaker": "Angela",
+      "verbatim": "Test me. I'm not worried."
+     }
+    ],
+    "utteranceIds": [
+     "u10"
+    ]
+   },
+   {
+    "id": "c0-m7",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 914.89,
+    "end": 994.39,
+    "kind": "disagreement",
+    "why": "She turns on Lynn/Lana, accusing her of narrative control, and says she is the source of how nudes leaked. She claims Logan sent a nude to Sav, who passed it to her. These are serious and unverified claims involving intimate images. Handle with care.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 914.89,
+      "segEnd": 994.39,
+      "speaker": "Angela",
+      "verbatim": "I blocked you for my peace of mind"
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 914.89,
+      "segEnd": 994.39,
+      "speaker": "Angela",
+      "verbatim": "This is clip. This is recorded."
+     }
+    ],
+    "utteranceIds": [
+     "u11"
+    ]
+   },
+   {
+    "id": "c0-m8",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 997.86,
+    "end": 1055.6,
+    "kind": "emotional",
+    "why": "A moment of partial self-correction. She concedes the herpes remark was a low blow but defends it as provoked, showing how the space is both pointed and petty.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 997.86,
+      "segEnd": 1055.6,
+      "speaker": "Angela",
+      "verbatim": "I should have never said that."
+     }
+    ],
+    "utteranceIds": [
+     "u12"
+    ]
+   },
+   {
+    "id": "c0-m9",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 1058.6,
+    "end": 1277.73,
+    "kind": "claim",
+    "why": "Legal-claim detail. She says she may legally record because of a one-party consent state and alleges the other side recorded illegally in a two-party state and bragged. This is her assertion, not a legal finding, and invites fact-checking before use.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1058.6,
+      "segEnd": 1277.73,
+      "speaker": "Angela",
+      "verbatim": "the one that I'm legally allowed to record because I live in a one-party consent state"
+     }
+    ],
+    "utteranceIds": [
+     "u13"
+    ]
+   },
+   {
+    "id": "c0-m10",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 1419.16,
+    "end": 1664.88,
+    "kind": "callback",
+    "why": "Final return to the opening premise. She says she hosted only because of the baby remark, would not otherwise have done so, and says she was 'triggered'. This bookends the episode and frames her motive, which is stated, not verified.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1419.16,
+      "segEnd": 1664.88,
+      "speaker": "Angela",
+      "verbatim": "But I would have never hosted this space had he not fucking let Orr sit there and talk shit about my dead baby."
+     }
+    ],
+    "utteranceIds": [
+     "u15"
+    ]
+   },
+   {
+    "id": "c0-m11",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 1280.77,
+    "end": 1664.88,
+    "kind": "revelation",
+    "why": "Escalation to allegations about the wider community. She claims a deleted 2024 space and Logan removing evidence, and that she has seen group-chat conversations about definitions of pedophilia and relationships with minors, plus threats made by others. All are unverified allegations, and none of the named parties responds. A scriptwriter should attribute them clearly to Angela.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1280.77,
+      "segEnd": 1416.56,
+      "speaker": "Angela",
+      "verbatim": "You erasing evidence is playing into my hand."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1280.77,
+      "segEnd": 1416.56,
+      "speaker": "Angela",
+      "verbatim": "I offered you money to prove me wrong."
+     }
+    ],
+    "utteranceIds": [
+     "u14",
+     "u15"
+    ]
+   },
+   {
+    "id": "c0-m12",
+    "releaseTag": "20260908_1wxWjlrwXokJQ",
+    "start": 1419.16,
+    "end": 1664.88,
+    "kind": "turn",
+    "why": "Closing posture. She reframes herself as willing to sit in the 'hot seat', says patterns are the evidence, asks for comments, and leaves the door open to talk Logan in later, so the story is left open-ended.",
+    "themes": [
+     "t5",
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1419.16,
+      "segEnd": 1664.88,
+      "speaker": "Angela",
+      "verbatim": "patterns don't lie. People do."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1419.16,
+      "segEnd": 1664.88,
+      "speaker": "Angela",
+      "verbatim": "I'm being asked to hold shit back."
+     },
+     {
+      "releaseTag": "20260908_1wxWjlrwXokJQ",
+      "segStart": 1419.16,
+      "segEnd": 1664.88,
+      "speaker": "Angela",
+      "verbatim": "I might just go anonymous and go listen."
+     }
+    ],
+    "utteranceIds": [
+     "u15"
+    ]
+   }
+  ],
+  "themes": [
+   {
+    "id": "t1",
+    "label": "The dead baby as trigger",
+    "summary": "Angela repeatedly says the space exists because Orr, allegedly with Logan hosting, talked about her dead baby. She frames everything else as a response.",
+    "momentIds": [
+     "c0-m1",
+     "c0-m10"
+    ]
+   },
+   {
+    "id": "t2",
+    "label": "Screenshots as evidence and public record",
+    "summary": "She reads aloud and posts screenshots of Logan and Sav's messages, asking listeners to judge for themselves. The material is one-sided, and parts are withheld as leverage.",
+    "momentIds": [
+     "c0-m2",
+     "c0-m3",
+     "c0-m4",
+     "c0-m8"
+    ]
+   },
+   {
+    "id": "t3",
+    "label": "Threats, legal posturing and counter-allegations",
+    "summary": "She says she was threatened, cites a trust, discovery, a suit for damages, and recording-consent law, and warns that she keeps real-time screenshots.",
+    "momentIds": [
+     "c0-m1b",
+     "c0-m5",
+     "c0-m9"
+    ]
+   },
+   {
+    "id": "t4",
+    "label": "Interpersonal fallout and community feuds",
+    "summary": "Beyond Logan, she addresses Lynn/Lana, Eric and others, mixing grievance, a partial apology and new allegations about the community.",
+    "momentIds": [
+     "c0-m6",
+     "c0-m7",
+     "c0-m11"
+    ]
+   },
+   {
+    "id": "t5",
+    "label": "Pattern, discernment and who is the victim",
+    "summary": "She repeatedly asks listeners to use discernment, applying a parent-of-a-daughter lens, and she characterises the relationship as love bombing.",
+    "momentIds": [
+     "c0-m5",
+     "c0-m8",
+     "c0-m12"
+    ]
+   }
+  ],
+  "chunks": [
+   {
+    "index": 0,
+    "ok": true
+   }
+  ]
+ },
+ "20260903_1dKrPrbywDkJX": {
+  "ms": 47991,
+  "moments": [
+   {
+    "id": "c0-m1",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 104.09,
+    "end": 301.24,
+    "kind": "revelation",
+    "why": "Core allegations relayed second-hand from Victor's sister, with Angela explicitly hedging that she does not know the full truth. Must be presented as allegation.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 104.09,
+      "segEnd": 301.24,
+      "speaker": "Angela",
+      "verbatim": "she said that her brother was a child predator and that he had sexually assaulted their baby cousin and that the family was protecting him"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 104.09,
+      "segEnd": 301.24,
+      "speaker": "Angela",
+      "verbatim": "i'm not trying to slander him i just want to ask questions"
+     }
+    ],
+    "utteranceIds": [
+     "u4"
+    ]
+   },
+   {
+    "id": "c0-m2",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 319.95,
+    "end": 435.27,
+    "kind": "revelation",
+    "why": "Sarah says Victor used her as an excuse to leave Justin's house, and that law enforcement, not app users, stopped him. Her account adds context to the timeline.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 319.95,
+      "segEnd": 435.27,
+      "speaker": "Sarah",
+      "verbatim": "victor was using me as an excuse constantly to be able to leave the house"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 319.95,
+      "segEnd": 435.27,
+      "speaker": "Sarah",
+      "verbatim": "nobody from the app reported him or anything he was completely pulled over and and picked up by law enforcement"
+     }
+    ],
+    "utteranceIds": [
+     "u7"
+    ]
+   },
+   {
+    "id": "c0-m3",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 791.15,
+    "end": 894.43,
+    "kind": "emotional",
+    "why": "Sarah recounts the night she hosted him and fears in hindsight, including a gun in his car. It is her speculation, not an established fact, but it conveys the personal stakes.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 791.15,
+      "segEnd": 894.43,
+      "speaker": "Sarah",
+      "verbatim": "he drank his so fast like i literally it was full and then he chugged it and it was empty"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 791.15,
+      "segEnd": 894.43,
+      "speaker": "Sarah",
+      "verbatim": "he had that gun on him in his car when he came to see me"
+     }
+    ],
+    "utteranceIds": [
+     "u12"
+    ]
+   },
+   {
+    "id": "c0-m4",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 435.27,
+    "end": 3220.28,
+    "kind": "disagreement",
+    "why": "Ophelia's anger at the community's 'surprise' sets up a tension with Sarah's later admission that she tends to give the benefit of the doubt.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Ophelia",
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 435.27,
+      "segEnd": 551.55,
+      "speaker": "Ophelia",
+      "verbatim": "stop living in a fantasy land stop giving people the benefit of the doubt"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 2965.44,
+      "segEnd": 3220.28,
+      "speaker": "Sarah",
+      "verbatim": "that's my thing to give people the benefit of the doubt some people don't deserve the benefit of the doubt"
+     }
+    ],
+    "utteranceIds": [
+     "u8",
+     "u31"
+    ]
+   },
+   {
+    "id": "c0-m5",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 56.43,
+    "end": 301.24,
+    "kind": "turn",
+    "why": "The opening mixes a personal feud with a pivot: Angela concedes it is drama but insists on truth and solutions. This frames the whole episode.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela",
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 56.43,
+      "segEnd": 71.49,
+      "speaker": "Angela",
+      "verbatim": "i don't think you're the big bad wolf in all of this"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 104.09,
+      "segEnd": 301.24,
+      "speaker": "Angela",
+      "verbatim": "i'm not doing drama well i guess this is drama but it's truth"
+     }
+    ],
+    "utteranceIds": [
+     "u2",
+     "u3",
+     "u4"
+    ]
+   },
+   {
+    "id": "c0-m6",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 1253.94,
+    "end": 1431.47,
+    "kind": "humor",
+    "why": "Dame's short, memorable advice offers a lighter, quotable thread on red flags and friends, in contrast to the heavier content.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Dame"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 1253.94,
+      "segEnd": 1362.66,
+      "speaker": "Dame",
+      "verbatim": "a snake might shed its skin but it's still a bloody snake"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 1380.72,
+      "segEnd": 1431.47,
+      "speaker": "Dame",
+      "verbatim": "just trust in your girlfriends"
+     }
+    ],
+    "utteranceIds": [
+     "u15",
+     "u17"
+    ]
+   },
+   {
+    "id": "c0-m7",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 551.55,
+    "end": 735.07,
+    "kind": "claim",
+    "why": "Angela holds a spiritual-warfare belief while drawing a firm line on child predation; also makes unverified claims about others threatening her. Shows the framing tension in the group.",
+    "themes": [
+     "t3",
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 551.55,
+      "segEnd": 735.07,
+      "speaker": "Angela",
+      "verbatim": "i still believe in spiritual warfare and i i do think this stuff is all demonic but at the same time there's absolutely no reality that child predator behavior is ever acceptable"
+     }
+    ],
+    "utteranceIds": [
+     "u9"
+    ]
+   },
+   {
+    "id": "c0-m8",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 3220.28,
+    "end": 3429.08,
+    "kind": "claim",
+    "why": "Angela explains her 'passive petty' posting style and mission, revealing the strategy behind the original post and why Victor's response named Sarah.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 3220.28,
+      "segEnd": 3429.08,
+      "speaker": "Angela",
+      "verbatim": "i'm trying to be a little bit more passive petty and a little bit more punny with it just so that if they address it then they're calling themselves out"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 3220.28,
+      "segEnd": 3429.08,
+      "speaker": "Angela",
+      "verbatim": "i'm not at war with any person i'm at war with complacency"
+     }
+    ],
+    "utteranceIds": [
+     "u32"
+    ]
+   },
+   {
+    "id": "c0-m9",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 2903.55,
+    "end": 2965.44,
+    "kind": "emotional",
+    "why": "TJ's candid admission of missing the signs gives the community self-reflection rather than only blame.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "TJ"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 2903.55,
+      "segEnd": 2965.44,
+      "speaker": "TJ",
+      "verbatim": "i missed a lot of the signs i think"
+     }
+    ],
+    "utteranceIds": [
+     "u30"
+    ]
+   },
+   {
+    "id": "c0-m10",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 2965.44,
+    "end": 3220.28,
+    "kind": "claim",
+    "why": "Sarah describes Victor's alleged pattern of using the platform for dating and stopping at women's houses on his move. This is her characterization and is unverified. It sets up Justin's Saturday space as the point where his side may emerge.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 2965.44,
+      "segEnd": 3220.28,
+      "speaker": "Sarah",
+      "verbatim": "it was pretty evident that he was using this platform as his own personal dating service"
+     }
+    ],
+    "utteranceIds": [
+     "u31"
+    ]
+   },
+   {
+    "id": "c0-m11",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 3429.08,
+    "end": 3749.56,
+    "kind": "revelation",
+    "why": "Carl broadens the discussion to unwanted contact on the app and the idea that being present in a space doesn't mean being available.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Carl"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 3429.08,
+      "segEnd": 3749.56,
+      "speaker": "Carl",
+      "verbatim": "just because I'm here and I'm talking does not necessarily mean I'm available to whatever that is"
+     }
+    ],
+    "utteranceIds": [
+     "u33"
+    ]
+   },
+   {
+    "id": "c0-m12",
+    "releaseTag": "20260903_1dKrPrbywDkJX",
+    "start": 2664.39,
+    "end": 2903.55,
+    "kind": "callback",
+    "why": "Miss McGillicuddy's closing 'fuck them' quote is picked up by Sarah's 'let them' theory, tying the healing theme to boundaries and detachment.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Miss McGillicuddy",
+     "Sarah"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 2664.39,
+      "segEnd": 2877.37,
+      "speaker": "Miss McGillicuddy",
+      "verbatim": "fuck them good fuck them"
+     },
+     {
+      "releaseTag": "20260903_1dKrPrbywDkJX",
+      "segStart": 2877.37,
+      "segEnd": 2903.55,
+      "speaker": "Sarah",
+      "verbatim": "i also really like the uh the let them theory"
+     }
+    ],
+    "utteranceIds": [
+     "u28",
+     "u29"
+    ]
+   }
+  ],
+  "themes": [
+   {
+    "id": "t1",
+    "label": "Allegations about Victor",
+    "summary": "Second-hand allegations from his sister, plus Sarah's firsthand unease, anchor the discussion. All unverified; Victor's response absent.",
+    "momentIds": [
+     "c0-m1",
+     "c0-m2",
+     "c0-m3",
+     "c0-m10"
+    ]
+   },
+   {
+    "id": "t2",
+    "label": "Warnings ignored and discernment",
+    "summary": "Speakers argue community saw red flags and ignored them, and offer discernment, boundaries and trusting friends as remedies.",
+    "momentIds": [
+     "c0-m4",
+     "c0-m6",
+     "c0-m9",
+     "c0-m11"
+    ]
+   },
+   {
+    "id": "t3",
+    "label": "Feud, drama and accountability",
+    "summary": "The space opens amid personal conflict and moves to a stated goal of solutions and accountability.",
+    "momentIds": [
+     "c0-m5",
+     "c0-m7",
+     "c0-m8"
+    ]
+   },
+   {
+    "id": "t4",
+    "label": "Trauma, addiction, faith",
+    "summary": "Personal testimony about addiction, isolation, prayer and spiritual warfare frames how speakers process the events.",
+    "momentIds": [
+     "c0-m7",
+     "c0-m12"
+    ]
+   }
+  ],
+  "chunks": [
+   {
+    "index": 0,
+    "ok": true
+   }
+  ]
+ },
+ "20260913_1lJQRWAWpvVxE": {
+  "ms": 57732,
+  "moments": [
+   {
+    "id": "c0-01",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 99.9,
+    "end": 432.75,
+    "kind": "claim",
+    "why": "Core trigger of the episode. Angela says Orr threatened to put her in a wood chipper. The threat is only her characterization, not heard in the recording, and she links it to an alleged pattern. A scriptwriter should attribute it as her account.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 99.9,
+      "segEnd": 266.57,
+      "speaker": "Angela",
+      "verbatim": "now this man who's already threatened me numerous times is talking about wanting to put me in a fucking wood chipper."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 270.05,
+      "segEnd": 432.75,
+      "speaker": "Angela",
+      "verbatim": "So Orr's weapon of choice would be a wood chipper."
+     }
+    ],
+    "utteranceIds": [
+     "u1",
+     "u2"
+    ]
+   },
+   {
+    "id": "c0-02",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 99.9,
+    "end": 266.57,
+    "kind": "emotional",
+    "why": "Vulnerable admission amid the aggression. She says re-reading old messages is painful because bonds may not have been genuine.",
+    "themes": [
+     "t1",
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 99.9,
+      "segEnd": 266.57,
+      "speaker": "Angela",
+      "verbatim": "It's not a very good feeling to process that a lot of the people that you establish trust with and emotional bonds were playing a character, playing a role."
+     }
+    ],
+    "utteranceIds": [
+     "u1"
+    ]
+   },
+   {
+    "id": "c0-03",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 436.88,
+    "end": 471,
+    "kind": "turn",
+    "why": "Open-mic challenge. She unblocks critics and invites them to speak, setting up a confrontation that later does not happen.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 436.88,
+      "segEnd": 457.62,
+      "speaker": "Angela",
+      "verbatim": "You can say it to my fucking face."
+     }
+    ],
+    "utteranceIds": [
+     "u3",
+     "u4"
+    ]
+   },
+   {
+    "id": "c0-04",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 644.58,
+    "end": 794.31,
+    "kind": "claim",
+    "why": "Establishes her self-defined method. She says she documented early and kept a timeline, and she describes her reactive style while owning that she is not neutral. This frames the credibility contest.",
+    "themes": [
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 644.58,
+      "segEnd": 675.16,
+      "speaker": "Angela",
+      "verbatim": "I'm a very reactive person. I never strike first."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 750.71,
+      "segEnd": 794.31,
+      "speaker": "Angela",
+      "verbatim": "Because you act like I didn't screenshot and screen record ahead of time."
+     }
+    ],
+    "utteranceIds": [
+     "u18",
+     "u24"
+    ]
+   },
+   {
+    "id": "c0-05",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 617.7,
+    "end": 637.08,
+    "kind": "claim",
+    "why": "Alleged long-running threats, with a claim that she has recordings. Speaker 1's questions draw out the timeline. It is useful context but unverified here.",
+    "themes": [
+     "t1",
+     "t2"
+    ],
+    "speakers": [
+     "Speaker 1",
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 629,
+      "segEnd": 637.08,
+      "speaker": "Angela",
+      "verbatim": "Oh, years. Years. Years. And I have most of it documented."
+     }
+    ],
+    "utteranceIds": [
+     "u13",
+     "u14",
+     "u16"
+    ]
+   },
+   {
+    "id": "c0-06",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 1883.22,
+    "end": 1958.45,
+    "kind": "revelation",
+    "why": "Most dramatic personal claim of the Space. She describes being kidnapped, illegally adopted and tied to military and intelligence programs. The claim is unverified in the recording, so script it as her allegation.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 1883.22,
+      "segEnd": 1958.45,
+      "speaker": "Angela",
+      "verbatim": "So, I was kidnapped as a baby and illegally adopted into a CIA military family."
+     }
+    ],
+    "utteranceIds": [
+     "u86"
+    ]
+   },
+   {
+    "id": "c0-07",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2039.57,
+    "end": 2124.85,
+    "kind": "claim",
+    "why": "She names an alleged kidnapper and cites documents and an uncle as checkable sources. Speaker 1 asks about legal paperwork, and she says she has it. This is a test point for verification.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela",
+     "Speaker 1"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2096.31,
+      "segEnd": 2124.85,
+      "speaker": "Angela",
+      "verbatim": "Oh, I have both birth certificates."
+     }
+    ],
+    "utteranceIds": [
+     "u97",
+     "u98",
+     "u99"
+    ]
+   },
+   {
+    "id": "c0-08",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2204.18,
+    "end": 2265.86,
+    "kind": "claim",
+    "why": "She explains deliberate word choice for legal reasons and says she will say 'predator' or 'predator supporter' without evidence of more. She addresses the audience that will clip her. This is useful for framing how allegations are handled.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2204.18,
+      "segEnd": 2265.86,
+      "speaker": "Angela",
+      "verbatim": "I'll call you a pedophile if I have solid fucking evidence."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2204.18,
+      "segEnd": 2265.86,
+      "speaker": "Angela",
+      "verbatim": "I just wanted to reiterate that, so when you clip it, you can get that."
+     }
+    ],
+    "utteranceIds": [
+     "u107"
+    ]
+   },
+   {
+    "id": "c0-09",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2789.49,
+    "end": 3039.14,
+    "kind": "callback",
+    "why": "Payoff to the open-mic setup. No critic shows up. She repeats the point at the end, and the conflict stays one-sided.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2789.49,
+      "segEnd": 2801.71,
+      "speaker": "Angela",
+      "verbatim": "I would like to say I'm surprised that none of those fuckers showed up."
+     }
+    ],
+    "utteranceIds": [
+     "u137",
+     "u158"
+    ]
+   },
+   {
+    "id": "c0-10",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2829.98,
+    "end": 2867.52,
+    "kind": "claim",
+    "why": "Secondhand allegation about Victor, relayed from his sister and not charged or confirmed. Speaker 2 asks about court evidence, and Angela concedes no charges. It needs strong attribution and caution.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Angela",
+     "Speaker 2"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2829.98,
+      "segEnd": 2851.08,
+      "speaker": "Angela",
+      "verbatim": "That is what the sister told me."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2855.95,
+      "segEnd": 2867.52,
+      "speaker": "Angela",
+      "verbatim": "I don't think they pressed charges on him."
+     }
+    ],
+    "utteranceIds": [
+     "u140",
+     "u142",
+     "u143"
+    ]
+   },
+   {
+    "id": "c0-11",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2876.72,
+    "end": 2951.59,
+    "kind": "claim",
+    "why": "Speaker 1 relays a separate, uncorroborated claim that Victor said he was framed. Together with the drug speculation about hosts, it shows how the group builds a picture of opponents from hearsay and assumption.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Speaker 1"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2876.72,
+      "segEnd": 2904,
+      "speaker": "Speaker 1",
+      "verbatim": "he straight up told me that Justin framed him"
+     }
+    ],
+    "utteranceIds": [
+     "u146",
+     "u149",
+     "u152"
+    ]
+   },
+   {
+    "id": "c0-12",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 1258.62,
+    "end": 1345.86,
+    "kind": "disagreement",
+    "why": "The one pushback in the Space. Speaker 3 says 'Let it go', and Angela refuses on the grounds that letting go makes her complicit. It clarifies her motivation.",
+    "themes": [
+     "t3",
+     "t1"
+    ],
+    "speakers": [
+     "Speaker 3",
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 1258.62,
+      "segEnd": 1263.46,
+      "speaker": "Speaker 3",
+      "verbatim": "Let it go. Let it go. You said what?"
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 1268.48,
+      "segEnd": 1345.86,
+      "speaker": "Angela",
+      "verbatim": "I don't think you should just let things go because that makes me complicit"
+     }
+    ],
+    "utteranceIds": [
+     "u42",
+     "u43",
+     "u44"
+    ]
+   },
+   {
+    "id": "c0-13",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2328.59,
+    "end": 3097.6,
+    "kind": "claim",
+    "why": "Escalation into worldview. She says she believes hosts were paid or are informants, and she sees a coordinated 'sex cult' and narrative control. These are opinions and beliefs, and she signals so in places.",
+    "themes": [
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2328.59,
+      "segEnd": 2419.56,
+      "speaker": "Angela",
+      "verbatim": "I firmly believe that some of these people were paid to come over here and do that"
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 3082.28,
+      "segEnd": 3097.6,
+      "speaker": "Angela",
+      "verbatim": "It's all fucking narrative control. In my opinion."
+     }
+    ],
+    "utteranceIds": [
+     "u112",
+     "u162"
+    ]
+   },
+   {
+    "id": "c0-14",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 2623.41,
+    "end": 2675.33,
+    "kind": "revelation",
+    "why": "Darkest tonal moment. She says she has prepared a worst-case contingency so her children are not left carrying her fight, and she answers that she expects collapse. Ambiguous, so script it carefully.",
+    "themes": [
+     "t5"
+    ],
+    "speakers": [
+     "Angela",
+     "Speaker 3"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2623.41,
+      "segEnd": 2663.01,
+      "speaker": "Angela",
+      "verbatim": "I have already prepared ahead of time the worst possible scenario to stop that and prevent that from happening."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 2668.59,
+      "segEnd": 2675.33,
+      "speaker": "Angela",
+      "verbatim": "Oh, 100%."
+     }
+    ],
+    "utteranceIds": [
+     "u127",
+     "u128",
+     "u129"
+    ]
+   },
+   {
+    "id": "c0-15",
+    "releaseTag": "20260913_1lJQRWAWpvVxE",
+    "start": 495.72,
+    "end": 3162.77,
+    "kind": "humor",
+    "why": "Comic relief. A quip about the critic's height, her wry reply, and the baseball-umpire bit that follows, ending in 'Dancing in the rain'. It shows a looser tone alongside the heavy content.",
+    "themes": [
+     "t6"
+    ],
+    "speakers": [
+     "Speaker 1",
+     "Angela",
+     "Speaker 2"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 495.72,
+      "segEnd": 501.58,
+      "speaker": "Speaker 1",
+      "verbatim": "I think you would probably whip that guy, Angie."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 501.92,
+      "segEnd": 512.15,
+      "speaker": "Angela",
+      "verbatim": "So honestly, like, that would probably be very therapeutic."
+     },
+     {
+      "releaseTag": "20260913_1lJQRWAWpvVxE",
+      "segStart": 3047.98,
+      "segEnd": 3059.38,
+      "speaker": "Speaker 2",
+      "verbatim": "I need the umpire's eyes checked, please."
+     }
+    ],
+    "utteranceIds": [
+     "u7",
+     "u8",
+     "u160",
+     "u168"
+    ]
+   }
+  ],
+  "themes": [
+   {
+    "id": "t1",
+    "label": "Threats, retaliation and the open-mic challenge",
+    "summary": "Angela responds to an alleged wood chipper threat and past threats by inviting critics to face her live. No critic appears.",
+    "momentIds": [
+     "c0-01",
+     "c0-02",
+     "c0-03",
+     "c0-09"
+    ]
+   },
+   {
+    "id": "t2",
+    "label": "Documentation as defense",
+    "summary": "She stresses screenshots, recordings and a timeline kept in advance. She also discusses platform changes she says hinder survivors.",
+    "momentIds": [
+     "c0-04",
+     "c0-05"
+    ]
+   },
+   {
+    "id": "t3",
+    "label": "Survivor identity and the adoption/trafficking narrative",
+    "summary": "Angela gives a detailed account of a kidnapping and illegal adoption involving military and intelligence families. Her claims are unverified in the recording, and the group's response shows both credulity and some caution.",
+    "momentIds": [
+     "c0-06",
+     "c0-07",
+     "c0-12"
+    ]
+   },
+   {
+    "id": "t4",
+    "label": "Predator language, accountability of hosts, and hearsay",
+    "summary": "She explains her careful wording ('predator' vs 'pedophile'). She holds hosts accountable for what happens in their Spaces. A secondhand allegation about Victor surfaces.",
+    "momentIds": [
+     "c0-08",
+     "c0-10",
+     "c0-11"
+    ]
+   },
+   {
+    "id": "t5",
+    "label": "Collapse and conspiracy framing",
+    "summary": "Talk drifts to informants, psyops, EMPs, prepping and contingency plans, and to a 'sex cult' and narrative control.",
+    "momentIds": [
+     "c0-13",
+     "c0-14"
+    ]
+   },
+   {
+    "id": "t6",
+    "label": "Humor and release",
+    "summary": "Banter and jokes lighten the tone and close the Space.",
+    "momentIds": [
+     "c0-15"
+    ]
+   }
+  ],
+  "chunks": [
+   {
+    "index": 0,
+    "ok": true
+   }
+  ]
+ },
+ "20260908_1nGeLMjONkAKX": {
+  "ms": 58128,
+  "moments": [
+   {
+    "id": "c0-m1",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 53.9,
+    "end": 548.12,
+    "kind": "claim",
+    "why": "This is the thesis in a single sentence: the alleged mechanism by which groups befriend survivors, then surveil and silence them. It is an allegation and it frames the episode.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 53.9,
+      "segEnd": 548.12,
+      "speaker": "Angela",
+      "verbatim": "And the whole time they're running data collection on you."
+     }
+    ],
+    "utteranceIds": [
+     "u0"
+    ]
+   },
+   {
+    "id": "c0-m2",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 53.9,
+    "end": 548.12,
+    "kind": "emotional",
+    "why": "Angela concedes she has lashed out and asks where the line between survivor and abuser lies. It is a rare self-aware moment that a script could use to complicate her role.",
+    "themes": [
+     "t2",
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 53.9,
+      "segEnd": 548.12,
+      "speaker": "Angela",
+      "verbatim": "At what point does the survivor who's gone through this shit become the abuser?"
+     }
+    ],
+    "utteranceIds": [
+     "u0"
+    ]
+   },
+   {
+    "id": "c0-m3",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 53.9,
+    "end": 888.01,
+    "kind": "turn",
+    "why": "The topic pivots from tactics to accusing other hosts of being paid informants. This broadens the claim from one dispute to a systemic accusation, with no evidence offered.",
+    "themes": [
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 551.08,
+      "segEnd": 888.01,
+      "speaker": "Angela",
+      "verbatim": "Are you informants? Is that what is going on?"
+     }
+    ],
+    "utteranceIds": [
+     "u0",
+     "u1"
+    ]
+   },
+   {
+    "id": "c0-m4",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 891.14,
+    "end": 1272.08,
+    "kind": "claim",
+    "why": "Angela raises the possibility that Logan used hacking skills against her. She admits she doesn't know. This is a speculative allegation, and the script should keep it flagged as one.",
+    "themes": [
+     "t3",
+     "t2"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 891.14,
+      "segEnd": 1272.08,
+      "speaker": "Angela",
+      "verbatim": "How do I know you're not weaponizing that?"
+     }
+    ],
+    "utteranceIds": [
+     "u2"
+    ]
+   },
+   {
+    "id": "c0-m5",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 891.14,
+    "end": 1735.22,
+    "kind": "revelation",
+    "why": "Angela claims a long-standing space was deleted days earlier and offers a dream-related anecdote as part of her reasoning. It is a pivotal but unverified evidence claim. She says she clipped it beforehand.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 891.14,
+      "segEnd": 1272.08,
+      "speaker": "Angela",
+      "verbatim": "I had a dream about this shit last night."
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 1579.45,
+      "segEnd": 1735.22,
+      "speaker": "Angela",
+      "verbatim": "That's sus as fuck."
+     }
+    ],
+    "utteranceIds": [
+     "u2",
+     "u19"
+    ]
+   },
+   {
+    "id": "c0-m6",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 1378.91,
+    "end": 1430.02,
+    "kind": "emotional",
+    "why": "Sav describes feeling talked about through coded references. This is the human core of the dispute, from the person caught in the middle.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Speaker 1"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 1378.91,
+      "segEnd": 1430.02,
+      "speaker": "Speaker 1",
+      "verbatim": "You just feel like you're being talked about without being talked about. It's coded."
+     }
+    ],
+    "utteranceIds": [
+     "u9"
+    ]
+   },
+   {
+    "id": "c0-m7",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 2201.67,
+    "end": 2407.14,
+    "kind": "humor",
+    "why": "Sav jokes about the honeypot narrative and Angela promptly rejects it. It tests the episode's central theory and shows the tension lightly.",
+    "themes": [
+     "t1",
+     "t4"
+    ],
+    "speakers": [
+     "Speaker 1",
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 2201.67,
+      "segEnd": 2239.35,
+      "speaker": "Speaker 1",
+      "verbatim": "They didn't pay me enough."
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 2239.57,
+      "segEnd": 2407.14,
+      "speaker": "Angela",
+      "verbatim": "You're not a fucking honeypot."
+     }
+    ],
+    "utteranceIds": [
+     "u28",
+     "u29"
+    ]
+   },
+   {
+    "id": "c0-m8",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 2239.57,
+    "end": 2407.14,
+    "kind": "revelation",
+    "why": "Angela discloses that she stopped sharing her clipping work with Sav once Sav became involved with Logan, treating the relationship as a 'liability'. It shows how the 'trust' theme plays out and that she controls information flow.",
+    "themes": [
+     "t1",
+     "t4"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 2239.57,
+      "segEnd": 2407.14,
+      "speaker": "Angela",
+      "verbatim": "I stopped telling you. About the shit. That I was clipping."
+     }
+    ],
+    "utteranceIds": [
+     "u29"
+    ]
+   },
+   {
+    "id": "c0-m9",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 2446.72,
+    "end": 2687.67,
+    "kind": "claim",
+    "why": "A guest asks about gang stalking and Angela answers with sweeping claims about her family and military sites. They are unverified, but the episode's credibility turns on them. The guest leaves abruptly soon after.",
+    "themes": [
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 2446.72,
+      "segEnd": 2562.16,
+      "speaker": "Angela",
+      "verbatim": "Master Sergeant Stephen Eugene Maggard taught the SEER course."
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 2567.06,
+      "segEnd": 2687.67,
+      "speaker": "Angela",
+      "verbatim": "Is a CIA black site that tortures people."
+     }
+    ],
+    "utteranceIds": [
+     "u33",
+     "u35"
+    ]
+   },
+   {
+    "id": "c0-m10",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 3041.93,
+    "end": 3166.54,
+    "kind": "turn",
+    "why": "The guest leaves mid-conversation. Angela reads it as a sign he was gathering material, which echoes the opening 'data collection' theme. Speaker 2 then says he heard it himself and offers support.",
+    "themes": [
+     "t1",
+     "t5"
+    ],
+    "speakers": [
+     "Angela",
+     "Speaker 2"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3058.66,
+      "segEnd": 3073.36,
+      "speaker": "Angela",
+      "verbatim": "I hope you got what you needed."
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3126.56,
+      "segEnd": 3166.54,
+      "speaker": "Speaker 2",
+      "verbatim": "I'm glad I heard it myself."
+     }
+    ],
+    "utteranceIds": [
+     "u41",
+     "u42",
+     "u51"
+    ]
+   },
+   {
+    "id": "c0-m11",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 53.9,
+    "end": 3677.63,
+    "kind": "callback",
+    "why": "Angela opens by promising not to name names, then admits at the end that she has done so. It reframes the earlier confrontation and shows her self-awareness about her reputation.",
+    "themes": [
+     "t2",
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 53.9,
+      "segEnd": 548.12,
+      "speaker": "Angela",
+      "verbatim": "I'm going to try my best to not name names and just talk about the tactics"
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3630.43,
+      "segEnd": 3677.63,
+      "speaker": "Angela",
+      "verbatim": "I have set people's names in spaces."
+     }
+    ],
+    "utteranceIds": [
+     "u0",
+     "u61"
+    ]
+   },
+   {
+    "id": "c0-m12",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 53.9,
+    "end": 548.12,
+    "kind": "disagreement",
+    "why": "Angela presents recording law as a weapon in the feud: she says she recorded a call lawfully while the other party did not. It also underpins her broader claim that recordings protect her. The legal claim is hers and unchecked.",
+    "themes": [
+     "t3"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 53.9,
+      "segEnd": 548.12,
+      "speaker": "Angela",
+      "verbatim": "because I live in a one-party consent state. And you live in a two-party consent state."
+     }
+    ],
+    "utteranceIds": [
+     "u0"
+    ]
+   },
+   {
+    "id": "c0-m13",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 1832.04,
+    "end": 1898.22,
+    "kind": "emotional",
+    "why": "Sav's wish to 'cover my tracks' and to own her part is ambiguous: it can read as genuine accountability or as managing exposure. It is a strong ambivalence beat to leave open.",
+    "themes": [
+     "t4"
+    ],
+    "speakers": [
+     "Speaker 1"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 1832.04,
+      "segEnd": 1898.22,
+      "speaker": "Speaker 1",
+      "verbatim": "I just kind of want to cover my tracks, you know?"
+     }
+    ],
+    "utteranceIds": [
+     "u24"
+    ]
+   },
+   {
+    "id": "c0-m14",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 3167.1,
+    "end": 3278.97,
+    "kind": "revelation",
+    "why": "Angela explains why she stopped hosting open evidence spaces: she says they were infiltrated, and that sharing details risked others. It is a rare note of restraint amid the allegations.",
+    "themes": [
+     "t5",
+     "t1"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3167.1,
+      "segEnd": 3278.97,
+      "speaker": "Angela",
+      "verbatim": "we got infiltrated from the inside out"
+     },
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3167.1,
+      "segEnd": 3278.97,
+      "speaker": "Angela",
+      "verbatim": "I was indirectly putting other service members and potentially their kids' lives at risk just because I wanted answers."
+     }
+    ],
+    "utteranceIds": [
+     "u52"
+    ]
+   },
+   {
+    "id": "c0-m15",
+    "releaseTag": "20260908_1nGeLMjONkAKX",
+    "start": 3630.43,
+    "end": 3677.63,
+    "kind": "claim",
+    "why": "The closing line asks listeners to weigh both good and bad accounts of her and to review the evidence. It is the closest thing to a thesis on her own credibility.",
+    "themes": [
+     "t5"
+    ],
+    "speakers": [
+     "Angela"
+    ],
+    "evidence": [
+     {
+      "releaseTag": "20260908_1nGeLMjONkAKX",
+      "segStart": 3630.43,
+      "segEnd": 3677.63,
+      "speaker": "Angela",
+      "verbatim": "But you're going to hear bad things too. Believe them both."
+     }
+    ],
+    "utteranceIds": [
+     "u61"
+    ]
+   }
+  ],
+  "themes": [
+   {
+    "id": "t1",
+    "label": "The 'hook, line, sinker' thesis",
+    "summary": "Angela's framework: groups trauma-bond with survivors, collect data, suppress them and platform predators. The episode mostly illustrates it through a personal dispute.",
+    "momentIds": [
+     "c0-m1",
+     "c0-m3",
+     "c0-m7"
+    ]
+   },
+   {
+    "id": "t2",
+    "label": "Personal conflict versus the stated mission",
+    "summary": "Angela says she wants to discuss tactics, not names, but most of the space is an allegation-heavy confrontation with an absent person, Logan.",
+    "momentIds": [
+     "c0-m2",
+     "c0-m4",
+     "c0-m11"
+    ]
+   },
+   {
+    "id": "t3",
+    "label": "Evidence, deletion and surveillance claims",
+    "summary": "Claims about recordings, screenshots, a deleted space, hacking and consent laws. All are asserted, not shown, and the other party is absent.",
+    "momentIds": [
+     "c0-m4",
+     "c0-m5",
+     "c0-m12"
+    ]
+   },
+   {
+    "id": "t4",
+    "label": "Sav's ambivalence and the fawn dynamic",
+    "summary": "Sav seeks to clear her name and own her missteps, while Angela interprets her behaviour as a trauma response.",
+    "momentIds": [
+     "c0-m6",
+     "c0-m7",
+     "c0-m13"
+    ]
+   },
+   {
+    "id": "t5",
+    "label": "Whistleblower narrative and credibility",
+    "summary": "Angela's extraordinary family and government claims are delivered to a guest who leaves. She frames herself as a self-doxxed evidence trail and admits her reactivity.",
+    "momentIds": [
+     "c0-m8",
+     "c0-m9",
+     "c0-m10",
+     "c0-m11"
+    ]
+   }
+  ],
+  "chunks": [
+   {
+    "index": 0,
+    "ok": true
+   }
+  ]
+ }
+}

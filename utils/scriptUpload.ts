@@ -3,11 +3,261 @@
  * Parses user-uploaded script files (Markdown, Plain Text, JSON) into valid Segments,
  * Scenes, and Blocks (narration, pause, music cues). Also handles evidence context documents.
  */
-import type { Block, MusicCue, Scene, Segment, ScriptEvidenceDoc } from './scriptTypes';
+import type { Block, MusicCue, Scene, Segment, ScriptEvidenceDoc, StudioClip } from './scriptTypes';
 
 export interface ParseScriptOptions {
   idGenerator?: (prefix: string) => string;
   defaultTitle?: string;
+}
+
+export interface ParsedManuscriptClip {
+  clipNumber?: string;
+  clipId: string;
+  id?: string;
+  title: string;
+  spaceTitle?: string;
+  speaker: string;
+  time?: string;
+  timestamp?: string;
+  quote: string;
+  date?: string;
+  label?: string;
+  source?: string;
+  episodeStartSec?: number;
+  durationSec: number;
+  isInline: boolean;
+}
+
+/**
+ * Canonical clip tag:
+ * [CLIP #42 | Space Title, Alice 12:34 - "Quote"]
+ */
+export const CANONICAL_CLIP_REGEX =
+  /\[CLIP #(?<id>\d+)\s*\|\s*(?<title>[^,]+),\s*(?<speaker>[^0-9]+)\s+(?<time>\d+:\d+(?::\d+)?)\s*-\s*[“"](?<quote>[^”"]+)[”"]\]/gi;
+
+/**
+ * Inline speaker quote tag:
+ * [Angela 12:34 "Nobody will ever trace this back to us."]
+ */
+export const INLINE_QUOTE_REGEX =
+  /\[(?<speaker>[^0-9]+)\s+(?<time>\d+:\d+(?::\d+)?)\s+[“"](?<quote>[^”"]+)[”"]\]/gi;
+
+/**
+ * Legacy clip tag variant with dates/asterisks:
+ * [CLIP #42 | *Night Shift Space*, 2023-11-04, 02:15: Alice - "Quote"]
+ */
+export const LEGACY_CLIP_REGEX =
+  /\[CLIP\s*#?(?<id>\d+)\s*\|\s*(?:\*(?<space>[^*]+)\*|(?<space2>[^,]+)),\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/gi;
+
+export function parseTimeToSeconds(timeStr?: string): number {
+  if (!timeStr) return 0;
+  const cleaned = timeStr.trim().replace(/\s*[ap]m$/i, '');
+  const parts = cleaned.split(':').map(p => parseFloat(p));
+  if (parts.some(p => isNaN(p))) return 0;
+  if (parts.length === 3) return Math.round((parts[0] * 3600 + parts[1] * 60 + parts[2]) * 10) / 10;
+  if (parts.length === 2) return Math.round((parts[0] * 60 + parts[1]) * 10) / 10;
+  if (parts.length === 1) return parts[0];
+  return 0;
+}
+
+/**
+ * Scans text and extracts all canonical and inline speaker quote tags.
+ */
+export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape'): ParsedManuscriptClip[] {
+  if (!text || typeof text !== 'string') return [];
+  const results: ParsedManuscriptClip[] = [];
+  const matchedSpans: [number, number][] = [];
+
+  // 1. Match canonical tags
+  const canonicalRe = new RegExp(CANONICAL_CLIP_REGEX.source, 'gi');
+  let match: RegExpExecArray | null;
+  while ((match = canonicalRe.exec(text)) !== null) {
+    matchedSpans.push([match.index, match.index + match[0].length]);
+    const g = match.groups || {};
+    const id = g.id || '1';
+    const title = (g.title || defaultTitle).trim();
+    const speaker = (g.speaker || 'Unknown').trim();
+    const time = (g.time || '').trim();
+    const quote = (g.quote || '').trim();
+    const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+    const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+    results.push({
+      clipId: `clip_${id}`,
+      clipNumber: id,
+      title: `${title} (#${id})`,
+      spaceTitle: title,
+      speaker,
+      time,
+      quote,
+      episodeStartSec: parseTimeToSeconds(time),
+      durationSec,
+      isInline: false,
+    });
+  }
+
+  // 2. Match legacy tags (with date and asterisks)
+  const legacyRe = new RegExp(LEGACY_CLIP_REGEX.source, 'gi');
+  while ((match = legacyRe.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (matchedSpans.some(([s, e]) => !(end <= s || start >= e))) continue;
+    matchedSpans.push([start, end]);
+    const g = match.groups || {};
+    const id = g.id || '1';
+    const space = (g.space || g.space2 || defaultTitle).replace(/^\*|\*$/g, '').trim();
+    const date = (g.date || '').trim();
+    const time = (g.time || '').trim();
+    const speaker = (g.speaker || 'Unknown').trim();
+    const quote = (g.quote || '').trim();
+    const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+    const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+    results.push({
+      clipId: `clip_${id}`,
+      clipNumber: id,
+      title: `${space} (#${id})`,
+      spaceTitle: space,
+      date,
+      speaker,
+      time,
+      quote,
+      episodeStartSec: parseTimeToSeconds(time),
+      durationSec,
+      isInline: false,
+    });
+  }
+
+  // 3. Match inline speaker quotes
+  const inlineRe = new RegExp(INLINE_QUOTE_REGEX.source, 'gi');
+  while ((match = inlineRe.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (matchedSpans.some(([s, e]) => !(end <= s || start >= e))) continue;
+    matchedSpans.push([start, end]);
+    const g = match.groups || {};
+    const speaker = (g.speaker || 'Unknown').trim();
+    if (/^CLIP\b/i.test(speaker)) continue;
+    const time = (g.time || '').trim();
+    const quote = (g.quote || '').trim();
+    const speakerSlug = speaker.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'tape';
+    const timeSlug = time.replace(/[:.]/g, '_');
+    const clipId = `clip_${speakerSlug}_${timeSlug}`;
+    const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+    const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+    results.push({
+      clipId,
+      clipNumber: `${speakerSlug}_${timeSlug}`,
+      title: `${speaker} (${time})`,
+      spaceTitle: defaultTitle,
+      speaker,
+      time,
+      quote,
+      episodeStartSec: parseTimeToSeconds(time),
+      durationSec,
+      isInline: true,
+    });
+  }
+
+  return results;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Structured clip detection (Sync Clips)                                                          */
+/* ---------------------------------------------------------------------------------------------- */
+
+const normClipText = (v?: string) =>
+  (v || '').toLowerCase().replace(/[“”"'‘’]/g, '').replace(/\s+/g, ' ').trim();
+
+/**
+ * Stable identity for a manuscript clip: speaker + timestamp (in seconds) + quote.
+ * The same line is therefore never counted twice, whether it arrived as a clip block,
+ * a canonical tag, or an inline tag, and whatever clipId each form derived.
+ */
+export function clipDedupeKey(c: { speaker?: string; time?: string; episodeStartSec?: number; quote?: string; text?: string }): string {
+  const sec = c.time ? parseTimeToSeconds(c.time) : (c.episodeStartSec ?? 0);
+  return `${normClipText(c.speaker)}|${Math.round(sec || 0)}|${normClipText(c.quote ?? c.text)}`;
+}
+
+function asClipTimeString(v: unknown): string | undefined {
+  if (typeof v === 'string' && v.trim()) return v.trim();
+  if (typeof v === 'number' && Number.isFinite(v) && v >= 0) {
+    const t = Math.round(v);
+    const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60;
+    return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${m}:${String(sec).padStart(2, '0')}`;
+  }
+  return undefined;
+}
+
+/** A clip block, or any clip-like item: type "clip", or speaker + time/timestamp + quote/text. */
+export function isClipLike(item: any): boolean {
+  if (!item || typeof item !== 'object') return false;
+  const kind = String(item.kind ?? '').toLowerCase();
+  const type = String(item.type ?? '').toLowerCase();
+  if (kind === 'clip' || type === 'clip' || type === 'archival_clip') return true;
+  const spk = item.speaker || item.quoteSpeaker || item.speakerName;
+  const quote = item.keptText ?? item.quote ?? item.text;
+  return !!spk && (item.time != null || item.timestamp != null) && typeof quote === 'string' && quote.trim().length > 0;
+}
+
+const CLIP_SUB_ITEM_KEYS = ['pills', 'quotes', 'clips', 'items', 'children'] as const;
+
+export interface ClipsFromBlockOptions {
+  sceneId: string;
+  index: number;
+  /** The project's Clip Bin, used to fill in speaker/text/start time a block does not carry itself. */
+  clipsById?: Record<string, StudioClip | undefined>;
+}
+
+/**
+ * Collects clips stored as structured data rather than as bracketed text.
+ * The editor draws EVERY `kind: 'clip'` block as an archival clip card, so every one counts here,
+ * including blocks written by the drafting engine that carry no `type` or `clipNumber`.
+ * Also reads clip-like items (and clip-like sub-items in clips/quotes/pills/items/children) so that
+ * `time`/`timestamp` and `quote`/`text`/`keptText` spellings all work.
+ */
+export function clipsFromBlock(block: unknown, opts: ClipsFromBlockOptions): ParsedManuscriptClip[] {
+  const out: ParsedManuscriptClip[] = [];
+  const visit = (item: any, idx: string, depth: number) => {
+    if (!item || typeof item !== 'object' || depth > 3) return;
+    if (isClipLike(item)) {
+      const clipId = String(item.clipId || item.id || `c_${opts.sceneId}_${idx}`);
+      const known = opts.clipsById?.[clipId];
+      const speaker = String(item.speaker || item.quoteSpeaker || item.speakerName || known?.speaker || 'Unknown').trim() || 'Unknown';
+      const time = asClipTimeString(item.time ?? item.timestamp);
+      const quote = String(item.keptText ?? item.quote ?? item.text ?? known?.text ?? '').trim();
+      const num = item.clipNumber ? String(item.clipNumber) : undefined;
+      const span = Number(item.outSec) - Number(item.inSec);
+      const words = quote.split(/\s+/).filter(Boolean).length;
+      const durationSec = Number.isFinite(span) && span > 0
+        ? Math.max(1.5, span)
+        : Math.max(1.5, known?.durationSec ?? Math.round(((words / 155) * 60) * 10) / 10);
+      const title = item.spaceTitle
+        ? (num ? `${item.spaceTitle} (#${num})` : String(item.spaceTitle))
+        : (known?.title || (speaker !== 'Unknown' && time ? `${speaker} (${time})` : num ? `Clip #${num}` : `Clip ${clipId}`));
+      out.push({
+        clipId,
+        id: item.id || clipId,
+        clipNumber: num,
+        title,
+        spaceTitle: item.spaceTitle ? String(item.spaceTitle) : undefined,
+        date: item.date ? String(item.date) : undefined,
+        speaker,
+        time,
+        timestamp: time,
+        quote,
+        label: item.label || `${speaker} (${time || '0:00'})`,
+        source: item.source || 'manuscript_extracted',
+        episodeStartSec: time ? parseTimeToSeconds(time) : known?.episodeStartSec,
+        durationSec,
+        isInline: false,
+      });
+    }
+    for (const key of CLIP_SUB_ITEM_KEYS) {
+      const arr = item[key];
+      if (Array.isArray(arr)) arr.forEach((sub, i) => visit(sub, `${idx}_${i}`, depth + 1));
+    }
+  };
+  visit(block, String(opts.index), 0);
+  return out;
 }
 
 const defaultIdGen = (prefix: string) =>
@@ -345,21 +595,62 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
     }
 
     // 3. Archival Tape / Broadcast Clips (`type: "ARCHIVAL_CLIP"`)
-    // Match: ^\[CLIP #(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*"(?<quote>[^"]+)"\]
-    const clipMatch =
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?)\s*:\s*(?<speaker>[^-]+)-\s*"(?<quote>[^"]+)"\]/i.exec(line) ||
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*"(?<quote>[^"]+)"\]/i.exec(line) ||
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*(?<space>[^,]+),\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*"(?<quote>[^"]+)"\]/i.exec(line);
+    // Match Canonical: [CLIP #(?<id>\d+)\s*\|\s*(?<title>[^,]+),\s*(?<speaker>[^0-9]+)\s+(?<time>\d+:\d+(?::\d+)?)\s*-\s*[“"](?<quote>[^”"]+)[”"]\]
+    // Match Legacy: [CLIP #42 | *Night Shift Space*, 2023-11-04, 02:15: Alice - "Quote"]
+    // Match Inline quote: [(?<speaker>[A-Za-z0-9_ ]+)\s+(?<time>\d+:\d+(?::\d+)?)\s+[“"](?<quote>[^”"]+)[”"]\]
+    const canonicalClipRe = new RegExp(`^${CANONICAL_CLIP_REGEX.source}$`, 'i');
+    const legacyClipRe = new RegExp(`^${LEGACY_CLIP_REGEX.source}$`, 'i');
+    const inlineQuoteRe = new RegExp(`^${INLINE_QUOTE_REGEX.source}$`, 'i');
 
-    if (clipMatch) {
+    const canonicalMatch = canonicalClipRe.exec(line);
+    const legacyMatch = !canonicalMatch ? (
+      legacyClipRe.exec(line) ||
+      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?)\s*:\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
+      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
+      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*(?<space>[^,]+),\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line)
+    ) : null;
+    const inlineQuoteMatch = (!canonicalMatch && !legacyMatch) ? inlineQuoteRe.exec(line) : null;
+
+    if (canonicalMatch) {
       flushParagraph();
       ensureContext();
-      const g = clipMatch.groups || {};
+      const g = canonicalMatch.groups || {};
       const id = g.id || '1';
-      const space = (g.space || '').replace(/^\*|\*$/g, '').trim();
+      const space = (g.title || opts.defaultTitle || 'Archival Tape').trim();
+      const time = (g.time || '').trim();
+      const speaker = (g.speaker || 'Unknown').trim();
+      const quote = (g.quote || '').trim();
+      const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+      const durSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'clip',
+        type: 'ARCHIVAL_CLIP',
+        clipId: `clip_${id}`,
+        clipNumber: id,
+        spaceTitle: space,
+        time,
+        speaker,
+        keptText: quote,
+        inSec: 0,
+        outSec: durSec,
+        trimBasis: 'full',
+        fn: 'evidence',
+        rationale: `Archival tape clip from ${space}`,
+        locked: false,
+      });
+      continue;
+    }
+
+    if (legacyMatch) {
+      flushParagraph();
+      ensureContext();
+      const g = legacyMatch.groups || {};
+      const id = g.id || '1';
+      const space = (g.space || g.space2 || opts.defaultTitle || 'Archival Tape').replace(/^\*|\*$/g, '').trim();
       const date = (g.date || '').trim();
       const time = (g.time || '').trim();
-      const speaker = (g.speaker || '').trim();
+      const speaker = (g.speaker || 'Unknown').trim();
       const quote = (g.quote || '').trim();
       const wordsCount = quote.split(/\s+/).filter(Boolean).length;
       const durSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
@@ -379,6 +670,38 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
         trimBasis: 'full',
         fn: 'evidence',
         rationale: `Archival tape clip from ${space || 'catalog'}`,
+        locked: false,
+      });
+      continue;
+    }
+
+    if (inlineQuoteMatch) {
+      flushParagraph();
+      ensureContext();
+      const g = inlineQuoteMatch.groups || {};
+      const speaker = (g.speaker || 'Unknown').trim();
+      const time = (g.time || '').trim();
+      const quote = (g.quote || '').trim();
+      const speakerSlug = speaker.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'tape';
+      const timeSlug = time.replace(/[:.]/g, '_');
+      const clipId = `clip_${speakerSlug}_${timeSlug}`;
+      const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+      const durSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'clip',
+        type: 'ARCHIVAL_CLIP',
+        clipId,
+        clipNumber: `${speakerSlug}_${timeSlug}`,
+        spaceTitle: opts.defaultTitle || 'Archival Tape',
+        time,
+        speaker,
+        keptText: quote,
+        inSec: 0,
+        outSec: durSec,
+        trimBasis: 'full',
+        fn: 'evidence',
+        rationale: `Inline archival quote from ${speaker} (${time})`,
         locked: false,
       });
       continue;

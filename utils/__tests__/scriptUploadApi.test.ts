@@ -195,4 +195,72 @@ The reaction was immediate and loud.`;
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.project.googleDriveFolderUrl).toBe('https://drive.google.com/drive/folders/new_folder_id');
   });
+
+  it('persists clips into project through /project/update and retrieves them on /project', async () => {
+    // 1. Create a project
+    const uploadRes = await callApi('POST', '/project/upload-script', {
+      title: 'Clip Persistence Test Project',
+      releaseTags: ['20240915_test_ep'],
+      scriptText: 'Logan: Testing clip persistence.',
+    });
+    expect(uploadRes.status).toBe(201);
+    const projectId = uploadRes.body.project.id;
+    expect(uploadRes.body.project.clips).toHaveLength(0);
+
+    // 2. Call /project/update with synced clips
+    const newClips = [
+      {
+        id: 'clip_1700000000000_0',
+        clipId: 'clip_1700000000000_0',
+        speaker: 'Angela',
+        timestamp: '12:34',
+        time: '12:34',
+        quote: 'Nobody will ever trace this back to us.',
+        text: 'Nobody will ever trace this back to us.',
+        label: 'Angela (12:34)',
+        source: 'manuscript_extracted',
+        title: 'Angela (12:34)',
+        releaseTag: '20240915_test_ep',
+        audioUrl: '',
+        durationSec: 5.2,
+        episodeStartSec: 754,
+        fn: 'evidence',
+      },
+      {
+        id: 'clip_1700000000000_1',
+        clipId: 'clip_1700000000000_1',
+        speaker: 'Logan',
+        timestamp: '05:20',
+        time: '05:20',
+        quote: 'We need to verify this right now.',
+        text: 'We need to verify this right now.',
+        label: 'Logan (05:20)',
+        source: 'manuscript_extracted',
+        title: 'Logan (05:20)',
+        releaseTag: '20240915_test_ep',
+        audioUrl: '',
+        durationSec: 3.5,
+        episodeStartSec: 320,
+        fn: 'evidence',
+      },
+    ];
+
+    const updateRes = await callApi('POST', '/project/update', {
+      id: projectId,
+      clips: newClips,
+    });
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body.project.clips).toHaveLength(2);
+    expect(updateRes.body.project.clips[0].speaker).toBe('Angela');
+    expect(updateRes.body.project.clips[0].source).toBe('manuscript_extracted');
+    expect(updateRes.body.project.clips[1].speaker).toBe('Logan');
+
+    // 3. Fetch project and verify persistence from disk
+    const getRes = await callApi('GET', `/project?id=${encodeURIComponent(projectId)}`);
+    expect(getRes.status).toBe(200);
+    expect(getRes.body.project.clips).toHaveLength(2);
+    expect(getRes.body.project.clips[0].clipId).toBe('clip_1700000000000_0');
+    expect(getRes.body.project.clips[0].label).toBe('Angela (12:34)');
+    expect(getRes.body.project.clips[1].clipId).toBe('clip_1700000000000_1');
+  });
 });

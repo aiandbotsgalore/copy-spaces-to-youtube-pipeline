@@ -80,7 +80,8 @@ export function HandoffPanel({ projectId, headVersionId, sourceTags, act, dirty,
                   <div key={c.versionId} className="rounded border border-slate-800 p-1.5 space-y-1">
                     <div className="flex items-center gap-1"><span className="font-medium text-slate-100">{c.label}</span><span className="text-slate-500">{c.versionId}</span>{view?.loganDecision && <span className="text-indigo-300">you: {view.loganDecision}</span>}</div>
                     {c.summary && <div className="text-slate-300">{c.summary}</div>}
-                    {c.failures?.map((f, i) => <div key={i} className="text-amber-300">• {f}</div>)}
+                    {c.failures?.map((f, i) => <div key={i} className="text-rose-300">• {f}</div>)}
+                    {c.warnings?.map((w, i) => <div key={i} className="text-amber-300">• {w}</div>)}
                     <div className="text-slate-400">Not judged in the app.</div>
                     {view && <DiffView diff={view.diff} />}
                     {view && !view.loganDecision && (

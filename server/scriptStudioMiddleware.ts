@@ -72,7 +72,7 @@ import {
 } from './scriptHandoff';
 import { PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
-import { parseUploadedScript } from '../utils/scriptUpload';
+import { parseUploadedScript, parseTimeToSeconds } from '../utils/scriptUpload';
 import { fetchGoogleDriveEvidence } from './googleDriveService';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
 import type { AsyncSynth } from './voxSynthesize';
@@ -410,6 +410,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         p.format = body.format as EpisodeFormat | null;
       }
       if (body.targetRuntimeSec !== undefined) p.targetRuntimeSec = Math.max(30, Math.min(4 * 3600, Number(body.targetRuntimeSec) || p.targetRuntimeSec));
+      if (body.runtimeTolerance !== undefined) {
+        const tol = Number(body.runtimeTolerance);
+        p.runtimeTolerance = Number.isFinite(tol) && tol >= 0 ? Math.min(2.0, tol) : undefined;
+      }
       if (body.speakerNames !== undefined) p.speakerNames = sanitizeNames(body.speakerNames);
       if (typeof body.title === 'string') p.title = body.title.slice(0, 200);
       if (typeof body.thesis === 'string') p.thesis = body.thesis.trim().slice(0, 500) || undefined;
@@ -420,6 +424,24 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         const rm = new Set(body.removeClipIds.map(String));
         for (const c of p.clips) if (rm.has(c.clipId)) p.excludedClips.push({ clipId: c.clipId, reason: 'Removed by Logan.' });
         p.clips = p.clips.filter(c => !rm.has(c.clipId));
+      }
+      if (Array.isArray(body.clips)) {
+        if (!Array.isArray(p.clips)) p.clips = [];
+        const existingMap = new Map(p.clips.map(c => [c.clipId || (c as any).id, c]));
+        for (const c of body.clips) {
+          if (!c) continue;
+          const cid = String(c.clipId || c.id || '');
+          if (!cid) continue;
+          c.clipId = cid;
+          c.id = cid;
+          const existing = existingMap.get(cid);
+          if (existing) {
+            Object.assign(existing, c);
+          } else {
+            p.clips.push(c);
+            existingMap.set(cid, c);
+          }
+        }
       }
       if (Array.isArray(body.retagClips)) {
         for (const t of body.retagClips) {
@@ -520,6 +542,34 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       }
 
       const parsed = parseUploadedScript(scriptText, { idGenerator: newId, defaultTitle: p.title });
+
+      // Automatically register any archival clips found in the parsed script into the project's Clip Bin (p.clips)
+      const existingClips = new Map(p.clips.map(c => [c.clipId, c]));
+      for (const seg of parsed) {
+        for (const sc of seg.scenes) {
+          for (const b of sc.blocks) {
+            if (b.kind === 'clip' && (b.type === 'ARCHIVAL_CLIP' || b.clipNumber)) {
+              if (!existingClips.has(b.clipId)) {
+                const newClip: StudioClip = {
+                  clipId: b.clipId,
+                  title: b.spaceTitle ? `${b.spaceTitle} (#${b.clipNumber || b.clipId.replace(/^clip_/, '')})` : (b.speaker && b.time ? `${b.speaker} (${b.time})` : `Clip ${b.clipId}`),
+                  speaker: b.speaker || 'Tape',
+                  releaseTag: p.sourceTags[0] || 'catalog',
+                  audioUrl: '',
+                  durationSec: Math.max(1.5, b.outSec - b.inSec || 5),
+                  text: b.keptText || '',
+                  episodeStartSec: b.time ? parseTimeToSeconds(b.time) : undefined,
+                  fn: 'evidence',
+                  fnRationale: 'Parsed from uploaded script',
+                };
+                p.clips.push(newClip);
+                existingClips.set(b.clipId, newClip);
+              }
+            }
+          }
+        }
+      }
+
       const segments = withTakes(validateSegments(parsed, p));
       const v: ScriptVersion = {
         id: newId('v'),
@@ -752,7 +802,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const cand = getVersion(p, body?.candidateId);
       const decision = body?.decision === 'accept' ? 'accept' : body?.decision === 'reject' ? 'reject' : null;
       if (!decision) throw new StepError('BAD_REQUEST', 'decision must be accept or reject.');
-      if (!cand.decision) cand.decision = { candidateId: cand.id, baselineId: cand.parentId || '', round: -1, promptVersion: 'manual', gates: { factual: 'pass', faithful: 'pass', locksIntact: true, clipBoundsOk: true, runtimeOk: true, failures: [] }, loopAccepted: false };
+      if (!cand.decision) cand.decision = { candidateId: cand.id, baselineId: cand.parentId || '', round: -1, promptVersion: 'manual', gates: { factual: 'pass', faithful: 'pass', locksIntact: true, clipBoundsOk: true, runtimeOk: true, failures: [], warnings: [] }, loopAccepted: false };
       cand.decision.loganDecision = decision;
       store.saveVersion(cand);
       const parent = cand.parentId ? store.getVersion(p.id, cand.parentId) : null;
@@ -878,7 +928,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
           const label = `Grok Bot: ${String(c?.label || 'candidate')}`;
           const r = await engine.importCandidate(p, base, Array.isArray(c?.scenes) ? c.scenes : [], { label, promptVersion: `${PROMPT_VERSIONS.handoff}:${rec.kind}` });
           summary.candidates.push(r.ok
-            ? { label, summary: String(c?.summary || '').slice(0, 1000), versionId: r.version.id, gatesOk: r.gates.ok, failures: r.gates.failures }
+            ? { label, summary: String(c?.summary || '').slice(0, 1000), versionId: r.version.id, gatesOk: r.gates.ok, failures: r.gates.failures, warnings: r.gates.warnings }
             : { label, summary: String(c?.summary || '').slice(0, 1000), error: r.reason });
         }
       }

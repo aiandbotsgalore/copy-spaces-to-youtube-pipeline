@@ -1,0 +1,139 @@
+{
+ "namedLabels": [
+  "Logan",
+  "Angela"
+ ],
+ "board": {
+  "quotes": 37,
+  "verified": 36
+ },
+ "A": {
+  "calls": 3,
+  "seconds": 113,
+  "tapeBlocks": 15,
+  "tapeSec": 116,
+  "narrationSec": 267,
+  "pauseSec": 3,
+  "originalAudioPct": 30,
+  "runtimeSec": 385,
+  "verbatim": {
+   "tape": "15/15",
+   "narratedQuotes": "2/2",
+   "claims": "13/13",
+   "failures": []
+  },
+  "attributionFlags": [
+   {
+    "scene": 1,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": "The reply comes from an unidentified speaker, labeled Speaker 1."
+   },
+   {
+    "scene": 1,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": " Speaker 1 says Angela offered to post photos."
+   },
+   {
+    "scene": 1,
+    "kind": "tape intro names another speaker",
+    "said": "Speaker 1 at 0:07:05 (u13)",
+    "script": "Speaker 1 says Angela offered to post photos."
+   },
+   {
+    "scene": 1,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": " This is another unidentified speaker, labeled Speaker 8, and the account is that speaker's own."
+   },
+   {
+    "scene": 1,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": " What the recording holds is a transcript read second hand, a paraphrase from Speaker 1, and one listener's recollection."
+   },
+   {
+    "scene": 3,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": " One unidentified speaker, labelled Speaker 2, offers a theory about who Angela really is."
+   },
+   {
+    "scene": 3,
+    "kind": "narrated quote",
+    "said": "Speaker 4 at 3:03:41 (u880)",
+    "script": "Logan's answer, in his own words: \"I told her that, like, please sue me.\" The advice does not stop there."
+   },
+   {
+    "scene": 3,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": " Another unidentified speaker, Speaker 2, has a shorter route."
+   },
+   {
+    "scene": 3,
+    "kind": "raw label in narration",
+    "said": "",
+    "script": "What does Angela plan next? One unidentified speaker, Speaker 10, says she has already told the room."
+   }
+  ],
+  "duplicates": [],
+  "crossSceneRepeats": [],
+  "appGateFailures": [
+   "Narration b_mvsr1e3d507aaacb rests on one source (Speaker 7) but does not attribute it (\"according to\", \"alleges\", ...).",
+   "Narration b_mvsr1e3e6d206d64 rests on one source (Logan) but does not attribute it (\"according to\", \"alleges\", ...).",
+   "Investigative: narration b_mvsr1e3d507aaacb rests on one source without attribution wording.",
+   "Investigative: narration b_mvsr1e3e6d206d64 rests on one source without attribution wording.",
+   "Runtime 490s (estimated) is not within 10% of the 300s target."
+  ]
+ },
+ "C": {
+  "calls": 1,
+  "seconds": 72,
+  "tapeBlocks": 15,
+  "tapeSec": 113,
+  "narrationSec": 201,
+  "pauseSec": 3,
+  "originalAudioPct": 36,
+  "runtimeSec": 316,
+  "verbatim": {
+   "tape": "15/15",
+   "narratedQuotes": "5/5",
+   "claims": "7/7",
+   "failures": []
+  },
+  "attributionFlags": [
+   {
+    "scene": 3,
+    "kind": "narrated quote",
+    "said": "Speaker 4 at 3:03:41 (u880)",
+    "script": "Logan's answer, in his own words: \"I told her that, like, please sue me.\" Another unidentified speaker has a shorter fix."
+   },
+   {
+    "scene": 3,
+    "kind": "tape intro names another speaker",
+    "said": "Speaker 2 at 3:06:00 (u895)",
+    "script": "Logan's answer, in his own words: \"I told her that, like, please sue me.\" Another unidentified speaker has a shorter fix."
+   },
+   {
+    "scene": 3,
+    "kind": "tape intro names another speaker",
+    "said": "Speaker 10 at 2:16:18 (u664)",
+    "script": "An unidentified speaker describes what Angela is said to have planned."
+   }
+  ],
+  "duplicates": [
+   {
+    "scenes": "2->2",
+    "kinds": "tape/narrated",
+    "shared": 4,
+    "text": "Yes. It's insane. It's fucking the same imperative reasoning. Um, you guys are trying to stop me from telling "
+   }
+  ],
+  "crossSceneRepeats": [],
+  "appGateFailures": [
+   "Runtime 422s (estimated) is not within 10% of the 300s target."
+  ]
+ }
+}
