@@ -157,6 +157,7 @@ def patch_wav2lip(repo_dir: Path):
                 "np.float": "float",
                 "np.int": "int",
                 "checkpoint = torch.load(checkpoint_path)": "checkpoint = torch.load(checkpoint_path, weights_only=False)",
+                "librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels,": "librosa.filters.mel(sr=hp.sample_rate, n_fft=hp.n_fft, n_mels=hp.num_mels,",
             }.items():
                 if old in content:
                     content = content.replace(old, new)
