@@ -10,6 +10,8 @@ on:
       - 'App.tsx'
       - 'components/TranscriptPanel.tsx'
       - 'components/transcript/**'
+      - 'e2e/**'
+      - 'playwright.transcripts.config.ts'
       - '.github/workflows/transcript-workbench.yml'
 
 permissions:
