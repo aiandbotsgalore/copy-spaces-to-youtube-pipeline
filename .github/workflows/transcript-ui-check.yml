@@ -1,0 +1,26 @@
+name: Approved transcript UI checks
+
+on:
+  push:
+    branches:
+      - design/approved-modular-transcripts-20261028
+  pull_request:
+    paths:
+      - 'App.tsx'
+      - 'components/TranscriptPanel.tsx'
+      - 'components/transcript/**'
+      - '.github/workflows/transcript-ui-check.yml'
+
+jobs:
+  validate-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
