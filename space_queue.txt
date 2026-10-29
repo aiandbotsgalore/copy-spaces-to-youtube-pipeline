@@ -1,1 +1,1 @@
-# Add Twitter/X Spaces or YouTube URLs below to queue them for processing
+# SpacePipe: paste a URL here and commit to trigger the pipeline

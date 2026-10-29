@@ -92,8 +92,6 @@ jobs:
           SPEAKER_SEGMENTS_JSON: ${{ inputs.speaker_segments_json || '[]' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
-          TARGET_RELEASE_TAG: ${{ inputs.target_release_tag }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "[*] Injecting environment bootstrap into Kaggle EchoMimic worker..."
           cat << 'EOF' > scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
@@ -106,9 +104,6 @@ jobs:
           os.environ["SPEAKER_SEGMENTS_JSON"] = '''${{ inputs.speaker_segments_json || '[]' }}'''
           os.environ["PROMPT"] = "${{ inputs.prompt }}"
           os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
-          os.environ["TARGET_RELEASE_TAG"] = "${{ inputs.target_release_tag }}"
-          os.environ["GH_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
-          os.environ["GITHUB_REPOSITORY"] = "${{ github.repository }}"
           EOF
 
           cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py > scripts/kaggle_worker/echomimic_pkg/worker_final.py
@@ -186,6 +181,14 @@ jobs:
             exit 1
           fi
 
+      - name: Upload cloud failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: talking-avatar-failure-${{ github.run_id }}
+          path: kaggle_logs/**
+          if-no-files-found: ignore
+
       - name: Download Rendered Talking Avatar Video
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
@@ -197,7 +200,8 @@ jobs:
             --output-dir ./kaggle_avatar_out \
             --attempts 7 \
             --base-delay 5 \
-            --require-mp4
+            --require-mp4 \
+            --require-motion-report
 
           echo "[*] Rendered output contents:"
           find kaggle_avatar_out -maxdepth 3 -type f -printf '%p (%s bytes)\n'
@@ -208,3 +212,17 @@ jobs:
           name: talking-avatar-short
           path: kaggle_avatar_out/**/*.mp4
           if-no-files-found: error
+
+      - name: Publish combined MP4 for direct viewing
+        if: ${{ inputs.target_release_tag != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.target_release_tag }}"
+          FILE="kaggle_avatar_out/avatar_output/talking_avatar_short.mp4"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "Spaces Live Stage talking-avatar test" \
+              --notes "Cloud-only five-speaker talking-avatar test."
+          gh release upload "$TAG" "$FILE" --repo "$GITHUB_REPOSITORY" --clobber

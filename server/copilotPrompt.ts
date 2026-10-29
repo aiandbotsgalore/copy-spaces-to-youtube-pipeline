@@ -235,7 +235,7 @@ GUIDELINES FOR AUDIO PRODUCTION & APP ASSISTANCE:
     if (context.archiveStats) {
       prompt += `\nTRANSCRIPT ARCHIVE COUNTS (numbers only; you have not read these transcripts):`;
       prompt += `\n- Total episodes: ${context.archiveStats.totalEpisodes}`;
-      prompt += `\n- Transcripts on disk (searchable via SEARCH_TRANSCRIPTS): ${context.archiveStats.totalTranscriptsOnDisk}`;
+      prompt += `\n- Transcripts on disk (searchable via SEARCH_TRANSCRIPTS): ${context.archiveStats.totalTranscriptsOnDisk} (1 per episode)`;
       if (context.archiveStats.allSpeakersSample?.length) {
         prompt += `\n- Sample Prominent Recurring Speakers: ${context.archiveStats.allSpeakersSample.join(', ')}`;
       }
