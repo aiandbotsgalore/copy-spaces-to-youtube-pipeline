@@ -48,6 +48,18 @@ on:
         description: 'Optional GitHub release tag to attach finished video'
         required: false
         default: ''
+      renderer_mode:
+        description: 'Renderer selection (legacy remains the production default)'
+        required: false
+        default: 'legacy'
+        type: choice
+        options:
+          - 'legacy'
+          - 'smart'
+      manifest_json:
+        description: 'Validated speaker-aware timeline manifest for smart mode; metadata and media references only'
+        required: false
+        default: ''
 
 concurrency:
   group: echomimic-avatar
@@ -92,8 +104,29 @@ jobs:
           SPEAKER_SEGMENTS_JSON: ${{ inputs.speaker_segments_json || '[]' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
+          RENDERER_MODE: ${{ inputs.renderer_mode || 'legacy' }}
+          MANIFEST_JSON: ${{ inputs.manifest_json || '' }}
         run: |
           echo "[*] Injecting environment bootstrap into Kaggle EchoMimic worker..."
+          if [ "$RENDERER_MODE" = "smart" ]; then
+            if [ -z "$MANIFEST_JSON" ]; then
+              echo "[!] Smart renderer requires manifest_json." >&2
+              exit 1
+            fi
+            printf '%s' "$MANIFEST_JSON" | base64 -w0 > scripts/kaggle_worker/echomimic_pkg/manifest.json.b64
+            python - <<'PY'
+          import base64
+          from pathlib import Path
+          encoded = Path('scripts/kaggle_worker/echomimic_pkg/manifest.json.b64').read_bytes()
+          Path('scripts/kaggle_worker/echomimic_pkg/manifest.json').write_bytes(base64.b64decode(encoded))
+          PY
+            python scripts/avatar_pipeline.py --validate scripts/kaggle_worker/echomimic_pkg/manifest.json
+            cp scripts/avatar_pipeline.py scripts/kaggle_worker/echomimic_pkg/avatar_pipeline.py
+            cp scripts/kaggle_worker/echomimic_pkg/smart_avatar_worker.py scripts/kaggle_worker/echomimic_pkg/worker_entry.py
+            WORKER_FILE=scripts/kaggle_worker/echomimic_pkg/worker_entry.py
+          else
+            WORKER_FILE=scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py
+          fi
           cat << 'EOF' > scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
           import os
           os.environ["SPEECH_AUDIO"] = "${{ inputs.audio_url }}"
@@ -104,9 +137,11 @@ jobs:
           os.environ["SPEAKER_SEGMENTS_JSON"] = '''${{ inputs.speaker_segments_json || '[]' }}'''
           os.environ["PROMPT"] = "${{ inputs.prompt }}"
           os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
+          os.environ["RENDERER_MODE"] = "${{ inputs.renderer_mode || 'legacy' }}"
+          os.environ["JOB_MANIFEST_PATH"] = "/kaggle/working/manifest.json"
           EOF
 
-          cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py > scripts/kaggle_worker/echomimic_pkg/worker_final.py
+          cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py "$WORKER_FILE" > scripts/kaggle_worker/echomimic_pkg/worker_final.py
           mv scripts/kaggle_worker/echomimic_pkg/worker_final.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py
           rm -f scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
 
