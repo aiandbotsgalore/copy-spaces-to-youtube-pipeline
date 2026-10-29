@@ -6,7 +6,12 @@
   "profiles": {
     "Logan": {
       "name": "Logan",
+      "role": "Host",
       "sample_count": 5,
+      "avatar_emoji": "🎙️",
+      "color": "indigo",
+      "notes": "Primary show host. Deep resonant vocal tone with rapid cadence.",
+      "last_updated": "2026-09-08T10:18:19Z",
       "embedding": [
         -0.0006789129110984504,
         0.04604452848434448,
@@ -200,12 +205,16 @@
         0.02921064756810665,
         -0.0969914048910141,
         -0.01298720296472311
-      ],
-      "last_updated": "2026-09-08T10:18:19Z"
+      ]
     },
     "Oor": {
       "name": "Oor",
+      "role": "Speaker",
       "sample_count": 7,
+      "avatar_emoji": "⚡",
+      "color": "sky",
+      "notes": "Frequent speaker and collaborator.",
+      "last_updated": "2026-10-16T16:39:42Z",
       "embedding": [
         0.15066704154014587,
         0.12930206954479218,
@@ -399,13 +408,16 @@
         -0.05949985980987549,
         0.11088081449270248,
         0.0032298758160322905
-      ],
-      "last_updated": "2026-10-16T16:39:42Z",
-      "role": "Speaker"
+      ]
     },
     "Eric Hecker": {
       "name": "Eric Hecker",
+      "role": "Special Guest",
       "sample_count": 2,
+      "avatar_emoji": "🛸",
+      "color": "emerald",
+      "notes": "Featured recurring guest on space missions and technical topics.",
+      "last_updated": "2026-09-08T10:18:19Z",
       "embedding": [
         -0.08091878890991211,
         0.09695874154567719,
@@ -600,12 +612,15 @@
         0.05833668261766434,
         0.0797940194606781
       ],
-      "last_updated": "2026-09-08T10:18:19Z"
+      "avatar_url": "https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/eric_hecker.jpg"
     },
     "Angela": {
       "name": "Angela",
       "role": "Speaker",
       "sample_count": 5,
+      "avatar_emoji": "🎙️",
+      "color": "rose",
+      "notes": "Host and moderator. Distinct, clear conversational voice.",
       "last_updated": "2026-10-16T05:47:55Z",
       "embedding": [
         -0.03331497311592102,
@@ -1081,7 +1096,7 @@
         0.006469089072197676,
         -0.009320605546236038,
         -0.09077505022287369,
-        9.629377746023238e-05,
+        0.00009629377746023238,
         0.06907134503126144,
         -0.05418793484568596,
         0.05968919023871422,
@@ -1166,7 +1181,7 @@
         -0.04679545387625694,
         -0.04849490523338318,
         0.021335862576961517,
-        -9.086466889129952e-05,
+        -0.00009086466889129952,
         -0.0161496140062809,
         0.025305552408099174,
         -0.06921582669019699,
@@ -1236,7 +1251,7 @@
         0.04703756794333458,
         -0.19788669049739838,
         -0.1043488085269928,
-        7.501134678022936e-05,
+        0.00007501134678022936,
         -0.0059992289170622826,
         -0.05738537758588791,
         0.02139360085129738,
@@ -1768,7 +1783,7 @@
         -0.1302686333656311,
         -0.026365911588072777,
         -0.02515185810625553,
-        9.320316894445568e-05,
+        0.00009320316894445568,
         -0.0011004331754520535,
         -0.033886395394802094,
         -0.0007821585168130696,
@@ -2263,7 +2278,7 @@
         -0.16972705721855164,
         -0.04213054105639458,
         -0.05028130114078522,
-        6.756374932592735e-05,
+        0.00006756374932592735,
         0.0074738492257893085,
         0.05149935930967331,
         0.07879307866096497,
@@ -2400,6 +2415,33 @@
       ],
       "last_updated": "2026-10-17T19:28:26Z",
       "role": "Speaker"
+    },
+    "Mary": {
+      "name": "Mary",
+      "role": "Co-Host",
+      "sample_count": 1,
+      "avatar_emoji": "👩‍🎨",
+      "color": "purple",
+      "notes": "Regular co-host and contributor.",
+      "last_updated": "2026-09-15T14:30:00Z"
+    },
+    "Shane": {
+      "name": "Shane",
+      "role": "Co-Host",
+      "sample_count": 1,
+      "avatar_emoji": "🎧",
+      "color": "amber",
+      "notes": "Audio co-host and community moderator.",
+      "last_updated": "2026-09-10T12:00:00Z"
+    },
+    "Rick Doty": {
+      "name": "Rick Doty",
+      "role": "Special Guest",
+      "sample_count": 1,
+      "avatar_emoji": "🛸",
+      "color": "emerald",
+      "notes": "Special guest on historical and investigative episodes.",
+      "last_updated": "2026-09-12T18:00:00Z"
     }
   }
 }
