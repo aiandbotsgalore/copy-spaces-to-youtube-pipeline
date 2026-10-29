@@ -96,7 +96,7 @@ export const scriptApi = {
   retagClip: (id: string, clipId: string, fn: string | null) => call<{ project: ScriptProject }>('POST', '/project/update', { id, retagClips: [{ clipId, fn }] }),
   outline: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion }>('POST', '/outline', { projectId, ...roles }),
   draft: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion; gates: GateResult; style: { built: boolean; warning?: string } }>('POST', '/draft', { projectId, ...roles, renames: transcriptViewerRenames() }),
-  saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult }>('POST', '/version', { projectId, parentId, segments, label }),
+  saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult & { ok?: boolean }; headMoved: boolean }>('POST', '/version', { projectId, parentId, segments, label }),
   version: (projectId: string, id: string) => call<{ version: ScriptVersion; diff: BlockDiff[] }>('GET', `/version?projectId=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`),
   setHead: (projectId: string, versionId: string) => call<{ project: ScriptProject }>('POST', '/head', { projectId, versionId }),
   refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean; spoken?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
@@ -131,6 +131,7 @@ export const scriptApi = {
   style: () => call<StyleState>('GET', '/style'),
   buildStyle: (roles: RoleChoice) => call<StyleState>('POST', '/style/build', { ...roles, renames: transcriptViewerRenames() }),
   styleRule: (change: { add?: string; remove?: string }) => call<StyleState>('POST', '/style/rules', change),
+  savePassage: (projectId: string, text: string) => call<StyleState>('POST', '/style/passage', { projectId, text }),
   distill: (roles: RoleChoice) => call<StyleState & { status: DistillStatus }>('POST', '/style/distill', roles),
   quality: () => call<{ report: QualityReport; prompts: PromptOutcomeRow[]; calls: CallStatsRow[]; history: { at: number; pairs: number; conclusive: number; agreementRate: number | null; kappa: number | null }[]; currentPromptVersions: Record<string, string> }>('GET', '/quality'),
   logs: () => call<{ logs: LogSummary[] }>('GET', '/logs'),

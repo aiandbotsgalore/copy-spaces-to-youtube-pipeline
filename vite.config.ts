@@ -147,7 +147,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
       watch: {
-        ignored: ['**/.spacepipe-studio/**', '**/public/output/**'],
+        ignored: ['**/.spacepipe-studio/**', '**/.spacepipe-studio-backups/**', '**/public/output/**'],
       },
     },
     plugins: [

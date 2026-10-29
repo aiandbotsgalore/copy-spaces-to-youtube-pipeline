@@ -39,6 +39,7 @@
  *   GET  /style                  the style card, its coverage and freshness, learned rules, distill status
  *   POST /style/build            rebuild the style card from all of Logan's speech and his narration examples -> 202
  *   POST /style/rules            add or remove one of Logan's explicit rules, or remove a learned one
+ *   POST /style/passage          save one narration passage as a voice example (only Logan's explicit saves become examples)
  *   POST /style/distill          distil learned rules from Logan's decisions now (also automatic every 10 decisions)
  *   POST /handoff/export         pack.json for an optional Grok Bot deep pass (refine, factcheck, storyline); nothing is pushed
  *   GET  /handoffs?projectId     exported packs and what was imported from them
@@ -54,13 +55,13 @@ import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, RoleMap, ScriptProj
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
-import { codeGates, diffVersions } from '../utils/scriptGates';
+import { changedBlockIds, codeGates, diffVersions } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
-import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule } from './scriptMemory';
+import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule, saveApprovedPassage } from './scriptMemory';
 import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNamesToTag } from './scriptCorpus';
 import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard, readNarrationExamples, scanCorpus, type CorpusScan, type Renames } from './scriptStyle';
 import { searchRecordings } from './scriptSearch';
@@ -693,11 +694,15 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const p = getProject(body?.projectId);
       if ((body?.parentId ?? null) !== p.headVersionId) throw new StepError('CONFLICT', 'This edit is based on an older version than the current head. Reload the project before saving.');
       const segments = withTakes(validateSegments(body?.segments, p)); // take fields come only from the take index
+      // Checks run against the current head before it moves. Only blocks this edit changed are checked,
+      // so an old failure elsewhere never blocks a save. A failing edit is still saved as a version.
+      const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+      const baseline = head ? head.segments : [];
+      const gates = codeGates(segments, { ...engine.gateContext(p, baseline), changedBlockIds: changedBlockIds(baseline, segments) });
       const v: ScriptVersion = { id: newId('v'), parentId: p.headVersionId, projectId: p.id, createdAt: now(), author: 'logan', label: String(body?.label || 'Edit').slice(0, 80), segments };
       store.saveVersion(v);
-      p.headVersionId = v.id;
-      touch(p);
-      return send(res, 200, { ok: true, version: v, gates: codeGates(segments, { ...engine.gateContext(p, segments), changedBlockIds: undefined }) });
+      if (gates.ok) { p.headVersionId = v.id; touch(p); }
+      return send(res, 200, { ok: true, version: v, gates, headMoved: gates.ok });
     }
 
     if (route === '/head' && method === 'POST') {
@@ -852,6 +857,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         if (typeof body?.add === 'string') addExplicitRule(store, body.add, now);
         if (typeof body?.remove === 'string') removeRule(store, body.remove);
       } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+      return send(res, 200, { ok: true, ...styleState(body) });
+    }
+
+    if (route === '/style/passage' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      try { saveApprovedPassage(store, p.id, String(body?.text ?? '')); } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
       return send(res, 200, { ok: true, ...styleState(body) });
     }
 

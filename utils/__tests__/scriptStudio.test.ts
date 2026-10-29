@@ -225,7 +225,12 @@ describe('Script Studio API end to end', () => {
     expect(before).not.toBe(accepted.id);
     const dec = await api('POST', '/decide', { projectId, candidateId: accepted.id, decision: 'accept' });
     expect(dec.json.project.headVersionId).toBe(accepted.id);
-    expect(mw.store.getMemory().approvedPassages.length).toBeGreaterThan(0);
+    // Accepting no longer turns the loop's narration into voice examples; only an explicit save does.
+    expect(mw.store.getMemory().approvedPassages).toEqual([]);
+    const saved = await api('POST', '/style/passage', { projectId, text: 'According to Oor, the cake is orange citrus.' });
+    expect(saved.status).toBe(200);
+    expect(mw.store.getMemory().approvedPassages).toEqual([{ text: 'According to Oor, the cake is orange citrus.', projectId }]);
+    expect((await api('POST', '/style/passage', { projectId, text: '  ' })).status).toBe(400);
   });
   it('critique-only runs critique and stop without revising', async () => {
     critiqueRound = 0;

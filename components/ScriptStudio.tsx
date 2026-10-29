@@ -5,7 +5,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, ArrowDown, BookOpen, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
+  AlertTriangle, ArrowDown, BookOpen, BookmarkPlus, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
   Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
@@ -26,6 +26,7 @@ import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './S
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
+import { setUnsavedGuard } from '../utils/unsavedGuard';
 import {
   extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, type ParsedManuscriptClip,
 } from '../utils/scriptUpload';
@@ -977,9 +978,9 @@ function AutoResizeTextarea({
   );
 }
 
-function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, playing }: {
+function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, onSavePassage, playing }: {
   block: Block; clip?: StudioClip; onChange: (b: Block) => void; onRemove: () => void; onMove: (d: -1 | 1) => void;
-  onPlay: () => void; onClaim: (t: number) => void; playing: boolean;
+  onPlay: () => void; onClaim: (t: number) => void; onSavePassage?: (text: string) => void; playing: boolean;
 }) {
   const lockBtn = (
     <button className="text-slate-400 hover:text-white" title={block.locked ? 'Locked: the loop will not change this block' : 'Lock this block'} onClick={() => onChange({ ...block, locked: !block.locked } as Block)}>
@@ -1153,6 +1154,11 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, p
             </span>
           )}
           <div className="flex-1" />
+          {onSavePassage && block.text.trim() && (
+            <button className="text-slate-500 hover:text-indigo-300 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-150" onClick={() => onSavePassage(block.text)} title="Save this narration as a voice example for future drafts">
+              <BookmarkPlus size={13} />
+            </button>
+          )}
           {tools}
         </div>
         <AutoResizeTextarea
@@ -1260,6 +1266,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [dirty]);
+  // Switching to another panel unmounts this one; the app asks first while edits are unsaved.
+  useEffect(() => setUnsavedGuard(() => (dirtyRef.current ? 'Script Studio has unsaved edits.' : null)), []);
 
   const load = useCallback(async (id: string) => {
     try {
@@ -1414,6 +1422,13 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
       // Send current local editor state/buffer directly to persistence endpoint before re-fetch or state refresh
       const currentSegments = segments;
       const res = await scriptApi.saveVersion(project.id, project.headVersionId, currentSegments, label);
+      if (res.headMoved === false) {
+        // Saved as a version, but the checks failed, so the head stayed. Keep the edit on screen to fix.
+        const r = await scriptApi.project(project.id);
+        setData(r);
+        setNotice(`Saved as a version, but the head did not move because a check failed: ${res.gates.failures.join(' ')}`);
+        return res;
+      }
       setDirty(false);
       dirtyRef.current = false;
       if (projectId) {
@@ -2158,6 +2173,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                             onMove={d => editBlock(segI, scI, bI, null, d)}
                             onPlay={() => (b.kind === 'clip' ? playClip(b) : b.kind === 'narration' ? playTake(b) : undefined)}
                             onClaim={t => { setQuery(''); setFocusTime(t); setLeftTab('transcripts'); }}
+                            onSavePassage={text => { void scriptApi.savePassage(project.id, text).then(() => setNotice('Saved as a voice example.')).catch(setError); }}
                           />
                         ))}
                         <div className="flex items-center gap-2 pt-1">
