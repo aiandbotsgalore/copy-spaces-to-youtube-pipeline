@@ -1,0 +1,141 @@
+{
+ "ms": 24436,
+ "raw": {
+  "segments": [
+   {
+    "title": "The accusations and the evidence claimed",
+    "scenes": [
+     {
+      "title": "What Angela is said to allege, and what has been shown",
+      "purpose": "Present the accusations attributed to Angela and the screenshots and photos she is said to hold, using attribution throughout, then let Logan's admission that he did not hear her Space and a listener's account of it frame what remains unproven.",
+      "clipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u9_u9",
+       "tr_20260918_1AxRnZMeZNYxl_u13_u13",
+       "tr_20260918_1AxRnZMeZNYxl_u698_u698",
+       "tr_20260918_1AxRnZMeZNYxl_u684_u684"
+      ],
+      "momentIds": [
+       "Q2",
+       "Q4",
+       "Q1",
+       "Q28",
+       "Q27",
+       "Q3"
+      ]
+     }
+    ]
+   },
+   {
+    "title": "Motive and threats, as described by others",
+    "scenes": [
+     {
+      "title": "Why Angela is said to target Logan, and what she is said to threaten",
+      "purpose": "Set out the motive Logan attributes to Angela, the echo from an unidentified speaker, and the legal threats alleged by another unidentified speaker, then note Logan's dismissal and his call for restraint, and that none of this is confirmed by her own recorded words.",
+      "clipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u565_u565",
+       "tr_20260918_1AxRnZMeZNYxl_u566_u566",
+       "tr_20260918_1AxRnZMeZNYxl_u197_u197",
+       "tr_20260918_1AxRnZMeZNYxl_u71_u71",
+       "tr_20260918_1AxRnZMeZNYxl_u57_u57"
+      ],
+      "momentIds": [
+       "Q19",
+       "Q20",
+       "Q13",
+       "Q9",
+       "Q8"
+      ]
+     }
+    ]
+   },
+   {
+    "title": "How the room responds and what comes next",
+    "scenes": [
+     {
+      "title": "Pushback, legal advice and open questions",
+      "purpose": "Show the room's mixed reactions (a rejected conspiracy theory, an objection to attacking credibility, and advice to sue or send a cease and desist) and close on what is still unproven: no screenshots, photos or confirmed threats from Angela herself are in the recording.",
+      "clipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u218_u218",
+       "tr_20260918_1AxRnZMeZNYxl_u368_u368",
+       "tr_20260918_1AxRnZMeZNYxl_u659_u659",
+       "tr_20260918_1AxRnZMeZNYxl_u881_u881",
+       "tr_20260918_1AxRnZMeZNYxl_u895_u895",
+       "tr_20260918_1AxRnZMeZNYxl_u664_u664"
+      ],
+      "momentIds": [
+       "Q15",
+       "Q16",
+       "Q17",
+       "Q24",
+       "Q35",
+       "Q36",
+       "Q25"
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "sceneId": "sc1",
+   "title": "What Angela is said to allege, and what has been shown",
+   "purpose": "Present the accusations attributed to Angela and the screenshots and photos she is said to hold, using attribution throughout, then let Logan's admission that he did not hear her Space and a listener's account of it frame what remains unproven.",
+   "clipIds": [
+    "tr_20260918_1AxRnZMeZNYxl_u9_u9",
+    "tr_20260918_1AxRnZMeZNYxl_u13_u13",
+    "tr_20260918_1AxRnZMeZNYxl_u698_u698",
+    "tr_20260918_1AxRnZMeZNYxl_u684_u684"
+   ],
+   "quoteIds": [
+    "Q2",
+    "Q4",
+    "Q1",
+    "Q28",
+    "Q27",
+    "Q3"
+   ]
+  },
+  {
+   "sceneId": "sc2",
+   "title": "Why Angela is said to target Logan, and what she is said to threaten",
+   "purpose": "Set out the motive Logan attributes to Angela, the echo from an unidentified speaker, and the legal threats alleged by another unidentified speaker, then note Logan's dismissal and his call for restraint, and that none of this is confirmed by her own recorded words.",
+   "clipIds": [
+    "tr_20260918_1AxRnZMeZNYxl_u565_u565",
+    "tr_20260918_1AxRnZMeZNYxl_u566_u566",
+    "tr_20260918_1AxRnZMeZNYxl_u197_u197",
+    "tr_20260918_1AxRnZMeZNYxl_u71_u71",
+    "tr_20260918_1AxRnZMeZNYxl_u57_u57"
+   ],
+   "quoteIds": [
+    "Q19",
+    "Q20",
+    "Q13",
+    "Q9",
+    "Q8"
+   ]
+  },
+  {
+   "sceneId": "sc3",
+   "title": "Pushback, legal advice and open questions",
+   "purpose": "Show the room's mixed reactions (a rejected conspiracy theory, an objection to attacking credibility, and advice to sue or send a cease and desist) and close on what is still unproven: no screenshots, photos or confirmed threats from Angela herself are in the recording.",
+   "clipIds": [
+    "tr_20260918_1AxRnZMeZNYxl_u218_u218",
+    "tr_20260918_1AxRnZMeZNYxl_u368_u368",
+    "tr_20260918_1AxRnZMeZNYxl_u659_u659",
+    "tr_20260918_1AxRnZMeZNYxl_u881_u881",
+    "tr_20260918_1AxRnZMeZNYxl_u895_u895",
+    "tr_20260918_1AxRnZMeZNYxl_u664_u664"
+   ],
+   "quoteIds": [
+    "Q15",
+    "Q16",
+    "Q17",
+    "Q24",
+    "Q35",
+    "Q36",
+    "Q25"
+   ]
+  }
+ ]
+}

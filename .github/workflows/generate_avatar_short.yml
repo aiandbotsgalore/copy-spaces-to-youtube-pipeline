@@ -13,7 +13,7 @@ on:
       layout:
         description: 'Stage layout mode'
         required: false
-        default: 'solo'
+        default: 'stage_grid'
         type: choice
         options:
           - 'stage_grid'
@@ -72,6 +72,12 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
           cache-dependency-path: 'requirements-worker.txt'
+
+      - name: Install video validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          ffprobe -version | head -n 1
 
       - name: Install Kaggle CLI
         run: pip install -r requirements-worker.txt

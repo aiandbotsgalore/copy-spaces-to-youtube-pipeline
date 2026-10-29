@@ -9,9 +9,10 @@ import {
 import PlayerBar from './components/PlayerBar';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { MontageProvider } from './contexts/MontageContext';
-import { CopilotProvider } from './contexts/CopilotContext';
+import { CopilotProvider, useCopilot } from './contexts/CopilotContext';
 import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
+import { CopilotCommandPalette } from './components/copilot/CopilotCommandPalette';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { loadStoredToken, saveToken } from './utils/storage';
@@ -216,15 +217,44 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
   </button>
 );
 
+const CopilotAppBridge: React.FC<{
+  setActivePanel: (panel: Panel) => void;
+  setSelectedTranscriptId: (id: number | string | null) => void;
+  activePanel: Panel;
+}> = ({ setActivePanel, setSelectedTranscriptId, activePanel }) => {
+  const { setActivePanelNavHandler, setLoadEpisodeHandler, setContextPayload } = useCopilot();
+
+  useEffect(() => {
+    setActivePanelNavHandler((panel: string) => {
+      setActivePanel(panel as Panel);
+    });
+    setLoadEpisodeHandler((tag: string) => {
+      setSelectedTranscriptId(tag);
+      setActivePanel('transcripts');
+    });
+  }, [setActivePanelNavHandler, setLoadEpisodeHandler, setActivePanel, setSelectedTranscriptId]);
+
+  useEffect(() => {
+    setContextPayload(prev => ({
+      ...prev,
+      activeTab: activePanel,
+    }));
+  }, [activePanel, setContextPayload]);
+
+  return null;
+};
+
 function AppContent() {
   const {
     config,
     updateConfig,
   } = useConfig();
   const [activePanel, setActivePanelState] = useState<Panel>(() => (getActivePanelFromHash() as Panel));
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const setActivePanel = useCallback((panel: Panel) => {
     setActivePanelState(panel);
     syncHashWithPanel(panel);
+    setMobileNavOpen(false);
   }, []);
 
   useEffect(() => {
@@ -322,9 +352,23 @@ function AppContent() {
     <PlayerProvider>
       <MontageProvider>
         <CopilotProvider>
+          <CopilotAppBridge
+            setActivePanel={setActivePanel}
+            setSelectedTranscriptId={setSelectedTranscriptId}
+            activePanel={activePanel}
+          />
         <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col md:flex-row font-sans">
+      {/* Mobile navigation backdrop */}
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          className="fixed inset-0 z-30 bg-slate-950/70 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
       {/* ── Sidebar ── */}
-      <aside className={`${isSidebarRail ? 'w-14' : 'w-full md:w-64'} flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen sticky top-0 transition-all duration-200 z-20`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-[min(86vw,20rem)] flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen transition-transform duration-200 md:relative md:sticky md:top-0 md:translate-x-0 ${isSidebarRail ? 'md:w-14' : 'md:w-64'} ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo & Collapse button */}
         <div className={`border-b border-slate-800/80 ${isSidebarRail ? 'p-2.5 flex flex-col items-center gap-2' : 'p-5'}`}>
           <div className="flex items-center justify-between w-full">
@@ -568,6 +612,17 @@ function AppContent() {
 
       {/* ── Main Content ── */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+        <div className="md:hidden flex items-center gap-3 h-12 shrink-0 px-3 border-b border-slate-800/80 bg-slate-950">
+          <button
+            type="button"
+            aria-label="Open navigation"
+            onClick={() => setMobileNavOpen(true)}
+            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800"
+          >
+            <PanelLeftOpen size={18} />
+          </button>
+          <span className="text-sm font-semibold text-white truncate">SpacePipe Gen</span>
+        </div>
         <PanelErrorBoundary activePanel={activePanel}>
           <Suspense fallback={
             <div className="flex-1 flex flex-col items-center justify-center h-full p-12 bg-slate-950">
@@ -739,6 +794,7 @@ function AppContent() {
       </main>
       <PlayerBar />
       <MontageReelDrawer isHidden={activePanel === 'montage'} />
+      <CopilotCommandPalette />
     </div>
     </CopilotProvider>
     </MontageProvider>

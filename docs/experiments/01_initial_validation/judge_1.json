@@ -1,0 +1,79 @@
+{
+ "run": 1,
+ "order": [
+  "A",
+  "B",
+  "C"
+ ],
+ "ms": 44188,
+ "model": "gpt-6.1-sol",
+ "scripts": [
+  {
+   "label": "X",
+   "errors": [
+    {
+     "excerpt": "During her September 8th Space",
+     "problem": "The transcript provides no date, so September 8th is invented.",
+     "severity": "serious"
+    }
+   ],
+   "accuracy": 9,
+   "fairness": 9,
+   "ownVoice": 9,
+   "coherence": 9,
+   "storytelling": 8,
+   "summary": "The strongest script. It carefully distinguishes Angela's allegations from verified facts, uses substantial tape, tracks her evidence and intended next steps, and correctly notes that the other parties are not heard. The unsupported September 8th date is the main flaw.",
+   "arm": "A"
+  },
+  {
+   "label": "Y",
+   "errors": [
+    {
+     "excerpt": "This one's awkward, man. I'm in it.",
+     "problem": "The narrator adopts Logan's identity without support from the transcript. The assignment asks for an investigative documentary narrator, not a narrator pretending to be Logan.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "What she has said about me",
+     "problem": "The first-person framing again assumes the narrator is Logan, an attribution and perspective not established by the source.",
+     "severity": "serious"
+    }
+   ],
+   "accuracy": 8,
+   "fairness": 8,
+   "ownVoice": 8,
+   "coherence": 8,
+   "storytelling": 8,
+   "summary": "Clear and generally careful, with good use of Angela's tape and useful sourcing cautions. Its main weakness is the invented first-person Logan narrator, which changes the documentary perspective and risks making the script feel like a rebuttal rather than a neutral investigation.",
+   "arm": "B"
+  },
+  {
+   "label": "Z",
+   "errors": [
+    {
+     "excerpt": "Now, I mean, the transcript is rough in a few spots",
+     "problem": "This is an unsupported editorial characterization of the transcript and adds self-conscious commentary rather than source-based reporting.",
+     "severity": "minor"
+    },
+    {
+     "excerpt": "So that's, like, release as leverage, right?",
+     "problem": "Calling Angela's proposed release a leverage tactic is an interpretive characterization that is not explicitly stated in the transcript. It should be attributed or phrased more neutrally.",
+     "severity": "minor"
+    }
+   ],
+   "accuracy": 8,
+   "fairness": 8,
+   "ownVoice": 8,
+   "coherence": 8,
+   "storytelling": 7,
+   "summary": "Factually grounded and transparent about what cannot be verified, with several useful tape excerpts. It is less polished and less compelling than X or Y because of casual filler, meta-commentary, and a few loaded interpretations.",
+   "arm": "C"
+  }
+ ],
+ "ranking": [
+  "A",
+  "B",
+  "C"
+ ],
+ "reasons": "X ranks first because it has the best balance of transcript accuracy, allegation labeling, source transparency, and narrative structure; its only clear factual error is the invented date. Y ranks second because its sourcing is mostly sound, but the unsupported first-person Logan persona creates a serious perspective and attribution problem. Z ranks third because it remains mostly faithful but uses looser, more casual narration and adds interpretive language that weakens fairness and documentary authority."
+}

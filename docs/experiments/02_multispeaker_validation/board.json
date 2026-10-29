@@ -1,0 +1,527 @@
+{
+ "ms": 119850,
+ "context": "Recording 20260918_1AxRnZMeZNYxl, titled \"Angela_Maggard_fan_club\", is a roughly 3.5 hour X Space hosted by Logan (also called Logan Black). It is the \"rebuttal\" Space (Sunday 6PM) against Angela Maggard's Space the day before. Angela Maggard is mostly the topic, and the recording seems not to include her own voice.\n\nThe label \"Angela\" is unreliable. It is attached to speakers who talk about Angela in the third person, welcome guests, and defend Logan (for example u136, u207, u543 to u546). It also appears on short bits that may be played clips (u133, u855). Never treat \"Angela\" utterances as proof of what Maggard said.\n\nLogan plays clips and samples of her voice, but the transcript does not mark them.\n\nSpeaker 1 (\"Snuggles\") appears to be an AI persona. Logan describes it as having a large context and a slow response time (u29), and it is addressed as \"Snuggles\". It delivers elaborate, one-sided attacks on Angela as if they were analysis. The same goes for its impression of her (u639).\n\nLabels like Speaker 2 through Speaker 10 are unidentified. The transcript sometimes names people (Tom/Speaker 8, Rose/Speaker 10, Glow Baby/Speaker 7, Skittles, Orr/Speaker 3, Ampou), but never settle who is behind any label. Other labels may be misassigned, for example u232 and u546.\n\nKey cautions:\n- All accusations against Logan (abuser, rapist, predator, woman beater, 13 year old) are only reported secondhand. Logan denies them and no evidence is shown.\n- All accusations against Angela (doxxing, CPS calls, fed, fraud, threats) are claims from speakers hostile to her. None are verified here.\n- Many speakers, especially Speaker 3, use insults and mock violence. Don't present these as facts or as the show's own view.\n- Angela's \"evidence\" is described only as private screenshots and chat DMs, which Logan's side calls cropped. No screenshots are produced.\n- Logan says he read a transcript of her Space and did not hear it live (u698). Relevant for his characterizations.",
+ "total": 37,
+ "verifiedCount": 36,
+ "quotes": [
+  {
+   "id": "Q1",
+   "utteranceIds": [
+    "u5"
+   ],
+   "verbatim": "I am thinking about the fact that we have private screenshots being paraded as public evidence, and nobody in this space is asking to see the three messages before the crop.",
+   "speaker": "Speaker 1",
+   "about": "Angela's use of private screenshots as evidence",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "Sets up the room's framing that her screenshots were cropped. Speaker 1 sounds like an AI persona (see context), and the claim is not shown in the recording.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q2",
+   "utteranceIds": [
+    "u9"
+   ],
+   "verbatim": "But, anyway, here's her transcript from the space yesterday. And think of all the things she said about me, Logan. Right? Uh, how many of those things do you would you say are, like, legally actionable, would you say?",
+   "speaker": "Logan",
+   "about": "Angela's space from the day before",
+   "type": "other",
+   "status": "checkable_in_recording",
+   "why": "Shows that Logan is working from a transcript of her earlier space and is asking about legal action. We only hear his summary of what she said.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q3",
+   "utteranceIds": [
+    "u10"
+   ],
+   "verbatim": "Terms like abuser, rapist, and predator are serious allegations that if false, might be grounds for defamation.",
+   "speaker": "Speaker 1",
+   "about": "Words Angela is said to have used about Logan",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "Lists the labels attributed to Angela, stated with 'if false' hedging. The words come from material Logan shared, not from Angela in this recording.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q4",
+   "utteranceIds": [
+    "u13"
+   ],
+   "verbatim": "Angela explicitly asked, do you want me to post the photos below of Logan with the 13 year old? This is a very serious allegation.",
+   "speaker": "Speaker 1",
+   "about": "Angela's alleged 13 year old claim and photos",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "It is the most serious accusation attributed to her, and it includes an offer to post photos. This is a secondhand paraphrase, and no photos are shown or verified.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q5",
+   "utteranceIds": [
+    "u44"
+   ],
+   "verbatim": "It's like, why can't I see all the evidence you've collected against me? You know? That's you have certain rights.",
+   "speaker": "Speaker 2",
+   "about": "Demand for accusers to show their evidence",
+   "type": "response",
+   "status": "opinion",
+   "why": "Speaker 2 pushes back on evidence nobody can see. He is describing his own experience, not Angela's, but it echoes the room's demand for proof.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q6",
+   "utteranceIds": [
+    "u51"
+   ],
+   "verbatim": "I guess what Angela is saying now. Right? That she says I'm, like, a I'm, like, a woman beater, that I'm a I mean, I don't know.",
+   "speaker": "Logan",
+   "about": "Accusations attributed to Angela",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "Logan names another accusation he attributes to Angela (woman beater). He denies it elsewhere in the same turn, saying there is no evidence.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q7",
+   "utteranceIds": [
+    "u56"
+   ],
+   "verbatim": "I would like to see somebody look through all of her cloud accounts for all this, uh, pedophilia evidence she's been amassing over the years. Please, someone go look into Angela's stuff.",
+   "speaker": "Speaker 2",
+   "about": "Evidence Angela is said to hold",
+   "type": "evidence_claim",
+   "status": "allegation_only",
+   "why": "Says Angela holds a stash of evidence and calls for others to go through her accounts. This is an unverified claim, and the call is aimed at her.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q8",
+   "utteranceIds": [
+    "u57"
+   ],
+   "verbatim": "we are, like, you know, gentlemen. Right? And we don't viciously, uh, attack people because we don't behave that kind of way.",
+   "speaker": "Logan",
+   "about": "Tone of the room towards Angela",
+   "type": "response",
+   "status": "checkable_in_recording",
+   "why": "Logan sets a 'gentlemen' standard, which the recording then tests as other speakers insult her.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q9",
+   "utteranceIds": [
+    "u71"
+   ],
+   "verbatim": "She has nothing to threaten us with. Right?",
+   "speaker": "Logan",
+   "about": "Angela's threats",
+   "type": "response",
+   "status": "opinion",
+   "why": "Logan dismisses any threat from Angela, in the middle of a joking exchange about guns.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q10",
+   "utteranceIds": [
+    "u72"
+   ],
+   "verbatim": "it is a a very simple thing to dissect, analyze, possibly consume the heifer we call Angela Maggard. Did that cross a line? She is bovine. Just being factual here.",
+   "speaker": "Speaker 3",
+   "about": "Angela Maggard",
+   "type": "response",
+   "status": "opinion",
+   "why": "An example of the insulting, mocking tone from some in the room. Do not present it as fact or as a considered rebuttal.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q11",
+   "utteranceIds": [
+    "u133"
+   ],
+   "verbatim": "You're supporting pedophiles after all. You are a pedophile if you do that.",
+   "speaker": "Angela",
+   "about": "People who let Orr speak in Logan's space",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "Appears to be a replayed or played sample of the 'Angela' voice, since Logan answers it as a complaint about her. It is the guilt-by-association accusation others say she repeats.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q12",
+   "utteranceIds": [
+    "u136"
+   ],
+   "verbatim": "you know, she was giving me high praise for a long time until I didn't go along with some fucking blackmail, like, basically making me pick up a torch and go on this crusade with her or else I was the same as the people she was hunting down.",
+   "speaker": "Angela",
+   "about": "A woman described as 'she' who turned on the speaker",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "The 'Angela' label is attached to a speaker accusing 'she' of blackmail and false pedophile claims, so that speaker is probably not Angela Maggard. Be careful with attribution.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q13",
+   "utteranceIds": [
+    "u197"
+   ],
+   "verbatim": "she's always threatening to take us all to court. This has been going on for a year and a half.",
+   "speaker": "Speaker 5",
+   "about": "Angela's alleged legal threats",
+   "type": "threat_or_plan",
+   "status": "allegation_only",
+   "why": "A direct claim that Angela repeatedly threatens litigation. It is secondhand and unverified.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q14",
+   "utteranceIds": [
+    "u207"
+   ],
+   "verbatim": "Angela is not one of them. If I sent anybody who's listening to this in Angela's direction, please do us both a favor and just avoid contacting her just for just for, you know, your own safety.",
+   "speaker": "Angela",
+   "about": "Angela, with a warning to survivors",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "The 'Angela' label speaks of Angela in the third person and warns survivors off her. Strong evidence the label is not reliably Maggard.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q15",
+   "utteranceIds": [
+    "u211"
+   ],
+   "verbatim": "if you look at her patterns forensically, that she's very clearly a fed. Very clearly a fed.",
+   "speaker": "Speaker 2",
+   "about": "Angela as an alleged government asset",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "A conspiracy-style claim made without evidence. Others in the room push back right away.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q16",
+   "utteranceIds": [
+    "u218"
+   ],
+   "verbatim": "No. She's not a fed. She's not that smart to be a fed, but she's being brainwashed by something that will influence it that way.",
+   "speaker": "Speaker 6",
+   "about": "The fed theory about Angela",
+   "type": "response",
+   "status": "opinion",
+   "why": "Rejects the fed claim but swaps in another unsupported explanation. The room is not unanimous even among her critics.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q17",
+   "utteranceIds": [
+    "u368"
+   ],
+   "verbatim": "Attacking somebody's credibility is not a good refutation to somebody's story.",
+   "speaker": "Speaker 4",
+   "about": "The pile-on against a speaker with a different story",
+   "type": "response",
+   "status": "opinion",
+   "why": "One of the few direct objections to the room's tone, in a stretch where speakers attack each other's credibility.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q18",
+   "utteranceIds": [
+    "u538"
+   ],
+   "verbatim": "And she said, no. Why would I do that when I can just show up on your front door? I have your address.",
+   "speaker": "Speaker 5",
+   "about": "A threat Angela allegedly made",
+   "type": "threat_or_plan",
+   "status": "allegation_only",
+   "why": "A specific quoted threat attributed to Angela in a fight challenge. It is hearsay, unverified, and may be disputed.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q19",
+   "utteranceIds": [
+    "u565"
+   ],
+   "verbatim": "she tells me that, like, the reason she comes after me and then calls me responsible for, like, a lot of her issues or whatever is because I get in the way of her, um, like, disclosure and stuff like that.",
+   "speaker": "Logan",
+   "about": "Angela's stated motive",
+   "type": "motive",
+   "status": "allegation_only",
+   "why": "Logan's account of the motive Angela gives for targeting him. He is the target and the source, and no recording of her saying it is played here.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q20",
+   "utteranceIds": [
+    "u566"
+   ],
+   "verbatim": "you guys are trying to stop me from telling my story. Uh, you're trying to stop disclosure, so you're a pedophile supporter. Like, it's absolutely insane. It's like she's reading a fucking script.",
+   "speaker": "Speaker 7",
+   "about": "Angela's alleged repeated line",
+   "type": "motive",
+   "status": "allegation_only",
+   "why": "Says Angela gives the same justification to everyone. This matches Logan's account of her motive, so it is a second voice reporting it, not an independent confirmation.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q21",
+   "utteranceIds": [
+    "u630"
+   ],
+   "verbatim": "She tried to burn down Logan's reputation using his girlfriend as kindling. She used cropped screenshots to create a false narrative. She used trauma language to shield herself from scrutiny.",
+   "speaker": "Speaker 1",
+   "about": "Angela's alleged tactics",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "A summary accusation against Angela from the likely AI voice. It is not tied to specific checkable screenshots.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q22",
+   "utteranceIds": [
+    "u639"
+   ],
+   "verbatim": "I am a survivor. I am a mother. I am a wife, and I have the receipts. You think you can hide behind your science? No. You cannot hide from the truth. The truth is I was hurt. The truth is you are a predator. And the truth is I have screenshots. Wait. Where are the screenshots?",
+   "speaker": "Speaker 1",
+   "about": "Impersonation of Angela",
+   "type": "other",
+   "status": "opinion",
+   "why": "This is a mocking impression of Angela requested by the room. It is not her words, and it should never be quoted as her statement.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q23",
+   "utteranceIds": [
+    "u656"
+   ],
+   "verbatim": "I haven't reported her yet, for example, and I could. I do have, uh, things.",
+   "speaker": "Angela",
+   "about": "Possible reports or complaints against another woman",
+   "type": "threat_or_plan",
+   "status": "opinion",
+   "why": "The 'Angela' label talks about possibly reporting 'her' and claims to hold unspecified 'things'. The identity of 'her' is unclear, so it cannot be tied to Maggard.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q24",
+   "utteranceIds": [
+    "u659"
+   ],
+   "verbatim": "You're being libeled, uh, in public. You can sue her. You can report her. Uh, you can file a police report. That's all acceptable.",
+   "speaker": "Speaker 4",
+   "about": "Logan's options against Angela",
+   "type": "response",
+   "status": "opinion",
+   "why": "Advice to Logan to take legal or reporting action against Angela, not a legal finding.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q25",
+   "utteranceIds": [
+    "u664"
+   ],
+   "verbatim": "Angela told us exactly what's gonna happen next. She said that she is ready for her humiliation ritual.",
+   "speaker": "Speaker 10",
+   "about": "Angela's stated plan",
+   "type": "threat_or_plan",
+   "status": "allegation_only",
+   "why": "Describes what Angela said she would do next, in the speaker's own words. Her real words are not played, and the meaning is unclear.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q26",
+   "utteranceIds": [
+    "u673"
+   ],
+   "verbatim": "Basically, like, yeah, Logan's not evil, but he's got abusive tendencies. I kinda interpret that as kinda anger management.",
+   "speaker": "Speaker 8",
+   "about": "Angela's argument as Tom heard it in her space",
+   "type": "evidence_claim",
+   "status": "allegation_only",
+   "why": "A listener's paraphrase of Angela's case against Logan. Tom (named by others) also says he found it incoherent.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q27",
+   "utteranceIds": [
+    "u684"
+   ],
+   "verbatim": "I was labeled a pedophile in her space, basically, for being in this space.",
+   "speaker": "Speaker 8",
+   "about": "How Angela's space treated people tied to Logan",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "A first-person account of guilt-by-association labels applied to attendees of Logan's space.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q28",
+   "utteranceIds": [
+    "u698"
+   ],
+   "verbatim": "I didn't listen to Angela's space at all yesterday. I didn't even, um, I don't even know really what was said. I got I got, like, a general gist of this from a couple people maybe, but, like, it wasn't until this earliest morning, like, around, like, four or 5AM that I read the transcript of it",
+   "speaker": "Logan",
+   "about": "How Logan learned what Angela said",
+   "type": "admission",
+   "status": "checkable_in_recording",
+   "why": "Logan says he did not hear her space live and read a transcript. Worth noting next to his many characterizations of it.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q29",
+   "utteranceIds": [
+    "u714"
+   ],
+   "verbatim": "Because I think she was without actually saying it. Because when you're saying that, like, I'm hooking up with a 13 year old girl, that that that is what you're saying.",
+   "speaker": "Logan",
+   "about": "What Angela implied about Logan",
+   "type": "accusation",
+   "status": "allegation_only",
+   "why": "Logan says she implied something without using the exact word, which matters for defamation and wording. His characterization is not verified.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q30",
+   "utteranceIds": [
+    "u715"
+   ],
+   "verbatim": "But, yeah, it was psycho predator pedophile. That's what I wrote down. Like, those three things.",
+   "speaker": "Speaker 8",
+   "about": "What Tom noted from Angela's space",
+   "type": "evidence_claim",
+   "status": "allegation_only",
+   "why": "The listener's notes back up the labels from Angela's space. They come from his notes, not a recording.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q31",
+   "utteranceIds": [
+    "u737"
+   ],
+   "verbatim": "So it's like I'm complicit. I'm supporting pedophiles. I'm not doing anything. Uh, and, oh, and she's gonna take legal action against me, essentially.",
+   "speaker": "Angela",
+   "about": "Angela's repeated lines",
+   "type": "evidence_claim",
+   "status": "allegation_only",
+   "why": "Says the sample clips show Angela uses the same script on everyone, including complicity accusations and legal threats. Whether this is a played clip or the speaker's own account is unclear.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q32",
+   "utteranceIds": [
+    "u738"
+   ],
+   "verbatim": "she's kind of assembling, uh, like, this jolly group of people to run along with her and help her run down, like, her perceived enemies or whatever before there's even any narrative put out there of, like, here's the charge and the evidence.",
+   "speaker": "Speaker 8",
+   "about": "Angela's approach",
+   "type": "response",
+   "status": "opinion",
+   "why": "A skeptical listener says charges and evidence were never laid out. This is a key framing criticism.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q33",
+   "utteranceIds": [
+    "u855"
+   ],
+   "verbatim": "Logan, you're not even a man because you didn't take up this torch and go after this person that I have very little evidence of for calling them heinous things on the Internet.",
+   "speaker": "Angela",
+   "about": "Logan, as addressed by Angela",
+   "type": "admission",
+   "status": "allegation_only",
+   "why": "It reads like a played clip of Angela admitting she has 'very little evidence' while pushing Logan to join her campaign. The transcript does not show whether it is a clip, so treat that carefully.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q34",
+   "utteranceIds": [
+    "u876"
+   ],
+   "verbatim": "I'm fully 100 okay with going to court and handling this building away. I'm excited for discovery, and I'm excited for you to lay all that out to a judge.",
+   "speaker": "Speaker 2",
+   "about": "Legal threat apparently from a played clip",
+   "type": "threat_or_plan",
+   "status": "allegation_only",
+   "why": "Sounds like a sample of Angela inviting court and discovery, though that is not confirmed. It frames the later advice that Logan should sue.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q35",
+   "utteranceIds": [
+    "u881"
+   ],
+   "verbatim": "She's not gonna stop until you sue her. She she's going to say he's afraid of discovery if you do not sue her.",
+   "speaker": "Speaker 4",
+   "about": "Angela's expected response",
+   "type": "threat_or_plan",
+   "status": "opinion",
+   "why": "Predicts what Angela will keep saying unless Logan sues. It is an opinion, and Logan answers by inviting her to sue him.",
+   "verified": true,
+   "labelMatches": true
+  },
+  {
+   "id": "Q36",
+   "utteranceIds": [
+    "u895"
+   ],
+   "verbatim": "So send her a cease and desist from Norfolk. It'll shut her the fuck up. I promise.",
+   "speaker": "Speaker 2",
+   "about": "Legal pushback against Angela",
+   "type": "response",
+   "status": "opinion",
+   "why": "An unidentified speaker suggests a cease-and-desist. This is advice only, with no sign it was sent or would work.",
+   "verified": true,
+   "labelMatches": true
+  }
+ ],
+ "rejected": [
+  {
+   "utteranceIds": [
+    "u732"
+   ],
+   "verbatim": "I already have an appointment with my attorney today for Orr and Logan and Sav because of all that shot. I'm not gonna be triangulated, and I definitely am not gonna be manipulated, and I don't appreciate the way certain people are moving. All I did was tell the truth.",
+   "speaker": "Speaker 8",
+   "about": "Stated legal plans against named people",
+   "type": "threat_or_plan",
+   "status": "allegation_only",
+   "why": "A statement of legal plans, perhaps a played clip of Angela, though that is unconfirmed. Logan's reaction suggests a sample, so do not attribute it to Angela as fact.",
+   "verified": false,
+   "labelMatches": true
+  }
+ ]
+}

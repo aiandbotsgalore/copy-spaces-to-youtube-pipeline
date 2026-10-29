@@ -2,12 +2,45 @@ export type CopilotActionType =
   | 'CREATE_CLIP'
   | 'TRIM_CLIP'
   | 'SEQUENCE_MONTAGE'
+  | 'AUDITION_MONTAGE'
   | 'PLAY_AUDIO'
+  | 'PAUSE_AUDIO'
+  | 'SEEK_AUDIO'
   | 'UPDATE_CONFIG'
   | 'NAVIGATE_TAB'
-  | 'AUDITION_MONTAGE'
+  | 'LOAD_EPISODE'
   | 'SEARCH_TRANSCRIPTS'
-  | 'LOAD_EPISODE';
+  | 'ENQUEUE_SPACE'
+  | 'DISPATCH_WORKFLOW'
+  | 'GET_QUEUE'
+  | 'GET_RUN_HISTORY'
+  | 'GET_VOICE_PROFILES'
+  | 'GET_SCRIPT_PROJECTS'
+  | 'INSPECT_KNOWLEDGE_GRAPH'
+  | 'CREATE_PROJECT'
+  | 'ANALYZE_PROJECT'
+  | 'OUTLINE_PROJECT'
+  | 'DRAFT_PROJECT'
+  | 'REFINE_PROJECT'
+  | 'SYNTHESIZE_VOX'
+  | 'RENDER_AVATAR';
+
+export type ActionTier = 0 | 1 | 2;
+
+export type ActionExecutionStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'accepted'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'no_matches';
+
+export interface ActionSnapshot {
+  type: 'montage_clips' | 'config' | 'custom';
+  timestamp: number;
+  data: any;
+}
 
 export interface TranscriptMatch {
   episode_id: string;
@@ -27,11 +60,16 @@ export interface CopilotAction {
   action: CopilotActionType;
   params: Record<string, any>;
   explanation: string;
+  tier?: ActionTier;
   applied?: boolean;
   appliedAt?: string;
   reverted?: boolean;
-  status?: 'running' | 'completed' | 'no_matches' | 'applied' | 'pending';
+  status?: ActionExecutionStatus;
   matchCount?: number;
+  snapshot?: ActionSnapshot;
+  resultData?: Record<string, any>;
+  errorMessage?: string;
+  triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain';
 }
 
 export interface CopilotMessage {
@@ -93,6 +131,7 @@ export interface CopilotContextPayload {
     totalTranscriptsOnDisk: number;
     allSpeakersSample: string[];
   };
+  compactStateSummary?: string;
 }
 
 export interface CopilotRequestBody {

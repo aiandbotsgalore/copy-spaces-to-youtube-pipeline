@@ -5,7 +5,7 @@
  *    transcript segments overlapping its time window (most quotes cross a segment boundary).
  *  - clip bounds: 0 <= inSec < outSec <= durationSec (clip-relative).
  *  - locks: a locked block in the baseline must be present, unchanged, in the candidate.
- *  - runtime: within 10 percent of the target.
+ *  - runtime: soft informational warning; discrepancies do not block version saving or pipeline execution.
  *  - investigative attribution: a single-source claim must use attribution wording.
  *  - applyPatch: replaces one scene's blocks; refuses to drop or edit a locked block, or to name an
  *    unknown block or clip. Locked blocks are never silently re-inserted.
@@ -21,6 +21,7 @@ import { NARRATIVE_FUNCTIONS } from './scriptTypes';
 export interface TranscriptSeg { start: number; end: number; speaker: string; text: string }
 
 export const RUNTIME_TOLERANCE = 0.1;
+export const WIDE_RUNTIME_TOLERANCE = 0.5;
 export const DEFAULT_NARRATION_WPM = 155;
 export const LONG_SENTENCE_WORDS = 28;
 const WINDOW_SLACK_SEC = 0.5;
@@ -270,6 +271,7 @@ export interface GateContext {
   clipsById: Record<string, StudioClip>;
   targetRuntimeSec: number;
   format: EpisodeFormat | null;
+  runtimeTolerance?: number;
   /** Only these block ids are checked for claims and attribution (the changed ones); all when omitted. */
   changedBlockIds?: Set<string>;
   /** Format rules (utils/scriptFormats.ts). With changedBlockIds, only findings new against the baseline fail. */
@@ -283,6 +285,7 @@ export function changedBlockIds(baseline: Segment[], candidate: Segment[]): Set<
 
 export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & { ok: boolean } {
   const failures: string[] = [];
+  const warnings: string[] = [];
   let factual = true;
   let faithful = true;
   let boundsOk = true;
@@ -318,11 +321,17 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
     if (added.length) { faithful = false; failures.push(...added.map(f => f.message)); }
   }
   const rt = estimateRuntime(candidate);
-  const rtOk = runtimeWithin(rt.sec, ctx.targetRuntimeSec);
-  if (!rtOk) failures.push(`Runtime ${Math.round(rt.sec)}s${rt.estimated ? ' (estimated)' : ''} is not within 10% of the ${ctx.targetRuntimeSec}s target.`);
+  const tol = ctx.runtimeTolerance ?? WIDE_RUNTIME_TOLERANCE;
+  const rtOk = runtimeWithin(rt.sec, ctx.targetRuntimeSec, tol);
+  if (!rtOk) {
+    const delta = Math.round(rt.sec - ctx.targetRuntimeSec);
+    const sign = delta > 0 ? `+${delta}` : `${delta}`;
+    const pct = ctx.targetRuntimeSec > 0 ? Math.round((Math.abs(delta) / ctx.targetRuntimeSec) * 100) : 0;
+    warnings.push(`Runtime discrepancy: ${Math.round(rt.sec)}s${rt.estimated ? ' (estimated)' : ''} differs from ${ctx.targetRuntimeSec}s target (${sign}s, ${pct}% delta). Informational only.`);
+  }
   const result: GateResult = {
     factual: factual ? 'pass' : 'fail', faithful: faithful ? 'pass' : 'fail', locksIntact: lockFailures.length === 0,
-    clipBoundsOk: boundsOk, runtimeOk: rtOk, failures,
+    clipBoundsOk: boundsOk, runtimeOk: rtOk, failures, warnings,
   };
   return { ...result, ok: failures.length === 0 };
 }

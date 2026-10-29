@@ -1,0 +1,6 @@
+{"label":"qf 20260903_1dKrPrbywDkJX","ok":true,"ms":35899,"inTok":2,"outTok":2849,"model":"sonnet"}
+{"label":"qf 20260913_1lJQRWAWpvVxE","ok":true,"ms":67577,"inTok":2,"outTok":8368,"model":"sonnet"}
+{"label":"qf 20260908_1wxWjlrwXokJQ","ok":true,"ms":68384,"inTok":2,"outTok":9100,"model":"sonnet"}
+{"label":"qf 20260908_1nGeLMjONkAKX","ok":true,"ms":100191,"inTok":2,"outTok":14613,"model":"sonnet"}
+{"label":"B whole-script","ok":true,"ms":101984,"inTok":2,"outTok":13746,"model":"sonnet"}
+{"label":"C hybrid draft","ok":true,"ms":94437,"inTok":2,"outTok":12695,"model":"sonnet"}

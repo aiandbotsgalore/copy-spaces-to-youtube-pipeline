@@ -14,12 +14,18 @@ export interface EvidenceRef {
 }
 
 export interface StudioClip {
+  id?: string;
   clipId: string; title: string; speaker: string; releaseTag: string;
   audioUrl: string; durationSec: number;      // probed (file duration or catalog window), clip-relative 0..durationSec
   text: string;
   episodeStartSec?: number;                   // provenance only; never sent to the reviser
   audioOffsetSec?: number;                    // where clip time 0 lies inside audioUrl (0 for a cut clip file)
   fn?: NarrativeFunction; fnRationale?: string;
+  timestamp?: string;
+  time?: string;
+  quote?: string;
+  label?: string;
+  source?: string;
 }
 
 export type NarrativeFunction = 'establish_question' | 'stakes' | 'complication' | 'evidence'
@@ -121,6 +127,7 @@ export type JudgeConsensus = 'two_wins' | 'win_plus_tie_on_major' | 'rejected';
 export interface GateResult {
   factual: 'pass' | 'fail'; faithful: 'pass' | 'fail'; locksIntact: boolean;
   clipBoundsOk: boolean; runtimeOk: boolean; failures: string[];
+  warnings?: string[];
   factcheck?: { claim: string; label: 'supported' | 'overstated' | 'unsupported'; note: string }[];
 }
 
@@ -188,6 +195,7 @@ export interface ScriptProject {
   googleDriveFolderUrl?: string;
   id: string; title: string; createdAt: number; updatedAt: number;
   format: EpisodeFormat | null; sourceTags: string[]; targetRuntimeSec: number;
+  runtimeTolerance?: number;
   transcriptHashes: Record<string, string>;
   speakerNames: Record<string, string>;      // raw label -> display name (Logan's renames)
   clips: StudioClip[]; excludedClips: { clipId: string; reason: string }[];

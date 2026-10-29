@@ -1,0 +1,1299 @@
+{
+ "calls": 3,
+ "ms": 113479,
+ "timings": [
+  39960,
+  35437,
+  38082
+ ],
+ "intended": [
+  {
+   "sceneId": "sc1",
+   "blocks": [
+    {
+     "kind": "music",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": "bed_in",
+     "note": "Low, steady bed under the setup."
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Sunday, six in the evening. A Space billed as a rebuttal. Angela is the subject, and by every sign in this recording she is not in the room. What the room knows of her Space from the day before, it knows secondhand. Start with Logan, the host. He says he is working from a transcript.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u9"
+       ],
+       "verbatim": "here's her transcript from the space yesterday"
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u9_u9",
+     "keptText": "But, anyway, here's her transcript from the space yesterday. And think of all the things she said about me, Logan. Right? Uh, how many of those things do you would you say are, like, legally actionable, would you say?",
+     "fn": "establish_question",
+     "rationale": "Logan frames the whole sequence in his own words: a transcript, his summary of it, and a question about legal action. It tells the listener whose account this is.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "The reply comes from an unidentified speaker, labeled Speaker 1. According to that speaker, the words attributed to Angela include abuser, rapist and predator. Those words are relayed from material Logan shared. They are not heard from Angela in this recording, and the speaker itself adds a condition.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u10"
+       ],
+       "verbatim": "Terms like abuser, rapist, and predator are serious allegations that if false, might be grounds for defamation."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Then the allegation that carries the most weight. Speaker 1 says Angela offered to post photos.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u13"
+       ],
+       "verbatim": "Angela explicitly asked, do you want me to post the photos below of Logan with the 13 year old?"
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u13_u13",
+     "keptText": "Angela explicitly asked, do you want me to post the photos below of Logan with the 13 year old? This is a very serious allegation.",
+     "fn": "stakes",
+     "rationale": "The gravest accusation attributed to Angela, heard as Speaker 1's paraphrase rather than her own voice. It shows why the room treats the matter as serious.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Logan's answer, in the moment, is a denial. He says the people making such claims know they are not true. That is his position, and it sits next to the allegation. It does not settle it. No photos are played or shown in this recording, and neither side's account of them can be checked here.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u14"
+       ],
+       "verbatim": "they know that's not true"
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "pause",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": 1.2,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Here is the fair point to concede. Much of Logan's description of her Space comes with a caveat he supplies himself, about how he learned it.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u698_u698",
+     "keptText": "what happened was I didn't I didn't listen to Angela's space at all yesterday. I didn't even, um, I don't even know really what was said. I got I got, like, a general gist of this from a couple people maybe, but, like, it wasn't until this earliest morning, like, around, like, four or 5AM that I read the transcript of it",
+     "fn": "counterpoint",
+     "rationale": "Logan's own admission that he did not hear her Space live. It limits how much weight his characterizations of it can carry.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "So the host read a transcript, hours after the fact. A listener who was there offers a different kind of account. This is another unidentified speaker, labeled Speaker 8, and the account is that speaker's own.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u684_u684",
+     "keptText": "was I was labeled a pedophile in her space, basically, for being in this space. Right?",
+     "fn": "evidence",
+     "rationale": "A first-person account from someone who says he attended her Space. It is a claim about how it felt and what he says was said, not a recording of it.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "What remains unproven is most of it. Whether Angela used these words in these ways. Whether the photos exist. What the screenshots she is said to hold actually show. Logan denies the accusations. What the recording holds is a transcript read second hand, a paraphrase from Speaker 1, and one listener's recollection. Nothing here is verified.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "music",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": "bed_out",
+     "note": "Fade the bed out after the closing narration."
+    }
+   ]
+  },
+  {
+   "sceneId": "sc2",
+   "blocks": [
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Why would Angela go after Logan? According to Logan, she has told him why. This is his account of her motive, not her own recorded words.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u565"
+       ],
+       "verbatim": "she tells me that, like, the reason she comes after me and then calls me responsible for, like, a lot of her issues or whatever is because I get in the way of her, um, like, disclosure and stuff like that."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u565_u565",
+     "keptText": "she tells me that, like, the reason she comes after me and then calls me responsible for, like, a lot of her issues or whatever is because I get in the way of her, um, like, disclosure and stuff like that. Does she say the same thing to you?",
+     "fn": "establish_question",
+     "rationale": "Logan states the motive he attributes to Angela in his own words and asks the room whether it matches their experience.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "An unidentified speaker answers him directly.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u566"
+       ],
+       "verbatim": "Yes. It's insane."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u566_u566",
+     "keptText": "Yes. It's insane. It's fucking the same imperative reasoning. Um, you guys are trying to stop me from telling my story. Uh, you're trying to stop disclosure, so you're a pedophile supporter. Like, it's absolutely insane. It's like she's reading a fucking script.",
+     "fn": "evidence",
+     "rationale": "A second voice repeats the motive and describes what Angela allegedly says to others.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Two voices, one account. But the second speaker is answering Logan's own question, so this is an echo, not independent confirmation. And in this scene nobody plays Angela saying it herself.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "pause",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": 0.6,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Then the threats. A different unidentified speaker alleges that Angela's legal threats are a habit.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u197"
+       ],
+       "verbatim": "she's always threatening to take us all to court. This has been going on for a year and a half."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u197_u197",
+     "keptText": "she's always threatening to take us all to court. This has been going on for a year and a half.",
+     "fn": "stakes",
+     "rationale": "The only legal threat heard in this scene, stated as the speaker's allegation about Angela.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "It is a secondhand claim. No filing, letter or court record is offered in the clip. Logan's reply, in the middle of a joking exchange about guns, is to wave it away.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u71"
+       ],
+       "verbatim": "She has nothing to threaten us with."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u71_u71",
+     "keptText": "She has nothing to threaten us with. Right?",
+     "fn": "counterpoint",
+     "rationale": "Logan's own dismissal of any threat from Angela.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Earlier in the recording, he had asked the room for restraint.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u57"
+       ],
+       "verbatim": "we are, like, you know, gentlemen. Right? And we don't viciously, uh, attack people because we don't behave that kind of way."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u57_u57",
+     "keptText": "we are, like, you know, gentlemen. Right? And we don't viciously, uh, attack people because we don't behave that kind of way. Right? So let's just, uh, keep a cool head",
+     "fn": "counterpoint",
+     "rationale": "Logan calls for a calmer tone toward Angela, which the recording goes on to test.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "What remains unproven: whether Angela gives that reason for targeting Logan, and whether she has threatened to take anyone to court. Both come from voices in this room. Neither is in her own recorded words here.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    }
+   ]
+  },
+  {
+   "sceneId": "sc3",
+   "blocks": [
+    {
+     "kind": "music",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": "transition",
+     "note": "Shift from the accusations to the room's reactions."
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "The room is not of one mind. Some of it is theory. Some of it is advice. One unidentified speaker, labelled Speaker 2, offers a theory about who Angela really is. He claims she is \"very clearly a fed.\" No evidence is offered in the recording.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u211"
+       ],
+       "verbatim": "she's very clearly a fed. Very clearly a fed."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u218_u218",
+     "keptText": "No. She's not a fed. She's not that smart to be a fed, but she's being brainwashed by something that will influence it that way.",
+     "fn": "counterpoint",
+     "rationale": "Even among Angela's critics, an unidentified speaker rejects the fed theory, though the replacement explanation is also unsupported.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "pause",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": 0.6,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "One theory rejected. Another put in its place. Neither comes with proof. Elsewhere in the recording, a different speaker objects to the tone of the room, in a stretch where speakers were attacking each other's credibility.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u368_u368",
+     "keptText": "Attacking somebody's credibility is not a good refutation to somebody's story.",
+     "fn": "counterpoint",
+     "rationale": "One of the few direct objections to the room's tone, heard from an unidentified speaker (Speaker 4).",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Then the conversation turns to the courts. Logan has said he read a transcript of Angela's earlier Space. He did not hear it live. He says so himself.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u698"
+       ],
+       "verbatim": "I didn't I didn't listen to Angela's space at all yesterday."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u659_u659",
+     "keptText": "You're being libeled, uh, in public. You can sue her. You can report her. Uh, you can file a police report. That's all acceptable.",
+     "fn": "counterpoint",
+     "rationale": "Advice from an unidentified speaker (Speaker 4) to Logan. It is an opinion, not a legal finding.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u881_u881",
+     "keptText": "She's not gonna stop until you sue her. She she's going to say he's afraid of discovery if you do not sue her.",
+     "fn": "complication",
+     "rationale": "The same speaker predicts how Angela will respond. It is a prediction, not a record of what she said.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "Logan's answer, in his own words: \"I told her that, like, please sue me.\" The advice does not stop there. Another unidentified speaker, Speaker 2, has a shorter route.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u882"
+       ],
+       "verbatim": "I told her that, like, please sue me."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u895_u895",
+     "keptText": "Right. So send her a cease and desist from Norfolk. It'll shut her the fuck up. I promise.",
+     "fn": "counterpoint",
+     "rationale": "Advice only. Nothing in the recording shows a letter was sent or that it would work.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "pause",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": 0.8,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "What does Angela plan next? One unidentified speaker, Speaker 10, says she has already told the room.",
+     "mode": "polished",
+     "claims": [
+      {
+       "utteranceIds": [
+        "u664"
+       ],
+       "verbatim": "Angela told us exactly what's gonna happen next."
+      }
+     ],
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "clip",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": "tr_20260918_1AxRnZMeZNYxl_u664_u664",
+     "keptText": "Angela told us exactly what's gonna happen next. She said that she is ready for her humiliation ritual.",
+     "fn": "stakes",
+     "rationale": "The only statement in this scene about what Angela plans next. It is secondhand and its meaning is unclear.",
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "narration",
+     "id": null,
+     "text": "That is the speaker's account of what Angela said, not Angela's own words. What remains unproven is most of it. The recording has no screenshots. It has no photos. It has no confirmed threat from Angela herself. Her own voice is not identified in it. Every accusation on tape is reported by someone else, and Logan denies the ones aimed at him. Advice to sue is advice. A cease and desist is a suggestion. A story told many times is still a story until someone shows the evidence.",
+     "mode": "polished",
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": null,
+     "note": null
+    },
+    {
+     "kind": "music",
+     "id": null,
+     "text": null,
+     "mode": null,
+     "claims": null,
+     "clipId": null,
+     "keptText": null,
+     "fn": null,
+     "rationale": null,
+     "sec": null,
+     "cue": "bed_out",
+     "note": "Close of the segment."
+    }
+   ]
+  }
+ ],
+ "version": {
+  "id": "v_mvsr1e3o980841a0",
+  "parentId": "v_base_A",
+  "projectId": "prj_exp2",
+  "createdAt": 1793230330020,
+  "author": "grok_bot",
+  "label": "A",
+  "segments": [
+   {
+    "id": "seg1",
+    "title": "What Angela is said to allege, and what has been shown",
+    "scenes": [
+     {
+      "id": "sc1",
+      "title": "What Angela is said to allege, and what has been shown",
+      "purpose": "Present the accusations attributed to Angela and the screenshots and photos she is said to hold, using attribution throughout, then let Logan's admission that he did not hear her Space and a listener's account of it frame what remains unproven.",
+      "blocks": [
+       {
+        "id": "b_mvsr1e393d731d0e",
+        "kind": "music",
+        "cue": "bed_in",
+        "note": "Low, steady bed under the setup."
+       },
+       {
+        "id": "b_mvsr1e3997612595",
+        "kind": "narration",
+        "text": "Sunday, six in the evening. A Space billed as a rebuttal. Angela is the subject, and by every sign in this recording she is not in the room. What the room knows of her Space from the day before, it knows secondhand. Start with Logan, the host. He says he is working from a transcript.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 338.1,
+          "segEnd": 362.08,
+          "speaker": "Logan",
+          "verbatim": "here's her transcript from the space yesterday"
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3b75893f07",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u9_u9",
+        "keptText": "Yeah. You know what? Maybe right. Um, you know, yesterday, she had a, uh, a space about me, which I think was meant to be, like, a, um, a rebuttal to, like, the one we were meant to have yesterday, but, um, it's never just never, you know, happened because stuff, uh, came with those, um, it doesn't matter. But, anyway, here's her transcript from the space yesterday. And think of all the things she said about me, Logan. Right? Uh, how many of those things do you would you say are, like, legally actionable, would you say?",
+        "inSec": 0,
+        "outSec": 23.98,
+        "trimBasis": "full",
+        "fn": "establish_question",
+        "rationale": "Logan frames the whole sequence in his own words: a transcript, his summary of it, and a question about legal action. It tells the listener whose account this is.",
+        "flag": "Trim not applied: Trim would remove 58% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3b6a460396",
+        "kind": "narration",
+        "text": "The reply comes from an unidentified speaker, labeled Speaker 1. According to that speaker, the words attributed to Angela include abuser, rapist and predator. Those words are relayed from material Logan shared. They are not heard from Angela in this recording, and the speaker itself adds a condition.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 374.24,
+          "segEnd": 394.57,
+          "speaker": "Speaker 1",
+          "verbatim": "Terms like abuser, rapist, and predator are serious allegations that if false, might be grounds for defamation."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3b20c8fdb6",
+        "kind": "narration",
+        "text": "Then the allegation that carries the most weight. Speaker 1 says Angela offered to post photos.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 425.1,
+          "segEnd": 454.04,
+          "speaker": "Speaker 1",
+          "verbatim": "Angela explicitly asked, do you want me to post the photos below of Logan with the 13 year old?"
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3b18e8febf",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u13_u13",
+        "keptText": "Ah, yes. I heard that. Angela explicitly asked, do you want me to post the photos below of Logan with the 13 year old? This is a very serious allegation. In common law, falsely accusing someone of a heinous criminal offense, especially one involving a minor, is classified as defamation per se. This means harm is legally presumed because the statement is intrinsically injurious. If that claim is untrue, it is certainly something that could be legally actionable.",
+        "inSec": 0,
+        "outSec": 28.94,
+        "trimBasis": "full",
+        "fn": "stakes",
+        "rationale": "The gravest accusation attributed to Angela, heard as Speaker 1's paraphrase rather than her own voice. It shows why the room treats the matter as serious.",
+        "flag": "Trim not applied: Trim would remove 72% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3b73eb406e",
+        "kind": "narration",
+        "text": "Logan's answer, in the moment, is a denial. He says the people making such claims know they are not true. That is his position, and it sits next to the allegation. It does not settle it. No photos are played or shown in this recording, and neither side's account of them can be checked here.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 456.34,
+          "segEnd": 480.89,
+          "speaker": "Logan",
+          "verbatim": "they know that's not true"
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3b97467217",
+        "kind": "pause",
+        "sec": 1.2
+       },
+       {
+        "id": "b_mvsr1e3b752b1dba",
+        "kind": "narration",
+        "text": "Here is the fair point to concede. Much of Logan's description of her Space comes with a caveat he supplies himself, about how he learned it.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3cedfb1136",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u698_u698",
+        "keptText": "I dropped it now. I'll do it. What happened, Tom? What what happened was I didn't I didn't listen to Angela's space at all yesterday. I didn't even, um, I don't even know really what was said. I got I got, like, a general gist of this from a couple people maybe, but, like, it wasn't until this earliest morning, like, around, like, four or 5AM that I read the transcript of it and where, like, it really hit me, like, the things she was saying about me. It kinda, like, made my heart hurt, like, a lot. I thought I someone would say that about me. Like, I could not fucking believe it. And, uh, it really hurt. I just she would do something like that to me. Well, I haven't done anything to her. Right? So, uh, that's when I got really pissed. Or I guess I got really hurt really bad. Yeah.",
+        "inSec": 0,
+        "outSec": 33.18,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Logan's own admission that he did not hear her Space live. It limits how much weight his characterizations of it can carry.",
+        "flag": "Trim not applied: Trim would remove 59% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3c31bcba05",
+        "kind": "narration",
+        "text": "So the host read a transcript, hours after the fact. A listener who was there offers a different kind of account. This is another unidentified speaker, labeled Speaker 8, and the account is that speaker's own.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3c295fa9d8",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u684_u684",
+        "keptText": "was I was labeled a pedophile in her space, basically, for being in this space. Right? So, like, you can't. So I think if that's the attitude you have, like, you should go in Angel's space and you're perfect. Right?",
+        "inSec": 0,
+        "outSec": 9.76,
+        "trimBasis": "full",
+        "fn": "evidence",
+        "rationale": "A first-person account from someone who says he attended her Space. It is a claim about how it felt and what he says was said, not a recording of it.",
+        "flag": "Trim not applied: Trim would remove 59% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3c998e15b4",
+        "kind": "narration",
+        "text": "What remains unproven is most of it. Whether Angela used these words in these ways. Whether the photos exist. What the screenshots she is said to hold actually show. Logan denies the accusations. What the recording holds is a transcript read second hand, a paraphrase from Speaker 1, and one listener's recollection. Nothing here is verified.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3ced7965be",
+        "kind": "music",
+        "cue": "bed_out",
+        "note": "Fade the bed out after the closing narration."
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u9_u9",
+       "tr_20260918_1AxRnZMeZNYxl_u13_u13",
+       "tr_20260918_1AxRnZMeZNYxl_u698_u698",
+       "tr_20260918_1AxRnZMeZNYxl_u684_u684"
+      ],
+      "momentIds": []
+     }
+    ]
+   },
+   {
+    "id": "seg2",
+    "title": "Why Angela is said to target Logan, and what she is said to threaten",
+    "scenes": [
+     {
+      "id": "sc2",
+      "title": "Why Angela is said to target Logan, and what she is said to threaten",
+      "purpose": "Set out the motive Logan attributes to Angela, the echo from an unidentified speaker, and the legal threats alleged by another unidentified speaker, then note Logan's dismissal and his call for restraint, and that none of this is confirmed by her own recorded words.",
+      "blocks": [
+       {
+        "id": "b_mvsr1e3d648f2e60",
+        "kind": "narration",
+        "text": "Why would Angela go after Logan? According to Logan, she has told him why. This is his account of her motive, not her own recorded words.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 7465.61,
+          "segEnd": 7476.07,
+          "speaker": "Logan",
+          "verbatim": "she tells me that, like, the reason she comes after me and then calls me responsible for, like, a lot of her issues or whatever is because I get in the way of her, um, like, disclosure and stuff like that."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3de1011c1c",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u565_u565",
+        "keptText": "she tells me that, like, the reason she comes after me and then calls me responsible for, like, a lot of her issues or whatever is because I get in the way of her, um, like, disclosure and stuff like that. Does she say the same thing to you?",
+        "inSec": 1.54,
+        "outSec": 10.46,
+        "trimBasis": "estimated",
+        "fn": "establish_question",
+        "rationale": "Logan states the motive he attributes to Angela in his own words and asks the room whether it matches their experience."
+       },
+       {
+        "id": "b_mvsr1e3d507aaacb",
+        "kind": "narration",
+        "text": "An unidentified speaker answers him directly.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 7476.88,
+          "segEnd": 7494.19,
+          "speaker": "Speaker 7",
+          "verbatim": "Yes. It's insane."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3efa420757",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u566_u566",
+        "keptText": "Yes. It's insane. It's fucking the same imperative reasoning. Um, you guys are trying to stop me from telling my story. Uh, you're trying to stop disclosure, so you're a pedophile supporter. Like, it's absolutely insane. It's like she's reading a fucking script.",
+        "inSec": 0,
+        "outSec": 16.69,
+        "trimBasis": "estimated",
+        "fn": "evidence",
+        "rationale": "A second voice repeats the motive and describes what Angela allegedly says to others."
+       },
+       {
+        "id": "b_mvsr1e3e0772b931",
+        "kind": "narration",
+        "text": "Two voices, one account. But the second speaker is answering Logan's own question, so this is an echo, not independent confirmation. And in this scene nobody plays Angela saying it herself.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3e2cac62fa",
+        "kind": "pause",
+        "sec": 0.6
+       },
+       {
+        "id": "b_mvsr1e3ec32dcc58",
+        "kind": "narration",
+        "text": "Then the threats. A different unidentified speaker alleges that Angela's legal threats are a habit.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 3361.67,
+          "segEnd": 3390.62,
+          "speaker": "Speaker 5",
+          "verbatim": "she's always threatening to take us all to court. This has been going on for a year and a half."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3e9d802bd8",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u197_u197",
+        "keptText": "Um, she's always threatening to take us all to court. This has been going on for a year and a half. She's she's lied about all her pregnancies pregnancies. She's lied about her mom dying on her birthday. She lied about her father dying on Father's Day. Like, everything this this everything in her story is just made up. Um, she's gotten she got a guy named Jade Helm who I fucking hate. She got him locked up. He went to jail last year for eight months. She called his parole officer, like, 30 times",
+        "inSec": 0,
+        "outSec": 28.95,
+        "trimBasis": "full",
+        "fn": "stakes",
+        "rationale": "The only legal threat heard in this scene, stated as the speaker's allegation about Angela.",
+        "flag": "Trim not applied: Trim would remove 80% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3ec6ddcc6c",
+        "kind": "narration",
+        "text": "It is a secondhand claim. No filing, letter or court record is offered in the clip. Logan's reply, in the middle of a joking exchange about guns, is to wave it away.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 1722.23,
+          "segEnd": 1729.45,
+          "speaker": "Logan",
+          "verbatim": "She has nothing to threaten us with."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3ea325318d",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u71_u71",
+        "keptText": "She has nothing to threaten us with. Right? Uh, so Why not? It was it's not really a fight, really. It it's just more just like I don't know.",
+        "inSec": 0,
+        "outSec": 7.22,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Logan's own dismissal of any threat from Angela.",
+        "flag": "Trim not applied: Trim would remove 69% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3e6d206d64",
+        "kind": "narration",
+        "text": "Earlier in the recording, he had asked the room for restraint.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 1557.28,
+          "segEnd": 1574.36,
+          "speaker": "Logan",
+          "verbatim": "we are, like, you know, gentlemen. Right? And we don't viciously, uh, attack people because we don't behave that kind of way."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3fb6802222",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u57_u57",
+        "keptText": "And now this is gonna get, like, a little ugly right here for a minute, maybe. But I'm gonna have to say, like, uh, you know, we are, like, you know, gentlemen. Right? And we don't viciously, uh, attack people because we don't behave that kind of way. Right? So let's just, uh, keep a cool head and, uh, what's up, Orr?",
+        "inSec": 0,
+        "outSec": 17.08,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Logan calls for a calmer tone toward Angela, which the recording goes on to test.",
+        "flag": "Trim not applied: Trim would remove 47% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3fee18f5e3",
+        "kind": "narration",
+        "text": "What remains unproven: whether Angela gives that reason for targeting Logan, and whether she has threatened to take anyone to court. Both come from voices in this room. Neither is in her own recorded words here.",
+        "mode": "polished",
+        "claims": []
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u565_u565",
+       "tr_20260918_1AxRnZMeZNYxl_u566_u566",
+       "tr_20260918_1AxRnZMeZNYxl_u197_u197",
+       "tr_20260918_1AxRnZMeZNYxl_u71_u71",
+       "tr_20260918_1AxRnZMeZNYxl_u57_u57"
+      ],
+      "momentIds": []
+     }
+    ]
+   },
+   {
+    "id": "seg3",
+    "title": "Pushback, legal advice and open questions",
+    "scenes": [
+     {
+      "id": "sc3",
+      "title": "Pushback, legal advice and open questions",
+      "purpose": "Show the room's mixed reactions (a rejected conspiracy theory, an objection to attacking credibility, and advice to sue or send a cease and desist) and close on what is still unproven: no screenshots, photos or confirmed threats from Angela herself are in the recording.",
+      "blocks": [
+       {
+        "id": "b_mvsr1e3f87ccf9be",
+        "kind": "music",
+        "cue": "transition",
+        "note": "Shift from the accusations to the room's reactions."
+       },
+       {
+        "id": "b_mvsr1e3f613037c4",
+        "kind": "narration",
+        "text": "The room is not of one mind. Some of it is theory. Some of it is advice. One unidentified speaker, labelled Speaker 2, offers a theory about who Angela really is. He claims she is \"very clearly a fed.\" No evidence is offered in the recording.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 3550.57,
+          "segEnd": 3573.82,
+          "speaker": "Speaker 2",
+          "verbatim": "she's very clearly a fed. Very clearly a fed."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3g201a26ee",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u218_u218",
+        "keptText": "No. She's not a fed. She's not that smart to be a fed, but she's being brainwashed by something that will influence it that way.",
+        "inSec": 0,
+        "outSec": 7.06,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Even among Angela's critics, an unidentified speaker rejects the fed theory, though the replacement explanation is also unsupported."
+       },
+       {
+        "id": "b_mvsr1e3g654f47d8",
+        "kind": "pause",
+        "sec": 0.6
+       },
+       {
+        "id": "b_mvsr1e3g7a7c6418",
+        "kind": "narration",
+        "text": "One theory rejected. Another put in its place. Neither comes with proof. Elsewhere in the recording, a different speaker objects to the tone of the room, in a stretch where speakers were attacking each other's credibility.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3g2b8c8faa",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u368_u368",
+        "keptText": "Nat Hoffman in isn't a good refutation of somebody's story. I'm just saying. What's that? Attacking somebody's credibility is not a good refutation to somebody's story.",
+        "inSec": 0,
+        "outSec": 11.46,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "One of the few direct objections to the room's tone, heard from an unidentified speaker (Speaker 4).",
+        "flag": "Trim not applied: Trim would remove 53% of the clip (automatic limit 35%)."
+       },
+       {
+        "id": "b_mvsr1e3gbb2dce92",
+        "kind": "narration",
+        "text": "Then the conversation turns to the courts. Logan has said he read a transcript of Angela's earlier Space. He did not hear it live. He says so himself.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 8371.27,
+          "segEnd": 8404.45,
+          "speaker": "Logan",
+          "verbatim": "I didn't I didn't listen to Angela's space at all yesterday."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3g85635263",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u659_u659",
+        "keptText": "You're being libeled, uh, in public. You can sue her. You can report her. Uh, you can file a police report. That's all acceptable.",
+        "inSec": 0,
+        "outSec": 7.54,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Advice from an unidentified speaker (Speaker 4) to Logan. It is an opinion, not a legal finding."
+       },
+       {
+        "id": "b_mvsr1e3hd1525798",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u881_u881",
+        "keptText": "She's not gonna stop until you sue her. She she's going to say he's afraid of discovery if you do not sue her.",
+        "inSec": 0,
+        "outSec": 6.18,
+        "trimBasis": "full",
+        "fn": "complication",
+        "rationale": "The same speaker predicts how Angela will respond. It is a prediction, not a record of what she said."
+       },
+       {
+        "id": "b_mvsr1e3h9b49060e",
+        "kind": "narration",
+        "text": "Logan's answer, in his own words: \"I told her that, like, please sue me.\" The advice does not stop there. Another unidentified speaker, Speaker 2, has a shorter route.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 11032.54,
+          "segEnd": 11038.86,
+          "speaker": "Logan",
+          "verbatim": "I told her that, like, please sue me."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3hf18cf9ed",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u895_u895",
+        "keptText": "Right. So send her a cease and desist from Norfolk. It'll shut her the fuck up. I promise.",
+        "inSec": 0,
+        "outSec": 4.17,
+        "trimBasis": "full",
+        "fn": "counterpoint",
+        "rationale": "Advice only. Nothing in the recording shows a letter was sent or that it would work."
+       },
+       {
+        "id": "b_mvsr1e3heb771187",
+        "kind": "pause",
+        "sec": 0.8
+       },
+       {
+        "id": "b_mvsr1e3hb7dc6297",
+        "kind": "narration",
+        "text": "What does Angela plan next? One unidentified speaker, Speaker 10, says she has already told the room.",
+        "mode": "polished",
+        "claims": [
+         {
+          "releaseTag": "20260918_1AxRnZMeZNYxl",
+          "segStart": 8178.89,
+          "segEnd": 8186.28,
+          "speaker": "Speaker 10",
+          "verbatim": "Angela told us exactly what's gonna happen next."
+         }
+        ]
+       },
+       {
+        "id": "b_mvsr1e3h8abafcba",
+        "kind": "clip",
+        "clipId": "tr_20260918_1AxRnZMeZNYxl_u664_u664",
+        "keptText": "Angela told us exactly what's gonna happen next. She said that she is ready for her humiliation ritual.",
+        "inSec": 0,
+        "outSec": 7.39,
+        "trimBasis": "full",
+        "fn": "stakes",
+        "rationale": "The only statement in this scene about what Angela plans next. It is secondhand and its meaning is unclear."
+       },
+       {
+        "id": "b_mvsr1e3h5f9dd175",
+        "kind": "narration",
+        "text": "That is the speaker's account of what Angela said, not Angela's own words. What remains unproven is most of it. The recording has no screenshots. It has no photos. It has no confirmed threat from Angela herself. Her own voice is not identified in it. Every accusation on tape is reported by someone else, and Logan denies the ones aimed at him. Advice to sue is advice. A cease and desist is a suggestion. A story told many times is still a story until someone shows the evidence.",
+        "mode": "polished",
+        "claims": []
+       },
+       {
+        "id": "b_mvsr1e3h11d82853",
+        "kind": "music",
+        "cue": "bed_out",
+        "note": "Close of the segment."
+       }
+      ],
+      "suggestedClipIds": [
+       "tr_20260918_1AxRnZMeZNYxl_u218_u218",
+       "tr_20260918_1AxRnZMeZNYxl_u368_u368",
+       "tr_20260918_1AxRnZMeZNYxl_u659_u659",
+       "tr_20260918_1AxRnZMeZNYxl_u881_u881",
+       "tr_20260918_1AxRnZMeZNYxl_u895_u895",
+       "tr_20260918_1AxRnZMeZNYxl_u664_u664"
+      ],
+      "momentIds": []
+     }
+    ]
+   }
+  ],
+  "changedScope": {
+   "level": "scene",
+   "ids": [
+    "sc1",
+    "sc2",
+    "sc3"
+   ]
+  },
+  "decision": {
+   "candidateId": "v_mvsr1e3o980841a0",
+   "baselineId": "v_base_A",
+   "round": -1,
+   "promptVersion": "A",
+   "gates": {
+    "factual": "pass",
+    "faithful": "fail",
+    "locksIntact": true,
+    "clipBoundsOk": true,
+    "runtimeOk": false,
+    "failures": [
+     "Narration b_mvsr1e3d507aaacb rests on one source (Speaker 7) but does not attribute it (\"according to\", \"alleges\", ...).",
+     "Narration b_mvsr1e3e6d206d64 rests on one source (Logan) but does not attribute it (\"according to\", \"alleges\", ...).",
+     "Investigative: narration b_mvsr1e3d507aaacb rests on one source without attribution wording.",
+     "Investigative: narration b_mvsr1e3e6d206d64 rests on one source without attribution wording.",
+     "Runtime 490s (estimated) is not within 10% of the 300s target."
+    ],
+    "ok": false
+   },
+   "loopAccepted": false,
+   "notJudged": "Imported from a Grok Bot deep pass; not judged in the app."
+  }
+ },
+ "gates": {
+  "factual": "pass",
+  "faithful": "fail",
+  "locksIntact": true,
+  "clipBoundsOk": true,
+  "runtimeOk": false,
+  "failures": [
+   "Narration b_mvsr1e3d507aaacb rests on one source (Speaker 7) but does not attribute it (\"according to\", \"alleges\", ...).",
+   "Narration b_mvsr1e3e6d206d64 rests on one source (Logan) but does not attribute it (\"according to\", \"alleges\", ...).",
+   "Investigative: narration b_mvsr1e3d507aaacb rests on one source without attribution wording.",
+   "Investigative: narration b_mvsr1e3e6d206d64 rests on one source without attribution wording.",
+   "Runtime 490s (estimated) is not within 10% of the 300s target."
+  ],
+  "ok": false
+ }
+}

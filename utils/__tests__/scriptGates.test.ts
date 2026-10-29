@@ -97,6 +97,19 @@ describe('code gates', () => {
     expect(g.factual).toBe('fail');
     expect(g.runtimeOk).toBe(false);
   });
+  it("treats runtime delta discrepancies as non-blocking soft warnings", () => {
+    // 1556-second actual runtime against a 1200-second target (or large discrepancy)
+    const g = codeGates(base().segments, { ...ctx, targetRuntimeSec: 1200 });
+    expect(g.failures).toEqual([]);
+    expect(g.ok).toBe(true);
+    expect(g.warnings && g.warnings.length).toBeGreaterThan(0);
+    expect(g.warnings?.[0]).toMatch(/Runtime discrepancy/);
+  });
+  it("allows widening validation tolerance threshold in gate context", () => {
+    // 1556 seconds vs 1200 seconds target: (1556 - 1200) / 1200 = 29.67% delta
+    // With 0.35 (35%) tolerance, it is within tolerance
+    expect(runtimeWithin(1556, 1200, 0.35)).toBe(true);
+  });
   it('investigative single-source claims need attribution wording', () => {
     const claim = { releaseTag: TAG, segStart: 1224, segEnd: 1242, speaker: 'Oor', verbatim: "I can't share this with you" };
     expect(attributionFailure({ id: 'n', kind: 'narration', text: 'He cannot share it.', mode: 'live', claims: [claim] }, 'investigative')).toMatch(/does not attribute/);

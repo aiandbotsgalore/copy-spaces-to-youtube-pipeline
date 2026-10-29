@@ -1,0 +1,106 @@
+{
+ "run": 2,
+ "order": [
+  "C",
+  "B",
+  "A"
+ ],
+ "ms": 62430,
+ "model": "gpt-6.1-sol",
+ "scripts": [
+  {
+   "label": "SCRIPT X",
+   "errors": [
+    {
+     "excerpt": "This next bit, I think it's aimed at someone she calls Sign.",
+     "problem": "The transcript does not identify Sign as the target of the motion-for-discovery threat. Angela addresses the person as “you,” and the surrounding passage is directed primarily at Logan. This attribution is uncertain and misleading.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "Now, I mean, the transcript is rough in a few spots",
+     "problem": "The transcript contains rough speech, but this aside is narrator commentary rather than a factual error; it weakens the documentary tone slightly.",
+     "severity": "minor"
+    }
+   ],
+   "accuracy": 8,
+   "fairness": 9,
+   "ownVoice": 9,
+   "coherence": 9,
+   "storytelling": 8,
+   "summary": "The strongest script overall. It uses Angela’s recorded voice well, clearly labels allegations, and preserves uncertainty. Its main factual problem is misattributing the discovery-motion threat to Sign."
+  },
+  {
+   "label": "SCRIPT Y",
+   "errors": [
+    {
+     "excerpt": "Angela says these are exchanges between me and Sav.",
+     "problem": "Angela presents the screenshots as exchanges between Logan Black and Sav, not between herself and Sav.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "During her September 8th Space",
+     "problem": "No September 8 date appears anywhere in the transcript. This is an invented detail.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "She says the threats run the other way. She says that in a voice clip and in DMs, quote, “bitch, we're coming for your money bags”",
+     "problem": "The transcript says Angela reports that Logan said this in a voice clip, but the clip itself is not heard. The script partly acknowledges that, but its phrasing could imply the threat is independently established.",
+     "severity": "minor"
+    },
+    {
+     "excerpt": "She also says she is holding material back. She says she will hold the rest until a response.",
+     "problem": "Angela says she was asked to wait before sharing the rest, while elsewhere she says she is intentionally withholding screenshots to give Logan an opportunity to tell the truth. The script compresses these distinct statements into one without the distinction.",
+     "severity": "minor"
+    },
+    {
+     "excerpt": "Allegations are cheap. Evidence is not.",
+     "problem": "This is loaded narrator framing that editorializes against Angela’s claims and is less neutral than the requested investigative treatment.",
+     "severity": "minor"
+    }
+   ],
+   "accuracy": 6,
+   "fairness": 7,
+   "ownVoice": 8,
+   "coherence": 8,
+   "storytelling": 8,
+   "summary": "Clear and listenable, with good sourcing and verification cautions. It contains an invented date, a major misattribution of who is speaking in the screenshots, and some loaded or overcompressed framing."
+  },
+  {
+   "label": "SCRIPT Z",
+   "errors": [
+    {
+     "excerpt": "During her September 8th Space",
+     "problem": "The transcript gives no September 8 date. This is invented.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "Later she tells a person she calls Sign that if that person challenges her legally, she will “file a motion for discovery”",
+     "problem": "The transcript does not establish that this legal threat is addressed to Sign. The immediate language addresses “you,” and the surrounding passage is directed at Logan; the attribution should remain uncertain.",
+     "severity": "serious"
+    },
+    {
+     "excerpt": "That is an ultimatum, according to Angela, and it is aimed at Logan.",
+     "problem": "Angela says she is giving Logan an opportunity to tell the truth before posting the screenshots, but calling it an ultimatum is narrator characterization rather than her wording.",
+     "severity": "minor"
+    },
+    {
+     "excerpt": "Angela's case rests on images.",
+     "problem": "Her stated evidence also includes recordings, DMs, a phone call, and a deleted Space. Saying the case rests on images oversimplifies the scope of her claims.",
+     "severity": "minor"
+    }
+   ],
+   "accuracy": 7,
+   "fairness": 9,
+   "ownVoice": 8,
+   "coherence": 8,
+   "storytelling": 8,
+   "summary": "A careful, well-structured script that distinguishes claims from verification and keeps the allegations sourced. The invented date and incorrect or unsupported Sign attribution are substantial defects."
+  }
+ ],
+ "ranking": [
+  "SCRIPT X",
+  "SCRIPT Z",
+  "SCRIPT Y"
+ ],
+ "reasons": "Script X ranks first because it most consistently lets Angela’s tape carry the account while clearly marking what is unverified; its main defect is the unsupported attribution of the legal threat to Sign. Script Z ranks second because its sourcing and fairness are strong, but it invents a date and repeats the Sign misattribution while narrowing Angela’s evidence to screenshots. Script Y ranks third because it has the clearest factual attribution error (“me and Sav”), invents the September 8 date, uses more loaded narrator language, and compresses distinct statements about withholding material."
+}

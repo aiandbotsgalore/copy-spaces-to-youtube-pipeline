@@ -4,9 +4,10 @@ import {
   Save, Loader, AlertCircle, CheckCircle2, Trash2, Edit3, ExternalLink,
   Download, Upload, Copy, Info, Terminal, RefreshCw, Mic, Volume2,
   Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText,
-  UploadCloud, Music, FileAudio, Camera, Image
+  UploadCloud, Music, FileAudio, Camera, Image, Bot
 } from 'lucide-react';
 import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release, DeadLetterJob } from '../types';
+import { useCopilot } from '../contexts/CopilotContext';
 import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
 import { loadDeadLetterQueue, saveDeadLetterQueue, removeFromDeadLetterQueue } from '../utils/storage';
 import { VoiceProfileModal } from './voice/VoiceProfileModal';
@@ -16,6 +17,7 @@ import { PipelineArchitectureModal } from './voice/PipelineArchitectureModal';
 import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
 import { AudioPreCheckResult } from './voice/types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
+import { AvatarCropModal } from './AvatarCropModal';
 
 interface Props {
   config: EnhancedConfig;
@@ -117,6 +119,8 @@ const ROLE_OPTIONS = ['Host', 'Co-Host', 'Special Guest', 'Speaker', 'Community 
 const EMOJI_OPTIONS = ['🎙️', '🌹', '⚡', '🛸', '✨', '🧠', '👁️', '💫', '🎧', '👩‍🎨', '🌸', '👑', '👽', '🤖', '🔥', '⭐', '💡', '💬', '🕵️', '🧸', '🎯', '🚀'];
 
 export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript }) => {
+  const [avatarCrop, setAvatarCrop] = useState<{ speakerName: string; file: File | Blob } | null>(null);
+  const copilot = useCopilot();
   const [catalog, setCatalog] = useState<VoiceProfilesCatalog>(DEFAULT_CATALOG);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -260,6 +264,10 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   const handleUploadSpeakerAvatar = async (speakerName: string, file?: File | null) => {
     if (!file) return;
+    setAvatarCrop({ speakerName, file });
+  };
+
+  const saveSpeakerAvatar = async (speakerName: string, file: Blob) => {
     try {
       const { dataUrl, base64: base64Data } = await resizeImageToDataUrl(file, 512, 0.85);
       const nextCatalog = { ...catalog };
@@ -907,6 +915,16 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 text-slate-200">
+      <AvatarCropModal
+        file={avatarCrop?.file || null}
+        speakerName={avatarCrop?.speakerName || ''}
+        onCancel={() => setAvatarCrop(null)}
+        onConfirm={blob => {
+          const name = avatarCrop?.speakerName;
+          setAvatarCrop(null);
+          if (name) void saveSpeakerAvatar(name, blob);
+        }}
+      />
       {/* ── Page Header ── */}
       <div className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md px-6 py-6 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -932,6 +950,18 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg transition-all hover:scale-105 cursor-pointer"
             >
               <Plus size={15} /> Add Speaker Profile
+            </button>
+
+            <button
+              onClick={() => {
+                copilot.sendMessage(`Analyze our enrolled voice profiles catalog (${stats.total} total profiles, ${stats.enrolled} enrolled, ${stats.pending} pending). Are there recurring speakers with missing embeddings or low sample counts that should be enrolled from recent transcripts?`);
+                copilot.activePanelNavHandler?.('ai-copilot');
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 rounded-lg text-xs font-bold border border-indigo-500/30 transition-all cursor-pointer"
+              title="Ask SpacePipe Copilot to analyze voice catalog and identify speakers to enroll"
+            >
+              <Bot size={14} className="text-indigo-400" />
+              <span>Ask Copilot to Analyze</span>
             </button>
 
             <button

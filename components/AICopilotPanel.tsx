@@ -20,7 +20,11 @@ import {
   ChevronRight,
   SplitSquareVertical,
   Activity,
-  Check
+  Check,
+  AlertTriangle,
+  ShieldAlert,
+  Clock,
+  XCircle
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -28,6 +32,7 @@ import { usePlayer } from '../contexts/PlayerContext';
 import { TensionArc } from './TensionArc';
 import { TargetWindowGauge } from './TargetWindowGauge';
 import type { CopilotAction } from '../utils/copilotTypes';
+import { resolveActionTier } from '../utils/contracts/copilotActions';
 
 const PRESET_PILLS = [
   {
@@ -392,7 +397,7 @@ export const AICopilotPanel: React.FC = () => {
                       <ActionCard
                         key={action.id}
                         action={action}
-                        onApply={() => applyAction(action)}
+                        onApply={(opts) => applyAction(action, opts)}
                         onRevert={() => revertAction(action)}
                       />
                     ))}
@@ -584,12 +589,14 @@ export const AICopilotPanel: React.FC = () => {
 
 interface ActionCardProps {
   action: CopilotAction;
-  onApply: () => void;
+  onApply: (options?: { confirmed?: boolean }) => void;
   onRevert: () => void;
 }
 
 const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) => {
-  const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS';
+  const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH';
+  const tier = action.tier ?? resolveActionTier(action.action, action.params);
+  const isTier2 = tier === 2;
 
   const getBadge = () => {
     switch (action.action) {
@@ -609,6 +616,27 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
         return { label: 'Search Transcripts', bg: 'bg-blue-500/15 text-blue-300 border-blue-500/30' };
       case 'LOAD_EPISODE':
         return { label: 'Load Episode', bg: 'bg-teal-500/15 text-teal-300 border-teal-500/30' };
+      case 'ENQUEUE_SPACE':
+        return { label: 'Enqueue Space', bg: 'bg-amber-500/15 text-amber-300 border-amber-500/30' };
+      case 'DISPATCH_WORKFLOW':
+        return { label: 'Dispatch Workflow', bg: 'bg-violet-500/15 text-violet-300 border-violet-500/30' };
+      case 'AUDITION_MONTAGE':
+        return { label: 'Audition Reel', bg: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' };
+      case 'CREATE_PROJECT':
+      case 'ANALYZE_PROJECT':
+      case 'OUTLINE_PROJECT':
+      case 'DRAFT_PROJECT':
+      case 'REFINE_PROJECT':
+        return { label: 'Script Studio', bg: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
+      case 'SYNTHESIZE_VOX':
+        return { label: 'Voice Synth', bg: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30' };
+      case 'RENDER_AVATAR':
+        return { label: 'Render Avatar', bg: 'bg-pink-500/15 text-pink-300 border-pink-500/30' };
+      case 'GET_QUEUE':
+      case 'GET_RUN_HISTORY':
+      case 'GET_VOICE_PROFILES':
+      case 'GET_SCRIPT_PROJECTS':
+        return { label: 'Inspect Pipeline', bg: 'bg-blue-500/15 text-blue-300 border-blue-500/30' };
       default:
         return { label: action.action, bg: 'bg-slate-800 text-slate-300 border-slate-700' };
     }
@@ -617,76 +645,156 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
   const badge = getBadge();
 
   return (
-    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 text-xs">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${badge.bg}`}>
-            {badge.label}
-          </span>
-          <p className="font-semibold text-slate-200 truncate">{action.explanation}</p>
-        </div>
-        {action.params?.query && (
-          <p className="text-[11px] text-slate-400 mt-1 truncate">
-            Query: <span className="text-white font-medium">"{action.params.query}"</span>
-            {action.params.scope && (
-              <span className="text-slate-500 ml-1.5 font-mono text-[10px]">
-                ({action.params.scope})
-              </span>
-            )}
-          </p>
-        )}
-        {action.params?.title && (
-          <p className="text-[11px] text-slate-400 mt-1 truncate">
-            Target: <span className="text-white font-medium">{action.params.title}</span>
-            {action.params.startSec !== undefined && (
-              <span className="text-slate-500 ml-1.5">
-                ({action.params.startSec}s - {action.params.endSec}s)
-              </span>
-            )}
-          </p>
-        )}
-      </div>
+    <div className={`p-3 rounded-xl border flex flex-col gap-2.5 text-xs transition-colors ${
+      isTier2 && !action.applied && action.status !== 'accepted' && action.status !== 'completed'
+        ? 'bg-amber-950/20 border-amber-500/40 shadow-sm shadow-amber-950/40'
+        : 'bg-slate-950/70 border-slate-800'
+    }`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${badge.bg}`}>
+              {badge.label}
+            </span>
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+              tier === 2 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+              tier === 1 ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
+              'bg-slate-800 text-slate-400'
+            }`}>
+              TIER {tier}
+            </span>
+            <p className="font-semibold text-slate-200">{action.explanation}</p>
+          </div>
 
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        {isSearchAction ? (
-          // Read-only search status — Never display "Applied"!
-          action.status === 'running' ? (
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400">
+          {/* Context Details */}
+          {action.params?.query && (
+            <p className="text-[11px] text-slate-400 mt-1 truncate">
+              Query: <span className="text-white font-medium">"{action.params.query}"</span>
+              {action.params.scope && (
+                <span className="text-slate-500 ml-1.5 font-mono text-[10px]">
+                  ({action.params.scope})
+                </span>
+              )}
+            </p>
+          )}
+          {action.params?.title && (
+            <p className="text-[11px] text-slate-400 mt-1 truncate">
+              Target: <span className="text-white font-medium">{action.params.title}</span>
+              {action.params.startSec !== undefined && (
+                <span className="text-slate-500 ml-1.5">
+                  ({action.params.startSec}s - {action.params.endSec}s)
+                </span>
+              )}
+            </p>
+          )}
+
+          {/* Tier 2 Explicit Diff / Impact Details */}
+          {isTier2 && action.action === 'UPDATE_CONFIG' && action.params?.updates && (
+            <div className="mt-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono">
+              <span className="text-slate-400 font-sans block mb-1">Proposed Config Changes:</span>
+              {Object.entries(action.params.updates).map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-2 text-slate-300 py-0.5">
+                  <span className="text-amber-400">{k}:</span>
+                  <span className="text-emerald-400 font-bold truncate">{JSON.stringify(v)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isTier2 && action.action === 'ENQUEUE_SPACE' && (
+            <div className="mt-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+              <div><span className="text-slate-400">Target URL:</span> <span className="font-mono text-cyan-300">{action.params?.spaceUrl}</span></div>
+              <div><span className="text-slate-400">Queue:</span> <span className="font-mono text-amber-300">{action.params?.queueType === 'priority' ? 'space_queue.txt (Priority)' : 'batch_queue.txt (Batch)'}</span></div>
+              {action.params?.title && <div><span className="text-slate-400">Title:</span> {action.params.title}</div>}
+            </div>
+          )}
+
+          {isTier2 && action.action === 'DISPATCH_WORKFLOW' && (
+            <div className="mt-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+              <div><span className="text-slate-400">Workflow:</span> <span className="font-mono text-violet-300">{action.params?.workflowFile}</span></div>
+              <div><span className="text-slate-400">Ref:</span> <span className="font-mono text-slate-300">{action.params?.ref || 'main'}</span></div>
+              {action.params?.inputs && Object.keys(action.params.inputs).length > 0 && (
+                <div className="mt-1 text-[10px] font-mono text-slate-400">
+                  Inputs: {JSON.stringify(action.params.inputs)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Error Message if Failed */}
+          {action.status === 'failed' && action.errorMessage && (
+            <p className="mt-1 text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded">
+              Error: {action.errorMessage}
+            </p>
+          )}
+        </div>
+
+        {/* Action Controls & Status Badges */}
+        <div className="flex items-center gap-1.5 flex-shrink-0 self-center">
+          {isSearchAction ? (
+            action.status === 'running' ? (
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                Querying...
+              </span>
+            ) : action.status === 'no_matches' || action.matchCount === 0 ? (
+              <span className="text-[11px] font-semibold text-slate-400">
+                No matches found
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-300">
+                <CheckCircle2 size={13} className="text-blue-400" />
+                Found {action.matchCount ?? 'matches'}
+              </span>
+            )
+          ) : action.status === 'accepted' ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30" title="Enqueued for runner execution">
+              <Clock size={13} className="text-amber-400" />
+              Accepted (Asynchronous Run)
+            </span>
+          ) : action.status === 'failed' ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+              <XCircle size={13} />
+              Failed
+            </span>
+          ) : action.status === 'running' ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-              Running...
+              Executing...
             </span>
-          ) : action.status === 'no_matches' || action.matchCount === 0 ? (
-            <span className="text-[11px] font-semibold text-slate-400">
-              No matches found
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-300">
-              <CheckCircle2 size={13} className="text-blue-400" />
-              Completed: Found {action.matchCount ?? 'matches'} matches
-            </span>
-          )
-        ) : action.applied ? (
-          <>
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
-              <Check size={13} />
-              Applied
-            </span>
+          ) : action.applied ? (
+            <>
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                <Check size={13} />
+                Applied
+              </span>
+              {action.snapshot && (
+                <button
+                  onClick={onRevert}
+                  className="p-1 rounded text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Undo this action"
+                >
+                  <Undo2 size={13} />
+                </button>
+              )}
+            </>
+          ) : isTier2 ? (
             <button
-              onClick={onRevert}
-              className="p-1 rounded text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Undo this action"
+              onClick={() => onApply({ confirmed: true })}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-lg shadow-amber-600/20 cursor-pointer"
             >
-              <Undo2 size={13} />
+              <ShieldAlert size={13} />
+              Confirm &amp; Execute
             </button>
-          </>
-        ) : (
-          <button
-            onClick={onApply}
-            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer"
-          >
-            Apply Fix
-          </button>
-        )}
+          ) : (
+            <button
+              onClick={() => onApply()}
+              className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+            >
+              Apply Fix
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

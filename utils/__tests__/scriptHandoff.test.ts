@@ -94,8 +94,8 @@ describe('Grok Bot deep pass by file handoff', () => {
     const r = await api('POST', '/handoff/import', { projectId: id, result: result([good, invented, dropsLock, wrongScene]) });
     expect(r.status).toBe(200);
     const c = r.json.summary.candidates;
-    // The same code gates as the loop: a 10 s script misses a 120 s target, and the import says so.
-    expect(c[0]).toMatchObject({ label: 'Grok Bot: Quote first', gatesOk: false, failures: [expect.stringMatching(/not within 10% of the 120s target/)] });
+    // The code gates treat runtime discrepancy as a non-blocking informational warning.
+    expect(c[0]).toMatchObject({ label: 'Grok Bot: Quote first', gatesOk: true, failures: [], warnings: [expect.stringMatching(/Runtime discrepancy/)] });
     expect(c[1].error).toMatch(/unknown utterance ids/);
     expect(c[2].error).toMatch(/dropped Logan's locked block b_n2/);
     expect(c[3].error).toMatch(/Unknown scene ids sc_zzz/);

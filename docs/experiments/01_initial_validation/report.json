@@ -1,0 +1,352 @@
+{
+ "retrieval": {
+  "n": 20,
+  "R1_line": 15,
+  "R1_text": 7,
+  "R2_line": 15,
+  "R2_text": 14,
+  "per": {
+   "20260908_1wxWjlrwXokJQ": {
+    "lines": 16,
+    "refQuotes": 8,
+    "R1": {
+     "ms": 12,
+     "items": 13,
+     "quotes": 23,
+     "linesKept": 11
+    },
+    "R2": {
+     "ms": 68384,
+     "items": 26,
+     "verified": 26,
+     "linesKept": 9
+    }
+   },
+   "20260908_1nGeLMjONkAKX": {
+    "lines": 64,
+    "refQuotes": 3,
+    "R1": {
+     "ms": 58128,
+     "items": 15,
+     "quotes": 21,
+     "linesKept": 15
+    },
+    "R2": {
+     "ms": 100191,
+     "items": 40,
+     "verified": 40,
+     "linesKept": 17
+    }
+   },
+   "20260913_1lJQRWAWpvVxE": {
+    "lines": 172,
+    "refQuotes": 4,
+    "R1": {
+     "ms": 57732,
+     "items": 15,
+     "quotes": 24,
+     "linesKept": 34
+    },
+    "R2": {
+     "ms": 67577,
+     "items": 29,
+     "verified": 29,
+     "linesKept": 19
+    }
+   },
+   "20260903_1dKrPrbywDkJX": {
+    "lines": 39,
+    "refQuotes": 5,
+    "R1": {
+     "ms": 47991,
+     "items": 12,
+     "quotes": 20,
+     "linesKept": 15
+    },
+    "R2": {
+     "ms": 35900,
+     "items": 7,
+     "verified": 7,
+     "linesKept": 4
+    }
+   }
+  },
+  "rows": [
+   {
+    "quoteId": "AQ-0261",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0262",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": false,
+    "R2_text": false
+   },
+   {
+    "quoteId": "AQ-0263",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0264",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0265",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0266",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": false
+   },
+   {
+    "quoteId": "AQ-0267",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0268",
+    "tag": "20260908_1wxWjlrwXokJQ",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0269",
+    "tag": "20260908_1nGeLMjONkAKX",
+    "R1_line": false,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0270",
+    "tag": "20260908_1nGeLMjONkAKX",
+    "R1_line": false,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0271",
+    "tag": "20260908_1nGeLMjONkAKX",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0272",
+    "tag": "20260913_1lJQRWAWpvVxE",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0273",
+    "tag": "20260913_1lJQRWAWpvVxE",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0274",
+    "tag": "20260913_1lJQRWAWpvVxE",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0275",
+    "tag": "20260913_1lJQRWAWpvVxE",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0189",
+    "tag": "20260903_1dKrPrbywDkJX",
+    "R1_line": true,
+    "R1_text": true,
+    "R2_line": true,
+    "R2_text": true
+   },
+   {
+    "quoteId": "AQ-0190",
+    "tag": "20260903_1dKrPrbywDkJX",
+    "R1_line": true,
+    "R1_text": false,
+    "R2_line": false,
+    "R2_text": false
+   },
+   {
+    "quoteId": "AQ-0191",
+    "tag": "20260903_1dKrPrbywDkJX",
+    "R1_line": false,
+    "R1_text": false,
+    "R2_line": false,
+    "R2_text": false
+   },
+   {
+    "quoteId": "AQ-0192",
+    "tag": "20260903_1dKrPrbywDkJX",
+    "R1_line": false,
+    "R1_text": false,
+    "R2_line": false,
+    "R2_text": false
+   },
+   {
+    "quoteId": "AQ-0193",
+    "tag": "20260903_1dKrPrbywDkJX",
+    "R1_line": false,
+    "R1_text": false,
+    "R2_line": false,
+    "R2_text": false
+   }
+  ]
+ },
+ "drafts": {
+  "A": {
+   "timings": {
+    "analysisMs": 1,
+    "tagMs": 19108,
+    "outlineMs": 21209,
+    "draftMs": 100913
+   },
+   "scenes": 3,
+   "notDrafted": [],
+   "narrationBlocks": 13,
+   "claims": 23,
+   "clipBlocks": 6,
+   "flaggedClips": 6,
+   "narrationSec": 370,
+   "tapeSec": 71,
+   "appTapeSecAfterTrimFallback": 315,
+   "intendedClips": 6,
+   "tapeShare": 0.16,
+   "refQuotesOnTape": [
+    "AQ-0261",
+    "AQ-0262",
+    "AQ-0265"
+   ],
+   "refQuotesNarratedAsClaims": [
+    "AQ-0261",
+    "AQ-0262",
+    "AQ-0263",
+    "AQ-0264",
+    "AQ-0265"
+   ],
+   "gates": {
+    "factual": "pass",
+    "faithful": "fail",
+    "failures": [
+     "Narration b_mvsq31gp13656372 rests on one source (Angela) but does not attribute it (\"according to\", \"alleges\", ...).",
+     "Investigative: narration b_mvsq31gp13656372 rests on one source without attribution wording.",
+     "Runtime 694s (estimated) is not within 10% of the 300s target."
+    ]
+   }
+  },
+  "B": {
+   "timings": {
+    "draftMs": 101985
+   },
+   "scenes": 3,
+   "notDrafted": [],
+   "narrationBlocks": 14,
+   "claims": 15,
+   "clipBlocks": 12,
+   "flaggedClips": 12,
+   "narrationSec": 242,
+   "tapeSec": 151,
+   "appTapeSecAfterTrimFallback": 2124,
+   "intendedClips": 12,
+   "tapeShare": 0.38,
+   "refQuotesOnTape": [
+    "AQ-0261",
+    "AQ-0262",
+    "AQ-0264",
+    "AQ-0267"
+   ],
+   "refQuotesNarratedAsClaims": [
+    "AQ-0261",
+    "AQ-0262",
+    "AQ-0266"
+   ],
+   "gates": {
+    "factual": "pass",
+    "faithful": "pass",
+    "failures": [
+     "Runtime 2370s (estimated) is not within 10% of the 300s target."
+    ]
+   }
+  },
+  "C": {
+   "timings": {
+    "extractMs": 68384,
+    "draftMs": 94437
+   },
+   "scenes": 3,
+   "notDrafted": [],
+   "narrationBlocks": 13,
+   "claims": 16,
+   "clipBlocks": 12,
+   "flaggedClips": 12,
+   "narrationSec": 242,
+   "tapeSec": 131,
+   "appTapeSecAfterTrimFallback": 2670,
+   "intendedClips": 12,
+   "tapeShare": 0.35,
+   "refQuotesOnTape": [
+    "AQ-0261",
+    "AQ-0264"
+   ],
+   "refQuotesNarratedAsClaims": [
+    "AQ-0261",
+    "AQ-0262",
+    "AQ-0263",
+    "AQ-0267",
+    "AQ-0268"
+   ],
+   "gates": {
+    "factual": "pass",
+    "faithful": "fail",
+    "failures": [
+     "Narration b_mvspzwqoe5d29bce rests on one source (Angela) but does not attribute it (\"according to\", \"alleges\", ...).",
+     "Narration b_mvspzwqq1378c7a4 rests on one source (Angela) but does not attribute it (\"according to\", \"alleges\", ...).",
+     "Investigative: narration b_mvspzwqoe5d29bce rests on one source without attribution wording.",
+     "Investigative: narration b_mvspzwqq1378c7a4 rests on one source without attribution wording.",
+     "Runtime 2915s (estimated) is not within 10% of the 300s target."
+    ]
+   }
+  }
+ }
+}

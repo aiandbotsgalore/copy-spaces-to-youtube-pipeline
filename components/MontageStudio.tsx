@@ -608,7 +608,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
         return;
       }
 
-      if (e.code === 'Space') {
+      if (e.code === 'Space' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         if (e.shiftKey) {
           const targetClip = timelineClips[currentAuditionIndex >= 0 ? currentAuditionIndex : 0];
@@ -622,20 +622,20 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             startAudition();
           }
         }
-      } else if (e.key === 'k' || e.key === 'K') {
+      } else if (!e.ctrlKey && !e.metaKey && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         if (isAuditioning) {
           stopAudition();
         } else if (timelineClips.length > 0) {
           startAudition();
         }
-      } else if (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft') {
+      } else if (!e.ctrlKey && !e.metaKey && (e.key === 'j' || e.key === 'J' || e.key === 'ArrowLeft')) {
         e.preventDefault();
         if (timelineClips.length > 0) {
           const prevIdx = Math.max(0, currentAuditionIndex - 1);
           skipAudition(prevIdx);
         }
-      } else if (e.key === 'l' || e.key === 'L' || e.key === 'ArrowRight') {
+      } else if (!e.ctrlKey && !e.metaKey && (e.key === 'l' || e.key === 'L' || e.key === 'ArrowRight')) {
         e.preventDefault();
         if (timelineClips.length > 0) {
           const nextIdx = Math.min(timelineClips.length - 1, currentAuditionIndex + 1);

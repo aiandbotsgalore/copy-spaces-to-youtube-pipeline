@@ -26,6 +26,9 @@ import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './S
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
+import {
+  extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, type ParsedManuscriptClip,
+} from '../utils/scriptUpload';
 import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
@@ -1311,7 +1314,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const analysis = data?.analyses[tag] || null;
   const allAnalysed = !!project && project.sourceTags.every(t => data?.analyses[t]);
   const stats = data?.speakerStats[tag];
-  const clipsById = useMemo(() => Object.fromEntries((project?.clips || []).map(c => [c.clipId, c])), [project]);
+  const clipsById = useMemo(() => {
+    const map: Record<string, StudioClip> = {};
+    for (const c of project?.clips || []) {
+      if (c.clipId) map[c.clipId] = c;
+      if (c.id) map[c.id] = c;
+    }
+    return map;
+  }, [project]);
   const runtime = useMemo(() => (segments ? estimateRuntime(segments) : null), [segments]);
   const names = namesForTag(project?.speakerNames, tag);
 
@@ -1410,69 +1420,277 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     player.play({ id, title: c.title, audioUrl: c.audioUrl }, off + b.inSec);
   };
 
-  const syncClipsFromScript = async () => {
+  const syncClipsFromManuscript = async () => {
     if (!segments || !project) return;
-    const detected: { clipNumber: string; spaceTitle?: string; date?: string; time?: string; speaker?: string; quote: string; durationSec: number }[] = [];
-    const seen = new Set<string>();
+    let segmentsChanged = false;
+    const updatedSegments: Segment[] = JSON.parse(JSON.stringify(segments));
 
-    for (const seg of segments) {
+    // Master list of project clips (existing + newly extracted)
+    const catalogClips: StudioClip[] = [...(project.clips || [])];
+    const existingById = new Map<string, StudioClip>();
+    const existingBySpeakerTime = new Map<string, StudioClip>();
+    const existingBySpeakerSec = new Map<string, StudioClip>();
+
+    for (const c of catalogClips) {
+      const cid = String(c.clipId || (c as any).id || '');
+      if (cid) existingById.set(cid, c);
+      const spk = (c.speaker || '').trim().toLowerCase();
+      const ts = (c.timestamp || c.time || '').trim();
+      if (spk && ts) {
+        existingBySpeakerTime.set(`${spk}|${ts}`, c);
+        const s = parseTimeToSeconds(ts);
+        if (s > 0) existingBySpeakerSec.set(`${spk}|${s}`, c);
+      }
+    }
+
+    let addedCount = 0;
+    const timestampSeed = Date.now();
+    let clipIndexCounter = 0;
+
+    /**
+     * Resolves an existing clip in the episode catalog or auto-registers a new one.
+     * Deduplication key is speaker + timestamp (or existing clipId/id).
+     */
+    const getOrRegisterCatalogClip = (info: {
+      speaker?: string;
+      timestamp?: string;
+      quote?: string;
+      candidateId?: string;
+      title?: string;
+      clipNumber?: string;
+      spaceTitle?: string;
+      date?: string;
+      durationSec?: number;
+    }): StudioClip => {
+      const spk = (info.speaker || 'Unknown').trim();
+      const normSpk = spk.toLowerCase();
+      const rawTs = (info.timestamp || '').trim();
+      const sec = parseTimeToSeconds(rawTs);
+      const tsKey = normSpk && rawTs ? `${normSpk}|${rawTs}` : '';
+      const secKey = normSpk && sec > 0 ? `${normSpk}|${sec}` : '';
+      const cid = info.candidateId ? String(info.candidateId) : '';
+
+      // Check if it already exists in the catalog
+      let matched: StudioClip | undefined;
+      if (tsKey && existingBySpeakerTime.has(tsKey)) {
+        matched = existingBySpeakerTime.get(tsKey);
+      } else if (secKey && existingBySpeakerSec.has(secKey)) {
+        matched = existingBySpeakerSec.get(secKey);
+      } else if (cid && existingById.has(cid)) {
+        matched = existingById.get(cid);
+      }
+
+      if (matched) {
+        if (!matched.quote && info.quote) matched.quote = info.quote.trim();
+        if (!matched.text && info.quote) matched.text = info.quote.trim();
+        if (!matched.timestamp && rawTs) matched.timestamp = rawTs;
+        if (!matched.time && rawTs) matched.time = rawTs;
+        if (!matched.label) matched.label = `${spk} (${rawTs || '0:00'})`;
+        if (!matched.source) matched.source = 'manuscript_extracted';
+        return matched;
+      }
+
+      // Not found: generate a new clip entry according to specification
+      const newId = `clip_${timestampSeed}_${clipIndexCounter++}`;
+      const quoteText = (info.quote || '').trim();
+      const wordsCount = quoteText.split(/\s+/).filter(Boolean).length;
+      const derivedDurationSec = info.durationSec && Number.isFinite(info.durationSec) && info.durationSec > 0
+        ? info.durationSec
+        : Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+
+      const newClip: StudioClip = {
+        id: newId,
+        clipId: newId,
+        speaker: spk,
+        timestamp: rawTs || '0:00',
+        time: rawTs || '0:00',
+        quote: quoteText,
+        text: quoteText,
+        label: `${spk} (${rawTs || '0:00'})`,
+        source: 'manuscript_extracted',
+        title: info.title ? info.title.trim() : (info.spaceTitle ? `${info.spaceTitle} (${spk})` : `${spk} (${rawTs || '0:00'})`),
+        releaseTag: project.sourceTags[0] || 'catalog',
+        audioUrl: '',
+        durationSec: derivedDurationSec,
+        episodeStartSec: sec,
+        fn: 'evidence',
+        fnRationale: `Extracted from manuscript: ${spk} (${rawTs || '0:00'})`,
+      };
+
+      catalogClips.push(newClip);
+      existingById.set(newId, newClip);
+      if (tsKey) existingBySpeakerTime.set(tsKey, newClip);
+      if (secKey) existingBySpeakerSec.set(secKey, newClip);
+      addedCount++;
+      return newClip;
+    };
+
+    /**
+     * Traverses quote pill objects in an array and rebinds them to catalog clip IDs.
+     */
+    const processPillArray = (items: any[]) => {
+      if (!Array.isArray(items)) return;
+      for (const item of items) {
+        if (!item || typeof item !== 'object') continue;
+        const spk = String(item.speaker || item.quoteSpeaker || item.speakerName || '').trim();
+        const ts = String(item.time || item.timestamp || '').trim();
+        const q = String(item.quote || item.text || item.keptText || '').trim();
+        if (spk || ts || q || item.clipId || item.id) {
+          const registered = getOrRegisterCatalogClip({
+            speaker: spk || 'Tape',
+            timestamp: ts,
+            quote: q,
+            candidateId: item.clipId || item.id,
+            title: item.title || item.label,
+          });
+          if (item.clipId !== registered.clipId || item.id !== registered.id) {
+            item.clipId = registered.clipId;
+            item.id = registered.id;
+            item.source = registered.source || 'manuscript_extracted';
+            item.label = registered.label || `${registered.speaker} (${registered.timestamp || registered.time})`;
+            segmentsChanged = true;
+          }
+        }
+      }
+    };
+
+    const PILL_CONTAINER_KEYS = ['pills', 'quotes', 'clips', 'items', 'children'] as const;
+
+    // 1. Traverse all scenes and blocks in the manuscript
+    for (const seg of updatedSegments) {
       for (const sc of seg.scenes) {
-        for (const b of sc.blocks) {
-          if (b.kind === 'clip' && (b.clipNumber || (b as any).type === 'ARCHIVAL_CLIP')) {
-            const num = b.clipNumber || b.clipId.replace(/^clip_/, '');
-            if (!seen.has(num)) {
-              seen.add(num);
-              detected.push({
-                clipNumber: num,
-                spaceTitle: b.spaceTitle,
-                date: b.date,
-                time: b.time,
-                speaker: b.speaker || 'Unknown',
-                quote: b.keptText || '',
-                durationSec: Math.max(1, b.outSec - b.inSec || 5),
+        // A. Scene-level quote pills / items
+        for (const key of PILL_CONTAINER_KEYS) {
+          const arr = (sc as any)[key];
+          if (Array.isArray(arr)) processPillArray(arr);
+        }
+
+        // B. Scene blocks
+        for (let bI = 0; bI < sc.blocks.length; bI++) {
+          const b = sc.blocks[bI];
+
+          // Nested pill objects inside the block
+          for (const key of PILL_CONTAINER_KEYS) {
+            const arr = (b as any)[key];
+            if (Array.isArray(arr)) processPillArray(arr);
+          }
+
+          // Structured clip blocks
+          if (b.kind === 'clip') {
+            const registered = getOrRegisterCatalogClip({
+              speaker: b.speaker || (clipsById[b.clipId]?.speaker) || 'Tape',
+              timestamp: b.time || (clipsById[b.clipId]?.time) || '',
+              quote: b.keptText || (clipsById[b.clipId]?.text) || '',
+              candidateId: b.clipId,
+              title: b.spaceTitle || (clipsById[b.clipId]?.title),
+              durationSec: b.outSec > b.inSec ? b.outSec - b.inSec : clipsById[b.clipId]?.durationSec,
+            });
+            if (b.clipId !== registered.clipId) {
+              b.clipId = registered.clipId;
+              segmentsChanged = true;
+            }
+            if (!b.speaker || b.speaker === 'Unknown') {
+              b.speaker = registered.speaker;
+              segmentsChanged = true;
+            }
+            if (!b.time) {
+              b.time = registered.timestamp || registered.time;
+              segmentsChanged = true;
+            }
+            if (!b.keptText) {
+              b.keptText = registered.quote || registered.text;
+              segmentsChanged = true;
+            }
+          }
+
+          // Narration and text scanning for regex matches
+          const textToScan = b.kind === 'clip'
+            ? (b.keptText || '')
+            : ('text' in b && typeof b.text === 'string' ? b.text : ('note' in b && typeof (b as any).note === 'string' ? (b as any).note : ''));
+
+          if (textToScan) {
+            const foundClips = extractClipsFromText(textToScan, project.title || 'Archival Tape');
+            for (const fc of foundClips) {
+              const registered = getOrRegisterCatalogClip({
+                speaker: fc.speaker,
+                timestamp: fc.time,
+                quote: fc.quote,
+                candidateId: fc.clipId,
+                title: fc.title,
+                clipNumber: fc.clipNumber,
+                spaceTitle: fc.spaceTitle,
+                date: fc.date,
+                durationSec: fc.durationSec,
               });
+
+              // Convert standalone narration tags into ARCHIVAL_CLIP blocks
+              if (b.kind === 'narration' && foundClips.length === 1 && textToScan.trim().startsWith('[') && textToScan.trim().endsWith(']')) {
+                sc.blocks[bI] = {
+                  id: b.id,
+                  kind: 'clip',
+                  type: 'ARCHIVAL_CLIP',
+                  clipId: registered.clipId,
+                  clipNumber: (registered as any).clipNumber || fc.clipNumber,
+                  spaceTitle: (registered as any).spaceTitle || fc.spaceTitle || project.title || 'Archival Tape',
+                  date: (registered as any).date || fc.date,
+                  time: registered.timestamp || registered.time,
+                  speaker: registered.speaker,
+                  keptText: registered.quote || registered.text,
+                  inSec: 0,
+                  outSec: registered.durationSec,
+                  trimBasis: 'full',
+                  fn: registered.fn || 'evidence',
+                  rationale: `Extracted from manuscript: ${registered.speaker} (${registered.timestamp || registered.time})`,
+                  locked: false,
+                };
+                segmentsChanged = true;
+              }
             }
           }
         }
       }
     }
 
-    if (detected.length === 0) {
-      setNotice('No [CLIP #...] archival tags detected in this manuscript to sync.');
+    if (catalogClips.length === 0) {
+      setNotice('No quote pills, clip blocks, or archival tags were found in this manuscript to sync.');
       return;
     }
 
-    const existingMap = new Map((project.clips || []).map(c => [c.clipId, c]));
-    let addedCount = 0;
-    const updatedClips = [...(project.clips || [])];
+    // 4. Update UI State immediately
+    setData(prev => {
+      if (!prev || !prev.project) return prev;
+      return {
+        ...prev,
+        project: {
+          ...prev.project,
+          clips: catalogClips,
+        },
+      };
+    });
 
-    for (const d of detected) {
-      const clipId = `clip_${d.clipNumber}`;
-      if (!existingMap.has(clipId)) {
-        const newStudioClip: StudioClip = {
-          clipId,
-          title: d.spaceTitle ? `${d.spaceTitle} (#${d.clipNumber})` : `Clip #${d.clipNumber}`,
-          speaker: d.speaker || 'Unknown',
-          releaseTag: project.sourceTags[0] || 'catalog',
-          audioUrl: '',
-          durationSec: d.durationSec,
-          text: d.quote,
-          fn: 'evidence',
-          fnRationale: d.spaceTitle ? `Parsed from script (${d.spaceTitle})` : 'Parsed from script',
-        };
-        updatedClips.push(newStudioClip);
-        addedCount++;
-      }
+    if (segmentsChanged) {
+      setSegments(updatedSegments);
+      setDirty(true);
     }
 
+    // 2b. Persist updated clip catalog into database / backend
     if (addedCount > 0) {
-      await scriptApi.updateProject(project.id, { clips: updatedClips });
-      await load(project.id);
-      setNotice(`Synced ${addedCount} archival clip(s) from script into audio library.`);
+      try {
+        await scriptApi.updateProject(project.id, { clips: catalogClips });
+        const fresh = await scriptApi.project(project.id);
+        if (fresh && fresh.project) {
+          setData(fresh);
+        }
+      } catch (err: any) {
+        console.error('Failed to persist synced clips:', err);
+      }
+      setNotice(`Synced ${addedCount} clip(s) from manuscript into Clip Bin (${catalogClips.length} total).`);
     } else {
-      setNotice(`All ${detected.length} archival clips from script are already reconciled in audio library.`);
+      setNotice(`All ${catalogClips.length} archival clip(s) from manuscript are already reconciled in Clip Bin.`);
     }
   };
+
+  const syncClipsFromScript = syncClipsFromManuscript;
 
   const sendToMontage = () => {
     if (!data?.head) return;
@@ -1685,7 +1903,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                 <div className="flex items-center gap-1 justify-between">
                   <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Clip Bin ({project.clips.length})</div>
                   <div className="flex items-center gap-1">
-                    <button className={btnGhost} onClick={syncClipsFromScript} title="Detect all [CLIP #...] in manuscript and reconcile with audio library">
+                    <button className={btnGhost} onClick={syncClipsFromManuscript} title="Detect all canonical and inline archival tags in manuscript and reconcile with Clip Bin">
                       <FolderSync size={12} className="text-teal-400" /> Sync Clips
                     </button>
                     <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with narrative function"
@@ -1824,12 +2042,29 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               <button className={btnGhost} disabled={!dirty} onClick={() => { setSegments(data?.head?.segments || null); setDirty(false); }}><RotateCcw size={12} /> Discard</button>
             </div>
 
-            {data?.gates && (data.gates.failures.length ? (
-              <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2.5 text-[11px] text-amber-200 space-y-0.5">
-                <div className="font-semibold">Quality Checks Warning</div>
-                {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
+            {data?.gates && (
+              <div className="space-y-2">
+                {data.gates.failures.length > 0 && (
+                  <div className="rounded-md border border-rose-700/50 bg-rose-950/20 p-2.5 text-[11px] text-rose-200 space-y-0.5">
+                    <div className="font-semibold text-rose-300">Quality Checks Blockers</div>
+                    {data.gates.failures.map((f, i) => <div key={i}>• {f}</div>)}
+                  </div>
+                )}
+                {data.gates.warnings && data.gates.warnings.length > 0 && (
+                  <div className="rounded-md border border-amber-700/50 bg-amber-950/20 p-2.5 text-[11px] text-amber-200 space-y-0.5">
+                    <div className="font-semibold text-amber-300 flex items-center gap-1">
+                      <Check size={12} className="text-emerald-400" /> Quality Checks (Non-blocking Info)
+                    </div>
+                    {data.gates.warnings.map((w, i) => <div key={i}>• {w}</div>)}
+                  </div>
+                )}
+                {data.gates.failures.length === 0 && (!data.gates.warnings || data.gates.warnings.length === 0) && (
+                  <div className="text-[11px] text-emerald-400 flex items-center gap-1">
+                    <Check size={12} /> Script verified: quotes verbatim, clip bounds verified, runtime in bounds.
+                  </div>
+                )}
               </div>
-            ) : <div className="text-[11px] text-emerald-400 flex items-center gap-1"><Check size={12} /> Script verified: quotes verbatim, clip bounds verified, runtime in bounds.</div>)}
+            )}
 
             {!segments && <div className="text-sm text-slate-500 py-12 text-center">Run the analysis and outline stages from the left panel to generate your documentary script.</div>}
 

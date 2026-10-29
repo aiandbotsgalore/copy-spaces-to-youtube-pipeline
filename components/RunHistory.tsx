@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { RefreshCw, ExternalLink, CheckCircle, XCircle, Clock, Loader, AlertCircle, Play, Radio } from 'lucide-react';
+import { RefreshCw, ExternalLink, CheckCircle, XCircle, Clock, Loader, AlertCircle, Play, Radio, Bot } from 'lucide-react';
 import { WorkflowRun, EnhancedConfig } from '../types';
 import { useWorkflowRuns, isActiveRun, RUN_POLL_INTERVAL_MS } from '../hooks/useWorkflowRuns';
+import { useCopilot } from '../contexts/CopilotContext';
 
 interface Props {
   config: EnhancedConfig;
@@ -100,6 +101,7 @@ function timeAgo(dateStr: string): string {
 }
 
 const RunHistory: React.FC<Props> = ({ config }) => {
+  const { sendMessage, activePanelNavHandler } = useCopilot();
   const [filter, setFilter] = useState<string>('all');
   const { runs, loading, error, loaded, isLive, refresh: fetchRuns } = useWorkflowRuns(config, false);
 
@@ -235,6 +237,21 @@ const RunHistory: React.FC<Props> = ({ config }) => {
                       {run.display_title || run.head_commit?.message?.split('\n')[0] || run.name}
                     </span>
                     <StatusBadge status={run.status} conclusion={run.conclusion} />
+                    {run.conclusion === 'failure' && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          sendMessage(`Diagnose pipeline failure for GitHub Action run #${run.id} (${run.name}). Head commit: "${run.head_commit?.message?.split('\n')[0] || 'unknown'}". What caused the failure and what workflow changes are recommended?`);
+                          activePanelNavHandler?.('ai-copilot');
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors cursor-pointer"
+                        title="Ask SpacePipe Copilot to diagnose this workflow failure"
+                      >
+                        <Bot size={11} className="text-rose-400" />
+                        <span>Ask Copilot to Diagnose</span>
+                      </button>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400">{timeAgo(run.created_at)}</p>
                 </div>

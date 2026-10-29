@@ -5,8 +5,13 @@ import type {
   CopilotMessage,
   CopilotContextPayload,
   CopilotRequestBody,
+  ActionTier,
+  ActionExecutionStatus,
 } from '../utils/copilotTypes';
 import { sendCopilotMessage } from '../utils/copilotClient';
+import { executeCopilotAction, revertCopilotAction, type CopilotExecutionContext } from '../utils/copilotExecutor';
+import { resolveActionTier } from '../utils/contracts/copilotActions';
+import { buildCompactStateSummary } from '../utils/copilotState';
 import { useConfig } from './ConfigContext';
 import { useMontage } from './MontageContext';
 import { usePlayer } from './PlayerContext';
@@ -26,11 +31,16 @@ export interface CopilotContextType {
   contextPayload: CopilotContextPayload;
   setContextPayload: React.Dispatch<React.SetStateAction<CopilotContextPayload>>;
   sendMessage: (content: string, override?: Partial<CopilotContextPayload>) => Promise<void>;
-  applyAction: (action: CopilotAction) => Promise<boolean>;
+  applyAction: (
+    action: CopilotAction,
+    options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
+  ) => Promise<boolean>;
   revertAction: (action: CopilotAction) => Promise<boolean>;
   clearMessages: () => void;
   activePanelNavHandler?: (panel: string) => void;
   setActivePanelNavHandler: (fn: (panel: string) => void) => void;
+  loadEpisodeHandler?: (tag: string) => void;
+  setLoadEpisodeHandler: (fn: (tag: string) => void) => void;
 }
 
 const INITIAL_WELCOME_MESSAGE: CopilotMessage = {
@@ -96,7 +106,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     navHandlerRef.current?.(panel);
   }, []);
 
-  const prevMontageSnapshotRef = useRef<Record<string, any>>({});
+  const loadEpisodeHandlerRef = useRef<((tag: string) => void) | undefined>(undefined);
+  const setLoadEpisodeHandler = useCallback((fn: (tag: string) => void) => {
+    loadEpisodeHandlerRef.current = fn;
+  }, []);
+  const loadEpisodeHandler = useCallback((tag: string) => {
+    loadEpisodeHandlerRef.current?.(tag);
+  }, []);
 
   useEffect(() => {
     try {
@@ -116,197 +132,108 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const applyAction = useCallback(
-    async (action: CopilotAction): Promise<boolean> => {
-      try {
-        switch (action.action) {
-          case 'CREATE_CLIP': {
-            const p = action.params;
-            const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-            const start = Number(p.startSec) || 0;
-            const end = Number(p.endSec) || start + 30;
-            const score = Number(p.viralScore) || 75;
+    async (
+      action: CopilotAction,
+      options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
+    ): Promise<boolean> => {
+      const ctx: CopilotExecutionContext = {
+        config,
+        updateConfig,
+        montage,
+        player: {
+          play: player.play,
+          seek: player.seek,
+          isPlaying: player.isPlaying,
+          pause: () => {
+            if (player.isPlaying) player.togglePlay();
+          },
+          togglePlay: player.togglePlay,
+        },
+        contextPayload,
+        navHandler: navHandlerRef.current,
+        loadEpisodeHandler: loadEpisodeHandlerRef.current,
+      };
 
-            montage.addClip({
-              id: newClipId,
-              title: p.title || 'Extracted Soundbite',
-              quote: p.quote || p.title || '',
-              speaker: p.speaker || 'Unknown',
-              sourceTitle: p.sourceTitle || contextPayload.currentEpisode?.title || 'Episode Space',
-              sourceTag: p.episodeTag || contextPayload.currentEpisode?.releaseTag,
-              audioUrl: p.audioUrl || contextPayload.currentEpisode?.audioUrl,
-              startSec: start,
-              endSec: end,
-              category: p.category || 'Highlights',
-              severity: Math.min(10, Math.max(1, Math.round(score / 10))),
-              tensionScore: Math.min(10, Math.max(1, Math.round(score / 10))),
-              directorNote: p.reason || action.explanation,
-            });
-            break;
-          }
+      const res = await executeCopilotAction(action, ctx, options);
 
-          case 'TRIM_CLIP': {
-            const { clipId, newStartSec, newEndSec, reason } = action.params;
-            if (clipId) {
-              const existing = montage.clips.find(c => c.id === clipId);
-              if (existing) {
-                prevMontageSnapshotRef.current[clipId] = {
-                  startSec: existing.startSec,
-                  endSec: existing.endSec,
-                };
-              }
-              montage.updateClip(clipId, {
-                startSec: Number(newStartSec) || 0,
-                endSec: Number(newEndSec) || 0,
-                directorNote: reason || action.explanation,
-              });
-            }
-            break;
-          }
+      const updatedAction: CopilotAction = {
+        ...action,
+        tier: action.tier ?? resolveActionTier(action.action, action.params),
+        applied: res.ok,
+        appliedAt: res.ok ? new Date().toISOString() : action.appliedAt,
+        status: res.status,
+        snapshot: res.snapshot || action.snapshot,
+        resultData: res.resultData || action.resultData,
+        errorMessage: res.errorMessage,
+        triggerSource: options?.triggerSource || action.triggerSource || 'user',
+      };
 
-          case 'SEQUENCE_MONTAGE': {
-            const { clipIds, tensionScores, reason } = action.params;
-            if (Array.isArray(clipIds) && clipIds.length > 0) {
-              const currentClips = [...montage.clips];
-              const clipMap = new Map(currentClips.map(c => [c.id, c]));
-              const reordered = clipIds
-                .map(id => clipMap.get(id))
-                .filter((c): c is typeof currentClips[0] => !!c);
+      setActionHistory(prev => [
+        updatedAction,
+        ...prev.filter(a => a.id !== action.id),
+      ]);
 
-              // Apply updated tension scores if provided
-              if (tensionScores && typeof tensionScores === 'object') {
-                reordered.forEach(c => {
-                  if (tensionScores[c.id] !== undefined) {
-                    c.tensionScore = Number(tensionScores[c.id]);
-                  }
-                  if (reason) c.directorNote = reason;
-                });
-              }
+      setMessages(prev =>
+        prev.map(m => {
+          if (!m.actions) return m;
+          return {
+            ...m,
+            actions: m.actions.map(a => (a.id === action.id ? updatedAction : a)),
+          };
+        })
+      );
 
-              montage.replaceClips(reordered);
-            }
-            break;
-          }
-
-          case 'PLAY_AUDIO': {
-            const { timestampSec, audioUrl, title } = action.params;
-            const targetUrl = audioUrl || contextPayload.currentEpisode?.audioUrl;
-            if (targetUrl) {
-              player.play(
-                {
-                  id: contextPayload.currentEpisode?.releaseId || Date.now(),
-                  title: title || contextPayload.currentEpisode?.title || 'Episode Space',
-                  audioUrl: targetUrl,
-                },
-                Number(timestampSec) || 0
-              );
-            } else if (Number.isFinite(timestampSec)) {
-              player.seek(Number(timestampSec));
-            }
-            break;
-          }
-
-          case 'UPDATE_CONFIG': {
-            const { updates } = action.params;
-            if (updates && typeof updates === 'object') {
-              updateConfig(updates);
-            }
-            break;
-          }
-
-          case 'NAVIGATE_TAB': {
-            const { tab } = action.params;
-            if (tab && navHandlerRef.current) {
-              navHandlerRef.current(tab);
-            }
-            break;
-          }
-
-          case 'AUDITION_MONTAGE': {
-            montage.startAudition();
-            break;
-          }
-
-          case 'SEARCH_TRANSCRIPTS': {
-            // Read-only search action executed server-side — decoupled from timeline mutations
-            return true;
-          }
-
-          case 'LOAD_EPISODE': {
-            if (navHandlerRef.current) {
-              navHandlerRef.current('transcripts');
-            }
-            break;
-          }
-
-          default:
-            console.warn('Unknown Copilot action:', action.action);
-        }
-
-        // Mark mutation action as applied
-        setActionHistory(prev => [
-          { ...action, applied: true, appliedAt: new Date().toISOString() },
-          ...prev.filter(a => a.id !== action.id),
-        ]);
-        setMessages(prev =>
-          prev.map(m => {
-            if (!m.actions) return m;
-            return {
-              ...m,
-              actions: m.actions.map(a =>
-                a.id === action.id ? { ...a, applied: true, appliedAt: new Date().toISOString() } : a
-              ),
-            };
-          })
-        );
-        return true;
-      } catch (err) {
-        console.error('Failed to apply action:', err);
-        return false;
-      }
+      return res.ok;
     },
-    [montage, player, contextPayload, updateConfig]
+    [config, updateConfig, montage, player, contextPayload]
   );
 
   const revertAction = useCallback(
     async (action: CopilotAction): Promise<boolean> => {
-      try {
-        if (action.action === 'TRIM_CLIP') {
-          const clipId = action.params.clipId;
-          const orig = prevMontageSnapshotRef.current[clipId];
-          if (orig) {
-            montage.updateClip(clipId, {
-              startSec: orig.startSec,
-              endSec: orig.endSec,
-            });
-          }
-        } else if (action.action === 'SEQUENCE_MONTAGE') {
-          if (montage.canUndo) montage.undo();
-        } else if (action.action === 'CREATE_CLIP') {
-          // If created clip was the last added, undo
-          if (montage.canUndo) montage.undo();
-        }
+      const ctx: CopilotExecutionContext = {
+        config,
+        updateConfig,
+        montage,
+        player: {
+          play: player.play,
+          seek: player.seek,
+          isPlaying: player.isPlaying,
+          pause: () => {
+            if (player.isPlaying) player.togglePlay();
+          },
+          togglePlay: player.togglePlay,
+        },
+        contextPayload,
+        navHandler: navHandlerRef.current,
+        loadEpisodeHandler: loadEpisodeHandlerRef.current,
+      };
+
+      const reverted = await revertCopilotAction(action, ctx);
+      if (reverted) {
+        const updatedAction: CopilotAction = {
+          ...action,
+          applied: false,
+          reverted: true,
+          status: 'pending',
+        };
 
         setActionHistory(prev =>
-          prev.map(a => (a.id === action.id ? { ...a, applied: false, reverted: true } : a))
+          prev.map(a => (a.id === action.id ? updatedAction : a))
         );
+
         setMessages(prev =>
           prev.map(m => {
             if (!m.actions) return m;
             return {
               ...m,
-              actions: m.actions.map(a =>
-                a.id === action.id ? { ...a, applied: false, reverted: true } : a
-              ),
+              actions: m.actions.map(a => (a.id === action.id ? updatedAction : a)),
             };
           })
         );
-        return true;
-      } catch (err) {
-        console.error('Failed to revert action:', err);
-        return false;
       }
+      return reverted;
     },
-    [montage]
+    [config, updateConfig, montage, player, contextPayload]
   );
 
   const sendMessage = useCallback(
@@ -352,6 +279,29 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           repoName: config.repoName,
           podcastTitle: config.podcastTitle,
         },
+        compactStateSummary: buildCompactStateSummary({
+          activePanel: contextPayload.activeTab,
+          player: {
+            isPlaying: player.isPlaying,
+            current: (player as any).current,
+            currentTime: (player as any).currentTime,
+            duration: (player as any).duration,
+          },
+          montage: {
+            clipCount: montage.clips.length,
+            totalDurationSec: montage.clips.reduce((acc, c) => acc + Math.max(0, c.endSec - c.startSec), 0),
+            targetDurationSec: montage.targetDurationSec,
+            isAuditioning: montage.isAuditioning,
+          },
+          config: {
+            enableTranscription: config.enableTranscription,
+            enableScheduledMonitoring: config.enableScheduledMonitoring,
+            enableDiscordWebhook: config.enableDiscordWebhook,
+            enableSlackWebhook: config.enableSlackWebhook,
+            hasGithubToken: Boolean(config.githubToken),
+            targetRepo: config.repoName ? `${config.ownerName}/${config.repoName}` : undefined,
+          },
+        }),
       };
 
       try {
@@ -366,12 +316,21 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         const res = await sendCopilotMessage({ req });
 
+        const enrichedActions: CopilotAction[] = (res.actions || []).map(a => {
+          const tier = a.tier ?? resolveActionTier(a.action, a.params);
+          return {
+            ...a,
+            tier,
+            status: a.action === 'SEARCH_TRANSCRIPTS' ? (a.status || 'completed') : 'pending',
+          };
+        });
+
         const assistantMsg: CopilotMessage = {
           id: `asst_${Date.now()}`,
           role: 'assistant',
           content: res.text,
           timestamp: Date.now(),
-          actions: res.actions,
+          actions: enrichedActions,
           matches: res.matches,
           model: res.model,
           usage: res.usage,
@@ -379,11 +338,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         setMessages(prev => [...prev, assistantMsg]);
 
-        // Auto-apply if enabled (timeline mutations only, never read-only searches)
-        if (autoApply && res.actions && res.actions.length > 0) {
-          for (const action of res.actions) {
-            if (action.action !== 'SEARCH_TRANSCRIPTS') {
-              await applyAction(action);
+        // Auto-apply if enabled — STRICTLY restricted to Tier 0 or Tier 1 actions!
+        // Tier 2 actions (enqueuing, workflows, GPU/paid generation, sensitive config)
+        // ALWAYS require user confirmation, even with autoApply ON.
+        if (autoApply && enrichedActions.length > 0) {
+          for (const action of enrichedActions) {
+            if (action.tier !== undefined && action.tier < 2 && action.action !== 'SEARCH_TRANSCRIPTS') {
+              await applyAction(action, { triggerSource: 'auto_apply' });
             }
           }
         }
@@ -425,6 +386,8 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         clearMessages,
         activePanelNavHandler,
         setActivePanelNavHandler,
+        loadEpisodeHandler,
+        setLoadEpisodeHandler,
       }}
     >
       {children}
@@ -448,6 +411,7 @@ const FALLBACK_COPILOT_CONTEXT: CopilotContextType = {
   revertAction: async () => false,
   clearMessages: () => {},
   setActivePanelNavHandler: () => {},
+  setLoadEpisodeHandler: () => {},
 };
 
 export const useCopilot = (): CopilotContextType => {

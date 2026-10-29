@@ -307,7 +307,8 @@ export function createEngine(deps: EngineDeps) {
     const tr: Record<string, ReturnType<typeof namedSegments>> = {};
     for (const tag of project.sourceTags) { try { tr[tag] = namedSegments(transcript(tag), namesForTag(project.speakerNames, tag)); } catch { /* missing */ } }
     return {
-      baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])), targetRuntimeSec: project.targetRuntimeSec, format: project.format as EpisodeFormat | null,
+      baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])),
+      targetRuntimeSec: project.targetRuntimeSec, runtimeTolerance: project.runtimeTolerance, format: project.format as EpisodeFormat | null,
       formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
     };
   }
@@ -614,7 +615,15 @@ export function createEngine(deps: EngineDeps) {
           const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round, promptVersion: P.PROMPT_VERSIONS.revise, gates, loopAccepted: false };
 
           if (gates.ok && await factcheck(cand, changed, decision)) return;
-          emit(run, { type: 'gates', message: decision.gates.failures.length ? `Gates failed: ${decision.gates.failures.join(' | ')}` : decision.notJudged || 'Gates passed.', data: decision.gates });
+          emit(run, {
+            type: 'gates',
+            message: decision.gates.failures.length
+              ? `Gates failed: ${decision.gates.failures.join(' | ')}`
+              : (decision.gates.warnings?.length
+                  ? `Gates passed with informational warnings: ${decision.gates.warnings.join(' | ')}`
+                  : decision.notJudged || 'Gates passed.'),
+            data: decision.gates,
+          });
 
           if (decision.gates.failures.length === 0 && !decision.notJudged) {
             // BLIND PAIRWISE JUDGE, both orders at once.
@@ -773,7 +782,15 @@ export function createEngine(deps: EngineDeps) {
           const gates = codeGates(cand.segments, { ...gateContext(project!, best.segments), changedBlockIds: changed });
         const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round: run!.currentRound, promptVersion: P.PROMPT_VERSIONS.polish, gates, loopAccepted: false, reviewOnly: 'A polish is never accepted by the loop; compare it and decide.' };
         if (gates.ok && await factcheck(cand, changed, decision)) return true;
-        emit(run!, { type: 'gates', message: decision.gates.failures.length ? `Polish gates failed: ${decision.gates.failures.join(' | ')}` : 'Polish gates passed.', data: decision.gates });
+        emit(run!, {
+          type: 'gates',
+          message: decision.gates.failures.length
+            ? `Polish gates failed: ${decision.gates.failures.join(' | ')}`
+            : (decision.gates.warnings?.length
+                ? `Polish gates passed with informational warnings: ${decision.gates.warnings.join(' | ')}`
+                : 'Polish gates passed.'),
+          data: decision.gates,
+        });
         cand.decision = decision;
         deps.store.saveVersion(cand);
         run!.candidateIds.push(cand.id);
