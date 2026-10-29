@@ -97,7 +97,7 @@ jobs:
           echo "[*] Injecting environment bootstrap into Kaggle avatar worker..."
           # Values are written as Python literals from the step environment. Interpolating the
           # dispatch inputs straight into code broke on any clip title or speaker name containing a
-          # quote, and JSON on a single "${{ }}" line was one stray backslash away from injection.
+          # quote, and JSON on a single interpolated line was one stray backslash away from injection.
           python - <<'PY'
           import os
           import pathlib
