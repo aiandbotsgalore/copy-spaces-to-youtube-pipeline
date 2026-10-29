@@ -3,6 +3,7 @@ name: Transcript Workbench Validation
 on:
   push:
     branches:
+      - master
       - design/transcripts-approved-modular-20261028
   pull_request:
     paths:

@@ -3,6 +3,7 @@ name: Approved transcript UI checks
 on:
   push:
     branches:
+      - master
       - design/approved-modular-transcripts-20261028
   pull_request:
     paths:
