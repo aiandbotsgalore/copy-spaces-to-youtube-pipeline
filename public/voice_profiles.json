@@ -6,7 +6,12 @@
   "profiles": {
     "Logan": {
       "name": "Logan",
-      "sample_count": 6,
+      "role": "Host",
+      "sample_count": 5,
+      "avatar_emoji": "🎙️",
+      "color": "indigo",
+      "notes": "Primary show host. Deep resonant vocal tone with rapid cadence.",
+      "last_updated": "2026-09-08T10:18:19Z",
       "embedding": [
         -0.0006789129110984504,
         0.04604452848434448,
@@ -200,17 +205,16 @@
         0.02921064756810665,
         -0.0969914048910141,
         -0.01298720296472311
-      ],
-      "last_updated": "2026-10-25T03:18:06.143Z",
-      "sample_audio_url": "/speaker_samples/Logan/master_reference.wav",
-      "sample_audio_mp3": "/speaker_samples/Logan/master_reference.mp3",
-      "sample_duration": 9.33,
-      "sample_transcript": "Ten years before Hiroshima, the American presidency still belonged to a different world. This is Franklin Roosevelt at Boulder Dam in 1935.",
-      "notes": "Clean master reference studio sample uploaded by Logan (9.33s mono 44.1kHz)."
+      ]
     },
     "Oor": {
       "name": "Oor",
+      "role": "Speaker",
       "sample_count": 7,
+      "avatar_emoji": "⚡",
+      "color": "sky",
+      "notes": "Frequent speaker and collaborator.",
+      "last_updated": "2026-10-16T16:39:42Z",
       "embedding": [
         0.15066704154014587,
         0.12930206954479218,
@@ -404,13 +408,16 @@
         -0.05949985980987549,
         0.11088081449270248,
         0.0032298758160322905
-      ],
-      "last_updated": "2026-10-16T16:39:42Z",
-      "role": "Speaker"
+      ]
     },
     "Eric Hecker": {
       "name": "Eric Hecker",
+      "role": "Special Guest",
       "sample_count": 2,
+      "avatar_emoji": "🛸",
+      "color": "emerald",
+      "notes": "Featured recurring guest on space missions and technical topics.",
+      "last_updated": "2026-09-08T10:18:19Z",
       "embedding": [
         -0.08091878890991211,
         0.09695874154567719,
@@ -605,12 +612,15 @@
         0.05833668261766434,
         0.0797940194606781
       ],
-      "last_updated": "2026-09-08T10:18:19Z"
+      "avatar_url": "https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/eric_hecker.jpg"
     },
     "Angela": {
       "name": "Angela",
       "role": "Speaker",
       "sample_count": 5,
+      "avatar_emoji": "🎙️",
+      "color": "rose",
+      "notes": "Host and moderator. Distinct, clear conversational voice.",
       "last_updated": "2026-10-16T05:47:55Z",
       "embedding": [
         -0.03331497311592102,
@@ -2405,6 +2415,33 @@
       ],
       "last_updated": "2026-10-17T19:28:26Z",
       "role": "Speaker"
+    },
+    "Mary": {
+      "name": "Mary",
+      "role": "Co-Host",
+      "sample_count": 1,
+      "avatar_emoji": "👩‍🎨",
+      "color": "purple",
+      "notes": "Regular co-host and contributor.",
+      "last_updated": "2026-09-15T14:30:00Z"
+    },
+    "Shane": {
+      "name": "Shane",
+      "role": "Co-Host",
+      "sample_count": 1,
+      "avatar_emoji": "🎧",
+      "color": "amber",
+      "notes": "Audio co-host and community moderator.",
+      "last_updated": "2026-09-10T12:00:00Z"
+    },
+    "Rick Doty": {
+      "name": "Rick Doty",
+      "role": "Special Guest",
+      "sample_count": 1,
+      "avatar_emoji": "🛸",
+      "color": "emerald",
+      "notes": "Special guest on historical and investigative episodes.",
+      "last_updated": "2026-09-12T18:00:00Z"
     }
   }
 }
