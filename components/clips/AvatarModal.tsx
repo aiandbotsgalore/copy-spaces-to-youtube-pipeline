@@ -9,6 +9,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ClipItem } from '../../utils/contracts/clipCatalog';
+import { cleanClipSpeakers, MAX_STAGE_SPEAKERS } from '../../utils/avatarStage';
 
 export interface AvatarModalProps {
   clip: ClipItem | null;
@@ -45,10 +46,21 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
 }) => {
   if (!clip) return null;
 
-  const speakersList = clip.speakers && clip.speakers.length > 0 ? clip.speakers : ['Logan', 'Guest'];
+  // Catalog speaker lists are not schema checked: they can be missing, hold nulls or placeholders,
+  // and the worker caps the stage too, so the cast preview has to match what will be rendered.
+  const stageSpeakers = cleanClipSpeakers(clip.speakers);
+  const speakersList = (stageSpeakers.length > 0 ? stageSpeakers : ['Logan', 'Guest']).slice(0, MAX_STAGE_SPEAKERS);
+  const dispatchFailed = Boolean(avatarDispatchStatus && avatarDispatchStatus.startsWith('error'));
+  const dispatchSucceeded = Boolean(avatarDispatchStatus && avatarDispatchStatus.startsWith('success'));
+  const dispatchNote = dispatchSucceeded && avatarDispatchStatus ? avatarDispatchStatus.replace(/^success:?\s*/, '') : '';
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Spaces Live Stage animator"
+    >
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
           <div className="flex items-center gap-3">
@@ -57,10 +69,10 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-bold text-white leading-none">
-                Spaces Live Stage Animator (EchoMimicV3)
+                Spaces Live Stage Animator
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                Creates an animated talking avatar video with live wave rings & synced audio.
+                Renders a multi-speaker stage: only the person talking lip-syncs and lights up, everyone else listens.
               </p>
             </div>
           </div>
@@ -199,13 +211,18 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
           </div>
         </div>
 
-        {avatarDispatchStatus === 'success' && (
+        {dispatchSucceeded && (
           <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-start gap-2.5">
               <Check size={18} className="flex-shrink-0 text-emerald-400" />
               <div>
                 <p className="font-semibold text-white">🎉 Cloud GPU Render Dispatched!</p>
-                <p className="text-[11px] text-emerald-400/90 mt-0.5">Kaggle Dual-T4 GPU worker is generating the 9:16 Spaces Live Stage video.</p>
+                <p className="text-[11px] text-emerald-400/90 mt-0.5">
+                  The Kaggle T4 worker is rendering the {avatarRatio} {avatarLayoutMode === 'split_screen' ? 'stacked split' : avatarLayoutMode === 'solo' ? 'solo' : 'stage grid'} video with synced clip audio.
+                </p>
+                {dispatchNote && (
+                  <p className="text-[11px] text-amber-300/90 mt-1">Note: {dispatchNote}.</p>
+                )}
               </div>
             </div>
             <a
@@ -220,9 +237,13 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
           </div>
         )}
 
-        {avatarDispatchStatus && avatarDispatchStatus.startsWith('error') && (
+        {dispatchFailed && avatarDispatchStatus && (
           <div className="mb-4 p-3.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-400 animate-in fade-in">
-            {avatarDispatchStatus}
+            <p className="font-semibold text-rose-300">Render not dispatched</p>
+            <p className="mt-0.5 break-words">{avatarDispatchStatus.replace(/^error:?\s*/, '')}</p>
+            <p className="mt-1 text-[11px] text-rose-300/70">
+              Nothing was queued, so it is safe to retry once the token in Settings can dispatch workflows.
+            </p>
           </div>
         )}
 

@@ -93,22 +93,58 @@ jobs:
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
         run: |
-          echo "[*] Injecting environment bootstrap into Kaggle EchoMimic worker..."
-          cat << 'EOF' > scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
+          set -euo pipefail
+          echo "[*] Injecting environment bootstrap into Kaggle avatar worker..."
+          # Values are written as Python literals from the step environment. Interpolating the
+          # dispatch inputs straight into code broke on any clip title or speaker name containing a
+          # quote, and JSON on a single "${{ }}" line was one stray backslash away from injection.
+          python - <<'PY'
           import os
-          os.environ["SPEECH_AUDIO"] = "${{ inputs.audio_url }}"
-          os.environ["AVATAR_IMAGE"] = "${{ inputs.avatar_image }}"
-          os.environ["LAYOUT"] = "${{ inputs.layout || 'stage_grid' }}"
-          os.environ["SPEAKERS_JSON"] = '''${{ inputs.speakers_json || '[]' }}'''
-          os.environ["SPEAKER_AVATARS_JSON"] = '''${{ inputs.speaker_avatars_json || '{}' }}'''
-          os.environ["SPEAKER_SEGMENTS_JSON"] = '''${{ inputs.speaker_segments_json || '[]' }}'''
-          os.environ["PROMPT"] = "${{ inputs.prompt }}"
-          os.environ["ASPECT_RATIO"] = "${{ inputs.aspect_ratio || '9:16' }}"
-          EOF
+          import pathlib
+
+          defaults = {
+              "LAYOUT": "stage_grid",
+              "SPEAKERS_JSON": "[]",
+              "SPEAKER_AVATARS_JSON": "{}",
+              "SPEAKER_SEGMENTS_JSON": "[]",
+              "PROMPT": "Twitter Spaces Live Stage Banter",
+              "ASPECT_RATIO": "9:16",
+          }
+          keys = [
+              "SPEECH_AUDIO",
+              "AVATAR_IMAGE",
+              "LAYOUT",
+              "SPEAKERS_JSON",
+              "SPEAKER_AVATARS_JSON",
+              "SPEAKER_SEGMENTS_JSON",
+              "PROMPT",
+              "ASPECT_RATIO",
+          ]
+          lines = ['"""Runtime environment for the packaged avatar worker."""', "import os", ""]
+          for key in keys:
+              value = os.environ.get(key) or defaults.get(key)
+              if value is None:
+                  continue
+              lines.append(f"os.environ[{key!r}] = {value!r}")
+          target = pathlib.Path("scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py")
+          target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
 
           cat scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py > scripts/kaggle_worker/echomimic_pkg/worker_final.py
           mv scripts/kaggle_worker/echomimic_pkg/worker_final.py scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py
           rm -f scripts/kaggle_worker/echomimic_pkg/env_bootstrap.py
+
+          # Fail here, with the generated file in the log, rather than 20 minutes into a GPU run.
+          python - <<'PY'
+          import ast
+          import pathlib
+
+          source = pathlib.Path("scripts/kaggle_worker/echomimic_pkg/echomimic_animator.py").read_text(encoding="utf-8")
+          ast.parse(source)
+          print(source.splitlines()[0])
+          print(source.splitlines()[1])
+          print("[✓] Packaged avatar worker parses after bootstrap injection")
+          PY
 
       - name: Dispatch Kaggle Tesla T4 GPU Worker
         env:
