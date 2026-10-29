@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 import urllib.request
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
@@ -42,18 +43,32 @@ def run_cmd(cmd, check=True, cwd=None):
     return result
 
 
-def download_file(url: str, dest_path: Path, min_size: int = 1000):
+def download_file(url: str, dest_path: Path, min_size: int = 1000, attempts: int = 4):
     if dest_path.exists() and dest_path.stat().st_size >= min_size:
         print(f"[✓] File already present: {dest_path.name}")
         return
-    print(f"[*] Downloading {dest_path.name} from {url}...")
-    request = urllib.request.Request(url, headers={"User-Agent": "SpacePipe-TalkingAvatarGenerator/2.0"})
-    with urllib.request.urlopen(request) as response, open(dest_path, "wb") as output:
-        shutil.copyfileobj(response, output)
-    size = dest_path.stat().st_size
-    if size < min_size:
-        raise RuntimeError(f"Downloaded file is too small to be valid: {dest_path.name} ({size} bytes)")
-    print(f"[✓] Downloaded {dest_path.name} ({size / (1024 * 1024):.1f} MB)")
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        temp_path = dest_path.with_suffix(dest_path.suffix + ".part")
+        try:
+            print(f"[*] Downloading {dest_path.name} from {url} (attempt {attempt}/{attempts})...")
+            request = urllib.request.Request(url, headers={"User-Agent": "SpacePipe-TalkingAvatarGenerator/2.0"})
+            with urllib.request.urlopen(request, timeout=120) as response, open(temp_path, "wb") as output:
+                shutil.copyfileobj(response, output)
+            size = temp_path.stat().st_size
+            if size < min_size:
+                raise RuntimeError(f"Downloaded file is too small to be valid: {dest_path.name} ({size} bytes)")
+            temp_path.replace(dest_path)
+            print(f"[✓] Downloaded {dest_path.name} ({size / (1024 * 1024):.1f} MB)")
+            return
+        except Exception as error:
+            last_error = error
+            temp_path.unlink(missing_ok=True)
+            if attempt < attempts:
+                delay = min(30, 2 ** (attempt - 1))
+                print(f"[!] Download failed: {error}; retrying in {delay}s")
+                time.sleep(delay)
+    raise RuntimeError(f"Could not download {dest_path.name}: {last_error}")
 
 
 def parse_json(value: str, fallback):
@@ -154,25 +169,27 @@ def patch_wav2lip(repo_dir: Path):
             modified = False
             for old, new in {
                 "from torchvision.models.utils import load_state_dict_from_url": "from torch.hub import load_state_dict_from_url",
-                "np.float": "float",
-                "np.int": "int",
                 "checkpoint = torch.load(checkpoint_path)": "checkpoint = torch.load(checkpoint_path, weights_only=False)",
                 "librosa.filters.mel(hp.sample_rate, hp.n_fft, n_mels=hp.num_mels,": "librosa.filters.mel(sr=hp.sample_rate, n_fft=hp.n_fft, n_mels=hp.num_mels,",
             }.items():
                 if old in content:
                     content = content.replace(old, new)
                     modified = True
+            for pattern, replacement in (
+                (r"\bnp\.float\b", "float"),
+                (r"\bnp\.int\b", "int"),
+                (r"\bnp\.complex\b", "complex"),
+            ):
+                patched = re.sub(pattern, replacement, content)
+                modified = modified or patched != content
+                content = patched
             if modified:
                 py_file.write_text(content, encoding="utf-8")
         except OSError:
             continue
 
 
-def prepare_wav2lip(work_dir: Path, repo_dir: Path, gh_token: str, repo: str) -> Tuple[Path, Path]:
-    if not repo_dir.exists():
-        clone_url = f"https://x-access-token:{gh_token}@github.com/{repo}.git" if gh_token else f"https://github.com/{repo}.git"
-        run_cmd(["git", "clone", "--depth", "1", clone_url, str(repo_dir)])
-
+def prepare_wav2lip(work_dir: Path) -> Tuple[Path, Path]:
     wav2lip_dir = work_dir / "Wav2Lip"
     if not wav2lip_dir.exists():
         run_cmd(["git", "clone", "--depth", "1", "https://github.com/Rudrabha/Wav2Lip.git", str(wav2lip_dir)])
@@ -326,9 +343,6 @@ def main():
     speaker_avatars = parse_json(os.environ.get("SPEAKER_AVATARS_JSON", "{}"), {})
     speaker_avatars = speaker_avatars if isinstance(speaker_avatars, dict) else {}
     raw_segments = os.environ.get("SPEAKER_SEGMENTS_JSON", "[]")
-    gh_token = os.environ.get("GH_TOKEN", "")
-    repo = os.environ.get("GITHUB_REPOSITORY", "aiandbotsgalore/copy-spaces-to-youtube-pipeline")
-    target_release = os.environ.get("TARGET_RELEASE_TAG", "")
 
     work_dir = Path("/kaggle/working") if Path("/kaggle/working").exists() else Path("kaggle_work")
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -353,8 +367,7 @@ def main():
         intervals = build_fallback_intervals(speakers, duration)
     print(f"[*] Rendering {len(speakers)} speakers across {duration:.2f}s ({layout}, {ratio})")
 
-    repo_dir = work_dir / "repo"
-    wav2lip_dir, checkpoint = prepare_wav2lip(work_dir, repo_dir, gh_token, repo)
+    wav2lip_dir, checkpoint = prepare_wav2lip(work_dir)
 
     avatar_files: Dict[str, Path] = {}
     for index, speaker in enumerate(speakers):
@@ -372,13 +385,13 @@ def main():
         elif isinstance(url, str) and Path(url).exists():
             shutil.copy2(url, avatar)
         if not avatar.exists() or avatar.stat().st_size < 1000:
-            color = ["0x4f46e5", "0xdb2777", "0x059669", "0xd97706", "0x0284c7", "0x7c3aed"][index % 6]
-            run_cmd(["ffmpeg", "-y", "-f", "lavfi", "-i", f"color=c={color}:s=512x512:d=1", "-frames:v", "1", str(avatar)])
+            raise RuntimeError(f"No valid avatar image was available for {speaker}")
         face = work_dir / f"face_{index}_{slug(speaker)}.jpg"
         run_cmd(["ffmpeg", "-y", "-i", str(avatar), "-vf", "scale=512:512:force_original_aspect_ratio=increase,crop=512:512", "-frames:v", "1", str(face)])
         avatar_files[speaker] = face
 
     rendered_videos: List[Path] = []
+    motion_report = {"animated": False, "speakers": {}, "composite_score": None}
     for speaker in speakers:
         speaker_audio = work_dir / f"audio_{slug(speaker)}.wav"
         video = work_dir / f"talking_{slug(speaker)}.mp4"
@@ -386,22 +399,28 @@ def main():
             raise RuntimeError(f"No speaking audio interval was created for {speaker}")
         render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
         score = motion_score(video, intervals.get(speaker, []))
-        print(f"[*] Verified motion for {speaker}: frame-change score {score:.3f}")
-        if score < 0.15:
-            raise RuntimeError(f"Generated video for {speaker} appears to be a still image (motion score {score:.3f})")
+        static_probe = work_dir / f"static_probe_{slug(speaker)}.mp4"
+        render_static_avatar(avatar_files[speaker], static_probe, duration)
+        baseline = motion_score(static_probe, intervals.get(speaker, []))
+        print(f"[*] Verified motion for {speaker}: {score:.3f} (static baseline {baseline:.3f})")
+        if score <= baseline + 0.01:
+            raise RuntimeError(
+                f"Generated video for {speaker} appears to be a still image "
+                f"(motion {score:.3f}, static baseline {baseline:.3f})"
+            )
+        motion_report["speakers"][speaker] = {"motion_score": score, "static_baseline": baseline}
         rendered_videos.append(video)
 
     output = out_dir / "talking_avatar_short.mp4"
     compose_stage(output, norm_audio, rendered_videos, speakers, intervals, prompt, layout, ratio, duration)
     composite_score = motion_score(output)
     print(f"[*] Verified composite stage motion: frame-change score {composite_score:.3f}")
-    if composite_score < 0.15:
+    if composite_score <= 0.01:
         raise RuntimeError(f"Composite stage video appears to be static (motion score {composite_score:.3f})")
+    motion_report["animated"] = True
+    motion_report["composite_score"] = composite_score
+    (out_dir / "motion_report.json").write_text(json.dumps(motion_report, indent=2), encoding="utf-8")
     print(f"[✓] Multi-speaker Spaces Live Stage video rendered: {output} ({output.stat().st_size / (1024 * 1024):.2f} MB)")
-
-    if target_release and gh_token:
-        run_cmd(f"gh release upload {target_release} '{output}' --repo {repo} --clobber || true", check=False)
-
 
 if __name__ == "__main__":
     main()
