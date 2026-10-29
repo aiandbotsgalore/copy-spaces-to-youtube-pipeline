@@ -221,19 +221,24 @@ def render_talking_avatar(wav2lip_dir: Path, checkpoint: Path, image: Path, audi
         raise RuntimeError(f"Wav2Lip produced no usable video for {image.name}")
 
 
-def motion_score(path: Path) -> float:
-    """Return average frame-to-frame pixel change; still fallbacks score near zero."""
+def motion_score(path: Path, active_intervals: List[Tuple[float, float]] | None = None) -> float:
+    """Return mouth-region frame change during speaking time."""
+    trim = ""
+    if active_intervals:
+        start = min(interval[0] for interval in active_intervals)
+        end = max(interval[1] for interval in active_intervals)
+        trim = f"trim=start={start:.3f}:end={end:.3f},setpts=PTS-STARTPTS,"
     result = subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", "fps=5,scale=64:64,format=gray", "-f", "rawvideo", "-"],
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"{trim}fps=5,crop=iw*0.6:ih*0.35:iw*0.2:ih*0.42,scale=96:56,format=gray", "-f", "rawvideo", "-"],
         capture_output=True,
     )
     if result.returncode != 0:
         raise RuntimeError(f"Could not inspect generated motion in {path.name}")
     frames = np.frombuffer(result.stdout, dtype=np.uint8)
-    frame_size = 64 * 64
+    frame_size = 96 * 56
     if frames.size < frame_size * 2:
         raise RuntimeError(f"Generated video is too short to verify motion: {path.name}")
-    frames = frames[: frames.size // frame_size * frame_size].reshape(-1, 64, 64)
+    frames = frames[: frames.size // frame_size * frame_size].reshape(-1, 56, 96)
     return float(np.abs(np.diff(frames.astype(np.float32), axis=0)).mean())
 
 
@@ -380,7 +385,7 @@ def main():
         if not build_speaker_audio(norm_audio, speaker_audio, intervals.get(speaker, [])):
             raise RuntimeError(f"No speaking audio interval was created for {speaker}")
         render_talking_avatar(wav2lip_dir, checkpoint, avatar_files[speaker], speaker_audio, video)
-        score = motion_score(video)
+        score = motion_score(video, intervals.get(speaker, []))
         print(f"[*] Verified motion for {speaker}: frame-change score {score:.3f}")
         if score < 0.15:
             raise RuntimeError(f"Generated video for {speaker} appears to be a still image (motion score {score:.3f})")
