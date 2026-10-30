@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import path from 'node:path';
+import { FIXTURE_ROOT } from './helpers/transcriptFixtures';
 import { chunkUtterances, parseTranscriptJson, readTranscript, speakerStats, utteranceLine, isSafeTag, toEvidenceRefs, isFullEpisodeUrl, resolveEpisodeAudio } from '../../server/scriptData';
 import { FULL_EPISODE_URL, releaseResponse } from './helpers/fakeCli';
 
-const ROOT = path.join(__dirname, '..', '..');
+const ROOT = FIXTURE_ROOT;   // frozen transcripts, never the live ones
 const TAG = '20260826_1AxRnZYBVdrxl';
 
 describe('transcript data', () => {

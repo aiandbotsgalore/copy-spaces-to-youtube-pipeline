@@ -6,6 +6,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fixtureTranscriptPath } from './helpers/transcriptFixtures';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createScriptStudioMiddleware } from '../../server/scriptStudioMiddleware';
@@ -13,7 +14,7 @@ import { packInstructions, RESULT_KIND } from '../../server/scriptHandoff';
 
 const T1 = '20260826_1AxRnZYBVdrxl';
 const T2 = '20260216_1DXxyvyaVXbKM';
-const SRC = (t: string) => path.join(__dirname, '..', '..', 'public', 'transcripts', 'episodes', `${t}.json`);
+const SRC = fixtureTranscriptPath;   // frozen copies, never the live transcripts
 const Q2 = "That's a hell of a fucking trip. You gonna drive or just fly?";
 const Q1 = "it's orange citrus. Delicious. I'm angry I can't share this with you.";
 const AUDIO = `https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/${T2}/${T2}_full.mp3`;

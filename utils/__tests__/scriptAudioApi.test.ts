@@ -7,6 +7,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fixtureTranscriptPath } from './helpers/transcriptFixtures';
 import http from 'node:http';
 import child_process from 'node:child_process';
 import type { AddressInfo } from 'node:net';
@@ -18,7 +19,7 @@ import { buildManifest, compileScript } from '../scriptCompile';
 import { takeTextHash } from '../scriptAudio';
 
 const TAG = '20260826_1AxRnZYBVdrxl';
-const SRC = path.join(__dirname, '..', '..', 'public', 'transcripts', 'episodes', `${TAG}.json`);
+const SRC = fixtureTranscriptPath(TAG);   // frozen copy, never the live transcript
 const LINE1 = 'Then the cake arrives, and Oor cannot stop talking about it.';
 const LINE2 = 'And that was the cake.';
 

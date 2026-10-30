@@ -6,6 +6,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fixtureTranscriptPath } from './helpers/transcriptFixtures';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createScriptStudioMiddleware } from '../../server/scriptStudioMiddleware';
@@ -13,7 +14,7 @@ import { makeFakeCli, type CliCall } from './helpers/fakeCli';
 import type { Segment } from '../scriptTypes';
 
 const TAG = '20260826_1AxRnZYBVdrxl';
-const SRC = path.join(__dirname, '..', '..', 'public', 'transcripts', 'episodes', `${TAG}.json`);
+const SRC = fixtureTranscriptPath(TAG);   // frozen copy, never the live transcript
 const QUOTE = "it's orange citrus. Delicious. I'm angry I can't share this with you.";
 const goodRef = { releaseTag: TAG, segStart: 1207.94, segEnd: 1242.38, speaker: 'Oor', verbatim: QUOTE };
 const badRef = { ...goodRef, verbatim: 'words nobody ever said on this recording' };

@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fixtureTranscriptPath } from './helpers/transcriptFixtures';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { createScriptStudioMiddleware } from '../../server/scriptStudioMiddleware';
@@ -16,7 +17,7 @@ import { FULL_EPISODE_URL, makeFakeCli, releaseResponse, type CliCall, type Resp
 const T1 = '20260826_1AxRnZYBVdrxl';   // Oor and the cake (no Logan)
 const T2 = '20260216_1DXxyvyaVXbKM';   // Logan hosting
 const T3 = '20260218_1yoJMwyzqQpKQ';   // another Logan recording, not in the project at first
-const SRC = (t: string) => path.join(__dirname, '..', '..', 'public', 'transcripts', 'episodes', `${t}.json`);
+const SRC = fixtureTranscriptPath;   // frozen copies, never the live transcripts
 const QUOTE1 = "it's orange citrus. Delicious. I'm angry I can't share this with you.";
 const QUOTE2 = "That's a hell of a fucking trip. You gonna drive or just fly?";
 
