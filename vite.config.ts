@@ -146,10 +146,26 @@ export default defineConfig(({ mode }) => {
       port: 5000,
       host: '0.0.0.0',
       allowedHosts: true,
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
       // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
       watch: {
         ignored: ['**/.spacepipe-studio/**', '**/.spacepipe-studio-backups/**', '**/public/output/**'],
       },
+    },
+    preview: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+      },
+    },
+    optimizeDeps: {
+      exclude: ['@sqlite.org/sqlite-wasm'],
+    },
+    worker: {
+      format: 'es',
     },
     plugins: [
       react(),

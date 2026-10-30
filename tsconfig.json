@@ -8,7 +8,8 @@
     "lib": [
       "ES2022",
       "DOM",
-      "DOM.Iterable"
+      "DOM.Iterable",
+      "WebWorker"
     ],
     "skipLibCheck": true,
     "types": [
@@ -32,6 +33,8 @@
     "components/**/*",
     "utils/**/*",
     "server/**/*",
+    "workers/**/*",
+    "src/**/*",
     "*.ts",
     "*.tsx"
   ],

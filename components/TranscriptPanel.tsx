@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
 import JSZip from 'jszip';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useTranscriptLayout } from './transcript/useTranscriptLayout';
 import type { TranscriptLayoutPreset } from './transcript/useTranscriptLayout';
 import './transcript/ApprovedTranscript.css';
@@ -785,6 +786,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState('');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 150);
+    return () => clearTimeout(handler);
+  }, [search]);
   const [speakerFilter, setSpeakerFilter] = useState('ALL');
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -945,8 +953,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [saveGitHubSuccess, setSaveGitHubSuccess] = useState('');
   const [saveGitHubError, setSaveGitHubError] = useState('');
   const [selectedPartNum, setSelectedPartNum] = useState<number>(1);
-  const [utteranceDisplayLimit, setUtteranceDisplayLimit] = useState<number>(120);
-  const [sidebarDisplayLimit, setSidebarDisplayLimit] = useState<number>(50);
   const { layout, update: updateLayout, toggleSection, applyPreset, reset: resetLayout } = useTranscriptLayout();
   const [episodeQuery, setEpisodeQuery] = useState('');
   const [episodeFilter, setEpisodeFilter] = useState<'all'|'ready'|'audio'>('all');
@@ -1101,6 +1107,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return !q || [r.name || '', r.tag_name, summaryIndex?.find(ep => ep.release_id === r.id || ep.release_tag === r.tag_name)?.host_handle || '']
       .some(v => v.toLowerCase().includes(q));
   }), [effectiveReleases, episodeFilter, episodeQuery, summaryIndex, transcriptAvailable]);
+
+  const sidebarScrollRef = useRef<HTMLDivElement>(null);
+  const sidebarVirtualizer = useVirtualizer({
+    count: shownEpisodes.length,
+    getScrollElement: () => sidebarScrollRef.current,
+    estimateSize: () => 74,
+    getItemKey: useCallback((index: number) => shownEpisodes[index]?.id ?? index, [shownEpisodes]),
+    overscan: 5,
+  });
+
   const selectedRelease = useMemo(() => effectiveReleases.find(r => r.id === selectedId), [effectiveReleases, selectedId]);
   // Open an episode requested by tag (e.g. from Investigative Radar) once releases are loaded
   useEffect(() => {
@@ -1589,6 +1605,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
+  // Batch ingest loaded episode transcript into SQLite WASM FTS5
+  useEffect(() => {
+    if (parsedUtterances.length > 0 && selectedRelease && searchWorkerRef.current) {
+      searchWorkerRef.current.batchIngestTurns(parsedUtterances, selectedRelease.id);
+    }
+  }, [parsedUtterances, selectedRelease]);
+
   // Dynamically resolve generic speaker labels ("Speaker 1", "Speaker 2", etc.) to canonical profiles
   // using host metadata, summary index records, dialogue cues, and user manual overrides.
   const effectiveSpeakerMap = useMemo(() => {
@@ -1748,46 +1771,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     };
   }), [parsedUtterances, speakerMap, effectiveSpeakerMap, timeOffsetSec]);
 
-  useEffect(() => {
-    if (targetScrollRef.current && utterances.length > 0 && selectedRelease) {
-      const { releaseId, tag, sec } = targetScrollRef.current;
-      if (selectedRelease.id === releaseId || (tag && selectedRelease.tag_name === tag)) {
-        targetScrollRef.current = null;
-        targetScrollSecRef.current = null;
-        const u = utterances.find(item => item.startSec <= sec && (item.endSec === null || item.endSec >= sec))
-          || utterances.find(item => item.startSec >= sec)
-          || utterances[0];
-        if (u) {
-          const uIdx = utterances.findIndex(item => item.id === u.id);
-          if (uIdx >= 0 && uIdx >= utteranceDisplayLimit - 20) {
-            setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, uIdx + 60));
-          }
-          const timer = setTimeout(() => {
-            const el = document.getElementById(`utterance-card-${u.id}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 200);
-          return () => clearTimeout(timer);
-        }
-      }
-    } else if (targetScrollSecRef.current !== null && utterances.length > 0) {
-      const targetSec = targetScrollSecRef.current;
-      targetScrollSecRef.current = null;
-      const u = utterances.find(item => item.startSec <= targetSec && (item.endSec === null || item.endSec >= targetSec))
-        || utterances.find(item => item.startSec >= targetSec)
-        || utterances[0];
-      if (u) {
-        const uIdx = utterances.findIndex(item => item.id === u.id);
-        if (uIdx >= 0 && uIdx >= utteranceDisplayLimit - 20) {
-          setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, uIdx + 60));
-        }
-        const timer = setTimeout(() => {
-          const el = document.getElementById(`utterance-card-${u.id}`);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 200);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [utterances, selectedRelease, utteranceDisplayLimit]);
 
   const speakerStats = useMemo(() => {
     const counts = new Map<string, number>();
@@ -1839,20 +1822,73 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return true;
   }), [utterances, speakerFilter, hasActiveSearch, searchAst, selectedCategory, selectedMentionTarget]);
 
-  // Reset utteranceDisplayLimit when switching episode or filters
-  useEffect(() => {
-    setUtteranceDisplayLimit(120);
-  }, [selectedId, selectedPartNum, speakerFilter, selectedCategory, selectedMentionTarget, search]);
+  const transcriptFeedRef = useRef<HTMLDivElement>(null);
+  const transcriptVirtualizer = useVirtualizer({
+    count: filteredUtterances.length,
+    getScrollElement: () => transcriptFeedRef.current,
+    estimateSize: useCallback((index: number) => {
+      const u = filteredUtterances[index];
+      if (!u) return 100;
+      const textLen = u.text ? u.text.length : 0;
+      return Math.max(48, Math.min(380, Math.round(textLen * 0.7) + 64));
+    }, [filteredUtterances]),
+    getItemKey: useCallback((index: number) => filteredUtterances[index]?.id ?? index, [filteredUtterances]),
+    overscan: 5,
+  });
 
-  // Keep sidebarDisplayLimit expanded if selectedId is further down the list
+  const isUserScrollingRef = useRef(false);
+  const userScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleUserManualScroll = useCallback(() => {
+    isUserScrollingRef.current = true;
+    if (userScrollTimerRef.current) clearTimeout(userScrollTimerRef.current);
+    userScrollTimerRef.current = setTimeout(() => {
+      isUserScrollingRef.current = false;
+    }, 4000);
+  }, []);
+
+  // Keep selected episode visible in virtual sidebar
   useEffect(() => {
-    if (selectedId && effectiveReleases.length > 0) {
-      const idx = effectiveReleases.findIndex(r => r.id === selectedId);
-      if (idx >= 0 && idx >= sidebarDisplayLimit) {
-        setSidebarDisplayLimit(idx + 25);
+    if (selectedId && shownEpisodes.length > 0) {
+      const idx = shownEpisodes.findIndex(r => r.id === selectedId);
+      if (idx >= 0) {
+        sidebarVirtualizer.scrollToIndex(idx, { align: 'auto' });
       }
     }
-  }, [selectedId, effectiveReleases, sidebarDisplayLimit]);
+  }, [selectedId, shownEpisodes, sidebarVirtualizer]);
+
+  // Audio Sync & Auto-Scroll Protection:
+  // Target scroll handling from search results or cross-episode navigation
+  useEffect(() => {
+    if (targetScrollRef.current && utterances.length > 0 && selectedRelease) {
+      const { releaseId, tag, sec } = targetScrollRef.current;
+      if (selectedRelease.id === releaseId || (tag && selectedRelease.tag_name === tag)) {
+        targetScrollRef.current = null;
+        targetScrollSecRef.current = null;
+        const u = utterances.find(item => item.startSec <= sec && (item.endSec === null || item.endSec >= sec))
+          || utterances.find(item => item.startSec >= sec)
+          || utterances[0];
+        if (u) {
+          const uIdx = filteredUtterances.findIndex(item => item.id === u.id);
+          if (uIdx >= 0) {
+            transcriptVirtualizer.scrollToIndex(uIdx, { align: 'center', behavior: 'smooth' });
+          }
+        }
+      }
+    } else if (targetScrollSecRef.current !== null && utterances.length > 0) {
+      const targetSec = targetScrollSecRef.current;
+      targetScrollSecRef.current = null;
+      const u = utterances.find(item => item.startSec <= targetSec && (item.endSec === null || item.endSec >= targetSec))
+        || utterances.find(item => item.startSec >= targetSec)
+        || utterances[0];
+      if (u) {
+        const uIdx = filteredUtterances.findIndex(item => item.id === u.id);
+        if (uIdx >= 0) {
+          transcriptVirtualizer.scrollToIndex(uIdx, { align: 'center', behavior: 'smooth' });
+        }
+      }
+    }
+  }, [utterances, filteredUtterances, selectedRelease, transcriptVirtualizer]);
 
   // Dynamic Conversation & Confrontation Heatmap across the active episode timeline
   const conversationHeatmap = useMemo(() => {
@@ -2099,7 +2135,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       return;
     }
 
-    const query = deferredSearch.trim();
+    const query = debouncedSearch.trim();
     const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
     const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
     const isCategoryFilter = selectedCategory !== 'ALL';
@@ -2125,8 +2161,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     }).then((results) => {
       setWorkerSearchResults(results as GlobalSearchResult[]);
       setWorkerSearching(false);
+    }).catch(() => {
+      setWorkerSearching(false);
     });
-  }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
+  }, [globalIndex, debouncedSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
   const deferredSearchAst = useMemo(() => parseGoogleQuery(deferredSearch), [deferredSearch]);
   const hasActiveDeferredSearch = useMemo(() => hasActiveQuery(deferredSearchAst), [deferredSearchAst]);
@@ -2309,27 +2347,29 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   // ID-based comparison is filter-safe (index comparison would break under search/filter)
   const activeUtteranceId = activeUtteranceIndex >= 0 ? utterances[activeUtteranceIndex]?.id ?? null : null;
 
-  // Automatically expand utteranceDisplayLimit during audio playback so autoscroll and word sync are never interrupted
+  // Audio Sync & Auto-Scroll Protection:
+  // During playback with Auto-Scroll ON, use virtualizer.scrollToIndex(currentTurnIndex, { align: 'center', behavior: 'smooth' })
   useEffect(() => {
-    if (activeUtteranceIndex >= 0 && activeUtteranceIndex >= utteranceDisplayLimit - 20) {
-      setUtteranceDisplayLimit(prev => Math.max(prev, activeUtteranceIndex + 60));
-    }
-  }, [activeUtteranceIndex, utteranceDisplayLimit]);
+    if (!autoScroll || isUserScrollingRef.current || !activeUtteranceId) return;
+    if (lastAutoScrolledUtteranceRef.current === activeUtteranceId) return;
 
-  useEffect(() => {
-    if (!autoScroll || !activeUtteranceId || lastAutoScrolledUtteranceRef.current === activeUtteranceId) return;
-    const el = document.getElementById(`utterance-card-${activeUtteranceId}`);
-    if (el) {
-      lastAutoScrolledUtteranceRef.current = activeUtteranceId;
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, [autoScroll, activeUtteranceId]);
+    const currentTurnIndex = filteredUtterances.findIndex(u => u.id === activeUtteranceId);
+    if (currentTurnIndex < 0) return;
+
+    lastAutoScrolledUtteranceRef.current = activeUtteranceId;
+    transcriptVirtualizer.scrollToIndex(currentTurnIndex, {
+      align: 'center',
+      behavior: 'smooth',
+    });
+  }, [autoScroll, activeUtteranceId, filteredUtterances, transcriptVirtualizer]);
 
   const handlePlayUtterance = (startSec: number) => {
     if (!selectedRelease || !mp3Asset) return;
+    isUserScrollingRef.current = false;
+    if (userScrollTimerRef.current) clearTimeout(userScrollTimerRef.current);
     const targetIdx = filteredUtterances.findIndex(u => u.startSec >= startSec || (u.endSec !== null && u.endSec >= startSec));
-    if (targetIdx >= 0 && targetIdx >= utteranceDisplayLimit - 20) {
-      setUtteranceDisplayLimit(Math.max(utteranceDisplayLimit, targetIdx + 60));
+    if (targetIdx >= 0) {
+      transcriptVirtualizer.scrollToIndex(targetIdx, { align: 'center', behavior: 'smooth' });
     }
     const titleWithPart = episodeParts.length > 1 && activePart
       ? `${selectedRelease.name || selectedRelease.tag_name} (${activePart.label})`
@@ -2909,92 +2949,112 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           {layout.episodeOpen && <div className="sp-rail" style={{width:layout.episodeWidth}}>
               <div className="sp-rail-head">
                 <div className="sp-rail-headline"><span>Transcripts</span><button type="button" title="Hide episode browser" onClick={() => updateLayout({episodeOpen:false})}><PanelLeftClose size={16}/></button></div>
-                <label className="sp-rail-search"><Search size={14}/><input aria-label="Search episodes" placeholder="Search all transcripts..." value={episodeQuery} onChange={e => {setEpisodeQuery(e.target.value);setSidebarDisplayLimit(50);}} /></label>
+                <label className="sp-rail-search"><Search size={14}/><input aria-label="Search episodes" placeholder="Search all transcripts..." value={episodeQuery} onChange={e => setEpisodeQuery(e.target.value)} /></label>
                 <div className="sp-filter-pills" role="group" aria-label="Episode status">
-                  <button className={episodeFilter==='all'?'active':''} onClick={() => {setEpisodeFilter('all');setSidebarDisplayLimit(50);}}>All ({effectiveReleases.length})</button>
-                  <button className={episodeFilter==='ready'?'active':''} onClick={() => {setEpisodeFilter('ready');setSidebarDisplayLimit(50);}}>Ready ({readyCount})</button>
-                  <button className={episodeFilter==='audio'?'active':''} onClick={() => {setEpisodeFilter('audio');setSidebarDisplayLimit(50);}}>Audio ({effectiveReleases.length-readyCount})</button>
+                  <button className={episodeFilter==='all'?'active':''} onClick={() => setEpisodeFilter('all')}>All ({effectiveReleases.length})</button>
+                  <button className={episodeFilter==='ready'?'active':''} onClick={() => setEpisodeFilter('ready')}>Ready ({readyCount})</button>
+                  <button className={episodeFilter==='audio'?'active':''} onClick={() => setEpisodeFilter('audio')}>Audio ({effectiveReleases.length-readyCount})</button>
                 </div>
               </div>
-              <div className="sp-rail-scroll">
-            {/* Global Search shortcut button */}
-            <div className="p-2.5 bg-slate-900/60 border-b border-slate-800">
-              <button
-                onClick={() => {
-                  setSearchScope('all');
-                  loadGlobalIndex();
-                }}
-                className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
-                  searchScope === 'all'
-                    ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg text-white ring-1 ring-indigo-500/40'
-                    : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-                  }`}>
-                    <Globe size={16} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold truncate">Search All Transcripts</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 truncate">
-                      {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-500'} />
-              </button>
-            </div>
 
-            <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({effectiveReleases.length})</span>
-            </div>
-            {shownEpisodes.slice(0, sidebarDisplayLimit).map(release => {
-              const hasTxt = transcriptAvailable(release);
-              const isSelected = searchScope === 'current' && selectedId === release.id;
-              const isPlayingThis = current?.id === release.id && isPlaying;
-              return (
-                <button key={release.id} onClick={() => { setSearchScope('current'); loadTranscript(release); }}
-                  className={`sp-rail-card w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}>
-                  <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
-                    {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
-                    <div className="sp-rail-meta flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-[11px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
-                      {(() => {
-                        const host = getEpisodeHost(release);
-                        return host ? (
-                          <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-slate-300 truncate max-w-[130px]" title={`Host: @${host}`}>
-                            <span className="text-slate-500 font-normal">by</span>
-                            <span className="text-indigo-300 font-semibold truncate">@{host}</span>
-                          </span>
-                        ) : null;
-                      })()}
-                      {hasTxt
-                        ? <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[11px] font-medium">Transcript Ready</span>
-                        : <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded text-[11px]">Audio Only</span>}
+              {/* Global Search shortcut button */}
+              <div className="p-2.5 bg-slate-900/60 border-b border-slate-800 flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setSearchScope('all');
+                    loadGlobalIndex();
+                  }}
+                  className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer border ${
+                    searchScope === 'all'
+                      ? 'bg-indigo-600/25 border-indigo-500/70 shadow-lg text-white ring-1 ring-indigo-500/40'
+                      : 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      searchScope === 'all' ? 'bg-indigo-500 text-white shadow-md' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                    }`}>
+                      <Globe size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold truncate">Search All Transcripts</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 truncate">
+                        {summaryIndex ? `${summaryIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : (globalIndex ? `${globalIndex.length} episodes • ${totalGlobalSegments.toLocaleString()} turns` : '241 episodes • 359,000+ turns')}
+                      </p>
                     </div>
                   </div>
-                </button>
-              );
-            })}
-            {shownEpisodes.length > sidebarDisplayLimit && (
-              <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-center">
-                <button
-                  type="button"
-                  onClick={() => setSidebarDisplayLimit(prev => Math.min(shownEpisodes.length, prev + 50))}
-                  className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-colors cursor-pointer"
-                >
-                  Show More Episodes ({shownEpisodes.length - sidebarDisplayLimit} remaining)
+                  <ArrowRight size={13} className={searchScope === 'all' ? 'text-indigo-400' : 'text-slate-500'} />
                 </button>
               </div>
-            )}
-            {shownEpisodes.length === 0 && <div className="sp-empty">No episodes match your filters.</div>}
+
+              <div className="p-3 bg-slate-900/50 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Select Episode ({shownEpisodes.length})</span>
+              </div>
+
+              <div ref={sidebarScrollRef} className="sp-rail-scroll flex-1 overflow-y-auto">
+                {shownEpisodes.length === 0 ? (
+                  <div className="sp-empty">No episodes match your filters.</div>
+                ) : (
+                  <div
+                    style={{
+                      height: `${sidebarVirtualizer.getTotalSize()}px`,
+                      width: '100%',
+                      position: 'relative',
+                    }}
+                  >
+                    {sidebarVirtualizer.getVirtualItems().map(virtualRow => {
+                      const release = shownEpisodes[virtualRow.index];
+                      if (!release) return null;
+                      const hasTxt = transcriptAvailable(release);
+                      const isSelected = searchScope === 'current' && selectedId === release.id;
+                      const isPlayingThis = current?.id === release.id && isPlaying;
+                      return (
+                        <div
+                          key={virtualRow.key}
+                          data-index={virtualRow.index}
+                          ref={sidebarVirtualizer.measureElement}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => { setSearchScope('current'); loadTranscript(release); }}
+                            className={`sp-rail-card w-full text-left p-3.5 transition-all flex items-start gap-3 group relative cursor-pointer border-b border-slate-800/40 ${isSelected ? 'bg-indigo-600/15 border-l-4 border-l-indigo-500 text-white' : 'hover:bg-slate-900/80 text-slate-300'}`}
+                          >
+                            <div className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${isPlayingThis ? 'bg-indigo-500 text-white animate-pulse' : isSelected ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400 group-hover:text-slate-300'}`}>
+                              {isPlayingThis ? <Volume2 size={13} /> : <FileText size={13} />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-semibold truncate ${isSelected ? 'text-white font-bold' : 'text-slate-300'}`}>{release.name || release.tag_name}</p>
+                              <div className="sp-rail-meta flex items-center gap-2 mt-1 flex-wrap">
+                                <span className="text-[11px] text-slate-400">{getEpisodeRecordedDate(release).displayDate}</span>
+                                {(() => {
+                                  const host = getEpisodeHost(release);
+                                  return host ? (
+                                    <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-slate-300 truncate max-w-[130px]" title={`Host: @${host}`}>
+                                      <span className="text-slate-500 font-normal">by</span>
+                                      <span className="text-indigo-300 font-semibold truncate">@{host}</span>
+                                    </span>
+                                  ) : null;
+                                })()}
+                                {hasTxt
+                                  ? <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[11px] font-medium">Transcript Ready</span>
+                                  : <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded text-[11px]">Audio Only</span>}
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
           </div>}
           {layout.episodeOpen && <div className="sp-resizer" role="separator" tabIndex={0} aria-label="Resize episode browser" aria-orientation="vertical" aria-valuemin={220} aria-valuemax={440} aria-valuenow={layout.episodeWidth} onPointerDown={e => startPanelResize('episode',e)} onKeyDown={e => onResizeKeyboard('episode',e)} />}
@@ -4433,7 +4493,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         </div>
                       </div>
 
-                      <button onClick={() => setAutoScroll(!autoScroll)}
+                      <button onClick={() => {
+                        setAutoScroll(prev => {
+                          const next = !prev;
+                          if (next) {
+                            isUserScrollingRef.current = false;
+                            if (userScrollTimerRef.current) clearTimeout(userScrollTimerRef.current);
+                            if (activeUtteranceId) {
+                              const currentTurnIndex = filteredUtterances.findIndex(u => u.id === activeUtteranceId);
+                              if (currentTurnIndex >= 0) {
+                                transcriptVirtualizer.scrollToIndex(currentTurnIndex, { align: 'center', behavior: 'smooth' });
+                              }
+                            }
+                          }
+                          return next;
+                        });
+                      }}
                         className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors border cursor-pointer ${autoScroll ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-medium' : 'bg-slate-900 text-slate-400 border-slate-800'}`}>
                         <ArrowDownCircle size={12} /> Auto-Scroll {autoScroll ? 'ON' : 'OFF'}
                       </button>
@@ -4493,7 +4568,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                   )}
 
                   {/* Transcript Feed */}
-                  <div className="sp-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
+                  <div ref={transcriptFeedRef} onWheel={handleUserManualScroll} onTouchMove={handleUserManualScroll} className="sp-feed flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950">
                     {transcriptLoading && (
                       <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
                         <Loader size={26} className="animate-spin text-indigo-400" />
@@ -4576,8 +4651,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     )}
 
                     {!transcriptLoading && !transcriptError && filteredUtterances.length > 0 && (
-                      <div className="sp-turn-list max-w-3xl mx-auto space-y-3.5 pb-24">
-                        {filteredUtterances.slice(0, utteranceDisplayLimit).map((utterance) => {
+                      <div
+                        className="sp-turn-list max-w-3xl mx-auto pb-24 relative"
+                        style={{
+                          height: `${transcriptVirtualizer.getTotalSize()}px`,
+                          width: '100%',
+                        }}
+                      >
+                        {transcriptVirtualizer.getVirtualItems().map((virtualRow) => {
+                          const utterance = filteredUtterances[virtualRow.index];
+                          if (!utterance) return null;
                           const isPlayingThisUtterance = activeUtteranceId === utterance.id;
                           const theme = getSpeakerTheme(utterance.speaker, savedSpeakers);
                           const initialChar = utterance.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
@@ -4605,10 +4688,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                           return (
                             <div
-                              id={`utterance-card-${utterance.id}`}
-                              key={utterance.id}
-                              onClick={() => handlePlayUtterance(utterance.startSec)}
-                              className={`sp-turn group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
+                              key={virtualRow.key}
+                              data-index={virtualRow.index}
+                              ref={transcriptVirtualizer.measureElement}
+                              style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                transform: `translateY(${virtualRow.start}px)`,
+                                paddingBottom: '14px',
+                              }}
+                            >
+                              <div
+                                id={`utterance-card-${utterance.id}`}
+                                onClick={() => handlePlayUtterance(utterance.startSec)}
+                                className={`sp-turn group flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer relative ${
                                 isPlayingThisUtterance
                                   ? 'bg-indigo-950/40 border-indigo-500/80 shadow-xl ring-1 ring-indigo-500/40'
                                   : 'bg-slate-900/50 border-slate-800/80 hover:bg-slate-900 hover:border-slate-700/80 hover:shadow-md'
@@ -4759,41 +4854,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 )}
                               </div>
                             </div>
-                          );
-                        })}
-
-                        {/* Progressive loading controls for multi-hour episodes with thousands of turns */}
-                        {filteredUtterances.length > utteranceDisplayLimit && (
-                          <div className="my-6 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-sm">
-                            <div className="flex items-center gap-2.5 text-xs text-slate-300">
-                              <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
-                              <span>
-                                Showing <strong className="text-white font-semibold">{Math.min(utteranceDisplayLimit, filteredUtterances.length)}</strong> of <strong className="text-indigo-300 font-semibold">{filteredUtterances.length.toLocaleString()}</strong> turns
-                              </span>
-                              <span className="text-slate-500 text-[11px]">
-                                ({Math.round((Math.min(utteranceDisplayLimit, filteredUtterances.length) / filteredUtterances.length) * 100)}% loaded)
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                              <button
-                                type="button"
-                                onClick={() => setUtteranceDisplayLimit(prev => Math.min(filteredUtterances.length, prev + 150))}
-                                className="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                              >
-                                <span>Load More Turns (+{Math.min(150, filteredUtterances.length - utteranceDisplayLimit)})</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setUtteranceDisplayLimit(filteredUtterances.length)}
-                                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition-all cursor-pointer"
-                                title="Render all turns in the DOM"
-                              >
-                                Load All
-                              </button>
-                            </div>
                           </div>
-                        )}
-                      </div>
+                        );
+                      })}
+                    </div>
                     )}
                   </div>
                 </>
