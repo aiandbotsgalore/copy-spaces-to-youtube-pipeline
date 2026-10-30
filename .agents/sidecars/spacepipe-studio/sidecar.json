@@ -1,0 +1,17 @@
+{
+  "name": "spacepipe-studio",
+  "display_name": "SpacePipe Studio",
+  "description": "Interactive SpacePipe Gen Web Studio and Pipeline Generator.",
+  "has_web_ui": true,
+  "command": "npm run dev",
+  "workdir": "c:/Users/Logan/copy-spaces-to-youtube-pipeline",
+  "ui_config": {
+    "views": [
+      {
+        "entrypoint": "SIDECAR_UI_ENTRYPOINT_AUX_PANE",
+        "path": "/",
+        "title": "SpacePipe Studio"
+      }
+    ]
+  }
+}

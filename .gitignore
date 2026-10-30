@@ -65,7 +65,6 @@ podcast*.xml
 
 
 real_avatar_output/
-.agents/
 
 # Script Studio local state (projects, runs, analyses, memory, backups)
 .spacepipe-studio/

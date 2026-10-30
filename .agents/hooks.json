@@ -1,0 +1,11 @@
+{
+  "spacepipe-quality-gate": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node .agents/scripts/stop_check.mjs",
+        "timeout": 30
+      }
+    ]
+  }
+}
