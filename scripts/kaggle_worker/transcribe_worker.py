@@ -216,11 +216,13 @@ def resolve_speakers_with_voiceprints(
 
     # 1. Load enrolled profiles
     profiles_data = {}
+    base_file = globals().get("__file__")
+    base_dir = Path(base_file).resolve().parent if base_file else Path.cwd()
     for p_path in [
         Path("voice_profiles.json"),
         Path("/kaggle/working/voice_profiles.json"),
-        Path(__file__).parent.parent / "voice_profiles.json",
-        Path(__file__).parent / "voice_profiles.json"
+        base_dir.parent / "voice_profiles.json",
+        base_dir / "voice_profiles.json"
     ]:
         if p_path.exists():
             try:
@@ -391,7 +393,8 @@ def process_episode(item: Dict[str, Any], hf_token: str, gh_token: str, work_dir
     import whisperx
     import torch
 
-    tag = item["tag_name"]
+    rel_tag = item.get("tag_name") or item.get("release_tag", "")
+    tag = rel_tag
     title = item["title"]
     mp3_asset = item["mp3_asset"]
     upload_url_template = item["upload_url"]
