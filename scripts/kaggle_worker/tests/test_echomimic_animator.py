@@ -483,3 +483,35 @@ def test_prepare_echomimic_mounts_prebaked_dataset_instantly(tmp_path, monkeypat
     assert acc_ckpt.name == "denoising_unet_acc.pth"
     assert acc_ckpt.exists()
 
+
+def test_patch_echomimic_syntax_and_moviepy_removal(tmp_path):
+    """Verify that patch_echomimic removes moviepy and generates syntactically valid Python without IndentationError."""
+    sample_content = """import os
+import subprocess
+from moviepy.editor import VideoFileClip, AudioFileClip
+
+def run():
+    if True:
+        for i in range(1):
+            video_clip = VideoFileClip(f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}.mp4")
+            audio_clip = AudioFileClip(audio_path)
+            video_clip = video_clip.set_audio(audio_clip)
+            video_clip.write_videofile(f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}_withaudio.mp4", codec="libx264", audio_codec="aac")
+            print("done")
+"""
+    repo_dir = tmp_path / "echomimic"
+    repo_dir.mkdir()
+    target_py = repo_dir / "infer_audio2vid_acc.py"
+    target_py.write_text(sample_content, encoding="utf-8")
+
+    animator.patch_echomimic(repo_dir)
+
+    patched = target_py.read_text(encoding="utf-8")
+    assert "VideoFileClip" not in patched or "# from moviepy" in patched
+    assert "ffmpeg" in patched
+    assert "raw_vid" in patched
+    # Verify Python syntax
+    import ast
+    ast.parse(patched)
+
+

@@ -247,19 +247,23 @@ def patch_echomimic(repo_dir: Path):
     )
 
     # 2. Replace moviepy re-encoding with fast ffmpeg stream copy
-    fast_ffmpeg_block = (
-        '            raw_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}.mp4"\n'
-        '            muxed_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}_withaudio.mp4"\n'
-        '            subprocess.run(["ffmpeg", "-y", "-i", raw_vid, "-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-shortest", muxed_vid], check=True)'
-    )
-    content = re.sub(
-        r'video_clip\s*=\s*VideoFileClip\(.*?\)\s*audio_clip\s*=\s*AudioFileClip\(.*?\)\s*video_clip\s*=\s*video_clip\.set_audio\(.*?\)\s*video_clip\.write_videofile\(.*?\)',
-        fast_ffmpeg_block,
-        content,
-        flags=re.DOTALL,
-    )
+    start_marker = "video_clip = VideoFileClip("
+    end_marker = '_withaudio.mp4", codec="libx264", audio_codec="aac")'
+    if start_marker in content and end_marker in content:
+        start_idx = content.find(start_marker)
+        # Backtrack to start of line to replace indent cleanly
+        line_start = content.rfind("\n", 0, start_idx) + 1
+        end_idx = content.find(end_marker) + len(end_marker)
+        fast_mux = (
+            '            raw_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}.mp4"\n'
+            '            muxed_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}_withaudio.mp4"\n'
+            '            subprocess.run(["ffmpeg", "-y", "-i", raw_vid, "-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-shortest", muxed_vid], check=True)'
+        )
+        content = content[:line_start] + fast_mux + content[end_idx:]
+    import ast
+    ast.parse(content)
     target_py.write_text(content, encoding="utf-8")
-    print("[✓] EchoMimic patched: moviepy eliminated, ultra-fast FFmpeg stream copy active.")
+    print("[✓] EchoMimic patched: moviepy eliminated, ultra-fast FFmpeg stream copy active (syntax verified).")
 
 
 def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
