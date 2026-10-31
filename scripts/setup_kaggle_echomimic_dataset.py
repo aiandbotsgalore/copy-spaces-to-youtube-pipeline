@@ -59,7 +59,7 @@ def setup_dataset(staging_dir: Path, dataset_id: str = "loganblackjbjb/echomimic
         sys.executable, "-m", "pip", "download",
         "--only-binary=:all:",
         "--dest", str(wheels_dir),
-        "facenet-pytorch", "omegaconf", "diffusers==0.24.0",
+        "facenet-pytorch", "omegaconf", "huggingface_hub==0.25.2", "diffusers==0.24.0",
     ], check=False)
 
     # 3. Create dataset-metadata.json

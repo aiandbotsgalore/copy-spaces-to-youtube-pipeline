@@ -240,13 +240,18 @@ def patch_echomimic(repo_dir: Path):
         return
     content = target_py.read_text(encoding="utf-8")
 
-    # 0. Monkey-patch huggingface_hub.constants.hf_cache_home if missing in newer huggingface_hub
+    # 0. Monkey-patch huggingface_hub for diffusers 0.24 compatibility
     hf_compat = (
+        "import huggingface_hub\n"
         "import huggingface_hub.constants\n"
         "if not hasattr(huggingface_hub.constants, 'hf_cache_home'):\n"
         "    huggingface_hub.constants.hf_cache_home = getattr(huggingface_hub.constants, 'HF_HOME', '/root/.cache/huggingface')\n"
+        "if not hasattr(huggingface_hub, 'HfFolder'):\n"
+        "    huggingface_hub.HfFolder = type('HfFolder', (), {'get_token': staticmethod(lambda: None), 'save_token': staticmethod(lambda t: None)})\n"
+        "if not hasattr(huggingface_hub, 'cached_download'):\n"
+        "    huggingface_hub.cached_download = getattr(huggingface_hub, 'hf_hub_download', None)\n"
     )
-    if "huggingface_hub.constants.hf_cache_home" not in content:
+    if "huggingface_hub.HfFolder" not in content:
         content = hf_compat + content
 
     # 1. Neutralize moviepy import
@@ -349,10 +354,10 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
 
     if not wheels_installed:
         # Fast direct pip install (install facenet-pytorch with --no-deps to use Kaggle's pre-installed torch/torchvision/Pillow/numpy without source compilation)
-        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, diffusers==0.24.0)...")
+        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, huggingface_hub==0.25.2, diffusers==0.24.0)...")
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "facenet-pytorch"])
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf"])
-        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "diffusers==0.24.0"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "huggingface_hub==0.25.2", "diffusers==0.24.0"])
 
     weights_dir = echomimic_dir / "pretrained_weights"
     acc_ckpt = weights_dir / "denoising_unet_acc.pth"
