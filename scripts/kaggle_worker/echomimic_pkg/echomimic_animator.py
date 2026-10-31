@@ -311,16 +311,17 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
             print(f"[*] Installing pre-packaged wheels from {candidate}...")
             run_cmd([
                 sys.executable, "-m", "pip", "install", "--no-index", f"--find-links={candidate}",
-                "facenet-pytorch", "omegaconf",
+                "facenet-pytorch", "omegaconf", "diffusers",
             ])
             wheels_installed = True
             break
 
     if not wheels_installed:
         # Fast direct pip install (install facenet-pytorch with --no-deps to use Kaggle's pre-installed torch/torchvision/Pillow/numpy without source compilation)
-        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf)...")
+        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, diffusers==0.24.0)...")
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "facenet-pytorch"])
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "diffusers==0.24.0"])
 
     weights_dir = echomimic_dir / "pretrained_weights"
     acc_ckpt = weights_dir / "denoising_unet_acc.pth"

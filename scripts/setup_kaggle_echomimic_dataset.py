@@ -54,12 +54,12 @@ def setup_dataset(staging_dir: Path, dataset_id: str = "loganblackjbjb/echomimic
     # 2. Pre-package Python Wheels Cache for Offline Install
     wheels_dir = staging_dir / "wheels"
     wheels_dir.mkdir(parents=True, exist_ok=True)
-    print("[*] Pre-downloading binary wheels for facenet-pytorch and omegaconf into wheels/...")
+    print("[*] Pre-downloading binary wheels for facenet-pytorch, omegaconf, and diffusers into wheels/...")
     run([
         sys.executable, "-m", "pip", "download",
         "--only-binary=:all:",
         "--dest", str(wheels_dir),
-        "facenet-pytorch", "omegaconf",
+        "facenet-pytorch", "omegaconf", "diffusers==0.24.0",
     ], check=False)
 
     # 3. Create dataset-metadata.json
