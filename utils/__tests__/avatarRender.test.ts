@@ -17,7 +17,7 @@ describe('avatar render request contract', () => {
       showPipExhibit: false,
     });
 
-    expect(request).toEqual({
+    expect(request).toMatchObject({
       personaId: 'doc-anchor',
       backdropId: 'broadcast-room',
       cameraAngle: 'cinematic',

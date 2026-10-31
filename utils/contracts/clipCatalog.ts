@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { toPosixPath } from '../posixUtils';
+import { normalizeClipSpeakers, normalizeViralScore } from '../clipScore';
 
 /**
  * Universal Clip Item Schema
@@ -24,19 +25,15 @@ export const ClipItemSchema = z.object({
     return Number.isFinite(num) && num > 0 ? num : undefined;
   }, z.number().positive().optional()),
   speakers: z.preprocess(v => {
-    if (Array.isArray(v)) {
-      return v.map(s => String(s).trim()).filter(Boolean);
-    }
-    if (typeof v === 'string' && v.trim()) {
-      return v.split(',').map(s => s.trim()).filter(Boolean);
-    }
-    return [];
+    return normalizeClipSpeakers(v);
   }, z.array(z.string())),
   viral_score: z.preprocess(v => {
-    const num = Number(v);
-    return Number.isFinite(num) ? Math.min(10, Math.max(0, Math.round(num))) : 8;
+    return normalizeViralScore(v);
   }, z.number().min(0).max(10)),
   reason: z.preprocess(v => String(v || '').trim(), z.string()),
+  junk_suspect: z.boolean().optional(),
+  junk_score: z.number().min(0).max(1).optional(),
+  junk_reason: z.string().optional(),
   transcript_snippet: z.preprocess((v, ctx) => {
     if (typeof v === 'string' && v.trim()) return v.trim();
     // Fallback: check if 'quote' was passed (common in montage manifests)

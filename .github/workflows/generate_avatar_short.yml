@@ -44,6 +44,10 @@ on:
           - '9:16'
           - '1:1'
           - '16:9'
+      latent_steps:
+        description: 'Number of denoising diffusion steps (6 standard, 4 for draft/preview)'
+        required: false
+        default: '6'
       target_release_tag:
         description: 'Optional GitHub release tag to attach finished video'
         required: false
@@ -92,6 +96,7 @@ jobs:
           SPEAKER_SEGMENTS_JSON: ${{ inputs.speaker_segments_json || '[]' }}
           PROMPT: ${{ inputs.prompt }}
           ASPECT_RATIO: ${{ inputs.aspect_ratio || '9:16' }}
+          LATENT_STEPS: ${{ inputs.latent_steps || '6' }}
         run: |
           set -euo pipefail
           echo "[*] Injecting environment bootstrap into Kaggle avatar worker..."
@@ -109,6 +114,7 @@ jobs:
               "SPEAKER_SEGMENTS_JSON": "[]",
               "PROMPT": "Twitter Spaces Live Stage Banter",
               "ASPECT_RATIO": "9:16",
+              "LATENT_STEPS": "6",
           }
           keys = [
               "SPEECH_AUDIO",
@@ -119,6 +125,7 @@ jobs:
               "SPEAKER_SEGMENTS_JSON",
               "PROMPT",
               "ASPECT_RATIO",
+              "LATENT_STEPS",
           ]
           lines = ['"""Runtime environment for the packaged avatar worker."""', "import os", ""]
           for key in keys:

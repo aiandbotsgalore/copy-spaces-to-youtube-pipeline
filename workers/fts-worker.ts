@@ -38,6 +38,7 @@ export interface SearchResultItem {
 
 let db: any = null;
 let initPromise: Promise<any> | null = null;
+export const FTS_INDEX_VERSION = 2;
 
 export async function initDB() {
   if (db) return db;
@@ -71,7 +72,15 @@ export async function initDB() {
         end_time UNINDEXED,
         tokenize = 'porter unicode61 remove_diacritics 2'
       );
+      CREATE TABLE IF NOT EXISTS fts_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
+
+    const versionRows: any[] = [];
+    db.exec({ sql: 'SELECT value FROM fts_meta WHERE key = ?', bind: ['version'], rowMode: 'object', callback: (row: any) => versionRows.push(row) });
+    if (versionRows[0]?.value !== String(FTS_INDEX_VERSION)) {
+      db.exec('DELETE FROM turns_fts;');
+      db.exec({ sql: 'INSERT OR REPLACE INTO fts_meta(key, value) VALUES (?, ?)', bind: ['version', String(FTS_INDEX_VERSION)] });
+    }
 
     try {
       db.exec(`CREATE INDEX IF NOT EXISTS idx_episode ON turns_fts(episode_id);`);

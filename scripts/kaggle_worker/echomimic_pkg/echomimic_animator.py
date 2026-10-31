@@ -25,7 +25,7 @@ from typing import Dict, Iterable, List, Tuple
 import numpy as np
 
 
-def run_cmd(cmd, check=True, cwd=None):
+def run_cmd(cmd, check=True, cwd=None, env=None):
     cmd_str = " ".join(cmd) if isinstance(cmd, list) else cmd
     print(f"[*] Running: {cmd_str}")
     result = subprocess.run(
@@ -36,6 +36,7 @@ def run_cmd(cmd, check=True, cwd=None):
         encoding="utf-8",
         errors="replace",
         cwd=cwd,
+        env=env,
     )
     if result.stdout:
         print(result.stdout[-1200:])
@@ -232,24 +233,98 @@ def run_ffprobe_duration(path: Path) -> float:
         return 1.0
 
 
+def patch_echomimic(repo_dir: Path):
+    """Patch EchoMimic to eliminate slow moviepy dependency and use native FFmpeg stream copying."""
+    target_py = repo_dir / "infer_audio2vid_acc.py"
+    if not target_py.exists():
+        return
+    content = target_py.read_text(encoding="utf-8")
+
+    # 1. Neutralize moviepy import
+    content = content.replace(
+        "from moviepy.editor import VideoFileClip, AudioFileClip",
+        "# from moviepy.editor import VideoFileClip, AudioFileClip",
+    )
+
+    # 2. Replace moviepy re-encoding with fast ffmpeg stream copy
+    fast_ffmpeg_block = (
+        '            raw_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}.mp4"\n'
+        '            muxed_vid = f"{save_dir}/{ref_name}_{audio_name}_{args.H}x{args.W}_{int(args.cfg)}_{time_str}_withaudio.mp4"\n'
+        '            subprocess.run(["ffmpeg", "-y", "-i", raw_vid, "-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-shortest", muxed_vid], check=True)'
+    )
+    content = re.sub(
+        r'video_clip\s*=\s*VideoFileClip\(.*?\)\s*audio_clip\s*=\s*AudioFileClip\(.*?\)\s*video_clip\s*=\s*video_clip\.set_audio\(.*?\)\s*video_clip\.write_videofile\(.*?\)',
+        fast_ffmpeg_block,
+        content,
+        flags=re.DOTALL,
+    )
+    target_py.write_text(content, encoding="utf-8")
+    print("[✓] EchoMimic patched: moviepy eliminated, ultra-fast FFmpeg stream copy active.")
+
+
 def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
-    """Prepare EchoMimic repository and download pretrained weights from Hugging Face."""
-    echomimic_dir = work_dir / "echomimic"
+    """Prepare EchoMimic repository, pre-baked weights, and optimized dependencies."""
+    tmp_dir = Path("/tmp")
+    echomimic_dir = (tmp_dir / "echomimic") if tmp_dir.exists() else (work_dir / "echomimic")
     if not echomimic_dir.exists():
         run_cmd(["git", "clone", "--depth", "1", "https://github.com/antgroup/echomimic.git", str(echomimic_dir)])
+    patch_echomimic(echomimic_dir)
 
-    # Ensure required runtime dependencies
-    run_cmd([
-        sys.executable, "-m", "pip", "install", "-q",
-        "diffusers>=0.24.0", "transformers", "accelerate", "facenet-pytorch", "omegaconf", "moviepy<2.0.0", "huggingface_hub"
-    ])
+    # 1. Check for Pre-Packaged Wheels Cache (Optimization #2)
+    wheels_installed = False
+    for candidate in [
+        Path("/kaggle/input/echomimic-pretrained-weights/wheels"),
+        Path("/kaggle/input/echomimic-weights/wheels"),
+    ]:
+        if candidate.exists() and list(candidate.glob("*.whl")):
+            print(f"[*] Installing pre-packaged wheels from {candidate}...")
+            run_cmd([
+                sys.executable, "-m", "pip", "install", "--no-index", f"--find-links={candidate}",
+                "facenet-pytorch", "omegaconf",
+            ])
+            wheels_installed = True
+            break
+
+    if not wheels_installed:
+        # Fast direct pip install (only facenet-pytorch and omegaconf needed; torch/diffusers/transformers are pre-installed)
+        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf)...")
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "facenet-pytorch", "omegaconf"])
 
     weights_dir = echomimic_dir / "pretrained_weights"
-    weights_dir.mkdir(parents=True, exist_ok=True)
     acc_ckpt = weights_dir / "denoising_unet_acc.pth"
 
+    # 2. Check for Pre-Baked Kaggle Dataset for Model Weights (Optimization #1)
     if not acc_ckpt.exists():
-        print("[*] Downloading EchoMimic accelerated model weights from Hugging Face...")
+        candidates = [
+            Path("/kaggle/input/echomimic-pretrained-weights"),
+            Path("/kaggle/input/echomimic-weights"),
+            Path("/kaggle/input/echomimic-v3-models"),
+        ]
+        if "KAGGLE_DATASET_DIR" in os.environ:
+            candidates.insert(0, Path(os.environ["KAGGLE_DATASET_DIR"]))
+        for candidate in candidates:
+            if candidate.exists() and (candidate / "denoising_unet_acc.pth").exists():
+                print(f"[✓] Detected pre-baked Kaggle weights dataset at {candidate}! Linking instantly...")
+                weights_dir.mkdir(parents=True, exist_ok=True)
+                for item in candidate.iterdir():
+                    dest = weights_dir / item.name
+                    if not dest.exists():
+                        try:
+                            os.symlink(item, dest)
+                        except Exception:
+                            if item.is_dir():
+                                shutil.copytree(item, dest)
+                            else:
+                                shutil.copy2(item, dest)
+                acc_ckpt = weights_dir / "denoising_unet_acc.pth"
+                if acc_ckpt.exists():
+                    print("[✓] EchoMimic model weights mounted instantly (0s cold-start overhead).")
+                    break
+
+    # 3. Fallback: Download via huggingface_hub snapshot or git clone
+    if not acc_ckpt.exists():
+        weights_dir.mkdir(parents=True, exist_ok=True)
+        print("[*] Downloading EchoMimic accelerated weights from Hugging Face...")
         try:
             from huggingface_hub import snapshot_download
             snapshot_download(
@@ -322,11 +397,22 @@ def render_talking_avatar(*args, **kwargs):
     audio = Path(audio)
     output = Path(output)
     duration = kwargs.get("duration", 0.0)
+    gpu_id = kwargs.get("gpu_id", 0)
     if duration <= 0.0:
         duration = run_ffprobe_duration(audio)
 
     fps = 24
     frames = max(24, int(math.ceil(duration * fps)))
+
+    # Resolution-Adaptive Latent Steps (Optimization #4: 6 standard, 4 for draft/preview mode)
+    steps_env = os.environ.get("LATENT_STEPS")
+    render_mode = os.environ.get("RENDER_MODE", "normal").lower()
+    if steps_env and steps_env.isdigit():
+        latent_steps = int(steps_env)
+    elif render_mode == "draft":
+        latent_steps = 4
+    else:
+        latent_steps = 6
 
     config_file = echomimic_dir / f"custom_prompt_{slug(image.stem)}_{slug(audio.stem)}.yaml"
     image_abs = str(image.resolve()).replace("\\", "/")
@@ -363,10 +449,17 @@ test_cases:
         "-W", "512", "-H", "512",
         "-L", str(frames),
         "--fps", str(fps),
-        "--steps", "6",
+        "--steps", str(latent_steps),
         "--cfg", "1.0",
     ]
-    run_cmd(command, cwd=str(echomimic_dir))
+
+    # Dual-T4 GPU assignment (Optimization #3)
+    child_env = os.environ.copy()
+    if gpu_id is not None:
+        child_env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+        print(f"[*] Running avatar inference for {image.name} on GPU #{gpu_id} ({latent_steps} latent steps)...")
+
+    run_cmd(command, cwd=str(echomimic_dir), env=child_env)
 
     current_videos = set(out_folder.rglob("*.mp4")) if out_folder.exists() else set()
     new_candidates = [f for f in (current_videos - prev_videos) if "_withaudio" in f.name]
@@ -433,16 +526,22 @@ def render_speaker_tiles(speakers: List[str], intervals: Dict[str, List[Tuple[fl
                          talking_fn, static_fn=None, audio_fn=None, score_fn=None) -> Tuple[List[Path], Dict[str, dict]]:
     """One video per stage speaker, in stage order.
 
-    Speakers with turns get a Wav2Lip video driven by audio muted outside their turns, and must show
-    real motion. Speakers without turns are quiet listeners: a still tile with no lip sync and no
-    motion check, so a participant who never talks cannot fail the render.
+    Speakers with turns get an EchoMimic video driven by audio muted outside their turns.
+    Dual-T4 parallelization dispatches across GPU 0 and GPU 1 when multiple speakers talk.
+    Speakers without turns are quiet listeners: a still tile with no lip sync and no motion check.
     """
+    import concurrent.futures
+    import torch
+
+    num_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
     static_fn = static_fn or render_static_avatar
     audio_fn = audio_fn or build_speaker_audio
     score_fn = score_fn or motion_score
     videos: List[Path] = []
     report: Dict[str, dict] = {}
-    for speaker in speakers:
+
+    speaking_tasks = []
+    for index, speaker in enumerate(speakers):
         turns = intervals.get(speaker, [])
         name = slug(speaker)
         if not turns:
@@ -450,21 +549,45 @@ def render_speaker_tiles(speakers: List[str], intervals: Dict[str, List[Tuple[fl
             static_fn(avatar_files[speaker], video, duration)
             print(f"[*] {speaker} does not speak in this clip; showing a quiet listener tile.")
             report[speaker] = {"role": "listening", "speaking_seconds": 0.0, "motion_checked": False}
-            videos.append(video)
-            continue
+        else:
+            speaking_tasks.append((index, speaker, turns))
+
+    # Pre-render audio tracks for speaking turns
+    for spk_idx, speaker, turns in speaking_tasks:
+        name = slug(speaker)
         speaker_audio = work_dir / f"audio_{name}.wav"
-        video = work_dir / f"talking_{name}.mp4"
         if not audio_fn(norm_audio, speaker_audio, turns):
             raise RuntimeError(f"Could not build the speaking audio track for {speaker}")
-        talking_fn(avatar_files[speaker], speaker_audio, video)
+
+    # Dual-T4 Parallelization worker (Optimization #3)
+    def render_one_speaking(item):
+        spk_idx, speaker, turns = item
+        name = slug(speaker)
+        speaker_audio = work_dir / f"audio_{name}.wav"
+        video = work_dir / f"talking_{name}.mp4"
+        gpu_id = (spk_idx % num_gpus) if num_gpus > 1 else 0
+        try:
+            talking_fn(avatar_files[speaker], speaker_audio, video, gpu_id=gpu_id)
+        except TypeError:
+            talking_fn(avatar_files[speaker], speaker_audio, video)
+        return speaker, turns, video
+
+    if num_gpus >= 2 and len(speaking_tasks) > 1:
+        print(f"[*] Dual-T4 multi-GPU parallelization active: dispatching {len(speaking_tasks)} speakers across {num_gpus} GPUs concurrently...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(num_gpus, len(speaking_tasks))) as executor:
+            speaking_results = list(executor.map(render_one_speaking, speaking_tasks))
+    else:
+        speaking_results = [render_one_speaking(item) for item in speaking_tasks]
+
+    # Verify motion on rendered videos
+    for speaker, turns, video in speaking_results:
         speaking_seconds = round(sum(end - start for start, end in turns), 3)
         try:
             score = score_fn(video, turns)
-            static_probe = work_dir / f"static_probe_{name}.mp4"
+            static_probe = work_dir / f"static_probe_{slug(speaker)}.mp4"
             static_fn(avatar_files[speaker], static_probe, duration)
             baseline = score_fn(static_probe, turns)
         except MotionCheckUnavailable as error:
-            # A clip shorter than a couple of frames is not evidence of a broken render.
             print(f"[!] {error}; skipping the motion check for {speaker}.")
             report[speaker] = {
                 "role": "speaking",
@@ -472,8 +595,8 @@ def render_speaker_tiles(speakers: List[str], intervals: Dict[str, List[Tuple[fl
                 "motion_checked": False,
                 "motion_note": str(error),
             }
-            videos.append(video)
             continue
+
         print(f"[*] Verified motion for {speaker}: {score:.3f} (static baseline {baseline:.3f})")
         if score <= baseline + 0.05:
             raise RuntimeError(
@@ -487,7 +610,16 @@ def render_speaker_tiles(speakers: List[str], intervals: Dict[str, List[Tuple[fl
             "motion_score": score,
             "static_baseline": baseline,
         }
-        videos.append(video)
+
+    # Order videos in original stage layout sequence
+    for speaker in speakers:
+        name = slug(speaker)
+        turns = intervals.get(speaker, [])
+        if not turns:
+            videos.append(work_dir / f"listening_{name}.mp4")
+        else:
+            videos.append(work_dir / f"talking_{name}.mp4")
+
     return videos, report
 
 
@@ -599,7 +731,7 @@ def compose_stage(output: Path, audio: Path, videos: List[Path], speakers: List[
 def main():
     print("=" * 70)
     print("    SPACES LIVE STAGE MULTI-SPEAKER AVATAR GENERATOR")
-    print("    Wav2Lip streams + transcript-timed stage compositing")
+    print("    EchoMimic Diffusion streams + Dual-T4 accelerated compositing")
     print("=" * 70)
 
     image_input = os.environ.get("AVATAR_IMAGE", "")
@@ -674,7 +806,7 @@ def main():
 
     rendered_videos, speaker_report = render_speaker_tiles(
         speakers, intervals, avatar_files, norm_audio, work_dir, duration,
-        talking_fn=lambda image, audio, output: render_talking_avatar(echomimic_dir, checkpoint, image, audio, output, duration=duration),
+        talking_fn=lambda image, audio, output, **kw: render_talking_avatar(echomimic_dir, checkpoint, image, audio, output, duration=duration, **kw),
     )
     anyone_speaks = any(intervals.get(speaker) for speaker in speakers)
     motion_report = {"animated": False, "timing_source": timing_source, "speakers": speaker_report, "composite_score": None}

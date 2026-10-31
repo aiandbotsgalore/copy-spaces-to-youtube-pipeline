@@ -30,6 +30,8 @@ export type AvatarRenderRequest = {
   ownerName?: string;
   repoName?: string;
   targetReleaseTag?: string;
+  latentSteps?: number;
+  renderQuality?: 'standard' | 'draft';
 };
 
 const PERSONAS = new Set<AvatarRenderRequest['personaId']>(['logan-master', 'cyber-hologram', 'doc-anchor']);
@@ -106,6 +108,8 @@ export function normalizeAvatarRenderRequest(input: unknown): AvatarRenderReques
     ownerName: typeof body.ownerName === 'string' ? body.ownerName.trim() : undefined,
     repoName: typeof body.repoName === 'string' ? body.repoName.trim() : undefined,
     targetReleaseTag: typeof body.targetReleaseTag === 'string' ? body.targetReleaseTag.trim() : undefined,
+    latentSteps: typeof body.latentSteps === 'number' && Number.isFinite(body.latentSteps) ? Math.min(12, Math.max(2, Math.round(body.latentSteps))) : undefined,
+    renderQuality: body.renderQuality === 'draft' ? 'draft' : 'standard',
   };
 }
 
@@ -338,6 +342,7 @@ async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { r
   const ratio = request.aspectRatio === '9-16' ? '9:16' : request.aspectRatio === '1-1' ? '1:1' : '16:9';
   const targetTag = request.targetReleaseTag || 'spaces-live-stage-test-20261029';
   const dur = Math.max(5, Math.ceil(request.durationSec || 15));
+  const effectiveSteps = request.latentSteps || (request.renderQuality === 'draft' ? 4 : 6);
 
   const payloadInputs = {
     audio_url: resolvedAudio,
@@ -349,8 +354,10 @@ async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { r
     speaker_segments_json: JSON.stringify([{ speaker: personaName, start: 0, end: dur }]),
     prompt: `Avatar Studio Neural Render: ${personaName}`,
     target_release_tag: targetTag,
+    latent_steps: String(effectiveSteps),
   };
 
+  let directApiError = '';
   if (token) {
     try {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/generate_avatar_short.yml/dispatches`, {
@@ -383,11 +390,18 @@ async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { r
           workflowRunsUrl: `https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`,
         };
       }
-    } catch {}
+      const rawText = await res.text().catch(() => '');
+      directApiError = `GitHub API HTTP ${res.status}: ${rawText}`;
+      console.warn(`[AvatarRender] GitHub Actions API dispatch failed (${res.status}): ${rawText}`);
+    } catch (apiErr: any) {
+      directApiError = apiErr?.message || String(apiErr);
+      console.warn('[AvatarRender] GitHub Actions API dispatch exception:', apiErr);
+    }
   }
 
   // Fallback to local gh CLI if token-based direct fetch failed or token was absent
   try {
+    const ghBin = findBinary('gh');
     const flags: string[] = [
       'workflow', 'run', 'generate_avatar_short.yml',
       '--repo', `${owner}/${repo}`,
@@ -396,7 +410,9 @@ async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { r
     for (const [k, v] of Object.entries(payloadInputs)) {
       flags.push('-f', `${k}=${v}`);
     }
-    await execFileAsync('gh', flags);
+    await execFileAsync(ghBin, flags, {
+      env: { ...process.env, ...env, ...(token ? { GITHUB_TOKEN: token, GH_TOKEN: token } : {}) },
+    });
     return {
       ok: true,
       dispatched: true,
@@ -412,7 +428,9 @@ async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { r
       workflowRunsUrl: `https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`,
     };
   } catch (cliErr: any) {
-    throw new Error(`Failed to dispatch Kaggle workflow via GitHub Actions: ${cliErr?.message || String(cliErr)}`);
+    const detail = cliErr?.message || String(cliErr);
+    const combined = directApiError ? `${detail} (Direct API: ${directApiError})` : detail;
+    throw new Error(`Failed to dispatch Kaggle workflow via GitHub Actions: ${combined}`);
   }
 }
 

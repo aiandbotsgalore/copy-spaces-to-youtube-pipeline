@@ -44,6 +44,8 @@ import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { getEpisodeSegments, fetchSummaryIndex } from '../utils/transcriptData';
 import { cleanClipSpeakers, MAX_STAGE_SPEAKERS, planAvatarStage, resolveClipReleaseTag } from '../utils/avatarStage';
+import { normalizeClipSpeakers, normalizeViralScore } from '../utils/clipScore';
+import { annotateJunkSuspects } from '../utils/junkSuspect';
 
 import { ClipItem } from "../utils/contracts/clipCatalog";
 import {
@@ -327,6 +329,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             if (Array.isArray(data) && data.length > 0) {
               combinedClips = data.map((c: any) => ({
                 ...c,
+                viral_score: normalizeViralScore(c.viral_score),
+                speakers: normalizeClipSpeakers(c.speakers),
                 category: normalizeCategory(c.category)
               }));
               break;
@@ -397,6 +401,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                         combinedClips[existingIdx] = {
                           ...combinedClips[existingIdx],
                           ...mc,
+                          viral_score: normalizeViralScore(mc.viral_score ?? combinedClips[existingIdx].viral_score),
+                          speakers: normalizeClipSpeakers(mc.speakers ?? combinedClips[existingIdx].speakers),
                           category: normalizeCategory(mc.category || combinedClips[existingIdx].category),
                           episode: mc.episode || relTitle,
                           file_path: audioUrl || combinedClips[existingIdx].file_path
@@ -404,6 +410,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                       } else {
                         combinedClips.push({
                           ...mc,
+                          viral_score: normalizeViralScore(mc.viral_score),
+                          speakers: normalizeClipSpeakers(mc.speakers),
                           category: normalizeCategory(mc.category),
                           episode: mc.episode || relTitle,
                           file_path: audioUrl
@@ -458,7 +466,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         console.warn('Could not fetch live GitHub release clips:', err);
       }
 
-      setClips(combinedClips);
+      setClips(annotateJunkSuspects(combinedClips));
       // Auto expand only the first 2 episodes initially to prevent browser OOM from 25,000+ DOM nodes
       const initialExpanded: Record<string, boolean> = {};
       const distinctEps = Array.from(new Set(combinedClips.map(c => c.episode).filter(Boolean)));
@@ -516,10 +524,11 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   // Unique Speakers list
   const speakerList = useMemo(() => {
+    const displayName = (speaker: string) => (/^[A-Za-z]$/.test(speaker) || /^speaker[_ ]\d+$/i.test(speaker) ? 'Unverified / unmapped' : speaker);
     const spkSet = new Set<string>();
     clips.forEach(c => {
       (c.speakers || []).forEach(s => {
-        if (s && s !== 'Speaker') spkSet.add(s);
+        if (s && s !== 'Speaker') spkSet.add(displayName(s));
       });
     });
     return Array.from(spkSet).sort();
@@ -535,7 +544,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       .filter(c => {
         const matchesCategory = selectedCategory === 'ALL' || normalizeCategory(c.category) === normalizeCategory(selectedCategory);
         const matchesEpisode = selectedEpisode === 'ALL' || c.episode === selectedEpisode;
-        const matchesSpeaker = selectedSpeaker === 'ALL' || (c.speakers && c.speakers.includes(selectedSpeaker));
+        const matchesSpeaker = selectedSpeaker === 'ALL' || (c.speakers && c.speakers.some(s => ( /^[A-Za-z]$/.test(s) || /^speaker[_ ]\d+$/i.test(s) ? 'Unverified / unmapped' : s) === selectedSpeaker));
         const matchesTopRated = !onlyTopRated || (c.viral_score >= 9);
 
         const query = search.toLowerCase().trim();
@@ -796,7 +805,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         episodes={episodeList.map(e => e.name)}
         selectedEpisode={selectedEpisode}
         setSelectedEpisode={setSelectedEpisode}
-        speakers={speakerList.map(spk => ({ name: spk, count: clips.filter(c => c.speakers?.includes(spk)).length }))}
+        speakers={speakerList.map(spk => ({ name: spk, count: clips.filter(c => c.speakers?.some(s => ( /^[A-Za-z]$/.test(s) || /^speaker[_ ]\d+$/i.test(s) ? 'Unverified / unmapped' : s) === spk)).length }))}
         selectedSpeaker={selectedSpeaker}
         setSelectedSpeaker={setSelectedSpeaker}
         onlyTopRated={onlyTopRated}
@@ -817,6 +826,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           {selectedEpisode !== 'ALL' && ` in "${formatEpisodeTitle(selectedEpisode)}"`}
           {selectedCategory !== 'ALL' && ` • ${selectedCategory}`}
         </span>
+        <span className="text-amber-300" title="Reviewable only; suspected clips remain searchable">Junk suspects: {clips.filter(c => c.junk_suspect).length}</span>
         {activeClip && (
           <span className="flex items-center gap-1.5 text-indigo-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />

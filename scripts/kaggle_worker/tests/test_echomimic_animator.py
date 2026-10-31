@@ -431,3 +431,55 @@ def test_speaker_audio_is_muted_outside_their_turns(tmp_path):
     assert pcm[int(0.2 * rate):int(0.8 * rate)].max() == 0
     assert pcm[int(1.2 * rate):int(1.8 * rate)].mean() > 1000
     assert pcm[int(2.2 * rate):int(3.8 * rate)].max() == 0
+
+
+def test_dual_t4_parallel_gpu_dispatch(tmp_path, monkeypatch):
+    """When multiple speakers have turns and >=2 GPUs exist, tasks are dispatched across GPUs."""
+    import torch
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 2)
+
+    dispatched_gpus = []
+    def recording_talking(image, audio, output, **kwargs):
+        dispatched_gpus.append((image.name, kwargs.get("gpu_id")))
+        output.write_bytes(b"video_bytes")
+
+    fake_scores = {"talking_Logan.mp4": 5.0, "talking_Angela.mp4": 4.5, "static_probe_Logan.mp4": 0.05, "static_probe_Angela.mp4": 0.05}
+    intervals = {"Logan": [(0.0, 2.0)], "Angela": [(2.0, 4.0)]}
+    avatars = {"Logan": tmp_path / "logan.jpg", "Angela": tmp_path / "angela.jpg"}
+    avatars["Logan"].write_bytes(b"x")
+    avatars["Angela"].write_bytes(b"x")
+
+    videos, report = animator.render_speaker_tiles(
+        ["Logan", "Angela"], intervals, avatars, tmp_path / "a.wav", tmp_path, 4.0,
+        talking_fn=recording_talking, static_fn=lambda img, out, dur: out.write_bytes(b"x"),
+        audio_fn=lambda src, out, iv: out.write_bytes(b"a" * 2000) or True,
+        score_fn=lambda path, iv=None: fake_scores.get(path.name, 0.0),
+    )
+    assert len(videos) == 2
+    assert report["Logan"]["role"] == "speaking"
+    assert report["Angela"]["role"] == "speaking"
+    # Both GPUs (0 and 1) were assigned across the two speakers
+    gpus_used = sorted(gpu for _, gpu in dispatched_gpus)
+    assert gpus_used == [0, 1]
+
+
+def test_prepare_echomimic_mounts_prebaked_dataset_instantly(tmp_path, monkeypatch):
+    """When pre-baked Kaggle dataset is present, it links directly without network download."""
+    mock_input = tmp_path / "kaggle" / "input" / "echomimic-pretrained-weights"
+    mock_input.mkdir(parents=True)
+    (mock_input / "denoising_unet_acc.pth").write_text("model_checkpoint", encoding="utf-8")
+
+    mock_work = tmp_path / "kaggle_work"
+    mock_work.mkdir(parents=True)
+    repo_dir = mock_work / "echomimic"
+    repo_dir.mkdir(parents=True)
+    (repo_dir / "infer_audio2vid_acc.py").write_text("print('test')", encoding="utf-8")
+
+    monkeypatch.setattr(animator, "run_cmd", lambda *args, **kwargs: None)
+    monkeypatch.setenv("KAGGLE_DATASET_DIR", str(mock_input))
+
+    echomimic_dir, acc_ckpt = animator.prepare_echomimic(mock_work)
+    assert acc_ckpt.name == "denoising_unet_acc.pth"
+    assert acc_ckpt.exists()
+

@@ -286,6 +286,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
 
   // Generation Engine State
   const [renderEngine, setRenderEngine] = useState<'kaggle' | 'local'>('kaggle');
+  const [latentSteps, setLatentSteps] = useState<number>(6);
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [renderedJob, setRenderedJob] = useState<RenderedAvatarJob | null>(null);
@@ -513,6 +514,8 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
           repoName: repo,
           githubToken: config.githubToken,
           targetReleaseTag: 'spaces-live-stage-test-20261029',
+          latentSteps,
+          renderQuality: latentSteps <= 4 ? 'draft' : 'standard',
           lipSyncTightness,
           headSwayAmplitude,
           eyeGazeMode,
@@ -534,7 +537,8 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
 
         const data = await res.json().catch(() => ({}));
         if (!res.ok || (!data.ok && !data.dispatched && data.status !== 'dispatched')) {
-          throw new Error(data.message || data.error || 'Failed to dispatch Kaggle GPU workflow on GitHub Actions.');
+          const detail = data.message || data.error || (res.status === 401 ? 'GitHub token unauthorized or expired' : `Workflow dispatch failed (HTTP ${res.status})`);
+          throw new Error(detail);
         }
 
         clearInterval(progressTimer);
@@ -678,7 +682,12 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       setRenderError(message);
       setRenderedJob(null);
       setRenderProgress(0);
+      setIsRendering(false);
       setIsPollingKaggle(false);
+      if (kagglePollTimerRef.current) {
+        clearInterval(kagglePollTimerRef.current);
+        kagglePollTimerRef.current = null;
+      }
       showToast(`❌ ${message}`);
     } finally {
       clearInterval(progressTimer);
@@ -1649,9 +1658,43 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                 <span className="truncate">Draft Fast</span>
               </button>
             </div>
+            {renderEngine === 'kaggle' && (
+              <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-300 font-medium">Diffusion Latent Steps</span>
+                  <span className="font-mono text-xs font-bold text-indigo-400">
+                    {latentSteps} steps ({latentSteps <= 4 ? 'Fast Draft' : 'High Quality'})
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-[10px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setLatentSteps(6)}
+                    className={`py-1 px-2 rounded transition-all cursor-pointer ${
+                      latentSteps === 6
+                        ? 'bg-indigo-600/40 border border-indigo-500/60 text-white font-bold'
+                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    6 Steps (Standard)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLatentSteps(4)}
+                    className={`py-1 px-2 rounded transition-all cursor-pointer ${
+                      latentSteps === 4
+                        ? 'bg-indigo-600/40 border border-indigo-500/60 text-white font-bold'
+                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    4 Steps (Draft Fast)
+                  </button>
+                </div>
+              </div>
+            )}
             <p className="text-[10px] text-slate-400 leading-normal">
               {renderEngine === 'kaggle'
-                ? '⚡ Dispatches to Kaggle Tesla Dual-T4 worker for neural Wav2Lip / EchoMimic lip-syncing.'
+                ? '⚡ Dispatches to Kaggle Tesla Dual-T4 worker for neural EchoMimic diffusion lip-syncing.'
                 : '⚡ Runs instant local FFmpeg draft (simulated head sway without neural lip-sync).'}
             </p>
           </div>
