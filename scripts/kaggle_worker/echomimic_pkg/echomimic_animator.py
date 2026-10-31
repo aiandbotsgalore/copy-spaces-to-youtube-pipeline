@@ -262,8 +262,18 @@ def patch_echomimic(repo_dir: Path):
         "    huggingface_hub.is_offline_mode = getattr(huggingface_hub.constants, 'is_offline_mode', lambda: False)\n"
         "if not hasattr(huggingface_hub.constants, 'is_offline_mode'):\n"
         "    huggingface_hub.constants.is_offline_mode = lambda: False\n"
+        "try:\n"
+        "    import transformers.utils\n"
+        "    if not hasattr(transformers.utils, 'FLAX_WEIGHTS_NAME'):\n"
+        "        transformers.utils.FLAX_WEIGHTS_NAME = 'flax_model.msgpack'\n"
+        "    if not hasattr(transformers.utils, 'SAFE_WEIGHTS_NAME'):\n"
+        "        transformers.utils.SAFE_WEIGHTS_NAME = 'model.safetensors'\n"
+        "    if not hasattr(transformers.utils, 'WEIGHTS_NAME'):\n"
+        "        transformers.utils.WEIGHTS_NAME = 'pytorch_model.bin'\n"
+        "except Exception:\n"
+        "    pass\n"
     )
-    if "is_offline_mode" not in content or "huggingface_hub.HfFolder" not in content:
+    if "FLAX_WEIGHTS_NAME" not in content or "is_offline_mode" not in content or "huggingface_hub.HfFolder" not in content:
         content = hf_compat + content
 
     # Write sitecustomize.py to ensure child Python processes load the compatibility shim automatically

@@ -512,7 +512,9 @@ def run():
     assert "raw_vid" in patched
     assert "hf_cache_home" in patched
     assert "is_offline_mode" in patched
+    assert "FLAX_WEIGHTS_NAME" in patched
     assert (repo_dir / "sitecustomize.py").exists()
+    assert "FLAX_WEIGHTS_NAME" in (repo_dir / "sitecustomize.py").read_text(encoding="utf-8")
     assert "is_offline_mode" in (repo_dir / "sitecustomize.py").read_text(encoding="utf-8")
     assert (repo_dir / "ffmpeg.py").exists()
     # Verify Python syntax
