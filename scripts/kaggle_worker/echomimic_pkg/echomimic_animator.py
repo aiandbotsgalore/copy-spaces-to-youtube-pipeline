@@ -286,9 +286,10 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
             break
 
     if not wheels_installed:
-        # Fast direct pip install (only facenet-pytorch and omegaconf needed; torch/diffusers/transformers are pre-installed)
+        # Fast direct pip install (install facenet-pytorch with --no-deps to use Kaggle's pre-installed torch/torchvision/Pillow/numpy without source compilation)
         print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf)...")
-        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "facenet-pytorch", "omegaconf"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "facenet-pytorch"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf"])
 
     weights_dir = echomimic_dir / "pretrained_weights"
     acc_ckpt = weights_dir / "denoising_unet_acc.pth"
