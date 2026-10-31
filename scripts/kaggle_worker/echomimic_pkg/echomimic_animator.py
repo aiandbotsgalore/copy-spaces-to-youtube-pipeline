@@ -240,10 +240,16 @@ def patch_echomimic(repo_dir: Path):
         return
     content = target_py.read_text(encoding="utf-8")
 
-    # 0. Monkey-patch huggingface_hub for diffusers 0.24 compatibility
+    # 0. Monkey-patch huggingface_hub for diffusers 0.24 and transformers compatibility
     hf_compat = (
         "import huggingface_hub\n"
         "import huggingface_hub.constants\n"
+        "import importlib.metadata\n"
+        "try:\n"
+        "    _orig_ver = importlib.metadata.version\n"
+        "    importlib.metadata.version = lambda pkg: '1.29.0' if pkg in ('huggingface-hub', 'huggingface_hub') else _orig_ver(pkg)\n"
+        "except Exception:\n"
+        "    pass\n"
         "if not hasattr(huggingface_hub.constants, 'hf_cache_home'):\n"
         "    huggingface_hub.constants.hf_cache_home = getattr(huggingface_hub.constants, 'HF_HOME', '/root/.cache/huggingface')\n"
         "if not hasattr(huggingface_hub, 'hf_cache_home'):\n"
@@ -364,10 +370,10 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
 
     if not wheels_installed:
         # Fast direct pip install (install facenet-pytorch with --no-deps to use Kaggle's pre-installed torch/torchvision/Pillow/numpy without source compilation)
-        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, huggingface_hub==0.25.2, diffusers==0.24.0)...")
+        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, diffusers==0.24.0)...")
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "facenet-pytorch"])
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf"])
-        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "huggingface_hub==0.25.2", "diffusers==0.24.0"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "diffusers==0.24.0"])
 
     weights_dir = echomimic_dir / "pretrained_weights"
     acc_ckpt = weights_dir / "denoising_unet_acc.pth"
