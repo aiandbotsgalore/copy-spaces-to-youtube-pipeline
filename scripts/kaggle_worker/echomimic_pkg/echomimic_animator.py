@@ -240,6 +240,15 @@ def patch_echomimic(repo_dir: Path):
         return
     content = target_py.read_text(encoding="utf-8")
 
+    # 0. Monkey-patch huggingface_hub.constants.hf_cache_home if missing in newer huggingface_hub
+    hf_compat = (
+        "import huggingface_hub.constants\n"
+        "if not hasattr(huggingface_hub.constants, 'hf_cache_home'):\n"
+        "    huggingface_hub.constants.hf_cache_home = getattr(huggingface_hub.constants, 'HF_HOME', '/root/.cache/huggingface')\n"
+    )
+    if "huggingface_hub.constants.hf_cache_home" not in content:
+        content = hf_compat + content
+
     # 1. Neutralize moviepy import
     content = content.replace(
         "from moviepy.editor import VideoFileClip, AudioFileClip",
@@ -289,6 +298,28 @@ def patch_echomimic(repo_dir: Path):
             ast.parse(unet_content)
             unet_py.write_text(unet_content, encoding="utf-8")
             print("[✓] Patched unet_2d_condition.py: PositionNet diffusers compatibility active.")
+
+    # 4. Patch DualTransformer2DModel in src/models/unet_2d_blocks.py
+    blocks_py = repo_dir / "src" / "models" / "unet_2d_blocks.py"
+    if blocks_py.exists():
+        blocks_content = blocks_py.read_text(encoding="utf-8")
+        if "from diffusers.models.dual_transformer_2d import DualTransformer2DModel" in blocks_content:
+            safe_dual = (
+                "try:\n"
+                "    from diffusers.models.dual_transformer_2d import DualTransformer2DModel\n"
+                "except ImportError:\n"
+                "    try:\n"
+                "        from diffusers.models.transformers.dual_transformer_2d import DualTransformer2DModel\n"
+                "    except ImportError:\n"
+                "        from diffusers.models import DualTransformer2DModel\n"
+            )
+            blocks_content = blocks_content.replace(
+                "from diffusers.models.dual_transformer_2d import DualTransformer2DModel\n",
+                safe_dual,
+            )
+            ast.parse(blocks_content)
+            blocks_py.write_text(blocks_content, encoding="utf-8")
+            print("[✓] Patched unet_2d_blocks.py: DualTransformer2DModel compatibility active.")
 
 
 def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:

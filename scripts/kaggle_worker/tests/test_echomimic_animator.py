@@ -510,6 +510,7 @@ def run():
     assert "VideoFileClip" not in patched or "# from moviepy" in patched
     assert "ffmpeg" in patched
     assert "raw_vid" in patched
+    assert "hf_cache_home" in patched
     # Verify Python syntax
     import ast
     ast.parse(patched)
@@ -525,10 +526,22 @@ def run():
 """
     unet_py = models_dir / "unet_2d_condition.py"
     unet_py.write_text(sample_unet, encoding="utf-8")
+
+    sample_blocks = """from diffusers.models.activations import get_activation
+from diffusers.models.dual_transformer_2d import DualTransformer2DModel
+from diffusers.models.resnet import ResnetBlock2D
+"""
+    blocks_py = models_dir / "unet_2d_blocks.py"
+    blocks_py.write_text(sample_blocks, encoding="utf-8")
+
     animator.patch_echomimic(repo_dir)
     patched_unet = unet_py.read_text(encoding="utf-8")
     assert "PositionNet," not in patched_unet
     assert "GLIGENTextBoundingboxProjection" in patched_unet
     ast.parse(patched_unet)
+
+    patched_blocks = blocks_py.read_text(encoding="utf-8")
+    assert "transformers.dual_transformer_2d" in patched_blocks
+    ast.parse(patched_blocks)
 
 
