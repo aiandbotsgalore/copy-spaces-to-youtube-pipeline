@@ -265,11 +265,38 @@ def patch_echomimic(repo_dir: Path):
     target_py.write_text(content, encoding="utf-8")
     print("[✓] EchoMimic patched: moviepy eliminated, ultra-fast FFmpeg stream copy active (syntax verified).")
 
+    # 3. Patch PositionNet in src/models/unet_2d_condition.py for modern diffusers compatibility
+    unet_py = repo_dir / "src" / "models" / "unet_2d_condition.py"
+    if unet_py.exists():
+        unet_content = unet_py.read_text(encoding="utf-8")
+        if "PositionNet," in unet_content:
+            unet_content = unet_content.replace("    PositionNet,\n", "")
+            safe_position_net = (
+                "\ntry:\n"
+                "    from diffusers.models.embeddings import PositionNet\n"
+                "except ImportError:\n"
+                "    try:\n"
+                "        from diffusers.models.embeddings import GLIGENTextBoundingboxProjection as PositionNet\n"
+                "    except ImportError:\n"
+                "        import torch.nn as nn\n"
+                "        class PositionNet(nn.Module):\n"
+                "            def __init__(self, *args, **kwargs):\n"
+                "                super().__init__()\n"
+                "            def forward(self, *args, **kwargs):\n"
+                "                return None\n"
+            )
+            unet_content += safe_position_net
+            ast.parse(unet_content)
+            unet_py.write_text(unet_content, encoding="utf-8")
+            print("[✓] Patched unet_2d_condition.py: PositionNet diffusers compatibility active.")
+
 
 def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
     """Prepare EchoMimic repository, pre-baked weights, and optimized dependencies."""
-    tmp_dir = Path("/tmp")
-    echomimic_dir = (tmp_dir / "echomimic") if tmp_dir.exists() else (work_dir / "echomimic")
+    if os.name != "nt" and Path("/tmp").exists():
+        echomimic_dir = Path("/tmp/echomimic")
+    else:
+        echomimic_dir = work_dir / "echomimic"
     if not echomimic_dir.exists():
         run_cmd(["git", "clone", "--depth", "1", "https://github.com/antgroup/echomimic.git", str(echomimic_dir)])
     patch_echomimic(echomimic_dir)
@@ -313,14 +340,15 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
                 weights_dir.mkdir(parents=True, exist_ok=True)
                 for item in candidate.iterdir():
                     dest = weights_dir / item.name
-                    if not dest.exists():
-                        try:
-                            os.symlink(item, dest)
-                        except Exception:
-                            if item.is_dir():
-                                shutil.copytree(item, dest)
-                            else:
-                                shutil.copy2(item, dest)
+                    if dest.is_symlink() or dest.exists():
+                        continue
+                    try:
+                        os.symlink(item, dest)
+                    except Exception:
+                        if item.is_dir():
+                            shutil.copytree(item, dest)
+                        else:
+                            shutil.copy2(item, dest)
                 acc_ckpt = weights_dir / "denoising_unet_acc.pth"
                 if acc_ckpt.exists():
                     print("[✓] EchoMimic model weights mounted instantly (0s cold-start overhead).")

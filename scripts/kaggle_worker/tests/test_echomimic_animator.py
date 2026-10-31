@@ -514,4 +514,21 @@ def run():
     import ast
     ast.parse(patched)
 
+    # Verify unet_2d_condition.py PositionNet patch
+    models_dir = repo_dir / "src" / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    sample_unet = """from diffusers.models.embeddings import (
+    GaussianFourierProjection,
+    PositionNet,
+    TimestepEmbedding,
+)
+"""
+    unet_py = models_dir / "unet_2d_condition.py"
+    unet_py.write_text(sample_unet, encoding="utf-8")
+    animator.patch_echomimic(repo_dir)
+    patched_unet = unet_py.read_text(encoding="utf-8")
+    assert "PositionNet," not in patched_unet
+    assert "GLIGENTextBoundingboxProjection" in patched_unet
+    ast.parse(patched_unet)
+
 
