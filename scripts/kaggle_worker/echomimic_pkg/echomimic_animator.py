@@ -342,6 +342,50 @@ def patch_echomimic(repo_dir: Path):
             blocks_py.write_text(blocks_content, encoding="utf-8")
             print("[✓] Patched unet_2d_blocks.py: DualTransformer2DModel compatibility active.")
 
+    # 5. Provide fallback ffmpeg wrapper module for whisper audio loader if ffmpeg-python is not installed
+    ffmpeg_py = repo_dir / "ffmpeg.py"
+    if not ffmpeg_py.exists():
+        ffmpeg_shim = (
+            "import subprocess\n"
+            "class Error(Exception):\n"
+            "    def __init__(self, cmd, stdout, stderr):\n"
+            "        self.cmd = cmd\n"
+            "        self.stdout = stdout\n"
+            "        self.stderr = stderr\n"
+            "class _Stream:\n"
+            "    def __init__(self, filename, **kwargs):\n"
+            "        self.filename = filename\n"
+            "        self.kwargs = kwargs\n"
+            "        self.out_kwargs = {}\n"
+            "        self.out_file = None\n"
+            "    def output(self, out_file, **kwargs):\n"
+            "        self.out_file = out_file\n"
+            "        self.out_kwargs = kwargs\n"
+            "        return self\n"
+            "    def run(self, cmd=None, capture_stdout=True, capture_stderr=True):\n"
+            "        args = ['ffmpeg', '-nostdin']\n"
+            "        if 'threads' in self.kwargs:\n"
+            "            args.extend(['-threads', str(self.kwargs['threads'])])\n"
+            "        args.extend(['-i', str(self.filename)])\n"
+            "        if 'format' in self.out_kwargs:\n"
+            "            args.extend(['-f', str(self.out_kwargs['format'])])\n"
+            "        if 'acodec' in self.out_kwargs:\n"
+            "            args.extend(['-acodec', str(self.out_kwargs['acodec'])])\n"
+            "        if 'ac' in self.out_kwargs:\n"
+            "            args.extend(['-ac', str(self.out_kwargs['ac'])])\n"
+            "        if 'ar' in self.out_kwargs:\n"
+            "            args.extend(['-ar', str(self.out_kwargs['ar'])])\n"
+            "        args.append(str(self.out_file))\n"
+            "        proc = subprocess.run(args, capture_output=True)\n"
+            "        if proc.returncode != 0:\n"
+            "            raise Error(args, proc.stdout, proc.stderr)\n"
+            "        return proc.stdout, proc.stderr\n"
+            "def input(filename, **kwargs):\n"
+            "    return _Stream(filename, **kwargs)\n"
+        )
+        ffmpeg_py.write_text(ffmpeg_shim, encoding="utf-8")
+        print("[✓] Provisioned ffmpeg shim for whisper audio extraction.")
+
 
 def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
     """Prepare EchoMimic repository, pre-baked weights, and optimized dependencies."""
@@ -363,16 +407,16 @@ def prepare_echomimic(work_dir: Path) -> Tuple[Path, Path]:
             print(f"[*] Installing pre-packaged wheels from {candidate}...")
             run_cmd([
                 sys.executable, "-m", "pip", "install", "--no-index", f"--find-links={candidate}",
-                "facenet-pytorch", "omegaconf", "diffusers",
+                "facenet-pytorch", "omegaconf", "ffmpeg-python", "einops", "diffusers",
             ])
             wheels_installed = True
             break
 
     if not wheels_installed:
         # Fast direct pip install (install facenet-pytorch with --no-deps to use Kaggle's pre-installed torch/torchvision/Pillow/numpy without source compilation)
-        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, diffusers==0.24.0)...")
+        print("[*] Installing runtime dependencies (facenet-pytorch, omegaconf, ffmpeg-python, einops, diffusers==0.24.0)...")
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "facenet-pytorch"])
-        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf"])
+        run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "omegaconf", "ffmpeg-python", "einops"])
         run_cmd([sys.executable, "-m", "pip", "install", "--no-cache-dir", "--no-deps", "diffusers==0.24.0"])
 
     weights_dir = echomimic_dir / "pretrained_weights"

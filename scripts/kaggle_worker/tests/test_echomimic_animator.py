@@ -514,10 +514,12 @@ def run():
     assert "is_offline_mode" in patched
     assert (repo_dir / "sitecustomize.py").exists()
     assert "is_offline_mode" in (repo_dir / "sitecustomize.py").read_text(encoding="utf-8")
+    assert (repo_dir / "ffmpeg.py").exists()
     # Verify Python syntax
     import ast
     ast.parse(patched)
     ast.parse((repo_dir / "sitecustomize.py").read_text(encoding="utf-8"))
+    ast.parse((repo_dir / "ffmpeg.py").read_text(encoding="utf-8"))
 
     # Verify unet_2d_condition.py PositionNet patch
     models_dir = repo_dir / "src" / "models"
