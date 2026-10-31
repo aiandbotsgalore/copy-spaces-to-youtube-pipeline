@@ -246,13 +246,23 @@ def patch_echomimic(repo_dir: Path):
         "import huggingface_hub.constants\n"
         "if not hasattr(huggingface_hub.constants, 'hf_cache_home'):\n"
         "    huggingface_hub.constants.hf_cache_home = getattr(huggingface_hub.constants, 'HF_HOME', '/root/.cache/huggingface')\n"
+        "if not hasattr(huggingface_hub, 'hf_cache_home'):\n"
+        "    huggingface_hub.hf_cache_home = getattr(huggingface_hub.constants, 'hf_cache_home', '/root/.cache/huggingface')\n"
         "if not hasattr(huggingface_hub, 'HfFolder'):\n"
-        "    huggingface_hub.HfFolder = type('HfFolder', (), {'get_token': staticmethod(lambda: None), 'save_token': staticmethod(lambda t: None)})\n"
+        "    huggingface_hub.HfFolder = type('HfFolder', (), {'get_token': staticmethod(lambda: None), 'save_token': staticmethod(lambda t: None), 'delete_token': staticmethod(lambda: None)})\n"
         "if not hasattr(huggingface_hub, 'cached_download'):\n"
         "    huggingface_hub.cached_download = getattr(huggingface_hub, 'hf_hub_download', None)\n"
+        "if not hasattr(huggingface_hub, 'is_offline_mode'):\n"
+        "    huggingface_hub.is_offline_mode = getattr(huggingface_hub.constants, 'is_offline_mode', lambda: False)\n"
+        "if not hasattr(huggingface_hub.constants, 'is_offline_mode'):\n"
+        "    huggingface_hub.constants.is_offline_mode = lambda: False\n"
     )
-    if "huggingface_hub.HfFolder" not in content:
+    if "is_offline_mode" not in content or "huggingface_hub.HfFolder" not in content:
         content = hf_compat + content
+
+    # Write sitecustomize.py to ensure child Python processes load the compatibility shim automatically
+    sitecustomize_py = repo_dir / "sitecustomize.py"
+    sitecustomize_py.write_text(hf_compat, encoding="utf-8")
 
     # 1. Neutralize moviepy import
     content = content.replace(
@@ -523,8 +533,10 @@ test_cases:
         "--cfg", "1.0",
     ]
 
-    # Dual-T4 GPU assignment (Optimization #3)
+    # Dual-T4 GPU assignment (Optimization #3) & environment paths
     child_env = os.environ.copy()
+    existing_pp = child_env.get("PYTHONPATH", "")
+    child_env["PYTHONPATH"] = f"{echomimic_dir}:{existing_pp}" if existing_pp else str(echomimic_dir)
     if gpu_id is not None:
         child_env["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
         print(f"[*] Running avatar inference for {image.name} on GPU #{gpu_id} ({latent_steps} latent steps)...")

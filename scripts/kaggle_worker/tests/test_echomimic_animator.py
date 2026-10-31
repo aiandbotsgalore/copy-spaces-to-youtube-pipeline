@@ -511,9 +511,13 @@ def run():
     assert "ffmpeg" in patched
     assert "raw_vid" in patched
     assert "hf_cache_home" in patched
+    assert "is_offline_mode" in patched
+    assert (repo_dir / "sitecustomize.py").exists()
+    assert "is_offline_mode" in (repo_dir / "sitecustomize.py").read_text(encoding="utf-8")
     # Verify Python syntax
     import ast
     ast.parse(patched)
+    ast.parse((repo_dir / "sitecustomize.py").read_text(encoding="utf-8"))
 
     # Verify unet_2d_condition.py PositionNet patch
     models_dir = repo_dir / "src" / "models"
