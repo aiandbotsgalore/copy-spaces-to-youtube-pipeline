@@ -22,10 +22,10 @@ import { randomUUID } from 'node:crypto';
 import { parseJsonLoose } from '../utils/directorValidate';
 import type { Role, RoleMap } from '../utils/scriptTypes';
 
-export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli' | 'ollama' | 'groq' | 'openai_compatible';
+export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli' | 'ollama' | 'groq' | 'openai_compatible' | 'inception';
 export type Family = 'anthropic' | 'openai' | 'meta' | 'google' | 'mistral' | 'open_source';
 export type FailCode = 'NO_KEY' | 'NOT_INSTALLED' | 'NOT_SIGNED_IN' | 'RATE_LIMIT' | 'USAGE_LIMIT'
-  | 'BUDGET_EXCEEDED' | 'TIMEOUT' | 'BAD_OUTPUT' | 'UPSTREAM' | 'ABORTED' | 'NOT_ALLOWED';
+  | 'BUDGET_EXCEEDED' | 'TIMEOUT' | 'BAD_OUTPUT' | 'UPSTREAM' | 'ABORTED' | 'NOT_ALLOWED' | 'BAD_REQUEST';
 
 export interface CompleteRequest {
   role: Role; system: string; user: string;
@@ -33,7 +33,21 @@ export interface CompleteRequest {
   maxTokens: number; timeoutMs: number; signal: AbortSignal;
 }
 export type CompleteResult =
-  | { ok: true; json: unknown; provider: ProviderId; model: string; usage?: { inTok: number; outTok: number; costUsd: number }; durationMs: number }
+  | {
+      ok: true;
+      json: unknown;
+      provider: ProviderId;
+      model: string;
+      usage?: {
+        inTok: number;
+        outTok: number;
+        costUsd: number;
+        listCostUsd?: number;
+        billedCostUsd?: number;
+        isPromotional?: boolean;
+      };
+      durationMs: number;
+    }
   | { ok: false; code: FailCode; message: string; rawOutput: string; durationMs: number; provider: ProviderId; model: string; resetHint?: string };
 
 export interface Availability { ok: boolean; detail: string; binPath?: string; code?: FailCode }
@@ -102,6 +116,7 @@ export const STRIPPED_ENV_KEYS = [
   'ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_BASE_URL',
   'OPENAI_API_KEY', 'OPENAI_BASE_URL', 'CODEX_API_KEY',
   'CHEAPER_INFERENCE_API_KEY', 'CHEAPER_INFERENCE_BASE_URL', 'DIRECTOR_API_KEY', 'DIRECTOR_BASE_URL',
+  'INCEPTION_API_KEY', 'INCEPTION_BASE_URL',
   'GEMINI_API_KEY', 'HF_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN',
 ];
 
@@ -424,6 +439,19 @@ export function costUsd(model: string, inTok: number, outTok: number): number {
   return (inTok * p.in + outTok * p.out) / 1_000_000;
 }
 
+/**
+ * Conservative estimate of input tokens for preflight budget protection.
+ * Spoken transcripts, timestamps, JSON schema definitions, and message framing
+ * average ~3.0-3.2 characters per token rather than the naive 4.0.
+ * Using 3.0 chars/token plus a 15% safety margin ensures preflight checks
+ * never approve calls that could breach the dollar cap.
+ */
+export function estimateInputTokens(req: { system: string; user: string; schema?: Record<string, unknown> }): number {
+  const schemaLen = req.schema ? JSON.stringify(req.schema).length : 0;
+  const rawChars = req.system.length + req.user.length + schemaLen + 256;
+  return Math.ceil((rawChars / 3.0) * 1.15);
+}
+
 export function createCheaperInferenceAdapter(model: string, deps: { fetchImpl?: typeof fetch; env: () => Record<string, string | undefined>; budget: Budget; now?: () => number }): ProviderAdapter {
   const now = deps.now ?? Date.now;
   const fetchImpl = deps.fetchImpl ?? fetch;
@@ -448,7 +476,7 @@ export function createCheaperInferenceAdapter(model: string, deps: { fetchImpl?:
       if (!ciModelAllowed(model, req.role)) return fail('NOT_ALLOWED', `${model} is not allowed for the ${req.role} role.`, '', started);
       const { key, baseUrl } = cfg();
       if (!key) return fail('NO_KEY', 'No CHEAPER_INFERENCE_API_KEY configured.', '', started);
-      const inEst = Math.ceil((req.system.length + req.user.length) / 4);
+      const inEst = estimateInputTokens(req);
       const worst = costUsd(model, inEst, req.maxTokens);
       if (deps.budget.spentUsd + worst > deps.budget.maxUsd + 1e-12) {
         return fail('BUDGET_EXCEEDED', `This call could cost up to $${worst.toFixed(4)}; the run has $${Math.max(0, deps.budget.maxUsd - deps.budget.spentUsd).toFixed(4)} left of its $${deps.budget.maxUsd.toFixed(2)} cap.`, '', started);
@@ -495,6 +523,185 @@ export function createCheaperInferenceAdapter(model: string, deps: { fetchImpl?:
 }
 
 /* ------------------------------------------------------------------------------------------------ */
+/* Inception Labs (Mercury-3)                                                                       */
+/* ------------------------------------------------------------------------------------------------ */
+
+/** USD per 1M tokens, Inception Labs public pricing (standard tier: $0.20 in, $0.70 out). */
+export const INCEPTION_PRICES: Record<string, { in: number; out: number; family: Family }> = {
+  'mercury-3': { in: 0.20, out: 0.70, family: 'open_source' },
+};
+
+export function inceptionCostUsd(model: string, inTok: number, outTok: number): number {
+  const p = INCEPTION_PRICES[model];
+  if (!p) return 0;
+  return (inTok * p.in + outTok * p.out) / 1_000_000;
+}
+
+export function createInceptionAdapter(
+  model: string,
+  deps: {
+    fetchImpl?: typeof fetch;
+    env: () => Record<string, string | undefined>;
+    budget: Budget;
+    now?: () => number;
+  }
+): ProviderAdapter {
+  const now = deps.now ?? Date.now;
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const family: Family = INCEPTION_PRICES[model]?.family ?? 'open_source';
+
+  const cfg = () => {
+    const env = deps.env();
+    const key = (env.INCEPTION_API_KEY || '').trim();
+    const baseUrl = ((env.INCEPTION_BASE_URL || '').trim() || 'https://api.inceptionlabs.ai/v1').replace(/\/+$/, '');
+    return { key, baseUrl };
+  };
+
+  const fail = (code: FailCode, message: string, rawOutput: string, started: number): CompleteResult =>
+    ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'inception', model });
+
+  return {
+    id: 'inception',
+    family,
+    model,
+    async available() {
+      if (!cfg().key) return { ok: false, detail: 'No INCEPTION_API_KEY in environment or .env.local.', code: 'NO_KEY' };
+      if (model !== 'mercury-3' && !INCEPTION_PRICES[model]) {
+        return { ok: false, detail: `${model} is not an allowed Inception model.`, code: 'NOT_ALLOWED' };
+      }
+      return { ok: true, detail: `Inception key configured; ${model}.` };
+    },
+    async complete(req) {
+      const started = now();
+      if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+      const { key, baseUrl } = cfg();
+      if (!key) return fail('NO_KEY', 'No INCEPTION_API_KEY configured.', '', started);
+
+      // Budget protection (conservative worst-case token cost against budget cap)
+      const inEst = estimateInputTokens(req);
+      const worst = inceptionCostUsd(model, inEst, req.maxTokens);
+      if (deps.budget.spentUsd + worst > deps.budget.maxUsd + 1e-12) {
+        return fail(
+          'BUDGET_EXCEEDED',
+          `This call could cost up to $${worst.toFixed(4)} (estimated ${inEst} input tokens + ${req.maxTokens} max completion tokens at catalog list rates); the run has $${Math.max(0, deps.budget.maxUsd - deps.budget.spentUsd).toFixed(4)} left of its $${deps.budget.maxUsd.toFixed(2)} cap.`,
+          '',
+          started
+        );
+      }
+
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), req.timeoutMs);
+      const onAbort = () => ctl.abort();
+      if (req.signal.aborted) onAbort();
+      else req.signal.addEventListener('abort', onAbort, { once: true });
+
+      try {
+        const payload = {
+          model,
+          temperature: 0.2,
+          max_tokens: req.maxTokens,
+          messages: [
+            { role: 'system', content: req.system },
+            { role: 'user', content: req.user },
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: req.schemaName,
+              strict: true,
+              schema: req.schema,
+            },
+          },
+        };
+
+        const res = await fetchImpl(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${key}`,
+          },
+          body: JSON.stringify(payload),
+          signal: ctl.signal,
+        });
+
+        const text = await res.text();
+        const raw = text.split(key).join('[key]').slice(0, 4000);
+
+        if (res.status === 401 || res.status === 403) {
+          return fail('NOT_SIGNED_IN', `Inception API key rejected (HTTP ${res.status}).`, raw, started);
+        }
+        if (res.status === 429) {
+          return fail('RATE_LIMIT', `Rate limited by Inception API (HTTP 429).`, raw, started);
+        }
+        if (res.status === 400 || res.status === 422) {
+          const parsedErr = parseJsonLoose(text) as any;
+          const msg = parsedErr?.error?.message || parsedErr?.message || `HTTP ${res.status}`;
+          return fail('BAD_REQUEST', `Invalid request to Inception API: ${msg}`, raw, started);
+        }
+        if (!res.ok) {
+          const parsedErr = parseJsonLoose(text) as any;
+          const msg = parsedErr?.error?.message || parsedErr?.message || `HTTP ${res.status}`;
+          return fail('UPSTREAM', `Inception API error (${res.status}): ${msg}`, raw, started);
+        }
+
+        const j: any = parseJsonLoose(text);
+        if (!j || typeof j !== 'object') {
+          return fail('BAD_OUTPUT', 'Inception API returned non-JSON response envelope.', raw, started);
+        }
+
+        // Model identity verification (provider protocol failure if silently remapped)
+        if (typeof j.model === 'string' && j.model !== model) {
+          return fail('UPSTREAM', `Model identity mismatch: expected ${model}, received ${j.model}`, raw, started);
+        }
+
+        const inTok = Number(j?.usage?.prompt_tokens) || 0;
+        const outTok = Number(j?.usage?.completion_tokens) || 0;
+        const listCostUsd = inceptionCostUsd(model, inTok, outTok);
+        // If promotional tokens (e.g. 100M free token allowance) are active, actual account
+        // debit is $0.00, but listCostUsd is debited against the local budget cap for safety.
+        const billedCostUsd = 0;
+        deps.budget.spentUsd += listCostUsd;
+
+        const content = j?.choices?.[0]?.message?.content;
+        if (typeof content !== 'string') {
+          return fail('BAD_OUTPUT', 'Inception API response missing choices[0].message.content.', raw, started);
+        }
+
+        const json = parseJsonLoose(content);
+        if (!json || typeof json !== 'object') {
+          return fail('BAD_OUTPUT', 'The model did not return valid JSON.', raw, started);
+        }
+
+        return {
+          ok: true,
+          json,
+          provider: 'inception',
+          model: String(j?.model || model),
+          usage: {
+            inTok,
+            outTok,
+            costUsd: listCostUsd,
+            listCostUsd,
+            billedCostUsd,
+            isPromotional: true,
+          },
+          durationMs: now() - started,
+        };
+      } catch (e: any) {
+        if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+        if (e?.name === 'AbortError') {
+          return fail('TIMEOUT', `No answer within ${Math.round(req.timeoutMs / 1000)} s.`, '', started);
+        }
+        return fail('UPSTREAM', `Could not reach Inception API: ${e?.message || e}`, '', started);
+      } finally {
+        clearTimeout(timer);
+        req.signal.removeEventListener('abort', onAbort);
+      }
+    },
+  };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
 /* Role maps                                                                                         */
 /* ------------------------------------------------------------------------------------------------ */
 
@@ -513,13 +720,16 @@ export type RoleSpec =
   | { provider: 'cheaperinference'; model: string }
   | { provider: 'ollama'; model: string }
   | { provider: 'groq'; model: string }
-  | { provider: 'openai_compatible'; model: string };
+  | { provider: 'openai_compatible'; model: string }
+  | { provider: 'inception'; model: string };
 
 export function parseRoleSpec(spec: string): RoleSpec | null {
   if (spec === 'claude_cli:sonnet' || spec === 'claude_cli:haiku') return { provider: 'claude_cli', model: spec.split(':')[1] as 'sonnet' | 'haiku' };
   if (spec === 'codex_cli') return { provider: 'codex_cli', model: CODEX_MODEL };
   const ciMatch = /^ci:(.+)$/.exec(spec);
   if (ciMatch && CI_PRICES[ciMatch[1]]) return { provider: 'cheaperinference', model: ciMatch[1] };
+  const inceptionMatch = /^inception:(.+)$/.exec(spec);
+  if (inceptionMatch && INCEPTION_PRICES[inceptionMatch[1]]) return { provider: 'inception', model: inceptionMatch[1] };
   const ollamaMatch = /^ollama:(.+)$/.exec(spec);
   if (ollamaMatch) return { provider: 'ollama', model: ollamaMatch[1] };
   const groqMatch = /^groq:(.+)$/.exec(spec);
@@ -534,6 +744,7 @@ export function familyOf(spec: string): Family | null {
   if (!p) return null;
   if (p.provider === 'claude_cli') return 'anthropic';
   if (p.provider === 'codex_cli') return 'openai';
+  if (p.provider === 'inception') return INCEPTION_PRICES[p.model]?.family ?? 'open_source';
   if (p.provider === 'ollama' || p.provider === 'groq' || p.provider === 'openai_compatible') return 'open_source';
   return CI_PRICES[p.model]?.family ?? 'open_source';
 }
@@ -552,7 +763,7 @@ export function verifyCrossFamily(roleMap: RoleMap): { ok: true } | { ok: false;
 }
 
 export function roleMapNeedsBudget(roleMap: RoleMap): boolean {
-  return Object.values(roleMap).some(v => typeof v === 'string' && v.startsWith('ci:'));
+  return Object.values(roleMap).some(v => typeof v === 'string' && (v.startsWith('ci:') || v.startsWith('inception:')));
 }
 
 /* ------------------------------------------------------------------------------------------------ */
@@ -590,6 +801,7 @@ export function createProviderRegistry(deps: RegistryDeps) {
       if (!p) return null;
       if (p.provider === 'claude_cli') return createClaudeCliAdapter(p.model, { ...cli, resolve: () => resolve('claude') });
       if (p.provider === 'codex_cli') return createCodexCliAdapter({ ...cli, resolve: () => resolve('codex') });
+      if (p.provider === 'inception') return createInceptionAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
       return createCheaperInferenceAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
     },
     async health() {

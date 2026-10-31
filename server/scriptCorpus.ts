@@ -69,6 +69,7 @@ export function buildCorpus(project: ScriptProject, transcript: (tag: string) =>
       if (!hits.length || hits.some(h => !h)) return { ok: false, reason: `A claim cites unknown utterance ids ${JSON.stringify(r.utteranceIds)}.` };
       const list = hits as NonNullable<ReturnType<typeof resolve>>[];
       if (new Set(list.map(h => h.rec.tag)).size > 1) return { ok: false, reason: `A claim cites utterances from more than one recording ${JSON.stringify(r.utteranceIds)}; each quote must come from one recording.` };
+      if (new Set(list.map(h => h.u.speaker)).size > 1) return { ok: false, reason: `A quote combines utterances from more than one speaker ${JSON.stringify(r.utteranceIds)}; each quote must come from one speaker.` };
       out.push({
         releaseTag: list[0].rec.tag,
         segStart: Math.min(...list.map(h => h.u.start)),

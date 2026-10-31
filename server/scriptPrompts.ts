@@ -139,7 +139,8 @@ export function analysisPrompt(args: { releaseTag: string; title: string; chunkI
     version: PROMPT_VERSIONS.analysis, schemaName: 'episode_analysis', schema: ANALYSIS_SCHEMA, maxTokens: 4000,
     system: `${BASE_RULES}
 Task: analyse one chunk of an episode transcript for a documentary scriptwriter. Find themes, speaker dynamics and the moments that matter, and say WHY each matters.
-Every moment must cite the utterance ids it comes from (ids like u123 from the lines given). Quotes must be copied exactly from those utterances; a quote may span consecutive utterances of the same speaker.
+Every moment must cite the utterance ids it comes from (ids like u123 from the lines given). Quotes must be copied exactly from those utterances. Each quote entry must represent words from EXACTLY ONE speaker; never merge utterances from different speakers into a single quote entry or single verbatim string. If multiple speakers are in dialogue, provide separate quote entries in the quotes array, each citing only that speaker's utterance ids.
+Speaker identification: Use the exact speaker label as written in the transcript lines (e.g. "Speaker F", "Speaker M", "Oor") as the primary speaker identifier in moments, quotes, and dynamics. Never replace unconfirmed speaker labels (such as "Speaker F") with inferred real-world names. If dialogue strongly suggests an identity, keep the transcript label as the primary speaker, and note any candidate identity with supporting evidence inside dynamics or the ledger (e.g. "Speaker F: candidate match Lana based on post references in u265") flagged for human review.
 Moment ids must be unique and start with "c${args.chunkIndex}-".
 "ledger" (at most about 1,500 tokens): running notes for the next chunk (speakers and their positions, open claims, unresolved tensions, setups awaiting payoff). Update the ledger you are given; do not drop items that are still open.`,
     user: `Episode ${args.releaseTag}: ${args.title}

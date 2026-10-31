@@ -122,6 +122,8 @@ export function toEvidenceRefs(
     const us = (r.utteranceIds || []).map(id => byId.get(id));
     if (!us.length || us.some(u => !u)) return { ok: false, reason: `A claim cites unknown utterance ids ${JSON.stringify(r.utteranceIds)}.` };
     const list = us as Utterance[];
+    const speakers = new Set(list.map(u => u.speaker));
+    if (speakers.size > 1) return { ok: false, reason: `A quote combines utterances from different speakers (${[...speakers].join(", ")}); each quote must cite utterances from exactly one speaker.` };
     out.push({
       releaseTag: t.releaseTag,
       segStart: Math.min(...list.map(u => u.start)),

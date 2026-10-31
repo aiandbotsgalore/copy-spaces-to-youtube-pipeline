@@ -34,6 +34,14 @@ describe('transcript data', () => {
     expect(r).toEqual({ ok: true, refs: [{ releaseTag: TAG, segStart: 1207.94, segEnd: 1242.38, speaker: 'Oor', verbatim: 'Delicious.' }] });
     expect(toEvidenceRefs([{ utteranceIds: ['u99999'], verbatim: 'x' }], t, {}).ok).toBe(false);
   });
+  it('rejects quotes combining utterances from different speakers', () => {
+    // In fixture, u92 is Oor and u94 is Eric Hecker
+    const multiSpeaker = toEvidenceRefs([{ utteranceIds: ['u92', 'u94'], verbatim: 'mixed' }], t, {});
+    expect(multiSpeaker.ok).toBe(false);
+    if (!multiSpeaker.ok) {
+      expect(multiSpeaker.reason).toMatch(/different speakers/);
+    }
+  });
   it('refuses path-like release tags', () => {
     expect(isSafeTag(TAG)).toBe(true);
     expect(isSafeTag('../secrets')).toBe(false);
