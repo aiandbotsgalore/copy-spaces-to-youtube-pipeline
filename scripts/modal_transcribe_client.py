@@ -226,29 +226,78 @@ def transcribe_single(
         except Exception:
             pass
 
-    # 3. Call Modal Transcribe Endpoint
-    print(f"\n=================================================================")
-    print(f"[*] Submitting to SpacePipe Modal Cloud GPU...")
-    print(f"    Endpoint: {modal_endpoint}")
-    print(f"    Episode:  {active_title}")
-    print(f"=================================================================")
-
-    json_bytes = json.dumps(post_data).encode("utf-8")
-    req = urllib.request.Request(
-        modal_endpoint,
-        data=json_bytes,
-        headers={"Content-Type": "application/json", "User-Agent": "SpacePipe-ModalClient"},
-        method="POST"
-    )
-
+    # 3. Call Modal Transcribe Service (Primary: Native Modal RPC, Fallback: HTTP Webhook)
+    result = None
     call_start = time.time()
+
+    # Check if native Modal RPC is available
+    use_rpc = False
     try:
-        with urllib.request.urlopen(req, timeout=3600) as resp:
-            resp_body = resp.read().decode("utf-8")
-            result = json.loads(resp_body)
-    except urllib.error.HTTPError as e:
-        err_msg = e.read().decode("utf-8", errors="ignore")
-        raise RuntimeError(f"Modal Endpoint returned HTTP {e.code}: {err_msg}") from e
+        import modal
+        use_rpc = True
+    except ImportError:
+        use_rpc = False
+
+    if use_rpc:
+        try:
+            print(f"\n=================================================================")
+            print(f"[*] Dispatching via Modal Native RPC...")
+            print(f"    Function: spacepipe-transcribe/transcribe_job")
+            print(f"    Episode:  {active_title}")
+            print(f"=================================================================")
+            fn = modal.Function.from_name("spacepipe-transcribe", "transcribe_job")
+
+            raw_local_bytes = b""
+            if audio_file:
+                raw_local_bytes = Path(audio_file).read_bytes()
+
+            result = fn.remote(
+                audio_bytes=raw_local_bytes,
+                audio_url=resolved_audio_url if not raw_local_bytes else "",
+                title=active_title,
+                release_tag=release_tag or "ad-hoc",
+                host_handle=host_handle,
+                language=language,
+                enrolled_profiles=post_data.get("enrolled_profiles")
+            )
+        except Exception as rpc_err:
+            print(f"[!] Modal Native RPC failed: {rpc_err}")
+            print(f"[*] Falling back to HTTP Webhook...")
+            result = None
+
+    if result is None:
+        print(f"\n=================================================================")
+        print(f"[*] Submitting to SpacePipe Modal Cloud Webhook...")
+        print(f"    Endpoint: {modal_endpoint}")
+        print(f"    Episode:  {active_title}")
+        print(f"=================================================================")
+
+        import requests
+        try:
+            s = requests.Session()
+            resp = s.post(modal_endpoint, json=post_data, timeout=300, allow_redirects=True)
+            if resp.status_code == 200:
+                result = resp.json()
+            elif resp.status_code == 303:
+                poll_url = resp.headers.get("Location")
+                if not poll_url.startswith("http"):
+                    poll_url = urllib.parse.urljoin(modal_endpoint, poll_url)
+                print(f"[*] Job queued on Modal GPU. Polling result from: {poll_url}...")
+                for attempt in range(120):  # up to 20 minutes
+                    time.sleep(10)
+                    poll_resp = s.get(poll_url, timeout=60, allow_redirects=True)
+                    if poll_resp.status_code == 200:
+                        result = poll_resp.json()
+                        break
+                    elif poll_resp.status_code == 303:
+                        poll_url = poll_resp.headers.get("Location", poll_url)
+                        print(f"    [{attempt+1}/120] Still processing on Modal GPU...")
+                    else:
+                        raise RuntimeError(f"Modal poll returned HTTP {poll_resp.status_code}: {poll_resp.text[:300]}")
+            else:
+                raise RuntimeError(f"Modal Endpoint returned HTTP {resp.status_code}: {resp.text[:300]}")
+        except Exception as http_err:
+            raise RuntimeError(f"Modal HTTP request failed: {http_err}") from http_err
 
     if "error" in result:
         raise RuntimeError(f"Modal Transcription Error: {result['error']}")

@@ -186,7 +186,7 @@
     "duration_sec": 36000,
     "host_handle": "LoganBlack",
     "speakers": [
-      "Logan"
+      "Angela"
     ]
   },
   {
@@ -1311,7 +1311,7 @@
     "duration_sec": 1667,
     "host_handle": "AngelaMaggard3",
     "speakers": [
-      "Angela"
+      "Logan"
     ]
   },
   {
@@ -8573,7 +8573,7 @@
     "duration_sec": 2693,
     "host_handle": null,
     "speakers": [
-      "Logan"
+      "Speaker 1"
     ]
   },
   {
@@ -15345,6 +15345,21 @@
       "Speaker 7",
       "Speaker 8",
       "Speaker 9"
+    ]
+  },
+  {
+    "release_id": 286790905,
+    "release_tag": "20260216_1BRJjZRlQoeJw",
+    "title": "Space broken?",
+    "published_at": "2026-02-16T10:44:10Z",
+    "episode_date": "2023-01-19",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjZRlQoeJw/20260216_1BRJjZRlQoeJw_Space_broken.mp3",
+    "segment_count": 118,
+    "body": "**Title:** Space broken?\n**Host:** ŁØǤΔŇ (@LoganBlack)\n**Duration:** 00:25:39\n**Listeners:** 0\n**Recorded:** 20230119\n**Source:** https://x.com/i/spaces/1BRJjZRlQoeJw\n**Space ID:** 1BRJjZRlQoeJw\n\nTwitter Space participated by michael padilla, RaffyLaughy, TY Love\n\n---\nMETADATA::DURATION::00:25:39\nMETADATA::LISTENERS::0\nMETADATA::DATE::20230119\n",
+    "duration_sec": 1539,
+    "host_handle": null,
+    "speakers": [
+      "Logan"
     ]
   },
   {

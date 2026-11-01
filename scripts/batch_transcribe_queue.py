@@ -392,7 +392,7 @@ def main():
             cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag]
         start_time = time.time()
         try:
-            res = subprocess.run(cmd, capture_output=True, text=True)
+            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
             elapsed = time.time() - start_time
             if res.returncode == 0:
                 print(f"[✓] Completed {tag} in {elapsed:.1f}s!")
@@ -403,12 +403,9 @@ def main():
             else:
                 combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
                 error_summary = f"Process exited with code {res.returncode}"
-                if "ASSEMBLYAI_API_KEY environment variable is not set" in combined_output:
-                    error_summary = "ASSEMBLYAI_API_KEY environment variable is not set"
-                elif "AssemblyAI Authentication Failed" in combined_output or "Unauthorized" in combined_output or "authentication" in combined_output.lower():
-                    error_summary = "AssemblyAI Authentication Failed: Invalid API key"
-                elif "Insufficient Credits" in combined_output or "credit" in combined_output.lower():
-                    error_summary = "AssemblyAI Insufficient Credits: Spend limit or zero balance"
+                if "Modal Transcription Error" in combined_output:
+                    m = re.search(r"Modal Transcription Error:\s*(.+)", combined_output)
+                    error_summary = m.group(1)[:120] if m else "Modal Transcription Error"
                 elif res.stderr.strip():
                     non_empty = [l.strip() for l in res.stderr.strip().splitlines() if l.strip()]
                     if non_empty:
@@ -421,13 +418,6 @@ def main():
                     print(f"--- STDERR ---\n{res.stderr.strip()}\n--------------")
 
                 failed_items.append({"tag": tag, "error": error_summary})
-
-                if not args.missing_clips and ("ASSEMBLYAI_API_KEY" in error_summary or "Authentication Failed" in error_summary or "Insufficient Credits" in error_summary):
-                    print("\n" + "!" * 65)
-                    print(f"[🛑] TRANSCRIPTION ERROR: {error_summary}")
-                    print("     Halting remaining batch queue immediately to prevent wasted runs.")
-                    print("!" * 65 + "\n")
-                    break
         except Exception as e:
             elapsed = time.time() - start_time
             print(f"[!] Error processing {tag}: {e}. Continuing queue...")

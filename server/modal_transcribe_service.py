@@ -72,7 +72,7 @@ def get_audio_duration(file_path: Path) -> float:
         "ffprobe", "-v", "error", "-show_entries", "format=duration",
         "-of", "default=noprint_wrappers=1:nokey=1", str(file_path)
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     try:
         return float(res.stdout.strip())
     except Exception:
@@ -88,7 +88,7 @@ def condition_audio_to_wav(input_path: Path, output_wav: Path) -> None:
         "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
         str(output_wav)
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     if res.returncode != 0:
         raise RuntimeError(f"FFmpeg audio conditioning failed: {res.stderr}")
 
@@ -107,7 +107,7 @@ def detect_silence_cut_points(wav_path: Path, max_chunk_sec: float = 4800.0) -> 
         "-af", "silencedetect=noise=-30dB:d=1.2",
         "-f", "null", "-"
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     output = res.stderr
 
     import re
@@ -201,7 +201,8 @@ def extract_speaker_embedding(
 
 
 def _execute_transcription(
-    audio_bytes: bytes,
+    audio_bytes: bytes = b"",
+    audio_url: str = "",
     title: str = "Twitter Space",
     release_tag: str = "",
     host_handle: str = "",
@@ -234,6 +235,15 @@ def _execute_transcription(
         raw_audio_path = temp_dir / "input_audio.bin"
         conditioned_wav = temp_dir / "conditioned.wav"
 
+        if audio_url and not audio_bytes:
+            print(f"[*] Downloading audio stream from URL: {audio_url}...")
+            req = urllib.request.Request(audio_url, headers={"User-Agent": "SpacePipe-Modal-Transcribe"})
+            with urllib.request.urlopen(req, timeout=600) as resp:
+                audio_bytes = resp.read()
+
+        if not audio_bytes:
+            raise ValueError("No audio payload or URL provided for transcription.")
+
         raw_audio_path.write_bytes(audio_bytes)
         print(f"[*] Conditioning audio ({len(audio_bytes) / (1024*1024):.1f} MB) via FFmpeg...")
         condition_audio_to_wav(raw_audio_path, conditioned_wav)
@@ -248,13 +258,14 @@ def _execute_transcription(
         # 1. Load Whisper Model
         whisper_dir = Path("/models/whisper")
         whisper_dir.mkdir(parents=True, exist_ok=True)
-        print(f"[*] Loading WhisperX model ({whisper_model_name})...")
+        print(f"[*] Loading WhisperX model ({whisper_model_name}, language={language})...")
         model = whisperx.load_model(
             whisper_model_name,
             device=device,
             compute_type=compute_type,
             download_root=str(whisper_dir),
-            vad_options={"vad_onset": vad_onset}
+            vad_options={"vad_onset": vad_onset},
+            language=language
         )
 
         # 2. Load Alignment Model
@@ -496,7 +507,8 @@ def _execute_transcription(
     secrets=[modal.Secret.from_name("spacepipe-secrets")]
 )
 def transcribe_job(
-    audio_bytes: bytes,
+    audio_bytes: bytes = b"",
+    audio_url: str = "",
     title: str = "Twitter Space",
     release_tag: str = "",
     host_handle: str = "",
@@ -508,6 +520,7 @@ def transcribe_job(
 ) -> Dict[str, Any]:
     return _execute_transcription(
         audio_bytes=audio_bytes,
+        audio_url=audio_url,
         title=title,
         release_tag=release_tag,
         host_handle=host_handle,
@@ -549,12 +562,18 @@ def transcribe_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
         except Exception as e:
             print(f"[!] Warning: Could not fetch default voice_profiles.json: {e}")
 
-    audio_bytes = b""
     if audio_url:
-        print(f"[*] Downloading audio from URL: {audio_url}")
-        req = urllib.request.Request(audio_url, headers={"User-Agent": "SpacePipe-Modal-Transcribe"})
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            audio_bytes = resp.read()
+        print(f"[*] Processing audio from URL: {audio_url}")
+        return _execute_transcription(
+            audio_url=audio_url,
+            title=title,
+            release_tag=release_tag,
+            host_handle=host_handle,
+            hf_token=hf_token,
+            enrolled_profiles=enrolled_profiles,
+            whisper_model_name=whisper_model_name,
+            language=language
+        )
     elif audio_base64:
         clean_b64 = audio_base64.split(",")[-1] if "," in audio_base64 else audio_base64
         audio_bytes = base64.b64decode(clean_b64)
