@@ -2,9 +2,10 @@
 """
 extract_investigative_claims.py - Automated Claim & Contradiction Extractor
 
-Analyzes Twitter Space transcripts using Gemini 2.5 Flash (via Cheaper Inference
-or OpenRouter) to extract high-value factual statements, timeline commitments,
-denials, and contradiction candidates.
+Analyzes Twitter Space transcripts using verified AI models (Cohere v2,
+Google AI Pro via Antigravity CLI, Inception Labs Mercury-3, or OpenRouter)
+to extract high-value factual statements, timeline commitments, denials,
+and contradiction candidates.
 
 Appends verified claims into public/transcripts/investigative_knowledge_graph.json
 and optionally syncs them directly to Qdrant Cloud.
@@ -13,53 +14,118 @@ and optionally syncs them directly to Qdrant Cloud.
 import os
 import sys
 import json
+import re
+import shutil
 import argparse
+import subprocess
 import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+
 def load_env_local(repo_root: Path):
-    """Loads environment variables from .env.local if present."""
-    env_file = repo_root / ".env.local"
-    if env_file.exists():
-        with open(env_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    if k not in os.environ:
-                        os.environ[k] = v.strip()
+    """Loads environment variables from .env.local and .env if present."""
+    for fname in [".env.local", ".env"]:
+        env_file = repo_root / fname
+        if env_file.exists():
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        if k.strip() not in os.environ:
+                            os.environ[k.strip()] = v.strip().strip('"').strip("'")
 
-def get_inference_client():
-    """Resolves API key, base URL, and model for inference."""
-    repo_root = Path(__file__).resolve().parent.parent
-    load_env_local(repo_root)
 
-    key = os.environ.get("CHEAPER_INFERENCE_API_KEY")
-    base_url = os.environ.get("CHEAPER_INFERENCE_BASE_URL", "https://api.cheaperinference.com/v1").rstrip("/")
-    model = os.environ.get("DIRECTOR_MODEL", "gemini-2.5-flash")
+def find_agy_cli() -> Optional[str]:
+    """Locates the Antigravity CLI (agy) binary on PATH or in local AppData."""
+    agy_on_path = shutil.which("agy")
+    if agy_on_path:
+        return agy_on_path
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        p = Path(local_app_data) / "agy" / "bin" / "agy.exe"
+        if p.exists():
+            return str(p)
+    return None
 
+
+def clean_json_response(content: str) -> Dict[str, Any]:
+    """Strips markdown code fences and parses JSON object."""
+    trimmed = content.strip()
+    if "```" in trimmed:
+        m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", trimmed)
+        if m:
+            trimmed = m.group(1).strip()
+    return json.loads(trimmed)
+
+
+def call_cohere_extraction(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+    """Extracts claims using Cohere v2 Chat API (command-a-03-2025)."""
+    key = os.environ.get("COHERE_API_KEY")
     if not key:
-        key = os.environ.get("OPENROUTER_API_KEY")
-        if key:
-            base_url = "https://openrouter.ai/api/v1"
-            model = "google/gemini-2.5-flash"
+        raise ValueError("COHERE_API_KEY not found in environment")
+    url = "https://api.cohere.com/v2/chat"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "command-a-03-2025",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.2
+    }
+    print("[*] Extracting claims with Cohere (command-a-03-2025)...")
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+        content_items = data.get("message", {}).get("content", [])
+        text = "".join(c.get("text", "") for c in content_items if isinstance(c, dict)).strip()
+        return clean_json_response(text)
 
+
+def call_agy_extraction(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+    """Extracts claims using Google AI Pro plan via Antigravity CLI (gemini-3.8-flash-high)."""
+    agy_bin = find_agy_cli()
+    if not agy_bin:
+        raise ValueError("Antigravity CLI (agy) not found on PATH or LocalAppData")
+    combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+    # Bound input size to protect CLI limits
+    if len(combined_prompt) > 25000:
+        combined_prompt = combined_prompt[:25000]
+    cmd = [
+        agy_bin,
+        "-p", combined_prompt,
+        "--model", "gemini-3.8-flash-high",
+        "--output-format", "json",
+        "--disable-slash-commands"
+    ]
+    print("[*] Extracting claims with Gemini (gemini-3.8-flash-high) via Google AI Pro CLI...")
+    res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    if res.returncode != 0:
+        raise RuntimeError(f"Antigravity CLI failed (exit {res.returncode}): {res.stderr[:200]}")
+    data = json.loads(res.stdout)
+    raw_text = data.get("response", "")
+    return clean_json_response(raw_text)
+
+
+def call_inception_extraction(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+    """Extracts claims using Inception Labs (mercury-3) via OpenAI-compatible endpoint."""
+    key = os.environ.get("INCEPTION_API_KEY") or os.environ.get("DIRECTOR_API_KEY")
     if not key:
-        raise ValueError("No CHEAPER_INFERENCE_API_KEY or OPENROUTER_API_KEY found in environment or .env.local")
-
-    return key, base_url, model
-
-def call_chat_completion(key: str, base_url: str, model: str, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
-    """Calls OpenAI-compatible /chat/completions endpoint."""
+        raise ValueError("INCEPTION_API_KEY not found in environment")
+    base_url = os.environ.get("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1").rstrip("/")
     url = f"{base_url}/chat/completions"
     headers = {
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/json"
     }
     payload = {
-        "model": model,
+        "model": "mercury-3",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -67,26 +133,84 @@ def call_chat_completion(key: str, base_url: str, model: str, system_prompt: str
         "temperature": 0.2,
         "max_tokens": 4096
     }
-
+    print("[*] Extracting claims with Inception Labs (mercury-3)...")
     req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            content = data["choices"][0]["message"]["content"]
-            # Clean possible markdown fence
-            if "```" in content:
-                import re
-                m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
-                if m:
-                    content = m.group(1).strip()
-            return json.loads(content)
-    except urllib.error.HTTPError as e:
-        err_msg = e.read().decode("utf-8")
-        raise RuntimeError(f"HTTP Error {e.code}: {err_msg}")
-    except Exception as e:
-        raise RuntimeError(f"Inference error: {e}")
+    with urllib.request.urlopen(req, timeout=90) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"]
+        return clean_json_response(content)
 
-def extract_claims_from_episode(ep_path: Path) -> List[Dict[str, Any]]:
+
+def call_openrouter_extraction(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
+    """Extracts claims using OpenRouter."""
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if not key:
+        raise ValueError("OPENROUTER_API_KEY not found in environment")
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "google/gemini-2.5-flash",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 4096
+    }
+    print("[*] Extracting claims with OpenRouter...")
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+    with urllib.request.urlopen(req, timeout=90) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"]
+        return clean_json_response(content)
+
+
+def call_investigative_extraction(system_prompt: str, user_prompt: str, provider: str = "auto") -> Dict[str, Any]:
+    """Unified dispatcher for investigative claim extraction supporting user-selected providers."""
+    p_norm = (provider or "auto").strip().lower()
+
+    if p_norm == "cohere":
+        return call_cohere_extraction(system_prompt, user_prompt)
+    elif p_norm in ("agy", "gemini"):
+        return call_agy_extraction(system_prompt, user_prompt)
+    elif p_norm in ("inception", "mercury"):
+        return call_inception_extraction(system_prompt, user_prompt)
+    elif p_norm == "openrouter":
+        return call_openrouter_extraction(system_prompt, user_prompt)
+
+    # 'auto' mode: try Cohere -> Google AI Pro CLI -> Inception Labs -> OpenRouter
+    errors = []
+    if os.environ.get("COHERE_API_KEY"):
+        try:
+            return call_cohere_extraction(system_prompt, user_prompt)
+        except Exception as e:
+            errors.append(f"Cohere error: {e}")
+
+    if find_agy_cli():
+        try:
+            return call_agy_extraction(system_prompt, user_prompt)
+        except Exception as e:
+            errors.append(f"Agy CLI error: {e}")
+
+    if os.environ.get("INCEPTION_API_KEY") or os.environ.get("DIRECTOR_API_KEY"):
+        try:
+            return call_inception_extraction(system_prompt, user_prompt)
+        except Exception as e:
+            errors.append(f"Inception error: {e}")
+
+    if os.environ.get("OPENROUTER_API_KEY"):
+        try:
+            return call_openrouter_extraction(system_prompt, user_prompt)
+        except Exception as e:
+            errors.append(f"OpenRouter error: {e}")
+
+    raise RuntimeError(f"No available AI provider succeeded for claim extraction. Details: {'; '.join(errors)}")
+
+
+def extract_claims_from_episode(ep_path: Path, provider: str = "auto") -> List[Dict[str, Any]]:
     """Runs extraction on a single episode JSON."""
     with open(ep_path, "r", encoding="utf-8") as f:
         ep_data = json.load(f)
@@ -113,7 +237,7 @@ def extract_claims_from_episode(ep_path: Path) -> List[Dict[str, Any]]:
             lines.append(f"[{ts}] {spk}: {txt}")
 
     dialogue_text = "\n".join(lines)
-    # If transcript is absurdly massive, truncate or sample high-signal turns
+    # If transcript is massive, sample high-signal turns
     if len(dialogue_text) > 400000:
         dialogue_text = dialogue_text[:400000] + "\n...[Transcript continues]..."
 
@@ -144,9 +268,8 @@ def extract_claims_from_episode(ep_path: Path) -> List[Dict[str, Any]]:
 
     user_prompt = f"Episode Tag: {tag}\nTitle: {title}\nDate: {date_str}\n\nTRANSCRIPT:\n{dialogue_text}"
 
-    print(f"[*] Analyzing '{title}' ({len(segments)} turns) with Gemini 2.5 Flash via Cheaper Inference...")
-    key, base_url, model = get_inference_client()
-    result = call_chat_completion(key, base_url, model, system_prompt, user_prompt)
+    print(f"[*] Analyzing '{title}' ({len(segments)} turns) with AI provider '{provider}'...")
+    result = call_investigative_extraction(system_prompt, user_prompt, provider=provider)
 
     extracted = result.get("claims", [])
     print(f"[✓] Extracted {len(extracted)} verified claims.")
@@ -173,6 +296,7 @@ def extract_claims_from_episode(ep_path: Path) -> List[Dict[str, Any]]:
         })
 
     return formatted_quotes
+
 
 def append_to_knowledge_graph(new_claims: List[Dict[str, Any]], graph_path: Path):
     """Appends new claims to the knowledge graph JSON safely."""
@@ -214,13 +338,16 @@ def append_to_knowledge_graph(new_claims: List[Dict[str, Any]], graph_path: Path
 
     print(f"[✓] Added {added} new claims to {graph_path.name} (Total: {len(existing_quotes)})")
 
+
 def main():
     parser = argparse.ArgumentParser(description="Extract investigative claims from episode transcripts.")
     parser.add_argument("--episode", type=str, help="Specific episode release tag or JSON filename")
+    parser.add_argument("--provider", choices=["auto", "cohere", "agy", "gemini", "inception", "mercury", "openrouter"], default="auto", help="AI provider for claim extraction (default: auto)")
     parser.add_argument("--sync-qdrant", action="store_true", help="Automatically sync to Qdrant Cloud after extraction")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
+    load_env_local(repo_root)
     graph_path = repo_root / "public" / "transcripts" / "investigative_knowledge_graph.json"
 
     if args.episode:
@@ -229,18 +356,18 @@ def main():
         if not ep_path.exists():
             print(f"[!] Episode file not found: {ep_path}")
             sys.exit(1)
-        claims = extract_claims_from_episode(ep_path)
+        claims = extract_claims_from_episode(ep_path, provider=args.provider)
         if claims:
             append_to_knowledge_graph(claims, graph_path)
     else:
-        print("[*] No episode specified. Usage: python scripts/extract_investigative_claims.py --episode <tag> [--sync-qdrant]")
+        print("[*] No episode specified. Usage: python scripts/extract_investigative_claims.py --episode <tag> [--provider <choice>] [--sync-qdrant]")
         sys.exit(0)
 
     if args.sync_qdrant:
         print("\n[*] Triggering Qdrant Cloud synchronization...")
         sync_script = repo_root / "scripts" / "sync_qdrant_transcripts.py"
-        import subprocess
         subprocess.run([sys.executable, str(sync_script), "--quotes-only"])
+
 
 if __name__ == "__main__":
     main()

@@ -9,10 +9,10 @@ import {
 } from '../directorProfile';
 
 describe('director profile', () => {
-  it('defaults to claude-sonnet-5.5 and never to a mini/flash model', () => {
-    expect(DEFAULT_DIRECTOR_MODEL).toBe('claude-sonnet-5.5');
+  it('defaults to mercury-3 and never to a mini/flash model', () => {
+    expect(DEFAULT_DIRECTOR_MODEL).toBe('mercury-3');
     for (const m of [DEFAULT_DIRECTOR_MODEL, FALLBACK_DIRECTOR_MODEL]) {
-      expect(m.startsWith('claude-')).toBe(true);
+      expect(m).toBe('mercury-3');
       expect(/mini|flash|nano|lite/i.test(m)).toBe(false);
     }
   });

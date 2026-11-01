@@ -72,7 +72,7 @@ export function transcriptViewerRenames(): Record<string, Record<string, string>
 }
 export type { BlockDiff };
 export interface RunResponse { run: ScriptRun & { active: boolean }; candidates: { id: string; parentId: string | null; decision?: ScriptVersion['decision']; diff: BlockDiff[] }[]; diffFromBase: BlockDiff[] }
-export interface RoleChoice { mode: 'subscription' | 'fallback'; roleMap: Partial<RoleMap>; maxUsd: number; episodePass?: boolean; polish?: boolean }
+export interface RoleChoice { mode: 'subscription' | 'fallback' | 'inception' | 'cohere'; roleMap: Partial<RoleMap>; maxUsd: number; episodePass?: boolean; polish?: boolean }
 export interface PreviewJob {
   id: string; projectId: string; versionId: string; sceneId: string | null; state: 'running' | 'finished' | 'failed' | 'cancelled';
   total: number; done: number; cached: number; synthesized: number; current: string | null;
@@ -173,12 +173,25 @@ export function streamRun(projectId: string, runId: string, onEvent: (e: RunEven
   return () => es.close();
 }
 
-export const ROLE_SPECS = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna', 'ci:claude-sonnet-5.5', 'ollama:llama3', 'groq:llama-3.3-70b', 'openai_compatible:custom'];
+export const ROLE_SPECS = [
+  'claude_cli:sonnet',
+  'claude_cli:haiku',
+  'agy_cli:gemini-3.8-flash-high',
+  'inception:mercury-3',
+  'cohere:command-a-03-2025',
+  'codex_cli',
+  'ci:claude-haiku-5.5',
+  'ci:gpt-6-luna',
+  'ci:claude-sonnet-5.5',
+  'ollama:llama3',
+  'groq:llama-3.3-70b',
+  'openai_compatible:custom',
+];
 
 export function loadRoleChoice(): RoleChoice {
   try {
     const j = JSON.parse(localStorage.getItem(ROLE_STORAGE_KEY) || 'null');
-    if (j && (j.mode === 'subscription' || j.mode === 'fallback')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 0, episodePass: j.episodePass !== false, polish: !!j.polish };
+    if (j && (j.mode === 'subscription' || j.mode === 'fallback' || j.mode === 'inception' || j.mode === 'cohere')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 0, episodePass: j.episodePass !== false, polish: !!j.polish };
   } catch { /* ignore */ }
   return { mode: 'subscription', roleMap: {}, maxUsd: 0, episodePass: true, polish: false };
 }

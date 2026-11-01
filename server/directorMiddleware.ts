@@ -7,7 +7,7 @@
  *   POST /api/montage/direct          generate one cut / refine the current timeline
  *   POST /api/montage/direct/sort     AI Sort: order the reel's clips (permutation only)
  *
- * Secrets: the key comes from .env.local (CHEAPER_INFERENCE_API_KEY) or, as a backup, the
+ * Secrets: the key comes from .env.local (INCEPTION_API_KEY) or, as a backup, the
  * x-director-key header sent by the in-app Settings. It is never logged, echoed or placed in errors.
  * The gateway base URL is read from the environment ONLY (never from a request) so a request cannot
  * redirect the key to another host.
@@ -74,7 +74,7 @@ export interface DirectorMiddlewareOptions {
   fetchImpl?: typeof fetch;
 }
 
-const DEFAULT_BASE_URL = 'https://api.cheaperinference.com/v1';
+const DEFAULT_BASE_URL = 'https://api.inceptionlabs.ai/v1';
 const BODY_LIMIT = 1_000_000;
 const MAX_CONCURRENT = 3;
 
@@ -116,7 +116,11 @@ export function isLoopback(addr: string | undefined): boolean {
 export function scrub(text: string, key?: string): string {
   let t = String(text ?? '');
   if (key) t = t.split(key).join('[redacted]');
-  return t.replace(/ci_live_[A-Za-z0-9]+/g, '[redacted]').replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]');
+  return t
+    .replace(/ci_live_[A-Za-z0-9]+/g, '[redacted]')
+    .replace(/sk_[A-Za-z0-9_-]+/g, '[redacted]')
+    .replace(/cohere_[A-Za-z0-9_-]+/g, '[redacted]')
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer [redacted]');
 }
 
 function send(res: ServerResponse, status: number, body: unknown) {
@@ -742,12 +746,12 @@ async function runCopilot(
   let searchActionExecuted: any = null;
   let lastModel = req.model || gw.model;
 
-  // CheaperInference's OpenAI-to-Anthropic proxy fails when translating OpenAI tool_calls
+  // Anthropic proxy models may fail when translating OpenAI tool_calls
   // back to Anthropic tool_result, causing 400 "tool_use ids were found without tool_result blocks immediately after".
-  // For CheaperInference or Claude models on OpenAI proxies, we omit body.tools so Claude outputs
+  // For Claude models on OpenAI proxies, we omit body.tools so Claude outputs
   // the clean structured action block format that our server-side loop intercepts and executes safely.
-  const isCheaperInference = gw.baseUrl.includes('cheaperinference.com') || /claude/i.test(lastModel);
-  const toolsToPass = isCheaperInference ? undefined : COPILOT_TOOLS;
+  const isClaudeProxy = /claude/i.test(lastModel);
+  const toolsToPass = isClaudeProxy ? undefined : COPILOT_TOOLS;
 
   if (enrichedContext.transcriptSearchResults?.length) {
     executedMatches = enrichedContext.transcriptSearchResults.map(r => ({
@@ -912,12 +916,12 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
 
   const resolveConfig = (req: IncomingMessage) => {
     const env = opts.getEnv();
-    const envKey = (env.DIRECTOR_API_KEY || env.CHEAPER_INFERENCE_API_KEY || '').trim();
+    const envKey = (env.INCEPTION_API_KEY || env.DIRECTOR_API_KEY || env.CHEAPER_INFERENCE_API_KEY || '').trim();
     const rawHeader = req.headers['x-director-key'];
     const headerKey = (Array.isArray(rawHeader) ? rawHeader[0] : rawHeader || '').trim();
     const headerOk = headerKey.length >= 8 && !/\s/.test(headerKey);
     const key = envKey || (headerOk ? headerKey : '');
-    const baseUrl = ((env.DIRECTOR_BASE_URL || env.CHEAPER_INFERENCE_BASE_URL || '').trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const baseUrl = ((env.INCEPTION_BASE_URL || env.DIRECTOR_BASE_URL || env.CHEAPER_INFERENCE_BASE_URL || '').trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
     const defaultModel = (env.DIRECTOR_MODEL || '').trim() || DEFAULT_DIRECTOR_MODEL;
     const timeoutMs = Number(env.DIRECTOR_TIMEOUT_MS) > 0 ? Number(env.DIRECTOR_TIMEOUT_MS) : DIRECTOR_TIMEOUT_MS;
     return { env, key, envKey, baseUrl, defaultModel, timeoutMs };

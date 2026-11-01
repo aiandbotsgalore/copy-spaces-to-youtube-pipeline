@@ -22,8 +22,8 @@ import { randomUUID } from 'node:crypto';
 import { parseJsonLoose } from '../utils/directorValidate';
 import type { Role, RoleMap } from '../utils/scriptTypes';
 
-export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli' | 'ollama' | 'groq' | 'openai_compatible' | 'inception';
-export type Family = 'anthropic' | 'openai' | 'meta' | 'google' | 'mistral' | 'open_source';
+export type ProviderId = 'cheaperinference' | 'claude_cli' | 'codex_cli' | 'agy_cli' | 'ollama' | 'groq' | 'openai_compatible' | 'inception' | 'cohere';
+export type Family = 'anthropic' | 'openai' | 'meta' | 'google' | 'mistral' | 'cohere' | 'open_source';
 export type FailCode = 'NO_KEY' | 'NOT_INSTALLED' | 'NOT_SIGNED_IN' | 'RATE_LIMIT' | 'USAGE_LIMIT'
   | 'BUDGET_EXCEEDED' | 'TIMEOUT' | 'BAD_OUTPUT' | 'UPSTREAM' | 'ABORTED' | 'NOT_ALLOWED' | 'BAD_REQUEST';
 
@@ -172,7 +172,7 @@ export function parseCmdShim(shimText: string, shimPath: string): string | null 
   return pick ? path.win32.join(path.win32.dirname(shimPath), pick) : null;
 }
 
-export async function resolveCliBinary(name: 'claude' | 'codex', deps: ResolveDeps): Promise<ResolvedBinary> {
+export async function resolveCliBinary(name: 'claude' | 'codex' | 'agy', deps: ResolveDeps): Promise<ResolvedBinary> {
   const lookup = deps.platform === 'win32'
     ? await deps.runner('where.exe', [name], { cwd: os.tmpdir(), env: deps.env, timeoutMs: 10_000 })
     : await deps.runner('which', ['-a', name], { cwd: os.tmpdir(), env: deps.env, timeoutMs: 10_000 });
@@ -181,6 +181,11 @@ export async function resolveCliBinary(name: 'claude' | 'codex', deps: ResolveDe
     const appData = deps.env.APPDATA || process.env.APPDATA;
     if (appData) {
       const p = path.win32.join(appData, 'npm', `${name}.cmd`);
+      if (deps.exists(p)) found.push(p);
+    }
+    const localAppData = deps.env.LOCALAPPDATA || process.env.LOCALAPPDATA;
+    if (localAppData && name === 'agy') {
+      const p = path.win32.join(localAppData, 'agy', 'bin', `${name}.exe`);
       if (deps.exists(p)) found.push(p);
     }
   }
@@ -410,6 +415,98 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
       } finally {
         rmQuiet(schemaPath);
         rmQuiet(outPath);
+      }
+    },
+  };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Antigravity CLI (Google AI Plan / Gemini)                                                        */
+/* ------------------------------------------------------------------------------------------------ */
+
+export const AGY_DEFAULT_MODEL = 'gemini-3.8-flash-high';
+
+export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL): string[] {
+  return [
+    '-p', '',
+    '--output-format', 'json',
+    '--json-schema', schemaPath,
+    '--model', model,
+    '--disable-slash-commands',
+    '--dangerously-skip-permissions',
+  ];
+}
+
+export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterDeps): ProviderAdapter {
+  const dirs = deps.dirs ?? cliDirs();
+  const now = deps.now ?? Date.now;
+  const fail = (code: FailCode, message: string, rawOutput: string, started: number, extra: Partial<CompleteResult> = {}): CompleteResult =>
+    ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'agy_cli', model, ...extra } as CompleteResult);
+
+  return {
+    id: 'agy_cli',
+    family: 'google',
+    model,
+    async available() {
+      const bin = await deps.resolve();
+      if (bin.ok === false) return { ok: false, detail: bin.detail, code: 'NOT_INSTALLED' };
+      ensureSandboxDir(dirs.sandbox);
+      const r = await deps.runner(bin.file, [...bin.prefixArgs, 'models'], {
+        cwd: dirs.sandbox,
+        env: subscriptionEnv(deps.env()),
+        timeoutMs: 20_000,
+      });
+      if (r.spawnError) return { ok: false, detail: describeExit(r, 'agy models'), binPath: bin.found, code: 'NOT_INSTALLED' };
+      if (r.code !== 0) return { ok: false, detail: describeExit(r, 'agy models'), binPath: bin.found, code: r.timedOut ? 'TIMEOUT' : 'NOT_SIGNED_IN' };
+      return { ok: true, detail: 'Signed in with Google account (Google AI Plan).', binPath: bin.found };
+    },
+    async complete(req) {
+      const started = now();
+      const bin = await deps.resolve();
+      if (bin.ok === false) return fail('NOT_INSTALLED', bin.detail, '', started);
+      ensureEmptySandbox(dirs.sandbox);
+      const schemaPath = writeIo(dirs.io, 'schema.json', JSON.stringify(req.schema));
+      const fullPrompt = `${req.system}\n\n${req.user}`;
+      try {
+        const args = [
+          '-p', fullPrompt,
+          '--output-format', 'json',
+          '--json-schema', schemaPath,
+          '--model', model,
+          '--disable-slash-commands',
+          '--dangerously-skip-permissions',
+        ];
+        const r = await deps.runner(bin.file, [...bin.prefixArgs, ...args], {
+          cwd: dirs.sandbox,
+          env: subscriptionEnv(deps.env()),
+          timeoutMs: req.timeoutMs,
+          signal: req.signal,
+        });
+        const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
+        const parsed: any = parseJsonLoose(r.stdout);
+        const structured = parsed?.structured_output ?? (parsed?.response ? parseJsonLoose(parsed.response) : null);
+        if (structured && typeof structured === 'object') {
+          const u = parsed?.usage || {};
+          return {
+            ok: true,
+            json: structured,
+            provider: 'agy_cli',
+            model: String(parsed?.model || model),
+            durationMs: now() - started,
+            usage: {
+              inTok: Number(u.input_tokens) || 0,
+              outTok: Number(u.output_tokens) || 0,
+              costUsd: 0,
+            },
+          };
+        }
+        if (r.code === 0 && !r.timedOut && !r.aborted) {
+          return fail('BAD_OUTPUT', 'Gemini via Antigravity CLI returned non-structured response.', raw, started);
+        }
+        const c = classifyCliFailure(r);
+        return fail(c.code, c.message, raw, started);
+      } finally {
+        rmQuiet(schemaPath);
       }
     },
   };
@@ -702,6 +799,140 @@ export function createInceptionAdapter(
 }
 
 /* ------------------------------------------------------------------------------------------------ */
+/* Cohere API v2 (Command A 03-2025)                                                                */
+/* ------------------------------------------------------------------------------------------------ */
+
+export const COHERE_PRICES: Record<string, { in: number; out: number; family: Family }> = {
+  'command-a-03-2025': { in: 0.15, out: 0.60, family: 'cohere' },
+  'command-r7b-12-2024': { in: 0.0375, out: 0.15, family: 'cohere' },
+  'command-r-plus-08-2024': { in: 2.50, out: 10.00, family: 'cohere' },
+};
+
+export function cohereCostUsd(model: string, inTok: number, outTok: number): number {
+  const p = COHERE_PRICES[model];
+  if (!p) return 0;
+  return (inTok * p.in + outTok * p.out) / 1_000_000;
+}
+
+export function createCohereAdapter(
+  model: string,
+  deps: {
+    fetchImpl?: typeof fetch;
+    env: () => Record<string, string | undefined>;
+    budget: Budget;
+    now?: () => number;
+  }
+): ProviderAdapter {
+  const now = deps.now ?? Date.now;
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const family: Family = COHERE_PRICES[model]?.family ?? 'cohere';
+
+  const cfg = () => {
+    const env = deps.env();
+    const key = (env.COHERE_API_KEY || '').trim();
+    return { key };
+  };
+
+  const fail = (code: FailCode, message: string, rawOutput: string, started: number): CompleteResult =>
+    ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'cohere', model });
+
+  return {
+    id: 'cohere',
+    family,
+    model,
+    async available() {
+      if (!cfg().key) return { ok: false, detail: 'No COHERE_API_KEY in environment or .env.local.', code: 'NO_KEY' };
+      return { ok: true, detail: `Cohere key configured; ${model}.` };
+    },
+    async complete(req) {
+      const started = now();
+      if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+      const { key } = cfg();
+      if (!key) return fail('NO_KEY', 'No COHERE_API_KEY configured.', '', started);
+
+      const inEst = estimateInputTokens(req);
+      const worst = cohereCostUsd(model, inEst, req.maxTokens);
+      if (deps.budget.spentUsd + worst > deps.budget.maxUsd + 1e-12) {
+        return fail(
+          'BUDGET_EXCEEDED',
+          `This call could cost up to $${worst.toFixed(4)}; the run has $${Math.max(0, deps.budget.maxUsd - deps.budget.spentUsd).toFixed(4)} left of its $${deps.budget.maxUsd.toFixed(2)} cap.`,
+          '',
+          started
+        );
+      }
+
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), req.timeoutMs);
+      const onAbort = () => ctl.abort();
+      if (req.signal.aborted) onAbort();
+      else req.signal.addEventListener('abort', onAbort, { once: true });
+
+      try {
+        const payload = {
+          model,
+          messages: [
+            {
+              role: 'user',
+              content: `${req.system}\n\n${req.user}\n\nRespond strictly with valid JSON conforming to the schema:\n${JSON.stringify(req.schema)}`,
+            },
+          ],
+          temperature: 0.3,
+        };
+
+        const res = await fetchImpl('https://api.cohere.com/v2/chat', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: ctl.signal,
+        });
+
+        const text = await res.text();
+        const raw = text.split(key).join('[redacted]').slice(0, 4000);
+
+        if (res.status === 401 || res.status === 403) return fail('NOT_SIGNED_IN', 'Cohere API key rejected.', raw, started);
+        if (res.status === 429) return fail('RATE_LIMIT', 'Rate limited by Cohere API (HTTP 429).', raw, started);
+        if (!res.ok) return fail('UPSTREAM', `Cohere API error (${res.status}): ${text.slice(0, 300)}`, raw, started);
+
+        const j: any = parseJsonLoose(text);
+        const content = j?.message?.content?.[0]?.text;
+        const inTok = Number(j?.usage?.tokens?.input_tokens) || inEst;
+        const outTok = Number(j?.usage?.tokens?.output_tokens) || 0;
+        const listCostUsd = cohereCostUsd(model, inTok, outTok);
+        deps.budget.spentUsd += listCostUsd;
+
+        let cleanContent = typeof content === 'string' ? content.trim() : '';
+        if (cleanContent.startsWith('```')) {
+          const m = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (m) cleanContent = m[1].trim();
+        }
+
+        const json = parseJsonLoose(cleanContent);
+        if (!json || typeof json !== 'object') return fail('BAD_OUTPUT', 'Cohere response was not valid JSON.', raw, started);
+
+        return {
+          ok: true,
+          json,
+          provider: 'cohere',
+          model: String(j?.model || model),
+          usage: { inTok, outTok, costUsd: listCostUsd },
+          durationMs: now() - started,
+        };
+      } catch (e: any) {
+        if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+        if (e?.name === 'AbortError') return fail('TIMEOUT', `Cohere API timed out after ${Math.round(req.timeoutMs / 1000)} s.`, '', started);
+        return fail('UPSTREAM', `Could not reach Cohere API: ${e?.message || e}`, '', started);
+      } finally {
+        clearTimeout(timer);
+        req.signal.removeEventListener('abort', onAbort);
+      }
+    },
+  };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
 /* Role maps                                                                                         */
 /* ------------------------------------------------------------------------------------------------ */
 
@@ -714,18 +945,29 @@ export const FALLBACK_ROLE_MAP: RoleMap = {
   judge: 'ci:gpt-6-luna', factcheck: 'ci:gpt-6-luna', polish: 'ci:claude-sonnet-5.5',
 };
 
+export const COHERE_ROLE_MAP: RoleMap = {
+  analyst: 'cohere:command-a-03-2025', reviser: 'cohere:command-a-03-2025', critic: 'inception:mercury-3',
+  judge: 'inception:mercury-3', factcheck: 'inception:mercury-3', polish: 'cohere:command-a-03-2025',
+};
+
 export type RoleSpec =
   | { provider: 'claude_cli'; model: 'sonnet' | 'haiku' }
   | { provider: 'codex_cli'; model: string }
+  | { provider: 'agy_cli'; model: string }
   | { provider: 'cheaperinference'; model: string }
   | { provider: 'ollama'; model: string }
   | { provider: 'groq'; model: string }
   | { provider: 'openai_compatible'; model: string }
-  | { provider: 'inception'; model: string };
+  | { provider: 'inception'; model: string }
+  | { provider: 'cohere'; model: string };
 
 export function parseRoleSpec(spec: string): RoleSpec | null {
   if (spec === 'claude_cli:sonnet' || spec === 'claude_cli:haiku') return { provider: 'claude_cli', model: spec.split(':')[1] as 'sonnet' | 'haiku' };
   if (spec === 'codex_cli') return { provider: 'codex_cli', model: CODEX_MODEL };
+  if (spec.startsWith('agy_cli:')) return { provider: 'agy_cli', model: spec.split(':')[1] || 'gemini-3.8-flash-high' };
+  if (spec === 'agy_cli') return { provider: 'agy_cli', model: 'gemini-3.8-flash-high' };
+  if (spec.startsWith('cohere:')) return { provider: 'cohere', model: spec.split(':')[1] || 'command-a-03-2025' };
+  if (spec === 'cohere') return { provider: 'cohere', model: 'command-a-03-2025' };
   const ciMatch = /^ci:(.+)$/.exec(spec);
   if (ciMatch && CI_PRICES[ciMatch[1]]) return { provider: 'cheaperinference', model: ciMatch[1] };
   const inceptionMatch = /^inception:(.+)$/.exec(spec);
@@ -744,7 +986,9 @@ export function familyOf(spec: string): Family | null {
   if (!p) return null;
   if (p.provider === 'claude_cli') return 'anthropic';
   if (p.provider === 'codex_cli') return 'openai';
+  if (p.provider === 'agy_cli') return 'google';
   if (p.provider === 'inception') return INCEPTION_PRICES[p.model]?.family ?? 'open_source';
+  if (p.provider === 'cohere') return COHERE_PRICES[p.model]?.family ?? 'cohere';
   if (p.provider === 'ollama' || p.provider === 'groq' || p.provider === 'openai_compatible') return 'open_source';
   return CI_PRICES[p.model]?.family ?? 'open_source';
 }
@@ -763,7 +1007,7 @@ export function verifyCrossFamily(roleMap: RoleMap): { ok: true } | { ok: false;
 }
 
 export function roleMapNeedsBudget(roleMap: RoleMap): boolean {
-  return Object.values(roleMap).some(v => typeof v === 'string' && (v.startsWith('ci:') || v.startsWith('inception:')));
+  return Object.values(roleMap).some(v => typeof v === 'string' && (v.startsWith('ci:') || v.startsWith('inception:') || v.startsWith('cohere:')));
 }
 
 /* ------------------------------------------------------------------------------------------------ */
@@ -776,13 +1020,13 @@ export interface RegistryDeps {
   platform?: NodeJS.Platform;
   fetchImpl?: typeof fetch;
   dirs?: { sandbox: string; io: string };
-  resolveOverride?: (name: 'claude' | 'codex') => Promise<ResolvedBinary>;
+  resolveOverride?: (name: 'claude' | 'codex' | 'agy') => Promise<ResolvedBinary>;
 }
 
 export function createProviderRegistry(deps: RegistryDeps) {
   const runner = deps.runner ?? spawnRunner;
   const cache = new Map<string, Promise<ResolvedBinary>>();
-  const resolve = (name: 'claude' | 'codex') => {
+  const resolve = (name: 'claude' | 'codex' | 'agy') => {
     if (deps.resolveOverride) return deps.resolveOverride(name);
     if (!cache.has(name)) {
       const p = resolveCliBinary(name, {
@@ -801,12 +1045,23 @@ export function createProviderRegistry(deps: RegistryDeps) {
       if (!p) return null;
       if (p.provider === 'claude_cli') return createClaudeCliAdapter(p.model, { ...cli, resolve: () => resolve('claude') });
       if (p.provider === 'codex_cli') return createCodexCliAdapter({ ...cli, resolve: () => resolve('codex') });
+      if (p.provider === 'agy_cli') return createAgyCliAdapter(p.model, { ...cli, resolve: () => resolve('agy') });
       if (p.provider === 'inception') return createInceptionAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
+      if (p.provider === 'cohere') return createCohereAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
       return createCheaperInferenceAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
     },
     async health() {
       const noBudget = { maxUsd: 0, spentUsd: 0 };
-      const specs = ['claude_cli:sonnet', 'claude_cli:haiku', 'codex_cli', 'ci:claude-haiku-5.5', 'ci:gpt-6-luna'];
+      const specs = [
+        'claude_cli:sonnet',
+        'claude_cli:haiku',
+        'agy_cli:gemini-3.8-flash-high',
+        'inception:mercury-3',
+        'cohere:command-a-03-2025',
+        'codex_cli',
+        'ci:claude-haiku-5.5',
+        'ci:gpt-6-luna',
+      ];
       const out: Record<string, Availability & { provider: ProviderId; model: string }> = {};
       for (const s of specs) {
         const a = this.adapterFor(s, noBudget)!;

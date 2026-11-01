@@ -692,7 +692,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
               <span className="flex items-center gap-3">
                 <span className={cx('h-2.5 w-2.5 shrink-0 rounded-full', !status ? 'bg-[#E9BD67]' : ready ? 'bg-[#55C9A2]' : 'bg-[#E9BD67]')} />
                 <span className="text-sm font-medium text-[#E6EBF4]">
-                  {!status ? 'Checking AI connections…' : subscriptionReady ? 'Subscription tools available' : fallbackReady ? 'Fallback models available' : 'AI connections need attention'}
+                  {!status ? 'Checking AI connections…' : subscriptionReady ? 'Subscription tools available' : fallbackReady ? 'Cloud AI models available' : 'AI connections need attention'}
                 </span>
                 {status && <span className="hidden text-xs text-[#ABB5C7] sm:inline">{providerCount} of {providerTotal} providers available</span>}
               </span>
@@ -920,7 +920,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
               <div className="rounded-lg border border-[#313A4C] p-4">
                 <h3 className="text-sm font-semibold">AI routing</h3>
                 <div className="mt-3 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Subscription tools</span><span className={subscriptionReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{subscriptionReady ? 'Ready' : 'Needs setup'}</span></div>
-                <div className="mt-2 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Fallback models</span><span className={fallbackReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{fallbackReady ? 'Configured' : 'Needs setup'}</span></div>
+                <div className="mt-2 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Cloud AI models (Inception / Cohere)</span><span className={fallbackReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{fallbackReady ? 'Configured' : 'Needs setup'}</span></div>
                 <p className="mt-3 text-[11px] leading-4 text-[#8994A8]">Availability does not mean a model is running. Choose model roles inside a project.</p>
               </div>
               {status.interruptedAtStart > 0 && <div className="rounded-lg border border-[#7B633D] bg-[#292315] p-3 text-xs leading-5 text-[#E9BD67]" role="status">
@@ -1878,12 +1878,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/60 shrink-0 z-10">
           <label className="flex items-center gap-1">Mode
             <select className={input} value={roles.mode} onChange={e => setRoles(r => ({ ...r, mode: e.target.value as RoleChoice['mode'], roleMap: {} }))}>
-              <option value="subscription">Subscriptions (Claude Code + Codex)</option>
-              <option value="fallback">Fallback (CheaperInference)</option>
+              <option value="subscription">Subscriptions (Claude Code + Google AI Plan + Codex)</option>
+              <option value="inception">Inception Labs (Mercury-3 Diffusion)</option>
+              <option value="cohere">Cohere (Command A 03-2025 - 256k Context)</option>
+              <option value="fallback">Custom Model Roles</option>
             </select>
           </label>
-          {ROLES.filter(r => roles.mode === 'fallback' || r !== 'polish').map(r => {
-            const def = (roles.mode === 'fallback' ? status?.defaults.fallback : status?.defaults.subscription)?.[r] || '';
+          {ROLES.filter(r => roles.mode !== 'subscription' || r !== 'polish').map(r => {
+            const def = (roles.mode === 'cohere' ? (status?.defaults as any)?.cohere : roles.mode === 'fallback' || roles.mode === 'inception' ? status?.defaults.fallback : status?.defaults.subscription)?.[r] || '';
             return (
               <label key={r} className="flex items-center gap-1">{r}
                 <select className={input} value={roles.roleMap[r] || ''} onChange={e => setRoles(x => ({ ...x, roleMap: { ...x.roleMap, [r]: e.target.value || undefined } }))}>

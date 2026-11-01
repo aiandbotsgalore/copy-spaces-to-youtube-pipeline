@@ -53,7 +53,7 @@ function mkFetch(queue: Resp[]) {
 }
 const chat = (content: unknown, usage = { prompt_tokens: 100, completion_tokens: 50 }) =>
   new Response(
-    JSON.stringify({ model: 'claude-sonnet-5.5', choices: [{ message: { content: typeof content === 'string' ? content : JSON.stringify(content) } }], usage }),
+    JSON.stringify({ model: 'mercury-3', choices: [{ message: { content: typeof content === 'string' ? content : JSON.stringify(content) } }], usage }),
     { status: 200 }
   );
 const errResp = (status: number, body: unknown, headers: Record<string, string> = {}) =>
@@ -98,8 +98,8 @@ describe('guards and status', () => {
   });
 
   it('status reports key source and model but never the key', async () => {
-    const r = await call(mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY }, mkFetch([])), { url: '/status' });
-    expect(r.json).toMatchObject({ keyConfigured: true, keySource: 'env', model: 'claude-sonnet-5.5', baseUrl: 'https://api.cheaperinference.com/v1' });
+    const r = await call(mw({ INCEPTION_API_KEY: ENV_KEY }, mkFetch([])), { url: '/status' });
+    expect(r.json).toMatchObject({ keyConfigured: true, keySource: 'env', model: 'mercury-3', baseUrl: 'https://api.inceptionlabs.ai/v1' });
     expect(r.raw).not.toContain(ENV_KEY);
     const none = await call(mw({}, mkFetch([])), { url: '/status' });
     expect(none.json).toMatchObject({ keyConfigured: false, keySource: 'none' });
@@ -136,26 +136,26 @@ describe('key resolution', () => {
 
   it('always sends the key to the configured base URL, never one supplied by a request', async () => {
     const f = mkFetch([() => chat(goodCut)]);
-    await call(mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY }, f), {
+    await call(mw({ INCEPTION_API_KEY: ENV_KEY }, f), {
       method: 'POST',
       url: '/',
       body: genReq({ baseUrl: 'https://evil.example/v1' }),
     });
-    expect(f.calls[0].url).toBe('https://api.cheaperinference.com/v1/chat/completions');
+    expect(f.calls[0].url).toBe('https://api.inceptionlabs.ai/v1/chat/completions');
   });
 });
 
 describe('generate', () => {
   const h = (f: any, extra: Record<string, string> = {}) => mw({ CHEAPER_INFERENCE_API_KEY: ENV_KEY, ...extra }, f);
 
-  it('returns a validated cut, uses json_schema first and defaults to claude-sonnet-5.5', async () => {
+  it('returns a validated cut, uses json_schema first and defaults to mercury-3', async () => {
     const f = mkFetch([() => chat(goodCut)]);
     const r = await call(h(f), { method: 'POST', url: '/', body: genReq() });
     expect(r.status).toBe(200);
     expect(r.json.ok).toBe(true);
     expect(r.json.cut.picks).toHaveLength(3);
     expect(r.json.cut.picks[2].gapAfterSec).toBe(0);
-    expect(f.calls[0].body.model).toBe('claude-sonnet-5.5');
+    expect(f.calls[0].body.model).toBe('mercury-3');
     expect(f.calls[0].body.response_format.type).toBe('json_schema');
     expect(f.calls[0].body.response_format.json_schema.strict).toBe(true);
     // candidates first in the user message (prefix-cache friendly)
@@ -187,11 +187,11 @@ describe('generate', () => {
     expect(f.calls[1].body.max_tokens).toBeUndefined();
   });
 
-  it('falls back to claude-sonnet-5 (never a mini/flash model) when the model is not found', async () => {
-    const f = mkFetch([() => errResp(404, { error: { message: 'The model `claude-sonnet-5.5` does not exist' } }), () => chat(goodCut)]);
-    const r = await call(h(f), { method: 'POST', url: '/', body: genReq() });
+  it('falls back to mercury-3 (never a mini/flash model) when the model is not found', async () => {
+    const f = mkFetch([() => errResp(404, { error: { message: 'The model `custom-experimental` does not exist' } }), () => chat(goodCut)]);
+    const r = await call(h(f), { method: 'POST', url: '/', body: genReq({ model: 'custom-experimental' }) });
     expect(r.json.ok).toBe(true);
-    expect(f.calls[1].body.model).toBe('claude-sonnet-5');
+    expect(f.calls[1].body.model).toBe('mercury-3');
     expect(/mini|flash|nano|lite/i.test(f.calls[1].body.model)).toBe(false);
   });
 
@@ -287,6 +287,8 @@ describe('error mapping and secrecy', () => {
     expect(scrub(`a ${ENV_KEY} b`, ENV_KEY)).not.toContain(ENV_KEY);
     expect(scrub('Bearer abc.def-123')).toBe('Bearer [redacted]');
     expect(scrub('x ci_live_deadbeef y')).toBe('x [redacted] y');
+    expect(scrub('x sk_test123456789 y')).toBe('x [redacted] y');
+    expect(scrub('x cohere_test123456789 y')).toBe('x [redacted] y');
   });
 });
 
@@ -303,7 +305,7 @@ describe('models, test and refine', () => {
   it('test route does a tiny completion', async () => {
     const f = mkFetch([() => chat('{"ok":true}')]);
     const r = await call(h(f), { method: 'POST', url: '/test', body: {} });
-    expect(r.json).toMatchObject({ ok: true, model: 'claude-sonnet-5.5' });
+    expect(r.json).toMatchObject({ ok: true, model: 'mercury-3' });
     expect(f.calls[0].body.max_tokens).toBe(16);
   });
 

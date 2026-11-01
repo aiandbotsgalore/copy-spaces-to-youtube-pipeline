@@ -64,7 +64,7 @@ import { changedBlockIds, codeGates, diffVersions } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
-import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
+import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, COHERE_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
 import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule, saveApprovedPassage } from './scriptMemory';
 import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNamesToTag } from './scriptCorpus';
@@ -92,7 +92,7 @@ export interface ScriptStudioOptions {
   runner?: ProcessRunner;
   fetchImpl?: typeof fetch;
   platform?: NodeJS.Platform;
-  resolveOverride?: (name: 'claude' | 'codex') => Promise<ResolvedBinary>;
+  resolveOverride?: (name: 'claude' | 'codex' | 'agy') => Promise<ResolvedBinary>;
   now?: () => number;
   /** Vox synthesis and duration probe (defaults: the HF Space script and ffprobe). */
   synth?: AsyncSynth;
@@ -137,9 +137,9 @@ const STATUS_FOR_CODE: Record<string, number> = {
 
 export const MAX_SOURCES = 12;
 
-export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number } {
-  const mode = body?.mode === 'fallback' ? 'fallback' : 'subscription';
-  const base = mode === 'fallback' ? FALLBACK_ROLE_MAP : DEFAULT_ROLE_MAP;
+export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback' | 'inception' | 'cohere'; maxUsd: number } {
+  const mode = (body?.mode === 'fallback' || body?.mode === 'inception' || body?.mode === 'cohere') ? body.mode : 'subscription';
+  const base = mode === 'cohere' ? COHERE_ROLE_MAP : (mode === 'fallback' || mode === 'inception') ? FALLBACK_ROLE_MAP : DEFAULT_ROLE_MAP;
   const roleMap: RoleMap = { ...base };
   const req = body?.roleMap && typeof body.roleMap === 'object' ? body.roleMap : {};
   for (const r of ['analyst', 'critic', 'reviser', 'judge', 'factcheck', 'polish'] as const) {

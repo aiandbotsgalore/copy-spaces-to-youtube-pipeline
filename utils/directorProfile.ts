@@ -5,8 +5,8 @@
  */
 import type { CutId } from './directorTypes';
 
-export const DEFAULT_DIRECTOR_MODEL = 'claude-sonnet-5.5';
-export const FALLBACK_DIRECTOR_MODEL = 'claude-sonnet-5';
+export const DEFAULT_DIRECTOR_MODEL = 'mercury-3';
+export const FALLBACK_DIRECTOR_MODEL = 'mercury-3';
 
 export const DIRECTOR_CANDIDATE_CAP = 80;
 export const DIRECTOR_TEXT_MAX_CHARS = 280;

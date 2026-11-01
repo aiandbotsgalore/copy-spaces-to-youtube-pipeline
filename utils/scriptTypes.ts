@@ -220,7 +220,7 @@ export interface RunEvent {
 export interface ScriptRun {
   id: string; projectId: string; createdAt: number; updatedAt: number;
   status: RunStatus; stopReason?: StopReason;
-  mode: 'subscription' | 'fallback';
+  mode: 'subscription' | 'fallback' | 'inception' | 'cohere';
   maxUsd: number; spentUsd: number;
   roleMap: RoleMap;
   baseVersionId: string; bestVersionId: string;

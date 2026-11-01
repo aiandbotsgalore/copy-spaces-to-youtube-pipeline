@@ -132,7 +132,7 @@ const items = ['c1', 'c2', 'c3', 'c4'].map(ref => ({ ref, text: `text ${ref}`, s
 describe('POST /sort', () => {
   beforeEach(() => __resetGatewayMemory());
   const mk = (f: typeof fetch, key: string | null = ENV_KEY) =>
-    createDirectorMiddleware({ getEnv: () => (key ? { CHEAPER_INFERENCE_API_KEY: key } : {}), fetchImpl: f });
+    createDirectorMiddleware({ getEnv: () => (key ? { INCEPTION_API_KEY: key } : {}), fetchImpl: f });
 
   it('returns the model order as a full permutation and never leaks the key', async () => {
     const f = mkFetch([() => chat({ order: ['c4', 'c2', 'c1', 'c3'], rationale: 'Opens on c4.' })]);

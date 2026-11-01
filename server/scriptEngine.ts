@@ -420,7 +420,7 @@ export function createEngine(deps: EngineDeps) {
   /** Real Vox durations for narration whose text has a cached take (stale takes are dropped). */
   function withTakes(segments: Segment[]): Segment[] { return attachTakes(segments, deps.store.getTakes()); }
 
-  function createRun(project: ScriptProject, opts: { roleMap: RoleMap; mode: 'subscription' | 'fallback'; maxUsd: number; targetSceneIds?: string[]; maxRounds?: number; options?: RunOptions }): ScriptRun {
+  function createRun(project: ScriptProject, opts: { roleMap: RoleMap; mode: 'subscription' | 'fallback' | 'inception' | 'cohere'; maxUsd: number; targetSceneIds?: string[]; maxRounds?: number; options?: RunOptions }): ScriptRun {
     if (opts.options?.polish && !opts.roleMap.polish) throw new StepError('NO_ROLE', 'Polish needs a polish model (fallback mode, ci:claude-sonnet-5.5).');
     const cross = verifyCrossFamily(opts.roleMap);
     if (cross.ok === false) throw new StepError('CROSS_FAMILY', cross.reason);

@@ -301,22 +301,60 @@ def extract_heuristic_highlights(
     return clips
 
 
-def call_gemini_highlight_discovery(
+def find_agy_cli() -> Optional[str]:
+    """Locates the Antigravity CLI (agy) binary on PATH or in local AppData."""
+    agy_on_path = shutil.which("agy")
+    if agy_on_path:
+        return agy_on_path
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        p = Path(local_app_data) / "agy" / "bin" / "agy.exe"
+        if p.exists():
+            return str(p)
+    return None
+
+
+def parse_and_clean_clips(raw_clips: Any) -> List[Dict[str, Any]]:
+    """Validates and normalizes raw JSON clip candidates."""
+    if not isinstance(raw_clips, list):
+        return []
+    clean_clips = []
+    for cl in raw_clips:
+        if isinstance(cl, dict) and "start_seconds" in cl and "end_seconds" in cl:
+            try:
+                start_s = float(cl["start_seconds"])
+                end_s = float(cl["end_seconds"])
+                if end_s > start_s:
+                    clean_clips.append({
+                        "title": str(cl.get("title", "Highlight Clip")),
+                        "category": normalize_category(str(cl.get("category", "Humor & Banter"))),
+                        "start_seconds": start_s,
+                        "end_seconds": end_s,
+                        "speakers": list(cl.get("speakers", [])),
+                        "viral_score": int(cl.get("viral_score", 8)),
+                        "reason": str(cl.get("reason", "Entertaining dialogue")),
+                        "transcript_snippet": str(cl.get("transcript_snippet", ""))
+                    })
+            except (ValueError, TypeError):
+                continue
+    return clean_clips
+
+
+def call_cohere_highlight_discovery(
     transcript_text: str,
     limit: int = 5,
     category_filter: Optional[str] = None
 ) -> List[Dict[str, Any]]:
-    """Uses Cheaper Inference (Gemini Flash), Cohere API, or OpenRouter to identify the top entertaining clips."""
-    # 0. Try Cheaper Inference (gemini-2.5-flash) first if available
-    ci_key = os.environ.get("CHEAPER_INFERENCE_API_KEY")
-    if ci_key:
-        ci_base = os.environ.get("CHEAPER_INFERENCE_BASE_URL", "https://api.cheaperinference.com/v1").rstrip("/")
-        ci_model = os.environ.get("DIRECTOR_MODEL", "gemini-2.5-flash")
-        filter_instruction = ""
-        if category_filter and category_filter.lower() != "all":
-            filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+    """Analyzes transcript with Cohere v2 Chat API (command-a-03-2025 / command-r)."""
+    cohere_key = os.environ.get("COHERE_API_KEY")
+    if not cohere_key:
+        return []
 
-        prompt = f"""You are an expert audio podcast producer and viral clip curator.
+    filter_instruction = ""
+    if category_filter and category_filter.lower() != "all":
+        filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+    prompt = f"""You are an expert audio podcast producer and viral clip curator.
 Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
 Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
 Each clip should be 20 to 90 seconds long.
@@ -327,59 +365,121 @@ Return ONLY a valid JSON object with a single "clips" array containing dictionar
 
 Transcript:
 {transcript_text}"""
+
+    for cohere_model in ["command-a-03-2025", "command-r-plus-08-2024", "command-r-08-2024"]:
         try:
-            print(f"[*] Analyzing highlights with Gemini ({ci_model}) via Cheaper Inference...", flush=True)
+            print(f"[*] Analyzing highlights with Cohere ({cohere_model})...", flush=True)
             resp = requests.post(
-                f"{ci_base}/chat/completions",
+                "https://api.cohere.com/v2/chat",
                 headers={
-                    "Authorization": f"Bearer {ci_key}",
+                    "Authorization": f"Bearer {cohere_key}",
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": ci_model,
+                    "model": cohere_model,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.3
                 },
-                timeout=120
+                timeout=90
             )
             if resp.status_code == 200:
                 data = resp.json()
-                content = data["choices"][0]["message"]["content"].strip()
+                content_items = data.get("message", {}).get("content", [])
+                content = "".join(c.get("text", "") for c in content_items if isinstance(c, dict)).strip()
                 if "```" in content:
                     m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
                     if m:
                         content = m.group(1).strip()
                 parsed = json.loads(content)
-                raw_clips = parsed.get("clips") or []
-                clean_clips = []
-                for cl in raw_clips:
-                    if "start_seconds" in cl and "end_seconds" in cl and float(cl["end_seconds"]) > float(cl["start_seconds"]):
-                        clean_clips.append({
-                            "title": str(cl.get("title", "Highlight Clip")),
-                            "category": normalize_category(str(cl.get("category", "Humor & Banter"))),
-                            "start_seconds": float(cl["start_seconds"]),
-                            "end_seconds": float(cl["end_seconds"]),
-                            "speakers": list(cl.get("speakers", [])),
-                            "viral_score": int(cl.get("viral_score", 8)),
-                            "reason": str(cl.get("reason", "Entertaining dialogue")),
-                            "transcript_snippet": str(cl.get("transcript_snippet", ""))
-                        })
+                clean_clips = parse_and_clean_clips(parsed.get("clips"))
                 if clean_clips:
-                    print(f"[✓] Gemini Flash extracted {len(clean_clips)} moments!", flush=True)
+                    print(f"[✓] Cohere ({cohere_model}) extracted {len(clean_clips)} moments!", flush=True)
                     return clean_clips
             else:
-                print(f"[!] Cheaper Inference notice ({resp.status_code}): {resp.text[:150]}", flush=True)
+                print(f"[!] Cohere notice ({resp.status_code}): {resp.text[:150]}", flush=True)
         except Exception as e:
-            print(f"[!] Cheaper Inference error with {ci_model}: {e}", flush=True)
+            print(f"[!] Cohere error with {cohere_model}: {e}", flush=True)
 
-    # 1. Try Cohere Free API first if available
-    cohere_key = os.environ.get("COHERE_API_KEY")
-    if cohere_key:
-        filter_instruction = ""
-        if category_filter and category_filter.lower() != "all":
-            filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+    return []
 
-        prompt = f"""You are an expert audio podcast producer and viral clip curator.
+
+def call_agy_highlight_discovery(
+    transcript_text: str,
+    limit: int = 5,
+    category_filter: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Analyzes transcript with Google AI Pro plan via Antigravity CLI (gemini-3.8-flash-high) with zero API keys."""
+    agy_bin = find_agy_cli()
+    if not agy_bin:
+        print("[!] Antigravity CLI (agy) not found on PATH or LocalAppData.", flush=True)
+        return []
+
+    filter_instruction = ""
+    if category_filter and category_filter.lower() != "all":
+        filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+    # Keep transcript snippet bounded to protect CLI argument limits
+    bounded_text = transcript_text[:25000] if len(transcript_text) > 25000 else transcript_text
+
+    prompt = f"""You are an expert audio podcast producer and viral clip curator.
+Analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
+Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
+Each clip should be 20 to 90 seconds long.
+{filter_instruction}
+
+Return a valid JSON object with a single "clips" array containing dictionaries with keys:
+"title", "category", "start_seconds", "end_seconds", "speakers", "viral_score", "reason", "transcript_snippet".
+
+Transcript:
+{bounded_text}"""
+
+    cmd = [
+        agy_bin,
+        "-p", prompt,
+        "--model", "gemini-3.8-flash-high",
+        "--output-format", "json",
+        "--disable-slash-commands"
+    ]
+
+    try:
+        print("[*] Analyzing highlights with Gemini (gemini-3.8-flash-high) via Google AI Pro CLI...", flush=True)
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if res.returncode == 0:
+            wrapper = json.loads(res.stdout)
+            raw_text = wrapper.get("response", "")
+            if "```" in raw_text:
+                m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", raw_text)
+                if m:
+                    raw_text = m.group(1).strip()
+            parsed = json.loads(raw_text)
+            clean_clips = parse_and_clean_clips(parsed.get("clips"))
+            if clean_clips:
+                print(f"[✓] Gemini 3.8 Flash High extracted {len(clean_clips)} moments!", flush=True)
+                return clean_clips
+        else:
+            print(f"[!] Antigravity CLI exit code {res.returncode}: {res.stderr[:200]}", flush=True)
+    except Exception as e:
+        print(f"[!] Antigravity CLI error: {e}", flush=True)
+
+    return []
+
+
+def call_inception_highlight_discovery(
+    transcript_text: str,
+    limit: int = 5,
+    category_filter: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Analyzes transcript with Inception Labs (mercury-3) via OpenAI-compatible endpoint."""
+    inc_key = os.environ.get("INCEPTION_API_KEY") or os.environ.get("DIRECTOR_API_KEY")
+    if not inc_key:
+        return []
+
+    inc_base = os.environ.get("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1").rstrip("/")
+    filter_instruction = ""
+    if category_filter and category_filter.lower() != "all":
+        filter_instruction = f"Focus specifically on moments fitting the category: '{category_filter}'."
+
+    prompt = f"""You are an expert audio podcast producer and viral clip curator.
 Your task is to analyze this Twitter Space transcript and locate the top {limit} very BEST, FUNNIEST, and most entertaining moments to extract as standalone highlight clips.
 Categories must be one of: 'Humor & Banter', 'Wild Stories', 'Passionate Rants', 'Golden Quotes'.
 Each clip should be 20 to 90 seconds long.
@@ -391,58 +491,90 @@ Return ONLY a valid JSON object with a single "clips" array containing dictionar
 Transcript:
 {transcript_text}"""
 
-        for cohere_model in ["command-r-plus-08-2024", "command-r-08-2024"]:
-            try:
-                print(f"[*] Analyzing highlights with Cohere Free ({cohere_model})...", flush=True)
-                resp = requests.post(
-                    "https://api.cohere.com/v2/chat",
-                    headers={
-                        "Authorization": f"Bearer {cohere_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": cohere_model,
-                        "messages": [{"role": "user", "content": prompt}],
-                        "temperature": 0.3
-                    },
-                    timeout=90
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    content_items = data.get("message", {}).get("content", [])
-                    content = "".join(c.get("text", "") for c in content_items if isinstance(c, dict)).strip()
-                    if "```" in content:
-                        m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
-                        if m:
-                            content = m.group(1).strip()
-                    parsed = json.loads(content)
-                    raw_clips = parsed.get("clips") or []
-                    clean_clips = []
-                    for c in raw_clips:
-                        if "start_seconds" in c and "end_seconds" in c and float(c["end_seconds"]) > float(c["start_seconds"]):
-                            clean_clips.append({
-                                "title": str(c.get("title", "Highlight Clip")),
-                                "category": normalize_category(str(c.get("category", "Humor & Banter"))),
-                                "start_seconds": float(c["start_seconds"]),
-                                "end_seconds": float(c["end_seconds"]),
-                                "speakers": list(c.get("speakers", [])),
-                                "viral_score": int(c.get("viral_score", 8)),
-                                "reason": str(c.get("reason", "Entertaining dialogue")),
-                                "transcript_snippet": str(c.get("transcript_snippet", ""))
-                            })
-                    if clean_clips:
-                        print(f"[✓] Cohere Free ({cohere_model}) extracted {len(clean_clips)} moments!", flush=True)
-                        return clean_clips
-                else:
-                    print(f"[!] Cohere notice ({resp.status_code}): {resp.text[:150]}", flush=True)
-            except Exception as e:
-                print(f"[!] Cohere error with {cohere_model}: {e}", flush=True)
+    try:
+        print(f"[*] Analyzing highlights with Inception Labs (mercury-3)...", flush=True)
+        resp = requests.post(
+            f"{inc_base}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {inc_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "mercury-3",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.3,
+                "max_tokens": 4096
+            },
+            timeout=90
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"].strip()
+            if "```" in content:
+                m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", content)
+                if m:
+                    content = m.group(1).strip()
+            parsed = json.loads(content)
+            clean_clips = parse_and_clean_clips(parsed.get("clips"))
+            if clean_clips:
+                print(f"[✓] Inception Labs (mercury-3) extracted {len(clean_clips)} moments!", flush=True)
+                return clean_clips
+        else:
+            print(f"[!] Inception notice ({resp.status_code}): {resp.text[:150]}", flush=True)
+    except Exception as e:
+        print(f"[!] Inception error with mercury-3: {e}", flush=True)
 
-    # 2. Try OpenRouter Free models if available
+    return []
+
+
+def call_highlight_discovery(
+    transcript_text: str,
+    limit: int = 5,
+    category_filter: Optional[str] = None,
+    provider: str = "auto"
+) -> List[Dict[str, Any]]:
+    """Multi-tier AI highlight discovery dispatcher supporting user-selected providers."""
+    p_norm = (provider or "auto").strip().lower()
+
+    if p_norm == "cohere":
+        return call_cohere_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    elif p_norm == "agy" or p_norm == "gemini":
+        return call_agy_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    elif p_norm == "inception" or p_norm == "mercury":
+        return call_inception_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    elif p_norm == "openrouter":
+        return call_openrouter_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    elif p_norm == "heuristic":
+        return []
+
+    # 'auto' mode: try high-capacity Cohere -> Google AI Pro CLI -> Inception Labs -> OpenRouter
+    clips = call_cohere_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    if clips:
+        return clips
+
+    clips = call_agy_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    if clips:
+        return clips
+
+    clips = call_inception_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    if clips:
+        return clips
+
     if os.environ.get("OPENROUTER_API_KEY"):
-        or_clips = call_openrouter_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
-        if or_clips:
-            return or_clips
+        clips = call_openrouter_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+        if clips:
+            return clips
+
+    return []
+
+
+def call_gemini_highlight_discovery(
+    transcript_text: str,
+    limit: int = 5,
+    category_filter: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """Backwards-compatible wrapper routing to call_highlight_discovery."""
+    return call_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter, provider="auto")
 
     return []
 
@@ -575,12 +707,14 @@ def process_single_episode(
     audio_path: str,
     output_dir: str = "best_saved_clips",
     limit: int = 5,
-    category: Optional[str] = None
+    category: Optional[str] = None,
+    provider: str = "auto"
 ) -> List[Dict[str, Any]]:
     """Analyzes an episode transcript, extracts top highlight moments, and saves audio clips."""
     print(f"\n[*] Processing episode:")
     print(f"    Transcript: {json_path}")
     print(f"    Audio:      {audio_path}")
+    print(f"    Provider:   {provider}")
 
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -599,8 +733,7 @@ def process_single_episode(
         print("[!] No segments found in transcript JSON.")
         return []
 
-    # Gemini 2.5 Flash has a 1,000,000 token context window.
-    # We analyze up to 1,500 turns in one call (~25k tokens), eliminating fragmented rate-limit loops.
+    # Large context processing window
     WINDOW_SIZE = 1500
     OVERLAP = 100
     highlights = []
@@ -617,8 +750,8 @@ def process_single_episode(
                     txt = " ".join(w.get("word", "") for w in s["words"]).strip()
                 if txt:
                     dialogue_lines.append(f"[{st:.1f}s - {en:.1f}s] {spk}: {txt}")
-        print(f"[*] Sending {len(segments)} dialogue turns to Gemini in a single pass...")
-        highlights = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=limit, category_filter=category)
+        print(f"[*] Sending {len(segments)} dialogue turns to highlight discovery (provider: {provider})...")
+        highlights = call_highlight_discovery("\n".join(dialogue_lines), limit=limit, category_filter=category, provider=provider)
     else:
         print(f"[*] Transcript has {len(segments)} turns. Analyzing in windowed chunks of {WINDOW_SIZE}...")
         all_candidates = []
@@ -642,10 +775,11 @@ def process_single_episode(
                         dialogue_lines.append(f"[{st:.1f}s - {en:.1f}s] {spk}: {txt}")
             print(f"  [Window {w_idx + 1}/{num_windows}] Analyzing turns {start_i}-{end_i}...")
             try:
-                cand = call_gemini_highlight_discovery("\n".join(dialogue_lines), limit=max(2, limit // 2), category_filter=category)
+                cand = call_highlight_discovery("\n".join(dialogue_lines), limit=max(2, limit // 2), category_filter=category, provider=provider)
                 all_candidates.extend(cand)
             except Exception as w_err:
                 print(f"  [!] Window {w_idx + 1} notice: {w_err}")
+            time.sleep(1.0)
             time.sleep(1.0)
             
         # Deduplicate candidates within 15 seconds of each other, preferring higher viral score
@@ -694,7 +828,8 @@ def process_release(
     limit: int = 5,
     category: Optional[str] = None,
     force: bool = False,
-    token: Optional[str] = None
+    token: Optional[str] = None,
+    provider: str = "auto"
 ) -> List[Dict[str, Any]]:
     """Fetches transcript & audio from a GitHub Release, extracts highlight clips, and uploads them to the release."""
     import tempfile
@@ -705,7 +840,7 @@ def process_release(
         headers["Authorization"] = f"token {token}"
 
     print(f"\n========================================================")
-    print(f"[*] Processing Release: {release_tag}")
+    print(f"[*] Processing Release: {release_tag} (Provider: {provider})")
     print(f"========================================================")
 
     # 1. Fetch release details via gh cli or HTTP
@@ -778,7 +913,7 @@ def process_release(
         # Process and slice clips
         clips_work_dir = tmp_path / "clips_out"
         clips_work_dir.mkdir(parents=True, exist_ok=True)
-        clips = process_single_episode(str(local_json), str(local_mp3), str(clips_work_dir), limit=limit, category=category)
+        clips = process_single_episode(str(local_json), str(local_mp3), str(clips_work_dir), limit=limit, category=category, provider=provider)
 
         if not clips:
             print(f"[!] No clips were extracted for {release_tag}.")
@@ -845,6 +980,7 @@ def main():
     parser.add_argument("--output-dir", type=str, default="best_saved_clips", help="Output directory for saved clips (default: best_saved_clips)")
     parser.add_argument("--limit", type=int, default=5, help="Number of highlights to extract per episode (default: 5)")
     parser.add_argument("--category", type=str, default=None, help="Filter for specific category (e.g. 'humor', 'stories', 'rants')")
+    parser.add_argument("--provider", choices=["auto", "cohere", "agy", "gemini", "inception", "mercury", "openrouter", "heuristic"], default="auto", help="AI provider for highlight clip extraction (default: auto)")
 
     args = parser.parse_args()
 
@@ -861,7 +997,7 @@ def main():
             all_extracted_clips = []
 
     if args.release_tag:
-        clips = process_release(args.release_tag, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force)
+        clips = process_release(args.release_tag, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force, provider=args.provider)
         all_extracted_clips.extend(clips)
 
     elif args.batch_missing > 0:
@@ -885,13 +1021,13 @@ def main():
         print(f"[*] Found {len(targets)} candidate episode(s) to process: {', '.join(targets)}")
         for t in targets:
             try:
-                clips = process_release(t, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force)
+                clips = process_release(t, repo=args.repo, output_dir=args.output_dir, limit=args.limit, category=args.category, force=args.force, provider=args.provider)
                 all_extracted_clips.extend(clips)
             except Exception as e:
                 print(f"[!] Error processing release {t}: {e}")
 
     elif args.json and args.audio:
-        clips = process_single_episode(args.json, args.audio, args.output_dir, args.limit, args.category)
+        clips = process_single_episode(args.json, args.audio, args.output_dir, args.limit, args.category, provider=args.provider)
         all_extracted_clips.extend(clips)
         
         # Save episode-specific clips json for easy cloud release upload
@@ -921,7 +1057,7 @@ def main():
                     break
 
             if matching_mp3:
-                clips = process_single_episode(str(jf), matching_mp3, args.output_dir, args.limit, args.category)
+                clips = process_single_episode(str(jf), matching_mp3, args.output_dir, args.limit, args.category, provider=args.provider)
                 all_extracted_clips.extend(clips)
             else:
                 print(f"[!] No matching MP3 found in {work_dir}/ for {jf.name}. Skipping.")
