@@ -164,6 +164,7 @@ def transcribe_single(
     audio_file: Optional[str] = None,
     audio_url: Optional[str] = None,
     title: Optional[str] = None,
+    language: str = "en",
     repo: str = "aiandbotsgalore/copy-spaces-to-youtube-pipeline",
     modal_endpoint: str = DEFAULT_MODAL_ENDPOINT,
     upload_assets: bool = True,
@@ -200,7 +201,8 @@ def transcribe_single(
     post_data: Dict[str, Any] = {
         "title": active_title,
         "release_tag": release_tag or "ad-hoc",
-        "host_handle": host_handle
+        "host_handle": host_handle,
+        "language": language
     }
 
     if audio_file:
@@ -309,6 +311,7 @@ def main():
     parser.add_argument("--title", type=str, help="Optional title for the space")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--endpoint", type=str, default=DEFAULT_MODAL_ENDPOINT, help="Modal Webhook Endpoint URL")
+    parser.add_argument("--language", type=str, default="en", help="Language code (default: 'en')")
     parser.add_argument("--no-upload", action="store_true", help="Do not upload assets to GitHub release")
     parser.add_argument("--no-clips", action="store_true", help="Do not auto-generate highlight clips")
     parser.add_argument("--gh-token", type=str, help="GitHub token for API and release upload")
@@ -320,6 +323,7 @@ def main():
         audio_file=args.audio_file,
         audio_url=args.audio_url,
         title=args.title,
+        language=args.language,
         repo=args.repo,
         modal_endpoint=args.endpoint,
         upload_assets=not args.no_upload,

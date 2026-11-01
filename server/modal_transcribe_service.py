@@ -11,6 +11,12 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 import urllib.request
 
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 import modal
 
 # -----------------------------------------------------------------------------
@@ -202,6 +208,7 @@ def _execute_transcription(
     hf_token: str = "",
     enrolled_profiles: Optional[Dict[str, Any]] = None,
     whisper_model_name: str = "large-v3",
+    language: str = "en",
     vad_onset: float = 0.50,
 ) -> Dict[str, Any]:
     import torch
@@ -210,6 +217,7 @@ def _execute_transcription(
     from speechbrain.inference.speaker import EncoderClassifier
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    sb_device = "cuda:0" if device == "cuda" else "cpu"
     compute_type = "float16" if device == "cuda" else "int8"
     os.environ["HF_HOME"] = HF_CACHE
     os.environ["TORCH_HOME"] = TORCH_CACHE
@@ -218,7 +226,7 @@ def _execute_transcription(
     print(f"=======================================================")
     print(f"[*] SpacePipe Modal WhisperX: {title} ({release_tag or 'ad-hoc'})")
     print(f"    GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
-    print(f"    Model: {whisper_model_name} ({compute_type})")
+    print(f"    Model: {whisper_model_name} ({compute_type}), Language: {language}")
     print(f"=======================================================")
 
     with tempfile.TemporaryDirectory() as temp_dir_str:
@@ -258,7 +266,11 @@ def _execute_transcription(
         if active_hf_token:
             try:
                 print("[*] Initializing PyAnnote 3.1 neural diarization pipeline...")
-                diarize_pipeline = whisperx.DiarizationPipeline(use_auth_token=active_hf_token, device=device)
+                from whisperx.diarize import DiarizationPipeline
+                try:
+                    diarize_pipeline = DiarizationPipeline(token=active_hf_token, device=device)
+                except TypeError:
+                    diarize_pipeline = DiarizationPipeline(use_auth_token=active_hf_token, device=device)
             except Exception as e:
                 print(f"[!] Warning: PyAnnote initialization error: {e}")
         else:
@@ -271,7 +283,7 @@ def _execute_transcription(
         sb_classifier = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
             savedir=str(sb_dir),
-            run_opts={"device": device}
+            run_opts={"device": sb_device}
         )
 
         all_segments: List[Dict[str, Any]] = []
@@ -282,16 +294,24 @@ def _execute_transcription(
             print(f"\n--- Processing Chunk {c_idx}/{len(chunks)} ({offset_sec:.1f}s - {end_sec:.1f}s) ---")
             audio_arr = whisperx.load_audio(str(chunk_path))
 
-            # Transcribe
-            tx_res = model.transcribe(audio_arr, batch_size=16)
-            detected_lang = tx_res.get("language") or "en"
+            # Transcribe (lock to specified language, defaulting to English, to prevent intro music hallucinating other languages)
+            tx_res = model.transcribe(audio_arr, batch_size=16, language=language)
+            detected_lang = tx_res.get("language") or language or "en"
 
             # Align word timestamps
-            if detected_lang != "en":
-                cur_align_model, cur_meta = whisperx.load_align_model(language_code=detected_lang, device=device)
-                aligned_res = whisperx.align(tx_res["segments"], cur_align_model, cur_meta, audio_arr, device)
-            else:
-                aligned_res = whisperx.align(tx_res["segments"], align_model, align_metadata, audio_arr, device)
+            try:
+                if detected_lang != "en":
+                    cur_align_model, cur_meta = whisperx.load_align_model(language_code=detected_lang, device=device)
+                    aligned_res = whisperx.align(tx_res["segments"], cur_align_model, cur_meta, audio_arr, device)
+                else:
+                    aligned_res = whisperx.align(tx_res["segments"], align_model, align_metadata, audio_arr, device)
+            except Exception as align_err:
+                print(f"[!] Word alignment for language '{detected_lang}' failed: {align_err}. Retrying with English aligner...")
+                try:
+                    aligned_res = whisperx.align(tx_res["segments"], align_model, align_metadata, audio_arr, device)
+                except Exception as fallback_err:
+                    print(f"[!] Alignment fallback also failed: {fallback_err}. Retaining unaligned segments.")
+                    aligned_res = tx_res
 
             # Diarize
             if diarize_pipeline:
@@ -331,7 +351,7 @@ def _execute_transcription(
                 spk_turns.setdefault(spk_id, []).append(local_turn)
 
             for spk_id, turns in spk_turns.items():
-                emb = extract_speaker_embedding(sb_classifier, audio_arr, turns, device)
+                emb = extract_speaker_embedding(sb_classifier, audio_arr, turns, sb_device)
                 if emb is not None:
                     chunk_speaker_embeddings.setdefault(spk_id, []).append(emb)
 
@@ -483,6 +503,7 @@ def transcribe_job(
     hf_token: str = "",
     enrolled_profiles: Optional[Dict[str, Any]] = None,
     whisper_model_name: str = "large-v3",
+    language: str = "en",
     vad_onset: float = 0.50,
 ) -> Dict[str, Any]:
     return _execute_transcription(
@@ -493,6 +514,7 @@ def transcribe_job(
         hf_token=hf_token,
         enrolled_profiles=enrolled_profiles,
         whisper_model_name=whisper_model_name,
+        language=language,
         vad_onset=vad_onset,
     )
 
@@ -513,6 +535,8 @@ def transcribe_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
     release_tag = payload.get("release_tag") or ""
     host_handle = payload.get("host_handle") or ""
     hf_token = payload.get("hf_token") or os.environ.get("HF_TOKEN") or ""
+    language = payload.get("language") or "en"
+    whisper_model_name = payload.get("whisper_model_name") or "large-v3"
     enrolled_profiles = payload.get("enrolled_profiles")
 
     if not enrolled_profiles:
@@ -546,7 +570,9 @@ def transcribe_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
         release_tag=release_tag,
         host_handle=host_handle,
         hf_token=hf_token,
-        enrolled_profiles=enrolled_profiles
+        enrolled_profiles=enrolled_profiles,
+        whisper_model_name=whisper_model_name,
+        language=language
     )
 
 
