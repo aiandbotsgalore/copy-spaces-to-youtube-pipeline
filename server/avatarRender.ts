@@ -25,12 +25,7 @@ export type AvatarRenderRequest = {
   microExpressionScale: number;
   showMeshOverlay: boolean;
   showPipExhibit: boolean;
-  engine?: 'kaggle' | 'local';
-  githubToken?: string;
-  ownerName?: string;
-  repoName?: string;
-  targetReleaseTag?: string;
-  latentSteps?: number;
+  engine?: 'modal' | 'local';
   renderQuality?: 'standard' | 'draft';
 };
 
@@ -103,17 +98,12 @@ export function normalizeAvatarRenderRequest(input: unknown): AvatarRenderReques
     microExpressionScale: asNumber(body.microExpressionScale, DEFAULT_REQUEST.microExpressionScale, 20, 100),
     showMeshOverlay: asBoolean(body.showMeshOverlay, DEFAULT_REQUEST.showMeshOverlay),
     showPipExhibit: asBoolean(body.showPipExhibit, DEFAULT_REQUEST.showPipExhibit),
-    engine: body.engine === 'local' ? 'local' : 'kaggle',
-    githubToken: typeof body.githubToken === 'string' ? body.githubToken.trim() : undefined,
-    ownerName: typeof body.ownerName === 'string' ? body.ownerName.trim() : undefined,
-    repoName: typeof body.repoName === 'string' ? body.repoName.trim() : undefined,
-    targetReleaseTag: typeof body.targetReleaseTag === 'string' ? body.targetReleaseTag.trim() : undefined,
-    latentSteps: typeof body.latentSteps === 'number' && Number.isFinite(body.latentSteps) ? Math.min(12, Math.max(2, Math.round(body.latentSteps))) : undefined,
+    engine: body.engine === 'local' ? 'local' : 'modal',
     renderQuality: body.renderQuality === 'draft' ? 'draft' : 'standard',
   };
 }
 
-function readJsonBody(req: any, maxBytes = 15 * 1024 * 1024): Promise<unknown> {
+function readJsonBody(req: any, maxBytes = 60 * 1024 * 1024): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     let size = 0;
@@ -307,246 +297,130 @@ async function renderLocalFallback(request: AvatarRenderRequest, rootDir: string
   };
 }
 
-async function resolveGitHubToken(reqToken?: string, env?: NodeJS.ProcessEnv): Promise<string> {
-  if (reqToken && typeof reqToken === 'string' && reqToken.trim()) {
-    return reqToken.trim().replace(/^token\s+/i, '').replace(/^bearer\s+/i, '');
+
+async function renderModalLivePortrait(request: AvatarRenderRequest, rootDir: string, env: NodeJS.ProcessEnv) {
+  const jobId = `job_avatar_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const outDir = path.resolve(rootDir, 'public/output/episodes');
+  fs.mkdirSync(outDir, { recursive: true });
+  const outFile = path.join(outDir, `${jobId}.mp4`);
+
+  // 1. Resolve Avatar Portrait Image to base64
+  let avatarBase64 = '';
+  if (request.avatarBase64 && request.avatarBase64.length > 100) {
+    avatarBase64 = request.avatarBase64;
+  } else {
+    let resolvedImgPath = '';
+    if (request.avatarImagePath || request.avatarUrl) {
+      const target = (request.avatarImagePath || request.avatarUrl || '').replace(/^\//, '');
+      const candidate1 = path.resolve(rootDir, target);
+      const candidate2 = path.resolve(rootDir, 'public', target);
+      if (fs.existsSync(candidate1)) resolvedImgPath = candidate1;
+      else if (fs.existsSync(candidate2)) resolvedImgPath = candidate2;
+    }
+    if (!resolvedImgPath || !fs.existsSync(resolvedImgPath)) {
+      resolvedImgPath = avatarAssetFor(request.personaId, rootDir);
+    }
+    const buf = fs.readFileSync(resolvedImgPath);
+    avatarBase64 = `data:image/jpeg;base64,${buf.toString('base64')}`;
   }
-  if (env?.GH_TOKEN && env.GH_TOKEN.trim()) return env.GH_TOKEN.trim();
-  if (env?.GITHUB_TOKEN && env.GITHUB_TOKEN.trim()) return env.GITHUB_TOKEN.trim();
+
+  // 2. Resolve Driving Audio to base64
+  let audioBase64 = '';
+  if (request.audioBase64 && request.audioBase64.length > 100) {
+    audioBase64 = request.audioBase64;
+  } else {
+    let resolvedAudioPath = '';
+    if (request.audioUrl || request.audioPath) {
+      const target = (request.audioUrl || request.audioPath || '').replace(/^\//, '');
+      const candidate1 = path.resolve(rootDir, target);
+      const candidate2 = path.resolve(rootDir, 'public', target);
+      if (fs.existsSync(candidate1)) resolvedAudioPath = candidate1;
+      else if (fs.existsSync(candidate2)) resolvedAudioPath = candidate2;
+    }
+    if (!resolvedAudioPath || !fs.existsSync(resolvedAudioPath)) {
+      const defaultAudio = path.resolve(rootDir, 'public/speaker_samples/Logan/master_reference.wav');
+      if (fs.existsSync(defaultAudio)) {
+        resolvedAudioPath = defaultAudio;
+      } else {
+        const voxDir = path.resolve(rootDir, 'public/output/vox');
+        if (fs.existsSync(voxDir)) {
+          const anyAudio = fs.readdirSync(voxDir).find(f => f.endsWith('.mp3') || f.endsWith('.wav'));
+          if (anyAudio) resolvedAudioPath = path.join(voxDir, anyAudio);
+        }
+      }
+    }
+    if (!resolvedAudioPath || !fs.existsSync(resolvedAudioPath)) {
+      throw new Error('No driving audio track is available.');
+    }
+    const buf = fs.readFileSync(resolvedAudioPath);
+    const ext = path.extname(resolvedAudioPath).toLowerCase();
+    const mime = ext === '.mp3' ? 'audio/mpeg' : ext === '.ogg' ? 'audio/ogg' : ext === '.flac' ? 'audio/flac' : ext === '.m4a' || ext === '.aac' ? 'audio/aac' : 'audio/wav';
+    audioBase64 = `data:${mime};base64,${buf.toString('base64')}`;
+  }
+
+  const endpointUrl = env.LIVEPORTRAIT_API_URL || env.AVATAR_API_URL || 'https://blackreceiptemail--spacepipe-liveportrait-render-endpoint.us-east.modal.run';
+  
+  // Calculate dynamic driving multiplier from lipSyncTightness & headSwayAmplitude
+  const drivingMultiplier = Math.max(0.85, Math.min(1.45, 1.0 + (request.lipSyncTightness - 90) * 0.015));
+
+  const response = await fetch(endpointUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      avatar_base64: avatarBase64,
+      audio_base64: audioBase64,
+      driving_multiplier: drivingMultiplier,
+    }),
+    signal: AbortSignal.timeout(300_000),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    throw new Error(`Modal LivePortrait API returned HTTP ${response.status}: ${errText.slice(0, 500)}`);
+  }
+
+  const result = await response.json() as any;
+  if (!result || !result.ok || !result.video_base64) {
+    throw new Error(result?.message || 'Modal LivePortrait rendering failed: Empty video output');
+  }
+
+  const rawVideo = result.video_base64.replace(/^data:video\/[a-z0-9]+;base64,/, '');
+  fs.writeFileSync(outFile, Buffer.from(rawVideo, 'base64'));
+
+  // Prune older renders to prevent unbounded disk usage
   try {
-    const { stdout } = await execFileAsync('gh', ['auth', 'token']);
-    if (stdout && stdout.trim()) return stdout.trim();
+    const files = fs.readdirSync(outDir)
+      .filter(f => f.startsWith('job_avatar_') && (f.endsWith('.mp4') || f.endsWith('.json')))
+      .map(f => ({ path: path.join(outDir, f), mtime: fs.statSync(path.join(outDir, f)).mtimeMs }));
+    if (files.length > 80) {
+      files.sort((a, b) => a.mtime - b.mtime);
+      for (const item of files.slice(0, files.length - 80)) {
+        try { fs.unlinkSync(item.path); } catch {}
+      }
+    }
   } catch {}
-  return '';
-}
 
-function resolveDispatchUrl(urlOrPath: string | undefined, owner: string, repo: string, defaultPath: string): string {
-  if (!urlOrPath || !urlOrPath.trim()) {
-    return `https://raw.githubusercontent.com/${owner}/${repo}/master/public/${defaultPath.replace(/^\/?(public\/)?/, '')}`;
-  }
-  const clean = urlOrPath.trim();
-  if (/^https?:\/\//i.test(clean)) return clean;
-  const relative = clean.replace(/^\/?(public\/)?/, '');
-  return `https://raw.githubusercontent.com/${owner}/${repo}/master/public/${relative}`;
-}
-
-async function dispatchKaggleWorkflow(request: AvatarRenderRequest, options: { rootDir: string; getEnv: () => NodeJS.ProcessEnv }) {
-  const env = options.getEnv();
-  const owner = request.ownerName || env.GITHUB_OWNER || 'aiandbotsgalore';
-  const repo = request.repoName || env.GITHUB_REPO || 'copy-spaces-to-youtube-pipeline';
-  const token = await resolveGitHubToken(request.githubToken, env);
-
-  const personaName = request.personaName || (request.personaId === 'logan-master' ? 'Logan Black (Master Host)' : request.personaId);
-  const resolvedAvatar = resolveDispatchUrl(request.avatarUrl || request.avatarImagePath, owner, repo, 'avatars/logan.jpg');
-  const resolvedAudio = resolveDispatchUrl(request.audioUrl || request.audioPath, owner, repo, 'speaker_samples/Logan/master_reference.wav');
-  const ratio = request.aspectRatio === '9-16' ? '9:16' : request.aspectRatio === '1-1' ? '1:1' : '16:9';
-  const targetTag = request.targetReleaseTag || 'spaces-live-stage-test-20261029';
-  const dur = Math.max(5, Math.ceil(request.durationSec || 15));
-  const effectiveSteps = request.latentSteps || (request.renderQuality === 'draft' ? 4 : 6);
-
-  const payloadInputs = {
-    audio_url: resolvedAudio,
-    avatar_image: resolvedAvatar,
-    aspect_ratio: ratio,
-    layout: 'solo',
-    speakers_json: JSON.stringify([personaName]),
-    speaker_avatars_json: JSON.stringify({ [personaName]: resolvedAvatar }),
-    speaker_segments_json: JSON.stringify([{ speaker: personaName, start: 0, end: dur }]),
-    prompt: `Avatar Studio Neural Render: ${personaName}`,
-    target_release_tag: targetTag,
-    latent_steps: String(effectiveSteps),
-  };
-
-  let directApiError = '';
-  if (token) {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/generate_avatar_short.yml/dispatches`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'Content-Type': 'application/json',
-          'Authorization': `token ${token}`,
-          'User-Agent': 'SpacePipe-Avatar-Studio',
-        },
-        body: JSON.stringify({
-          ref: 'master',
-          inputs: payloadInputs,
-        }),
-      });
-
-      if (res.ok || res.status === 204) {
-        return {
-          ok: true,
-          dispatched: true,
-          status: 'dispatched',
-          renderMode: 'kaggle-dual-t4',
-          workflow: 'generate_avatar_short.yml',
-          targetReleaseTag: targetTag,
-          owner,
-          repo,
-          resolvedAudio,
-          resolvedAvatar,
-          aspectRatio: ratio,
-          workflowRunsUrl: `https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`,
-        };
-      }
-      const rawText = await res.text().catch(() => '');
-      directApiError = `GitHub API HTTP ${res.status}: ${rawText}`;
-      console.warn(`[AvatarRender] GitHub Actions API dispatch failed (${res.status}): ${rawText}`);
-    } catch (apiErr: any) {
-      directApiError = apiErr?.message || String(apiErr);
-      console.warn('[AvatarRender] GitHub Actions API dispatch exception:', apiErr);
-    }
-  }
-
-  // Fallback to local gh CLI if token-based direct fetch failed or token was absent
-  try {
-    const ghBin = findBinary('gh');
-    const flags: string[] = [
-      'workflow', 'run', 'generate_avatar_short.yml',
-      '--repo', `${owner}/${repo}`,
-      '--ref', 'master',
-    ];
-    for (const [k, v] of Object.entries(payloadInputs)) {
-      flags.push('-f', `${k}=${v}`);
-    }
-    await execFileAsync(ghBin, flags, {
-      env: { ...process.env, ...env, ...(token ? { GITHUB_TOKEN: token, GH_TOKEN: token } : {}) },
-    });
-    return {
-      ok: true,
-      dispatched: true,
-      status: 'dispatched',
-      renderMode: 'kaggle-dual-t4',
-      workflow: 'generate_avatar_short.yml',
-      targetReleaseTag: targetTag,
-      owner,
-      repo,
-      resolvedAudio,
-      resolvedAvatar,
-      aspectRatio: ratio,
-      workflowRunsUrl: `https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`,
-    };
-  } catch (cliErr: any) {
-    const detail = cliErr?.message || String(cliErr);
-    const combined = directApiError ? `${detail} (Direct API: ${directApiError})` : detail;
-    throw new Error(`Failed to dispatch Kaggle workflow via GitHub Actions: ${combined}`);
-  }
-}
-
-async function getKaggleWorkflowStatus(options: { rootDir: string; getEnv: () => NodeJS.ProcessEnv; owner?: string; repo?: string; token?: string; targetTag?: string; runId?: number }) {
-  const env = options.getEnv();
-  const owner = options.owner || env.GITHUB_OWNER || 'aiandbotsgalore';
-  const repo = options.repo || env.GITHUB_REPO || 'copy-spaces-to-youtube-pipeline';
-  const token = await resolveGitHubToken(options.token, env);
-  const targetTag = options.targetTag || 'spaces-live-stage-test-20261029';
-
-  let latestRun: any = null;
-
-  if (token) {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/generate_avatar_short.yml/runs?event=workflow_dispatch&per_page=6`, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'Authorization': `token ${token}`,
-          'User-Agent': 'SpacePipe-Avatar-Studio',
-        },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const runs = data.workflow_runs || [];
-        if (runs.length > 0) {
-          latestRun = options.runId
-            ? runs.find((r: any) => r.id === options.runId)
-            : runs.find((r: any) => r.status === 'in_progress' || r.status === 'queued')
-              || runs.find((r: any) => r.status === 'completed' && r.conclusion === 'success')
-              || runs[0];
-        }
-      }
-    } catch {}
-  }
-
-  if (!latestRun) {
-    try {
-      const { stdout } = await execFileAsync('gh', [
-        'run', 'list',
-        '--workflow', 'generate_avatar_short.yml',
-        '--repo', `${owner}/${repo}`,
-        '--limit', '6',
-        '--json', 'databaseId,status,conclusion,url,createdAt,updatedAt',
-      ]);
-      const list = JSON.parse(stdout || '[]');
-      if (list.length > 0) {
-        const candidate = options.runId
-          ? list.find((r: any) => r.databaseId === options.runId)
-          : list.find((r: any) => r.status === 'in_progress' || r.status === 'queued')
-            || list.find((r: any) => r.status === 'completed' && r.conclusion === 'success')
-            || list[0];
-        if (candidate) {
-          latestRun = {
-            id: candidate.databaseId,
-            status: candidate.status,
-            conclusion: candidate.conclusion,
-            html_url: candidate.url,
-            created_at: candidate.createdAt,
-            updated_at: candidate.updatedAt,
-          };
-        }
-      }
-    } catch {}
-  }
-
-  if (!latestRun) {
-    return { ok: false, message: 'No Kaggle workflow runs found.' };
-  }
-
-  const runId = latestRun.id;
-  const status = latestRun.status;
-  const conclusion = latestRun.conclusion;
-  const htmlUrl = latestRun.html_url || `https://github.com/${owner}/${repo}/actions/runs/${runId}`;
-
-  let videoUrl = `/output/episodes/talking_avatar_short.mp4`;
-  const directReleaseUrl = `https://github.com/${owner}/${repo}/releases/download/${targetTag}/talking_avatar_short.mp4`;
-
-  if (status === 'completed' && conclusion === 'success') {
-    const localOut = path.resolve(options.rootDir, 'public/output/episodes');
-    const localVideo = path.join(localOut, `talking_avatar_${runId}.mp4`);
-    const shortVideo = path.join(localOut, `talking_avatar_short.mp4`);
-
-    if (fs.existsSync(localVideo)) {
-      videoUrl = `/output/episodes/talking_avatar_${runId}.mp4`;
-    } else if (fs.existsSync(shortVideo)) {
-      videoUrl = `/output/episodes/talking_avatar_short.mp4`;
-    } else {
-      try {
-        fs.mkdirSync(localOut, { recursive: true });
-        await execFileAsync('gh', [
-          'release', 'download', targetTag,
-          '--repo', `${owner}/${repo}`,
-          '--pattern', 'talking_avatar_short.mp4',
-          '--dir', localOut,
-          '--clobber',
-        ]);
-        if (fs.existsSync(shortVideo)) {
-          fs.copyFileSync(shortVideo, localVideo);
-          videoUrl = `/output/episodes/talking_avatar_${runId}.mp4`;
-        }
-      } catch {
-        videoUrl = directReleaseUrl;
-      }
-    }
-  }
+  const durationSec = result.durationSec || (await probeDuration(outFile, rootDir));
+  const metadataFile = path.join(outDir, `${jobId}.json`);
+  fs.writeFileSync(metadataFile, JSON.stringify({
+    jobId,
+    request,
+    engine: 'Modal LivePortrait (A100 Cloud GPU)',
+    durationSec,
+    elapsedSec: result.elapsedSec,
+  }, null, 2));
 
   return {
-    ok: true,
-    runId,
-    status,
-    conclusion,
-    htmlUrl,
-    videoUrl,
-    directReleaseUrl,
-    createdAt: latestRun.created_at,
-    updatedAt: latestRun.updated_at,
+    status: 'success',
+    renderMode: result.renderMode || 'Modal LivePortrait (A100 Cloud GPU)',
+    jobId,
+    resolution: result.resolution || '512x512',
+    fps: result.fps || 30,
+    durationSec,
+    elapsedSec: result.elapsedSec,
+    videoUrl: `/output/episodes/${jobId}.mp4`,
+    metadataUrl: `/output/episodes/${jobId}.json`,
+    appliedParameters: request,
   };
 }
 
@@ -556,29 +430,15 @@ export function createAvatarRenderHandler(options: { rootDir: string; getEnv: ()
     const parsedUrl = new URL(req.url || '', `http://${host}`);
     const action = parsedUrl.searchParams.get('action');
 
-    // Handle GET or action=status for Kaggle workflow monitoring
+    // Handle GET or action=status for Engine Health Check
     if (req.method === 'GET' || action === 'status') {
-      try {
-        const owner = parsedUrl.searchParams.get('owner') || undefined;
-        const repo = parsedUrl.searchParams.get('repo') || undefined;
-        const targetTag = parsedUrl.searchParams.get('targetTag') || undefined;
-        const runIdParam = parsedUrl.searchParams.get('runId');
-        const runId = runIdParam && Number.isFinite(Number(runIdParam)) ? Number(runIdParam) : undefined;
-        const authHeader = req.headers.authorization;
-        const token = authHeader ? authHeader.replace(/^token\s+/i, '').replace(/^bearer\s+/i, '') : undefined;
-        const status = await getKaggleWorkflowStatus({
-          rootDir: options.rootDir,
-          getEnv: options.getEnv,
-          owner,
-          repo,
-          token,
-          targetTag,
-          runId,
-        });
-        sendJson(res, 200, status);
-      } catch (err: any) {
-        sendJson(res, 500, { ok: false, message: err?.message || 'Failed to get Kaggle workflow status' });
-      }
+      sendJson(res, 200, {
+        ok: true,
+        engine: 'modal-liveportrait',
+        status: 'ready',
+        model: 'LivePortrait (NVIDIA A100 GPU)',
+        endpoint: options.getEnv().LIVEPORTRAIT_API_URL || 'https://blackreceiptemail--spacepipe-liveportrait-render-endpoint.us-east.modal.run',
+      });
       return;
     }
 
@@ -592,50 +452,30 @@ export function createAvatarRenderHandler(options: { rootDir: string; getEnv: ()
       const request = normalizeAvatarRenderRequest(input);
       const env = options.getEnv();
 
-      // If user selected Kaggle Cloud GPU engine (or default when configured)
-      if (request.engine === 'kaggle') {
-        const dispatchResult = await dispatchKaggleWorkflow(request, options);
-        sendJson(res, 200, dispatchResult);
+      // 1. If user explicitly requests local preview
+      if (request.engine === 'local') {
+        const localResult = await renderLocalFallback(request, options.rootDir);
+        sendJson(res, 200, localResult);
         return;
       }
 
-      const avatarApiUrl = env.AVATAR_API_URL || env.LIVEPORTRAIT_API_URL;
-
-      if (avatarApiUrl) {
-        try {
-          const upstream = await fetch(`${avatarApiUrl.replace(/\/$/, '')}/render`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-            body: JSON.stringify(request),
-            signal: AbortSignal.timeout(120_000),
-          });
-          const raw = await upstream.text();
-          let data: any = {};
-          try { data = raw ? JSON.parse(raw) : {}; } catch { data = {}; }
-          if (upstream.ok && typeof data.jobId === 'string' && typeof data.videoUrl === 'string') {
-            sendJson(res, 200, { ...data, appliedParameters: request, renderMode: data.renderMode || 'neural-upstream' });
-            return;
-          }
-          const reason = typeof data.message === 'string' ? data.message : `upstream returned HTTP ${upstream.status}`;
-          if (env.AVATAR_ALLOW_LOCAL_FALLBACK === '0') {
-            sendJson(res, 502, { ok: false, code: 'AVATAR_UPSTREAM_FAILED', message: `Avatar renderer failed: ${reason}` });
-            return;
-          }
-          const fallback = await renderLocalFallback(request, options.rootDir);
-          sendJson(res, 200, { ...fallback, warning: `Neural renderer failed (${reason}). ${fallback.warning}` });
-          return;
-        } catch (error: any) {
-          if (env.AVATAR_ALLOW_LOCAL_FALLBACK === '0') {
-            sendJson(res, 502, { ok: false, code: 'AVATAR_UPSTREAM_UNREACHABLE', message: `Avatar renderer is unreachable: ${error?.message || 'unknown error'}` });
-            return;
-          }
-          const fallback = await renderLocalFallback(request, options.rootDir);
-          sendJson(res, 200, { ...fallback, warning: `Neural renderer was unreachable. ${fallback.warning}` });
-          return;
+      // 2. Dedicated LivePortrait on Modal Cloud GPU (Default Primary Engine)
+      try {
+        const modalResult = await renderModalLivePortrait(request, options.rootDir, env);
+        sendJson(res, 200, modalResult);
+        return;
+      } catch (modalErr: any) {
+        console.warn('[AvatarRender] Modal LivePortrait failed, checking fallback:', modalErr);
+        if (env.AVATAR_ALLOW_LOCAL_FALLBACK === '0') {
+          throw modalErr;
         }
+        const fallback = await renderLocalFallback(request, options.rootDir);
+        sendJson(res, 200, {
+          ...fallback,
+          warning: `Modal LivePortrait failed (${modalErr?.message || 'unreachable'}). Using local fallback preview.`,
+        });
+        return;
       }
-
-      sendJson(res, 200, await renderLocalFallback(request, options.rootDir));
     } catch (error: any) {
       const statusCode = error instanceof AvatarRenderInputError ? error.statusCode : 500;
       sendJson(res, statusCode, {

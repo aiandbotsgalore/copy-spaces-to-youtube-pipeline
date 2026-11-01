@@ -9,6 +9,7 @@ import { createVoxSynthesizeHandler } from './server/voxSynthesize';
 import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
 import { createOutputStatic } from './server/serveFile';
 import { createAvatarRenderHandler } from './server/avatarRender';
+import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -122,6 +123,12 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
   // renderer failures live in one async handler so the UI never receives a
   // false success after a rejected FFmpeg process.
   middlewares.use('/api/avatar/render', createAvatarRenderHandler({
+    rootDir: __dirname,
+    getEnv: () => ({ ...process.env, ...env }),
+  }));
+
+  // Modal WhisperX + PyAnnote 3.1 Neural Cloud Transcription API
+  middlewares.use('/api/transcribe/modal', createModalTranscribeHandler({
     rootDir: __dirname,
     getEnv: () => ({ ...process.env, ...env }),
   }));

@@ -5,14 +5,14 @@ import { normalizeLineEndings } from './posixUtils';
 
 export const generateIngestYaml = (config: EnhancedConfig): string => {
   const transcriptionStep = config.enableTranscription ? `
-      - name: Trigger Free Cloud GPU Transcription (Kaggle)
+      - name: Trigger Cloud GPU Transcription (Modal)
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: \${{ steps.process.outputs.release_tag }}
         run: |
-          echo "Dispatching kaggle_transcribe.yml for release: $RELEASE_TAG"
-          gh workflow run kaggle_transcribe.yml -f release_tag="$RELEASE_TAG" || echo "Workflow dispatch failed"
+          echo "Dispatching transcribe_episode.yml for release: $RELEASE_TAG"
+          gh workflow run transcribe_episode.yml -f release_tag="$RELEASE_TAG" || echo "Workflow dispatch failed"
 ` : '';
 
   const slackStep = config.enableSlackWebhook ? `

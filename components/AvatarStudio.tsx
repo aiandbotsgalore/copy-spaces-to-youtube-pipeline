@@ -284,23 +284,14 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   const [volume, setVolume] = useState(1.0);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Generation Engine State
-  const [renderEngine, setRenderEngine] = useState<'kaggle' | 'local'>('kaggle');
+  // Generation Engine State: LivePortrait on Modal Cloud GPU (primary) vs Local FFmpeg Preview
+  const [renderEngine, setRenderEngine] = useState<'modal' | 'local'>('modal');
   const [latentSteps, setLatentSteps] = useState<number>(6);
   const [isRendering, setIsRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [renderedJob, setRenderedJob] = useState<RenderedAvatarJob | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [renderWarning, setRenderWarning] = useState<string | null>(null);
-  const [kaggleRunStatus, setKaggleRunStatus] = useState<{
-    runId?: number;
-    status?: string;
-    conclusion?: string;
-    url?: string;
-    stageText?: string;
-  } | null>(null);
-  const [isPollingKaggle, setIsPollingKaggle] = useState(false);
-  const kagglePollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const renderAbortRef = useRef<AbortController | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -320,37 +311,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   useEffect(() => () => {
     renderAbortRef.current?.abort();
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    if (kagglePollTimerRef.current) clearInterval(kagglePollTimerRef.current);
   }, []);
-
-  // Check for active or recently completed Kaggle GPU render on mount
-  useEffect(() => {
-    let active = true;
-    const owner = config.ownerName || 'aiandbotsgalore';
-    const repo = config.repoName || 'copy-spaces-to-youtube-pipeline';
-    fetch(`/api/avatar/render?action=status&owner=${owner}&repo=${repo}&targetTag=spaces-live-stage-test-20261029`)
-      .then(res => res.json())
-      .then(data => {
-        if (!active || !data || !data.ok) return;
-        setKaggleRunStatus({
-          runId: data.runId,
-          status: data.status,
-          conclusion: data.conclusion,
-          url: data.htmlUrl,
-          stageText: data.status === 'in_progress'
-            ? 'Kaggle Dual-T4 active: synthesizing EchoMimic / Wav2Lip neural lip-sync...'
-            : data.status === 'queued'
-              ? 'Job queued on GitHub runner / Kaggle pool...'
-              : `Job ${data.status} (${data.conclusion || 'ready'})`
-        });
-        if (data.status === 'in_progress' || data.status === 'queued') {
-          setIsRendering(true);
-          setIsPollingKaggle(true);
-        }
-      })
-      .catch(() => {});
-    return () => { active = false; };
-  }, [config.ownerName, config.repoName]);
 
   // Sync totalDuration whenever selectedAudio changes
   useEffect(() => {
@@ -479,10 +440,6 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   // ── TRIGGER VIDEO RENDER PIPELINE ──
   const handleRenderVideo = async () => {
     renderAbortRef.current?.abort();
-    if (kagglePollTimerRef.current) {
-      clearInterval(kagglePollTimerRef.current);
-      kagglePollTimerRef.current = null;
-    }
     const controller = new AbortController();
     renderAbortRef.current = controller;
 
@@ -500,22 +457,18 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       const owner = config.ownerName || 'aiandbotsgalore';
       const repo = config.repoName || 'copy-spaces-to-youtube-pipeline';
 
-      // ── MODE 1: CLOUD GPU (KAGGLE DUAL-T4 + ECHOMIMIC / WAV2LIP) ──
-      if (renderEngine === 'kaggle') {
+      // ── MODE 1: CLOUD GPU (MODAL A100 + LIVEPORTRAIT) ──
+      if (renderEngine === 'modal') {
         const payload: Record<string, any> = {
-          engine: 'kaggle',
+          engine: 'modal',
           personaId: selectedPersona.id,
           personaName: selectedPersona.name,
           avatarUrl: selectedPersona.avatarUrl,
+          avatarBase64: selectedPersona.isCustom ? selectedPersona.avatarUrl : undefined,
           audioUrl: selectedAudio.url,
+          audioBase64: selectedAudio.base64,
           durationSec: totalDuration,
           aspectRatio,
-          ownerName: owner,
-          repoName: repo,
-          githubToken: config.githubToken,
-          targetReleaseTag: 'spaces-live-stage-test-20261029',
-          latentSteps,
-          renderQuality: latentSteps <= 4 ? 'draft' : 'standard',
           lipSyncTightness,
           headSwayAmplitude,
           eyeGazeMode,
@@ -525,97 +478,56 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
           showPipExhibit,
         };
 
-        const res = await fetch('/api/avatar/render', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(config.githubToken ? { 'Authorization': `token ${config.githubToken}` } : {})
-          },
-          signal: controller.signal,
-          body: JSON.stringify(payload)
-        });
+        showToast('🚀 Synthesizing photorealistic LivePortrait talking avatar on Modal A100 GPU...');
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || (!data.ok && !data.dispatched && data.status !== 'dispatched')) {
-          const detail = data.message || data.error || (res.status === 401 ? 'GitHub token unauthorized or expired' : `Workflow dispatch failed (HTTP ${res.status})`);
-          throw new Error(detail);
-        }
+        // Smoothly advance progress while Modal GPU runs (~60-90s)
+        const modalTimer = setInterval(() => {
+          setRenderProgress(p => (p < 95 ? p + 2 : p));
+        }, 1500);
 
-        clearInterval(progressTimer);
-        setRenderProgress(25);
-        showToast('🚀 Kaggle Dual-T4 GPU worker dispatched! Monitoring neural render...');
-        setIsPollingKaggle(true);
-        const workflowUrl = data.workflowRunsUrl || `https://github.com/${owner}/${repo}/actions/workflows/generate_avatar_short.yml`;
-        setKaggleRunStatus({
-          status: 'queued',
-          stageText: 'Dispatched to Kaggle Dual-T4 Cloud GPU pool. Awaiting runner...',
-          url: workflowUrl,
-        });
+        try {
+          const res = await fetch('/api/avatar/render', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify(payload),
+          });
 
-        let pollCount = 0;
-        const pollInterval = setInterval(async () => {
-          pollCount++;
-          try {
-            const statusRes = await fetch(`/api/avatar/render?action=status&owner=${owner}&repo=${repo}&targetTag=spaces-live-stage-test-20261029`, {
-              headers: {
-                ...(config.githubToken ? { 'Authorization': `token ${config.githubToken}` } : {})
-              }
-            });
-            const statusData = await statusRes.json().catch(() => ({}));
-            if (statusData && statusData.ok) {
-              const runUrl = statusData.htmlUrl || workflowUrl;
-              setKaggleRunStatus({
-                runId: statusData.runId,
-                status: statusData.status,
-                conclusion: statusData.conclusion,
-                url: runUrl,
-                stageText: statusData.status === 'in_progress'
-                  ? 'Kaggle Dual-T4 active: synthesizing EchoMimic / Wav2Lip neural lip-sync...'
-                  : statusData.status === 'queued'
-                    ? 'Job queued on GitHub runner / Kaggle pool...'
-                    : `Job ${statusData.status} (${statusData.conclusion || 'processing'})`
-              });
+          clearInterval(modalTimer);
+          clearInterval(progressTimer);
 
-              if (statusData.status === 'in_progress') {
-                setRenderProgress(p => Math.min(92, Math.max(p, 30 + Math.min(55, pollCount * 3))));
-              }
-
-              if (statusData.status === 'completed') {
-                clearInterval(pollInterval);
-                if (kagglePollTimerRef.current === pollInterval) {
-                  kagglePollTimerRef.current = null;
-                }
-                setIsPollingKaggle(false);
-                setIsRendering(false);
-
-                if (statusData.conclusion === 'success') {
-                  setRenderProgress(100);
-                  const effectiveVideoUrl = statusData.videoUrl || statusData.directReleaseUrl || '/output/episodes/talking_avatar_short.mp4';
-                  setRenderedJob({
-                    jobId: `kaggle_${statusData.runId || Date.now()}`,
-                    resolution: aspectRatio === '9-16' ? '1080x1920' : aspectRatio === '1-1' ? '1080x1080' : '1920x1080',
-                    fps: 30,
-                    durationSec: totalDuration,
-                    renderMode: 'Kaggle Dual-T4 (EchoMimic Neural LipSync)',
-                    videoUrl: effectiveVideoUrl,
-                  });
-                  setRenderWarning(null);
-                  showToast('🎉 Neural Talking Avatar rendered with Kaggle Dual-T4 GPU!');
-                } else {
-                  const errMsg = `Kaggle GPU run ended with: ${statusData.conclusion || 'failed'}.`;
-                  setRenderError(errMsg);
-                  setRenderProgress(0);
-                  showToast(`❌ ${errMsg}`);
-                }
-              }
-            }
-          } catch (pollErr: any) {
-            console.warn('Kaggle status poll error:', pollErr);
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.message || data.error || `Modal render failed (HTTP ${res.status}).`);
           }
-        }, 8000);
+          if (!data || typeof data.jobId !== 'string' || typeof data.videoUrl !== 'string') {
+            throw new Error('LivePortrait renderer returned an incomplete job response.');
+          }
+          if (renderAbortRef.current !== controller) return;
 
-        kagglePollTimerRef.current = pollInterval;
-        return;
+          setRenderProgress(100);
+          setRenderedJob({
+            jobId: data.jobId,
+            resolution: typeof data.resolution === 'string' ? data.resolution : '512x512',
+            fps: Number.isFinite(Number(data.fps)) ? Number(data.fps) : 30,
+            durationSec: Number.isFinite(Number(data.durationSec)) ? Number(data.durationSec) : totalDuration,
+            renderMode: typeof data.renderMode === 'string' ? data.renderMode : 'Modal LivePortrait (A100 Cloud GPU)',
+            warning: typeof data.warning === 'string' ? data.warning : undefined,
+            videoUrl: data.videoUrl,
+          });
+
+          if (Number.isFinite(Number(data.durationSec)) && Number(data.durationSec) > 0) {
+            setTotalDuration(Number(data.durationSec));
+            setCurrentTime(0);
+          }
+
+          setIsRendering(false);
+          showToast(`🎉 Photorealistic LivePortrait talking avatar rendered in ${data.elapsedSec || 60}s!`);
+          return;
+        } catch (mErr: any) {
+          clearInterval(modalTimer);
+          throw mErr;
+        }
       }
 
       // ── MODE 2: LOCAL FFmpeg DRAFT PREVIEW ──
@@ -683,15 +595,10 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       setRenderedJob(null);
       setRenderProgress(0);
       setIsRendering(false);
-      setIsPollingKaggle(false);
-      if (kagglePollTimerRef.current) {
-        clearInterval(kagglePollTimerRef.current);
-        kagglePollTimerRef.current = null;
-      }
       showToast(`❌ ${message}`);
     } finally {
       clearInterval(progressTimer);
-      if (renderAbortRef.current === controller && renderEngine !== 'kaggle') {
+      if (renderAbortRef.current === controller) {
         renderAbortRef.current = null;
         setIsRendering(false);
       }
@@ -927,35 +834,6 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
         </div>
       )}
 
-      {/* ── KAGGLE FINISHED BANNER ── */}
-      {kaggleRunStatus?.status === 'completed' && kaggleRunStatus?.conclusion === 'success' && !renderedJob && !renderError && (
-        <div className="mx-6 mt-4 p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-emerald-200 text-xs flex items-center justify-between gap-3 animate-in fade-in">
-          <div className="flex items-center gap-2.5">
-            <Check size={16} className="text-emerald-400 shrink-0" />
-            <div>
-              <p className="font-bold text-white">🎉 Kaggle Dual-T4 Neural Avatar Video is Ready! (Job #{kaggleRunStatus.runId})</p>
-              <p className="text-[11px] text-emerald-300/80">Completed on GitHub Actions with EchoMimic / Wav2Lip neural lip-sync.</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              setRenderedJob({
-                jobId: `kaggle_${kaggleRunStatus.runId || Date.now()}`,
-                resolution: aspectRatio === '9-16' ? '1080x1920' : aspectRatio === '1-1' ? '1080x1080' : '1920x1080',
-                fps: 30,
-                durationSec: totalDuration,
-                renderMode: 'Kaggle Dual-T4 (EchoMimic Neural LipSync)',
-                videoUrl: `/output/episodes/talking_avatar_short.mp4?t=${Date.now()}`,
-              });
-              showToast('🎬 Loaded Kaggle Dual-T4 Neural Avatar video!');
-            }}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-900/40 cursor-pointer shrink-0 transition-colors"
-          >
-            Load Rendered Video
-          </button>
-        </div>
-      )}
 
       {/* ── TOP HEADER / ACCELERATION BADGE ── */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -970,11 +848,11 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
               </h1>
               <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 font-mono border border-cyan-500/30 flex items-center gap-1.5 shadow-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                LivePortrait / EchoMimic Pipeline Ready
+                LivePortrait Dedicated Engine Ready (Modal A100 GPU)
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              4-Step End-to-End Workflow: Face Rig → Driving Audio → Performance Calibration → 4K Neural Export
+              4-Step End-to-End Workflow: Face Rig → Driving Audio → Performance Calibration → Neural Export
             </p>
           </div>
         </div>
@@ -1015,7 +893,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
             onClick={handleRenderVideo}
             disabled={isRendering}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-lg transition-all cursor-pointer disabled:opacity-50 ${
-              renderEngine === 'kaggle'
+              renderEngine === 'modal'
                 ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 shadow-purple-900/40'
                 : 'bg-gradient-to-r from-indigo-600 to-slate-700 hover:from-indigo-500 hover:to-slate-600 shadow-indigo-900/30'
             }`}
@@ -1023,16 +901,16 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
             {isRendering ? (
               <>
                 <RefreshCw size={14} className="animate-spin" />
-                <span>{renderEngine === 'kaggle' ? 'Cloud GPU' : 'Rendering'} {renderProgress}%</span>
+                <span>{renderEngine === 'modal' ? 'LivePortrait GPU' : 'Rendering'} {renderProgress}%</span>
               </>
             ) : (
               <>
-                {renderEngine === 'kaggle' ? (
+                {renderEngine === 'modal' ? (
                   <Sparkles size={14} className="text-amber-300 fill-amber-300" />
                 ) : (
                   <Zap size={14} className="fill-current" />
                 )}
-                <span>{renderEngine === 'kaggle' ? 'Render Episode (Kaggle Dual-T4)' : 'Render Draft (Local Preview)'}</span>
+                <span>{renderEngine === 'modal' ? 'Render Episode (LivePortrait A100)' : 'Render Draft (Local Preview)'}</span>
               </>
             )}
           </button>
@@ -1276,7 +1154,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                 <div className="mt-3 flex items-center gap-3 bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-full border border-slate-700 shadow-xl">
                   <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Rendered MP4 Active ({renderedJob.resolution} @ {renderedJob.fps}fps) — {renderedJob.renderMode || 'Kaggle Dual-T4'}
+                    Rendered MP4 Active ({renderedJob.resolution} @ {renderedJob.fps}fps) — {renderedJob.renderMode || 'Modal LivePortrait (A100 GPU)'}
                   </span>
                   <span className="text-slate-600">|</span>
                   <button
@@ -1298,10 +1176,10 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
 
                 <div className="text-center max-w-md space-y-1">
                   <h3 className="text-sm font-bold text-white tracking-wide uppercase flex items-center justify-center gap-2">
-                    {renderEngine === 'kaggle' ? (
+                    {renderEngine === 'modal' ? (
                       <>
                         <Sparkles size={14} className="text-purple-400" />
-                        <span>Kaggle Dual-T4 Neural Video Generation</span>
+                        <span>LivePortrait Modal A100 Video Generation</span>
                       </>
                     ) : (
                       <>
@@ -1311,14 +1189,14 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                     )}
                   </h3>
                   <p className="text-xs font-mono text-indigo-300">
-                    {renderEngine === 'kaggle'
-                      ? (kaggleRunStatus?.stageText || (
+                    {renderEngine === 'modal'
+                      ? (
                           renderProgress < 30
-                            ? '[1/3] Submitting EchoMimicV3 kernel to Kaggle Cloud GPU pool...'
+                            ? '[1/3] Extracting facial landmarks & neural feature embeddings...'
                             : renderProgress < 85
-                              ? '[2/3] Kaggle Dual Tesla T4 active: Wav2Lip neural lip-sync synthesizing...'
-                              : '[3/3] Uploading talking avatar MP4 release asset...'
-                        ))
+                              ? '[2/3] Modal A100 GPU active: synthesizing SPADE motion deformation & lip-sync...'
+                              : '[3/3] Finalizing 30fps MP4 audio muxing & download...'
+                        )
                       : (
                           renderProgress < 25
                             ? '[1/4] Extracting 16kHz Mel-Spectrogram & Phonemes...'
@@ -1330,19 +1208,6 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                         )
                     }
                   </p>
-                  {renderEngine === 'kaggle' && kaggleRunStatus?.url && (
-                    <div className="pt-1">
-                      <a
-                        href={kaggleRunStatus.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 rounded-lg text-purple-200 text-xs font-semibold transition-colors shadow-sm"
-                      >
-                        <ExternalLink size={12} />
-                        <span>View Live Job {kaggleRunStatus.runId ? `#${kaggleRunStatus.runId} ` : ''}on GitHub Actions ↗</span>
-                      </a>
-                    </div>
-                  )}
                 </div>
 
                 <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-full h-3 p-0.5 overflow-hidden shadow-inner">
@@ -1361,9 +1226,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                 <button
                   onClick={() => {
                     renderAbortRef.current?.abort();
-                    if (kagglePollTimerRef.current) clearInterval(kagglePollTimerRef.current);
                     setIsRendering(false);
-                    setIsPollingKaggle(false);
                     setRenderProgress(0);
                     showToast('🛑 Generation canceled by user');
                   }}
@@ -1621,29 +1484,29 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
             </span>
           </div>
 
-          {/* Engine Selection: Kaggle Dual-T4 GPU vs Local Draft */}
+          {/* Engine Selection: LivePortrait Modal GPU vs Local Draft */}
           <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-200 font-bold flex items-center gap-1.5">
                 <Zap size={13} className="text-amber-400" />
                 Render Engine
               </span>
-              <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                {renderEngine === 'kaggle' ? 'Tesla T4 Dual' : 'FFmpeg Local'}
+              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">
+                {renderEngine === 'modal' ? 'LivePortrait A100' : 'FFmpeg Local'}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800 text-[11px] font-semibold">
               <button
                 type="button"
-                onClick={() => setRenderEngine('kaggle')}
+                onClick={() => setRenderEngine('modal')}
                 className={`py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                  renderEngine === 'kaggle'
+                  renderEngine === 'modal'
                     ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-md shadow-purple-900/40'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
                 <Sparkles size={12} className="text-amber-300 shrink-0" />
-                <span className="truncate">Cloud GPU</span>
+                <span className="truncate">LivePortrait GPU</span>
               </button>
               <button
                 type="button"
@@ -1658,43 +1521,9 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                 <span className="truncate">Draft Fast</span>
               </button>
             </div>
-            {renderEngine === 'kaggle' && (
-              <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-slate-300 font-medium">Diffusion Latent Steps</span>
-                  <span className="font-mono text-xs font-bold text-indigo-400">
-                    {latentSteps} steps ({latentSteps <= 4 ? 'Fast Draft' : 'High Quality'})
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-[10px] font-semibold">
-                  <button
-                    type="button"
-                    onClick={() => setLatentSteps(6)}
-                    className={`py-1 px-2 rounded transition-all cursor-pointer ${
-                      latentSteps === 6
-                        ? 'bg-indigo-600/40 border border-indigo-500/60 text-white font-bold'
-                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    6 Steps (Standard)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLatentSteps(4)}
-                    className={`py-1 px-2 rounded transition-all cursor-pointer ${
-                      latentSteps === 4
-                        ? 'bg-indigo-600/40 border border-indigo-500/60 text-white font-bold'
-                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    4 Steps (Draft Fast)
-                  </button>
-                </div>
-              </div>
-            )}
             <p className="text-[10px] text-slate-400 leading-normal">
-              {renderEngine === 'kaggle'
-                ? '⚡ Dispatches to Kaggle Tesla Dual-T4 worker for neural EchoMimic diffusion lip-syncing.'
+              {renderEngine === 'modal'
+                ? '⚡ Generates high-fidelity talking video with LivePortrait on Modal NVIDIA A100 GPU.'
                 : '⚡ Runs instant local FFmpeg draft (simulated head sway without neural lip-sync).'}
             </p>
           </div>

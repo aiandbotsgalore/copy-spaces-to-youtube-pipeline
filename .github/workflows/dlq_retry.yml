@@ -65,11 +65,9 @@ jobs:
               else:
                   cmd = ["gh", "workflow", "run", "ingest.yml"] + repo_args + ["-f", f"release_tag={target}"]
           elif "Batch Transcribe" in workflow_name:
-              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml"] + repo_args + ["-f", "batch_limit=5"]
-          elif "Transcribe Episode" in workflow_name:
+              cmd = ["gh", "workflow", "run", "batch_transcribe.yml"] + repo_args + ["-f", "limit=5"]
+          elif "Transcribe Episode" in workflow_name or "Kaggle" in workflow_name:
               cmd = ["gh", "workflow", "run", "transcribe_episode.yml"] + repo_args + ["-f", f"release_tag={target}"]
-          elif "Kaggle" in workflow_name:
-              cmd = ["gh", "workflow", "run", "kaggle_transcribe.yml"] + repo_args + ["-f", f"release_tag={target}"]
           else:
               # Fallback match by lowercase
               cmd = ["gh", "workflow", "run", f"{workflow_name.lower().replace(' ', '_')}.yml"] + repo_args

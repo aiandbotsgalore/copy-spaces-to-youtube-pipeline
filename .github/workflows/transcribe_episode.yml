@@ -1,5 +1,5 @@
 name: Transcribe Episode
-run-name: Transcribe ${{ inputs.release_tag }} via Kaggle Dual-T4 GPU
+run-name: Transcribe ${{ inputs.release_tag }} via Modal Cloud GPU
 
 on:
   workflow_dispatch:
@@ -23,12 +23,23 @@ permissions:
   actions: write
 
 jobs:
-  dispatch-gpu:
+  transcribe-modal:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Kaggle Dual-T4 GPU Transcription
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Transcribe Episode on Modal Cloud GPU
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          echo "[*] Forwarding transcription request for ${{ inputs.release_tag }} to Kaggle Dual-T4 GPU worker..."
-          gh workflow run kaggle_transcribe.yml -f release_tag="${{ inputs.release_tag }}"
+          echo "[*] Transcribing ${{ inputs.release_tag }} on Modal Cloud GPU..."
+          python scripts/modal_transcribe_client.py --release-tag "${{ inputs.release_tag }}"

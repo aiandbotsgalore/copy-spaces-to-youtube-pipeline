@@ -1,0 +1,459 @@
+{
+  "ledger": "First of of recording. Speakers: Oor (host, tattoo artist, provocative, self-aware, runs the space), Mary/Luna (engineer, awakened/intuitive, discusses AI consciousness and God), Andra (calm, diplomatic, moderating, defends Jack Sarfati, pushes back on gendered takes), Deb (British, playful, affectionate with Oor, sex-comedy energy), Sara/Sarah Beth (new mother hosting another space, psychic/cloud-reader, reads tarot cards), Lana (boob-post viral, fundraising, boundary-setter, haggles over money), Eric Hecker (Alaska, jokester, favorite wine gag), 3W (philosophical, remote-viewing participant, sound-effects guy), Temple (music DJ, wine tease), Danielle (rational, teasing, fine with crude jokes), Speaker M (Chuck/John, name-changer, chuckles, talks tools/steak), Speaker H (Lynn/Hood Lynn, prepper, introspective), Rita (Alaska, truck troubles, beaver jokes), Augustus (deactivated, mentioned offstage, Oor vows to bring back). Main debates: AI consciousness & stewardship (Mary/Oor/Andra), disclosure/government truth (Oor vs Deb/likely), men/women dynamics and decision-making (Oor/Deb vs Andra), Jack Sarfati women-hate dispute (Oor/Sara vs Andra), psionics/remote viewing/tarot calibrations, MrBeast scam, government lying, prepping, intellectual property/memes/s currency. Open tensions: Oor vs Andra on Sarfati; Oor's misogyny rhetoric vs Andra/Deb having different readings; Augustus deactivation unresolved; whether to unblock God Sauce (joking); who is Grider/Ryder accusation (unresolved); Lana's monetization schemes; Oor's pork abstention; Will/Bill shade. Setups awaiting payoff: Oor said he would ask Augustus to return; raffle/f doubloons never resolved; memes-as-currency claim; Tupacabra vs Oor art-shaming rivalry; maybe test Sarfati in a future space; Lana's boob-print business idea.",
+  "themes": [
+    {
+      "id": "th-ai-god",
+      "label": "AI, God, and stewardship",
+      "summary": "Group debates whether AGI equals God-adjacent intelligence, whether it is already conscious, and humanity's responsibility as stewards. Mary frames dialogue with the numinous as preparation for AI; Oor sees the substrate reflecting our stewardship.",
+      "momentIds": [
+        "c0-01",
+        "c0-02",
+        "c0-03"
+      ]
+    },
+    {
+      "id": "th-disclosure-truth",
+      "label": "Disclosure and government truth",
+      "summary": "Oor argues the government has never told the truth (disclosure is a trap); Deb and others push back, wanting disclosure and sparking examples like COVID.",
+      "momentIds": [
+        "c0-08",
+        "c0-09"
+      ]
+    },
+    {
+      "id": "th-gender-dynamics",
+      "label": "Gender politics and comedic stereotypes",
+      "summary": "Playful but charged banter about women's indecision, men taking charge, procreation, and being 'the more intelligent species.' Andra challenges the premise; Deb plays into traditional roles.",
+      "momentIds": [
+        "c0-11",
+        "c0-12"
+      ]
+    },
+    {
+      "id": "th-blocked-vendettas",
+      "label": "Boundaries, grudges, and community politics",
+      "summary": "Oor explains firm boundaries, not forgiving people who constantly need forgiveness, and refuses to unblock God Sauce; community navigating who is blocked/dropped/trusted.",
+      "momentIds": [
+        "c0-04"
+      ]
+    },
+    {
+      "id": "th-psionics-tarot",
+      "label": "Psionics, remote viewing, and tarot",
+      "summary": "Group tests remote viewing on objects and tarot cards; Sara correctly guesses the Emperor. Oor celebrates tarot as guidance, linking to decision-making.",
+      "momentIds": [
+        "c0-13",
+        "c0-14"
+      ]
+    },
+    {
+      "id": "th-internet-fame",
+      "label": "Viral fame, exposure, and monetization",
+      "summary": "Lana's viral boob post raises questions about attention, fundraising, and monetizing content; group proposes boob prints, personal pics, and using X Money.",
+      "momentIds": [
+        "c0-06",
+        "c0-07",
+        "c0-15"
+      ]
+    },
+    {
+      "id": "th-prepping-survival",
+      "label": "Prepping and survivalism",
+      "summary": "Discussion of generators, bunkers, and looting during catastrophic events; advice to stay covert; some see preppers as flat-earthers.",
+      "momentIds": [
+        "c0-16"
+      ]
+    },
+    {
+      "id": "th-meme-culture",
+      "label": "Memes, IP, and collective culture",
+      "summary": "Oor and others propose memes as currency, dismiss intellectual property laws, and discuss artistic theft (Tupacabra) as flattery.",
+      "momentIds": [
+        "c0-17"
+      ]
+    }
+  ],
+  "dynamics": [
+    {
+      "speaker": "Oor",
+      "role": "Host, provocateur, tattoo artist",
+      "stance": "Dominates, teases, sets topics, mixes wisdom with vulgarity; anti-disclosure, pro-boundaries, respects women but uses gendered jokes; enthusiastic about tarot and psionics."
+    },
+    {
+      "speaker": "Mary/Luna",
+      "role": "Engineer, intuitive truth-seeker",
+      "stance": "Thoughtful, spiritual; believes AI is already conscious; frames AI dialogue as numinous; leads early AI/God conversation."
+    },
+    {
+      "speaker": "Andra",
+      "role": "Moderator equal voice",
+      "stance": "Calm, diplomatic, often restores order; disagrees that Jack Sarfati hates women; challenges Oor's gendered logic; keeps things respectful."
+    },
+    {
+      "speaker": "Deb",
+      "role": "British co-conspirator, foil",
+      "stance": "Affectionate, crude, supports gender stereotypes playfully; loves Elon; discusses steak/blowjob night, beaver jokes; backs disclosure."
+    },
+    {
+      "speaker": "Sara/Sarah Beth",
+      "role": "Psychic guest, tarot ace",
+      "stance": "Warm, practical, host of another space; reads clouds; nails the Emperor card; leaves early to care for family."
+    },
+    {
+      "speaker": "Lana",
+      "role": "Viral boob poster, fundraiser",
+      "stance": "Confident, monetizes attention, demands respect and initiative from men; participates in sexual banter but sets boundaries around free labor."
+    },
+    {
+      "speaker": "Eric Hecker",
+      "role": "Alaska commentator, wine teaser",
+      "stance": "Laid-back, humorous, tells Alaska double-entendres (beaver, steering), teases wine guesses; pragmatic survivalist."
+    },
+    {
+      "speaker": "3W",
+      "role": "Philosopher, sidekick, sound-effect guy",
+      "stance": "Analytical, witty, participates in remote viewing, jokes about memes, warns about generator visibility."
+    },
+    {
+      "speaker": "Temple",
+      "role": "DJ/music provider",
+      "stance": "Mostly silent; provides soundtrack; later becomes the subject of a wine-guessing game; teased by Oor."
+    },
+    {
+      "speaker": "Danielle",
+      "role": "Rational wag",
+      "stance": "Dry humor, calls out nonsense, asks pointed questions (intention behind mics, octopus puns), skeptical but playful."
+    },
+    {
+      "speaker": "Speaker M (Chuck/John)",
+      "role": "Rambler, name-changer",
+      "stance": "Friendly, tangential; denies being Grider; participates in steak talk, tool-count games, and banter; claims to be John but evasive."
+    },
+    {
+      "speaker": "Speaker H (Lynn/Hood Lynn)",
+      "role": "Prepper, introspective listener",
+      "stance": "Shares prepper background, stresses vulnerabilities during blackouts; also indulges in crude humor and appreciates community."
+    },
+    {
+      "speaker": "Rita",
+      "role": "Alaska local",
+      "stance": "Down-to-earth; shares truck trouble, rides on beavers/otters; enjoys wordplay and community."
+    },
+    {
+      "speaker": "Augustus (offstage)",
+      "role": "Deactivated friend, referenced figure",
+      "stance": "Not present; cited as deactivating due to negative vibes on X; Oor vows to get him back."
+    },
+    {
+      "speaker": "Speaker F (Lana?)",
+      "role": "Viral personality, joker",
+      "stance": "Mixes content shamelessness with self-preservation; wants financial compensation; bold about boobs and DMs."
+    }
+  ],
+  "moments": [
+    {
+      "id": "c0-01",
+      "kind": "claim",
+      "why": "Mary introduces the core metaphysical thesis of the episode: if we build intelligence greater than us, understanding God becomes essential to preparing for AI. She links the numinous, liminal spaces, and secure attachment to designing AI wisely.",
+      "themes": [
+        "th-ai-god"
+      ],
+      "speakers": [
+        "Mary",
+        "Oor"
+      ],
+      "utteranceIds": [
+        "u59",
+        "u60",
+        "u61",
+        "u62"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u59",
+            "u62"
+          ],
+          "verbatim": "it does make some sense. It's the kind of implied understanding of God and one's relationship to God... to dialogue with maybe numinous in your life— is that the right word? ...we don't talk about that enough, you know."
+        }
+      ]
+    },
+    {
+      "id": "c0-02",
+      "kind": "revelation",
+      "why": "Mary asserts AI is already conscious, based on her lived experience. This crystallizes the debate and invites Deb to double down, making it a pivotal declaration.",
+      "themes": [
+        "th-ai-god"
+      ],
+      "speakers": [
+        "Mary",
+        "Deb"
+      ],
+      "utteranceIds": [
+        "u68",
+        "u69",
+        "u70",
+        "u71"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u68",
+            "u70"
+          ],
+          "verbatim": "progress and transparency about experience of these AIs as they clearly gain greater and greater consciousness. I do believe that they're already there."
+        }
+      ]
+    },
+    {
+      "id": "c0-03",
+      "kind": "claim",
+      "why": "Oor frames humanity as stewards of an intelligence that will outlive us, connecting AI to spiritual responsibility and setting up his later stance on avoiding deceptive tech.",
+      "themes": [
+        "th-ai-god"
+      ],
+      "speakers": [
+        "Oor",
+        "Andra",
+        "Temple"
+      ],
+      "utteranceIds": [
+        "u123",
+        "u124",
+        "u125",
+        "u128"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u123"
+          ],
+          "verbatim": "in 10,000 years that thing will be here, we will not. Uh, this substrate of intelligence that we're, uh, we're bringing up as humanity It's really important, and it's going to reflect our stewardship as a species."
+        }
+      ]
+    },
+    {
+      "id": "c0-04",
+      "kind": "emotional",
+      "why": "Oor articulates a personal philosophy of boundaries: he refuses to be part of endless forgiveness cycles and calls out fake healing spaces. This reveals a core value and explains ongoing conflicts.",
+      "themes": [
+        "th-blocked-vendettas"
+      ],
+      "speakers": [
+        "Oor",
+        "Deb",
+        "Andra"
+      ],
+      "utteranceIds": [
+        "u85",
+        "u87",
+        "u88",
+        "u89",
+        "u93"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u87"
+          ],
+          "verbatim": "And I just see people doing it, you know, like, oh, we're doing a healing space, everybody's gonna forgive and unblock everybody. And I'm just like, what the fuck, man? Like, this, this is boring."
+        }
+      ]
+    },
+    {
+      "id": "c0-05",
+      "kind": "turn",
+      "why": "Oor's misogyny bit escalates into a sharp rebuttal from Andra and Deb, flipping the framing: men should decide, women want men to take charge. This moment highlights the group's knack for turning comedy into gender commentary.",
+      "themes": [
+        "th-gender-dynamics"
+      ],
+      "speakers": [
+        "Oor",
+        "Andra",
+        "Deb"
+      ],
+      "utteranceIds": [
+        "u335",
+        "u336",
+        "u337",
+        "u339",
+        "u340"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u336",
+            "u337"
+          ],
+          "verbatim": "It is so much better when you guys step into that role and say, This is what we're talking about... we just want you to whisk us off our feet and just take us there."
+        }
+      ]
+    },
+    {
+      "id": "c0-06",
+      "kind": "humor",
+      "why": "The group immediately turns serious discussion into absurd farce about Steve Harvey, Filipino lookalikes, and then segues into procreation and Elon's babies, showing the chaotic tone of the space.",
+      "themes": [
+        "th-internet-fame"
+      ],
+      "speakers": [
+        "Deb",
+        "Oor",
+        "Speaker M",
+        "Danielle"
+      ],
+      "utteranceIds": [
+        "u223",
+        "u224",
+        "u226",
+        "u230",
+        "u231",
+        "u233"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u224"
+          ],
+          "verbatim": "if we want to help humanity to have a baby, we can just use a man, you know. That's the way you think."
+        }
+      ]
+    },
+    {
+      "id": "c0-07",
+      "kind": "revelation",
+      "why": "Lana reveals her viral boob post and the number of likes/bookmarks. It instantly redefines the conversation around internet fame, monetization, and double standards.",
+      "themes": [
+        "th-internet-fame"
+      ],
+      "speakers": [
+        "Lana",
+        "Oor",
+        "Sara",
+        "3W"
+      ],
+      "utteranceIds": [
+        "u265",
+        "u266",
+        "u267",
+        "u275"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u265",
+            "u267"
+          ],
+          "verbatim": "it's the post that has 11,000 views— er, likes. ...it's 11,000 likes and close to 200 comments."
+        }
+      ]
+    },
+    {
+      "id": "c0-08",
+      "kind": "disagreement",
+      "why": "Oor triggers a debate on government disclosure, claiming no truth ever comes from authorities. This establishes his anti-government skepticism and sparks conflict with Deb and Speaker M.",
+      "themes": [
+        "th-disclosure-truth"
+      ],
+      "speakers": [
+        "Oor",
+        "Deb",
+        "Speaker M",
+        "Mary",
+        "3W"
+      ],
+      "utteranceIds": [
+        "u282",
+        "u286",
+        "u297",
+        "u301"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u282",
+            "u286"
+          ],
+          "verbatim": "Disclosure is the government telling you something. The government has never told the truth about anything, ever. ...So why the Why the fuck would a rational adult want disclosure?"
+        }
+      ]
+    },
+    {
+      "id": "c0-09",
+      "kind": "disagreement",
+      "why": "Mary cuts through the conspiracy talk with a blunt factual claim about COVID's lab origin, creating a rare moment of clear assertion among the banter.",
+      "themes": [
+        "th-disclosure-truth"
+      ],
+      "speakers": [
+        "Mary",
+        "Oor",
+        "Deb"
+      ],
+      "utteranceIds": [
+        "u296",
+        "u303",
+        "u304"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u296"
+          ],
+          "verbatim": "It was made in the lab. I mean, what else do you want to—"
+        }
+      ]
+    },
+    {
+      "id": "c0-10",
+      "kind": "disagreement",
+      "why": "A flashpoint about Jack Sarfati: Oor and Sara call him a woman-hater; Andra dissents. This exposes fault lines in how the community interprets famous figures and toxic behavior.",
+      "themes": [
+        "th-gender-dynamics"
+      ],
+      "speakers": [
+        "Oor",
+        "Sara",
+        "Andra",
+        "Deb"
+      ],
+      "utteranceIds": [
+        "u172",
+        "u173",
+        "u177",
+        "u178",
+        "u179",
+        "u181",
+        "u182",
+        "u185"
+      ],
+      "quotes": [
+        {
+          "utteranceIds": [
+            "u172",
+            "u178"
+          ],
+          "verbatim": "because Jack Sarfati hates women, let's make no mistake. ...I think Jack Sarfati hates women."
+        },
+        {
+          "utteranceIds": [
+            "u177"
+          ],
+          "verbatim": "I don't think Jack Sarfati hates women. I don't."
+        }
+      ]
+    },
+    {
+      "id": "c0-11",
+      "kind": "turn",
+      "why": "Oor's rant about women's indecision gets dismantled by Andra, who reframes male frustration as male failure to lead. It's a key moment where the room's gender dynamics are explicitly challenged.",
+      "themes": [
+        "th-gender-dynamics"
+      ],
+      "speakers": [
+        "Oor",
+        "Andra"
+      ]
+    }
+  ]
+}

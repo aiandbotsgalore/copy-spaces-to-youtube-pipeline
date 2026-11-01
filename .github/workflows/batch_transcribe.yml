@@ -1,5 +1,5 @@
 name: Batch Transcribe Episodes (Newest to Oldest)
-run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via Kaggle Dual-T4 GPU
+run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via Modal Cloud GPU
 
 on:
   workflow_dispatch:
@@ -66,12 +66,15 @@ jobs:
           echo "[*] Extracting highlight clips for transcribed episodes missing clips (limit: $LIMIT)..."
           python scripts/batch_transcribe_queue.py --missing-clips --limit "$LIMIT"
 
-      - name: Forward Batch to Kaggle Dual-T4 GPU Worker
+      - name: Execute Batch Transcription on Modal Cloud GPU
         if: inputs.dry_run != true && inputs.missing_clips != true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
-          echo "[*] Forwarding batch transcription queue (batch_limit=$LIMIT) to Kaggle Dual-T4 GPU worker..."
-          gh workflow run kaggle_transcribe.yml -f batch_limit="$LIMIT"
-          echo "[✓] Kaggle GPU batch job successfully dispatched!"
+          echo "[*] Executing batch transcription on Modal Cloud GPU (limit: $LIMIT)..."
+          python scripts/batch_transcribe_queue.py --engine modal --limit "$LIMIT"
+          echo "[✓] Modal GPU batch transcription completed!"
