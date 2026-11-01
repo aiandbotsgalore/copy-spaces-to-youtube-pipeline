@@ -305,8 +305,20 @@ def _execute_transcription(
             print(f"\n--- Processing Chunk {c_idx}/{len(chunks)} ({offset_sec:.1f}s - {end_sec:.1f}s) ---")
             audio_arr = whisperx.load_audio(str(chunk_path))
 
-            # Transcribe (lock to specified language, defaulting to English, to prevent intro music hallucinating other languages)
-            tx_res = model.transcribe(audio_arr, batch_size=16, language=language)
+            # Transcribe (batch_size=8 preserves VRAM across marathon spaces; auto-recovers to 4 if VRAM spikes)
+            try:
+                tx_res = model.transcribe(audio_arr, batch_size=8, language=language)
+            except (torch.cuda.OutOfMemoryError, RuntimeError) as oom_err:
+                if "out of memory" in str(oom_err).lower():
+                    print(f"[!] Warning: CUDA VRAM pressure detected. Reclaiming cache and retrying chunk with batch_size=4...")
+                    import gc
+                    gc.collect()
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    tx_res = model.transcribe(audio_arr, batch_size=4, language=language)
+                else:
+                    raise
+
             detected_lang = tx_res.get("language") or language or "en"
 
             # Align word timestamps
@@ -365,6 +377,13 @@ def _execute_transcription(
                 emb = extract_speaker_embedding(sb_classifier, audio_arr, turns, sb_device)
                 if emb is not None:
                     chunk_speaker_embeddings.setdefault(spk_id, []).append(emb)
+
+            # Free chunk tensors & clear PyTorch GPU cache to prevent VRAM fragmentation
+            del audio_arr, tx_res, aligned_res, final_chunk_res
+            import gc
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         # ---------------------------------------------------------------------
         # Global Cross-Chunk Speaker Clustering & Biometric Matching
@@ -500,7 +519,7 @@ def _execute_transcription(
 # -----------------------------------------------------------------------------
 @app.function(
     image=transcribe_image,
-    gpu=["A10G", "A100", "L4"],
+    gpu=["A100", "A10G", "L4"],
     timeout=3600,
     scaledown_window=300,
     volumes={"/models": models_vol},
@@ -534,7 +553,7 @@ def transcribe_job(
 
 @app.function(
     image=transcribe_image,
-    gpu=["A10G", "A100", "L4"],
+    gpu=["A100", "A10G", "L4"],
     timeout=3600,
     scaledown_window=300,
     volumes={"/models": models_vol},
