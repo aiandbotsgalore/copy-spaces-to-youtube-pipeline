@@ -28,6 +28,10 @@ import {
   evaluateTurnMatch,
   hasActiveQuery,
   renderTranscriptMatch,
+  extractSpeakerPrefix,
+  normalizeSpeakerName,
+  isNormalizedSpeakerMatch,
+  renderTranscriptWithContextFocus,
 } from '../utils/searchWorker';
 
 interface Props {
@@ -100,7 +104,12 @@ export interface SearchIndexSegment {
   speaker: string;
   text: string;
   _search?: string;
+  relevanceScore?: number;
+  matchType?: string;
+  relevantSpans?: Array<{ start: number; end: number; score: number; text?: string }>;
 }
+
+export type SearchEngineMode = 'hybrid' | 'rerank' | 'lexical' | 'vector';
 
 export interface SearchIndexEpisode {
   release_id: number;
@@ -802,6 +811,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const searchWorkerRef = useRef<SearchWorkerClient | null>(null);
   const [workerSearchResults, setWorkerSearchResults] = useState<GlobalSearchResult[] | null>(null);
   const [workerSearching, setWorkerSearching] = useState(false);
+  const [searchEngineMode, setSearchEngineMode] = useState<SearchEngineMode>('hybrid');
+  const [serverSearchResults, setServerSearchResults] = useState<GlobalSearchResult[] | null>(null);
+  const [serverSearching, setServerSearching] = useState<boolean>(false);
+  const [searchFallbackNotice, setSearchFallbackNotice] = useState<string | null>(null);
   const [selectedGlobalTag, setSelectedGlobalTag] = useState<string>('ALL');
   const [selectedGlobalSpeaker, setSelectedGlobalSpeaker] = useState<string>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -1844,7 +1857,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const hasActiveSearch = useMemo(() => hasActiveQuery(searchAst), [searchAst]);
 
   const filteredUtterances = useMemo(() => utterances.filter(u => {
-    if (speakerFilter !== 'ALL' && u.speaker !== speakerFilter) return false;
+    if (speakerFilter !== 'ALL' && !isNormalizedSpeakerMatch(u.speaker, speakerFilter)) return false;
 
     if (selectedCategory !== 'ALL') {
       const cat = THEMATIC_CATEGORIES.find(c => c.id === selectedCategory);
@@ -2003,12 +2016,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const selectedSpeakerEpisodeCount = useMemo(() => {
     if (selectedGlobalSpeaker === 'ALL') return 0;
-    const lower = selectedGlobalSpeaker.toLowerCase();
     if (summaryIndex && summaryIndex.length > 0) {
-      return summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === lower)).length;
+      return summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => isNormalizedSpeakerMatch(s, selectedGlobalSpeaker))).length;
     }
     if (globalIndex && globalIndex.length > 0) {
-      return globalIndex.filter(ep => ep.segments && ep.segments.some(seg => seg.speaker.toLowerCase() === lower)).length;
+      return globalIndex.filter(ep => ep.segments && ep.segments.some(seg => isNormalizedSpeakerMatch(seg.speaker, selectedGlobalSpeaker))).length;
     }
     return 0;
   }, [selectedGlobalSpeaker, summaryIndex, globalIndex]);
@@ -2045,9 +2057,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   useEffect(() => {
     if (selectedGlobalSpeaker !== 'ALL' && summaryIndex && summaryIndex.length > 0) {
-      const targetSpeakerLower = selectedGlobalSpeaker.trim().toLowerCase();
       const matchingTags = summaryIndex
-        .filter(ep => ep.speakers && ep.speakers.some(s => s.trim().toLowerCase() === targetSpeakerLower))
+        .filter(ep => ep.speakers && ep.speakers.some(s => isNormalizedSpeakerMatch(s, selectedGlobalSpeaker)))
         .map(ep => ep.release_tag);
       if (matchingTags.length > 0) {
         loadSegmentsForEpisodes(matchingTags.slice(0, 5));
@@ -2129,8 +2140,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       return;
     }
 
-    const query = deferredSearch.trim();
-    const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
+    const rawQuery = deferredSearch.trim();
+    const parsed = extractSpeakerPrefix(rawQuery);
+    const query = parsed.speaker ? parsed.query : rawQuery;
+    const speakerFilter = selectedGlobalSpeaker !== 'ALL'
+      ? selectedGlobalSpeaker
+      : (parsed.speaker || null);
     const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
     const isCategoryFilter = selectedCategory !== 'ALL';
     const isMentionFilter = selectedMentionTarget !== 'ALL';
@@ -2158,6 +2173,92 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     });
   }, [globalIndex, deferredSearch, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
+  // Server-side archive search (Hybrid, Deep Rerank, Lexical, Vector)
+  useEffect(() => {
+    const rawQuery = deferredSearch.trim();
+    const parsed = extractSpeakerPrefix(rawQuery);
+    const query = parsed.speaker ? parsed.query : rawQuery;
+    const effectiveSpeaker = (selectedGlobalSpeaker !== 'ALL')
+      ? selectedGlobalSpeaker
+      : (parsed.speaker || undefined);
+
+    if (!query && !effectiveSpeaker) {
+      setServerSearchResults(null);
+      setServerSearching(false);
+      setSearchFallbackNotice(null);
+      return;
+    }
+
+    let isCancelled = false;
+    setServerSearching(true);
+    setSearchFallbackNotice(null);
+
+    const params = new URLSearchParams({
+      q: query,
+      mode: searchEngineMode,
+      limit: '100',
+    });
+    if (effectiveSpeaker) {
+      params.set('speaker', effectiveSpeaker);
+    }
+    if (selectedGlobalTag !== 'ALL') {
+      params.set('tag', selectedGlobalTag);
+    }
+
+    fetch(`/api/montage/direct/transcripts/search?${params.toString()}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (isCancelled) return;
+        if (data && data.ok && Array.isArray(data.results)) {
+          const mapped: GlobalSearchResult[] = data.results.map((r: any, idx: number) => {
+            const rel = effectiveReleases.find(relItem => relItem.tag_name === r.releaseTag);
+            return {
+              release_id: rel?.id || 0,
+              release_tag: r.releaseTag,
+              title: r.episodeTitle || rel?.name || r.releaseTag,
+              published_at: rel?.published_at || '',
+              audio_url: r.audioUrl || rel?.assets?.find(a => a.name.endsWith('.mp3'))?.browser_download_url || '',
+              segmentIndex: idx,
+              segment: {
+                start: r.startSec,
+                end: r.endSec,
+                speaker: r.speaker,
+                text: r.text,
+                relevanceScore: r.relevanceScore,
+                matchType: r.matchType,
+                relevantSpans: r.relevantSpans,
+              },
+            };
+          });
+
+          if (searchEngineMode === 'rerank' && mapped.length > 0 && mapped[0].segment.matchType !== 'rerank') {
+            setSearchFallbackNotice('Cohere Rerank API unavailable; search safely fell back to hybrid mode.');
+          } else {
+            setSearchFallbackNotice(null);
+          }
+
+          setServerSearchResults(mapped);
+        } else {
+          setServerSearchResults([]);
+        }
+        setServerSearching(false);
+      })
+      .catch(err => {
+        if (isCancelled) return;
+        console.warn('[TranscriptPanel] Server search failed, falling back to local worker:', err);
+        setSearchFallbackNotice('Search service unavailable; using offline local index.');
+        setServerSearchResults(null);
+        setServerSearching(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [deferredSearch, searchEngineMode, selectedGlobalSpeaker, selectedGlobalTag, effectiveReleases]);
+
   const deferredSearchAst = useMemo(() => parseGoogleQuery(deferredSearch), [deferredSearch]);
   const hasActiveDeferredSearch = useMemo(() => hasActiveQuery(deferredSearchAst), [deferredSearchAst]);
 
@@ -2165,7 +2266,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const syncFallbackMatches = useMemo((): GlobalSearchResult[] => {
     if (workerSearchResults !== null) return [];
     if (!globalIndex) return [];
-    const speakerFilter = selectedGlobalSpeaker !== 'ALL' ? selectedGlobalSpeaker : null;
+    const rawQuery = deferredSearch.trim();
+    const parsed = extractSpeakerPrefix(rawQuery);
+    const speakerFilter = selectedGlobalSpeaker !== 'ALL'
+      ? selectedGlobalSpeaker
+      : (parsed.speaker || null);
     const tagFilter = selectedGlobalTag !== 'ALL' ? selectedGlobalTag : null;
     const isCategoryFilter = selectedCategory !== 'ALL';
     const isMentionFilter = selectedMentionTarget !== 'ALL';
@@ -2183,7 +2288,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
       for (let i = 0; i < ep.segments.length; i++) {
         const seg = ep.segments[i];
-        if (speakerFilter && seg.speaker !== speakerFilter) {
+        if (speakerFilter && !isNormalizedSpeakerMatch(seg.speaker, speakerFilter)) {
           continue;
         }
 
@@ -2232,8 +2337,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     return results;
   }, [workerSearchResults, globalIndex, hasActiveDeferredSearch, deferredSearchAst, selectedGlobalSpeaker, selectedGlobalTag, selectedCategory, selectedMentionTarget]);
 
-  // All matches for current criteria across all episodes (prefers worker, falls back gracefully)
-  const globalAllMatches = workerSearchResults !== null ? workerSearchResults : syncFallbackMatches;
+  // All matches for current criteria across all episodes (prefers server search when query is active, then worker, then sync fallback)
+  const globalAllMatches = serverSearchResults !== null
+    ? serverSearchResults
+    : (workerSearchResults !== null ? workerSearchResults : syncFallbackMatches);
 
   // Episode match counts across all matches (shows which episodes have matches for the selected criteria)
   const globalResultEpisodeCounts = useMemo(() => {
@@ -2440,7 +2547,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
       if (summaryIndex && summaryIndex.length > 0) {
         matchedEps = summaryIndex
-          .filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === speakerLower))
+          .filter(ep => ep.speakers && ep.speakers.some(s => isNormalizedSpeakerMatch(s, spk)))
           .map(ep => ({
             release_tag: ep.release_tag,
             title: ep.title,
@@ -2451,7 +2558,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
       if (matchedEps.length === 0 && globalIndex && globalIndex.length > 0) {
         matchedEps = globalIndex
-          .filter(ep => ep.segments && ep.segments.some(seg => seg.speaker.toLowerCase() === speakerLower))
+          .filter(ep => ep.segments && ep.segments.some(seg => isNormalizedSpeakerMatch(seg.speaker, spk)))
           .map(ep => ({
             release_tag: ep.release_tag,
             title: ep.title,
@@ -2531,7 +2638,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           const bodyLines: string[] = [];
           for (const seg of segments) {
             const timeLabel = formatSeconds(seg.start);
-            const isTarget = seg.speaker?.toLowerCase() === speakerLower;
+            const isTarget = isNormalizedSpeakerMatch(seg.speaker, spk);
             if (isTarget) speakerTurnCount++;
 
             bodyLines.push(`[${timeLabel}] ${seg.speaker || 'Unknown'}:`);
@@ -3080,13 +3187,37 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm inline-flex items-center gap-1.5">
                           {globalAllMatches.length.toLocaleString()} match{globalAllMatches.length !== 1 ? 'es' : ''}
                           {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
-                          <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[11px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
-                            ⚡ 60fps Worker
-                          </span>
+                          {serverSearching ? (
+                            <span className="px-1.5 py-0.2 bg-indigo-950/80 text-[11px] text-indigo-300 rounded font-mono border border-indigo-500/30 inline-flex items-center gap-1">
+                              <Loader size={9} className="animate-spin text-indigo-400" /> Server Rerank
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[11px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
+                              ⚡ 60fps Worker
+                            </span>
+                          )}
+                          {searchEngineMode === 'rerank' && (
+                            <span className="px-1.5 py-0.2 bg-amber-950/80 text-[11px] text-amber-300 rounded font-mono border border-amber-500/30">
+                              Deep Rerank
+                            </span>
+                          )}
                         </span>
                       )}
                     </div>
                   </div>
+
+                  {/* Fallback Notice Banner */}
+                  {searchFallbackNotice && (
+                    <div className="flex items-center justify-between p-2.5 px-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200 shadow-sm gap-2">
+                      <span className="flex items-center gap-2">
+                        <AlertCircle size={14} className="text-amber-400 flex-shrink-0" />
+                        <span>{searchFallbackNotice}</span>
+                      </span>
+                      <button onClick={() => setSearchFallbackNotice(null)} className="text-amber-400 hover:text-white p-1 cursor-pointer">
+                        <X size={13} />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Global Search Bar and Filter Dropdowns */}
                   <div className="flex flex-wrap items-center gap-3">
@@ -3095,18 +3226,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                       <input
                         type="text"
                         autoFocus
-                        placeholder={`Search across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts (e.g. aliens, bidet, chipper, whistleblower)…`}
+                        placeholder={`Search across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts (e.g. aliens, speaker:Angela, from:Logan)…`}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
                       />
-                      {workerSearching && (
+                      {(workerSearching || serverSearching) && (
                         <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-indigo-950/90 border border-indigo-500/40 rounded text-[11px] text-indigo-300 font-mono shadow-sm pointer-events-none">
                           <Loader size={10} className="animate-spin text-indigo-400" />
-                          <span>off-thread…</span>
+                          <span>{serverSearching ? 'reranking…' : 'off-thread…'}</span>
                         </div>
                       )}
-                      {search && !workerSearching && (
+                      {search && !workerSearching && !serverSearching && (
                         <button
                           onClick={() => setSearch('')}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
@@ -3115,6 +3246,22 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <X size={14} />
                         </button>
                       )}
+                    </div>
+
+                    {/* Search Engine Retrieval Mode Selector */}
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm" title="Search retrieval algorithm">
+                      <SlidersHorizontal size={12} className={searchEngineMode === 'rerank' ? 'text-amber-400' : 'text-indigo-400'} />
+                      <select
+                        value={searchEngineMode}
+                        onChange={e => setSearchEngineMode(e.target.value as SearchEngineMode)}
+                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer"
+                        title="Select search algorithm"
+                      >
+                        <option value="hybrid" className="bg-slate-900 text-white">Hybrid (BM25 + Vector)</option>
+                        <option value="rerank" className="bg-slate-900 text-white">Deep Rerank (Cohere 5)</option>
+                        <option value="lexical" className="bg-slate-900 text-white">Lexical (Keyword)</option>
+                        <option value="vector" className="bg-slate-900 text-white">Vector (Semantic)</option>
+                      </select>
                     </div>
 
                     {/* Episode filter */}
@@ -4037,6 +4184,25 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                       <span>{res.segment.speaker}</span>
                                     </span>
 
+                                    {/* Rerank 5 / Match Type Pill */}
+                                    {res.segment.matchType === 'rerank' && (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-[10px] font-mono text-amber-300 shadow-sm" title="Reranked with Cohere Rerank 5">
+                                        <Sparkles size={9} className="text-amber-400" />
+                                        <span>Rerank 5</span>
+                                        {res.segment.relevantSpans && res.segment.relevantSpans.length > 0 && (
+                                          <span className="text-amber-400/80 font-normal">· Focus</span>
+                                        )}
+                                        {res.segment.relevanceScore !== undefined && (
+                                          <span className="text-slate-400 font-normal">({res.segment.relevanceScore.toFixed(3)})</span>
+                                        )}
+                                      </span>
+                                    )}
+                                    {res.segment.matchType && res.segment.matchType !== 'rerank' && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 text-[10px] font-mono capitalize">
+                                        {res.segment.matchType}
+                                      </span>
+                                    )}
+
                                     {/* Verified Audio Clip Badge */}
                                     {matchedClip && (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-[11px] font-bold text-emerald-300 shadow-sm" title={`Verified extracted audio clip: ${matchedClip.filename}`}>
@@ -4177,7 +4343,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                 </p>
                               ) : (
                                 <p className="text-[14px] leading-relaxed text-slate-100 select-text">
-                                  {highlightMatch(res.segment.text, search)}
+                                  {renderTranscriptWithContextFocus(
+                                    res.segment.text,
+                                    res.segment.relevantSpans,
+                                    search,
+                                    'bg-amber-500/20 text-slate-100 rounded px-1 py-0.5 border-b border-amber-400/50'
+                                  )}
                                 </p>
                               )}
                             </div>

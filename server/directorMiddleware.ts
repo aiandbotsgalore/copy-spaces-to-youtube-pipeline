@@ -663,6 +663,11 @@ const COPILOT_TOOLS = [
             type: 'number',
             description: 'Optional timestamp in seconds (e.g. 2862 for 47:42) to find dialogue around that moment.',
           },
+          mode: {
+            type: 'string',
+            enum: ['hybrid', 'lexical', 'vector', 'rerank'],
+            description: "Search mode. 'rerank' uses Cohere Rerank 5 cross-encoder ranking. Defaults to 'hybrid'.",
+          },
         },
         required: ['query', 'scope'],
       },
@@ -703,6 +708,7 @@ async function runCopilot(
         timestamp_sec: searchIntent.timestampSec,
         activeSegments: rawContext.currentEpisode?.allSegments,
         maxResults: 12,
+        fetchImpl: gw.fetchImpl,
       });
       if (searchRes.matches.length > 0) {
         enrichedContext.transcriptSearchResults = searchRes.matches.map(m => ({
@@ -715,6 +721,7 @@ async function runCopilot(
           text: m.snippet,
           relevanceScore: m.relevance_score,
           matchType: (m.match_type as any) || 'hybrid',
+          relevantSpans: m.relevant_spans,
         }));
       }
     } catch (searchErr) {
@@ -763,6 +770,9 @@ async function runCopilot(
       speaker: r.speaker,
       snippet: r.text,
       audio_url: r.audioUrl,
+      relevance_score: r.relevanceScore,
+      match_type: r.matchType,
+      relevant_spans: r.relevantSpans,
     }));
   }
 
@@ -790,6 +800,7 @@ async function runCopilot(
       let scope: 'active_episode' | 'all_transcripts' = 'all_transcripts';
       let speakerHint: string | undefined;
       let timestampSec: number | undefined;
+      let mode: 'hybrid' | 'lexical' | 'vector' | 'rerank' | undefined;
 
       if (nativeToolCall) {
         try {
@@ -798,6 +809,9 @@ async function runCopilot(
           scope = parsed.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
           speakerHint = parsed.speaker_hint || parsed.speaker;
           timestampSec = parsed.timestamp_sec ?? parsed.timestampSec ?? searchIntent.timestampSec;
+          if (parsed.mode === 'hybrid' || parsed.mode === 'lexical' || parsed.mode === 'vector' || parsed.mode === 'rerank') {
+            mode = parsed.mode;
+          }
         } catch {
           query = '';
         }
@@ -806,6 +820,10 @@ async function runCopilot(
         scope = textSearchAction.params?.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
         speakerHint = textSearchAction.params?.speaker_hint || textSearchAction.params?.speaker;
         timestampSec = textSearchAction.params?.timestamp_sec ?? textSearchAction.params?.timestampSec ?? searchIntent.timestampSec;
+        const actMode = textSearchAction.params?.mode;
+        if (actMode === 'hybrid' || actMode === 'lexical' || actMode === 'vector' || actMode === 'rerank') {
+          mode = actMode;
+        }
       }
 
       if (!query && searchIntent.query) {
@@ -824,6 +842,8 @@ async function runCopilot(
         timestamp_sec: timestampSec,
         activeSegments: enrichedContext.currentEpisode?.allSegments,
         maxResults: 12,
+        mode,
+        fetchImpl: gw.fetchImpl,
       });
 
       executedMatches = searchRes.matches;
@@ -1016,12 +1036,23 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
       if (path === '/transcripts/search' && req.method === 'GET') {
         const urlObj = new URL(req.url || '', 'http://localhost:5000');
         const q = urlObj.searchParams.get('q') || '';
-        const speaker = urlObj.searchParams.get('speaker') || undefined;
+        const rawSpeaker = urlObj.searchParams.get('speaker');
+        const speaker = (rawSpeaker && rawSpeaker !== 'ALL') ? rawSpeaker : undefined;
         const episodeTag = urlObj.searchParams.get('tag') || urlObj.searchParams.get('episodeTag') || undefined;
         const limit = Number(urlObj.searchParams.get('limit')) || 20;
         const rawMode = urlObj.searchParams.get('mode');
-        const mode = (rawMode === 'lexical' || rawMode === 'vector' || rawMode === 'hybrid') ? rawMode : 'hybrid';
-        const results = await searchTranscriptArchive(q, { speaker, episodeTag, maxResults: limit, mode });
+        const mode = (rawMode === 'lexical' || rawMode === 'vector' || rawMode === 'rerank' || rawMode === 'hybrid') ? rawMode : 'hybrid';
+        const rawRerankModel = urlObj.searchParams.get('rerankModel') || urlObj.searchParams.get('model');
+        const rerankModel = (rawRerankModel === 'rerank-v5.0-fast' || rawRerankModel === 'rerank-v5.0-pro') ? rawRerankModel : undefined;
+        const results = await searchTranscriptArchive(q, {
+          speaker,
+          episodeTag,
+          maxResults: limit,
+          mode,
+          rerankModel,
+          apiKey: cfg.env.COHERE_API_KEY,
+          fetchImpl: opts.fetchImpl,
+        });
         return send(res, 200, { ok: true, mode, results, count: results.length });
       }
 

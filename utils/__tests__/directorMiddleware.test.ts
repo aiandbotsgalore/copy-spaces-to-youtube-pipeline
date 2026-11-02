@@ -392,7 +392,33 @@ All set!`;
     expect(rLex.json.ok).toBe(true);
     expect(rLex.json.mode).toBe('lexical');
     expect(Array.isArray(rLex.json.results)).toBe(true);
-  });
+
+    // Rerank mode with Cohere mock
+    const rerankResp = () =>
+      new Response(
+        JSON.stringify({
+          results: [
+            { index: 1, relevance_score: 0.942, relevant_spans: [{ start: 0, end: 10, score: 0.91 }] },
+            { index: 0, relevance_score: 0.812, relevant_spans: [] },
+          ],
+        }),
+        { status: 200 }
+      );
+    const fRerank = mkFetch([rerankResp]);
+    const appRerank = h(fRerank, { COHERE_API_KEY: 'test-cohere-key' });
+    const rRerank = await call(appRerank, {
+      method: 'GET',
+      url: '/transcripts/search?q=compromise&limit=2&mode=rerank&rerankModel=rerank-v5.0-fast',
+    });
+    expect(rRerank.status).toBe(200);
+    expect(rRerank.json.ok).toBe(true);
+    expect(rRerank.json.mode).toBe('rerank');
+    expect(Array.isArray(rRerank.json.results)).toBe(true);
+    expect(rRerank.json.results.length).toBeGreaterThan(0);
+    expect(rRerank.json.results[0].matchType).toBe('rerank');
+    expect(rRerank.json.results[0].relevanceScore).toBe(0.942);
+    expect(rRerank.json.results[0].relevantSpans).toBeDefined();
+  }, 20000);
 
   it('copilot executes native search_transcripts tool call server-side and synthesizes response', async () => {
     const toolCallTurn = new Response(

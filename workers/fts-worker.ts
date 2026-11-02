@@ -184,7 +184,7 @@ export function searchTurns(params: {
   const epId = params.episodeId !== undefined && params.episodeId !== null && params.episodeId !== '' && params.episodeId !== 'ALL'
     ? String(params.episodeId)
     : null;
-  const speaker = params.speaker && params.speaker !== 'ALL' ? params.speaker : null;
+  const speaker = params.speaker && params.speaker !== 'ALL' ? params.speaker.trim().toLowerCase() : null;
   const limit = Math.min(Math.max(1, params.limit || 50), 500);
 
   const rawRows: any[] = [];
@@ -197,7 +197,7 @@ export function searchTurns(params: {
       bind.push(epId);
     }
     if (speaker !== null) {
-      sql += ' AND speaker = ?';
+      sql += ' AND LOWER(TRIM(speaker)) = ?';
       bind.push(speaker);
     }
     sql += ' ORDER BY rank ASC LIMIT ?';
@@ -217,7 +217,7 @@ export function searchTurns(params: {
       bind.push(epId);
     }
     if (speaker !== null) {
-      sql += ' AND speaker = ?';
+      sql += ' AND LOWER(TRIM(speaker)) = ?';
       bind.push(speaker);
     }
     sql += ' LIMIT ?';

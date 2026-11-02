@@ -14,6 +14,8 @@ import {
   formatTimestamp,
   parseTimestampSec,
   getTagToFileMap,
+  rerankWithCohere,
+  RelevantSpan,
 } from '../../server/transcriptSearchService';
 
 describe('transcriptSearchService', () => {
@@ -228,7 +230,7 @@ describe('transcriptSearchService', () => {
       expect(first).toHaveProperty('snippet');
     });
 
-    it('broadens speaker scope when speaker hint yields no matches', async () => {
+    it('does not broaden speaker scope to unfiltered results when speaker is unknown', async () => {
       const res = await handleSearchTranscripts({
         query: 'compromise',
         scope: 'all_transcripts',
@@ -236,10 +238,9 @@ describe('transcriptSearchService', () => {
         maxResults: 5,
       });
 
-      // Because 'compromise' exists in the archive, broadening the speaker filter returns matches
-      expect(res.totalMatches).toBeGreaterThan(0);
-      expect(res.matches.length).toBeGreaterThan(0);
-      expect(res.speakerFilterApplied).toBeUndefined();
+      // An unknown speaker returns 0 matches rather than falling back to unfiltered search
+      expect(res.totalMatches).toBe(0);
+      expect(res.matches.length).toBe(0);
     });
 
     it('falls back to Tier 2 anchor words search when verbatim sentence fails', async () => {
@@ -350,5 +351,482 @@ describe('transcriptSearchService', () => {
       const map = getTagToFileMap();
       expect(map.size).toBeGreaterThan(100);
     });
+  });
+
+  describe('rerankWithCohere (Cohere Rerank 5 with Context Focus)', () => {
+    const mockCandidates: TranscriptSearchResult[] = [
+      {
+        episodeTitle: 'Episode A',
+        releaseTag: 'tag_a',
+        speaker: 'Alice',
+        startSec: 10.5,
+        endSec: 25.0,
+        text: 'The fundamental issue with autonomous verification is deterministic evaluation.',
+        matchType: 'hybrid',
+      },
+      {
+        episodeTitle: 'Episode B',
+        releaseTag: 'tag_b',
+        speaker: 'Bob',
+        startSec: 45.0,
+        endSec: 60.2,
+        text: 'When we discuss compromise in public policy, stakeholders need transparency.',
+        matchType: 'hybrid',
+      },
+    ];
+
+    it('returns empty array when candidates array is empty without calling fetch', async () => {
+      let fetchCalled = false;
+      const mockFetch = async () => {
+        fetchCalled = true;
+        return new Response('{}');
+      };
+
+      const results = await rerankWithCohere('any query', [], {
+        apiKey: 'test_key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results).toEqual([]);
+      expect(fetchCalled).toBe(false);
+    });
+
+    it('falls back to preserving candidate ranking when apiKey is missing or empty', async () => {
+      let fetchCalled = false;
+      const mockFetch = async () => {
+        fetchCalled = true;
+        return new Response('{}');
+      };
+
+      const results = await rerankWithCohere('compromise', mockCandidates, {
+        apiKey: '',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results).toEqual(mockCandidates);
+      expect(fetchCalled).toBe(false);
+    });
+
+    it('uses rerank-v5.0-fast as default model and enables Context Focus', async () => {
+      let capturedUrl = '';
+      let capturedBody: any = null;
+      let capturedHeaders: any = null;
+
+      const mockFetch = async (url: string, init: any) => {
+        capturedUrl = url;
+        capturedBody = JSON.parse(init.body);
+        capturedHeaders = init.headers;
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                index: 1,
+                relevance_score: 0.8954,
+                relevant_spans: [{ start: 17, end: 42, score: 0.92 }],
+              },
+              {
+                index: 0,
+                relevance_score: 0.412,
+                relevant_spans: [],
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      };
+
+      const results = await rerankWithCohere('public policy compromise', mockCandidates, {
+        apiKey: 'test-cohere-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(capturedUrl).toBe('https://api.cohere.com/v2/rerank');
+      expect(capturedHeaders['Authorization']).toBe('Bearer test-cohere-key');
+      expect(capturedBody.model).toBe('rerank-v5.0-fast');
+      expect(capturedBody.query).toBe('public policy compromise');
+      expect(capturedBody.documents).toEqual([
+        mockCandidates[0].text,
+        mockCandidates[1].text,
+      ]);
+      expect(capturedBody.relevant_spans).toEqual({
+        mode: 'enabled',
+        threshold: 0.3,
+        max_spans: 3,
+      });
+
+      // Validates reranked order: index 1 first, index 0 second
+      expect(results.length).toBe(2);
+      expect(results[0].releaseTag).toBe('tag_b');
+      expect(results[0].speaker).toBe('Bob');
+      expect(results[0].matchType).toBe('rerank');
+
+      // Constraint 1: Preserves raw scores without formatting as percentage or confidence
+      expect(results[0].relevanceScore).toBe(0.8954);
+
+      // Constraint 2: Preserves exact segment-level audio boundaries without proportional trimming
+      expect(results[0].startSec).toBe(45.0);
+      expect(results[0].endSec).toBe(60.2);
+
+      // Context Focus: Substring slice matches text at character offsets
+      expect(results[0].relevantSpans).toBeDefined();
+      expect(results[0].relevantSpans?.length).toBe(1);
+      const span = results[0].relevantSpans![0];
+      expect(span.start).toBe(17);
+      expect(span.end).toBe(42);
+      expect(span.score).toBe(0.92);
+      expect(span.text).toBe(mockCandidates[1].text.slice(17, 42)); // "compromise in public policy"
+
+      // Second item
+      expect(results[1].releaseTag).toBe('tag_a');
+      expect(results[1].relevanceScore).toBe(0.412);
+      expect(results[1].startSec).toBe(10.5);
+      expect(results[1].endSec).toBe(25.0);
+      expect(results[1].relevantSpans).toBeUndefined();
+    });
+
+    it('allows specifying rerank-v5.0-pro as an optional model', async () => {
+      let capturedModel = '';
+      const mockFetch = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        capturedModel = body.model;
+        return new Response(
+          JSON.stringify({
+            results: [{ index: 0, relevance_score: 0.95, relevant_spans: [] }],
+          }),
+          { status: 200 }
+        );
+      };
+
+      await rerankWithCohere('test', mockCandidates, {
+        apiKey: 'test-key',
+        model: 'rerank-v5.0-pro',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(capturedModel).toBe('rerank-v5.0-pro');
+    });
+
+    it('falls back gracefully to candidates on upstream HTTP error (500)', async () => {
+      const mockFetch = async () => new Response('Internal Server Error', { status: 500 });
+
+      const results = await rerankWithCohere('compromise', mockCandidates, {
+        apiKey: 'test-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results).toEqual(mockCandidates);
+    });
+
+    it('falls back gracefully to candidates on network throw or exception', async () => {
+      const mockFetch = async () => {
+        throw new Error('ECONNRESET');
+      };
+
+      const results = await rerankWithCohere('compromise', mockCandidates, {
+        apiKey: 'test-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results).toEqual(mockCandidates);
+    });
+
+    it('falls back gracefully on malformed response body', async () => {
+      const mockFetch = async () => new Response('not valid json', { status: 200 });
+
+      const results = await rerankWithCohere('compromise', mockCandidates, {
+        apiKey: 'test-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results).toEqual(mockCandidates);
+    });
+
+    it('safely filters out malformed relevant_spans with non-finite or inverted offsets without crashing', async () => {
+      const mockFetch = async () =>
+        new Response(
+          JSON.stringify({
+            results: [
+              {
+                index: 0,
+                relevance_score: 0.88,
+                relevant_spans: [
+                  { start: 'invalid', end: 10, score: 0.9 },
+                  { start: 10, end: 'nan', score: 0.8 },
+                  { start: -5, end: 10, score: 0.7 },
+                  { start: 20, end: 10, score: 0.6 },
+                  { start: 0, end: 15, score: 0.95 }, // valid span
+                ],
+              },
+            ],
+          }),
+          { status: 200 }
+        );
+
+      const results = await rerankWithCohere('test', mockCandidates, {
+        apiKey: 'test-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results.length).toBe(1);
+      expect(results[0].relevantSpans).toBeDefined();
+      expect(results[0].relevantSpans?.length).toBe(1);
+      expect(results[0].relevantSpans![0].start).toBe(0);
+      expect(results[0].relevantSpans![0].end).toBe(15);
+      expect(results[0].relevantSpans![0].text).toBe(mockCandidates[0].text.slice(0, 15));
+    });
+  });
+
+  describe('searchTranscriptArchive (rerank mode)', () => {
+    it('gathers candidate pool via hybrid search then reranks with Cohere', async () => {
+      const mockFetch = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        const docCount = body.documents.length;
+        const results = body.documents.map((_: any, idx: number) => ({
+          index: docCount - 1 - idx,
+          relevance_score: 0.99 - idx * 0.05,
+          relevant_spans: [{ start: 0, end: 10, score: 0.9 }],
+        }));
+        return new Response(JSON.stringify({ results }), { status: 200 });
+      };
+
+      const results = await searchTranscriptArchive('compromise', {
+        mode: 'rerank',
+        maxResults: 3,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every(r => r.matchType === 'rerank')).toBe(true);
+      expect(results[0].relevanceScore).toBeCloseTo(0.99, 2);
+      expect(results[0].relevantSpans).toBeDefined();
+    }, 20000);
+
+    it('bounds candidate pool between 50 and 100 documents', async () => {
+      let documentCountFor10 = 0;
+      let documentCountFor80 = 0;
+
+      const mockFetch10 = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        documentCountFor10 = body.documents.length;
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      };
+
+      await searchTranscriptArchive('compromise', {
+        mode: 'rerank',
+        maxResults: 10,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch10 as any,
+      });
+
+      // When maxResults: 10, candidateLimit = min(100, max(50, 10 * 2)) = 50
+      expect(documentCountFor10).toBe(50);
+
+      const mockFetch80 = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        documentCountFor80 = body.documents.length;
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      };
+
+      await searchTranscriptArchive('compromise', {
+        mode: 'rerank',
+        maxResults: 80,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch80 as any,
+      });
+
+      // Even though 80 * 2 = 160, candidateLimit is clamped to <= 100
+      expect(documentCountFor80).toBeLessThanOrEqual(100);
+      expect(documentCountFor80).toBeGreaterThan(0);
+    }, 20000);
+  });
+
+  describe('handleSearchTranscripts (rerank mode)', () => {
+    it('returns structured matches with relevant_spans and match_type rerank', async () => {
+      const mockFetch = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        const results = body.documents.map((_: any, idx: number) => ({
+          index: idx,
+          relevance_score: 0.95 - idx * 0.05,
+          relevant_spans: [{ start: 0, end: 12, score: 0.88 }],
+        }));
+        return new Response(JSON.stringify({ results }), { status: 200 });
+      };
+
+      const res = await handleSearchTranscripts({
+        query: 'compromise',
+        scope: 'all_transcripts',
+        maxResults: 3,
+        mode: 'rerank',
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(res.matches.length).toBeGreaterThan(0);
+      expect(res.matches[0].match_type).toBe('rerank');
+      expect(res.matches[0].relevance_score).toBeCloseTo(0.95, 2);
+      expect(res.matches[0].relevant_spans).toBeDefined();
+      expect(res.matches[0].relevant_spans![0].start).toBe(0);
+      expect(res.matches[0].relevant_spans![0].end).toBe(12);
+    }, 20000);
+  });
+
+  describe('speaker filtering and prefix query support', () => {
+    it('filters candidates and results strictly by speaker option in hybrid mode', async () => {
+      const results = await searchTranscriptArchive('compromise', {
+        mode: 'hybrid',
+        speaker: 'Angela',
+        maxResults: 5,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) {
+        expect(r.speaker.toLowerCase()).toContain('angela');
+      }
+    }, 20000);
+
+    it('filters candidates strictly by speaker before submitting to Cohere in rerank mode', async () => {
+      let inspectedCandidates: string[] = [];
+      const mockFetch = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        inspectedCandidates = body.documents;
+        const results = body.documents.map((_: any, idx: number) => ({
+          index: idx,
+          relevance_score: 0.9 - idx * 0.05,
+        }));
+        return new Response(JSON.stringify({ results }), { status: 200 });
+      };
+
+      const results = await searchTranscriptArchive('compromise', {
+        mode: 'rerank',
+        speaker: 'Angela',
+        maxResults: 5,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) {
+        expect(r.speaker.toLowerCase()).toContain('angela');
+      }
+      expect(inspectedCandidates.length).toBeGreaterThan(0);
+    }, 20000);
+
+    it('extracts speaker:Name prefix and filters results accordingly in rerank mode', async () => {
+      let sentQuery = '';
+      const mockFetch = async (_url: string, init: any) => {
+        const body = JSON.parse(init.body);
+        sentQuery = body.query;
+        const results = body.documents.map((_: any, idx: number) => ({
+          index: idx,
+          relevance_score: 0.88 - idx * 0.05,
+        }));
+        return new Response(JSON.stringify({ results }), { status: 200 });
+      };
+
+      const results = await searchTranscriptArchive('speaker:Angela why she left', {
+        mode: 'rerank',
+        maxResults: 5,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) {
+        expect(r.speaker.toLowerCase()).toContain('angela');
+      }
+      // Query passed to Cohere should have speaker prefix stripped
+      expect(sentQuery).toBe('why she left');
+    }, 20000);
+
+    it('supports pure speaker query without calling Cohere in rerank mode', async () => {
+      let cohereCalled = false;
+      const mockFetch = async () => {
+        cohereCalled = true;
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      };
+
+      const results = await searchTranscriptArchive('speaker:Angela', {
+        mode: 'rerank',
+        maxResults: 5,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) {
+        expect(r.speaker.toLowerCase()).toContain('angela');
+      }
+      expect(cohereCalled).toBe(false);
+    }, 20000);
+
+    it('uses exact normalized speaker matching: Dan does not match Danielle', async () => {
+      // "Danielle" is present in archive, but searching for "Dan" must not return Danielle
+      const resultsDan = await searchTranscriptArchive('speaker:Dan', {
+        mode: 'hybrid',
+        maxResults: 5,
+      });
+      // There is no speaker named "Dan" in the archive
+      expect(resultsDan.length).toBe(0);
+
+      // Searching for "Danielle" matches Danielle
+      const resultsDanielle = await searchTranscriptArchive('speaker:Danielle', {
+        mode: 'hybrid',
+        maxResults: 5,
+      });
+      expect(resultsDanielle.length).toBeGreaterThan(0);
+      for (const r of resultsDanielle) {
+        expect(r.speaker.toLowerCase().trim()).toBe('danielle');
+      }
+    }, 20000);
+
+    it('uses exact normalized speaker matching: whitespace and capitalization tolerant', async () => {
+      const results = await searchTranscriptArchive('compromise', {
+        mode: 'hybrid',
+        speaker: '  angela  ',
+        maxResults: 5,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      for (const r of results) {
+        expect(r.speaker.toLowerCase().trim()).toBe('angela');
+      }
+    }, 20000);
+
+    it('returns empty results for unknown speaker without falling back to unfiltered search', async () => {
+      const hybridResults = await searchTranscriptArchive('compromise', {
+        mode: 'hybrid',
+        speaker: 'UnknownSpeakerXYZ_NeverExists',
+        maxResults: 5,
+      });
+      expect(hybridResults).toEqual([]);
+
+      let cohereCalled = false;
+      const mockFetch = async () => {
+        cohereCalled = true;
+        return new Response(JSON.stringify({ results: [] }), { status: 200 });
+      };
+
+      const rerankResults = await searchTranscriptArchive('compromise', {
+        mode: 'rerank',
+        speaker: 'UnknownSpeakerXYZ_NeverExists',
+        maxResults: 5,
+        apiKey: 'mock-key',
+        fetchImpl: mockFetch as any,
+      });
+      expect(rerankResults).toEqual([]);
+      expect(cohereCalled).toBe(false);
+    }, 20000);
+
+    it('unfiltered search remains unaffected when no speaker filter is provided', async () => {
+      const results = await searchTranscriptArchive('David Grusch', {
+        mode: 'hybrid',
+        maxResults: 5,
+      });
+      expect(results.length).toBeGreaterThan(0);
+      // Results should not be restricted to any single speaker
+      const speakers = new Set(results.map(r => r.speaker));
+      expect(speakers.size).toBeGreaterThan(0);
+    }, 20000);
   });
 });

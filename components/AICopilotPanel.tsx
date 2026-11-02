@@ -33,8 +33,14 @@ import { TensionArc } from './TensionArc';
 import { TargetWindowGauge } from './TargetWindowGauge';
 import type { CopilotAction } from '../utils/copilotTypes';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
+import { renderTranscriptWithContextFocus } from '../utils/searchWorker';
 
 const PRESET_PILLS = [
+  {
+    icon: <Sparkles size={13} className="text-amber-400" />,
+    label: 'Deep Rerank Search',
+    prompt: 'Search the transcripts using Deep Rerank (Cohere Rerank 5) for the most relevant dialogue about ',
+  },
   {
     icon: <Flame size={13} className="text-amber-400" />,
     label: 'Soundbite Hunter',
@@ -313,22 +319,39 @@ export const AICopilotPanel: React.FC = () => {
                     <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                       {m.matches.map((match, idx) => (
                         <div key={idx} className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs hover:border-slate-700 transition-colors">
-                          <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                            <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                               <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 font-semibold text-[10px] border border-blue-500/20 flex-shrink-0">
                                 {match.speaker}
                               </span>
+                              {match.match_type === 'rerank' && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[9px] font-mono flex-shrink-0">
+                                  Rerank 5{match.relevant_spans && match.relevant_spans.length > 0 && ' · Focus'}
+                                </span>
+                              )}
                               <span className="text-slate-400 text-[11px] truncate">
                                 in {match.episode_title || match.episode_id}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
-                              {match.formatted_time || formatTime(match.start_timestamp)} - {formatTime(match.end_timestamp)}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {match.relevance_score !== undefined && (
+                                <span className="text-[10px] text-slate-400 font-mono" title="Raw Cohere relevance score">
+                                  Score: {match.relevance_score.toFixed(3)}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-500 font-mono">
+                                {match.formatted_time || formatTime(match.start_timestamp)} - {formatTime(match.end_timestamp)}
+                              </span>
+                            </div>
                           </div>
 
-                          <p className="text-[11px] text-slate-300 italic mb-2 line-clamp-2">
-                            "{match.snippet}"
+                          <p className="text-[11px] text-slate-300 leading-relaxed mb-2 select-text">
+                            "{renderTranscriptWithContextFocus(
+                              match.snippet,
+                              match.relevant_spans,
+                              undefined,
+                              'bg-amber-500/20 text-amber-100 rounded px-1 py-0.5 border-b border-amber-400/50 font-normal'
+                            )}"
                           </p>
 
                           <div className="flex items-center gap-2">

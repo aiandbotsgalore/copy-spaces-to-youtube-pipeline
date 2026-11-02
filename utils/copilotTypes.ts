@@ -53,6 +53,7 @@ export interface TranscriptMatch {
   audio_url?: string;
   match_type?: string;
   relevance_score?: number;
+  relevant_spans?: Array<{ start: number; end: number; score: number; text?: string }>;
 }
 
 export interface CopilotAction {
@@ -125,6 +126,9 @@ export interface CopilotContextPayload {
     startSec: number;
     endSec: number;
     text: string;
+    relevanceScore?: number;
+    matchType?: string;
+    relevantSpans?: Array<{ start: number; end: number; score: number; text?: string }>;
   }>;
   archiveStats?: {
     totalEpisodes: number;

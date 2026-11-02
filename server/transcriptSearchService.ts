@@ -1,5 +1,25 @@
 import fs from 'fs';
 import path from 'path';
+import {
+  extractSpeakerPrefix,
+  normalizeSpeakerName,
+  isNormalizedSpeakerMatch,
+  type ParsedSpeakerQuery,
+} from '../utils/transcriptSearch';
+
+export {
+  extractSpeakerPrefix,
+  normalizeSpeakerName,
+  isNormalizedSpeakerMatch,
+  type ParsedSpeakerQuery,
+};
+
+export interface RelevantSpan {
+  start: number;       // 0-based character start offset in segment text
+  end: number;         // 0-based character end offset in segment text
+  score: number;       // Raw relevance score from cross-encoder
+  text?: string;       // Substring slice from segment text
+}
 
 export interface TranscriptSearchResult {
   episodeTitle: string;
@@ -11,7 +31,8 @@ export interface TranscriptSearchResult {
   endSec: number;
   text: string;
   relevanceScore?: number;
-  matchType?: 'lexical' | 'vector' | 'hybrid' | 'proximity';
+  matchType?: 'lexical' | 'vector' | 'hybrid' | 'proximity' | 'rerank';
+  relevantSpans?: RelevantSpan[];
 }
 
 export interface EpisodeSummaryItem {
@@ -48,7 +69,10 @@ export interface SearchOptions {
   speaker?: string;
   episodeTag?: string;
   maxResults?: number;
-  mode?: 'hybrid' | 'lexical' | 'vector';
+  mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
+  rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
+  apiKey?: string;
+  fetchImpl?: typeof fetch;
   activeSegments?: Array<{ speaker: string; text: string; start: number; end: number }>;
 }
 
@@ -322,7 +346,7 @@ export async function searchTranscriptLexical(
   const summaries = loadSummaries();
   const fileMap = getTagToFileMap();
   const max = options.maxResults || 15;
-  const targetSpeaker = options.speaker?.toLowerCase().trim();
+  const targetSpeaker = normalizeSpeakerName(options.speaker);
   const targetTag = options.episodeTag?.trim();
   const qClean = query.toLowerCase().trim();
 
@@ -342,7 +366,7 @@ export async function searchTranscriptLexical(
       const textLower = seg.text.toLowerCase();
       const speakerName = seg.speaker || 'Unknown Speaker';
 
-      if (targetSpeaker && !speakerName.toLowerCase().includes(targetSpeaker)) {
+      if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
         continue;
       }
 
@@ -378,8 +402,13 @@ export async function searchTranscriptLexical(
   for (const s of summaries) {
     if (targetTag && s.release_tag !== targetTag) continue;
 
+    // When an explicit speaker is requested, skip episodes that have known speaker metadata without this speaker
+    if (targetSpeaker && s.speakers && !s.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
+      continue;
+    }
+
     let boost = 0;
-    if (targetSpeaker && s.speakers?.some(sp => sp.toLowerCase().includes(targetSpeaker))) {
+    if (targetSpeaker && s.speakers?.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
       boost += 50;
     }
     if (qClean && s.title?.toLowerCase().includes(qClean)) {
@@ -442,7 +471,7 @@ export async function searchTranscriptLexical(
         const textLower = seg.text.toLowerCase();
         const speakerName = seg.speaker || 'Unknown Speaker';
 
-        if (targetSpeaker && !speakerName.toLowerCase().includes(targetSpeaker)) {
+        if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
           continue;
         }
 
@@ -492,7 +521,7 @@ export async function searchTranscriptVector(
 
   const summaries = loadSummaries();
   const max = options.maxResults || 15;
-  const targetSpeaker = options.speaker?.toLowerCase().trim();
+  const targetSpeaker = normalizeSpeakerName(options.speaker);
   const targetTag = options.episodeTag?.trim();
 
   let availableTags = getAvailableEmbeddingTags();
@@ -504,7 +533,7 @@ export async function searchTranscriptVector(
 
   for (const tag of availableTags) {
     const summary = summaries.find(s => s.release_tag === tag);
-    if (targetSpeaker && summary?.speakers && !summary.speakers.some(sp => sp.toLowerCase().includes(targetSpeaker))) {
+    if (targetSpeaker && summary?.speakers && !summary.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
       continue;
     }
 
@@ -516,7 +545,7 @@ export async function searchTranscriptVector(
 
     for (let i = 0; i < segmentCount; i++) {
       const seg = manifest.segments[i];
-      if (targetSpeaker && !seg.speaker.toLowerCase().includes(targetSpeaker)) {
+      if (targetSpeaker && !isNormalizedSpeakerMatch(seg.speaker, targetSpeaker)) {
         continue;
       }
 
@@ -591,6 +620,107 @@ export function computeRRF(
   }));
 }
 
+export interface RerankOptions {
+  apiKey?: string;
+  model?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
+  topN?: number;
+  threshold?: number;
+  fetchImpl?: typeof fetch;
+}
+
+/**
+ * Cross-encoder reranking service using Cohere v2 Rerank API.
+ * - Defaults to rerank-v5.0-fast with optional rerank-v5.0-pro.
+ * - Enables Context Focus to extract relevant_spans character offsets.
+ * - Preserves raw scores for ranking and internal evaluation only.
+ * - Preserves original segment-level audio boundaries without proportional estimation.
+ * - Reranks individual segments without automatic neighbor expansion.
+ * - Gracefully falls back to existing candidate ranking on any credential, network, or parse failure.
+ */
+export async function rerankWithCohere(
+  query: string,
+  candidates: TranscriptSearchResult[],
+  options: RerankOptions = {}
+): Promise<TranscriptSearchResult[]> {
+  if (!candidates || candidates.length === 0 || !query || !query.trim()) return candidates || [];
+
+  const apiKey = (options.apiKey !== undefined ? options.apiKey : (process.env.COHERE_API_KEY || '')).trim();
+  if (!apiKey) {
+    console.warn('[TranscriptSearchService] No COHERE_API_KEY available. Preserving candidate ranking.');
+    return candidates;
+  }
+
+  const model = options.model || 'rerank-v5.0-fast';
+  const topN = Math.min(candidates.length, options.topN || candidates.length);
+  const fetcher = options.fetchImpl || fetch;
+
+  const documents = candidates.map(c => c.text);
+
+  const payload: Record<string, unknown> = {
+    model,
+    query,
+    top_n: topN,
+    documents,
+    relevant_spans: {
+      mode: 'enabled',
+      threshold: options.threshold ?? 0.3,
+      max_spans: 3,
+    },
+  };
+
+  try {
+    const res = await fetcher('https://api.cohere.com/v2/rerank', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.warn(`[TranscriptSearchService] Cohere Rerank error ${res.status}: ${errText.slice(0, 200)}. Falling back to candidate ranking.`);
+      return candidates;
+    }
+
+    const data = await res.json().catch(() => null);
+    if (!data || !Array.isArray(data.results)) {
+      console.warn('[TranscriptSearchService] Malformed Cohere Rerank response. Falling back to candidate ranking.');
+      return candidates;
+    }
+
+    const reranked: TranscriptSearchResult[] = [];
+    for (const item of data.results) {
+      if (typeof item.index !== 'number' || item.index < 0 || item.index >= candidates.length) continue;
+      const orig = candidates[item.index];
+      const spans: RelevantSpan[] = Array.isArray(item.relevant_spans)
+        ? item.relevant_spans
+            .filter((s: any) => s && Number.isFinite(s.start) && Number.isFinite(s.end) && Number(s.start) >= 0 && Number(s.end) >= Number(s.start))
+            .map((s: any) => ({
+              start: Number(s.start),
+              end: Number(s.end),
+              score: Number.isFinite(s.score) ? Number(s.score) : 0,
+              text: orig.text.slice(Number(s.start), Number(s.end)),
+            }))
+        : [];
+
+      reranked.push({
+        ...orig,
+        relevanceScore: Number(item.relevance_score),
+        matchType: 'rerank',
+        relevantSpans: spans.length > 0 ? spans : undefined,
+      });
+    }
+
+    return reranked.length > 0 ? reranked : candidates;
+  } catch (err: any) {
+    console.warn('[TranscriptSearchService] Exception calling Cohere Rerank API:', err?.message || err);
+    return candidates;
+  }
+}
+
 export async function searchTranscriptArchive(
   query: string,
   options: SearchOptions = {}
@@ -598,20 +728,68 @@ export async function searchTranscriptArchive(
   const mode = options.mode || 'hybrid';
   const max = options.maxResults || 15;
 
+  let effectiveSpeaker = options.speaker && options.speaker !== 'ALL' ? options.speaker.trim() : undefined;
+  let effectiveQuery = query;
+
+  if (!effectiveSpeaker) {
+    const parsed = extractSpeakerPrefix(query);
+    if (parsed.speaker) {
+      effectiveSpeaker = parsed.speaker;
+      effectiveQuery = parsed.query;
+    }
+  }
+
+  const effectiveOptions: SearchOptions = {
+    ...options,
+    speaker: effectiveSpeaker,
+  };
+
   if (mode === 'lexical') {
-    return searchTranscriptLexical(query, options);
+    return searchTranscriptLexical(effectiveQuery, effectiveOptions);
   }
 
   if (mode === 'vector') {
-    const vecResults = await searchTranscriptVector(query, options);
+    const vecResults = await searchTranscriptVector(effectiveQuery, effectiveOptions);
     return vecResults.slice(0, max);
+  }
+
+  if (mode === 'rerank') {
+    // Stage 1: Gather candidate pool via hybrid search (requesting max * 2 candidates, bounded between 50 and 100)
+    const candidateLimit = Math.min(100, Math.max(50, max * 2));
+    let candidates: TranscriptSearchResult[] = [];
+    try {
+      candidates = await searchTranscriptArchive(effectiveQuery, {
+        ...effectiveOptions,
+        mode: 'hybrid',
+        maxResults: candidateLimit,
+      });
+    } catch {
+      candidates = await searchTranscriptLexical(effectiveQuery, { ...effectiveOptions, maxResults: candidateLimit });
+    }
+
+    if (candidates.length === 0) return [];
+
+    // Stage 2: Rerank candidates with Cohere Rerank 5
+    // If effectiveQuery is empty (e.g. searching only by speaker), return candidates directly without calling Cohere
+    if (!effectiveQuery.trim()) {
+      return candidates.slice(0, max);
+    }
+
+    const reranked = await rerankWithCohere(effectiveQuery, candidates, {
+      apiKey: options.apiKey,
+      model: options.rerankModel,
+      topN: max,
+      fetchImpl: options.fetchImpl,
+    });
+
+    return reranked.slice(0, max);
   }
 
   // Hybrid Mode: parallel execution of lexical and vector search
   try {
     const [lexical, vector] = await Promise.all([
-      searchTranscriptLexical(query, { ...options, maxResults: max * 2 }),
-      searchTranscriptVector(query, { ...options, maxResults: max * 2 }),
+      searchTranscriptLexical(effectiveQuery, { ...effectiveOptions, maxResults: max * 2 }),
+      searchTranscriptVector(effectiveQuery, { ...effectiveOptions, maxResults: max * 2 }),
     ]);
 
     if (vector.length > 0 && lexical.length > 0) {
@@ -626,7 +804,7 @@ export async function searchTranscriptArchive(
     return lexical.slice(0, max);
   } catch (err) {
     console.warn('[TranscriptSearchService] Hybrid search failed, falling back to lexical:', err);
-    return searchTranscriptLexical(query, options);
+    return searchTranscriptLexical(effectiveQuery, effectiveOptions);
   }
 }
 
@@ -905,6 +1083,10 @@ export interface HandleSearchTranscriptsInput {
   episodeTag?: string;
   timestamp_sec?: number;
   maxResults?: number;
+  mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
+  rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
+  apiKey?: string;
+  fetchImpl?: typeof fetch;
   activeSegments?: Array<{ speaker: string; text: string; start: number; end: number }>;
 }
 
@@ -919,6 +1101,7 @@ export interface TranscriptMatch {
   audio_url?: string;
   match_type?: string;
   relevance_score?: number;
+  relevant_spans?: RelevantSpan[];
 }
 
 export interface HandleSearchTranscriptsResult {
@@ -1009,30 +1192,19 @@ export async function handleSearchTranscripts(
     }
   }
 
-  // ── Tier 1: Hybrid Semantic + BM25 Lexical Search ──
+  // ── Tier 1: Hybrid Semantic + BM25 Lexical Search (or Rerank if requested) ──
   if (rawResults.length === 0 && normalizedQuery) {
+    const searchMode = input.mode || 'hybrid';
     rawResults = await searchTranscriptArchive(normalizedQuery, {
       speaker: speakerHint,
       episodeTag: targetTag,
       activeSegments: input.activeSegments,
       maxResults: max,
-      mode: 'hybrid',
+      mode: searchMode,
+      rerankModel: input.rerankModel,
+      apiKey: input.apiKey,
+      fetchImpl: input.fetchImpl,
     });
-
-    // Broaden Speaker Scope: If speaker_hint yielded 0 matches, retry without it
-    if (rawResults.length === 0 && speakerHint) {
-      const relaxedResults = await searchTranscriptArchive(normalizedQuery, {
-        speaker: undefined,
-        episodeTag: targetTag,
-        activeSegments: input.activeSegments,
-        maxResults: max,
-        mode: 'hybrid',
-      });
-      if (relaxedResults.length > 0) {
-        rawResults = relaxedResults;
-        speakerApplied = undefined; // relaxed
-      }
-    }
   }
 
   // ── Tier 2 (Fallback): Anchor Words AND Search ──
@@ -1073,23 +1245,6 @@ export async function handleSearchTranscripts(
         });
       }
 
-      // If still 0 and speaker filter was set, try anchor search without speaker filter
-      if (andFiltered.length === 0 && speakerApplied) {
-        const relaxedAnchor = await searchTranscriptLexical(anchorQuery, {
-          speaker: undefined,
-          episodeTag: targetTag,
-          activeSegments: input.activeSegments,
-          maxResults: max * 2,
-        });
-        andFiltered = relaxedAnchor.filter(r => {
-          const textLower = r.text.toLowerCase();
-          return anchorWords.slice(0, 2).every(word => textLower.includes(word));
-        });
-        if (andFiltered.length > 0) {
-          speakerApplied = undefined;
-        }
-      }
-
       rawResults = andFiltered.slice(0, max);
     }
   }
@@ -1105,6 +1260,7 @@ export async function handleSearchTranscripts(
     audio_url: r.audioUrl,
     match_type: r.matchType,
     relevance_score: r.relevanceScore,
+    relevant_spans: r.relevantSpans,
   }));
 
   return {

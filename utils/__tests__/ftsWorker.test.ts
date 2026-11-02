@@ -66,10 +66,22 @@ describe('SQLite WASM FTS5 Full-Text Search Worker Engine', () => {
       expect(resultsEp2.length).toBe(0);
     });
 
-    it('filters search by speaker', () => {
+    it('filters search by speaker with exact normalized matching', () => {
       const results = searchTurns({ query: 'SpacePipe', speaker: 'Logan' });
       expect(results.length).toBe(1);
       expect(results[0].speaker).toBe('Logan');
+
+      // Case-insensitive and whitespace tolerant
+      const resultsCase = searchTurns({ query: 'SpacePipe', speaker: '  logan  ' });
+      expect(resultsCase.length).toBe(1);
+
+      // Rejects substring match
+      const resultsSub = searchTurns({ query: 'SpacePipe', speaker: 'Log' });
+      expect(resultsSub.length).toBe(0);
+
+      // Rejects extended name match
+      const resultsExt = searchTurns({ query: 'SpacePipe', speaker: 'Logan Smith' });
+      expect(resultsExt.length).toBe(0);
 
       const noMatch = searchTurns({ query: 'SpacePipe', speaker: 'Angela' });
       expect(noMatch.length).toBe(0);

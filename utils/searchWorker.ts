@@ -9,9 +9,10 @@ import {
   evaluateTurnMatch,
   highlightTranscriptMatches,
   renderTranscriptMatch,
+  extractSpeakerPrefix,
 } from './transcriptSearch';
 
-export type { SearchQueryAST } from './transcriptSearch';
+export type { SearchQueryAST, ParsedSpeakerQuery, RelevantSpanInput, FocusSegment } from './transcriptSearch';
 export {
   parseGoogleQuery,
   escapeRegex,
@@ -19,6 +20,11 @@ export {
   hasActiveQuery,
   highlightTranscriptMatches,
   renderTranscriptMatch,
+  extractSpeakerPrefix,
+  normalizeSpeakerName,
+  isNormalizedSpeakerMatch,
+  partitionTextWithFocusSpans,
+  renderTranscriptWithContextFocus,
 } from './transcriptSearch';
 
 export interface WorkerSearchParams {

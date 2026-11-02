@@ -25,6 +25,53 @@ export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+export interface ParsedSpeakerQuery {
+  speaker?: string;
+  query: string;
+}
+
+/**
+ * Parses optional `speaker:Name` or `from:Name` prefix from a search query.
+ * Example: `speaker:Angela why she left` -> `{ speaker: 'Angela', query: 'why she left' }`
+ * Example: `from:"Eric Hecker" south pole` -> `{ speaker: 'Eric Hecker', query: 'south pole' }`
+ */
+export function extractSpeakerPrefix(query: string): ParsedSpeakerQuery {
+  if (!query) return { query: '' };
+  const trimmed = query.trim();
+  const match = trimmed.match(/^(?:speaker|from):\s*(?:"([^"]+)"|'([^']+)'|([^\s]+))\s*(.*)$/i);
+  if (match) {
+    const speaker = (match[1] || match[2] || match[3] || '').trim();
+    const rest = (match[4] || '').trim();
+    if (speaker) {
+      return { speaker, query: rest };
+    }
+  }
+  return { query: trimmed };
+}
+
+/**
+ * Normalizes a speaker name by trimming whitespace and lowercasing.
+ */
+export function normalizeSpeakerName(speaker?: string | null): string {
+  if (!speaker) return '';
+  return speaker.trim().toLowerCase();
+}
+
+/**
+ * Checks whether two speaker names match exactly after whitespace trimming and lowercasing.
+ * Ensures:
+ * - Case-insensitive ('angela' === 'Angela')
+ * - Whitespace trimmed (' Dan ' === 'Dan')
+ * - No partial/substring matches ('Dan' !== 'Danny', 'Logan' !== 'Logan Smith')
+ * - Generic diarization labels remain distinct ('Speaker 1' !== 'SPEAKER_01')
+ */
+export function isNormalizedSpeakerMatch(speakerA?: string | null, speakerB?: string | null): boolean {
+  if (!speakerA || !speakerB) return false;
+  const normA = normalizeSpeakerName(speakerA);
+  const normB = normalizeSpeakerName(speakerB);
+  return Boolean(normA && normB && normA === normB);
+}
+
 export function parseGoogleQuery(query: string): SearchQueryAST {
   const trimmed = query.trim();
   const ast: SearchQueryAST = {
@@ -209,4 +256,158 @@ export function renderTranscriptMatch(text: string, queryOrAst: string | SearchQ
         )
       : part
   );
+}
+
+export interface RelevantSpanInput {
+  start: number;
+  end: number;
+  score?: number;
+  text?: string;
+}
+
+export interface FocusSegment {
+  text: string;
+  isFocus: boolean;
+  score?: number;
+}
+
+/**
+ * Validates character offsets and partitions text into continuous segments.
+ *
+ * Bounds & Validation rules:
+ * - start and end must be finite numbers
+ * - start must be nonnegative (>= 0)
+ * - end must be strictly greater than start (end > start)
+ * - end must not exceed text.length (end <= text.length)
+ * - If offsets are missing, non-finite, out of order, or out of bounds, they are safely ignored
+ * - Spans are sorted by start offset and merged if overlapping or contiguous
+ * - Concatenation of all output segment texts is guaranteed to equal the original input text exactly
+ */
+export function partitionTextWithFocusSpans(
+  text: string,
+  spans?: RelevantSpanInput[] | null
+): FocusSegment[] {
+  if (!text) return [];
+  if (!spans || !Array.isArray(spans) || spans.length === 0) {
+    return [{ text, isFocus: false }];
+  }
+
+  const textLen = text.length;
+  const validSpans: Array<{ start: number; end: number; score?: number }> = [];
+
+  for (const span of spans) {
+    if (!span || typeof span !== 'object') continue;
+    const { start, end, score } = span;
+
+    if (
+      typeof start === 'number' &&
+      typeof end === 'number' &&
+      Number.isFinite(start) &&
+      Number.isFinite(end) &&
+      start >= 0 &&
+      end > start &&
+      end <= textLen
+    ) {
+      validSpans.push({
+        start: Math.floor(start),
+        end: Math.floor(end),
+        score: typeof score === 'number' && Number.isFinite(score) ? score : undefined,
+      });
+    }
+  }
+
+  if (validSpans.length === 0) {
+    return [{ text, isFocus: false }];
+  }
+
+  // Sort spans by start offset ASC, then end offset ASC
+  validSpans.sort((a, b) => a.start - b.start || a.end - b.end);
+
+  // Merge overlapping or contiguous spans
+  const merged: Array<{ start: number; end: number; score?: number }> = [];
+  for (const span of validSpans) {
+    if (merged.length === 0) {
+      merged.push({ ...span });
+    } else {
+      const last = merged[merged.length - 1];
+      if (span.start <= last.end) {
+        last.end = Math.max(last.end, span.end);
+        if (span.score !== undefined) {
+          last.score = last.score !== undefined ? Math.max(last.score, span.score) : span.score;
+        }
+      } else {
+        merged.push({ ...span });
+      }
+    }
+  }
+
+  // Partition text into sequential slices
+  const segments: FocusSegment[] = [];
+  let cursor = 0;
+
+  for (const span of merged) {
+    if (span.start > cursor) {
+      segments.push({
+        text: text.slice(cursor, span.start),
+        isFocus: false,
+      });
+    }
+    segments.push({
+      text: text.slice(span.start, span.end),
+      isFocus: true,
+      score: span.score,
+    });
+    cursor = span.end;
+  }
+
+  if (cursor < textLen) {
+    segments.push({
+      text: text.slice(cursor),
+      isFocus: false,
+    });
+  }
+
+  return segments;
+}
+
+/**
+ * Renders transcript text with Context Focus highlighted inline in its original position.
+ * If queryOrAst is provided, search keywords are also highlighted using native mark elements.
+ */
+export function renderTranscriptWithContextFocus(
+  text: string,
+  spans?: RelevantSpanInput[] | null,
+  queryOrAst?: string | SearchQueryAST,
+  focusClassName: string = 'bg-amber-500/20 text-slate-100 rounded px-1 py-0.5 border-b border-amber-400/50'
+): React.ReactNode {
+  if (!text) return text;
+
+  const partitions = partitionTextWithFocusSpans(text, spans);
+
+  // If no focus spans were applied, fall back to standard match rendering
+  if (partitions.length === 1 && !partitions[0].isFocus) {
+    return queryOrAst ? renderTranscriptMatch(text, queryOrAst) : text;
+  }
+
+  return partitions.map((part, idx) => {
+    const renderedContent = queryOrAst
+      ? renderTranscriptMatch(part.text, queryOrAst)
+      : part.text;
+
+    if (part.isFocus) {
+      return React.createElement(
+        'mark',
+        {
+          key: idx,
+          className: focusClassName,
+          title: part.score !== undefined
+            ? `Context Focus excerpt (Cohere score: ${part.score.toFixed(3)})`
+            : 'Context Focus excerpt',
+        },
+        renderedContent
+      );
+    }
+
+    return React.createElement(React.Fragment, { key: idx }, renderedContent);
+  });
 }

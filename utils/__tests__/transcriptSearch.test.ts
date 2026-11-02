@@ -5,6 +5,11 @@ import {
   highlightTranscriptMatches,
   renderTranscriptMatch,
   hasActiveQuery,
+  extractSpeakerPrefix,
+  normalizeSpeakerName,
+  isNormalizedSpeakerMatch,
+  partitionTextWithFocusSpans,
+  renderTranscriptWithContextFocus,
 } from '../transcriptSearch';
 
 describe('Google Search Query Parser & Turn Matcher', () => {
@@ -175,6 +180,230 @@ describe('Google Search Query Parser & Turn Matcher', () => {
 
     it('returns original string when query is empty', () => {
       expect(renderTranscriptMatch('Hello world', '')).toBe('Hello world');
+    });
+  });
+
+  describe('extractSpeakerPrefix', () => {
+    it('extracts speaker:Name prefix', () => {
+      const res = extractSpeakerPrefix('speaker:Angela why she left');
+      expect(res).toEqual({ speaker: 'Angela', query: 'why she left' });
+    });
+
+    it('extracts from:Name prefix', () => {
+      const res = extractSpeakerPrefix('from:Logan legal action');
+      expect(res).toEqual({ speaker: 'Logan', query: 'legal action' });
+    });
+
+    it('supports quoted speaker names', () => {
+      const res1 = extractSpeakerPrefix('speaker:"Eric Hecker" south pole station');
+      expect(res1).toEqual({ speaker: 'Eric Hecker', query: 'south pole station' });
+
+      const res2 = extractSpeakerPrefix("from:'David Grusch' uap crash recovery");
+      expect(res2).toEqual({ speaker: 'David Grusch', query: 'uap crash recovery' });
+    });
+
+    it('handles query with only speaker prefix and no search terms', () => {
+      const res = extractSpeakerPrefix('speaker:Angela');
+      expect(res).toEqual({ speaker: 'Angela', query: '' });
+    });
+
+    it('returns plain query when no speaker prefix is present', () => {
+      const res = extractSpeakerPrefix('government concealing recovered materials');
+      expect(res).toEqual({ query: 'government concealing recovered materials' });
+    });
+
+    it('handles empty or whitespace strings', () => {
+      expect(extractSpeakerPrefix('')).toEqual({ query: '' });
+      expect(extractSpeakerPrefix('   ')).toEqual({ query: '' });
+    });
+  });
+
+  describe('normalizeSpeakerName & isNormalizedSpeakerMatch', () => {
+    it('Dan matches Dan, but not Danny', () => {
+      expect(isNormalizedSpeakerMatch('Dan', 'Dan')).toBe(true);
+      expect(isNormalizedSpeakerMatch('dan', 'Dan')).toBe(true);
+      expect(isNormalizedSpeakerMatch('Dan', 'Danny')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Danny', 'Dan')).toBe(false);
+    });
+
+    it('Logan matches Logan, but not Logan Smith unless exact name requested', () => {
+      expect(isNormalizedSpeakerMatch('Logan', 'Logan')).toBe(true);
+      expect(isNormalizedSpeakerMatch('Logan', 'Logan Smith')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Logan Smith', 'Logan')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Logan Smith', 'Logan Smith')).toBe(true);
+      expect(isNormalizedSpeakerMatch('logan smith', 'Logan Smith')).toBe(true);
+    });
+
+    it('matching is case-insensitive', () => {
+      expect(isNormalizedSpeakerMatch('angela', 'Angela')).toBe(true);
+      expect(isNormalizedSpeakerMatch('ANGELA', 'angela')).toBe(true);
+      expect(isNormalizedSpeakerMatch('david grusch', 'David Grusch')).toBe(true);
+    });
+
+    it('leading and trailing whitespace does not break matching', () => {
+      expect(isNormalizedSpeakerMatch('  Dan  ', 'Dan')).toBe(true);
+      expect(isNormalizedSpeakerMatch('Logan', '  Logan ')).toBe(true);
+      expect(isNormalizedSpeakerMatch('\tAngela\n', 'Angela')).toBe(true);
+    });
+
+    it('quoted multiword names match correctly when parsed', () => {
+      const parsed1 = extractSpeakerPrefix('speaker:"Eric Hecker" south pole');
+      expect(parsed1.speaker).toBe('Eric Hecker');
+      expect(isNormalizedSpeakerMatch(parsed1.speaker, 'Eric Hecker')).toBe(true);
+      expect(isNormalizedSpeakerMatch(parsed1.speaker, 'eric hecker')).toBe(true);
+      expect(isNormalizedSpeakerMatch(parsed1.speaker, 'Eric')).toBe(false);
+
+      const parsed2 = extractSpeakerPrefix("from:'David Grusch' testimony");
+      expect(parsed2.speaker).toBe('David Grusch');
+      expect(isNormalizedSpeakerMatch(parsed2.speaker, 'David Grusch')).toBe(true);
+      expect(isNormalizedSpeakerMatch(parsed2.speaker, 'Grusch')).toBe(false);
+    });
+
+    it('generic diarization labels remain distinct', () => {
+      expect(isNormalizedSpeakerMatch('Speaker 1', 'SPEAKER_01')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Speaker 1', 'Speaker 2')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Speaker 1', 'speaker 1')).toBe(true);
+      expect(isNormalizedSpeakerMatch('SPEAKER_01', 'speaker_01')).toBe(true);
+    });
+
+    it('returns false for falsy or empty inputs', () => {
+      expect(isNormalizedSpeakerMatch('', 'Dan')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Dan', '')).toBe(false);
+      expect(isNormalizedSpeakerMatch(null, 'Dan')).toBe(false);
+      expect(isNormalizedSpeakerMatch('Dan', undefined)).toBe(false);
+      expect(isNormalizedSpeakerMatch('   ', 'Dan')).toBe(false);
+    });
+  });
+
+  describe('Context Focus Inline Presentation & Span Validation', () => {
+    const sampleText = 'We have confirmed recovered materials from anomalous vehicles in government custody.';
+
+    it('correctly highlights a valid character range in its original position', () => {
+      // "recovered materials" is at index 18 to 37
+      const start = sampleText.indexOf('recovered materials');
+      const end = start + 'recovered materials'.length;
+      const spans = [{ start, end, score: 0.942 }];
+      const segments = partitionTextWithFocusSpans(sampleText, spans);
+
+      expect(segments).toHaveLength(3);
+      expect(segments[0]).toEqual({ text: 'We have confirmed ', isFocus: false });
+      expect(segments[1]).toEqual({ text: 'recovered materials', isFocus: true, score: 0.942 });
+      expect(segments[2]).toEqual({ text: ' from anomalous vehicles in government custody.', isFocus: false });
+
+      // Exact concatenation matches original text
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('preserves text before and after the highlighted range without truncation or modification', () => {
+      const spans = [{ start: 8, end: 17 }]; // "confirmed"
+      const segments = partitionTextWithFocusSpans(sampleText, spans);
+
+      expect(segments[0].text).toBe('We have ');
+      expect(segments[0].isFocus).toBe(false);
+      expect(segments[1].text).toBe('confirmed');
+      expect(segments[1].isFocus).toBe(true);
+      expect(segments[2].text).toBe(' recovered materials from anomalous vehicles in government custody.');
+      expect(segments[2].isFocus).toBe(false);
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('safely rejects invalid negative offsets without crashing or truncating', () => {
+      const invalidSpans = [{ start: -10, end: 15 }];
+      const segments = partitionTextWithFocusSpans(sampleText, invalidSpans);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0]).toEqual({ text: sampleText, isFocus: false });
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('safely rejects end offsets beyond text length without crashing or modifying text', () => {
+      const invalidSpans = [{ start: 10, end: sampleText.length + 50 }];
+      const segments = partitionTextWithFocusSpans(sampleText, invalidSpans);
+
+      expect(segments).toHaveLength(1);
+      expect(segments[0]).toEqual({ text: sampleText, isFocus: false });
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('safely handles non-finite numbers and inverted bounds', () => {
+      expect(partitionTextWithFocusSpans(sampleText, [{ start: NaN, end: 10 }])).toEqual([
+        { text: sampleText, isFocus: false },
+      ]);
+      expect(partitionTextWithFocusSpans(sampleText, [{ start: 10, end: Infinity }])).toEqual([
+        { text: sampleText, isFocus: false },
+      ]);
+      expect(partitionTextWithFocusSpans(sampleText, [{ start: 20, end: 10 }])).toEqual([
+        { text: sampleText, isFocus: false },
+      ]);
+      expect(partitionTextWithFocusSpans(sampleText, [{ start: 15, end: 15 }])).toEqual([
+        { text: sampleText, isFocus: false },
+      ]);
+    });
+
+    it('handles empty or missing spans gracefully', () => {
+      expect(partitionTextWithFocusSpans(sampleText, null)).toEqual([{ text: sampleText, isFocus: false }]);
+      expect(partitionTextWithFocusSpans(sampleText, undefined)).toEqual([{ text: sampleText, isFocus: false }]);
+      expect(partitionTextWithFocusSpans(sampleText, [])).toEqual([{ text: sampleText, isFocus: false }]);
+      expect(partitionTextWithFocusSpans('', [{ start: 0, end: 5 }])).toEqual([]);
+    });
+
+    it('handles multiple non-overlapping spans in order', () => {
+      // Highlight "confirmed" (8..17) and "vehicles" (53..61)
+      const spans = [
+        { start: 8, end: 17, score: 0.8 },
+        { start: 53, end: 61, score: 0.9 },
+      ];
+      const segments = partitionTextWithFocusSpans(sampleText, spans);
+
+      expect(segments).toHaveLength(5);
+      expect(segments[0]).toEqual({ text: 'We have ', isFocus: false });
+      expect(segments[1]).toEqual({ text: 'confirmed', isFocus: true, score: 0.8 });
+      expect(segments[2]).toEqual({ text: ' recovered materials from anomalous ', isFocus: false });
+      expect(segments[3]).toEqual({ text: 'vehicles', isFocus: true, score: 0.9 });
+      expect(segments[4]).toEqual({ text: ' in government custody.', isFocus: false });
+
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('sorts and merges overlapping or incorrectly ordered spans without duplicating text', () => {
+      // Out of order and overlapping: [50..62], [10..25], [19..38]
+      const messySpans = [
+        { start: 50, end: 62 },
+        { start: 10, end: 25 },
+        { start: 19, end: 38 },
+      ];
+      const segments = partitionTextWithFocusSpans(sampleText, messySpans);
+
+      // [10..25] and [19..38] overlap, so they merge to [10..38]
+      expect(segments).toHaveLength(5);
+      expect(segments[0]).toEqual({ text: sampleText.slice(0, 10), isFocus: false });
+      expect(segments[1]).toEqual({ text: sampleText.slice(10, 38), isFocus: true, score: undefined });
+      expect(segments[2]).toEqual({ text: sampleText.slice(38, 50), isFocus: false });
+      expect(segments[3]).toEqual({ text: sampleText.slice(50, 62), isFocus: true, score: undefined });
+      expect(segments[4]).toEqual({ text: sampleText.slice(62), isFocus: false });
+
+      // Guarantee exact character preservation
+      expect(segments.map(s => s.text).join('')).toBe(sampleText);
+    });
+
+    it('renderTranscriptWithContextFocus returns mark elements for focused passages', () => {
+      const start = sampleText.indexOf('recovered materials');
+      const end = start + 'recovered materials'.length;
+      const spans = [{ start, end, score: 0.95 }];
+      const rendered = renderTranscriptWithContextFocus(sampleText, spans) as any[];
+
+      expect(Array.isArray(rendered)).toBe(true);
+      expect(rendered[0].props.children).toBe('We have confirmed ');
+      expect(rendered[1].type).toBe('mark');
+      expect(rendered[1].props.children).toBe('recovered materials');
+      expect(rendered[1].props.className).toContain('bg-amber-500/20');
+      expect(rendered[2].props.children).toBe(' from anomalous vehicles in government custody.');
+    });
+
+    it('renderTranscriptWithContextFocus falls back safely when spans are invalid', () => {
+      const invalid = [{ start: -100, end: 999 }];
+      const rendered = renderTranscriptWithContextFocus(sampleText, invalid);
+      expect(rendered).toBe(sampleText);
     });
   });
 });
