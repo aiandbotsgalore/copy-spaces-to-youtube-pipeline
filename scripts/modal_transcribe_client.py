@@ -159,77 +159,27 @@ def sync_to_local_transcripts(release_tag: str, payload: Dict[str, Any], title: 
     print(f"[✓] Synchronized episode summary manifest.")
 
 
-def transcribe_single(
-    release_tag: Optional[str] = None,
-    audio_file: Optional[str] = None,
-    audio_url: Optional[str] = None,
-    title: Optional[str] = None,
-    language: str = "en",
-    repo: str = "aiandbotsgalore/copy-spaces-to-youtube-pipeline",
-    modal_endpoint: str = DEFAULT_MODAL_ENDPOINT,
-    upload_assets: bool = True,
-    cut_clips: bool = True,
-    gh_token: Optional[str] = None
+def format_timestamp_srt(seconds: float) -> str:
+    millis = int(round(seconds * 1000))
+    hrs = millis // 3600000
+    millis %= 3600000
+    mins = millis // 60000
+    millis %= 60000
+    secs = millis // 1000
+    millis %= 1000
+    return f"{hrs:02d}:{mins:02d}:{secs:02d},{millis:03d}"
+
+
+def _execute_modal_call(
+    post_data: Dict[str, Any],
+    modal_endpoint: str,
+    active_title: str,
+    raw_local_bytes: bytes = b"",
+    audio_url: str = "",
+    release_tag: str = "",
+    host_handle: str = "",
+    language: str = "en"
 ) -> Dict[str, Any]:
-    t0 = time.time()
-    active_token = gh_token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
-    active_title = title or "Twitter Space"
-    resolved_audio_url = audio_url or ""
-    host_handle = ""
-
-    # 1. Resolve Audio URL and Metadata from Release Tag if provided
-    if release_tag and not audio_file and not resolved_audio_url:
-        print(f"[*] Inspecting GitHub Release: {release_tag}...")
-        rel_data = fetch_release_info(repo, release_tag, active_token)
-        active_title = title or rel_data.get("name") or release_tag
-        body = rel_data.get("body") or ""
-
-        # Extract host handle if present
-        import re
-        m = re.search(r"@([a-zA-Z0-9_]{1,15})", body)
-        if m:
-            host_handle = m.group(1)
-
-        # Find MP3 or M4A asset
-        mp3_assets = [a for a in rel_data.get("assets", []) if a["name"].lower().endswith((".mp3", ".m4a"))]
-        if not mp3_assets:
-            raise RuntimeError(f"No audio asset (.mp3/.m4a) found in release {release_tag}.")
-        resolved_audio_url = mp3_assets[0]["browser_download_url"]
-        print(f"[*] Found audio asset: {mp3_assets[0]['name']} ({resolved_audio_url})")
-
-    # 2. Build Request Payload for Modal
-    post_data: Dict[str, Any] = {
-        "title": active_title,
-        "release_tag": release_tag or "ad-hoc",
-        "host_handle": host_handle,
-        "language": language
-    }
-
-    if audio_file:
-        p = Path(audio_file)
-        if not p.exists():
-            raise FileNotFoundError(f"Audio file not found: {audio_file}")
-        print(f"[*] Reading local audio file: {p.resolve()} ({p.stat().st_size / (1024*1024):.1f} MB)")
-        raw_bytes = p.read_bytes()
-        post_data["audio_base64"] = base64.b64encode(raw_bytes).decode("ascii")
-    elif resolved_audio_url:
-        post_data["audio_url"] = resolved_audio_url
-    else:
-        raise ValueError("Must provide either --release-tag, --audio-file, or --audio-url.")
-
-    # Include local voice profiles if available
-    vp_path = Path(__file__).resolve().parent.parent / "voice_profiles.json"
-    if vp_path.exists():
-        try:
-            with open(vp_path, "r", encoding="utf-8") as f:
-                post_data["enrolled_profiles"] = json.load(f).get("profiles", {})
-        except Exception:
-            pass
-
-    # 3. Call Modal Transcribe Service (Primary: Native Modal RPC, Fallback: HTTP Webhook)
-    result = None
-    call_start = time.time()
-
     # Check if native Modal RPC is available
     use_rpc = False
     try:
@@ -238,6 +188,7 @@ def transcribe_single(
     except ImportError:
         use_rpc = False
 
+    result = None
     if use_rpc:
         try:
             print(f"\n=================================================================")
@@ -246,14 +197,9 @@ def transcribe_single(
             print(f"    Episode:  {active_title}")
             print(f"=================================================================")
             fn = modal.Function.from_name("spacepipe-transcribe", "transcribe_job")
-
-            raw_local_bytes = b""
-            if audio_file:
-                raw_local_bytes = Path(audio_file).read_bytes()
-
             result = fn.remote(
                 audio_bytes=raw_local_bytes,
-                audio_url=resolved_audio_url if not raw_local_bytes else "",
+                audio_url=audio_url if not raw_local_bytes else "",
                 title=active_title,
                 release_tag=release_tag or "ad-hoc",
                 host_handle=host_handle,
@@ -275,7 +221,10 @@ def transcribe_single(
         import requests
         try:
             s = requests.Session()
-            resp = s.post(modal_endpoint, json=post_data, timeout=300, allow_redirects=True)
+            payload = dict(post_data)
+            if audio_url:
+                payload["audio_url"] = audio_url
+            resp = s.post(modal_endpoint, json=payload, timeout=300, allow_redirects=False)
             if resp.status_code == 200:
                 result = resp.json()
             elif resp.status_code == 303:
@@ -285,7 +234,7 @@ def transcribe_single(
                 print(f"[*] Job queued on Modal GPU. Polling result from: {poll_url}...")
                 for attempt in range(120):  # up to 20 minutes
                     time.sleep(10)
-                    poll_resp = s.get(poll_url, timeout=60, allow_redirects=True)
+                    poll_resp = s.get(poll_url, timeout=60, allow_redirects=False)
                     if poll_resp.status_code == 200:
                         result = poll_resp.json()
                         break
@@ -301,6 +250,163 @@ def transcribe_single(
 
     if "error" in result:
         raise RuntimeError(f"Modal Transcription Error: {result['error']}")
+
+    return result
+
+
+def transcribe_single(
+    release_tag: Optional[str] = None,
+    audio_file: Optional[str] = None,
+    audio_url: Optional[str] = None,
+    title: Optional[str] = None,
+    language: str = "en",
+    repo: str = "aiandbotsgalore/copy-spaces-to-youtube-pipeline",
+    modal_endpoint: str = DEFAULT_MODAL_ENDPOINT,
+    upload_assets: bool = True,
+    cut_clips: bool = True,
+    gh_token: Optional[str] = None
+) -> Dict[str, Any]:
+    t0 = time.time()
+    active_token = gh_token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN") or ""
+    active_title = title or "Twitter Space"
+    resolved_audio_url = audio_url or ""
+    host_handle = ""
+    target_audio_assets = []
+
+    # 1. Resolve Audio URL and Metadata from Release Tag if provided
+    if release_tag and not audio_file and not resolved_audio_url:
+        print(f"[*] Inspecting GitHub Release: {release_tag}...")
+        rel_data = fetch_release_info(repo, release_tag, active_token)
+        active_title = title or rel_data.get("name") or release_tag
+        body = rel_data.get("body") or ""
+
+        # Extract host handle if present
+        import re
+        m = re.search(r"@([a-zA-Z0-9_]{1,15})", body)
+        if m:
+            host_handle = m.group(1)
+
+        # Find MP3 or M4A assets (excluding highlight clips)
+        candidate_assets = [
+            a for a in rel_data.get("assets", [])
+            if a["name"].lower().endswith((".mp3", ".m4a")) and not re.match(r"^\d+(?:h\d+)?m\d+s_", a["name"])
+        ]
+        if not candidate_assets:
+            candidate_assets = [a for a in rel_data.get("assets", []) if a["name"].lower().endswith((".mp3", ".m4a"))]
+        if not candidate_assets:
+            raise RuntimeError(f"No audio asset (.mp3/.m4a) found in release {release_tag}.")
+
+        def part_sort_key(a):
+            m_part = re.search(r"Part(\d+)", a.get("name", ""), re.IGNORECASE)
+            return int(m_part.group(1)) if m_part else 0
+
+        target_audio_assets = sorted(candidate_assets, key=part_sort_key)
+        resolved_audio_url = target_audio_assets[0]["browser_download_url"]
+        print(f"[*] Found {len(target_audio_assets)} audio asset(s): {', '.join(a['name'] for a in target_audio_assets)}")
+
+    # 2. Build Request Payload for Modal
+    post_data: Dict[str, Any] = {
+        "title": active_title,
+        "release_tag": release_tag or "ad-hoc",
+        "host_handle": host_handle,
+        "language": language
+    }
+
+    raw_bytes = b""
+    if audio_file:
+        p = Path(audio_file)
+        if not p.exists():
+            raise FileNotFoundError(f"Audio file not found: {audio_file}")
+        print(f"[*] Reading local audio file: {p.resolve()} ({p.stat().st_size / (1024*1024):.1f} MB)")
+        raw_bytes = p.read_bytes()
+        post_data["audio_base64"] = base64.b64encode(raw_bytes).decode("ascii")
+    elif resolved_audio_url:
+        post_data["audio_url"] = resolved_audio_url
+    else:
+        raise ValueError("Must provide either --release-tag, --audio-file, or --audio-url.")
+
+    # Include local voice profiles if available
+    vp_path = Path(__file__).resolve().parent.parent / "voice_profiles.json"
+    if vp_path.exists():
+        try:
+            with open(vp_path, "r", encoding="utf-8") as f:
+                post_data["enrolled_profiles"] = json.load(f).get("profiles", {})
+        except Exception:
+            pass
+
+    # 3. Call Modal Transcribe Service
+    call_start = time.time()
+    result = None
+
+    is_multipart = len(target_audio_assets) > 1 and any("part" in a["name"].lower() for a in target_audio_assets)
+    if is_multipart:
+        print(f"\n[*] Multi-part marathon episode detected ({len(target_audio_assets)} parts). Transcribing sequentially...")
+        cumulative_offset = 0.0
+        combined_segments = []
+        combined_speakers = set()
+        total_dur = 0.0
+
+        for idx, part_asset in enumerate(target_audio_assets, 1):
+            part_url = part_asset["browser_download_url"]
+            print(f"\n[*] Transcribing Marathon Part {idx}/{len(target_audio_assets)}: {part_asset['name']} (Offset: {cumulative_offset:.1f}s)...")
+            part_res = _execute_modal_call(
+                post_data=post_data,
+                modal_endpoint=modal_endpoint,
+                active_title=f"{active_title} (Part {idx})",
+                audio_url=part_url,
+                release_tag=release_tag or "ad-hoc",
+                host_handle=host_handle,
+                language=language
+            )
+            part_dur = float(part_res.get("duration_sec", 0.0))
+            for seg in part_res.get("segments", []):
+                seg_copy = dict(seg)
+                seg_copy["start"] = round(float(seg_copy.get("start", 0.0)) + cumulative_offset, 2)
+                seg_copy["end"] = round(float(seg_copy.get("end", 0.0)) + cumulative_offset, 2)
+                if "words" in seg_copy:
+                    updated_words = []
+                    for w in seg_copy["words"]:
+                        w_copy = dict(w)
+                        w_copy["start"] = round(float(w_copy.get("start", 0.0)) + cumulative_offset, 2)
+                        w_copy["end"] = round(float(w_copy.get("end", 0.0)) + cumulative_offset, 2)
+                        updated_words.append(w_copy)
+                    seg_copy["words"] = updated_words
+                combined_segments.append(seg_copy)
+                if seg_copy.get("speaker"):
+                    combined_speakers.add(seg_copy["speaker"])
+
+            cumulative_offset += part_dur
+            total_dur += part_dur
+
+        srt_lines = []
+        txt_lines = []
+        for s_idx, s in enumerate(combined_segments, 1):
+            spk = s.get("speaker", "Speaker")
+            txt = s.get("text", "").strip()
+            srt_lines.append(f"{s_idx}\n{format_timestamp_srt(s['start'])} --> {format_timestamp_srt(s['end'])}\n[{spk}]: {txt}\n")
+            txt_lines.append(f"[{format_timestamp_srt(s['start'])}] {spk}: {txt}\n")
+
+        result = {
+            "title": active_title,
+            "release_tag": release_tag,
+            "duration_sec": total_dur,
+            "speakers": sorted(list(combined_speakers)),
+            "segments": combined_segments,
+            "srt_content": "\n".join(srt_lines),
+            "txt_content": "".join(txt_lines),
+            "elapsed_sec": round(time.time() - call_start, 2)
+        }
+    else:
+        result = _execute_modal_call(
+            post_data=post_data,
+            modal_endpoint=modal_endpoint,
+            active_title=active_title,
+            raw_local_bytes=raw_bytes,
+            audio_url=resolved_audio_url if not raw_bytes else "",
+            release_tag=release_tag or "ad-hoc",
+            host_handle=host_handle,
+            language=language
+        )
 
     dur = result.get("duration_sec", 0.0)
     elapsed = time.time() - call_start

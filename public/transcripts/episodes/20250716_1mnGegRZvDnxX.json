@@ -1,0 +1,7132 @@
+{
+  "release_tag": "20250716_1mnGegRZvDnxX",
+  "title": "Well_Angela_Maggard_you_are_definitely_a_piece_of_work",
+  "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20250716_1mnGegRZvDnxX/20250716_1mnGegRZvDnxX_Well_Angela_Maggard_you_are_definitely_a_piece_of_work.mp3",
+  "duration_sec": 637.312,
+  "speakers": [
+    "Speaker 1",
+    "Speaker 2"
+  ],
+  "segments": [
+    {
+      "start": 42.21,
+      "end": 46.22,
+      "speaker": "Speaker 2",
+      "text": "Okay, I'll start off with you Hello",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 42.21,
+          "end": 42.73,
+          "confidence": 0.57
+        },
+        {
+          "word": "I'll",
+          "start": 44.95,
+          "end": 45.11,
+          "confidence": 0.53
+        },
+        {
+          "word": "start",
+          "start": 45.15,
+          "end": 45.39,
+          "confidence": 0.62
+        },
+        {
+          "word": "off",
+          "start": 45.45,
+          "end": 45.63,
+          "confidence": 0.67
+        },
+        {
+          "word": "with",
+          "start": 45.67,
+          "end": 45.85,
+          "confidence": 0.77
+        },
+        {
+          "word": "you",
+          "start": 45.9,
+          "end": 46.09,
+          "confidence": 0.99
+        },
+        {
+          "word": "Hello",
+          "start": 46.12,
+          "end": 46.22,
+          "confidence": 0.0
+        }
+      ]
+    },
+    {
+      "start": 55.24,
+      "end": 56.74,
+      "speaker": "Speaker 1",
+      "text": "Well, good morning.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 55.24,
+          "end": 55.56,
+          "confidence": 0.61
+        },
+        {
+          "word": "good",
+          "start": 56.02,
+          "end": 56.18,
+          "confidence": 0.97
+        },
+        {
+          "word": "morning.",
+          "start": 56.24,
+          "end": 56.74,
+          "confidence": 0.81
+        }
+      ]
+    },
+    {
+      "start": 56.86,
+      "end": 57.3,
+      "speaker": "Speaker 2",
+      "text": "Hello.",
+      "words": [
+        {
+          "word": "Hello.",
+          "start": 56.86,
+          "end": 57.3,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 58.28,
+      "end": 58.82,
+      "speaker": "Speaker 1",
+      "text": "Good morning.",
+      "words": [
+        {
+          "word": "Good",
+          "start": 58.28,
+          "end": 58.42,
+          "confidence": 0.79
+        },
+        {
+          "word": "morning.",
+          "start": 58.46,
+          "end": 58.82,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 59.42,
+      "end": 59.98,
+      "speaker": "Speaker 2",
+      "text": "Good morning.",
+      "words": [
+        {
+          "word": "Good",
+          "start": 59.42,
+          "end": 59.58,
+          "confidence": 0.82
+        },
+        {
+          "word": "morning.",
+          "start": 59.6,
+          "end": 59.98,
+          "confidence": 0.83
+        }
+      ]
+    },
+    {
+      "start": 60.38,
+      "end": 61.02,
+      "speaker": "Speaker 1",
+      "text": "Good morning.",
+      "words": [
+        {
+          "word": "Good",
+          "start": 60.38,
+          "end": 60.54,
+          "confidence": 0.92
+        },
+        {
+          "word": "morning.",
+          "start": 60.6,
+          "end": 61.02,
+          "confidence": 0.82
+        }
+      ]
+    },
+    {
+      "start": 61.12,
+      "end": 61.96,
+      "speaker": "Speaker 1",
+      "text": "What's going on?",
+      "words": [
+        {
+          "word": "What's",
+          "start": 61.12,
+          "end": 61.28,
+          "confidence": 0.53
+        },
+        {
+          "word": "going",
+          "start": 61.3,
+          "end": 61.88,
+          "confidence": 0.69
+        },
+        {
+          "word": "on?",
+          "start": 61.9,
+          "end": 61.96,
+          "confidence": 0.33
+        }
+      ]
+    },
+    {
+      "start": 62.68,
+      "end": 63.36,
+      "speaker": "Speaker 1",
+      "text": "Good morning.",
+      "words": [
+        {
+          "word": "Good",
+          "start": 62.68,
+          "end": 62.86,
+          "confidence": 0.83
+        },
+        {
+          "word": "morning.",
+          "start": 62.92,
+          "end": 63.36,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 63.82,
+      "end": 68.12,
+      "speaker": "Speaker 1",
+      "text": "It's 7.20 p.m. Well, it's 8 a.m. in my time.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 63.82,
+          "end": 64.74,
+          "confidence": 0.53
+        },
+        {
+          "word": "7.20",
+          "start": 64.76,
+          "end": 64.84,
+          "confidence": 1.0
+        },
+        {
+          "word": "p.m.",
+          "start": 65.22,
+          "end": 65.82,
+          "confidence": 0.9
+        },
+        {
+          "word": "Well,",
+          "start": 66.3,
+          "end": 66.64,
+          "confidence": 0.72
+        },
+        {
+          "word": "it's",
+          "start": 66.7,
+          "end": 66.84,
+          "confidence": 0.48
+        },
+        {
+          "word": "8",
+          "start": 66.98,
+          "end": 67.1,
+          "confidence": 0.86
+        },
+        {
+          "word": "a.m.",
+          "start": 67.22,
+          "end": 67.42,
+          "confidence": 0.7
+        },
+        {
+          "word": "in",
+          "start": 67.44,
+          "end": 67.48,
+          "confidence": 0.0
+        },
+        {
+          "word": "my",
+          "start": 67.5,
+          "end": 67.66,
+          "confidence": 0.89
+        },
+        {
+          "word": "time.",
+          "start": 67.74,
+          "end": 68.12,
+          "confidence": 0.88
+        }
+      ]
+    },
+    {
+      "start": 69.02,
+      "end": 69.4,
+      "speaker": "Speaker 2",
+      "text": "Right.",
+      "words": [
+        {
+          "word": "Right.",
+          "start": 69.02,
+          "end": 69.4,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 69.52,
+      "end": 70.0,
+      "speaker": "Speaker 2",
+      "text": "Okay.",
+      "words": [
+        {
+          "word": "Okay.",
+          "start": 69.52,
+          "end": 70.0,
+          "confidence": 0.84
+        }
+      ]
+    },
+    {
+      "start": 70.3,
+      "end": 71.98,
+      "speaker": "Speaker 1",
+      "text": "I mean, Ask Trivia.",
+      "words": [
+        {
+          "word": "I",
+          "start": 70.3,
+          "end": 70.32,
+          "confidence": 0.1
+        },
+        {
+          "word": "mean,",
+          "start": 70.34,
+          "end": 70.54,
+          "confidence": 0.67
+        },
+        {
+          "word": "Ask",
+          "start": 70.56,
+          "end": 70.62,
+          "confidence": 0.0
+        },
+        {
+          "word": "Trivia.",
+          "start": 71.24,
+          "end": 71.98,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "start": 72.92,
+      "end": 73.42,
+      "speaker": "Speaker 2",
+      "text": "Uh-huh.",
+      "words": [
+        {
+          "word": "Uh-huh.",
+          "start": 72.92,
+          "end": 73.42,
+          "confidence": 0.56
+        }
+      ]
+    },
+    {
+      "start": 73.64,
+      "end": 74.3,
+      "speaker": "Speaker 1",
+      "text": "You know what that is?",
+      "words": [
+        {
+          "word": "You",
+          "start": 73.64,
+          "end": 73.72,
+          "confidence": 0.97
+        },
+        {
+          "word": "know",
+          "start": 73.76,
+          "end": 73.84,
+          "confidence": 0.96
+        },
+        {
+          "word": "what",
+          "start": 73.86,
+          "end": 73.96,
+          "confidence": 0.77
+        },
+        {
+          "word": "that",
+          "start": 73.98,
+          "end": 74.1,
+          "confidence": 0.97
+        },
+        {
+          "word": "is?",
+          "start": 74.18,
+          "end": 74.3,
+          "confidence": 0.66
+        }
+      ]
+    },
+    {
+      "start": 75.77,
+      "end": 76.72,
+      "speaker": "Speaker 2",
+      "text": "Ask Trivia?",
+      "words": [
+        {
+          "word": "Ask",
+          "start": 75.77,
+          "end": 76.03,
+          "confidence": 0.83
+        },
+        {
+          "word": "Trivia?",
+          "start": 76.11,
+          "end": 76.72,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 77.41,
+      "end": 81.61,
+      "speaker": "Speaker 1",
+      "text": "Australia, so it's the opposite.",
+      "words": [
+        {
+          "word": "Australia,",
+          "start": 77.41,
+          "end": 78.59,
+          "confidence": 0.82
+        },
+        {
+          "word": "so",
+          "start": 78.69,
+          "end": 78.87,
+          "confidence": 0.98
+        },
+        {
+          "word": "it's",
+          "start": 78.95,
+          "end": 79.07,
+          "confidence": 0.34
+        },
+        {
+          "word": "the",
+          "start": 79.11,
+          "end": 79.23,
+          "confidence": 0.83
+        },
+        {
+          "word": "opposite.",
+          "start": 79.33,
+          "end": 81.61,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 81.85,
+      "end": 83.37,
+      "speaker": "Speaker 2",
+      "text": "You're fucking Neil, right?",
+      "words": [
+        {
+          "word": "You're",
+          "start": 81.85,
+          "end": 82.07,
+          "confidence": 0.78
+        },
+        {
+          "word": "fucking",
+          "start": 82.11,
+          "end": 82.51,
+          "confidence": 0.71
+        },
+        {
+          "word": "Neil,",
+          "start": 82.59,
+          "end": 82.97,
+          "confidence": 0.87
+        },
+        {
+          "word": "right?",
+          "start": 83.05,
+          "end": 83.37,
+          "confidence": 0.78
+        }
+      ]
+    },
+    {
+      "start": 83.43,
+      "end": 84.55,
+      "speaker": "Speaker 2",
+      "text": "You're fucking Neil.",
+      "words": [
+        {
+          "word": "You're",
+          "start": 83.43,
+          "end": 83.63,
+          "confidence": 0.82
+        },
+        {
+          "word": "fucking",
+          "start": 83.67,
+          "end": 84.07,
+          "confidence": 0.68
+        },
+        {
+          "word": "Neil.",
+          "start": 84.23,
+          "end": 84.55,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 84.59,
+      "end": 85.79,
+      "speaker": "Speaker 2",
+      "text": "You're in his bed right now.",
+      "words": [
+        {
+          "word": "You're",
+          "start": 84.59,
+          "end": 84.77,
+          "confidence": 0.55
+        },
+        {
+          "word": "in",
+          "start": 84.79,
+          "end": 84.89,
+          "confidence": 0.72
+        },
+        {
+          "word": "his",
+          "start": 84.93,
+          "end": 85.05,
+          "confidence": 0.78
+        },
+        {
+          "word": "bed",
+          "start": 85.11,
+          "end": 85.31,
+          "confidence": 0.92
+        },
+        {
+          "word": "right",
+          "start": 85.35,
+          "end": 85.51,
+          "confidence": 0.68
+        },
+        {
+          "word": "now.",
+          "start": 85.55,
+          "end": 85.79,
+          "confidence": 0.92
+        }
+      ]
+    },
+    {
+      "start": 86.31,
+      "end": 87.07,
+      "speaker": "Speaker 1",
+      "text": "Yeah, right.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 86.31,
+          "end": 86.69,
+          "confidence": 0.74
+        },
+        {
+          "word": "right.",
+          "start": 86.75,
+          "end": 87.07,
+          "confidence": 0.48
+        }
+      ]
+    },
+    {
+      "start": 87.27,
+      "end": 87.73,
+      "speaker": "Speaker 2",
+      "text": "Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 87.27,
+          "end": 87.73,
+          "confidence": 0.75
+        }
+      ]
+    },
+    {
+      "start": 87.91,
+      "end": 88.43,
+      "speaker": "Speaker 1",
+      "text": "Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 87.91,
+          "end": 88.43,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 88.47,
+      "end": 94.29,
+      "speaker": "Speaker 1",
+      "text": "So Courtney in America is 720, whatever your time.",
+      "words": [
+        {
+          "word": "So",
+          "start": 88.47,
+          "end": 88.73,
+          "confidence": 0.93
+        },
+        {
+          "word": "Courtney",
+          "start": 88.97,
+          "end": 89.51,
+          "confidence": 0.56
+        },
+        {
+          "word": "in",
+          "start": 89.75,
+          "end": 89.87,
+          "confidence": 0.81
+        },
+        {
+          "word": "America",
+          "start": 90.13,
+          "end": 90.83,
+          "confidence": 0.75
+        },
+        {
+          "word": "is",
+          "start": 92.31,
+          "end": 92.75,
+          "confidence": 0.58
+        },
+        {
+          "word": "720,",
+          "start": 92.81,
+          "end": 93.19,
+          "confidence": 0.88
+        },
+        {
+          "word": "whatever",
+          "start": 93.27,
+          "end": 93.65,
+          "confidence": 0.88
+        },
+        {
+          "word": "your",
+          "start": 93.67,
+          "end": 93.83,
+          "confidence": 0.94
+        },
+        {
+          "word": "time.",
+          "start": 93.89,
+          "end": 94.29,
+          "confidence": 0.76
+        }
+      ]
+    },
+    {
+      "start": 94.79,
+      "end": 97.47,
+      "speaker": "Speaker 1",
+      "text": "But in Australia is literally like the opposite.",
+      "words": [
+        {
+          "word": "But",
+          "start": 94.79,
+          "end": 94.93,
+          "confidence": 0.89
+        },
+        {
+          "word": "in",
+          "start": 94.99,
+          "end": 95.05,
+          "confidence": 0.93
+        },
+        {
+          "word": "Australia",
+          "start": 95.21,
+          "end": 96.11,
+          "confidence": 0.81
+        },
+        {
+          "word": "is",
+          "start": 96.19,
+          "end": 96.25,
+          "confidence": 0.74
+        },
+        {
+          "word": "literally",
+          "start": 96.33,
+          "end": 96.67,
+          "confidence": 0.44
+        },
+        {
+          "word": "like",
+          "start": 96.69,
+          "end": 96.79,
+          "confidence": 0.21
+        },
+        {
+          "word": "the",
+          "start": 96.83,
+          "end": 96.91,
+          "confidence": 0.93
+        },
+        {
+          "word": "opposite.",
+          "start": 96.99,
+          "end": 97.47,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 97.56,
+      "end": 98.44,
+      "speaker": "Speaker 1",
+      "text": "It's the morning.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 97.56,
+          "end": 97.67,
+          "confidence": 0.6
+        },
+        {
+          "word": "the",
+          "start": 97.72,
+          "end": 97.83,
+          "confidence": 0.79
+        },
+        {
+          "word": "morning.",
+          "start": 97.88,
+          "end": 98.44,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 98.45,
+      "end": 100.34,
+      "speaker": "Speaker 1",
+      "text": "So I'm just waking the fuck up.",
+      "words": [
+        {
+          "word": "So",
+          "start": 98.45,
+          "end": 98.5,
+          "confidence": 0.01
+        },
+        {
+          "word": "I'm",
+          "start": 98.81,
+          "end": 98.89,
+          "confidence": 0.8
+        },
+        {
+          "word": "just",
+          "start": 98.92,
+          "end": 99.08,
+          "confidence": 0.86
+        },
+        {
+          "word": "waking",
+          "start": 99.19,
+          "end": 99.52,
+          "confidence": 0.84
+        },
+        {
+          "word": "the",
+          "start": 99.53,
+          "end": 99.64,
+          "confidence": 0.68
+        },
+        {
+          "word": "fuck",
+          "start": 99.72,
+          "end": 99.98,
+          "confidence": 0.52
+        },
+        {
+          "word": "up.",
+          "start": 100.16,
+          "end": 100.34,
+          "confidence": 0.53
+        }
+      ]
+    },
+    {
+      "start": 100.9,
+      "end": 101.92,
+      "speaker": "Speaker 1",
+      "text": "So what's going on?",
+      "words": [
+        {
+          "word": "So",
+          "start": 100.9,
+          "end": 101.02,
+          "confidence": 0.84
+        },
+        {
+          "word": "what's",
+          "start": 101.04,
+          "end": 101.26,
+          "confidence": 0.68
+        },
+        {
+          "word": "going",
+          "start": 101.28,
+          "end": 101.58,
+          "confidence": 0.5
+        },
+        {
+          "word": "on?",
+          "start": 101.72,
+          "end": 101.92,
+          "confidence": 0.73
+        }
+      ]
+    },
+    {
+      "start": 101.94,
+      "end": 102.88,
+      "speaker": "Speaker 2",
+      "text": "Tina, did you know?",
+      "words": [
+        {
+          "word": "Tina,",
+          "start": 101.94,
+          "end": 102.26,
+          "confidence": 0.58
+        },
+        {
+          "word": "did",
+          "start": 102.28,
+          "end": 102.44,
+          "confidence": 0.65
+        },
+        {
+          "word": "you",
+          "start": 102.48,
+          "end": 102.62,
+          "confidence": 0.72
+        },
+        {
+          "word": "know?",
+          "start": 102.66,
+          "end": 102.88,
+          "confidence": 0.7
+        }
+      ]
+    },
+    {
+      "start": 102.94,
+      "end": 103.68,
+      "speaker": "Speaker 2",
+      "text": "Fun fact.",
+      "words": [
+        {
+          "word": "Fun",
+          "start": 102.94,
+          "end": 103.18,
+          "confidence": 0.9
+        },
+        {
+          "word": "fact.",
+          "start": 103.26,
+          "end": 103.68,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 104.06,
+      "end": 130.23,
+      "speaker": "Speaker 2",
+      "text": "did you know in australia in australia the toilet when you flush the toilet yeah yeah but you're saying it wrong it's not it's not australia it's australia okay so who's this angela in your title angela is someone who is delusional",
+      "words": [
+        {
+          "word": "did",
+          "start": 104.06,
+          "end": 104.22,
+          "confidence": 0.99
+        },
+        {
+          "word": "you",
+          "start": 104.26,
+          "end": 104.38,
+          "confidence": 0.89
+        },
+        {
+          "word": "know",
+          "start": 104.46,
+          "end": 104.72,
+          "confidence": 0.86
+        },
+        {
+          "word": "in",
+          "start": 104.74,
+          "end": 104.78,
+          "confidence": 0.0
+        },
+        {
+          "word": "australia",
+          "start": 105.56,
+          "end": 107.0,
+          "confidence": 0.49
+        },
+        {
+          "word": "in",
+          "start": 107.34,
+          "end": 107.44,
+          "confidence": 0.62
+        },
+        {
+          "word": "australia",
+          "start": 107.48,
+          "end": 108.18,
+          "confidence": 0.73
+        },
+        {
+          "word": "the",
+          "start": 108.22,
+          "end": 108.34,
+          "confidence": 0.8
+        },
+        {
+          "word": "toilet",
+          "start": 108.44,
+          "end": 109.1,
+          "confidence": 0.93
+        },
+        {
+          "word": "when",
+          "start": 109.56,
+          "end": 109.68,
+          "confidence": 0.69
+        },
+        {
+          "word": "you",
+          "start": 109.7,
+          "end": 109.84,
+          "confidence": 0.42
+        },
+        {
+          "word": "flush",
+          "start": 109.9,
+          "end": 110.18,
+          "confidence": 0.77
+        },
+        {
+          "word": "the",
+          "start": 110.2,
+          "end": 110.32,
+          "confidence": 0.3
+        },
+        {
+          "word": "toilet",
+          "start": 110.38,
+          "end": 110.9,
+          "confidence": 0.88
+        },
+        {
+          "word": "yeah",
+          "start": 111.38,
+          "end": 112.24,
+          "confidence": 0.35
+        },
+        {
+          "word": "yeah",
+          "start": 112.56,
+          "end": 113.58,
+          "confidence": 0.76
+        },
+        {
+          "word": "but",
+          "start": 113.74,
+          "end": 113.86,
+          "confidence": 0.74
+        },
+        {
+          "word": "you're",
+          "start": 113.9,
+          "end": 114.06,
+          "confidence": 0.69
+        },
+        {
+          "word": "saying",
+          "start": 114.1,
+          "end": 114.36,
+          "confidence": 0.71
+        },
+        {
+          "word": "it",
+          "start": 114.44,
+          "end": 114.54,
+          "confidence": 0.43
+        },
+        {
+          "word": "wrong",
+          "start": 114.6,
+          "end": 114.88,
+          "confidence": 0.86
+        },
+        {
+          "word": "it's",
+          "start": 114.9,
+          "end": 115.04,
+          "confidence": 0.23
+        },
+        {
+          "word": "not",
+          "start": 115.06,
+          "end": 115.28,
+          "confidence": 0.5
+        },
+        {
+          "word": "it's",
+          "start": 115.64,
+          "end": 115.74,
+          "confidence": 0.66
+        },
+        {
+          "word": "not",
+          "start": 115.78,
+          "end": 115.9,
+          "confidence": 0.98
+        },
+        {
+          "word": "australia",
+          "start": 116.0,
+          "end": 116.44,
+          "confidence": 0.65
+        },
+        {
+          "word": "it's",
+          "start": 116.48,
+          "end": 116.64,
+          "confidence": 0.1
+        },
+        {
+          "word": "australia",
+          "start": 116.84,
+          "end": 117.62,
+          "confidence": 0.8
+        },
+        {
+          "word": "okay",
+          "start": 118.95,
+          "end": 120.29,
+          "confidence": 0.8
+        },
+        {
+          "word": "so",
+          "start": 121.01,
+          "end": 121.21,
+          "confidence": 0.7
+        },
+        {
+          "word": "who's",
+          "start": 121.25,
+          "end": 121.47,
+          "confidence": 0.69
+        },
+        {
+          "word": "this",
+          "start": 121.49,
+          "end": 121.63,
+          "confidence": 0.25
+        },
+        {
+          "word": "angela",
+          "start": 121.79,
+          "end": 122.17,
+          "confidence": 0.87
+        },
+        {
+          "word": "in",
+          "start": 122.31,
+          "end": 122.73,
+          "confidence": 0.67
+        },
+        {
+          "word": "your",
+          "start": 122.75,
+          "end": 122.89,
+          "confidence": 0.93
+        },
+        {
+          "word": "title",
+          "start": 122.93,
+          "end": 123.31,
+          "confidence": 0.87
+        },
+        {
+          "word": "angela",
+          "start": 125.49,
+          "end": 126.13,
+          "confidence": 0.54
+        },
+        {
+          "word": "is",
+          "start": 126.39,
+          "end": 126.61,
+          "confidence": 0.37
+        },
+        {
+          "word": "someone",
+          "start": 128.21,
+          "end": 128.67,
+          "confidence": 0.82
+        },
+        {
+          "word": "who",
+          "start": 128.79,
+          "end": 129.15,
+          "confidence": 0.7
+        },
+        {
+          "word": "is",
+          "start": 129.31,
+          "end": 129.41,
+          "confidence": 0.84
+        },
+        {
+          "word": "delusional",
+          "start": 129.47,
+          "end": 130.23,
+          "confidence": 0.76
+        }
+      ]
+    },
+    {
+      "start": 132.8,
+      "end": 134.22,
+      "speaker": "Speaker 1",
+      "text": "Oh, yes, the crazy one.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 132.8,
+          "end": 132.88,
+          "confidence": 0.87
+        },
+        {
+          "word": "yes,",
+          "start": 132.92,
+          "end": 133.18,
+          "confidence": 0.89
+        },
+        {
+          "word": "the",
+          "start": 133.22,
+          "end": 133.34,
+          "confidence": 0.52
+        },
+        {
+          "word": "crazy",
+          "start": 133.38,
+          "end": 133.88,
+          "confidence": 0.84
+        },
+        {
+          "word": "one.",
+          "start": 134.06,
+          "end": 134.22,
+          "confidence": 0.84
+        }
+      ]
+    },
+    {
+      "start": 134.74,
+      "end": 135.74,
+      "speaker": "Speaker 2",
+      "text": "Yeah, the crazy one.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 134.74,
+          "end": 134.98,
+          "confidence": 0.71
+        },
+        {
+          "word": "the",
+          "start": 135.0,
+          "end": 135.1,
+          "confidence": 0.68
+        },
+        {
+          "word": "crazy",
+          "start": 135.12,
+          "end": 135.46,
+          "confidence": 0.81
+        },
+        {
+          "word": "one.",
+          "start": 135.58,
+          "end": 135.74,
+          "confidence": 0.56
+        }
+      ]
+    },
+    {
+      "start": 135.84,
+      "end": 136.98,
+      "speaker": "Speaker 1",
+      "text": "I remember her.",
+      "words": [
+        {
+          "word": "I",
+          "start": 135.84,
+          "end": 135.9,
+          "confidence": 1.0
+        },
+        {
+          "word": "remember",
+          "start": 135.94,
+          "end": 136.28,
+          "confidence": 0.96
+        },
+        {
+          "word": "her.",
+          "start": 136.34,
+          "end": 136.98,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 137.26,
+      "end": 138.42,
+      "speaker": "Speaker 1",
+      "text": "Okay, so what's happening?",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 137.26,
+          "end": 137.62,
+          "confidence": 0.67
+        },
+        {
+          "word": "so",
+          "start": 137.64,
+          "end": 137.86,
+          "confidence": 0.61
+        },
+        {
+          "word": "what's",
+          "start": 137.9,
+          "end": 138.06,
+          "confidence": 0.76
+        },
+        {
+          "word": "happening?",
+          "start": 138.08,
+          "end": 138.42,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "start": 138.54,
+      "end": 139.56,
+      "speaker": "Speaker 2",
+      "text": "And you defend her.",
+      "words": [
+        {
+          "word": "And",
+          "start": 138.54,
+          "end": 138.62,
+          "confidence": 0.83
+        },
+        {
+          "word": "you",
+          "start": 138.64,
+          "end": 138.84,
+          "confidence": 0.85
+        },
+        {
+          "word": "defend",
+          "start": 138.88,
+          "end": 139.3,
+          "confidence": 0.89
+        },
+        {
+          "word": "her.",
+          "start": 139.34,
+          "end": 139.56,
+          "confidence": 0.97
+        }
+      ]
+    },
+    {
+      "start": 139.72,
+      "end": 142.16,
+      "speaker": "Speaker 2",
+      "text": "You defend... Yeah, you defend... Me?",
+      "words": [
+        {
+          "word": "You",
+          "start": 139.72,
+          "end": 139.9,
+          "confidence": 0.89
+        },
+        {
+          "word": "defend...",
+          "start": 139.92,
+          "end": 140.4,
+          "confidence": 0.91
+        },
+        {
+          "word": "Yeah,",
+          "start": 140.62,
+          "end": 140.9,
+          "confidence": 0.76
+        },
+        {
+          "word": "you",
+          "start": 140.94,
+          "end": 141.1,
+          "confidence": 0.94
+        },
+        {
+          "word": "defend...",
+          "start": 141.12,
+          "end": 141.52,
+          "confidence": 0.66
+        },
+        {
+          "word": "Me?",
+          "start": 141.76,
+          "end": 142.16,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 142.18,
+      "end": 142.9,
+      "speaker": "Speaker 1",
+      "text": "I attacked her.",
+      "words": [
+        {
+          "word": "I",
+          "start": 142.18,
+          "end": 142.2,
+          "confidence": 0.0
+        },
+        {
+          "word": "attacked",
+          "start": 142.42,
+          "end": 142.72,
+          "confidence": 0.24
+        },
+        {
+          "word": "her.",
+          "start": 142.78,
+          "end": 142.9,
+          "confidence": 0.23
+        }
+      ]
+    },
+    {
+      "start": 142.92,
+      "end": 144.36,
+      "speaker": "Speaker 1",
+      "text": "What are you talking about?",
+      "words": [
+        {
+          "word": "What",
+          "start": 142.92,
+          "end": 143.06,
+          "confidence": 0.5
+        },
+        {
+          "word": "are",
+          "start": 143.12,
+          "end": 143.22,
+          "confidence": 0.24
+        },
+        {
+          "word": "you",
+          "start": 143.28,
+          "end": 143.64,
+          "confidence": 0.56
+        },
+        {
+          "word": "talking",
+          "start": 143.68,
+          "end": 144.06,
+          "confidence": 0.46
+        },
+        {
+          "word": "about?",
+          "start": 144.08,
+          "end": 144.36,
+          "confidence": 0.63
+        }
+      ]
+    },
+    {
+      "start": 144.54,
+      "end": 145.78,
+      "speaker": "Speaker 2",
+      "text": "So, I need to speak.",
+      "words": [
+        {
+          "word": "So,",
+          "start": 144.54,
+          "end": 144.7,
+          "confidence": 0.6
+        },
+        {
+          "word": "I",
+          "start": 144.72,
+          "end": 144.74,
+          "confidence": 0.01
+        },
+        {
+          "word": "need",
+          "start": 144.8,
+          "end": 145.08,
+          "confidence": 0.91
+        },
+        {
+          "word": "to",
+          "start": 145.12,
+          "end": 145.22,
+          "confidence": 0.83
+        },
+        {
+          "word": "speak.",
+          "start": 145.28,
+          "end": 145.78,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 145.86,
+      "end": 146.43,
+      "speaker": "Speaker 1",
+      "text": "Girl, stop.",
+      "words": [
+        {
+          "word": "Girl,",
+          "start": 145.86,
+          "end": 146.08,
+          "confidence": 0.41
+        },
+        {
+          "word": "stop.",
+          "start": 146.1,
+          "end": 146.43,
+          "confidence": 0.53
+        }
+      ]
+    },
+    {
+      "start": 146.49,
+      "end": 147.34,
+      "speaker": "Speaker 2",
+      "text": "I need to speak.",
+      "words": [
+        {
+          "word": "I",
+          "start": 146.49,
+          "end": 146.54,
+          "confidence": 0.71
+        },
+        {
+          "word": "need",
+          "start": 146.56,
+          "end": 146.76,
+          "confidence": 0.84
+        },
+        {
+          "word": "to",
+          "start": 146.81,
+          "end": 146.87,
+          "confidence": 0.93
+        },
+        {
+          "word": "speak.",
+          "start": 146.93,
+          "end": 147.34,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 148.65,
+      "end": 149.89,
+      "speaker": "Speaker 2",
+      "text": "And you don't let me speak.",
+      "words": [
+        {
+          "word": "And",
+          "start": 148.65,
+          "end": 148.72,
+          "confidence": 0.96
+        },
+        {
+          "word": "you",
+          "start": 148.76,
+          "end": 148.88,
+          "confidence": 0.72
+        },
+        {
+          "word": "don't",
+          "start": 148.91,
+          "end": 149.09,
+          "confidence": 0.7
+        },
+        {
+          "word": "let",
+          "start": 149.13,
+          "end": 149.27,
+          "confidence": 0.85
+        },
+        {
+          "word": "me",
+          "start": 149.31,
+          "end": 149.41,
+          "confidence": 0.83
+        },
+        {
+          "word": "speak.",
+          "start": 149.47,
+          "end": 149.89,
+          "confidence": 0.92
+        }
+      ]
+    },
+    {
+      "start": 150.27,
+      "end": 150.89,
+      "speaker": "Speaker 1",
+      "text": "Okay, go.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 150.27,
+          "end": 150.81,
+          "confidence": 0.59
+        },
+        {
+          "word": "go.",
+          "start": 150.83,
+          "end": 150.89,
+          "confidence": 0.33
+        }
+      ]
+    },
+    {
+      "start": 151.09,
+      "end": 151.51,
+      "speaker": "Speaker 1",
+      "text": "Damn.",
+      "words": [
+        {
+          "word": "Damn.",
+          "start": 151.09,
+          "end": 151.51,
+          "confidence": 0.67
+        }
+      ]
+    },
+    {
+      "start": 152.05,
+      "end": 154.75,
+      "speaker": "Speaker 2",
+      "text": "No, you don't let me speak, so...",
+      "words": [
+        {
+          "word": "No,",
+          "start": 152.05,
+          "end": 152.41,
+          "confidence": 0.89
+        },
+        {
+          "word": "you",
+          "start": 152.49,
+          "end": 152.59,
+          "confidence": 0.89
+        },
+        {
+          "word": "don't",
+          "start": 152.63,
+          "end": 152.79,
+          "confidence": 0.71
+        },
+        {
+          "word": "let",
+          "start": 152.83,
+          "end": 152.95,
+          "confidence": 0.81
+        },
+        {
+          "word": "me",
+          "start": 152.97,
+          "end": 153.09,
+          "confidence": 0.64
+        },
+        {
+          "word": "speak,",
+          "start": 153.15,
+          "end": 153.53,
+          "confidence": 0.94
+        },
+        {
+          "word": "so...",
+          "start": 153.71,
+          "end": 154.75,
+          "confidence": 0.62
+        }
+      ]
+    },
+    {
+      "start": 154.81,
+      "end": 155.45,
+      "speaker": "Speaker 1",
+      "text": "I'm on a mute.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 154.81,
+          "end": 154.87,
+          "confidence": 0.14
+        },
+        {
+          "word": "on",
+          "start": 154.93,
+          "end": 155.03,
+          "confidence": 0.54
+        },
+        {
+          "word": "a",
+          "start": 155.05,
+          "end": 155.09,
+          "confidence": 0.89
+        },
+        {
+          "word": "mute.",
+          "start": 155.13,
+          "end": 155.45,
+          "confidence": 0.5
+        }
+      ]
+    },
+    {
+      "start": 155.69,
+      "end": 155.97,
+      "speaker": "Speaker 1",
+      "text": "Go.",
+      "words": [
+        {
+          "word": "Go.",
+          "start": 155.69,
+          "end": 155.97,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 162.03,
+      "end": 162.27,
+      "speaker": "Speaker 2",
+      "text": "Um...",
+      "words": [
+        {
+          "word": "Um...",
+          "start": 162.03,
+          "end": 162.27,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 166.6,
+      "end": 166.98,
+      "speaker": "Speaker 2",
+      "text": "Okay.",
+      "words": [
+        {
+          "word": "Okay.",
+          "start": 166.6,
+          "end": 166.98,
+          "confidence": 0.77
+        }
+      ]
+    },
+    {
+      "start": 167.94,
+      "end": 171.26,
+      "speaker": "Speaker 2",
+      "text": "So, anyways, I think he is...",
+      "words": [
+        {
+          "word": "So,",
+          "start": 167.94,
+          "end": 168.32,
+          "confidence": 0.94
+        },
+        {
+          "word": "anyways,",
+          "start": 168.68,
+          "end": 169.38,
+          "confidence": 0.88
+        },
+        {
+          "word": "I",
+          "start": 170.36,
+          "end": 170.46,
+          "confidence": 0.8
+        },
+        {
+          "word": "think",
+          "start": 170.56,
+          "end": 170.82,
+          "confidence": 0.95
+        },
+        {
+          "word": "he",
+          "start": 170.9,
+          "end": 171.08,
+          "confidence": 0.94
+        },
+        {
+          "word": "is...",
+          "start": 171.16,
+          "end": 171.26,
+          "confidence": 0.68
+        }
+      ]
+    },
+    {
+      "start": 171.64,
+      "end": 173.12,
+      "speaker": "Speaker 2",
+      "text": "I think you guys can hear me.",
+      "words": [
+        {
+          "word": "I",
+          "start": 171.64,
+          "end": 171.7,
+          "confidence": 1.0
+        },
+        {
+          "word": "think",
+          "start": 171.74,
+          "end": 171.94,
+          "confidence": 0.83
+        },
+        {
+          "word": "you",
+          "start": 171.96,
+          "end": 172.14,
+          "confidence": 0.92
+        },
+        {
+          "word": "guys",
+          "start": 172.2,
+          "end": 172.48,
+          "confidence": 0.75
+        },
+        {
+          "word": "can",
+          "start": 172.52,
+          "end": 172.7,
+          "confidence": 0.92
+        },
+        {
+          "word": "hear",
+          "start": 172.74,
+          "end": 172.92,
+          "confidence": 0.74
+        },
+        {
+          "word": "me.",
+          "start": 172.98,
+          "end": 173.12,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "start": 173.14,
+      "end": 176.41,
+      "speaker": "Speaker 2",
+      "text": "Um, he's not removed.",
+      "words": [
+        {
+          "word": "Um,",
+          "start": 173.14,
+          "end": 174.32,
+          "confidence": 0.95
+        },
+        {
+          "word": "he's",
+          "start": 175.28,
+          "end": 175.5,
+          "confidence": 0.84
+        },
+        {
+          "word": "not",
+          "start": 175.59,
+          "end": 175.81,
+          "confidence": 0.9
+        },
+        {
+          "word": "removed.",
+          "start": 175.88,
+          "end": 176.41,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 176.51,
+      "end": 177.53,
+      "speaker": "Speaker 2",
+      "text": "He just got dropped.",
+      "words": [
+        {
+          "word": "He",
+          "start": 176.51,
+          "end": 176.67,
+          "confidence": 0.88
+        },
+        {
+          "word": "just",
+          "start": 176.69,
+          "end": 176.87,
+          "confidence": 0.83
+        },
+        {
+          "word": "got",
+          "start": 176.91,
+          "end": 177.09,
+          "confidence": 0.98
+        },
+        {
+          "word": "dropped.",
+          "start": 177.13,
+          "end": 177.53,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "start": 178.09,
+      "end": 188.65,
+      "speaker": "Speaker 2",
+      "text": "Um, Angela Maggard, I live near where she says this whole thing is happening.",
+      "words": [
+        {
+          "word": "Um,",
+          "start": 178.09,
+          "end": 178.27,
+          "confidence": 0.84
+        },
+        {
+          "word": "Angela",
+          "start": 179.41,
+          "end": 179.81,
+          "confidence": 0.7
+        },
+        {
+          "word": "Maggard,",
+          "start": 179.83,
+          "end": 181.55,
+          "confidence": 0.66
+        },
+        {
+          "word": "I",
+          "start": 181.57,
+          "end": 181.59,
+          "confidence": 0.0
+        },
+        {
+          "word": "live",
+          "start": 183.15,
+          "end": 183.51,
+          "confidence": 0.92
+        },
+        {
+          "word": "near",
+          "start": 183.95,
+          "end": 184.21,
+          "confidence": 0.81
+        },
+        {
+          "word": "where",
+          "start": 184.23,
+          "end": 184.37,
+          "confidence": 0.0
+        },
+        {
+          "word": "she",
+          "start": 185.95,
+          "end": 186.13,
+          "confidence": 0.81
+        },
+        {
+          "word": "says",
+          "start": 186.17,
+          "end": 186.41,
+          "confidence": 0.93
+        },
+        {
+          "word": "this",
+          "start": 186.47,
+          "end": 186.61,
+          "confidence": 0.55
+        },
+        {
+          "word": "whole",
+          "start": 186.67,
+          "end": 186.87,
+          "confidence": 0.84
+        },
+        {
+          "word": "thing",
+          "start": 186.91,
+          "end": 187.11,
+          "confidence": 0.95
+        },
+        {
+          "word": "is",
+          "start": 187.23,
+          "end": 187.31,
+          "confidence": 0.81
+        },
+        {
+          "word": "happening.",
+          "start": 188.11,
+          "end": 188.65,
+          "confidence": 0.73
+        }
+      ]
+    },
+    {
+      "start": 189.41,
+      "end": 191.63,
+      "speaker": "Speaker 2",
+      "text": "Her whole family is here in Dayton.",
+      "words": [
+        {
+          "word": "Her",
+          "start": 189.41,
+          "end": 189.55,
+          "confidence": 0.79
+        },
+        {
+          "word": "whole",
+          "start": 189.59,
+          "end": 189.75,
+          "confidence": 0.94
+        },
+        {
+          "word": "family",
+          "start": 189.81,
+          "end": 190.37,
+          "confidence": 0.98
+        },
+        {
+          "word": "is",
+          "start": 190.49,
+          "end": 190.59,
+          "confidence": 0.85
+        },
+        {
+          "word": "here",
+          "start": 190.67,
+          "end": 190.89,
+          "confidence": 0.89
+        },
+        {
+          "word": "in",
+          "start": 190.97,
+          "end": 191.05,
+          "confidence": 0.69
+        },
+        {
+          "word": "Dayton.",
+          "start": 191.07,
+          "end": 191.63,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 192.72,
+      "end": 192.96,
+      "speaker": "Speaker 2",
+      "text": "Um...",
+      "words": [
+        {
+          "word": "Um...",
+          "start": 192.72,
+          "end": 192.96,
+          "confidence": 0.92
+        }
+      ]
+    },
+    {
+      "start": 193.5,
+      "end": 194.65,
+      "speaker": "Speaker 2",
+      "text": "I live in Dayton.",
+      "words": [
+        {
+          "word": "I",
+          "start": 193.5,
+          "end": 193.59,
+          "confidence": 0.84
+        },
+        {
+          "word": "live",
+          "start": 193.65,
+          "end": 193.84,
+          "confidence": 0.92
+        },
+        {
+          "word": "in",
+          "start": 193.88,
+          "end": 193.97,
+          "confidence": 0.82
+        },
+        {
+          "word": "Dayton.",
+          "start": 194.0,
+          "end": 194.65,
+          "confidence": 0.49
+        }
+      ]
+    },
+    {
+      "start": 194.91,
+      "end": 206.15,
+      "speaker": "Speaker 2",
+      "text": "She tells me that Wright-Patterson Air Force Base harbors child trafficking, child abuse.",
+      "words": [
+        {
+          "word": "She",
+          "start": 194.91,
+          "end": 195.09,
+          "confidence": 0.95
+        },
+        {
+          "word": "tells",
+          "start": 195.15,
+          "end": 195.43,
+          "confidence": 0.87
+        },
+        {
+          "word": "me",
+          "start": 195.51,
+          "end": 195.63,
+          "confidence": 0.84
+        },
+        {
+          "word": "that",
+          "start": 195.71,
+          "end": 196.11,
+          "confidence": 0.79
+        },
+        {
+          "word": "Wright-Patterson",
+          "start": 196.13,
+          "end": 197.65,
+          "confidence": 0.77
+        },
+        {
+          "word": "Air",
+          "start": 197.67,
+          "end": 197.87,
+          "confidence": 0.51
+        },
+        {
+          "word": "Force",
+          "start": 197.91,
+          "end": 198.11,
+          "confidence": 0.7
+        },
+        {
+          "word": "Base",
+          "start": 198.23,
+          "end": 198.67,
+          "confidence": 0.75
+        },
+        {
+          "word": "harbors",
+          "start": 199.51,
+          "end": 200.29,
+          "confidence": 0.8
+        },
+        {
+          "word": "child",
+          "start": 201.15,
+          "end": 201.53,
+          "confidence": 0.78
+        },
+        {
+          "word": "trafficking,",
+          "start": 201.59,
+          "end": 202.59,
+          "confidence": 0.85
+        },
+        {
+          "word": "child",
+          "start": 202.85,
+          "end": 203.45,
+          "confidence": 0.87
+        },
+        {
+          "word": "abuse.",
+          "start": 203.59,
+          "end": 206.15,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 206.29,
+      "end": 208.31,
+      "speaker": "Speaker 2",
+      "text": "I live nine miles from the base.",
+      "words": [
+        {
+          "word": "I",
+          "start": 206.29,
+          "end": 206.37,
+          "confidence": 0.76
+        },
+        {
+          "word": "live",
+          "start": 206.41,
+          "end": 206.63,
+          "confidence": 0.78
+        },
+        {
+          "word": "nine",
+          "start": 206.71,
+          "end": 206.95,
+          "confidence": 0.84
+        },
+        {
+          "word": "miles",
+          "start": 207.01,
+          "end": 207.35,
+          "confidence": 0.87
+        },
+        {
+          "word": "from",
+          "start": 207.43,
+          "end": 207.61,
+          "confidence": 0.91
+        },
+        {
+          "word": "the",
+          "start": 207.63,
+          "end": 207.71,
+          "confidence": 0.82
+        },
+        {
+          "word": "base.",
+          "start": 207.77,
+          "end": 208.31,
+          "confidence": 0.97
+        }
+      ]
+    },
+    {
+      "start": 208.79,
+      "end": 215.27,
+      "speaker": "Speaker 2",
+      "text": "There is nothing, not even any rumors that contribute to that.",
+      "words": [
+        {
+          "word": "There",
+          "start": 208.79,
+          "end": 209.01,
+          "confidence": 0.87
+        },
+        {
+          "word": "is",
+          "start": 209.09,
+          "end": 209.19,
+          "confidence": 0.7
+        },
+        {
+          "word": "nothing,",
+          "start": 209.49,
+          "end": 210.19,
+          "confidence": 0.84
+        },
+        {
+          "word": "not",
+          "start": 211.21,
+          "end": 211.43,
+          "confidence": 1.0
+        },
+        {
+          "word": "even",
+          "start": 211.51,
+          "end": 211.69,
+          "confidence": 0.83
+        },
+        {
+          "word": "any",
+          "start": 211.71,
+          "end": 212.17,
+          "confidence": 0.47
+        },
+        {
+          "word": "rumors",
+          "start": 212.33,
+          "end": 213.09,
+          "confidence": 0.81
+        },
+        {
+          "word": "that",
+          "start": 213.87,
+          "end": 214.15,
+          "confidence": 0.85
+        },
+        {
+          "word": "contribute",
+          "start": 214.23,
+          "end": 214.83,
+          "confidence": 0.93
+        },
+        {
+          "word": "to",
+          "start": 214.89,
+          "end": 214.97,
+          "confidence": 1.0
+        },
+        {
+          "word": "that.",
+          "start": 215.03,
+          "end": 215.27,
+          "confidence": 0.97
+        }
+      ]
+    },
+    {
+      "start": 215.29,
+      "end": 216.49,
+      "speaker": "Speaker 2",
+      "text": "I...",
+      "words": [
+        {
+          "word": "I...",
+          "start": 215.29,
+          "end": 216.49,
+          "confidence": 0.75
+        }
+      ]
+    },
+    {
+      "start": 219.57,
+      "end": 247.63,
+      "speaker": "Speaker 2",
+      "text": "all right here's here's yes peridrama peridrama listen yes i did this i looked up her father she oh wait before i say this she dm me her entire family history okay she dm me her entire family history why she's doing this everything about um her uh reasons for",
+      "words": [
+        {
+          "word": "all",
+          "start": 219.57,
+          "end": 219.73,
+          "confidence": 0.77
+        },
+        {
+          "word": "right",
+          "start": 219.77,
+          "end": 220.03,
+          "confidence": 0.81
+        },
+        {
+          "word": "here's",
+          "start": 220.41,
+          "end": 220.73,
+          "confidence": 0.79
+        },
+        {
+          "word": "here's",
+          "start": 221.17,
+          "end": 221.47,
+          "confidence": 0.72
+        },
+        {
+          "word": "yes",
+          "start": 221.73,
+          "end": 222.01,
+          "confidence": 0.84
+        },
+        {
+          "word": "peridrama",
+          "start": 222.21,
+          "end": 222.99,
+          "confidence": 0.81
+        },
+        {
+          "word": "peridrama",
+          "start": 223.65,
+          "end": 224.35,
+          "confidence": 0.84
+        },
+        {
+          "word": "listen",
+          "start": 224.41,
+          "end": 224.85,
+          "confidence": 0.92
+        },
+        {
+          "word": "yes",
+          "start": 224.96,
+          "end": 225.16,
+          "confidence": 0.87
+        },
+        {
+          "word": "i",
+          "start": 225.24,
+          "end": 225.31,
+          "confidence": 0.77
+        },
+        {
+          "word": "did",
+          "start": 225.35,
+          "end": 225.5,
+          "confidence": 0.99
+        },
+        {
+          "word": "this",
+          "start": 225.56,
+          "end": 225.75,
+          "confidence": 0.92
+        },
+        {
+          "word": "i",
+          "start": 226.58,
+          "end": 226.68,
+          "confidence": 0.79
+        },
+        {
+          "word": "looked",
+          "start": 226.72,
+          "end": 226.96,
+          "confidence": 0.97
+        },
+        {
+          "word": "up",
+          "start": 227.04,
+          "end": 227.18,
+          "confidence": 0.79
+        },
+        {
+          "word": "her",
+          "start": 227.24,
+          "end": 227.38,
+          "confidence": 0.83
+        },
+        {
+          "word": "father",
+          "start": 227.46,
+          "end": 227.94,
+          "confidence": 0.84
+        },
+        {
+          "word": "she",
+          "start": 227.96,
+          "end": 228.02,
+          "confidence": 0.0
+        },
+        {
+          "word": "oh",
+          "start": 228.04,
+          "end": 229.24,
+          "confidence": 0.84
+        },
+        {
+          "word": "wait",
+          "start": 229.32,
+          "end": 229.56,
+          "confidence": 0.96
+        },
+        {
+          "word": "before",
+          "start": 229.68,
+          "end": 230.0,
+          "confidence": 0.91
+        },
+        {
+          "word": "i",
+          "start": 230.06,
+          "end": 230.08,
+          "confidence": 0.98
+        },
+        {
+          "word": "say",
+          "start": 230.14,
+          "end": 230.3,
+          "confidence": 0.97
+        },
+        {
+          "word": "this",
+          "start": 230.34,
+          "end": 230.52,
+          "confidence": 0.89
+        },
+        {
+          "word": "she",
+          "start": 231.78,
+          "end": 231.98,
+          "confidence": 0.79
+        },
+        {
+          "word": "dm",
+          "start": 232.02,
+          "end": 232.36,
+          "confidence": 0.72
+        },
+        {
+          "word": "me",
+          "start": 232.4,
+          "end": 232.58,
+          "confidence": 0.91
+        },
+        {
+          "word": "her",
+          "start": 232.64,
+          "end": 232.8,
+          "confidence": 0.81
+        },
+        {
+          "word": "entire",
+          "start": 232.88,
+          "end": 233.6,
+          "confidence": 0.78
+        },
+        {
+          "word": "family",
+          "start": 233.68,
+          "end": 234.06,
+          "confidence": 0.81
+        },
+        {
+          "word": "history",
+          "start": 234.1,
+          "end": 234.54,
+          "confidence": 0.78
+        },
+        {
+          "word": "okay",
+          "start": 234.56,
+          "end": 235.68,
+          "confidence": 0.81
+        },
+        {
+          "word": "she",
+          "start": 235.74,
+          "end": 235.94,
+          "confidence": 0.78
+        },
+        {
+          "word": "dm",
+          "start": 236.0,
+          "end": 236.38,
+          "confidence": 0.79
+        },
+        {
+          "word": "me",
+          "start": 236.42,
+          "end": 236.6,
+          "confidence": 0.81
+        },
+        {
+          "word": "her",
+          "start": 237.1,
+          "end": 237.25,
+          "confidence": 0.86
+        },
+        {
+          "word": "entire",
+          "start": 237.31,
+          "end": 237.72,
+          "confidence": 0.87
+        },
+        {
+          "word": "family",
+          "start": 237.76,
+          "end": 238.09,
+          "confidence": 0.86
+        },
+        {
+          "word": "history",
+          "start": 238.13,
+          "end": 238.55,
+          "confidence": 0.81
+        },
+        {
+          "word": "why",
+          "start": 239.43,
+          "end": 239.69,
+          "confidence": 0.93
+        },
+        {
+          "word": "she's",
+          "start": 239.79,
+          "end": 240.03,
+          "confidence": 0.72
+        },
+        {
+          "word": "doing",
+          "start": 240.09,
+          "end": 240.37,
+          "confidence": 0.77
+        },
+        {
+          "word": "this",
+          "start": 240.41,
+          "end": 240.67,
+          "confidence": 0.85
+        },
+        {
+          "word": "everything",
+          "start": 241.79,
+          "end": 242.35,
+          "confidence": 0.9
+        },
+        {
+          "word": "about",
+          "start": 242.45,
+          "end": 242.93,
+          "confidence": 0.99
+        },
+        {
+          "word": "um",
+          "start": 243.87,
+          "end": 244.01,
+          "confidence": 0.6
+        },
+        {
+          "word": "her",
+          "start": 244.59,
+          "end": 244.95,
+          "confidence": 0.7
+        },
+        {
+          "word": "uh",
+          "start": 246.43,
+          "end": 246.53,
+          "confidence": 0.6
+        },
+        {
+          "word": "reasons",
+          "start": 246.89,
+          "end": 247.33,
+          "confidence": 0.82
+        },
+        {
+          "word": "for",
+          "start": 247.45,
+          "end": 247.63,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 248.39,
+      "end": 257.23,
+      "speaker": "Speaker 2",
+      "text": "looking up child trafficking, her reasons for coming into Perry Drama, and, you know, wanting to persecute people.",
+      "words": [
+        {
+          "word": "looking",
+          "start": 248.39,
+          "end": 248.79,
+          "confidence": 0.94
+        },
+        {
+          "word": "up",
+          "start": 248.91,
+          "end": 248.99,
+          "confidence": 0.82
+        },
+        {
+          "word": "child",
+          "start": 249.39,
+          "end": 249.73,
+          "confidence": 0.95
+        },
+        {
+          "word": "trafficking,",
+          "start": 249.79,
+          "end": 250.57,
+          "confidence": 0.89
+        },
+        {
+          "word": "her",
+          "start": 250.63,
+          "end": 250.79,
+          "confidence": 0.76
+        },
+        {
+          "word": "reasons",
+          "start": 250.85,
+          "end": 251.23,
+          "confidence": 0.84
+        },
+        {
+          "word": "for",
+          "start": 251.33,
+          "end": 251.53,
+          "confidence": 0.83
+        },
+        {
+          "word": "coming",
+          "start": 251.69,
+          "end": 251.97,
+          "confidence": 0.9
+        },
+        {
+          "word": "into",
+          "start": 252.03,
+          "end": 252.21,
+          "confidence": 0.91
+        },
+        {
+          "word": "Perry",
+          "start": 252.25,
+          "end": 252.55,
+          "confidence": 0.91
+        },
+        {
+          "word": "Drama,",
+          "start": 252.59,
+          "end": 253.27,
+          "confidence": 0.93
+        },
+        {
+          "word": "and,",
+          "start": 253.99,
+          "end": 254.17,
+          "confidence": 0.74
+        },
+        {
+          "word": "you",
+          "start": 254.47,
+          "end": 254.61,
+          "confidence": 0.5
+        },
+        {
+          "word": "know,",
+          "start": 254.63,
+          "end": 254.85,
+          "confidence": 0.65
+        },
+        {
+          "word": "wanting",
+          "start": 254.89,
+          "end": 255.61,
+          "confidence": 0.83
+        },
+        {
+          "word": "to",
+          "start": 255.63,
+          "end": 255.67,
+          "confidence": 0.0
+        },
+        {
+          "word": "persecute",
+          "start": 256.11,
+          "end": 256.67,
+          "confidence": 0.91
+        },
+        {
+          "word": "people.",
+          "start": 256.71,
+          "end": 257.23,
+          "confidence": 0.86
+        }
+      ]
+    },
+    {
+      "start": 258.48,
+      "end": 263.08,
+      "speaker": "Speaker 2",
+      "text": "I looked up her family because she told me about her family in DMs.",
+      "words": [
+        {
+          "word": "I",
+          "start": 258.48,
+          "end": 258.57,
+          "confidence": 0.81
+        },
+        {
+          "word": "looked",
+          "start": 258.62,
+          "end": 258.86,
+          "confidence": 0.99
+        },
+        {
+          "word": "up",
+          "start": 259.01,
+          "end": 259.12,
+          "confidence": 0.84
+        },
+        {
+          "word": "her",
+          "start": 259.39,
+          "end": 259.54,
+          "confidence": 0.76
+        },
+        {
+          "word": "family",
+          "start": 259.6,
+          "end": 260.01,
+          "confidence": 0.91
+        },
+        {
+          "word": "because",
+          "start": 260.1,
+          "end": 260.39,
+          "confidence": 0.96
+        },
+        {
+          "word": "she",
+          "start": 260.44,
+          "end": 260.58,
+          "confidence": 0.77
+        },
+        {
+          "word": "told",
+          "start": 260.62,
+          "end": 260.84,
+          "confidence": 0.81
+        },
+        {
+          "word": "me",
+          "start": 260.9,
+          "end": 261.08,
+          "confidence": 0.77
+        },
+        {
+          "word": "about",
+          "start": 261.64,
+          "end": 261.82,
+          "confidence": 0.99
+        },
+        {
+          "word": "her",
+          "start": 261.86,
+          "end": 261.96,
+          "confidence": 0.77
+        },
+        {
+          "word": "family",
+          "start": 262.0,
+          "end": 262.38,
+          "confidence": 0.89
+        },
+        {
+          "word": "in",
+          "start": 262.46,
+          "end": 262.56,
+          "confidence": 0.53
+        },
+        {
+          "word": "DMs.",
+          "start": 262.58,
+          "end": 263.08,
+          "confidence": 0.83
+        }
+      ]
+    },
+    {
+      "start": 264.6,
+      "end": 267.88,
+      "speaker": "Speaker 2",
+      "text": "And I saw her father's obituary.",
+      "words": [
+        {
+          "word": "And",
+          "start": 264.6,
+          "end": 264.78,
+          "confidence": 0.75
+        },
+        {
+          "word": "I",
+          "start": 265.38,
+          "end": 265.52,
+          "confidence": 0.85
+        },
+        {
+          "word": "saw",
+          "start": 265.68,
+          "end": 265.94,
+          "confidence": 0.99
+        },
+        {
+          "word": "her",
+          "start": 266.0,
+          "end": 266.2,
+          "confidence": 0.72
+        },
+        {
+          "word": "father's",
+          "start": 266.44,
+          "end": 266.94,
+          "confidence": 0.86
+        },
+        {
+          "word": "obituary.",
+          "start": 267.12,
+          "end": 267.88,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 269.3,
+      "end": 274.5,
+      "speaker": "Speaker 2",
+      "text": "And it's nothing like she says it is.",
+      "words": [
+        {
+          "word": "And",
+          "start": 269.3,
+          "end": 269.52,
+          "confidence": 0.42
+        },
+        {
+          "word": "it's",
+          "start": 270.7,
+          "end": 270.88,
+          "confidence": 0.77
+        },
+        {
+          "word": "nothing",
+          "start": 271.08,
+          "end": 271.68,
+          "confidence": 0.83
+        },
+        {
+          "word": "like",
+          "start": 272.4,
+          "end": 272.66,
+          "confidence": 0.98
+        },
+        {
+          "word": "she",
+          "start": 272.96,
+          "end": 273.4,
+          "confidence": 0.71
+        },
+        {
+          "word": "says",
+          "start": 273.66,
+          "end": 273.96,
+          "confidence": 0.98
+        },
+        {
+          "word": "it",
+          "start": 273.98,
+          "end": 274.02,
+          "confidence": 0.0
+        },
+        {
+          "word": "is.",
+          "start": 274.44,
+          "end": 274.5,
+          "confidence": 0.51
+        }
+      ]
+    },
+    {
+      "start": 276.0,
+      "end": 287.74,
+      "speaker": "Speaker 2",
+      "text": "She tells me that he was tortured, he was handed a baby or something, and then he was tortured and all this shit.",
+      "words": [
+        {
+          "word": "She",
+          "start": 276.0,
+          "end": 276.18,
+          "confidence": 0.82
+        },
+        {
+          "word": "tells",
+          "start": 276.26,
+          "end": 276.52,
+          "confidence": 0.82
+        },
+        {
+          "word": "me",
+          "start": 276.58,
+          "end": 276.72,
+          "confidence": 0.8
+        },
+        {
+          "word": "that",
+          "start": 276.8,
+          "end": 277.04,
+          "confidence": 0.8
+        },
+        {
+          "word": "he",
+          "start": 277.22,
+          "end": 277.36,
+          "confidence": 0.88
+        },
+        {
+          "word": "was",
+          "start": 277.4,
+          "end": 277.58,
+          "confidence": 0.81
+        },
+        {
+          "word": "tortured,",
+          "start": 277.76,
+          "end": 278.34,
+          "confidence": 0.89
+        },
+        {
+          "word": "he",
+          "start": 278.98,
+          "end": 279.1,
+          "confidence": 0.87
+        },
+        {
+          "word": "was",
+          "start": 279.16,
+          "end": 279.32,
+          "confidence": 0.89
+        },
+        {
+          "word": "handed",
+          "start": 279.42,
+          "end": 279.8,
+          "confidence": 0.91
+        },
+        {
+          "word": "a",
+          "start": 279.9,
+          "end": 279.94,
+          "confidence": 0.66
+        },
+        {
+          "word": "baby",
+          "start": 280.44,
+          "end": 281.0,
+          "confidence": 0.86
+        },
+        {
+          "word": "or",
+          "start": 281.56,
+          "end": 281.66,
+          "confidence": 0.88
+        },
+        {
+          "word": "something,",
+          "start": 281.72,
+          "end": 282.32,
+          "confidence": 0.85
+        },
+        {
+          "word": "and",
+          "start": 282.88,
+          "end": 282.96,
+          "confidence": 0.97
+        },
+        {
+          "word": "then",
+          "start": 283.0,
+          "end": 283.22,
+          "confidence": 0.87
+        },
+        {
+          "word": "he",
+          "start": 283.32,
+          "end": 283.42,
+          "confidence": 0.83
+        },
+        {
+          "word": "was",
+          "start": 283.48,
+          "end": 283.66,
+          "confidence": 0.81
+        },
+        {
+          "word": "tortured",
+          "start": 283.9,
+          "end": 284.56,
+          "confidence": 0.71
+        },
+        {
+          "word": "and",
+          "start": 284.82,
+          "end": 284.92,
+          "confidence": 0.9
+        },
+        {
+          "word": "all",
+          "start": 284.94,
+          "end": 285.0,
+          "confidence": 0.0
+        },
+        {
+          "word": "this",
+          "start": 285.02,
+          "end": 286.68,
+          "confidence": 0.58
+        },
+        {
+          "word": "shit.",
+          "start": 287.34,
+          "end": 287.74,
+          "confidence": 0.86
+        }
+      ]
+    },
+    {
+      "start": 288.74,
+      "end": 290.98,
+      "speaker": "Speaker 2",
+      "text": "Okay, I looked up his obituary.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 288.74,
+          "end": 289.08,
+          "confidence": 0.73
+        },
+        {
+          "word": "I",
+          "start": 289.24,
+          "end": 289.3,
+          "confidence": 0.7
+        },
+        {
+          "word": "looked",
+          "start": 289.42,
+          "end": 289.72,
+          "confidence": 0.87
+        },
+        {
+          "word": "up",
+          "start": 289.82,
+          "end": 289.94,
+          "confidence": 0.71
+        },
+        {
+          "word": "his",
+          "start": 290.0,
+          "end": 290.16,
+          "confidence": 0.88
+        },
+        {
+          "word": "obituary.",
+          "start": 290.26,
+          "end": 290.98,
+          "confidence": 0.93
+        }
+      ]
+    },
+    {
+      "start": 291.6,
+      "end": 295.68,
+      "speaker": "Speaker 2",
+      "text": "He has nothing but praise for his service.",
+      "words": [
+        {
+          "word": "He",
+          "start": 291.6,
+          "end": 291.78,
+          "confidence": 0.65
+        },
+        {
+          "word": "has",
+          "start": 291.84,
+          "end": 292.18,
+          "confidence": 0.5
+        },
+        {
+          "word": "nothing",
+          "start": 292.34,
+          "end": 292.74,
+          "confidence": 0.88
+        },
+        {
+          "word": "but",
+          "start": 292.84,
+          "end": 293.04,
+          "confidence": 0.83
+        },
+        {
+          "word": "praise",
+          "start": 293.18,
+          "end": 293.74,
+          "confidence": 0.91
+        },
+        {
+          "word": "for",
+          "start": 293.86,
+          "end": 294.08,
+          "confidence": 0.86
+        },
+        {
+          "word": "his",
+          "start": 294.18,
+          "end": 294.46,
+          "confidence": 0.67
+        },
+        {
+          "word": "service.",
+          "start": 295.08,
+          "end": 295.68,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "start": 295.9,
+      "end": 300.36,
+      "speaker": "Speaker 2",
+      "text": "He was a special force person in the army.",
+      "words": [
+        {
+          "word": "He",
+          "start": 295.9,
+          "end": 296.02,
+          "confidence": 0.88
+        },
+        {
+          "word": "was",
+          "start": 296.08,
+          "end": 296.24,
+          "confidence": 0.7
+        },
+        {
+          "word": "a",
+          "start": 296.26,
+          "end": 296.28,
+          "confidence": 0.0
+        },
+        {
+          "word": "special",
+          "start": 296.42,
+          "end": 296.9,
+          "confidence": 0.95
+        },
+        {
+          "word": "force",
+          "start": 297.06,
+          "end": 297.58,
+          "confidence": 0.79
+        },
+        {
+          "word": "person",
+          "start": 298.74,
+          "end": 299.24,
+          "confidence": 0.94
+        },
+        {
+          "word": "in",
+          "start": 299.68,
+          "end": 299.8,
+          "confidence": 0.86
+        },
+        {
+          "word": "the",
+          "start": 299.84,
+          "end": 299.98,
+          "confidence": 0.59
+        },
+        {
+          "word": "army.",
+          "start": 300.1,
+          "end": 300.36,
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "start": 303.13,
+      "end": 308.72,
+      "speaker": "Speaker 2",
+      "text": "And there's responses saying, you know, thank you for your support.",
+      "words": [
+        {
+          "word": "And",
+          "start": 303.13,
+          "end": 303.31,
+          "confidence": 0.32
+        },
+        {
+          "word": "there's",
+          "start": 303.81,
+          "end": 304.73,
+          "confidence": 0.57
+        },
+        {
+          "word": "responses",
+          "start": 305.05,
+          "end": 305.79,
+          "confidence": 0.86
+        },
+        {
+          "word": "saying,",
+          "start": 305.91,
+          "end": 306.42,
+          "confidence": 0.75
+        },
+        {
+          "word": "you",
+          "start": 307.34,
+          "end": 307.44,
+          "confidence": 0.94
+        },
+        {
+          "word": "know,",
+          "start": 307.46,
+          "end": 307.68,
+          "confidence": 0.77
+        },
+        {
+          "word": "thank",
+          "start": 307.86,
+          "end": 308.08,
+          "confidence": 0.91
+        },
+        {
+          "word": "you",
+          "start": 308.1,
+          "end": 308.2,
+          "confidence": 0.97
+        },
+        {
+          "word": "for",
+          "start": 308.22,
+          "end": 308.34,
+          "confidence": 0.88
+        },
+        {
+          "word": "your",
+          "start": 308.38,
+          "end": 308.5,
+          "confidence": 0.98
+        },
+        {
+          "word": "support.",
+          "start": 308.52,
+          "end": 308.72,
+          "confidence": 0.25
+        }
+      ]
+    },
+    {
+      "start": 308.74,
+      "end": 310.12,
+      "speaker": "Speaker 2",
+      "text": "We love you, blah, blah, blah.",
+      "words": [
+        {
+          "word": "We",
+          "start": 308.74,
+          "end": 308.88,
+          "confidence": 0.95
+        },
+        {
+          "word": "love",
+          "start": 308.92,
+          "end": 309.16,
+          "confidence": 0.83
+        },
+        {
+          "word": "you,",
+          "start": 309.18,
+          "end": 309.34,
+          "confidence": 0.87
+        },
+        {
+          "word": "blah,",
+          "start": 309.4,
+          "end": 309.6,
+          "confidence": 0.56
+        },
+        {
+          "word": "blah,",
+          "start": 309.62,
+          "end": 309.74,
+          "confidence": 0.55
+        },
+        {
+          "word": "blah.",
+          "start": 309.76,
+          "end": 310.12,
+          "confidence": 0.71
+        }
+      ]
+    },
+    {
+      "start": 310.5,
+      "end": 316.47,
+      "speaker": "Speaker 2",
+      "text": "This man was not in any way hated or anything like that.",
+      "words": [
+        {
+          "word": "This",
+          "start": 310.5,
+          "end": 310.7,
+          "confidence": 0.86
+        },
+        {
+          "word": "man",
+          "start": 310.78,
+          "end": 311.12,
+          "confidence": 0.74
+        },
+        {
+          "word": "was",
+          "start": 311.6,
+          "end": 311.8,
+          "confidence": 0.86
+        },
+        {
+          "word": "not",
+          "start": 311.88,
+          "end": 312.06,
+          "confidence": 0.86
+        },
+        {
+          "word": "in",
+          "start": 312.12,
+          "end": 312.18,
+          "confidence": 0.72
+        },
+        {
+          "word": "any",
+          "start": 312.32,
+          "end": 312.48,
+          "confidence": 0.78
+        },
+        {
+          "word": "way",
+          "start": 312.54,
+          "end": 312.86,
+          "confidence": 0.87
+        },
+        {
+          "word": "hated",
+          "start": 312.88,
+          "end": 314.06,
+          "confidence": 0.2
+        },
+        {
+          "word": "or",
+          "start": 314.4,
+          "end": 314.52,
+          "confidence": 0.67
+        },
+        {
+          "word": "anything",
+          "start": 314.55,
+          "end": 315.93,
+          "confidence": 0.75
+        },
+        {
+          "word": "like",
+          "start": 315.97,
+          "end": 316.15,
+          "confidence": 0.75
+        },
+        {
+          "word": "that.",
+          "start": 316.19,
+          "end": 316.47,
+          "confidence": 0.81
+        }
+      ]
+    },
+    {
+      "start": 317.41,
+      "end": 321.73,
+      "speaker": "Speaker 2",
+      "text": "So she's probably going, Angela is probably going to give you the narrative that",
+      "words": [
+        {
+          "word": "So",
+          "start": 317.41,
+          "end": 317.55,
+          "confidence": 0.99
+        },
+        {
+          "word": "she's",
+          "start": 317.63,
+          "end": 317.89,
+          "confidence": 0.76
+        },
+        {
+          "word": "probably",
+          "start": 317.95,
+          "end": 318.51,
+          "confidence": 0.82
+        },
+        {
+          "word": "going,",
+          "start": 318.57,
+          "end": 318.89,
+          "confidence": 0.91
+        },
+        {
+          "word": "Angela",
+          "start": 319.05,
+          "end": 319.43,
+          "confidence": 0.67
+        },
+        {
+          "word": "is",
+          "start": 319.49,
+          "end": 319.57,
+          "confidence": 0.68
+        },
+        {
+          "word": "probably",
+          "start": 319.63,
+          "end": 320.01,
+          "confidence": 0.9
+        },
+        {
+          "word": "going",
+          "start": 320.05,
+          "end": 320.29,
+          "confidence": 0.94
+        },
+        {
+          "word": "to",
+          "start": 320.33,
+          "end": 320.43,
+          "confidence": 0.46
+        },
+        {
+          "word": "give",
+          "start": 320.47,
+          "end": 320.65,
+          "confidence": 0.96
+        },
+        {
+          "word": "you",
+          "start": 320.67,
+          "end": 320.79,
+          "confidence": 0.95
+        },
+        {
+          "word": "the",
+          "start": 320.83,
+          "end": 320.95,
+          "confidence": 0.74
+        },
+        {
+          "word": "narrative",
+          "start": 321.01,
+          "end": 321.63,
+          "confidence": 0.86
+        },
+        {
+          "word": "that",
+          "start": 321.65,
+          "end": 321.73,
+          "confidence": 0.0
+        }
+      ]
+    },
+    {
+      "start": 322.3,
+      "end": 328.5,
+      "speaker": "Speaker 2",
+      "text": "That, oh yeah, that's just what the media and the social media wants you to see.",
+      "words": [
+        {
+          "word": "That,",
+          "start": 322.3,
+          "end": 322.54,
+          "confidence": 0.95
+        },
+        {
+          "word": "oh",
+          "start": 322.76,
+          "end": 322.9,
+          "confidence": 0.75
+        },
+        {
+          "word": "yeah,",
+          "start": 322.98,
+          "end": 323.36,
+          "confidence": 0.78
+        },
+        {
+          "word": "that's",
+          "start": 323.82,
+          "end": 324.1,
+          "confidence": 0.81
+        },
+        {
+          "word": "just",
+          "start": 324.22,
+          "end": 324.5,
+          "confidence": 0.85
+        },
+        {
+          "word": "what",
+          "start": 324.62,
+          "end": 324.78,
+          "confidence": 0.74
+        },
+        {
+          "word": "the",
+          "start": 324.96,
+          "end": 325.12,
+          "confidence": 0.99
+        },
+        {
+          "word": "media",
+          "start": 325.66,
+          "end": 326.18,
+          "confidence": 0.96
+        },
+        {
+          "word": "and",
+          "start": 326.38,
+          "end": 326.48,
+          "confidence": 0.8
+        },
+        {
+          "word": "the",
+          "start": 326.52,
+          "end": 326.64,
+          "confidence": 0.97
+        },
+        {
+          "word": "social",
+          "start": 326.72,
+          "end": 327.08,
+          "confidence": 0.94
+        },
+        {
+          "word": "media",
+          "start": 327.14,
+          "end": 327.5,
+          "confidence": 0.82
+        },
+        {
+          "word": "wants",
+          "start": 327.54,
+          "end": 327.78,
+          "confidence": 0.69
+        },
+        {
+          "word": "you",
+          "start": 327.82,
+          "end": 327.98,
+          "confidence": 0.87
+        },
+        {
+          "word": "to",
+          "start": 328.02,
+          "end": 328.12,
+          "confidence": 0.83
+        },
+        {
+          "word": "see.",
+          "start": 328.2,
+          "end": 328.5,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 329.04,
+      "end": 329.48,
+      "speaker": "Speaker 2",
+      "text": "You know?",
+      "words": [
+        {
+          "word": "You",
+          "start": 329.04,
+          "end": 329.18,
+          "confidence": 0.9
+        },
+        {
+          "word": "know?",
+          "start": 329.22,
+          "end": 329.48,
+          "confidence": 0.75
+        }
+      ]
+    },
+    {
+      "start": 330.1,
+      "end": 333.3,
+      "speaker": "Speaker 2",
+      "text": "That's just what the front is.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 330.1,
+          "end": 330.38,
+          "confidence": 0.84
+        },
+        {
+          "word": "just",
+          "start": 330.48,
+          "end": 330.68,
+          "confidence": 0.98
+        },
+        {
+          "word": "what",
+          "start": 330.76,
+          "end": 332.28,
+          "confidence": 0.76
+        },
+        {
+          "word": "the",
+          "start": 332.34,
+          "end": 332.48,
+          "confidence": 0.79
+        },
+        {
+          "word": "front",
+          "start": 332.6,
+          "end": 332.92,
+          "confidence": 0.79
+        },
+        {
+          "word": "is.",
+          "start": 333.12,
+          "end": 333.3,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 333.68,
+      "end": 340.29,
+      "speaker": "Speaker 2",
+      "text": "When I really know the truth, that's what she will probably tell you, okay?",
+      "words": [
+        {
+          "word": "When",
+          "start": 333.68,
+          "end": 334.78,
+          "confidence": 0.21
+        },
+        {
+          "word": "I",
+          "start": 334.8,
+          "end": 334.82,
+          "confidence": 0.0
+        },
+        {
+          "word": "really",
+          "start": 336.16,
+          "end": 336.54,
+          "confidence": 0.7
+        },
+        {
+          "word": "know",
+          "start": 336.62,
+          "end": 336.8,
+          "confidence": 0.79
+        },
+        {
+          "word": "the",
+          "start": 336.84,
+          "end": 336.94,
+          "confidence": 0.77
+        },
+        {
+          "word": "truth,",
+          "start": 337.02,
+          "end": 337.44,
+          "confidence": 0.78
+        },
+        {
+          "word": "that's",
+          "start": 337.62,
+          "end": 337.92,
+          "confidence": 0.82
+        },
+        {
+          "word": "what",
+          "start": 338.02,
+          "end": 338.22,
+          "confidence": 0.73
+        },
+        {
+          "word": "she",
+          "start": 338.28,
+          "end": 338.42,
+          "confidence": 0.79
+        },
+        {
+          "word": "will",
+          "start": 338.46,
+          "end": 338.67,
+          "confidence": 0.86
+        },
+        {
+          "word": "probably",
+          "start": 338.7,
+          "end": 339.12,
+          "confidence": 0.81
+        },
+        {
+          "word": "tell",
+          "start": 339.2,
+          "end": 339.46,
+          "confidence": 0.89
+        },
+        {
+          "word": "you,",
+          "start": 339.5,
+          "end": 339.76,
+          "confidence": 0.91
+        },
+        {
+          "word": "okay?",
+          "start": 339.79,
+          "end": 340.29,
+          "confidence": 0.68
+        }
+      ]
+    },
+    {
+      "start": 341.39,
+      "end": 344.13,
+      "speaker": "Speaker 2",
+      "text": "That we don't know anything.",
+      "words": [
+        {
+          "word": "That",
+          "start": 341.39,
+          "end": 341.67,
+          "confidence": 0.71
+        },
+        {
+          "word": "we",
+          "start": 342.49,
+          "end": 342.67,
+          "confidence": 0.8
+        },
+        {
+          "word": "don't",
+          "start": 342.71,
+          "end": 342.95,
+          "confidence": 0.76
+        },
+        {
+          "word": "know",
+          "start": 343.05,
+          "end": 343.29,
+          "confidence": 0.78
+        },
+        {
+          "word": "anything.",
+          "start": 343.49,
+          "end": 344.13,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 344.55,
+      "end": 345.77,
+      "speaker": "Speaker 2",
+      "text": "We weren't there.",
+      "words": [
+        {
+          "word": "We",
+          "start": 344.55,
+          "end": 344.73,
+          "confidence": 1.0
+        },
+        {
+          "word": "weren't",
+          "start": 344.81,
+          "end": 345.15,
+          "confidence": 0.69
+        },
+        {
+          "word": "there.",
+          "start": 345.33,
+          "end": 345.77,
+          "confidence": 0.82
+        }
+      ]
+    },
+    {
+      "start": 346.25,
+      "end": 347.41,
+      "speaker": "Speaker 2",
+      "text": "We don't know.",
+      "words": [
+        {
+          "word": "We",
+          "start": 346.25,
+          "end": 346.43,
+          "confidence": 0.72
+        },
+        {
+          "word": "don't",
+          "start": 346.51,
+          "end": 346.83,
+          "confidence": 0.62
+        },
+        {
+          "word": "know.",
+          "start": 347.01,
+          "end": 347.41,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 347.43,
+      "end": 347.53,
+      "speaker": "Speaker 2",
+      "text": "So...",
+      "words": [
+        {
+          "word": "So...",
+          "start": 347.43,
+          "end": 347.53,
+          "confidence": 0.59
+        }
+      ]
+    },
+    {
+      "start": 349.4,
+      "end": 349.86,
+      "speaker": "Speaker 2",
+      "text": "You know?",
+      "words": [
+        {
+          "word": "You",
+          "start": 349.4,
+          "end": 349.52,
+          "confidence": 0.4
+        },
+        {
+          "word": "know?",
+          "start": 349.54,
+          "end": 349.86,
+          "confidence": 0.59
+        }
+      ]
+    },
+    {
+      "start": 350.1,
+      "end": 352.36,
+      "speaker": "Speaker 2",
+      "text": "And everything we read is false.",
+      "words": [
+        {
+          "word": "And",
+          "start": 350.1,
+          "end": 350.2,
+          "confidence": 0.83
+        },
+        {
+          "word": "everything",
+          "start": 350.28,
+          "end": 350.72,
+          "confidence": 0.91
+        },
+        {
+          "word": "we",
+          "start": 350.76,
+          "end": 350.94,
+          "confidence": 0.92
+        },
+        {
+          "word": "read",
+          "start": 351.04,
+          "end": 351.52,
+          "confidence": 0.82
+        },
+        {
+          "word": "is",
+          "start": 351.64,
+          "end": 351.74,
+          "confidence": 0.73
+        },
+        {
+          "word": "false.",
+          "start": 351.86,
+          "end": 352.36,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 352.98,
+      "end": 354.26,
+      "speaker": "Speaker 2",
+      "text": "She would probably say that.",
+      "words": [
+        {
+          "word": "She",
+          "start": 352.98,
+          "end": 353.1,
+          "confidence": 0.92
+        },
+        {
+          "word": "would",
+          "start": 353.14,
+          "end": 353.34,
+          "confidence": 0.47
+        },
+        {
+          "word": "probably",
+          "start": 353.36,
+          "end": 353.72,
+          "confidence": 0.81
+        },
+        {
+          "word": "say",
+          "start": 353.8,
+          "end": 353.96,
+          "confidence": 0.99
+        },
+        {
+          "word": "that.",
+          "start": 354.02,
+          "end": 354.26,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 357.16,
+      "end": 357.98,
+      "speaker": "Speaker 2",
+      "text": "Trust me.",
+      "words": [
+        {
+          "word": "Trust",
+          "start": 357.16,
+          "end": 357.46,
+          "confidence": 0.97
+        },
+        {
+          "word": "me.",
+          "start": 357.5,
+          "end": 357.98,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 359.31,
+      "end": 367.83,
+      "speaker": "Speaker 2",
+      "text": "I've just gotten done following the entire Lori Daybell, Chad Daybell trial, okay?",
+      "words": [
+        {
+          "word": "I've",
+          "start": 359.31,
+          "end": 359.49,
+          "confidence": 0.91
+        },
+        {
+          "word": "just",
+          "start": 359.55,
+          "end": 359.87,
+          "confidence": 0.73
+        },
+        {
+          "word": "gotten",
+          "start": 359.94,
+          "end": 360.75,
+          "confidence": 0.73
+        },
+        {
+          "word": "done",
+          "start": 360.77,
+          "end": 360.85,
+          "confidence": 0.0
+        },
+        {
+          "word": "following",
+          "start": 361.33,
+          "end": 361.95,
+          "confidence": 0.85
+        },
+        {
+          "word": "the",
+          "start": 362.07,
+          "end": 362.19,
+          "confidence": 0.85
+        },
+        {
+          "word": "entire",
+          "start": 362.27,
+          "end": 362.83,
+          "confidence": 0.75
+        },
+        {
+          "word": "Lori",
+          "start": 363.75,
+          "end": 364.21,
+          "confidence": 0.8
+        },
+        {
+          "word": "Daybell,",
+          "start": 364.31,
+          "end": 364.91,
+          "confidence": 0.86
+        },
+        {
+          "word": "Chad",
+          "start": 365.49,
+          "end": 365.87,
+          "confidence": 0.89
+        },
+        {
+          "word": "Daybell",
+          "start": 365.89,
+          "end": 366.41,
+          "confidence": 0.76
+        },
+        {
+          "word": "trial,",
+          "start": 366.69,
+          "end": 367.23,
+          "confidence": 0.89
+        },
+        {
+          "word": "okay?",
+          "start": 367.33,
+          "end": 367.83,
+          "confidence": 0.69
+        }
+      ]
+    },
+    {
+      "start": 368.29,
+      "end": 372.37,
+      "speaker": "Speaker 2",
+      "text": "The whole delusions that they believed were real.",
+      "words": [
+        {
+          "word": "The",
+          "start": 368.29,
+          "end": 368.43,
+          "confidence": 0.82
+        },
+        {
+          "word": "whole",
+          "start": 368.49,
+          "end": 368.73,
+          "confidence": 0.89
+        },
+        {
+          "word": "delusions",
+          "start": 368.79,
+          "end": 369.69,
+          "confidence": 0.92
+        },
+        {
+          "word": "that",
+          "start": 370.01,
+          "end": 370.19,
+          "confidence": 0.89
+        },
+        {
+          "word": "they",
+          "start": 370.21,
+          "end": 370.39,
+          "confidence": 0.83
+        },
+        {
+          "word": "believed",
+          "start": 370.43,
+          "end": 371.05,
+          "confidence": 0.69
+        },
+        {
+          "word": "were",
+          "start": 371.67,
+          "end": 371.89,
+          "confidence": 0.68
+        },
+        {
+          "word": "real.",
+          "start": 371.95,
+          "end": 372.37,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 372.87,
+      "end": 374.79,
+      "speaker": "Speaker 2",
+      "text": "The reasons why they killed Lori.",
+      "words": [
+        {
+          "word": "The",
+          "start": 372.87,
+          "end": 372.99,
+          "confidence": 0.89
+        },
+        {
+          "word": "reasons",
+          "start": 373.03,
+          "end": 373.45,
+          "confidence": 0.87
+        },
+        {
+          "word": "why",
+          "start": 373.55,
+          "end": 373.87,
+          "confidence": 0.73
+        },
+        {
+          "word": "they",
+          "start": 373.95,
+          "end": 374.15,
+          "confidence": 0.92
+        },
+        {
+          "word": "killed",
+          "start": 374.19,
+          "end": 374.67,
+          "confidence": 0.82
+        },
+        {
+          "word": "Lori.",
+          "start": 374.69,
+          "end": 374.79,
+          "confidence": 0.2
+        }
+      ]
+    },
+    {
+      "start": 376.07,
+      "end": 384.59,
+      "speaker": "Speaker 2",
+      "text": "why she had a hand in killing her children, because she believed they were dark.",
+      "words": [
+        {
+          "word": "why",
+          "start": 376.07,
+          "end": 376.43,
+          "confidence": 0.79
+        },
+        {
+          "word": "she",
+          "start": 376.85,
+          "end": 377.93,
+          "confidence": 0.73
+        },
+        {
+          "word": "had",
+          "start": 378.71,
+          "end": 378.93,
+          "confidence": 0.92
+        },
+        {
+          "word": "a",
+          "start": 378.97,
+          "end": 379.01,
+          "confidence": 0.48
+        },
+        {
+          "word": "hand",
+          "start": 379.05,
+          "end": 379.33,
+          "confidence": 0.91
+        },
+        {
+          "word": "in",
+          "start": 379.39,
+          "end": 379.49,
+          "confidence": 0.84
+        },
+        {
+          "word": "killing",
+          "start": 379.57,
+          "end": 379.95,
+          "confidence": 0.9
+        },
+        {
+          "word": "her",
+          "start": 380.01,
+          "end": 380.15,
+          "confidence": 0.74
+        },
+        {
+          "word": "children,",
+          "start": 380.33,
+          "end": 380.89,
+          "confidence": 0.87
+        },
+        {
+          "word": "because",
+          "start": 381.61,
+          "end": 381.99,
+          "confidence": 0.75
+        },
+        {
+          "word": "she",
+          "start": 382.09,
+          "end": 382.27,
+          "confidence": 0.89
+        },
+        {
+          "word": "believed",
+          "start": 382.33,
+          "end": 382.97,
+          "confidence": 0.75
+        },
+        {
+          "word": "they",
+          "start": 383.71,
+          "end": 383.85,
+          "confidence": 0.83
+        },
+        {
+          "word": "were",
+          "start": 383.89,
+          "end": 384.05,
+          "confidence": 0.72
+        },
+        {
+          "word": "dark.",
+          "start": 384.15,
+          "end": 384.59,
+          "confidence": 0.93
+        }
+      ]
+    },
+    {
+      "start": 386.51,
+      "end": 391.9,
+      "speaker": "Speaker 2",
+      "text": "There were zombies, you know, in them, and they had to get rid of the zombies.",
+      "words": [
+        {
+          "word": "There",
+          "start": 386.51,
+          "end": 386.68,
+          "confidence": 0.57
+        },
+        {
+          "word": "were",
+          "start": 386.71,
+          "end": 386.81,
+          "confidence": 0.24
+        },
+        {
+          "word": "zombies,",
+          "start": 386.89,
+          "end": 387.6,
+          "confidence": 0.85
+        },
+        {
+          "word": "you",
+          "start": 388.51,
+          "end": 388.63,
+          "confidence": 0.74
+        },
+        {
+          "word": "know,",
+          "start": 388.68,
+          "end": 388.98,
+          "confidence": 0.85
+        },
+        {
+          "word": "in",
+          "start": 389.62,
+          "end": 389.76,
+          "confidence": 0.84
+        },
+        {
+          "word": "them,",
+          "start": 389.82,
+          "end": 390.16,
+          "confidence": 0.94
+        },
+        {
+          "word": "and",
+          "start": 390.24,
+          "end": 390.38,
+          "confidence": 0.61
+        },
+        {
+          "word": "they",
+          "start": 390.42,
+          "end": 390.56,
+          "confidence": 0.92
+        },
+        {
+          "word": "had",
+          "start": 390.6,
+          "end": 390.74,
+          "confidence": 0.89
+        },
+        {
+          "word": "to",
+          "start": 390.76,
+          "end": 390.84,
+          "confidence": 0.53
+        },
+        {
+          "word": "get",
+          "start": 390.88,
+          "end": 391.0,
+          "confidence": 0.86
+        },
+        {
+          "word": "rid",
+          "start": 391.04,
+          "end": 391.16,
+          "confidence": 0.91
+        },
+        {
+          "word": "of",
+          "start": 391.2,
+          "end": 391.26,
+          "confidence": 0.75
+        },
+        {
+          "word": "the",
+          "start": 391.32,
+          "end": 391.4,
+          "confidence": 0.97
+        },
+        {
+          "word": "zombies.",
+          "start": 391.46,
+          "end": 391.9,
+          "confidence": 0.78
+        }
+      ]
+    },
+    {
+      "start": 392.06,
+      "end": 398.66,
+      "speaker": "Speaker 2",
+      "text": "I've, you know, deep dived in all this delusion already, okay?",
+      "words": [
+        {
+          "word": "I've,",
+          "start": 392.06,
+          "end": 392.86,
+          "confidence": 0.78
+        },
+        {
+          "word": "you",
+          "start": 393.6,
+          "end": 393.74,
+          "confidence": 0.85
+        },
+        {
+          "word": "know,",
+          "start": 393.76,
+          "end": 393.96,
+          "confidence": 0.9
+        },
+        {
+          "word": "deep",
+          "start": 394.06,
+          "end": 394.3,
+          "confidence": 0.84
+        },
+        {
+          "word": "dived",
+          "start": 394.34,
+          "end": 394.7,
+          "confidence": 0.82
+        },
+        {
+          "word": "in",
+          "start": 394.8,
+          "end": 394.92,
+          "confidence": 0.81
+        },
+        {
+          "word": "all",
+          "start": 395.3,
+          "end": 395.5,
+          "confidence": 0.62
+        },
+        {
+          "word": "this",
+          "start": 395.52,
+          "end": 395.96,
+          "confidence": 0.65
+        },
+        {
+          "word": "delusion",
+          "start": 396.58,
+          "end": 397.38,
+          "confidence": 0.91
+        },
+        {
+          "word": "already,",
+          "start": 397.72,
+          "end": 398.14,
+          "confidence": 0.87
+        },
+        {
+          "word": "okay?",
+          "start": 398.26,
+          "end": 398.66,
+          "confidence": 0.77
+        }
+      ]
+    },
+    {
+      "start": 398.94,
+      "end": 401.94,
+      "speaker": "Speaker 2",
+      "text": "And for Angela to come here and tell me that there's",
+      "words": [
+        {
+          "word": "And",
+          "start": 398.94,
+          "end": 399.14,
+          "confidence": 0.71
+        },
+        {
+          "word": "for",
+          "start": 399.18,
+          "end": 399.4,
+          "confidence": 0.79
+        },
+        {
+          "word": "Angela",
+          "start": 399.94,
+          "end": 400.38,
+          "confidence": 0.8
+        },
+        {
+          "word": "to",
+          "start": 400.4,
+          "end": 400.52,
+          "confidence": 0.67
+        },
+        {
+          "word": "come",
+          "start": 400.56,
+          "end": 400.72,
+          "confidence": 0.88
+        },
+        {
+          "word": "here",
+          "start": 400.78,
+          "end": 400.9,
+          "confidence": 0.77
+        },
+        {
+          "word": "and",
+          "start": 400.94,
+          "end": 401.02,
+          "confidence": 0.83
+        },
+        {
+          "word": "tell",
+          "start": 401.08,
+          "end": 401.26,
+          "confidence": 0.91
+        },
+        {
+          "word": "me",
+          "start": 401.28,
+          "end": 401.38,
+          "confidence": 0.89
+        },
+        {
+          "word": "that",
+          "start": 401.44,
+          "end": 401.58,
+          "confidence": 0.92
+        },
+        {
+          "word": "there's",
+          "start": 401.64,
+          "end": 401.94,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 403.57,
+      "end": 413.9,
+      "speaker": "Speaker 2",
+      "text": "Child trafficking tunnels under Wright-Patt Air Force Base, which I live nine miles from, and I've lived here my whole life.",
+      "words": [
+        {
+          "word": "Child",
+          "start": 403.57,
+          "end": 403.95,
+          "confidence": 0.73
+        },
+        {
+          "word": "trafficking",
+          "start": 404.03,
+          "end": 404.61,
+          "confidence": 0.86
+        },
+        {
+          "word": "tunnels",
+          "start": 404.69,
+          "end": 405.27,
+          "confidence": 0.77
+        },
+        {
+          "word": "under",
+          "start": 405.69,
+          "end": 405.99,
+          "confidence": 0.81
+        },
+        {
+          "word": "Wright-Patt",
+          "start": 406.01,
+          "end": 407.04,
+          "confidence": 0.78
+        },
+        {
+          "word": "Air",
+          "start": 407.42,
+          "end": 407.56,
+          "confidence": 0.71
+        },
+        {
+          "word": "Force",
+          "start": 407.57,
+          "end": 407.88,
+          "confidence": 0.76
+        },
+        {
+          "word": "Base,",
+          "start": 407.92,
+          "end": 408.24,
+          "confidence": 0.93
+        },
+        {
+          "word": "which",
+          "start": 408.38,
+          "end": 408.58,
+          "confidence": 0.86
+        },
+        {
+          "word": "I",
+          "start": 408.68,
+          "end": 408.8,
+          "confidence": 0.83
+        },
+        {
+          "word": "live",
+          "start": 408.9,
+          "end": 409.34,
+          "confidence": 0.77
+        },
+        {
+          "word": "nine",
+          "start": 410.42,
+          "end": 410.64,
+          "confidence": 0.81
+        },
+        {
+          "word": "miles",
+          "start": 410.68,
+          "end": 411.0,
+          "confidence": 0.9
+        },
+        {
+          "word": "from,",
+          "start": 411.08,
+          "end": 411.44,
+          "confidence": 0.85
+        },
+        {
+          "word": "and",
+          "start": 411.88,
+          "end": 411.98,
+          "confidence": 0.82
+        },
+        {
+          "word": "I've",
+          "start": 412.04,
+          "end": 412.2,
+          "confidence": 0.94
+        },
+        {
+          "word": "lived",
+          "start": 412.26,
+          "end": 412.52,
+          "confidence": 0.84
+        },
+        {
+          "word": "here",
+          "start": 412.64,
+          "end": 412.86,
+          "confidence": 0.78
+        },
+        {
+          "word": "my",
+          "start": 413.0,
+          "end": 413.16,
+          "confidence": 0.87
+        },
+        {
+          "word": "whole",
+          "start": 413.24,
+          "end": 413.46,
+          "confidence": 0.81
+        },
+        {
+          "word": "life.",
+          "start": 413.54,
+          "end": 413.9,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 414.18,
+      "end": 417.12,
+      "speaker": "Speaker 2",
+      "text": "I never heard a rumor like that.",
+      "words": [
+        {
+          "word": "I",
+          "start": 414.18,
+          "end": 414.34,
+          "confidence": 0.78
+        },
+        {
+          "word": "never",
+          "start": 414.8,
+          "end": 415.36,
+          "confidence": 0.79
+        },
+        {
+          "word": "heard",
+          "start": 415.9,
+          "end": 416.1,
+          "confidence": 0.77
+        },
+        {
+          "word": "a",
+          "start": 416.14,
+          "end": 416.16,
+          "confidence": 0.96
+        },
+        {
+          "word": "rumor",
+          "start": 416.22,
+          "end": 416.58,
+          "confidence": 0.84
+        },
+        {
+          "word": "like",
+          "start": 416.62,
+          "end": 416.8,
+          "confidence": 0.72
+        },
+        {
+          "word": "that.",
+          "start": 416.84,
+          "end": 417.12,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 417.84,
+      "end": 420.12,
+      "speaker": "Speaker 2",
+      "text": "I know so many people.",
+      "words": [
+        {
+          "word": "I",
+          "start": 417.84,
+          "end": 418.0,
+          "confidence": 0.75
+        },
+        {
+          "word": "know",
+          "start": 418.14,
+          "end": 418.52,
+          "confidence": 0.58
+        },
+        {
+          "word": "so",
+          "start": 419.02,
+          "end": 419.24,
+          "confidence": 0.91
+        },
+        {
+          "word": "many",
+          "start": 419.28,
+          "end": 419.5,
+          "confidence": 0.89
+        },
+        {
+          "word": "people.",
+          "start": 419.56,
+          "end": 420.12,
+          "confidence": 0.81
+        }
+      ]
+    },
+    {
+      "start": 420.65,
+      "end": 425.41,
+      "speaker": "Speaker 2",
+      "text": "My next-door neighbor right here next to me works at Wright-Patt.",
+      "words": [
+        {
+          "word": "My",
+          "start": 420.65,
+          "end": 420.79,
+          "confidence": 0.87
+        },
+        {
+          "word": "next-door",
+          "start": 420.83,
+          "end": 421.23,
+          "confidence": 0.7
+        },
+        {
+          "word": "neighbor",
+          "start": 421.29,
+          "end": 421.75,
+          "confidence": 0.73
+        },
+        {
+          "word": "right",
+          "start": 421.77,
+          "end": 422.37,
+          "confidence": 0.78
+        },
+        {
+          "word": "here",
+          "start": 422.41,
+          "end": 422.73,
+          "confidence": 0.69
+        },
+        {
+          "word": "next",
+          "start": 423.47,
+          "end": 423.71,
+          "confidence": 0.84
+        },
+        {
+          "word": "to",
+          "start": 423.73,
+          "end": 423.79,
+          "confidence": 0.63
+        },
+        {
+          "word": "me",
+          "start": 423.85,
+          "end": 424.05,
+          "confidence": 0.81
+        },
+        {
+          "word": "works",
+          "start": 424.43,
+          "end": 424.67,
+          "confidence": 0.81
+        },
+        {
+          "word": "at",
+          "start": 424.73,
+          "end": 424.81,
+          "confidence": 0.47
+        },
+        {
+          "word": "Wright-Patt.",
+          "start": 424.83,
+          "end": 425.41,
+          "confidence": 0.69
+        }
+      ]
+    },
+    {
+      "start": 426.09,
+      "end": 428.75,
+      "speaker": "Speaker 2",
+      "text": "Never heard a rumor like that.",
+      "words": [
+        {
+          "word": "Never",
+          "start": 426.09,
+          "end": 426.57,
+          "confidence": 0.86
+        },
+        {
+          "word": "heard",
+          "start": 427.51,
+          "end": 427.73,
+          "confidence": 0.79
+        },
+        {
+          "word": "a",
+          "start": 427.75,
+          "end": 427.79,
+          "confidence": 0.47
+        },
+        {
+          "word": "rumor",
+          "start": 427.85,
+          "end": 428.17,
+          "confidence": 0.88
+        },
+        {
+          "word": "like",
+          "start": 428.23,
+          "end": 428.41,
+          "confidence": 0.96
+        },
+        {
+          "word": "that.",
+          "start": 428.47,
+          "end": 428.75,
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "start": 430.83,
+      "end": 432.04,
+      "speaker": "Speaker 2",
+      "text": "Look down.",
+      "words": [
+        {
+          "word": "Look",
+          "start": 430.83,
+          "end": 431.1,
+          "confidence": 0.88
+        },
+        {
+          "word": "down.",
+          "start": 431.12,
+          "end": 432.04,
+          "confidence": 0.6
+        }
+      ]
+    },
+    {
+      "start": 433.12,
+      "end": 433.42,
+      "speaker": "Speaker 2",
+      "text": "Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 433.12,
+          "end": 433.42,
+          "confidence": 0.77
+        }
+      ]
+    },
+    {
+      "start": 434.28,
+      "end": 434.62,
+      "speaker": "Speaker 2",
+      "text": "So.",
+      "words": [
+        {
+          "word": "So.",
+          "start": 434.28,
+          "end": 434.62,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "start": 437.0,
+      "end": 437.44,
+      "speaker": "Speaker 2",
+      "text": "So yeah.",
+      "words": [
+        {
+          "word": "So",
+          "start": 437.0,
+          "end": 437.16,
+          "confidence": 0.93
+        },
+        {
+          "word": "yeah.",
+          "start": 437.22,
+          "end": 437.44,
+          "confidence": 0.64
+        }
+      ]
+    },
+    {
+      "start": 437.58,
+      "end": 438.76,
+      "speaker": "Speaker 2",
+      "text": "Angela please.",
+      "words": [
+        {
+          "word": "Angela",
+          "start": 437.58,
+          "end": 438.16,
+          "confidence": 0.89
+        },
+        {
+          "word": "please.",
+          "start": 438.3,
+          "end": 438.76,
+          "confidence": 0.84
+        }
+      ]
+    },
+    {
+      "start": 439.1,
+      "end": 443.0,
+      "speaker": "Speaker 2",
+      "text": "Oh my god.",
+      "words": [
+        {
+          "word": "Oh",
+          "start": 439.1,
+          "end": 439.26,
+          "confidence": 0.67
+        },
+        {
+          "word": "my",
+          "start": 442.32,
+          "end": 442.46,
+          "confidence": 0.75
+        },
+        {
+          "word": "god.",
+          "start": 442.56,
+          "end": 443.0,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 443.06,
+      "end": 443.98,
+      "speaker": "Speaker 2",
+      "text": "It's just so.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 443.06,
+          "end": 443.22,
+          "confidence": 0.76
+        },
+        {
+          "word": "just",
+          "start": 443.26,
+          "end": 443.46,
+          "confidence": 0.89
+        },
+        {
+          "word": "so.",
+          "start": 443.56,
+          "end": 443.98,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 445.9,
+      "end": 446.44,
+      "speaker": "Speaker 2",
+      "text": "So.",
+      "words": [
+        {
+          "word": "So.",
+          "start": 445.9,
+          "end": 446.44,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 446.88,
+      "end": 448.07,
+      "speaker": "Speaker 2",
+      "text": "So pathetic.",
+      "words": [
+        {
+          "word": "So",
+          "start": 446.88,
+          "end": 447.25,
+          "confidence": 0.47
+        },
+        {
+          "word": "pathetic.",
+          "start": 447.43,
+          "end": 448.07,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 448.39,
+      "end": 449.41,
+      "speaker": "Speaker 2",
+      "text": "Because it's like.",
+      "words": [
+        {
+          "word": "Because",
+          "start": 448.39,
+          "end": 448.83,
+          "confidence": 0.91
+        },
+        {
+          "word": "it's",
+          "start": 448.91,
+          "end": 449.07,
+          "confidence": 0.87
+        },
+        {
+          "word": "like.",
+          "start": 449.11,
+          "end": 449.41,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 449.65,
+      "end": 450.73,
+      "speaker": "Speaker 2",
+      "text": "I just.",
+      "words": [
+        {
+          "word": "I",
+          "start": 449.65,
+          "end": 449.79,
+          "confidence": 0.72
+        },
+        {
+          "word": "just.",
+          "start": 450.01,
+          "end": 450.73,
+          "confidence": 0.92
+        }
+      ]
+    },
+    {
+      "start": 450.79,
+      "end": 451.53,
+      "speaker": "Speaker 2",
+      "text": "Like I told you.",
+      "words": [
+        {
+          "word": "Like",
+          "start": 450.79,
+          "end": 450.99,
+          "confidence": 0.84
+        },
+        {
+          "word": "I",
+          "start": 451.03,
+          "end": 451.13,
+          "confidence": 0.8
+        },
+        {
+          "word": "told",
+          "start": 451.17,
+          "end": 451.35,
+          "confidence": 0.88
+        },
+        {
+          "word": "you.",
+          "start": 451.39,
+          "end": 451.53,
+          "confidence": 0.8
+        }
+      ]
+    },
+    {
+      "start": 451.59,
+      "end": 452.69,
+      "speaker": "Speaker 2",
+      "text": "I just got done.",
+      "words": [
+        {
+          "word": "I",
+          "start": 451.59,
+          "end": 451.71,
+          "confidence": 0.7
+        },
+        {
+          "word": "just",
+          "start": 451.75,
+          "end": 451.93,
+          "confidence": 0.95
+        },
+        {
+          "word": "got",
+          "start": 451.97,
+          "end": 452.57,
+          "confidence": 0.43
+        },
+        {
+          "word": "done.",
+          "start": 452.59,
+          "end": 452.69,
+          "confidence": 0.2
+        }
+      ]
+    },
+    {
+      "start": 453.75,
+      "end": 455.11,
+      "speaker": "Speaker 2",
+      "text": "Deep diving into.",
+      "words": [
+        {
+          "word": "Deep",
+          "start": 453.75,
+          "end": 454.01,
+          "confidence": 0.98
+        },
+        {
+          "word": "diving",
+          "start": 454.07,
+          "end": 454.55,
+          "confidence": 0.91
+        },
+        {
+          "word": "into.",
+          "start": 454.65,
+          "end": 455.11,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 455.47,
+      "end": 457.29,
+      "speaker": "Speaker 2",
+      "text": "Chad Daybell and Lori Daybell.",
+      "words": [
+        {
+          "word": "Chad",
+          "start": 455.47,
+          "end": 455.75,
+          "confidence": 0.82
+        },
+        {
+          "word": "Daybell",
+          "start": 455.79,
+          "end": 456.25,
+          "confidence": 0.81
+        },
+        {
+          "word": "and",
+          "start": 456.31,
+          "end": 456.39,
+          "confidence": 0.92
+        },
+        {
+          "word": "Lori",
+          "start": 456.43,
+          "end": 456.75,
+          "confidence": 0.79
+        },
+        {
+          "word": "Daybell.",
+          "start": 456.79,
+          "end": 457.29,
+          "confidence": 0.7
+        }
+      ]
+    },
+    {
+      "start": 457.71,
+      "end": 457.87,
+      "speaker": "Speaker 2",
+      "text": "And.",
+      "words": [
+        {
+          "word": "And.",
+          "start": 457.71,
+          "end": 457.87,
+          "confidence": 0.77
+        }
+      ]
+    },
+    {
+      "start": 457.89,
+      "end": 457.97,
+      "speaker": "Speaker 2",
+      "text": "And.",
+      "words": [
+        {
+          "word": "And.",
+          "start": 457.89,
+          "end": 457.97,
+          "confidence": 0.25
+        }
+      ]
+    },
+    {
+      "start": 458.76,
+      "end": 466.04,
+      "speaker": "Speaker 2",
+      "text": "That whole thing about how she believed her children were dark.",
+      "words": [
+        {
+          "word": "That",
+          "start": 458.76,
+          "end": 458.98,
+          "confidence": 0.8
+        },
+        {
+          "word": "whole",
+          "start": 459.22,
+          "end": 459.72,
+          "confidence": 0.91
+        },
+        {
+          "word": "thing",
+          "start": 459.86,
+          "end": 460.28,
+          "confidence": 0.91
+        },
+        {
+          "word": "about",
+          "start": 460.36,
+          "end": 460.66,
+          "confidence": 0.87
+        },
+        {
+          "word": "how",
+          "start": 460.72,
+          "end": 461.08,
+          "confidence": 0.88
+        },
+        {
+          "word": "she",
+          "start": 461.72,
+          "end": 462.4,
+          "confidence": 0.73
+        },
+        {
+          "word": "believed",
+          "start": 462.92,
+          "end": 463.44,
+          "confidence": 0.88
+        },
+        {
+          "word": "her",
+          "start": 464.38,
+          "end": 464.54,
+          "confidence": 0.81
+        },
+        {
+          "word": "children",
+          "start": 464.64,
+          "end": 465.06,
+          "confidence": 0.8
+        },
+        {
+          "word": "were",
+          "start": 465.14,
+          "end": 465.32,
+          "confidence": 0.88
+        },
+        {
+          "word": "dark.",
+          "start": 465.44,
+          "end": 466.04,
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "start": 466.28,
+      "end": 470.85,
+      "speaker": "Speaker 2",
+      "text": "And, you know, they had percentages of their demons.",
+      "words": [
+        {
+          "word": "And,",
+          "start": 466.28,
+          "end": 466.46,
+          "confidence": 0.78
+        },
+        {
+          "word": "you",
+          "start": 466.96,
+          "end": 467.06,
+          "confidence": 1.0
+        },
+        {
+          "word": "know,",
+          "start": 467.1,
+          "end": 467.28,
+          "confidence": 0.82
+        },
+        {
+          "word": "they",
+          "start": 467.3,
+          "end": 467.44,
+          "confidence": 0.89
+        },
+        {
+          "word": "had",
+          "start": 467.48,
+          "end": 467.62,
+          "confidence": 0.9
+        },
+        {
+          "word": "percentages",
+          "start": 467.68,
+          "end": 468.7,
+          "confidence": 0.86
+        },
+        {
+          "word": "of",
+          "start": 468.88,
+          "end": 468.96,
+          "confidence": 0.85
+        },
+        {
+          "word": "their",
+          "start": 469.05,
+          "end": 469.31,
+          "confidence": 0.84
+        },
+        {
+          "word": "demons.",
+          "start": 470.09,
+          "end": 470.85,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "start": 471.01,
+      "end": 479.35,
+      "speaker": "Speaker 2",
+      "text": "And that person named, what, Amelia invaded her son's body.",
+      "words": [
+        {
+          "word": "And",
+          "start": 471.01,
+          "end": 471.11,
+          "confidence": 0.82
+        },
+        {
+          "word": "that",
+          "start": 471.15,
+          "end": 471.37,
+          "confidence": 0.82
+        },
+        {
+          "word": "person",
+          "start": 472.33,
+          "end": 472.77,
+          "confidence": 0.95
+        },
+        {
+          "word": "named,",
+          "start": 472.83,
+          "end": 473.19,
+          "confidence": 0.8
+        },
+        {
+          "word": "what,",
+          "start": 474.07,
+          "end": 474.37,
+          "confidence": 0.91
+        },
+        {
+          "word": "Amelia",
+          "start": 475.03,
+          "end": 475.81,
+          "confidence": 0.57
+        },
+        {
+          "word": "invaded",
+          "start": 476.39,
+          "end": 477.21,
+          "confidence": 0.88
+        },
+        {
+          "word": "her",
+          "start": 477.23,
+          "end": 477.29,
+          "confidence": 0.0
+        },
+        {
+          "word": "son's",
+          "start": 478.47,
+          "end": 478.77,
+          "confidence": 0.82
+        },
+        {
+          "word": "body.",
+          "start": 478.85,
+          "end": 479.35,
+          "confidence": 0.94
+        }
+      ]
+    },
+    {
+      "start": 480.01,
+      "end": 481.8,
+      "speaker": "Speaker 2",
+      "text": "And they had to get him out of it.",
+      "words": [
+        {
+          "word": "And",
+          "start": 480.01,
+          "end": 480.11,
+          "confidence": 0.83
+        },
+        {
+          "word": "they",
+          "start": 480.15,
+          "end": 480.27,
+          "confidence": 0.83
+        },
+        {
+          "word": "had",
+          "start": 480.31,
+          "end": 480.47,
+          "confidence": 0.78
+        },
+        {
+          "word": "to",
+          "start": 480.51,
+          "end": 480.57,
+          "confidence": 0.75
+        },
+        {
+          "word": "get",
+          "start": 480.65,
+          "end": 480.87,
+          "confidence": 0.88
+        },
+        {
+          "word": "him",
+          "start": 480.93,
+          "end": 481.05,
+          "confidence": 0.99
+        },
+        {
+          "word": "out",
+          "start": 481.21,
+          "end": 481.33,
+          "confidence": 0.81
+        },
+        {
+          "word": "of",
+          "start": 481.39,
+          "end": 481.45,
+          "confidence": 0.79
+        },
+        {
+          "word": "it.",
+          "start": 481.65,
+          "end": 481.8,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 482.82,
+      "end": 485.38,
+      "speaker": "Speaker 2",
+      "text": "And in order to do that, he had to go.",
+      "words": [
+        {
+          "word": "And",
+          "start": 482.82,
+          "end": 482.96,
+          "confidence": 0.64
+        },
+        {
+          "word": "in",
+          "start": 483.0,
+          "end": 483.06,
+          "confidence": 0.83
+        },
+        {
+          "word": "order",
+          "start": 483.14,
+          "end": 483.4,
+          "confidence": 0.79
+        },
+        {
+          "word": "to",
+          "start": 483.44,
+          "end": 483.54,
+          "confidence": 0.42
+        },
+        {
+          "word": "do",
+          "start": 483.6,
+          "end": 483.76,
+          "confidence": 0.98
+        },
+        {
+          "word": "that,",
+          "start": 483.84,
+          "end": 484.12,
+          "confidence": 0.94
+        },
+        {
+          "word": "he",
+          "start": 484.36,
+          "end": 484.54,
+          "confidence": 0.77
+        },
+        {
+          "word": "had",
+          "start": 484.6,
+          "end": 484.8,
+          "confidence": 0.71
+        },
+        {
+          "word": "to",
+          "start": 484.88,
+          "end": 484.96,
+          "confidence": 0.98
+        },
+        {
+          "word": "go.",
+          "start": 485.06,
+          "end": 485.38,
+          "confidence": 0.88
+        }
+      ]
+    },
+    {
+      "start": 487.37,
+      "end": 487.83,
+      "speaker": "Speaker 2",
+      "text": "To go.",
+      "words": [
+        {
+          "word": "To",
+          "start": 487.37,
+          "end": 487.51,
+          "confidence": 0.87
+        },
+        {
+          "word": "go.",
+          "start": 487.55,
+          "end": 487.83,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 487.85,
+      "end": 488.99,
+      "speaker": "Speaker 2",
+      "text": "He had to go.",
+      "words": [
+        {
+          "word": "He",
+          "start": 487.85,
+          "end": 487.89,
+          "confidence": 0.0
+        },
+        {
+          "word": "had",
+          "start": 488.21,
+          "end": 488.51,
+          "confidence": 0.69
+        },
+        {
+          "word": "to",
+          "start": 488.55,
+          "end": 488.63,
+          "confidence": 0.97
+        },
+        {
+          "word": "go.",
+          "start": 488.71,
+          "end": 488.99,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 489.01,
+      "end": 492.36,
+      "speaker": "Speaker 2",
+      "text": "I just.",
+      "words": [
+        {
+          "word": "I",
+          "start": 489.01,
+          "end": 489.03,
+          "confidence": 0.0
+        },
+        {
+          "word": "just.",
+          "start": 492.0,
+          "end": 492.36,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 492.56,
+      "end": 493.2,
+      "speaker": "Speaker 2",
+      "text": "Seriously.",
+      "words": [
+        {
+          "word": "Seriously.",
+          "start": 492.56,
+          "end": 493.2,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 493.72,
+      "end": 495.76,
+      "speaker": "Speaker 2",
+      "text": "And then I go to Angela's thing.",
+      "words": [
+        {
+          "word": "And",
+          "start": 493.72,
+          "end": 493.82,
+          "confidence": 0.94
+        },
+        {
+          "word": "then",
+          "start": 493.86,
+          "end": 494.06,
+          "confidence": 0.99
+        },
+        {
+          "word": "I",
+          "start": 494.14,
+          "end": 494.24,
+          "confidence": 0.89
+        },
+        {
+          "word": "go",
+          "start": 494.28,
+          "end": 494.48,
+          "confidence": 0.9
+        },
+        {
+          "word": "to",
+          "start": 494.52,
+          "end": 494.62,
+          "confidence": 0.76
+        },
+        {
+          "word": "Angela's",
+          "start": 494.8,
+          "end": 495.34,
+          "confidence": 0.7
+        },
+        {
+          "word": "thing.",
+          "start": 495.4,
+          "end": 495.76,
+          "confidence": 0.84
+        }
+      ]
+    },
+    {
+      "start": 496.26,
+      "end": 497.36,
+      "speaker": "Speaker 2",
+      "text": "And it's just like.",
+      "words": [
+        {
+          "word": "And",
+          "start": 496.26,
+          "end": 496.38,
+          "confidence": 0.72
+        },
+        {
+          "word": "it's",
+          "start": 496.44,
+          "end": 496.62,
+          "confidence": 0.67
+        },
+        {
+          "word": "just",
+          "start": 496.68,
+          "end": 496.92,
+          "confidence": 0.96
+        },
+        {
+          "word": "like.",
+          "start": 497.02,
+          "end": 497.36,
+          "confidence": 0.81
+        }
+      ]
+    },
+    {
+      "start": 498.6,
+      "end": 499.44,
+      "speaker": "Speaker 2",
+      "text": "Oh my god.",
+      "words": [
+        {
+          "word": "Oh",
+          "start": 498.6,
+          "end": 498.74,
+          "confidence": 0.7
+        },
+        {
+          "word": "my",
+          "start": 498.76,
+          "end": 498.92,
+          "confidence": 0.98
+        },
+        {
+          "word": "god.",
+          "start": 498.96,
+          "end": 499.44,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 499.9,
+      "end": 500.5,
+      "speaker": "Speaker 2",
+      "text": "Seriously.",
+      "words": [
+        {
+          "word": "Seriously.",
+          "start": 499.9,
+          "end": 500.5,
+          "confidence": 0.88
+        }
+      ]
+    },
+    {
+      "start": 502.14,
+      "end": 503.25,
+      "speaker": "Speaker 2",
+      "text": "So please.",
+      "words": [
+        {
+          "word": "So",
+          "start": 502.14,
+          "end": 502.32,
+          "confidence": 0.91
+        },
+        {
+          "word": "please.",
+          "start": 502.43,
+          "end": 503.25,
+          "confidence": 0.74
+        }
+      ]
+    },
+    {
+      "start": 504.57,
+      "end": 505.07,
+      "speaker": "Speaker 2",
+      "text": "Please.",
+      "words": [
+        {
+          "word": "Please.",
+          "start": 504.57,
+          "end": 505.07,
+          "confidence": 0.75
+        }
+      ]
+    },
+    {
+      "start": 505.63,
+      "end": 506.11,
+      "speaker": "Speaker 2",
+      "text": "Please.",
+      "words": [
+        {
+          "word": "Please.",
+          "start": 505.63,
+          "end": 506.11,
+          "confidence": 0.72
+        }
+      ]
+    },
+    {
+      "start": 508.37,
+      "end": 509.17,
+      "speaker": "Speaker 2",
+      "text": "Oh my god.",
+      "words": [
+        {
+          "word": "Oh",
+          "start": 508.37,
+          "end": 508.51,
+          "confidence": 0.72
+        },
+        {
+          "word": "my",
+          "start": 508.59,
+          "end": 508.77,
+          "confidence": 0.99
+        },
+        {
+          "word": "god.",
+          "start": 508.81,
+          "end": 509.17,
+          "confidence": 0.87
+        }
+      ]
+    },
+    {
+      "start": 510.47,
+      "end": 511.33,
+      "speaker": "Speaker 2",
+      "text": "Angela.",
+      "words": [
+        {
+          "word": "Angela.",
+          "start": 510.47,
+          "end": 511.33,
+          "confidence": 0.71
+        }
+      ]
+    },
+    {
+      "start": 511.49,
+      "end": 513.25,
+      "speaker": "Speaker 2",
+      "text": "Here's what I want you to do Angela.",
+      "words": [
+        {
+          "word": "Here's",
+          "start": 511.49,
+          "end": 511.71,
+          "confidence": 0.8
+        },
+        {
+          "word": "what",
+          "start": 511.77,
+          "end": 511.91,
+          "confidence": 0.89
+        },
+        {
+          "word": "I",
+          "start": 511.95,
+          "end": 512.01,
+          "confidence": 0.56
+        },
+        {
+          "word": "want",
+          "start": 512.05,
+          "end": 512.21,
+          "confidence": 0.79
+        },
+        {
+          "word": "you",
+          "start": 512.23,
+          "end": 512.37,
+          "confidence": 0.81
+        },
+        {
+          "word": "to",
+          "start": 512.39,
+          "end": 512.45,
+          "confidence": 0.63
+        },
+        {
+          "word": "do",
+          "start": 512.51,
+          "end": 512.67,
+          "confidence": 0.91
+        },
+        {
+          "word": "Angela.",
+          "start": 512.79,
+          "end": 513.25,
+          "confidence": 0.55
+        }
+      ]
+    },
+    {
+      "start": 513.27,
+      "end": 513.33,
+      "speaker": "Speaker 2",
+      "text": "Go.",
+      "words": [
+        {
+          "word": "Go.",
+          "start": 513.27,
+          "end": 513.33,
+          "confidence": 0.33
+        }
+      ]
+    },
+    {
+      "start": 513.43,
+      "end": 515.2,
+      "speaker": "Speaker 2",
+      "text": "Go look up Chad.",
+      "words": [
+        {
+          "word": "Go",
+          "start": 513.43,
+          "end": 513.72,
+          "confidence": 1.0
+        },
+        {
+          "word": "look",
+          "start": 513.74,
+          "end": 513.82,
+          "confidence": 0.0
+        },
+        {
+          "word": "up",
+          "start": 513.84,
+          "end": 514.84,
+          "confidence": 0.49
+        },
+        {
+          "word": "Chad.",
+          "start": 514.94,
+          "end": 515.2,
+          "confidence": 0.51
+        }
+      ]
+    },
+    {
+      "start": 517.42,
+      "end": 544.42,
+      "speaker": "Speaker 2",
+      "text": "Daybell and Lori Vallow Daybell and their whole story and tell me if you agree and you believe that whole thing and that Lori is not guilty and Chad is not guilty go go look at that because that is who you are right now to me okay yeah",
+      "words": [
+        {
+          "word": "Daybell",
+          "start": 517.42,
+          "end": 518.04,
+          "confidence": 0.85
+        },
+        {
+          "word": "and",
+          "start": 518.28,
+          "end": 518.41,
+          "confidence": 0.81
+        },
+        {
+          "word": "Lori",
+          "start": 518.51,
+          "end": 519.13,
+          "confidence": 0.78
+        },
+        {
+          "word": "Vallow",
+          "start": 519.39,
+          "end": 519.89,
+          "confidence": 0.88
+        },
+        {
+          "word": "Daybell",
+          "start": 519.97,
+          "end": 520.51,
+          "confidence": 0.78
+        },
+        {
+          "word": "and",
+          "start": 522.65,
+          "end": 522.85,
+          "confidence": 0.48
+        },
+        {
+          "word": "their",
+          "start": 523.07,
+          "end": 523.31,
+          "confidence": 0.83
+        },
+        {
+          "word": "whole",
+          "start": 523.35,
+          "end": 523.55,
+          "confidence": 0.86
+        },
+        {
+          "word": "story",
+          "start": 523.63,
+          "end": 524.11,
+          "confidence": 0.85
+        },
+        {
+          "word": "and",
+          "start": 524.23,
+          "end": 524.35,
+          "confidence": 0.52
+        },
+        {
+          "word": "tell",
+          "start": 524.41,
+          "end": 524.65,
+          "confidence": 0.9
+        },
+        {
+          "word": "me",
+          "start": 524.69,
+          "end": 524.81,
+          "confidence": 0.97
+        },
+        {
+          "word": "if",
+          "start": 524.89,
+          "end": 524.99,
+          "confidence": 0.87
+        },
+        {
+          "word": "you",
+          "start": 525.13,
+          "end": 525.49,
+          "confidence": 0.91
+        },
+        {
+          "word": "agree",
+          "start": 525.73,
+          "end": 526.49,
+          "confidence": 0.51
+        },
+        {
+          "word": "and",
+          "start": 527.55,
+          "end": 527.67,
+          "confidence": 0.67
+        },
+        {
+          "word": "you",
+          "start": 527.73,
+          "end": 527.89,
+          "confidence": 0.95
+        },
+        {
+          "word": "believe",
+          "start": 527.93,
+          "end": 528.45,
+          "confidence": 0.68
+        },
+        {
+          "word": "that",
+          "start": 528.47,
+          "end": 528.75,
+          "confidence": 0.19
+        },
+        {
+          "word": "whole",
+          "start": 528.81,
+          "end": 529.03,
+          "confidence": 0.73
+        },
+        {
+          "word": "thing",
+          "start": 529.09,
+          "end": 529.45,
+          "confidence": 0.73
+        },
+        {
+          "word": "and",
+          "start": 529.67,
+          "end": 529.77,
+          "confidence": 0.79
+        },
+        {
+          "word": "that",
+          "start": 529.81,
+          "end": 530.03,
+          "confidence": 0.62
+        },
+        {
+          "word": "Lori",
+          "start": 530.15,
+          "end": 530.73,
+          "confidence": 0.62
+        },
+        {
+          "word": "is",
+          "start": 531.97,
+          "end": 532.13,
+          "confidence": 0.68
+        },
+        {
+          "word": "not",
+          "start": 532.43,
+          "end": 532.71,
+          "confidence": 0.72
+        },
+        {
+          "word": "guilty",
+          "start": 532.79,
+          "end": 533.33,
+          "confidence": 0.83
+        },
+        {
+          "word": "and",
+          "start": 533.53,
+          "end": 533.65,
+          "confidence": 0.82
+        },
+        {
+          "word": "Chad",
+          "start": 533.79,
+          "end": 534.17,
+          "confidence": 0.89
+        },
+        {
+          "word": "is",
+          "start": 534.25,
+          "end": 534.35,
+          "confidence": 0.74
+        },
+        {
+          "word": "not",
+          "start": 534.41,
+          "end": 534.62,
+          "confidence": 0.8
+        },
+        {
+          "word": "guilty",
+          "start": 534.7,
+          "end": 535.2,
+          "confidence": 0.81
+        },
+        {
+          "word": "go",
+          "start": 536.12,
+          "end": 536.42,
+          "confidence": 0.87
+        },
+        {
+          "word": "go",
+          "start": 536.58,
+          "end": 536.82,
+          "confidence": 0.92
+        },
+        {
+          "word": "look",
+          "start": 536.86,
+          "end": 537.06,
+          "confidence": 0.87
+        },
+        {
+          "word": "at",
+          "start": 537.12,
+          "end": 537.2,
+          "confidence": 0.83
+        },
+        {
+          "word": "that",
+          "start": 537.24,
+          "end": 537.54,
+          "confidence": 0.88
+        },
+        {
+          "word": "because",
+          "start": 538.54,
+          "end": 538.86,
+          "confidence": 0.93
+        },
+        {
+          "word": "that",
+          "start": 539.04,
+          "end": 539.32,
+          "confidence": 0.98
+        },
+        {
+          "word": "is",
+          "start": 539.4,
+          "end": 539.48,
+          "confidence": 0.76
+        },
+        {
+          "word": "who",
+          "start": 539.58,
+          "end": 539.8,
+          "confidence": 0.76
+        },
+        {
+          "word": "you",
+          "start": 539.84,
+          "end": 539.98,
+          "confidence": 0.91
+        },
+        {
+          "word": "are",
+          "start": 540.18,
+          "end": 540.3,
+          "confidence": 0.81
+        },
+        {
+          "word": "right",
+          "start": 540.46,
+          "end": 540.64,
+          "confidence": 0.85
+        },
+        {
+          "word": "now",
+          "start": 540.68,
+          "end": 540.9,
+          "confidence": 0.81
+        },
+        {
+          "word": "to",
+          "start": 541.5,
+          "end": 541.62,
+          "confidence": 0.84
+        },
+        {
+          "word": "me",
+          "start": 541.66,
+          "end": 541.82,
+          "confidence": 0.97
+        },
+        {
+          "word": "okay",
+          "start": 542.54,
+          "end": 542.98,
+          "confidence": 0.64
+        },
+        {
+          "word": "yeah",
+          "start": 544.22,
+          "end": 544.42,
+          "confidence": 0.6
+        }
+      ]
+    },
+    {
+      "start": 546.75,
+      "end": 549.65,
+      "speaker": "Speaker 2",
+      "text": "It's just unbelievable.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 546.75,
+          "end": 546.93,
+          "confidence": 0.87
+        },
+        {
+          "word": "just",
+          "start": 547.05,
+          "end": 547.43,
+          "confidence": 0.85
+        },
+        {
+          "word": "unbelievable.",
+          "start": 548.89,
+          "end": 549.65,
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "start": 551.93,
+      "end": 552.85,
+      "speaker": "Speaker 2",
+      "text": "And you know what?",
+      "words": [
+        {
+          "word": "And",
+          "start": 551.93,
+          "end": 552.15,
+          "confidence": 0.76
+        },
+        {
+          "word": "you",
+          "start": 552.25,
+          "end": 552.37,
+          "confidence": 0.9
+        },
+        {
+          "word": "know",
+          "start": 552.41,
+          "end": 552.55,
+          "confidence": 0.87
+        },
+        {
+          "word": "what?",
+          "start": 552.59,
+          "end": 552.85,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 553.37,
+      "end": 554.23,
+      "speaker": "Speaker 2",
+      "text": "You know what, people?",
+      "words": [
+        {
+          "word": "You",
+          "start": 553.37,
+          "end": 553.47,
+          "confidence": 0.91
+        },
+        {
+          "word": "know",
+          "start": 553.51,
+          "end": 553.63,
+          "confidence": 0.86
+        },
+        {
+          "word": "what,",
+          "start": 553.67,
+          "end": 553.83,
+          "confidence": 0.91
+        },
+        {
+          "word": "people?",
+          "start": 553.87,
+          "end": 554.23,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 554.57,
+      "end": 555.03,
+      "speaker": "Speaker 2",
+      "text": "You know what?",
+      "words": [
+        {
+          "word": "You",
+          "start": 554.57,
+          "end": 554.65,
+          "confidence": 0.93
+        },
+        {
+          "word": "know",
+          "start": 554.69,
+          "end": 554.81,
+          "confidence": 0.91
+        },
+        {
+          "word": "what?",
+          "start": 554.85,
+          "end": 555.03,
+          "confidence": 0.99
+        }
+      ]
+    },
+    {
+      "start": 556.27,
+      "end": 564.41,
+      "speaker": "Speaker 2",
+      "text": "She says she has her lawyers who can, you know, look me up and follow me.",
+      "words": [
+        {
+          "word": "She",
+          "start": 556.27,
+          "end": 556.41,
+          "confidence": 0.74
+        },
+        {
+          "word": "says",
+          "start": 556.51,
+          "end": 556.73,
+          "confidence": 0.97
+        },
+        {
+          "word": "she",
+          "start": 556.79,
+          "end": 556.95,
+          "confidence": 0.75
+        },
+        {
+          "word": "has",
+          "start": 557.03,
+          "end": 557.29,
+          "confidence": 0.91
+        },
+        {
+          "word": "her",
+          "start": 557.35,
+          "end": 557.61,
+          "confidence": 0.61
+        },
+        {
+          "word": "lawyers",
+          "start": 557.97,
+          "end": 558.57,
+          "confidence": 0.74
+        },
+        {
+          "word": "who",
+          "start": 559.89,
+          "end": 560.07,
+          "confidence": 0.84
+        },
+        {
+          "word": "can,",
+          "start": 560.11,
+          "end": 560.61,
+          "confidence": 0.93
+        },
+        {
+          "word": "you",
+          "start": 561.31,
+          "end": 561.39,
+          "confidence": 0.87
+        },
+        {
+          "word": "know,",
+          "start": 561.41,
+          "end": 561.61,
+          "confidence": 0.43
+        },
+        {
+          "word": "look",
+          "start": 561.77,
+          "end": 562.01,
+          "confidence": 0.93
+        },
+        {
+          "word": "me",
+          "start": 562.07,
+          "end": 562.23,
+          "confidence": 0.9
+        },
+        {
+          "word": "up",
+          "start": 562.43,
+          "end": 562.55,
+          "confidence": 0.88
+        },
+        {
+          "word": "and",
+          "start": 563.15,
+          "end": 563.41,
+          "confidence": 0.36
+        },
+        {
+          "word": "follow",
+          "start": 563.87,
+          "end": 564.24,
+          "confidence": 0.9
+        },
+        {
+          "word": "me.",
+          "start": 564.25,
+          "end": 564.41,
+          "confidence": 0.81
+        }
+      ]
+    },
+    {
+      "start": 565.08,
+      "end": 575.1,
+      "speaker": "Speaker 2",
+      "text": "I don't know what lawyers actually believe in this delusion unless they are in it for the money, okay?",
+      "words": [
+        {
+          "word": "I",
+          "start": 565.08,
+          "end": 565.13,
+          "confidence": 0.87
+        },
+        {
+          "word": "don't",
+          "start": 565.17,
+          "end": 565.38,
+          "confidence": 0.81
+        },
+        {
+          "word": "know",
+          "start": 565.41,
+          "end": 565.58,
+          "confidence": 0.64
+        },
+        {
+          "word": "what",
+          "start": 565.74,
+          "end": 565.96,
+          "confidence": 0.99
+        },
+        {
+          "word": "lawyers",
+          "start": 566.12,
+          "end": 566.77,
+          "confidence": 0.83
+        },
+        {
+          "word": "actually",
+          "start": 567.3,
+          "end": 567.8,
+          "confidence": 0.81
+        },
+        {
+          "word": "believe",
+          "start": 567.88,
+          "end": 568.5,
+          "confidence": 0.85
+        },
+        {
+          "word": "in",
+          "start": 568.52,
+          "end": 568.56,
+          "confidence": 0.0
+        },
+        {
+          "word": "this",
+          "start": 569.68,
+          "end": 569.9,
+          "confidence": 0.92
+        },
+        {
+          "word": "delusion",
+          "start": 570.0,
+          "end": 570.76,
+          "confidence": 0.77
+        },
+        {
+          "word": "unless",
+          "start": 571.46,
+          "end": 572.04,
+          "confidence": 0.86
+        },
+        {
+          "word": "they",
+          "start": 572.12,
+          "end": 572.3,
+          "confidence": 0.82
+        },
+        {
+          "word": "are",
+          "start": 572.38,
+          "end": 572.5,
+          "confidence": 0.64
+        },
+        {
+          "word": "in",
+          "start": 572.66,
+          "end": 572.76,
+          "confidence": 0.9
+        },
+        {
+          "word": "it",
+          "start": 572.82,
+          "end": 572.92,
+          "confidence": 0.65
+        },
+        {
+          "word": "for",
+          "start": 573.02,
+          "end": 573.18,
+          "confidence": 0.9
+        },
+        {
+          "word": "the",
+          "start": 573.22,
+          "end": 573.32,
+          "confidence": 0.69
+        },
+        {
+          "word": "money,",
+          "start": 573.54,
+          "end": 573.9,
+          "confidence": 0.91
+        },
+        {
+          "word": "okay?",
+          "start": 574.66,
+          "end": 575.1,
+          "confidence": 0.67
+        }
+      ]
+    },
+    {
+      "start": 576.34,
+      "end": 578.88,
+      "speaker": "Speaker 2",
+      "text": "Your lawyer wants money.",
+      "words": [
+        {
+          "word": "Your",
+          "start": 576.34,
+          "end": 576.55,
+          "confidence": 0.85
+        },
+        {
+          "word": "lawyer",
+          "start": 576.63,
+          "end": 577.06,
+          "confidence": 0.71
+        },
+        {
+          "word": "wants",
+          "start": 577.08,
+          "end": 578.18,
+          "confidence": 0.26
+        },
+        {
+          "word": "money.",
+          "start": 578.42,
+          "end": 578.88,
+          "confidence": 0.83
+        }
+      ]
+    },
+    {
+      "start": 581.48,
+      "end": 582.14,
+      "speaker": "Speaker 2",
+      "text": "Seriously?",
+      "words": [
+        {
+          "word": "Seriously?",
+          "start": 581.48,
+          "end": 582.14,
+          "confidence": 0.91
+        }
+      ]
+    },
+    {
+      "start": 583.14,
+      "end": 587.28,
+      "speaker": "Speaker 2",
+      "text": "You actually come to him and say all this crap?",
+      "words": [
+        {
+          "word": "You",
+          "start": 583.14,
+          "end": 583.32,
+          "confidence": 0.82
+        },
+        {
+          "word": "actually",
+          "start": 583.4,
+          "end": 583.78,
+          "confidence": 0.81
+        },
+        {
+          "word": "come",
+          "start": 583.84,
+          "end": 584.06,
+          "confidence": 0.91
+        },
+        {
+          "word": "to",
+          "start": 584.1,
+          "end": 584.16,
+          "confidence": 0.76
+        },
+        {
+          "word": "him",
+          "start": 584.22,
+          "end": 584.48,
+          "confidence": 0.79
+        },
+        {
+          "word": "and",
+          "start": 584.68,
+          "end": 584.8,
+          "confidence": 0.83
+        },
+        {
+          "word": "say",
+          "start": 585.02,
+          "end": 585.4,
+          "confidence": 0.84
+        },
+        {
+          "word": "all",
+          "start": 586.04,
+          "end": 586.22,
+          "confidence": 0.75
+        },
+        {
+          "word": "this",
+          "start": 586.24,
+          "end": 586.58,
+          "confidence": 0.67
+        },
+        {
+          "word": "crap?",
+          "start": 586.72,
+          "end": 587.28,
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "start": 589.2,
+      "end": 589.46,
+      "speaker": "Speaker 2",
+      "text": "Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 589.2,
+          "end": 589.46,
+          "confidence": 0.67
+        }
+      ]
+    },
+    {
+      "start": 590.38,
+      "end": 596.95,
+      "speaker": "Speaker 2",
+      "text": "Like John Pryor, Chad Debo's lawyer, was in it for the money.",
+      "words": [
+        {
+          "word": "Like",
+          "start": 590.38,
+          "end": 590.62,
+          "confidence": 0.88
+        },
+        {
+          "word": "John",
+          "start": 591.07,
+          "end": 591.37,
+          "confidence": 0.9
+        },
+        {
+          "word": "Pryor,",
+          "start": 591.45,
+          "end": 591.95,
+          "confidence": 0.56
+        },
+        {
+          "word": "Chad",
+          "start": 592.67,
+          "end": 592.97,
+          "confidence": 0.89
+        },
+        {
+          "word": "Debo's",
+          "start": 593.03,
+          "end": 593.67,
+          "confidence": 0.75
+        },
+        {
+          "word": "lawyer,",
+          "start": 594.17,
+          "end": 594.59,
+          "confidence": 0.81
+        },
+        {
+          "word": "was",
+          "start": 595.33,
+          "end": 595.61,
+          "confidence": 0.89
+        },
+        {
+          "word": "in",
+          "start": 595.63,
+          "end": 595.81,
+          "confidence": 0.56
+        },
+        {
+          "word": "it",
+          "start": 595.87,
+          "end": 595.97,
+          "confidence": 0.64
+        },
+        {
+          "word": "for",
+          "start": 596.19,
+          "end": 596.33,
+          "confidence": 0.92
+        },
+        {
+          "word": "the",
+          "start": 596.37,
+          "end": 596.45,
+          "confidence": 0.81
+        },
+        {
+          "word": "money.",
+          "start": 596.57,
+          "end": 596.95,
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "start": 597.43,
+      "end": 600.47,
+      "speaker": "Speaker 2",
+      "text": "That's the only reason why he represented Chad.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 597.43,
+          "end": 597.67,
+          "confidence": 0.83
+        },
+        {
+          "word": "the",
+          "start": 597.73,
+          "end": 597.81,
+          "confidence": 0.85
+        },
+        {
+          "word": "only",
+          "start": 597.89,
+          "end": 598.09,
+          "confidence": 0.67
+        },
+        {
+          "word": "reason",
+          "start": 598.17,
+          "end": 598.53,
+          "confidence": 0.82
+        },
+        {
+          "word": "why",
+          "start": 598.61,
+          "end": 598.81,
+          "confidence": 0.9
+        },
+        {
+          "word": "he",
+          "start": 598.89,
+          "end": 599.07,
+          "confidence": 0.91
+        },
+        {
+          "word": "represented",
+          "start": 599.17,
+          "end": 599.85,
+          "confidence": 0.93
+        },
+        {
+          "word": "Chad.",
+          "start": 599.99,
+          "end": 600.47,
+          "confidence": 0.89
+        }
+      ]
+    },
+    {
+      "start": 602.32,
+      "end": 605.26,
+      "speaker": "Speaker 2",
+      "text": "He didn't believe any of the shit that Chad said.",
+      "words": [
+        {
+          "word": "He",
+          "start": 602.32,
+          "end": 602.42,
+          "confidence": 0.99
+        },
+        {
+          "word": "didn't",
+          "start": 602.46,
+          "end": 602.72,
+          "confidence": 0.68
+        },
+        {
+          "word": "believe",
+          "start": 602.78,
+          "end": 603.18,
+          "confidence": 0.84
+        },
+        {
+          "word": "any",
+          "start": 603.26,
+          "end": 603.44,
+          "confidence": 0.8
+        },
+        {
+          "word": "of",
+          "start": 603.5,
+          "end": 603.56,
+          "confidence": 0.76
+        },
+        {
+          "word": "the",
+          "start": 603.6,
+          "end": 603.74,
+          "confidence": 0.84
+        },
+        {
+          "word": "shit",
+          "start": 603.9,
+          "end": 604.18,
+          "confidence": 0.81
+        },
+        {
+          "word": "that",
+          "start": 604.2,
+          "end": 604.36,
+          "confidence": 0.83
+        },
+        {
+          "word": "Chad",
+          "start": 604.49,
+          "end": 604.85,
+          "confidence": 0.9
+        },
+        {
+          "word": "said.",
+          "start": 604.92,
+          "end": 605.26,
+          "confidence": 0.98
+        }
+      ]
+    },
+    {
+      "start": 605.28,
+      "end": 607.11,
+      "speaker": "Speaker 2",
+      "text": "Are you kidding me?",
+      "words": [
+        {
+          "word": "Are",
+          "start": 605.28,
+          "end": 605.35,
+          "confidence": 0.0
+        },
+        {
+          "word": "you",
+          "start": 606.27,
+          "end": 606.41,
+          "confidence": 0.91
+        },
+        {
+          "word": "kidding",
+          "start": 606.49,
+          "end": 607.03,
+          "confidence": 0.82
+        },
+        {
+          "word": "me?",
+          "start": 607.05,
+          "end": 607.11,
+          "confidence": 0.33
+        }
+      ]
+    },
+    {
+      "start": 608.39,
+      "end": 610.95,
+      "speaker": "Speaker 2",
+      "text": "They buried the two kids in the backyard.",
+      "words": [
+        {
+          "word": "They",
+          "start": 608.39,
+          "end": 608.61,
+          "confidence": 0.92
+        },
+        {
+          "word": "buried",
+          "start": 608.67,
+          "end": 609.17,
+          "confidence": 0.82
+        },
+        {
+          "word": "the",
+          "start": 609.23,
+          "end": 609.31,
+          "confidence": 0.83
+        },
+        {
+          "word": "two",
+          "start": 609.39,
+          "end": 609.57,
+          "confidence": 0.95
+        },
+        {
+          "word": "kids",
+          "start": 609.63,
+          "end": 609.93,
+          "confidence": 0.87
+        },
+        {
+          "word": "in",
+          "start": 609.97,
+          "end": 610.03,
+          "confidence": 0.31
+        },
+        {
+          "word": "the",
+          "start": 610.07,
+          "end": 610.15,
+          "confidence": 0.83
+        },
+        {
+          "word": "backyard.",
+          "start": 610.19,
+          "end": 610.95,
+          "confidence": 0.86
+        }
+      ]
+    },
+    {
+      "start": 610.97,
+      "end": 614.21,
+      "speaker": "Speaker 2",
+      "text": "Are you kidding me?",
+      "words": [
+        {
+          "word": "Are",
+          "start": 610.97,
+          "end": 613.55,
+          "confidence": 0.61
+        },
+        {
+          "word": "you",
+          "start": 613.59,
+          "end": 613.71,
+          "confidence": 0.98
+        },
+        {
+          "word": "kidding",
+          "start": 613.77,
+          "end": 614.03,
+          "confidence": 0.51
+        },
+        {
+          "word": "me?",
+          "start": 614.07,
+          "end": 614.21,
+          "confidence": 0.97
+        }
+      ]
+    },
+    {
+      "start": 614.33,
+      "end": 617.37,
+      "speaker": "Speaker 2",
+      "text": "Okay, I gotta stop because I'm going.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 614.33,
+          "end": 614.71,
+          "confidence": 0.78
+        },
+        {
+          "word": "I",
+          "start": 615.35,
+          "end": 615.49,
+          "confidence": 0.65
+        },
+        {
+          "word": "gotta",
+          "start": 615.53,
+          "end": 615.79,
+          "confidence": 0.71
+        },
+        {
+          "word": "stop",
+          "start": 615.83,
+          "end": 616.27,
+          "confidence": 0.82
+        },
+        {
+          "word": "because",
+          "start": 616.31,
+          "end": 616.65,
+          "confidence": 0.88
+        },
+        {
+          "word": "I'm",
+          "start": 616.81,
+          "end": 616.95,
+          "confidence": 0.93
+        },
+        {
+          "word": "going.",
+          "start": 617.01,
+          "end": 617.37,
+          "confidence": 0.83
+        }
+      ]
+    },
+    {
+      "start": 617.39,
+      "end": 622.16,
+      "speaker": "Speaker 2",
+      "text": "Wow, okay, so that's it.",
+      "words": [
+        {
+          "word": "Wow,",
+          "start": 617.39,
+          "end": 619.46,
+          "confidence": 0.65
+        },
+        {
+          "word": "okay,",
+          "start": 619.62,
+          "end": 620.44,
+          "confidence": 0.87
+        },
+        {
+          "word": "so",
+          "start": 620.46,
+          "end": 620.5,
+          "confidence": 0.0
+        },
+        {
+          "word": "that's",
+          "start": 621.84,
+          "end": 622.08,
+          "confidence": 0.88
+        },
+        {
+          "word": "it.",
+          "start": 622.1,
+          "end": 622.16,
+          "confidence": 0.33
+        }
+      ]
+    }
+  ]
+}

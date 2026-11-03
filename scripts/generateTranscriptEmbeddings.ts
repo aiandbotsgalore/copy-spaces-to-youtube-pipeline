@@ -352,6 +352,7 @@ async function main() {
   let batchSize = 32;
   let dryRun = false;
   let targetTag: string | null = null;
+  let tagsFile: string | null = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--limit' && args[i + 1]) {
@@ -367,6 +368,9 @@ async function main() {
     } else if (args[i] === '--tag' && args[i + 1]) {
       targetTag = args[i + 1].trim();
       i++;
+    } else if (args[i] === '--tags-file' && args[i + 1]) {
+      tagsFile = args[i + 1].trim();
+      i++;
     }
   }
 
@@ -376,6 +380,7 @@ async function main() {
   console.log(`Model: Xenova/all-MiniLM-L6-v2 (quantized ONNX, 384 dims, CPU SIMD)`);
   console.log(`Batch Size: ${batchSize} | Limit: ${limit === Infinity ? 'ALL' : limit} | Force: ${force} | DryRun: ${dryRun}`);
   if (targetTag) console.log(`Target Tag Filter: ${targetTag}`);
+  if (tagsFile) console.log(`Tags File Filter: ${tagsFile}`);
   console.log('----------------------------------------------------------------\n');
 
   const cacheDir = path.resolve(process.cwd(), '.cache', 'transcripts');
@@ -404,6 +409,22 @@ async function main() {
     plans = plans.filter(p => p.tag === targetTag);
     if (plans.length === 0) {
       console.error(`Error: Target tag "${targetTag}" not found in canonical archive.`);
+      process.exit(1);
+    }
+  }
+
+  if (tagsFile) {
+    const resolvedTagsPath = path.resolve(process.cwd(), tagsFile);
+    if (!fs.existsSync(resolvedTagsPath)) {
+      console.error(`Error: Tags file not found: ${resolvedTagsPath}`);
+      process.exit(1);
+    }
+    try {
+      const allowedTags = new Set<string>(JSON.parse(fs.readFileSync(resolvedTagsPath, 'utf8')));
+      plans = plans.filter(p => allowedTags.has(p.tag));
+      console.log(`Filtered archive to ${plans.length} episodes via tags file: ${tagsFile}`);
+    } catch (e: any) {
+      console.error(`Error reading tags file ${resolvedTagsPath}:`, e.message);
       process.exit(1);
     }
   }

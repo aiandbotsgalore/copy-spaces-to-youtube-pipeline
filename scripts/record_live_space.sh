@@ -117,9 +117,9 @@ if command -v gh >/dev/null 2>&1; then
 
     echo "✅ Published Release $RELEASE_TAG to GitHub!"
 
-    # 7. Dispatch downstream Kaggle GPU transcription & RSS update
-    echo "[*] Triggering Kaggle GPU transcription..."
-    gh workflow run kaggle_transcribe.yml -f release_tag="$RELEASE_TAG" || echo "Notice: Kaggle dispatch note"
+    # 7. Dispatch downstream Modal GPU transcription & RSS update
+    echo "[*] Triggering Modal GPU transcription..."
+    gh workflow run transcribe_episode.yml -f release_tag="$RELEASE_TAG" || echo "Notice: Modal dispatch note"
 
     echo "[*] Triggering RSS feed update..."
     gh workflow run update_rss.yml --ref master || echo "Notice: RSS update dispatch note"

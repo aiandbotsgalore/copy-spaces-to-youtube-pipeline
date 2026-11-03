@@ -66,6 +66,7 @@ podcast*.xml
 
 real_avatar_output/
 public/output/
+public/motion_templates/
 
 # Script Studio local state (projects, runs, analyses, memory, backups)
 .spacepipe-studio/

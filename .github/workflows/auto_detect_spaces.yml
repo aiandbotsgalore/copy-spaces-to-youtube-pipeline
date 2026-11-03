@@ -1,9 +1,9 @@
 name: Auto-Detect & Ingest Spaces
 
 on:
-  # Cron disabled: 24/7 continuous live monitoring is now handled autonomously by the Vultr VPS daemon.
-  # schedule:
-  #   - cron: '13 */2 * * *'
+  schedule:
+    # Continuous background fallback (every 2 hours at :13) in case VPS daemon is offline
+    - cron: '13 */2 * * *'
   workflow_dispatch:
     inputs:
       x_handles:

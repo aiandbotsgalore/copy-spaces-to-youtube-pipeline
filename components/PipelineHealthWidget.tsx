@@ -78,9 +78,18 @@ export const PipelineHealthWidget: React.FC<Props> = ({
   const isTranscribeWorkflow = (run: WorkflowRun) =>
     run.name.toLowerCase().includes('transcribe') || (!!run.path && run.path.includes('transcribe'));
 
+  const isDeprecatedWorkflow = (run: WorkflowRun) => {
+    const label = `${run.name} ${run.path || ''}`.toLowerCase();
+    return label.includes('echomimic') || label.includes('kaggle') || label.includes('generate_avatar_short');
+  };
+
   const unacknowledgedFailedRuns = failedRuns.filter(r => {
     if (r.id === dismissedRunId) return false;
     if (healedRunIds.includes(r.id)) return false;
+    if (isDeprecatedWorkflow(r)) {
+      markRunHealed(r.id);
+      return false;
+    }
     const newerSuccess = recentRuns.find(other => {
       if (other.conclusion !== 'success') return false;
       if (new Date(other.created_at) <= new Date(r.created_at)) return false;

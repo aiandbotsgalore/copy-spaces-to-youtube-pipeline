@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-01T22:05:30.646272+00:00",
+  "last_updated": "2026-11-03T01:33:20.010250+00:00",
   "total_episodes_with_audio": 837,
-  "transcribed_count": 693,
-  "untranscribed_count": 144,
-  "percent_complete": 82.8,
+  "transcribed_count": 695,
+  "untranscribed_count": 142,
+  "percent_complete": 83.0,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,21 +27,6 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
-    },
-    "20261018_1RJjpbPMOmwKw": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal Endpoint returned HTTP 303:",
-      "last_attempt": "2026-11-01T22:00:22.884895+00:00"
-    },
-    "20260911_1pKkOXdbeRNKj": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal Endpoint returned HTTP 303:",
-      "last_attempt": "2026-11-01T22:00:22.884916+00:00"
-    },
-    "20260905_1qxvvedveWWxB": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal Endpoint returned HTTP 500: Internal Server Error",
-      "last_attempt": "2026-11-01T22:00:22.884922+00:00"
     }
   },
   "next_in_queue": [
@@ -54,16 +39,6 @@
       "tag": "20260911_1pKkOXdbeRNKj",
       "name": "Being_positive_+",
       "date": "Sep 11, 2026"
-    },
-    {
-      "tag": "20260905_1qxvvedveWWxB",
-      "name": "ACHIEVING MY DREAMS \u2728 #RTV",
-      "date": "Sep 4, 2026"
-    },
-    {
-      "tag": "20250716_1mnGegRZvDnxX",
-      "name": "Well_Angela_Maggard_you_are_definitely_a_piece_of_work",
-      "date": "Jul 16, 2025"
     },
     {
       "tag": "20260217_1OyJAVogXlyxb",
@@ -144,6 +119,16 @@
       "tag": "20260218_1YpJkgeaVDEJj",
       "name": "BIGELOW SECRETS",
       "date": "Jan 18, 2023"
+    },
+    {
+      "tag": "20260217_1vAxRAzQrkYJl",
+      "name": "Messages from the future? [Open Discussion]",
+      "date": "Jan 15, 2023"
+    },
+    {
+      "tag": "20260217_1LyxBqbXnRPJN",
+      "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
+      "date": "Jan 15, 2023"
     }
   ]
 }

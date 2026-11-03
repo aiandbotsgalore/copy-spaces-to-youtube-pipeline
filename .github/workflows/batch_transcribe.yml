@@ -2,6 +2,9 @@ name: Batch Transcribe Episodes (Newest to Oldest)
 run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via Modal Cloud GPU
 
 on:
+  schedule:
+    # Autonomous queue drain: checks for untranscribed episodes every 3 hours
+    - cron: '47 */3 * * *'
   workflow_dispatch:
     inputs:
       limit:
@@ -67,14 +70,42 @@ jobs:
           python scripts/batch_transcribe_queue.py --missing-clips --limit "$LIMIT"
 
       - name: Execute Batch Transcription on Modal Cloud GPU
+        id: run_batch
         if: inputs.dry_run != true && inputs.missing_clips != true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
           echo "[*] Executing batch transcription on Modal Cloud GPU (limit: $LIMIT)..."
           python scripts/batch_transcribe_queue.py --engine modal --limit "$LIMIT"
           echo "[✓] Modal GPU batch transcription completed!"
+
+      - name: Commit & Push Updated Transcripts
+        if: inputs.dry_run != true
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/
+          git commit -m "chore(transcripts): batch update transcripts index and status [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin master || true
+          git push origin master || echo "Notice: Push skipped or up to date"
+
+      - name: Trigger Web App & RSS Deployment
+        if: inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run update_rss.yml --ref master || echo "[!] Note: Could not trigger update_rss.yml"
+
+      - name: Auto-Chain Next Batch
+        if: inputs.dry_run != true && steps.run_batch.outputs.has_more == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "[*] Auto-chaining next batch (${{ steps.run_batch.outputs.remaining_count }} remaining)..."
+          gh workflow run batch_transcribe.yml -f limit="${{ inputs.limit || '5' }}" || echo "Notice: Workflow dispatch skipped"
