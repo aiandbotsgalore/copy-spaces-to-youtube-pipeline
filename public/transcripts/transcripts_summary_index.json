@@ -325,6 +325,22 @@
     ]
   },
   {
+    "release_id": 420636635,
+    "release_tag": "20250716_1mnGegRZvDnxX",
+    "title": "Well_Angela_Maggard_you_are_definitely_a_piece_of_work",
+    "published_at": "2026-10-22T11:26:52Z",
+    "episode_date": "2025-07-16",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20250716_1mnGegRZvDnxX/20250716_1mnGegRZvDnxX_Well_Angela_Maggard_you_are_definitely_a_piece_of_work.mp3",
+    "segment_count": 59,
+    "body": "- **Space Title:** Well_Angela_Maggard_you_are_definitely_a_piece_of_work\n- **Duration:** 00:10:37\n- **Processed:** 20250716_1mnGegRZvDnxX\n- **Source ID:** 1mnGegRZvDnxX\n\n---\nMETADATA::DURATION::00:10:37\nMETADATA::SOURCE_ID::1mnGegRZvDnxX\nMETADATA::EPISODE_DATE::20250716\nMETADATA::YOUTUBE_STATUS::UNLISTED\nMETADATA::HOST::OhMeMeMe22\n",
+    "duration_sec": 637,
+    "host_handle": "OhMeMeMe22",
+    "speakers": [
+      "Speaker 1",
+      "Speaker 2"
+    ]
+  },
+  {
     "release_id": 416230006,
     "release_tag": "20261018_1dxYlarbprvJX",
     "title": "Paper_Trail",
