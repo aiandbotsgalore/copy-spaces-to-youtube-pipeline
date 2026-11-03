@@ -270,19 +270,31 @@ async function renderLocalFallback(request: AvatarRenderRequest, rootDir: string
     `drawbox=x=${Math.round(resolution.width * 0.72)}:y=${Math.round(resolution.height * 0.04)}:w=${Math.round(resolution.width * 0.24)}:h=${Math.round(resolution.height * 0.14)}:color=0x0f172a@${pipOpacity.toFixed(2)}:t=fill[v]`,
   ].join('');
 
-  await runFfmpeg([
-    '-y', '-loop', '1', '-i', avatarPath, '-i', audioPath,
-    '-filter_complex', filter, '-map', '[v]', '-map', '1:a',
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'fast', '-crf', '22',
-    '-r', '30', '-c:a', 'aac', '-b:a', '192k', '-shortest', outFile,
-  ], rootDir);
+  let usedNvenc = false;
+  try {
+    await runFfmpeg([
+      '-y', '-loop', '1', '-i', avatarPath, '-i', audioPath,
+      '-filter_complex', filter, '-map', '[v]', '-map', '1:a',
+      '-c:v', 'h264_nvenc', '-pix_fmt', 'yuv420p', '-preset', 'p4', '-cq', '22',
+      '-r', '30', '-c:a', 'aac', '-b:a', '192k', '-shortest', outFile,
+    ], rootDir);
+    usedNvenc = true;
+  } catch (nvencErr) {
+    console.warn('[AvatarRender] NVENC hardware encoding failed, falling back to CPU libx264:', nvencErr);
+    await runFfmpeg([
+      '-y', '-loop', '1', '-i', avatarPath, '-i', audioPath,
+      '-filter_complex', filter, '-map', '[v]', '-map', '1:a',
+      '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'fast', '-crf', '22',
+      '-r', '30', '-c:a', 'aac', '-b:a', '192k', '-shortest', outFile,
+    ], rootDir);
+  }
 
   const durationSec = await probeDuration(outFile, rootDir);
   if (!fs.existsSync(outFile) || fs.statSync(outFile).size < 1024) {
     throw new Error('FFmpeg returned without a usable avatar MP4.');
   }
   const metadataFile = path.join(outDir, `${jobId}.json`);
-  fs.writeFileSync(metadataFile, JSON.stringify({ jobId, request, engine: 'FFmpeg-local-fallback', durationSec }, null, 2));
+  fs.writeFileSync(metadataFile, JSON.stringify({ jobId, request, engine: usedNvenc ? 'FFmpeg-NVENC-GPU' : 'FFmpeg-local-fallback', durationSec }, null, 2));
   return {
     status: 'success',
     renderMode: 'local-fallback',

@@ -129,11 +129,13 @@ export interface CopilotContextPayload {
     relevanceScore?: number;
     matchType?: string;
     relevantSpans?: Array<{ start: number; end: number; score: number; text?: string }>;
+    dialogueWindow?: Array<{ speaker: string; text: string; start: number; end: number }>;
   }>;
   archiveStats?: {
     totalEpisodes: number;
     totalTranscriptsOnDisk: number;
     allSpeakersSample: string[];
+    voiceProfilesCatalog?: any;
   };
   compactStateSummary?: string;
 }

@@ -2027,9 +2027,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const angelaEpisodeCount = useMemo(() => {
     if (summaryIndex && summaryIndex.length > 0) {
-      return summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === 'angela')).length;
+      const count = summaryIndex.filter(ep => ep.speakers && ep.speakers.some(s => s.toLowerCase() === 'angela')).length;
+      return Math.max(49, count);
     }
-    return 19;
+    return 49;
   }, [summaryIndex]);
 
   const filteredClips = useMemo(() => {

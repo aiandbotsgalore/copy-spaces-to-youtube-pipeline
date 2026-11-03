@@ -21,6 +21,13 @@ export interface RelevantSpan {
   text?: string;       // Substring slice from segment text
 }
 
+export interface DialogueTurn {
+  speaker: string;
+  text: string;
+  start: number;
+  end: number;
+}
+
 export interface TranscriptSearchResult {
   episodeTitle: string;
   releaseTag: string;
@@ -33,6 +40,7 @@ export interface TranscriptSearchResult {
   relevanceScore?: number;
   matchType?: 'lexical' | 'vector' | 'hybrid' | 'proximity' | 'rerank';
   relevantSpans?: RelevantSpan[];
+  dialogueWindow?: DialogueTurn[];
 }
 
 export interface EpisodeSummaryItem {
@@ -126,7 +134,6 @@ export function getTagToFileMap(): Map<string, string> {
   if (tagToFileMap) return tagToFileMap;
   tagToFileMap = new Map();
   try {
-    // 1. Scan .cache/transcripts
     const cacheDir = resolvePath('.cache', 'transcripts');
     if (fs.existsSync(cacheDir)) {
       const files = fs.readdirSync(cacheDir).filter(f => f.endsWith('.json') && !f.endsWith('.embeddings.json'));
@@ -142,7 +149,6 @@ export function getTagToFileMap(): Map<string, string> {
       }
     }
 
-    // 2. Scan public/transcripts/episodes
     const episodesDir = resolvePath('public', 'transcripts', 'episodes');
     if (fs.existsSync(episodesDir)) {
       const epFiles = fs.readdirSync(episodesDir).filter(f => f.endsWith('.json'));
@@ -162,7 +168,6 @@ export function getTagToFileMap(): Map<string, string> {
       }
     }
 
-    // 3. Map summary items by title and ID
     const summaries = loadSummaries();
     for (const s of summaries) {
       const existing = tagToFileMap.get(s.release_tag);
@@ -210,10 +215,6 @@ export function getArchiveStats(): {
   };
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Vector Embedding & Cosine Similarity Engine                                                    */
-/* ---------------------------------------------------------------------------------------------- */
-
 let embeddingPipelinePromise: Promise<any> | null = null;
 
 export async function getQueryEmbedder() {
@@ -246,7 +247,6 @@ export async function embedQuery(text: string): Promise<Float32Array | null> {
   }
 }
 
-/** Dot product between a subvector at offset in a Float32Array and a query vector (both 384 dims, normalized) */
 export function dotProduct(a: Float32Array, aOffset: number, b: Float32Array): number {
   let sum = 0;
   for (let i = 0; i < 384; i++) {
@@ -278,8 +278,7 @@ export function getEpisodeEmbeddings(tag: string): { manifest: EmbeddingManifest
     const vectors = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
 
     const entry = { manifest, vectors };
-    // Keep cache bounded to 50 active episode embeddings in memory
-    if (EMBEDDINGS_CACHE.size >= 50) {
+    if (EMBEDDINGS_CACHE.size >= 180) {
       const firstKey = EMBEDDINGS_CACHE.keys().next().value;
       if (firstKey) EMBEDDINGS_CACHE.delete(firstKey);
     }
@@ -304,10 +303,6 @@ export function getAvailableEmbeddingTags(): string[] {
   }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Lexical / Token Match Search                                                                   */
-/* ---------------------------------------------------------------------------------------------- */
-
 export function formatTimestamp(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
   const totalSec = Math.floor(seconds);
@@ -322,7 +317,6 @@ export function formatTimestamp(seconds: number): string {
 
 export function parseTimestampSec(text: string): number | null {
   if (!text) return null;
-  // Match HH:MM:SS or MM:SS (e.g. "47:42", "▶ 47:42", "@ 47:42", "1:47:42")
   const colonMatch = text.match(/(?:▶\s*|@\s*|\bat\s+)?\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/);
   if (colonMatch) {
     const hrs = colonMatch[1] ? parseInt(colonMatch[1], 10) : 0;
@@ -330,7 +324,6 @@ export function parseTimestampSec(text: string): number | null {
     const secs = parseInt(colonMatch[3], 10);
     return hrs * 3600 + mins * 60 + secs;
   }
-  // Match "2862s", "2862 sec", "2862 seconds", "2,862s"
   const secMatch = text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*(?:s\b|sec\b|secs\b|seconds\b)/i);
   if (secMatch) {
     const num = parseInt(secMatch[1].replace(/,/g, ''), 10);
@@ -357,7 +350,6 @@ export async function searchTranscriptLexical(
 
   const queryTokens = qClean.split(/\s+/).filter(t => t.length > 2);
 
-  // Search activeSegments if supplied from currently active episode context
   if (options.activeSegments && options.activeSegments.length > 0) {
     const epSum = targetTag ? summaries.find(s => s.release_tag === targetTag) : null;
     const epTitle = epSum?.title || targetTag || 'Active Episode';
@@ -396,16 +388,10 @@ export async function searchTranscriptLexical(
     }
   }
 
-  // Prioritize episodes
   const prioritizedTags: Array<{ tag: string; title: string; audioUrl?: string; date?: string; boost: number }> = [];
 
   for (const s of summaries) {
     if (targetTag && s.release_tag !== targetTag) continue;
-
-    // When an explicit speaker is requested, skip episodes that have known speaker metadata without this speaker
-    if (targetSpeaker && s.speakers && !s.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
-      continue;
-    }
 
     let boost = 0;
     if (targetSpeaker && s.speakers?.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
@@ -414,23 +400,19 @@ export async function searchTranscriptLexical(
     if (qClean && s.title?.toLowerCase().includes(qClean)) {
       boost += 30;
     }
-    if (boost > 0 || !targetSpeaker) {
-      prioritizedTags.push({
-        tag: s.release_tag,
-        title: s.title,
-        audioUrl: s.audio_url,
-        date: s.episode_date,
-        boost,
-      });
-    }
+    prioritizedTags.push({
+      tag: s.release_tag,
+      title: s.title,
+      audioUrl: s.audio_url,
+      date: s.episode_date,
+      boost,
+    });
   }
 
   prioritizedTags.sort((a, b) => b.boost - a.boost);
 
   const tagsToSearch = prioritizedTags.length > 0
     ? prioritizedTags
-    : targetSpeaker
-    ? []
     : Array.from(fileMap.keys()).slice(0, 50).map(tag => {
         const sum = summaries.find(s => s.release_tag === tag);
         return {
@@ -466,7 +448,8 @@ export async function searchTranscriptLexical(
         ? data
         : [];
 
-      for (const seg of segments) {
+      for (let sIdx = 0; sIdx < segments.length; sIdx++) {
+        const seg = segments[sIdx];
         if (!seg.text) continue;
         const textLower = seg.text.toLowerCase();
         const speakerName = seg.speaker || 'Unknown Speaker';
@@ -484,6 +467,15 @@ export async function searchTranscriptLexical(
           score += matchedCount * 20;
         }
 
+        const dialogueWindow: DialogueTurn[] = segments
+          .slice(Math.max(0, sIdx - 2), Math.min(segments.length, sIdx + 3))
+          .map(s => ({
+            speaker: s.speaker || 'Unknown Speaker',
+            text: (s.text || '').trim(),
+            start: s.start,
+            end: s.end,
+          }));
+
         results.push({
           episodeTitle: ep.title,
           releaseTag: ep.tag,
@@ -493,6 +485,7 @@ export async function searchTranscriptLexical(
           startSec: seg.start,
           endSec: seg.end,
           text: seg.text.trim(),
+          dialogueWindow,
           relevanceScore: score,
           matchType: 'lexical',
         });
@@ -500,17 +493,13 @@ export async function searchTranscriptLexical(
         if (results.length >= max * 3) break;
       }
     } catch {
-      // ignore read/parse error
+      // ignore
     }
   }
 
   results.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
   return results.slice(0, max);
 }
-
-/* ---------------------------------------------------------------------------------------------- */
-/* Semantic Vector Search                                                                         */
-/* ---------------------------------------------------------------------------------------------- */
 
 export async function searchTranscriptVector(
   query: string,
@@ -533,9 +522,6 @@ export async function searchTranscriptVector(
 
   for (const tag of availableTags) {
     const summary = summaries.find(s => s.release_tag === tag);
-    if (targetSpeaker && summary?.speakers && !summary.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
-      continue;
-    }
 
     const emb = getEpisodeEmbeddings(tag);
     if (!emb) continue;
@@ -550,8 +536,16 @@ export async function searchTranscriptVector(
       }
 
       const sim = dotProduct(vectors, i * 384, queryVec);
-      // Threshold to avoid irrelevant noise
       if (sim > 0.22) {
+        const dialogueWindow: DialogueTurn[] = manifest.segments
+          .slice(Math.max(0, i - 2), Math.min(segmentCount, i + 3))
+          .map(s => ({
+            speaker: s.speaker,
+            text: s.text,
+            start: s.start,
+            end: s.end,
+          }));
+
         results.push({
           episodeTitle: manifest.title || summary?.title || tag,
           releaseTag: tag,
@@ -561,6 +555,7 @@ export async function searchTranscriptVector(
           startSec: seg.start,
           endSec: seg.end,
           text: seg.text,
+          dialogueWindow,
           relevanceScore: Number(sim.toFixed(4)),
           matchType: 'vector',
         });
@@ -572,10 +567,6 @@ export async function searchTranscriptVector(
   return results.slice(0, max * 2);
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Reciprocal Rank Fusion (RRF) & Hybrid Dispatcher                                               */
-/* ---------------------------------------------------------------------------------------------- */
-
 export function computeRRF(
   lexicalResults: TranscriptSearchResult[],
   vectorResults: TranscriptSearchResult[],
@@ -586,7 +577,6 @@ export function computeRRF(
     { item: TranscriptSearchResult; rrfScore: number; lexicalRank?: number; vectorRank?: number }
   >();
 
-  // Process lexical ranks (1-indexed)
   lexicalResults.forEach((item, idx) => {
     const key = `${item.releaseTag}#${item.startSec.toFixed(2)}`;
     const rank = idx + 1;
@@ -594,7 +584,6 @@ export function computeRRF(
     scoreMap.set(key, { item, rrfScore: contribution, lexicalRank: rank });
   });
 
-  // Process vector ranks (1-indexed)
   vectorResults.forEach((item, idx) => {
     const key = `${item.releaseTag}#${item.startSec.toFixed(2)}`;
     const rank = idx + 1;
@@ -628,15 +617,6 @@ export interface RerankOptions {
   fetchImpl?: typeof fetch;
 }
 
-/**
- * Cross-encoder reranking service using Cohere v2 Rerank API.
- * - Defaults to rerank-v5.0-fast with optional rerank-v5.0-pro.
- * - Enables Context Focus to extract relevant_spans character offsets.
- * - Preserves raw scores for ranking and internal evaluation only.
- * - Preserves original segment-level audio boundaries without proportional estimation.
- * - Reranks individual segments without automatic neighbor expansion.
- * - Gracefully falls back to existing candidate ranking on any credential, network, or parse failure.
- */
 export async function rerankWithCohere(
   query: string,
   candidates: TranscriptSearchResult[],
@@ -754,7 +734,6 @@ export async function searchTranscriptArchive(
   }
 
   if (mode === 'rerank') {
-    // Stage 1: Gather candidate pool via hybrid search (requesting max * 2 candidates, bounded between 50 and 100)
     const candidateLimit = Math.min(100, Math.max(50, max * 2));
     let candidates: TranscriptSearchResult[] = [];
     try {
@@ -769,8 +748,6 @@ export async function searchTranscriptArchive(
 
     if (candidates.length === 0) return [];
 
-    // Stage 2: Rerank candidates with Cohere Rerank 5
-    // If effectiveQuery is empty (e.g. searching only by speaker), return candidates directly without calling Cohere
     if (!effectiveQuery.trim()) {
       return candidates.slice(0, max);
     }
@@ -785,7 +762,6 @@ export async function searchTranscriptArchive(
     return reranked.slice(0, max);
   }
 
-  // Hybrid Mode: parallel execution of lexical and vector search
   try {
     const [lexical, vector] = await Promise.all([
       searchTranscriptLexical(effectiveQuery, { ...effectiveOptions, maxResults: max * 2 }),
@@ -808,10 +784,6 @@ export async function searchTranscriptArchive(
   }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Intent Detection & Episode Detail Retrieval                                                   */
-/* ---------------------------------------------------------------------------------------------- */
-
 export function detectSearchIntent(userMessage: string): {
   isCapabilityInquiry: boolean;
   isSearchQuery: boolean;
@@ -823,7 +795,11 @@ export function detectSearchIntent(userMessage: string): {
   const m = userMessage.trim();
   const lower = m.toLowerCase();
 
-  // 1. General capability inquiries like "are you able to search the transcripts ?"
+  // Negative check: never hijack system, pipeline, bug, or ingest questions
+  if (/(?:why|how come|not|broken|bug|error|fail|stop|cron|pipeline|ingest|update|updating)/i.test(lower) && /(?:transcript|episode|feed|job|audio)/i.test(lower)) {
+    return { isCapabilityInquiry: false, isSearchQuery: false };
+  }
+
   if (
     /^(can you|are you able to|do you have access to|can i search|is it possible to search|do you know what was said|can you check)/i.test(lower) &&
     /transcript/i.test(lower)
@@ -833,7 +809,6 @@ export function detectSearchIntent(userMessage: string): {
 
   const parsedTimestamp = parseTimestampSec(m);
 
-  // Check for episode tag or title match
   let episodeTag: string | undefined;
   const tagMatch = m.match(/\b(2026\d{4}_[A-Za-z0-9]+)\b/);
   if (tagMatch) {
@@ -852,7 +827,6 @@ export function detectSearchIntent(userMessage: string): {
     }
   }
 
-  // If a timestamp is explicitly present, treat as a search query targeting that time
   if (parsedTimestamp !== null) {
     let speaker: string | undefined;
     const speakerMatch = m.match(
@@ -888,10 +862,9 @@ export function detectSearchIntent(userMessage: string): {
     };
   }
 
-  // 2. Questions asking to find or search for specific dialogue, speakers, or topics
   const searchTriggers = [
     /(?:search|find|look for|any mention of|where did|who said|what did|what was said about|did anyone talk about|quotes? about|soundbites? on|discuss(?:ed|ing)?)\s+(.+)/i,
-    /(?:transcripts?|quotes?)\s+(?:for|about|containing|with)\s+(.+)/i,
+    /(?:dialogue|spoken words|soundbites?)\s+(?:for|about|containing|with)\s+(.+)/i,
     /(?:someone|they|she|he|we)\s+said\s+["']?([^"']+)["']?/i,
   ];
 
@@ -932,7 +905,6 @@ export function detectSearchIntent(userMessage: string): {
     }
   }
 
-  // 3. If the message mentions a release tag or quotes directly
   const tagDirect = m.match(/\b(2026\d{4}_[A-Za-z0-9]+)\b/);
   if (tagDirect && (lower.includes('transcript') || lower.includes('quote') || lower.includes('said'))) {
     return {
@@ -969,7 +941,6 @@ export function getEpisodeTranscript(releaseTag: string): {
     }
   }
 
-  // Check in-memory registered segments first
   if (IN_MEMORY_EPISODES.has(targetTag)) {
     const memSegs = IN_MEMORY_EPISODES.get(targetTag)!;
     return {
@@ -1018,10 +989,6 @@ export function getEpisodeTranscript(releaseTag: string): {
   }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Spoken Audio Normalizer & Resilient Multi-Tier Search Runner                                   */
-/* ---------------------------------------------------------------------------------------------- */
-
 const DIGIT_TO_WORDS: Record<string, string> = {
   '0': 'zero',
   '1': 'one',
@@ -1046,33 +1013,17 @@ const STOP_WORDS = new Set([
   'soundbite', 'soundbites', 'transcript'
 ]);
 
-/**
- * Normalizes spoken dialogue queries by stripping punctuation, em dashes, ellipses,
- * filler words, duplicate stutter repetitions, and converting digits to words.
- */
 export function normalizeSpokenQuery(raw: string): string {
   if (!raw) return '';
   let str = raw;
-
-  // 1. Strip em dashes (—), en dashes (–), ellipses (... or …), quotes, brackets, parens
   str = str.replace(/[—–]/g, ' ');
   str = str.replace(/\.{2,}|\u2026/g, ' ');
   str = str.replace(/["'“”‘’`[\]()<>]/g, ' ');
-
-  // 2. Strip conversational filler phrases: "you know", "sort of", "kind of", "i mean"
   str = str.replace(/\b(you know|sort of|kind of|i mean)\b/gi, ' ');
-
-  // 3. Normalize numerals ('2' -> 'two', '2 days ago' -> 'two days ago')
   str = str.replace(/\b([0-9]|10)\b/g, m => DIGIT_TO_WORDS[m] || m);
-
-  // 4. Strip single conversational filler sounds: "uh", "um", "er", "ah"
   str = str.replace(/\b(uh|um|er|ah)\b/gi, ' ');
-
-  // 5. Strip duplicate stutter/filler repetitions: e.g. "in, in", "the the", "uh, uh", "I, I"
   str = str.replace(/[,;:!?]+/g, ' ');
   str = str.replace(/\b(\w+)(?:\s+\1\b)+/gi, '$1');
-
-  // 6. Collapse whitespace
   return str.replace(/\s+/g, ' ').trim();
 }
 
@@ -1095,13 +1046,14 @@ export interface TranscriptMatch {
   episode_title: string;
   start_timestamp: number;
   end_timestamp: number;
-  formatted_time: string; // e.g. "47:42"
+  formatted_time: string;
   speaker: string;
   snippet: string;
   audio_url?: string;
   match_type?: string;
   relevance_score?: number;
   relevant_spans?: RelevantSpan[];
+  dialogue_window?: DialogueTurn[];
 }
 
 export interface HandleSearchTranscriptsResult {
@@ -1113,13 +1065,6 @@ export interface HandleSearchTranscriptsResult {
   tier: 1 | 2;
 }
 
-/**
- * Multi-tier resilient search runner for Copilot tool-calling.
- * - Handles explicit timestamp proximity queries (e.g. 47:42 / 2862s).
- * - Tier 1: Hybrid BM25 + Semantic Vector search with normalized query.
- * - Broadens speaker filter if 0 matches to account for diarization tags (Speaker 3, Guest).
- * - Tier 2 (Fallback): AND search across key anchor words if Tier 1 yields 0 matches.
- */
 export async function handleSearchTranscripts(
   input: HandleSearchTranscriptsInput
 ): Promise<HandleSearchTranscriptsResult> {
@@ -1130,7 +1075,6 @@ export async function handleSearchTranscripts(
   const targetTag = scope === 'active_episode' ? input.episodeTag : undefined;
   let speakerHint = input.speaker_hint?.trim() || undefined;
 
-  // If activeSegments provided, register them in memory/cache
   if (input.episodeTag && input.activeSegments?.length) {
     registerEpisodeSegments(input.episodeTag, input.activeSegments);
   }
@@ -1139,7 +1083,6 @@ export async function handleSearchTranscripts(
   let rawResults: TranscriptSearchResult[] = [];
   let speakerApplied = speakerHint;
 
-  // ── Timestamp-Aware Proximity Retrieval ──
   if (input.timestamp_sec !== undefined && input.timestamp_sec !== null) {
     const T = input.timestamp_sec;
     let epSegments: Array<{ start: number; end: number; speaker?: string; text?: string }> = [];
@@ -1192,7 +1135,6 @@ export async function handleSearchTranscripts(
     }
   }
 
-  // ── Tier 1: Hybrid Semantic + BM25 Lexical Search (or Rerank if requested) ──
   if (rawResults.length === 0 && normalizedQuery) {
     const searchMode = input.mode || 'hybrid';
     rawResults = await searchTranscriptArchive(normalizedQuery, {
@@ -1207,7 +1149,6 @@ export async function handleSearchTranscripts(
     });
   }
 
-  // ── Tier 2 (Fallback): Anchor Words AND Search ──
   if (rawResults.length === 0 && normalizedQuery) {
     tier = 2;
     const words = normalizedQuery
@@ -1221,7 +1162,6 @@ export async function handleSearchTranscripts(
       : normalizedQuery.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
 
     if (anchorWords.length > 0) {
-      // Find segments matching anchor words via lexical search
       const anchorQuery = anchorWords.join(' ');
       let anchorResults = await searchTranscriptLexical(anchorQuery, {
         speaker: speakerApplied,
@@ -1230,13 +1170,11 @@ export async function handleSearchTranscripts(
         maxResults: max * 2,
       });
 
-      // Filter for turns containing all anchor words (AND logic)
       let andFiltered = anchorResults.filter(r => {
         const textLower = r.text.toLowerCase();
         return anchorWords.every(word => textLower.includes(word));
       });
 
-      // If no exact AND match and more than 2 words, check for top 2 words
       if (andFiltered.length === 0 && anchorWords.length >= 2) {
         const topTwo = anchorWords.slice(0, 2);
         andFiltered = anchorResults.filter(r => {
@@ -1261,6 +1199,7 @@ export async function handleSearchTranscripts(
     match_type: r.matchType,
     relevance_score: r.relevanceScore,
     relevant_spans: r.relevantSpans,
+    dialogue_window: r.dialogueWindow,
   }));
 
   return {

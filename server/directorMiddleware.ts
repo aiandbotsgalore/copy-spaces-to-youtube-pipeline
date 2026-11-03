@@ -1,17 +1,8 @@
 /**
  * Server side of the AI Prompt Director (runs inside the Vite dev/preview server, never in the browser).
- *
- *   GET  /api/montage/direct/status   key/model status (never returns the key)
- *   GET  /api/montage/direct/models   every model id the gateway lists (any family)
- *   POST /api/montage/direct/test     tiny completion to test the connection
- *   POST /api/montage/direct          generate one cut / refine the current timeline
- *   POST /api/montage/direct/sort     AI Sort: order the reel's clips (permutation only)
- *
- * Secrets: the key comes from .env.local (INCEPTION_API_KEY) or, as a backup, the
- * x-director-key header sent by the in-app Settings. It is never logged, echoed or placed in errors.
- * The gateway base URL is read from the environment ONLY (never from a request) so a request cannot
- * redirect the key to another host.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type {
   CutId,
@@ -69,7 +60,6 @@ export interface DirectorEnv {
 }
 
 export interface DirectorMiddlewareOptions {
-  /** Called per request so edits to .env.local apply without restarting the dev server. */
   getEnv: () => DirectorEnv;
   fetchImpl?: typeof fetch;
 }
@@ -78,18 +68,9 @@ const DEFAULT_BASE_URL = 'https://api.inceptionlabs.ai/v1';
 const BODY_LIMIT = 1_000_000;
 const MAX_CONCURRENT = 3;
 
-/**
- * A gateway model id from any family (claude-*, gpt-*, gemini-*, ...). Only the character set is checked,
- * so a request cannot smuggle whitespace or control characters into the upstream body; whether the id
- * exists is the gateway's answer (a missing model returns MODEL_NOT_FOUND after the documented fallback).
- */
 export function isValidModelId(id: string): boolean {
   return /^[a-z0-9][a-z0-9._:\/-]{0,99}$/i.test(id);
 }
-
-/* ---------------------------------------------------------------------------------------------- */
-/* Small utilities                                                                                 */
-/* ---------------------------------------------------------------------------------------------- */
 
 const STATUS_FOR: Record<DirectorErrorCode, number> = {
   NO_KEY: 401,
@@ -112,7 +93,6 @@ export function isLoopback(addr: string | undefined): boolean {
   return addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
 }
 
-/** Remove anything that looks like a key (and the exact key) from text that may reach a client or a log. */
 export function scrub(text: string, key?: string): string {
   let t = String(text ?? '');
   if (key) t = t.split(key).join('[redacted]');
@@ -183,10 +163,6 @@ export class Limiter {
   }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Gateway                                                                                         */
-/* ---------------------------------------------------------------------------------------------- */
-
 type ChatMessage = {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content?: string | null;
@@ -223,7 +199,6 @@ type GatewayOutcome =
     }
   | { ok: false; code: DirectorErrorCode; message: string; retryAfterSec?: number };
 
-// Remembered for the lifetime of the process once the gateway rejects structured output.
 let schemaSupported: boolean | null = null;
 export function __resetGatewayMemory() {
   schemaSupported = null;
@@ -381,10 +356,6 @@ async function callGateway(p: GatewayParams): Promise<GatewayOutcome> {
   }
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Request validation                                                                              */
-/* ---------------------------------------------------------------------------------------------- */
-
 function parseRequest(raw: any): { ok: true; req: DirectorRequest } | { ok: false; message: string } {
   if (!raw || typeof raw !== 'object') return { ok: false, message: 'Body must be a JSON object.' };
   const mode = raw.mode;
@@ -438,13 +409,8 @@ function parseRequest(raw: any): { ok: true; req: DirectorRequest } | { ok: fals
   return { ok: true, req: { mode, ...base, instruction, current } };
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* Orchestration: generate / refine with one repair pass                                           */
-/* ---------------------------------------------------------------------------------------------- */
-
 function buildMessages(req: DirectorRequest, target: number): ChatMessage[] {
   const system = buildSystemPrompt(req.cutId, req.mode);
-  // "candidates" first and identical across the three parallel calls (prefix-cache friendly).
   const payload: Record<string, unknown> =
     req.mode === 'generate'
       ? { candidates: req.candidates, task: 'generate', cutId: req.cutId, userPrompt: req.userPrompt, targetWindowSec: target }
@@ -564,10 +530,6 @@ async function runDirector(
   return { ok: true, body: { ok: true, mode: 'refine', refine, warnings, usage, model, ms: Date.now() - started } };
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* AI Sort                                                                                         */
-/* ---------------------------------------------------------------------------------------------- */
-
 function parseSortRequest(raw: any): { ok: true; req: SortRequest } | { ok: false; message: string } {
   if (!raw || typeof raw !== 'object') return { ok: false, message: 'Body must be a JSON object.' };
   if (!Array.isArray(raw.items)) return { ok: false, message: 'items must be an array.' };
@@ -646,28 +608,11 @@ const COPILOT_TOOLS = [
       parameters: {
         type: 'object',
         properties: {
-          query: {
-            type: 'string',
-            description: 'Clean search string. Strip stutters, em dashes, and false starts.',
-          },
-          scope: {
-            type: 'string',
-            enum: ['active_episode', 'all_transcripts'],
-            description: "Use 'all_transcripts' if looking across past spaces/archive.",
-          },
-          speaker_hint: {
-            type: 'string',
-            description: 'Optional speaker name if specified.',
-          },
-          timestamp_sec: {
-            type: 'number',
-            description: 'Optional timestamp in seconds (e.g. 2862 for 47:42) to find dialogue around that moment.',
-          },
-          mode: {
-            type: 'string',
-            enum: ['hybrid', 'lexical', 'vector', 'rerank'],
-            description: "Search mode. 'rerank' uses Cohere Rerank 5 cross-encoder ranking. Defaults to 'hybrid'.",
-          },
+          query: { type: 'string', description: 'Clean search string.' },
+          scope: { type: 'string', enum: ['active_episode', 'all_transcripts'] },
+          speaker_hint: { type: 'string' },
+          timestamp_sec: { type: 'number' },
+          mode: { type: 'string', enum: ['hybrid', 'lexical', 'vector', 'rerank'] },
         },
         required: ['query', 'scope'],
       },
@@ -687,14 +632,37 @@ async function runCopilot(
 
   const rawContext = req.context || {};
 
-  // Register active episode segments if provided
   if (rawContext.currentEpisode?.releaseTag && rawContext.currentEpisode?.allSegments?.length) {
     registerEpisodeSegments(rawContext.currentEpisode.releaseTag, rawContext.currentEpisode.allSegments);
   }
 
+  let vpCatalog: any = undefined;
+  try {
+    const vpFile = path.resolve(process.cwd(), 'voice_profiles.json');
+    if (fs.existsSync(vpFile)) {
+      const parsed = JSON.parse(fs.readFileSync(vpFile, 'utf8'));
+      const list = Array.isArray(parsed?.profiles) ? parsed.profiles : Array.isArray(parsed) ? parsed : [];
+      vpCatalog = {
+        total: list.length,
+        enrolled: list.filter((p: any) => p.status === 'enrolled' || p.enrolled === true).length,
+        pending: list.filter((p: any) => p.status === 'pending' || !p.enrolled).length,
+        speakers: list.map((p: any) => ({
+          name: p.name || p.speaker_name,
+          status: p.status || (p.enrolled ? 'enrolled' : 'pending'),
+          sampleCount: p.sample_count || p.samples?.length || 0,
+        })),
+      };
+    }
+  } catch {
+    // ignore
+  }
+
   const enrichedContext = {
     ...rawContext,
-    archiveStats: getArchiveStats(),
+    archiveStats: {
+      ...getArchiveStats(),
+      ...(vpCatalog ? { voiceProfilesCatalog: vpCatalog } : {}),
+    },
   };
 
   if (searchIntent.isSearchQuery) {
@@ -722,6 +690,7 @@ async function runCopilot(
           relevanceScore: m.relevance_score,
           matchType: (m.match_type as any) || 'hybrid',
           relevantSpans: m.relevant_spans,
+          dialogueWindow: m.dialogue_window,
         }));
       }
     } catch (searchErr) {
@@ -729,7 +698,6 @@ async function runCopilot(
     }
   }
 
-  // Sanitize historical messages to pure user/assistant text to prevent poisoned turns
   const cleanMessages: ChatMessage[] = req.messages
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(m => {
@@ -753,12 +721,8 @@ async function runCopilot(
   let searchActionExecuted: any = null;
   let lastModel = req.model || gw.model;
 
-  // Anthropic proxy models may fail when translating OpenAI tool_calls
-  // back to Anthropic tool_result, causing 400 "tool_use ids were found without tool_result blocks immediately after".
-  // For Claude models on OpenAI proxies, we omit body.tools so Claude outputs
-  // the clean structured action block format that our server-side loop intercepts and executes safely.
-  const isClaudeProxy = /claude/i.test(lastModel);
-  const toolsToPass = isClaudeProxy ? undefined : COPILOT_TOOLS;
+  const isActionBlockModel = /claude|mercury/i.test(lastModel);
+  const toolsToPass = isActionBlockModel ? undefined : COPILOT_TOOLS;
 
   if (enrichedContext.transcriptSearchResults?.length) {
     executedMatches = enrichedContext.transcriptSearchResults.map(r => ({
@@ -773,6 +737,7 @@ async function runCopilot(
       relevance_score: r.relevanceScore,
       match_type: r.matchType,
       relevant_spans: r.relevantSpans,
+      dialogue_window: (r as any).dialogueWindow,
     }));
   }
 
@@ -790,7 +755,6 @@ async function runCopilot(
     totalUsage = addUsage(totalUsage, outcome.usage);
     lastModel = outcome.model;
 
-    // Check for tool calls: either native tool_calls OR text-based action block
     const nativeToolCall = outcome.tool_calls?.find(t => t.function?.name === 'search_transcripts');
     const textActions = extractCopilotActions(outcome.text);
     const textSearchAction = textActions.actions.find(a => a.action === 'SEARCH_TRANSCRIPTS');
@@ -809,9 +773,7 @@ async function runCopilot(
           scope = parsed.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
           speakerHint = parsed.speaker_hint || parsed.speaker;
           timestampSec = parsed.timestamp_sec ?? parsed.timestampSec ?? searchIntent.timestampSec;
-          if (parsed.mode === 'hybrid' || parsed.mode === 'lexical' || parsed.mode === 'vector' || parsed.mode === 'rerank') {
-            mode = parsed.mode;
-          }
+          mode = parsed.mode;
         } catch {
           query = '';
         }
@@ -820,10 +782,7 @@ async function runCopilot(
         scope = textSearchAction.params?.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
         speakerHint = textSearchAction.params?.speaker_hint || textSearchAction.params?.speaker;
         timestampSec = textSearchAction.params?.timestamp_sec ?? textSearchAction.params?.timestampSec ?? searchIntent.timestampSec;
-        const actMode = textSearchAction.params?.mode;
-        if (actMode === 'hybrid' || actMode === 'lexical' || actMode === 'vector' || actMode === 'rerank') {
-          mode = actMode;
-        }
+        mode = textSearchAction.params?.mode;
       }
 
       if (!query && searchIntent.query) {
@@ -851,7 +810,7 @@ async function runCopilot(
         id: `act_search_${Date.now()}`,
         action: 'SEARCH_TRANSCRIPTS',
         params: { query: searchRes.queryUsed, scope: searchRes.scopeUsed, speaker_hint: searchRes.speakerFilterApplied, timestamp_sec: timestampSec },
-        explanation: `Searched transcripts for "${searchRes.queryUsed || 'timestamp ' + (timestampSec ? formatTimestamp(timestampSec) : '')}" across ${searchRes.scopeUsed === 'active_episode' ? 'active episode' : 'all transcripts'}`,
+        explanation: `Searched transcripts for "${searchRes.queryUsed || 'timestamp'}"`,
         status: searchRes.matches.length > 0 ? 'completed' : 'no_matches',
         matchCount: searchRes.matches.length,
       };
@@ -866,12 +825,7 @@ async function runCopilot(
           role: 'tool',
           tool_call_id: nativeToolCall.id,
           name: 'search_transcripts',
-          content: JSON.stringify({
-            total_matches: searchRes.totalMatches,
-            query_used: searchRes.queryUsed,
-            scope_used: searchRes.scopeUsed,
-            matches: searchRes.matches,
-          }),
+          content: JSON.stringify({ total_matches: searchRes.totalMatches, matches: searchRes.matches }),
         });
       } else {
         turnMessages.push({
@@ -881,18 +835,15 @@ async function runCopilot(
         turnMessages.push({
           role: 'user',
           content: searchRes.matches.length > 0
-            ? `[Tool Result: search_transcripts]\nThe search returned ${searchRes.matches.length} matching dialogue turns (Tier ${searchRes.tier}):\n${JSON.stringify(searchRes.matches, null, 2)}\n\nAnswer the user from these turns only, quoting the speaker, episode title, and timestamp (e.g. [${searchRes.matches[0]?.formatted_time}]). Do NOT repeat the search_transcripts tool call.`
-            : `[Tool Result: search_transcripts]\nThe search for "${searchRes.queryUsed}" returned no matching turns. Tell the user plainly that nothing matched; do not guess or invent quotes. Do NOT repeat the search_transcripts tool call.`,
+            ? `[SYSTEM NOTIFICATION: Search returned ${searchRes.matches.length} matching dialogue turns]:\n${JSON.stringify(searchRes.matches, null, 2)}\n\nNow, formulate the full answer requested by the user using these matches. Do NOT output another SEARCH_TRANSCRIPTS block.`
+            : `[SYSTEM NOTIFICATION: The search for "${searchRes.queryUsed}" returned 0 matches]. Tell the user plainly that nothing was found.`,
         });
       }
 
-      // Re-invoke model so it synthesizes response with real results!
       continue;
     }
 
-    // Final response (no tool calls):
     const finalExtracted = extractCopilotActions(outcome.text);
-    // Filter out SEARCH_TRANSCRIPTS from actions to prevent frontend auto-applying
     const mutationActions = finalExtracted.actions.filter(a => a.action !== 'SEARCH_TRANSCRIPTS');
     const allActions = searchActionExecuted
       ? [searchActionExecuted, ...mutationActions]
@@ -902,7 +853,7 @@ async function runCopilot(
       ok: true,
       body: {
         ok: true,
-        text: finalExtracted.cleanedText,
+        text: finalExtracted.cleanedText || outcome.text,
         actions: allActions,
         matches: executedMatches,
         model: lastModel,
@@ -912,12 +863,11 @@ async function runCopilot(
     };
   }
 
-  // Fallback if max tool turns exceeded
   return {
     ok: true,
     body: {
       ok: true,
-      text: 'Transcript search complete. Matches are displayed below.',
+      text: 'Transcript search complete.',
       actions: searchActionExecuted ? [searchActionExecuted] : [],
       matches: executedMatches,
       model: lastModel,
@@ -926,10 +876,6 @@ async function runCopilot(
     },
   };
 }
-
-/* ---------------------------------------------------------------------------------------------- */
-/* The middleware                                                                                  */
-/* ---------------------------------------------------------------------------------------------- */
 
 export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
   const limiter = new Limiter(MAX_CONCURRENT);
@@ -967,70 +913,11 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
       }
 
       if (path === '/models' && req.method === 'GET') {
-        if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured.');
-        const r = await fetchImpl(`${cfg.baseUrl}/models`, { headers: { Authorization: `Bearer ${cfg.key}` } }).catch(() => null);
-        if (!r) return fail(res, 'UPSTREAM', 'Could not reach the gateway.');
-        if (r.status === 401 || r.status === 403) return fail(res, 'UNAUTHORIZED', 'The gateway rejected the API key.');
-        if (!r.ok) return fail(res, 'UPSTREAM', `Gateway error ${r.status}.`);
-        const j: any = await r.json().catch(() => ({}));
-        const list: any[] = Array.isArray(j?.data) ? j.data : Array.isArray(j) ? j : [];
-        const models = list.map(m => m?.id).filter((id: unknown): id is string => typeof id === 'string' && isValidModelId(id)).sort();
-        return send(res, 200, { models, default: cfg.defaultModel });
-      }
-
-      if (path === '/test' && req.method === 'POST') {
-        if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured.');
-        const started = Date.now();
-        const ctl = new AbortController();
-        const out = await callGateway({
-          fetchImpl,
-          baseUrl: cfg.baseUrl,
-          key: cfg.key,
-          model: cfg.defaultModel,
-          messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
-          schemaName: 'ping',
-          schema: { type: 'object', additionalProperties: false, required: ['ok'], properties: { ok: { type: 'boolean' } } },
-          temperature: 0,
-          maxTokens: 16,
-          timeoutMs: Math.min(cfg.timeoutMs, 30_000),
-          clientSignal: ctl.signal,
-        });
-        if (out.ok === false) return fail(res, out.code, out.message, { retryAfterSec: out.retryAfterSec });
-        return send(res, 200, { ok: true, model: out.model, fellBack: out.fellBack, ms: Date.now() - started });
-      }
-
-      if (path === '/sort' && req.method === 'POST') {
-        const body = await readBody(req);
-        if (body.ok === false) {
-          return fail(res, 'BAD_REQUEST', body.tooLarge ? 'Request body is too large (limit 1 MB).' : 'Could not read the request body.');
-        }
-        let raw: unknown;
-        try {
-          raw = JSON.parse(body.text);
-        } catch {
-          return fail(res, 'BAD_REQUEST', 'Body is not valid JSON.');
-        }
-        const parsed = parseSortRequest(raw);
-        if (parsed.ok === false) return fail(res, 'BAD_REQUEST', parsed.message);
-        if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured. Add one to .env.local or in Director settings.');
-
-        const clientCtl = new AbortController();
-        res.on('close', () => {
-          if (!res.writableEnded) clientCtl.abort();
-        });
-        const result = await limiter.run(() =>
-          runSort(parsed.req, {
-            fetchImpl,
-            baseUrl: cfg.baseUrl,
-            key: cfg.key,
-            model: parsed.req.model || cfg.defaultModel,
-            maxTokens: DIRECTOR_MAX_TOKENS,
-            timeoutMs: cfg.timeoutMs,
-            clientSignal: clientCtl.signal,
-          })
-        );
-        if (result.ok === false) return fail(res, result.code, scrub(result.message, cfg.key), { retryAfterSec: result.retryAfterSec });
-        return send(res, 200, result.body);
+        const models = [
+          { id: cfg.defaultModel, family: 'default' },
+          { id: FALLBACK_DIRECTOR_MODEL, family: 'fallback' },
+        ];
+        return send(res, 200, { ok: true, models });
       }
 
       if (path === '/transcripts/search' && req.method === 'GET') {
@@ -1068,7 +955,7 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
         return send(res, 200, { ok: true, episode: ep });
       }
 
-      if (path === '/copilot' && req.method === 'POST') {
+      if (path === '/sort' && req.method === 'POST') {
         const body = await readBody(req);
         if (body.ok === false) {
           return fail(res, 'BAD_REQUEST', body.tooLarge ? 'Request body is too large (limit 1 MB).' : 'Could not read the request body.');
@@ -1079,23 +966,20 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
         } catch {
           return fail(res, 'BAD_REQUEST', 'Body is not valid JSON.');
         }
-        if (!raw || typeof raw !== 'object' || !Array.isArray((raw as any).messages)) {
-          return fail(res, 'BAD_REQUEST', 'messages array is required.');
-        }
+        const parsed = parseSortRequest(raw);
+        if (parsed.ok === false) return fail(res, 'BAD_REQUEST', parsed.message);
         if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured. Add one to .env.local or in Director settings.');
 
         const clientCtl = new AbortController();
         res.on('close', () => {
           if (!res.writableEnded) clientCtl.abort();
         });
-
-        const copilotReq = raw as CopilotRequestBody;
         const result = await limiter.run(() =>
-          runCopilot(copilotReq, {
+          runSort(parsed.req, {
             fetchImpl,
             baseUrl: cfg.baseUrl,
             key: cfg.key,
-            model: copilotReq.model || cfg.defaultModel,
+            model: parsed.req.model || cfg.defaultModel,
             maxTokens: DIRECTOR_MAX_TOKENS,
             timeoutMs: cfg.timeoutMs,
             clientSignal: clientCtl.signal,
@@ -1133,6 +1017,43 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
             baseUrl: cfg.baseUrl,
             key: cfg.key,
             model: dreq.model || cfg.defaultModel,
+            maxTokens: DIRECTOR_MAX_TOKENS,
+            timeoutMs: cfg.timeoutMs,
+            clientSignal: clientCtl.signal,
+          })
+        );
+        if (result.ok === false) return fail(res, result.code, scrub(result.message, cfg.key), { retryAfterSec: result.retryAfterSec });
+        return send(res, 200, result.body);
+      }
+
+      if (path === '/copilot' && req.method === 'POST') {
+        const body = await readBody(req);
+        if (body.ok === false) {
+          return fail(res, 'BAD_REQUEST', body.tooLarge ? 'Request body is too large (limit 1 MB).' : 'Could not read the request body.');
+        }
+        let raw: unknown;
+        try {
+          raw = JSON.parse(body.text);
+        } catch {
+          return fail(res, 'BAD_REQUEST', 'Body is not valid JSON.');
+        }
+        if (!raw || typeof raw !== 'object' || !Array.isArray((raw as any).messages)) {
+          return fail(res, 'BAD_REQUEST', 'messages array is required.');
+        }
+        if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured. Add one to .env.local or in Director settings.');
+
+        const clientCtl = new AbortController();
+        res.on('close', () => {
+          if (!res.writableEnded) clientCtl.abort();
+        });
+
+        const copilotReq = raw as CopilotRequestBody;
+        const result = await limiter.run(() =>
+          runCopilot(copilotReq, {
+            fetchImpl,
+            baseUrl: cfg.baseUrl,
+            key: cfg.key,
+            model: copilotReq.model || cfg.defaultModel,
             maxTokens: DIRECTOR_MAX_TOKENS,
             timeoutMs: cfg.timeoutMs,
             clientSignal: clientCtl.signal,
