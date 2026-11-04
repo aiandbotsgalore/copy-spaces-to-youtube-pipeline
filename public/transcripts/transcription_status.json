@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-03T20:16:53.505426+00:00",
+  "last_updated": "2026-11-04T02:09:46.345944+00:00",
   "total_episodes_with_audio": 837,
   "transcribed_count": 695,
   "untranscribed_count": 142,
@@ -29,29 +29,29 @@
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
     },
     "20261018_1RJjpbPMOmwKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-03T20:10:41.455855+00:00"
+      "last_attempt": "2026-11-04T02:01:37.991957+00:00"
     },
     "20260911_1pKkOXdbeRNKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-03T20:10:41.455875+00:00"
+      "last_attempt": "2026-11-04T02:01:37.991974+00:00"
     },
     "20260217_1OyJAVogXlyxb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-03T20:10:41.455880+00:00"
+      "last_attempt": "2026-11-04T02:01:37.991977+00:00"
     },
     "20260217_1OdJrzekvMvJX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-03T20:10:41.455883+00:00"
+      "last_attempt": "2026-11-04T02:01:37.991979+00:00"
     },
     "20260218_1lPKqBYLOdYGb": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-03T20:10:41.455886+00:00"
+      "last_attempt": "2026-11-04T02:01:37.991981+00:00"
     }
   },
   "next_in_queue": [
