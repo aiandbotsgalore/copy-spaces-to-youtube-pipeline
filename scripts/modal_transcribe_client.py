@@ -47,6 +47,11 @@ def load_env_files():
             except Exception:
                 pass
 
+    # Ensure critical CI credentials have no trailing newlines or whitespace (which breaks gRPC metadata)
+    for k in ["MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "GH_TOKEN", "GITHUB_TOKEN"]:
+        if k in os.environ and os.environ[k]:
+            os.environ[k] = os.environ[k].strip()
+
 
 load_env_files()
 
@@ -180,6 +185,11 @@ def _execute_modal_call(
     host_handle: str = "",
     language: str = "en"
 ) -> Dict[str, Any]:
+    # Clean environment variables in case of unstripped secrets injected at runtime
+    for k in ["MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "GH_TOKEN", "GITHUB_TOKEN"]:
+        if k in os.environ and os.environ[k]:
+            os.environ[k] = os.environ[k].strip()
+
     # Check if native Modal RPC is available
     use_rpc = False
     try:
@@ -234,7 +244,12 @@ def _execute_modal_call(
                 print(f"[*] Job queued on Modal GPU. Polling result from: {poll_url}...")
                 for attempt in range(120):  # up to 20 minutes
                     time.sleep(10)
-                    poll_resp = s.get(poll_url, timeout=60, allow_redirects=False)
+                    try:
+                        poll_resp = s.get(poll_url, timeout=300, allow_redirects=False)
+                    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as conn_err:
+                        print(f"    [{attempt+1}/120] Polling read timeout / connection blip ({conn_err}). Retrying...")
+                        continue
+
                     if poll_resp.status_code == 200:
                         result = poll_resp.json()
                         break

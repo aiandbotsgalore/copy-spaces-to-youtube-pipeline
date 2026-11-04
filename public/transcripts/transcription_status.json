@@ -27,56 +27,6 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
-    },
-    "20261018_1RJjpbPMOmwKw": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T02:01:37.991957+00:00"
-    },
-    "20260911_1pKkOXdbeRNKj": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T02:01:37.991974+00:00"
-    },
-    "20260217_1OyJAVogXlyxb": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T02:01:37.991977+00:00"
-    },
-    "20260217_1OdJrzekvMvJX": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T02:01:37.991979+00:00"
-    },
-    "20260218_1lPKqBYLOdYGb": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T02:01:37.991981+00:00"
-    },
-    "20260216_1eaKbrlpmzQKX": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T20:24:28.613208+00:00"
-    },
-    "20260218_1YqKDojrQODxV": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T20:24:28.613226+00:00"
-    },
-    "20260220_1MnxnpXBMwVGO": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T20:24:28.613230+00:00"
-    },
-    "20260218_1YqGoAXoRYkxv": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T20:24:28.613233+00:00"
-    },
-    "20260217_1LyGBqDopyzKN": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
-      "last_attempt": "2026-11-04T20:24:28.613236+00:00"
     }
   },
   "next_in_queue": [

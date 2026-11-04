@@ -25,6 +25,8 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const authToken = process.env.X_AUTH_TOKEN || process.env.TWITTER_AUTH_TOKEN;
 const csrfToken = process.env.X_CT0 || process.env.X_CSRF_TOKEN || process.env.TWITTER_CT0;
 
+let ytDlpCookiesArgs = '';
+
 if (authToken) {
   try {
     const configDir = path.join(os.homedir(), '.xactions');
@@ -36,6 +38,23 @@ if (authToken) {
     console.log('🔑 Authenticated session configured for xactions.');
   } catch (authErr) {
     console.warn(`⚠️  Could not write xactions config: ${authErr.message}`);
+  }
+
+  // Generate Netscape cookies.txt for yt-dlp authenticated queries
+  try {
+    const cookiesPath = path.resolve('cookies.txt');
+    const lines = [
+      '# Netscape HTTP Cookie File',
+      `.x.com	TRUE	/	TRUE	1893456000	auth_token	${authToken}`,
+      csrfToken ? `.x.com	TRUE	/	TRUE	1893456000	ct0	${csrfToken}` : '',
+      `.twitter.com	TRUE	/	TRUE	1893456000	auth_token	${authToken}`,
+      csrfToken ? `.twitter.com	TRUE	/	TRUE	1893456000	ct0	${csrfToken}` : '',
+    ].filter(Boolean).join('\n') + '\n';
+    writeFileSync(cookiesPath, lines, 'utf-8');
+    ytDlpCookiesArgs = `--cookies "${cookiesPath}"`;
+    console.log('🍪 cookies.txt generated for yt-dlp.');
+  } catch (cErr) {
+    console.warn(`⚠️ Could not write cookies.txt: ${cErr.message}`);
   }
 }
 
@@ -239,7 +258,7 @@ async function run() {
   const liveDeferredSpaces = [];
 
   const CORE_APPROVED_HOSTS = new Set(
-    ['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase())
+    ['loganblack', 'angelamaggard3', 'txrrxstrxxl', 'nooneyoufollow_', 'nooneyoufollow', 'tupacabra', 'rst_podcast'].map(h => h.toLowerCase())
   );
 
   for (const space of newSpaces) {
@@ -253,7 +272,7 @@ async function run() {
 
     try {
       const output = execSync(
-        `yt-dlp --print "%(live_status)s|||%(uploader_id)s|||%(uploader)s|||%(title)s|||%(description)s" --no-warnings "${space.url}"`,
+        `yt-dlp ${ytDlpCookiesArgs} --print "%(live_status)s|||%(uploader_id)s|||%(uploader)s|||%(title)s|||%(description)s" --no-warnings "${space.url}"`,
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 25000,
@@ -290,24 +309,21 @@ async function run() {
       const uploaderIdLower = (uploaderId || '').toLowerCase().trim();
       const uploaderLower = (uploader || '').toLowerCase().trim();
       const isApprovedHost = CORE_APPROVED_HOSTS.has(uploaderIdLower) || CORE_APPROVED_HOSTS.has(uploaderLower);
+      const isFoundViaCoreHost = CORE_APPROVED_HOSTS.has((space.foundVia || '').toLowerCase());
+      const combinedText = `${description} ${title} ${space.tweetText || ''}`.toLowerCase();
+      const isCoreParticipant =
+        combinedText.includes('logan') ||
+        combinedText.includes('loganblack') ||
+        combinedText.includes('@loganblack') ||
+        combinedText.includes('angela') ||
+        combinedText.includes('angelamaggard') ||
+        combinedText.includes('@angelamaggard3');
 
-      if (!isApprovedHost) {
-        // Third-party host: ONLY permit download if Angela is confirmed as a speaker/participant
-        const combinedText = `${description} ${title} ${space.tweetText || ''}`.toLowerCase();
-        const isAngelaParticipant =
-          combinedText.includes('angelamaggard') ||
-          combinedText.includes('angela maggard') ||
-          combinedText.includes('@angelamaggard3') ||
-          combinedText.includes('angela');
-
-        if (!isAngelaParticipant) {
-          console.log(`   ⛔ Space ${space.spaceId} is hosted by @${uploaderId || uploader || 'unknown'} and @AngelaMaggard3 is NOT a confirmed participant/speaker. Skipping.`);
-          continue;
-        } else {
-          console.log(`   🎤 Space ${space.spaceId} is hosted by third-party @${uploaderId || uploader}, but Angela Maggard is confirmed as speaker/participant! Proceeding.`);
-        }
+      if (!isApprovedHost && !isFoundViaCoreHost && !isCoreParticipant) {
+        console.log(`   ⛔ Space ${space.spaceId} is hosted by @${uploaderId || uploader || 'unknown'} and not linked to core creators/participants. Skipping.`);
+        continue;
       } else {
-        console.log(`   👑 Space ${space.spaceId} is hosted by approved primary creator @${uploaderId || uploader}.`);
+        console.log(`   👑 Space ${space.spaceId} approved for ingestion (host: @${uploaderId || uploader || 'unknown'}, via: @${space.foundVia || 'unknown'}).`);
       }
 
       console.log(`🚀 Dispatching ingest.yml for ${space.url} (status: ${liveStatus})...`);

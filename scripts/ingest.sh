@@ -222,6 +222,16 @@ elif [[ -n "${COOKIES_DATA:-}" ]]; then
     COOKIE_TMP=$(mktemp)
     echo "$COOKIES_DATA" > "$COOKIE_TMP"
     COOKIE_ARGS=(--cookies "$COOKIE_TMP")
+elif [[ -n "${X_AUTH_TOKEN:-}" ]]; then
+    COOKIE_TMP=$(mktemp)
+    cat << EOF > "$COOKIE_TMP"
+# Netscape HTTP Cookie File
+.x.com	TRUE	/	TRUE	1893456000	auth_token	${X_AUTH_TOKEN}
+${X_CT0:+.x.com	TRUE	/	TRUE	1893456000	ct0	${X_CT0}}
+.twitter.com	TRUE	/	TRUE	1893456000	auth_token	${X_AUTH_TOKEN}
+${X_CT0:+.twitter.com	TRUE	/	TRUE	1893456000	ct0	${X_CT0}}
+EOF
+    COOKIE_ARGS=(--cookies "$COOKIE_TMP")
 fi
 
 SPACE_ID=$(yt-dlp "${COOKIE_ARGS[@]}" --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
