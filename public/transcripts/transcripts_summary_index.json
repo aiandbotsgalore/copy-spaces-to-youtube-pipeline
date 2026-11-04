@@ -9361,6 +9361,24 @@
     ]
   },
   {
+    "release_id": 287043291,
+    "release_tag": "20260217_1kvKpmqkMdQGE",
+    "title": "9/11 WTC Tower 1 & 2 & 3",
+    "published_at": "2026-02-17T01:24:42Z",
+    "episode_date": "2023-02-02",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmqkMdQGE/20260217_1kvKpmqkMdQGE_9_11_WTC_Tower_1_2_3.mp3",
+    "segment_count": 87,
+    "body": "**Title:** 9/11 WTC Tower 1 & 2 & 3\n**Host:** ŁØǤΔŇ (@LoganBlack)\n**Duration:** 00:16:07\n**Listeners:** 0\n**Recorded:** 20230202\n**Source:** https://x.com/i/spaces/1kvKpmqkMdQGE\n**Space ID:** 1kvKpmqkMdQGE\n\nTwitter Space participated by Kartott™🦋🕯️🌊, Chris Meyer🛸🇺🇸⭕️, JW (John Walden)\n\n---\nMETADATA::DURATION::00:16:07\nMETADATA::LISTENERS::0\nMETADATA::DATE::20230202\n",
+    "duration_sec": 967,
+    "host_handle": null,
+    "speakers": [
+      "Logan",
+      "Speaker 1",
+      "Speaker 2",
+      "Speaker 3"
+    ]
+  },
+  {
     "release_id": 287043237,
     "release_tag": "20260217_1kvKpmeYRXLGE",
     "title": "Logan+Guy Melt your brains🎸🎶😈",
@@ -10888,6 +10906,31 @@
       "Speaker 4",
       "Speaker 5",
       "Speaker 6"
+    ]
+  },
+  {
+    "release_id": 287333194,
+    "release_tag": "20260217_1OdKrzNyemqKX",
+    "title": "MC & E are both Awesome 💫",
+    "published_at": "2026-02-17T16:44:00Z",
+    "episode_date": "2023-02-02",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzNyemqKX/20260217_1OdKrzNyemqKX_MC_E_are_both_Awesome.mp3",
+    "segment_count": 416,
+    "body": "**Title:** MC & E are both Awesome 💫\n**Host:** ŁØǤΔŇ (@LoganBlack)\n**Duration:** 00:56:29\n**Listeners:** 0\n**Recorded:** 20230202\n**Source:** https://x.com/i/spaces/1OdKrzNyemqKX\n**Space ID:** 1OdKrzNyemqKX\n\nTwitter Space participated by Red Panda Koala, Kartott™🦋🕯️🌊, Chris Meyer🛸🇺🇸⭕️, HeyOcean 🌊, Kent Reynolds, K1ngK 👑, 𝙳𝚞𝚗𝚎 𝚃𝚎𝚠𝚔𝚜𝚋𝚞𝚛𝚢, MC², ↜ ¡’𝙼 𝙹𝚄𝚂𝚃 𝙿𝙰𝚂𝚂¡𝙽𝙶 𝚃𝙷𝚁🅾𝚄𝙶𝙷 ↝, MMMGGGBBB\n\n---\nMETADATA::DURATION::00:56:29\nMETADATA::LISTENERS::0\nMETADATA::DATE::20230202\n",
+    "duration_sec": 3389,
+    "host_handle": null,
+    "speakers": [
+      "Logan",
+      "Speaker 1",
+      "Speaker 10",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8",
+      "Speaker 9"
     ]
   },
   {

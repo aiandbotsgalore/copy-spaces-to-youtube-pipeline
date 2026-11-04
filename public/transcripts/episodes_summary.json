@@ -173,5 +173,43 @@
       "Speaker 1",
       "Speaker 2"
     ]
+  },
+  {
+    "release_tag": "20260217_1kvKpmqkMdQGE",
+    "title": "9/11 WTC Tower 1 & 2 & 3",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmqkMdQGE/20260217_1kvKpmqkMdQGE_9_11_WTC_Tower_1_2_3.mp3",
+    "segment_count": 214,
+    "duration_sec": 967.210688,
+    "speakers": [
+      "Logan",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7"
+    ]
+  },
+  {
+    "release_tag": "20260217_1OdKrzNyemqKX",
+    "title": "MC & E are both Awesome 💫",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzNyemqKX/20260217_1OdKrzNyemqKX_MC_E_are_both_Awesome.mp3",
+    "segment_count": 883,
+    "duration_sec": 3388.992,
+    "speakers": [
+      "Logan",
+      "Speaker 1",
+      "Speaker 11",
+      "Speaker 12",
+      "Speaker 13",
+      "Speaker 14",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8",
+      "Speaker 9"
+    ]
   }
 ]

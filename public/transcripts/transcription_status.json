@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-04T02:09:46.345944+00:00",
+  "last_updated": "2026-11-04T12:00:40.858458+00:00",
   "total_episodes_with_audio": 837,
-  "transcribed_count": 695,
-  "untranscribed_count": 142,
-  "percent_complete": 83.0,
+  "transcribed_count": 697,
+  "untranscribed_count": 140,
+  "percent_complete": 83.3,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -52,48 +52,28 @@
       "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
       "last_attempt": "2026-11-04T02:01:37.991981+00:00"
+    },
+    "20260216_1eaKbrlpmzQKX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
+      "last_attempt": "2026-11-04T11:52:25.501739+00:00"
+    },
+    "20260218_1YqKDojrQODxV": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
+      "last_attempt": "2026-11-04T11:52:25.501756+00:00"
+    },
+    "20260220_1MnxnpXBMwVGO": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: HTTPSConnectionPool(host='blackreceiptemail--spacepipe-transcribe-transcribe-en",
+      "last_attempt": "2026-11-04T11:52:25.501761+00:00"
     }
   },
   "next_in_queue": [
     {
-      "tag": "20261018_1RJjpbPMOmwKw",
-      "name": "5_to_boot_anyone_from_speaker_including_the_host",
-      "date": "Oct 18, 2026"
-    },
-    {
-      "tag": "20260911_1pKkOXdbeRNKj",
-      "name": "Being_positive_+",
-      "date": "Sep 11, 2026"
-    },
-    {
-      "tag": "20260217_1OyJAVogXlyxb",
-      "name": "TUPACABRA BDAY Radio: Taking Song Requests\ud83c\udfb8\ud83d\udc7d\u26a1\ud83c\udf89\ud83d\udc40\ud83c\udfb5\ud83c\udfb6",
-      "date": "Feb 26, 2023"
-    },
-    {
-      "tag": "20260217_1OdJrzekvMvJX",
-      "name": "\ud83d\udef8Kingdom of Nigh",
-      "date": "Feb 9, 2023"
-    },
-    {
-      "tag": "20260218_1lPKqBYLOdYGb",
-      "name": "#UFOtwitter Experiencer Night",
-      "date": "Feb 5, 2023"
-    },
-    {
       "tag": "20260216_1eaKbrlpmzQKX",
       "name": "#TwitterSpace Etiquette",
       "date": "Feb 3, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmqkMdQGE",
-      "name": "9/11 WTC Tower 1 & 2 & 3",
-      "date": "Feb 2, 2023"
-    },
-    {
-      "tag": "20260217_1OdKrzNyemqKX",
-      "name": "MC & E are both Awesome \ud83d\udcab",
-      "date": "Feb 2, 2023"
     },
     {
       "tag": "20260218_1YqKDojrQODxV",
@@ -154,6 +134,41 @@
       "tag": "20260217_1LyxBqbXnRPJN",
       "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
       "date": "Jan 15, 2023"
+    },
+    {
+      "tag": "20260218_1ynJOazZeAVKR",
+      "name": "King's Chamber nub & Pole Shifts\ud83d\udc88 [HOUR 18]",
+      "date": "Jan 13, 2023"
+    },
+    {
+      "tag": "20260216_1jMKgLyQyNAGL",
+      "name": "The Space after the space \ud83d\ude80",
+      "date": "Jan 12, 2023"
+    },
+    {
+      "tag": "20260217_1rmGPkDNLMXKN",
+      "name": "Taco Tuesday-Kayce Protocol edition",
+      "date": "Jan 10, 2023"
+    },
+    {
+      "tag": "20260218_1yoJMZlDeawxQ",
+      "name": "AFTER DARK",
+      "date": "Jan 8, 2023"
+    },
+    {
+      "tag": "20260216_1jMJgLyAVgmxL",
+      "name": "Kayce UFO Protocols",
+      "date": "Jan 8, 2023"
+    },
+    {
+      "tag": "20260217_1mnGeRkMerYJX",
+      "name": "Tall Greys/EBE's/Nordics and getting weird",
+      "date": "Jan 3, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDoVNzzDxV",
+      "name": "homies",
+      "date": "Jan 2, 2023"
     }
   ]
 }
