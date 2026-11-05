@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T14:34:29.453617+00:00",
+  "last_updated": "2026-11-05T15:26:05.985688+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 721,
-  "untranscribed_count": 118,
-  "percent_complete": 85.9,
+  "transcribed_count": 724,
+  "untranscribed_count": 115,
+  "percent_complete": 86.3,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,6 +27,16 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
+    },
+    "20260216_1jMJgLyAVgmxL": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: Internal Server Error",
+      "last_attempt": "2026-11-05T15:16:45.860021+00:00"
+    },
+    "20260217_1mnGeRkMerYJX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: Internal Server Error",
+      "last_attempt": "2026-11-05T15:16:45.860037+00:00"
     }
   },
   "next_in_queue": [
@@ -39,21 +49,6 @@
       "tag": "20260217_1mnGeRkMerYJX",
       "name": "Tall Greys/EBE's/Nordics and getting weird",
       "date": "Jan 3, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDoVNzzDxV",
-      "name": "homies",
-      "date": "Jan 2, 2023"
-    },
-    {
-      "tag": "20260217_1RDGlawyYYrJL",
-      "name": "AAA/Alien Addicts Anonymous - AMENTI HALL\ud83d\udc8a\ud83e\udd74\ud83d\ude35",
-      "date": "Jan 2, 2023"
-    },
-    {
-      "tag": "20260216_1DXGyvZvZpEJM",
-      "name": "MAX Logan- New Years Day\ud83c\udf89\ud83d\udc7d\u2764\ufe0f",
-      "date": "Jan 1, 2023"
     },
     {
       "tag": "20260216_1BdGYyXQeLyGX",
@@ -129,6 +124,21 @@
       "tag": "20260217_1vAxRARvmDYJl",
       "name": "\ud83d\udca9\ud83d\udca9\ud83d\udca9\ud83d\udca9\ud83d\udca9",
       "date": "Dec 21, 2022"
+    },
+    {
+      "tag": "20260217_1MnGnpjlkwdxO",
+      "name": "Poseidon's Time Travelers Union",
+      "date": "Dec 20, 2022"
+    },
+    {
+      "tag": "20260216_1BdGYykenzQGX",
+      "name": "The Otherworldly Hour - The Cosmos & Beyond \ud83d\udc7d\ud83c\udde6\ud83c\uddfa\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf2\ud83e\udd85\ud83e\udd96",
+      "date": "Dec 19, 2022"
+    },
+    {
+      "tag": "20260217_1vAxRAREEZqJl",
+      "name": "UFO 101 FAFO",
+      "date": "Dec 18, 2022"
     }
   ]
 }
