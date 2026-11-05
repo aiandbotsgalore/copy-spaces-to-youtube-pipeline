@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T15:26:05.985688+00:00",
+  "last_updated": "2026-11-05T17:03:46.844096+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 724,
-  "untranscribed_count": 115,
-  "percent_complete": 86.3,
+  "transcribed_count": 729,
+  "untranscribed_count": 110,
+  "percent_complete": 86.9,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,44 +27,9 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
-    },
-    "20260216_1jMJgLyAVgmxL": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: Internal Server Error",
-      "last_attempt": "2026-11-05T15:16:45.860021+00:00"
-    },
-    "20260217_1mnGeRkMerYJX": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: Internal Server Error",
-      "last_attempt": "2026-11-05T15:16:45.860037+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLyAVgmxL",
-      "name": "Kayce UFO Protocols",
-      "date": "Jan 8, 2023"
-    },
-    {
-      "tag": "20260217_1mnGeRkMerYJX",
-      "name": "Tall Greys/EBE's/Nordics and getting weird",
-      "date": "Jan 3, 2023"
-    },
-    {
-      "tag": "20260216_1BdGYyXQeLyGX",
-      "name": "New Years Eve \ud83d\udc7d\ud83c\udf87\ud83c\udf89",
-      "date": "Dec 31, 2022"
-    },
-    {
-      "tag": "20260218_1YqKDoVywBDxV",
-      "name": "UFO pit stop for Aussie Outback Political Corner.",
-      "date": "Dec 30, 2022"
-    },
-    {
-      "tag": "20260217_1mnGeRnrgARJX",
-      "name": "Learning to Let Go:The Power of Surrender in Personal Growth",
-      "date": "Dec 29, 2022"
-    },
     {
       "tag": "20260218_1yoJMZLMvlWxQ",
       "name": "e\u00e8wwws",
@@ -139,6 +104,31 @@
       "tag": "20260217_1vAxRAREEZqJl",
       "name": "UFO 101 FAFO",
       "date": "Dec 18, 2022"
+    },
+    {
+      "tag": "20260217_1mrxmklrbokGy",
+      "name": "Lost Souls of #UFOTwitter. We're talking about you @ElonMusk",
+      "date": "Dec 18, 2022"
+    },
+    {
+      "tag": "20260216_1dRJZMkLrObGB",
+      "name": "\ud83d\udc0d\ud83d\udc0a\ud83e\udd96REPTILLIANS \ud83d\udc0a\ud83d\udc0d\ud83e\udd96.  Lost souls of #UFOTwitter",
+      "date": "Dec 18, 2022"
+    },
+    {
+      "tag": "20260217_1rmGPkEmyDmKN",
+      "name": "\ud83c\udf44\ud83d\udc7dCome get your #UFO Disclosure #ufotwitter\ud83d\udc79\ud83d\udc7b\ud83e\udd16",
+      "date": "Dec 17, 2022"
+    },
+    {
+      "tag": "20260217_1nAKErneLLVGL",
+      "name": "AI Alien Debate After midnight\ud83d\udeac\ud83e\udd16\ud83d\udc7e \ud83d\udc7d #ufotwitter #NASA",
+      "date": "Dec 17, 2022"
+    },
+    {
+      "tag": "20260218_1ynKOarNamVJR",
+      "name": "MISSING 411 - The UFO Connection",
+      "date": "Dec 16, 2022"
     }
   ]
 }
