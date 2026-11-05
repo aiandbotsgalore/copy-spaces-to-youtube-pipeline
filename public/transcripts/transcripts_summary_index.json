@@ -26,6 +26,32 @@
     ]
   },
   {
+    "release_id": 434612111,
+    "release_tag": "20261024_1lKQRWbDaAXGE",
+    "title": "Red_String_Theory_-_The_Exorcist",
+    "published_at": "2026-11-05T00:16:00Z",
+    "episode_date": "2026-10-24",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261024_1lKQRWbDaAXGE/20261024_1lKQRWbDaAXGE_Red_String_Theory_-_The_Exorcist.mp3",
+    "segment_count": 2829,
+    "body": "- **Space Title:** Red_String_Theory_-_The_Exorcist\n- **Duration:** 07:30:54\n- **Processed:** 20261024_1lKQRWbDaAXGE\n- **Source ID:** 1lKQRWbDaAXGE\n\n---\nMETADATA::DURATION::07:30:54\nMETADATA::SOURCE_ID::1lKQRWbDaAXGE\nMETADATA::EPISODE_DATE::20261024\nMETADATA::HOST::RST_Podcast\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 27054,
+    "host_handle": "RST_Podcast",
+    "speakers": [
+      "Rose",
+      "Speaker 1",
+      "Speaker 10",
+      "Speaker 11",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8",
+      "Speaker 9"
+    ]
+  },
+  {
     "release_id": 428315104,
     "release_tag": "20261029_1vKpPNMwnXXKE",
     "title": "BLESSED_BE_ALL_WHO_PASS_HERE",
