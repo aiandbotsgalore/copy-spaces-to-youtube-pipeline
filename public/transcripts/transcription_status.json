@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T10:41:31.548622+00:00",
+  "last_updated": "2026-11-05T12:01:58.262010+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 708,
-  "untranscribed_count": 131,
-  "percent_complete": 84.4,
+  "transcribed_count": 713,
+  "untranscribed_count": 126,
+  "percent_complete": 85.0,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -30,31 +30,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1LyGBqDopyzKN",
-      "name": "Kartott and the alien cigarette smoker.",
-      "date": "Jan 25, 2023"
-    },
-    {
-      "tag": "20260216_1DXGyvLywNWJM",
-      "name": "UFOs and shizzz + Stuff: Paranormal Poo...p",
-      "date": "Jan 21, 2023"
-    },
-    {
-      "tag": "20260218_1YpKkgeeApjKj",
-      "name": "Apollo 20: The Secret Mission to the Moon 4 Aliens",
-      "date": "Jan 20, 2023"
-    },
-    {
-      "tag": "20260217_1kvKpmVdQEoGE",
-      "name": "Unearthing the Secrets of the Ancients:Lost Civilizations & UFOs",
-      "date": "Jan 20, 2023"
-    },
-    {
-      "tag": "20260217_1OwxWwqqLkQxQ",
-      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
-      "date": "Jan 20, 2023"
-    },
     {
       "tag": "20260220_1djGXlYkooRGZ",
       "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
@@ -129,6 +104,31 @@
       "tag": "20260218_1YqKDoVywBDxV",
       "name": "UFO pit stop for Aussie Outback Political Corner.",
       "date": "Dec 30, 2022"
+    },
+    {
+      "tag": "20260217_1mnGeRnrgARJX",
+      "name": "Learning to Let Go:The Power of Surrender in Personal Growth",
+      "date": "Dec 29, 2022"
+    },
+    {
+      "tag": "20260218_1yoJMZLMvlWxQ",
+      "name": "e\u00e8wwws",
+      "date": "Dec 28, 2022"
+    },
+    {
+      "tag": "20260217_1LyGBqljLerKN",
+      "name": "Stevie Wonder built the Pyramids with his great eyesight \ud83d\udc40\ud83d\udc7d",
+      "date": "Dec 28, 2022"
+    },
+    {
+      "tag": "20260218_1YpKkgpeBdrKj",
+      "name": "No sleep till...UAP Report",
+      "date": "Dec 27, 2022"
+    },
+    {
+      "tag": "20260216_1dRKZMVRkYAxB",
+      "name": "alcohol hour",
+      "date": "Dec 27, 2022"
     }
   ]
 }
