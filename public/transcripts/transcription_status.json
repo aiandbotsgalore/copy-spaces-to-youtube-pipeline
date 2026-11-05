@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T18:10:49.790794+00:00",
+  "last_updated": "2026-11-05T19:43:24.136963+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 734,
-  "untranscribed_count": 105,
-  "percent_complete": 87.5,
+  "transcribed_count": 737,
+  "untranscribed_count": 102,
+  "percent_complete": 87.8,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,24 +27,19 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
+    },
+    "20260218_1yNxaNwbgmnKj": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal poll returned HTTP 500: modal-http: internal error: function was terminat",
+      "last_attempt": "2026-11-05T19:33:29.394392+00:00"
+    },
+    "20260217_1mnxeRnLmloKX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-05T19:33:29.394410+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1mrGmkzjQQWxy",
-      "name": "Corey Goode, David Wilcox, David Adair-Insertion\ud83c\udf46#ufotwitter",
-      "date": "Dec 25, 2022"
-    },
-    {
-      "tag": "20260217_1mnGeRnMkOvJX",
-      "name": "Alien Attacks w/ Matt Hurley- BadAliens.info #UFOtwitter",
-      "date": "Dec 23, 2022"
-    },
-    {
-      "tag": "20260217_1MYGNgBbkXVJw",
-      "name": "Matt Hurley of BadAliens.info interview with r/UFOB",
-      "date": "Dec 23, 2022"
-    },
     {
       "tag": "20260218_1yNxaNwbgmnKj",
       "name": "Holiday Blessings \ud83d\ude4f Let us Pray & Party \ud83e\uddce\ud83c\udffb\ud83c\udf84\ud83d\udd7a\ud83c\udffb",
@@ -129,6 +124,21 @@
       "tag": "20260217_1mrxmklDwWNGy",
       "name": "SLEEP SCIENCE",
       "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260216_1gqxvyAPBonJB",
+      "name": "12/12",
+      "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260218_1YpJkgjrgrmJj",
+      "name": "Chat gpt Ai",
+      "date": "Dec 12, 2022"
+    },
+    {
+      "tag": "20260217_1OyKAVnaLzrGb",
+      "name": "DJ Loyalty Radio taking song Requests",
+      "date": "Dec 12, 2022"
     }
   ]
 }
