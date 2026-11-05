@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-04T20:30:47.889049+00:00",
-  "total_episodes_with_audio": 837,
-  "transcribed_count": 697,
-  "untranscribed_count": 140,
-  "percent_complete": 83.3,
+  "last_updated": "2026-11-05T07:43:49.849982+00:00",
+  "total_episodes_with_audio": 839,
+  "transcribed_count": 703,
+  "untranscribed_count": 136,
+  "percent_complete": 83.8,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,9 +27,19 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
+    },
+    "20260218_1lPKqBYLOdYGb": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal poll returned HTTP 500: modal-http: internal error: function execution ti",
+      "last_attempt": "2026-11-05T07:35:10.107743+00:00"
     }
   },
   "next_in_queue": [
+    {
+      "tag": "20260218_1lPKqBYLOdYGb",
+      "name": "#UFOtwitter Experiencer Night",
+      "date": "Feb 5, 2023"
+    },
     {
       "tag": "20260216_1eaKbrlpmzQKX",
       "name": "#TwitterSpace Etiquette",
@@ -37,7 +47,7 @@
     },
     {
       "tag": "20260218_1YqKDojrQODxV",
-      "name": "The Paranormal Paradox👽👻👾🤖",
+      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
       "date": "Jan 30, 2023"
     },
     {
@@ -47,7 +57,7 @@
     },
     {
       "tag": "20260218_1YqGoAXoRYkxv",
-      "name": "Good Morning UFO 👽",
+      "name": "Good Morning UFO \ud83d\udc7d",
       "date": "Jan 26, 2023"
     },
     {
@@ -72,12 +82,12 @@
     },
     {
       "tag": "20260217_1OwxWwqqLkQxQ",
-      "name": "this Mexican toilet ain't no joke ese 🧻🚽🪠🔫",
+      "name": "this Mexican toilet ain't no joke ese \ud83e\uddfb\ud83d\udebd\ud83e\udea0\ud83d\udd2b",
       "date": "Jan 20, 2023"
     },
     {
       "tag": "20260220_1djGXlYkooRGZ",
-      "name": "Wielder Wednesday 🤺🗡️⚔️🔫",
+      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
       "date": "Jan 19, 2023"
     },
     {
@@ -97,12 +107,12 @@
     },
     {
       "tag": "20260218_1ynJOazZeAVKR",
-      "name": "King's Chamber nub & Pole Shifts💈 [HOUR 18]",
+      "name": "King's Chamber nub & Pole Shifts\ud83d\udc88 [HOUR 18]",
       "date": "Jan 13, 2023"
     },
     {
       "tag": "20260216_1jMKgLyQyNAGL",
-      "name": "The Space after the space 🚀",
+      "name": "The Space after the space \ud83d\ude80",
       "date": "Jan 12, 2023"
     },
     {
@@ -124,15 +134,6 @@
       "tag": "20260217_1mnGeRkMerYJX",
       "name": "Tall Greys/EBE's/Nordics and getting weird",
       "date": "Jan 3, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDoVNzzDxV",
-      "name": "homies",
-      "date": "Jan 2, 2023"
     }
-  ],
-  "completed_episodes": [
-    "20261024_1wGWjlXlLQnKQ",
-    "20261024_1lKQRWbDaAXGE"
   ]
 }
