@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T17:03:46.844096+00:00",
+  "last_updated": "2026-11-05T18:10:49.790794+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 729,
-  "untranscribed_count": 110,
-  "percent_complete": 86.9,
+  "transcribed_count": 734,
+  "untranscribed_count": 105,
+  "percent_complete": 87.5,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -30,31 +30,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1yoJMZLMvlWxQ",
-      "name": "e\u00e8wwws",
-      "date": "Dec 28, 2022"
-    },
-    {
-      "tag": "20260217_1LyGBqljLerKN",
-      "name": "Stevie Wonder built the Pyramids with his great eyesight \ud83d\udc40\ud83d\udc7d",
-      "date": "Dec 28, 2022"
-    },
-    {
-      "tag": "20260218_1YpKkgpeBdrKj",
-      "name": "No sleep till...UAP Report",
-      "date": "Dec 27, 2022"
-    },
-    {
-      "tag": "20260216_1dRKZMVRkYAxB",
-      "name": "alcohol hour",
-      "date": "Dec 27, 2022"
-    },
-    {
-      "tag": "20260216_1BRJjZjRMkwJw",
-      "name": "Did Santa leave you alien technology? Astral is holding an RV space",
-      "date": "Dec 26, 2022"
-    },
     {
       "tag": "20260217_1mrGmkzjQQWxy",
       "name": "Corey Goode, David Wilcox, David Adair-Insertion\ud83c\udf46#ufotwitter",
@@ -129,6 +104,31 @@
       "tag": "20260218_1ynKOarNamVJR",
       "name": "MISSING 411 - The UFO Connection",
       "date": "Dec 16, 2022"
+    },
+    {
+      "tag": "20260217_1OdKrzmywLyKX",
+      "name": "UFO news & discussion #ufotwitter #twitterspace",
+      "date": "Dec 16, 2022"
+    },
+    {
+      "tag": "20260217_1kvKpmlVLvkGE",
+      "name": "Mr. Rogers is getting SuperFreq \ud83e\udd20\ud83d\udc7d and so is Daniel!",
+      "date": "Dec 15, 2022"
+    },
+    {
+      "tag": "20260216_1djGXlkYALPGZ",
+      "name": "Mr.Rogers lives in the ghetto with Elmo",
+      "date": "Dec 15, 2022"
+    },
+    {
+      "tag": "20260218_1BdxYykLvbyxX",
+      "name": "12/12 Twitter took away 4650 of the people I'm following.(This is why)",
+      "date": "Dec 13, 2022"
+    },
+    {
+      "tag": "20260217_1mrxmklDwWNGy",
+      "name": "SLEEP SCIENCE",
+      "date": "Dec 13, 2022"
     }
   ]
 }
