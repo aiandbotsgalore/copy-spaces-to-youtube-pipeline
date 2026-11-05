@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T07:43:49.849982+00:00",
+  "last_updated": "2026-11-05T10:41:31.548622+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 703,
-  "untranscribed_count": 136,
-  "percent_complete": 83.8,
+  "transcribed_count": 708,
+  "untranscribed_count": 131,
+  "percent_complete": 84.4,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,39 +27,9 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
-    },
-    "20260218_1lPKqBYLOdYGb": {
-      "attempts": 1,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal poll returned HTTP 500: modal-http: internal error: function execution ti",
-      "last_attempt": "2026-11-05T07:35:10.107743+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1lPKqBYLOdYGb",
-      "name": "#UFOtwitter Experiencer Night",
-      "date": "Feb 5, 2023"
-    },
-    {
-      "tag": "20260216_1eaKbrlpmzQKX",
-      "name": "#TwitterSpace Etiquette",
-      "date": "Feb 3, 2023"
-    },
-    {
-      "tag": "20260218_1YqKDojrQODxV",
-      "name": "The Paranormal Paradox\ud83d\udc7d\ud83d\udc7b\ud83d\udc7e\ud83e\udd16",
-      "date": "Jan 30, 2023"
-    },
-    {
-      "tag": "20260220_1MnxnpXBMwVGO",
-      "name": "Saturday Theoretical Paranormal Space",
-      "date": "Jan 28, 2023"
-    },
-    {
-      "tag": "20260218_1YqGoAXoRYkxv",
-      "name": "Good Morning UFO \ud83d\udc7d",
-      "date": "Jan 26, 2023"
-    },
     {
       "tag": "20260217_1LyGBqDopyzKN",
       "name": "Kartott and the alien cigarette smoker.",
@@ -134,6 +104,31 @@
       "tag": "20260217_1mnGeRkMerYJX",
       "name": "Tall Greys/EBE's/Nordics and getting weird",
       "date": "Jan 3, 2023"
+    },
+    {
+      "tag": "20260218_1YqKDoVNzzDxV",
+      "name": "homies",
+      "date": "Jan 2, 2023"
+    },
+    {
+      "tag": "20260217_1RDGlawyYYrJL",
+      "name": "AAA/Alien Addicts Anonymous - AMENTI HALL\ud83d\udc8a\ud83e\udd74\ud83d\ude35",
+      "date": "Jan 2, 2023"
+    },
+    {
+      "tag": "20260216_1DXGyvZvZpEJM",
+      "name": "MAX Logan- New Years Day\ud83c\udf89\ud83d\udc7d\u2764\ufe0f",
+      "date": "Jan 1, 2023"
+    },
+    {
+      "tag": "20260216_1BdGYyXQeLyGX",
+      "name": "New Years Eve \ud83d\udc7d\ud83c\udf87\ud83c\udf89",
+      "date": "Dec 31, 2022"
+    },
+    {
+      "tag": "20260218_1YqKDoVywBDxV",
+      "name": "UFO pit stop for Aussie Outback Political Corner.",
+      "date": "Dec 30, 2022"
     }
   ]
 }
