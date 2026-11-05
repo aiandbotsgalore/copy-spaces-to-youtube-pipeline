@@ -1,9 +1,9 @@
 {
-  "last_updated": "2026-11-05T12:01:58.262010+00:00",
+  "last_updated": "2026-11-05T13:16:05.253052+00:00",
   "total_episodes_with_audio": 839,
-  "transcribed_count": 713,
-  "untranscribed_count": 126,
-  "percent_complete": 85.0,
+  "transcribed_count": 716,
+  "untranscribed_count": 123,
+  "percent_complete": 85.3,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -27,24 +27,19 @@
       "attempts": 4,
       "last_error": "AttributeError: 'list' object has no attribute 'get'",
       "last_attempt": "2026-10-27T12:28:36.722368+00:00"
+    },
+    "20260217_1LyxBqbXnRPJN": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: modal-http: internal error: function was term",
+      "last_attempt": "2026-11-05T13:06:26.563825+00:00"
+    },
+    "20260218_1ynJOazZeAVKR": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 500: modal-http: internal error: function was term",
+      "last_attempt": "2026-11-05T13:06:26.563871+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260220_1djGXlYkooRGZ",
-      "name": "Wielder Wednesday \ud83e\udd3a\ud83d\udde1\ufe0f\u2694\ufe0f\ud83d\udd2b",
-      "date": "Jan 19, 2023"
-    },
-    {
-      "tag": "20260218_1YpJkgeaVDEJj",
-      "name": "BIGELOW SECRETS",
-      "date": "Jan 18, 2023"
-    },
-    {
-      "tag": "20260217_1vAxRAzQrkYJl",
-      "name": "Messages from the future? [Open Discussion]",
-      "date": "Jan 15, 2023"
-    },
     {
       "tag": "20260217_1LyxBqbXnRPJN",
       "name": "Crop Circles & Messages From the Future ft. Dr.Drew",
@@ -129,6 +124,21 @@
       "tag": "20260216_1dRKZMVRkYAxB",
       "name": "alcohol hour",
       "date": "Dec 27, 2022"
+    },
+    {
+      "tag": "20260216_1BRJjZjRMkwJw",
+      "name": "Did Santa leave you alien technology? Astral is holding an RV space",
+      "date": "Dec 26, 2022"
+    },
+    {
+      "tag": "20260217_1mrGmkzjQQWxy",
+      "name": "Corey Goode, David Wilcox, David Adair-Insertion\ud83c\udf46#ufotwitter",
+      "date": "Dec 25, 2022"
+    },
+    {
+      "tag": "20260217_1mnGeRnMkOvJX",
+      "name": "Alien Attacks w/ Matt Hurley- BadAliens.info #UFOtwitter",
+      "date": "Dec 23, 2022"
     }
   ]
 }
