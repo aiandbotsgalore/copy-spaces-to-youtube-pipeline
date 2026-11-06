@@ -390,7 +390,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                         return false;
                       });
 
-                      const audioUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
+                      // Prefer R2 CDN URL over raw GitHub release URL for browser streaming.
+                      // GitHub release download URLs lack CORS/CORP headers and stall under
+                      // the app's Cross-Origin-Embedder-Policy: require-corp header.
+                      const ghUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
+                      const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
+                      const fileName = ghUrl.split('/').pop()?.split('?')[0] || '';
+                      const audioUrl = fileName && (fileName.endsWith('.mp3') || fileName.endsWith('.wav'))
+                        ? `${r2Base}/${encodeURIComponent(fileName)}`
+                        : ghUrl;
+
                       const existingIdx = combinedClips.findIndex(ec => {
                         const ecName = (ec.file_path || '').split(/[\\/]/).pop()?.toLowerCase();
                         return (matchingMp3 && ecName === matchingMp3.name.toLowerCase()) ||
@@ -405,7 +414,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                           speakers: normalizeClipSpeakers(mc.speakers ?? combinedClips[existingIdx].speakers),
                           category: normalizeCategory(mc.category || combinedClips[existingIdx].category),
                           episode: mc.episode || relTitle,
-                          file_path: audioUrl || combinedClips[existingIdx].file_path
+                          // Preserve existing R2 URL if present; only update if we have a better URL
+                          file_path: combinedClips[existingIdx].file_path?.startsWith(r2Base)
+                            ? combinedClips[existingIdx].file_path
+                            : (audioUrl || combinedClips[existingIdx].file_path),
+                          download_url: combinedClips[existingIdx].download_url?.startsWith(r2Base)
+                            ? combinedClips[existingIdx].download_url
+                            : (audioUrl || combinedClips[existingIdx].download_url),
                         };
                       } else {
                         combinedClips.push({
@@ -414,7 +429,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                           speakers: normalizeClipSpeakers(mc.speakers),
                           category: normalizeCategory(mc.category),
                           episode: mc.episode || relTitle,
-                          file_path: audioUrl
+                          file_path: audioUrl,
+                          download_url: audioUrl,
                         });
                       }
 
@@ -443,6 +459,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   const s = parseInt(match[3] || '0', 10);
                   const startSec = h * 3600 + m * 60 + s;
                   const title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
+                  // Route through Cloudflare R2 CDN instead of raw GitHub release URL
+                  const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
+                  const r2Url = `${r2Base}/${encodeURIComponent(fname)}`;
                   combinedClips.push({
                     title: title,
                     category: 'Highlights',
@@ -454,8 +473,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     reason: `AI selected highlight moment from ${relTitle}.`,
                     transcript_snippet: `Highlight moment from ${relTitle}`,
                     episode: relTitle,
-                    file_path: a.browser_download_url,
-                    download_url: a.browser_download_url,
+                    file_path: r2Url,
+                    download_url: r2Url,
                   });
                 }
               }

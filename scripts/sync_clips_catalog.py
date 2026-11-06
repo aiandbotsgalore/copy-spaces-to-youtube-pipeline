@@ -20,6 +20,25 @@ from typing import List, Dict, Any, Optional
 
 PUBLIC_CATALOG = Path("public/clips/clips_catalog.json")
 
+# Always serve audio via Cloudflare R2 CDN — GitHub release download URLs lack
+# the CORS headers required by Cross-Origin-Embedder-Policy: require-corp.
+_R2_CDN_BASE = "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev"
+
+
+def _to_r2_url(gh_url: str) -> str:
+    """Convert any GitHub release URL (or other URL) to its R2 CDN equivalent.
+
+    Extracts the MP3 filename and rebuilds as:
+      https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/<encoded-filename>
+
+    If the URL doesn't end with .mp3 it is returned unchanged so non-audio
+    assets (JSON metadata files, etc.) are not accidentally mangled.
+    """
+    fn = gh_url.split("/")[-1].split("?")[0]
+    if fn.lower().endswith(".mp3"):
+        return f"{_R2_CDN_BASE}/{urllib.parse.quote(fn)}"
+    return gh_url
+
 
 def parse_clip_info(filename: str, release_title: str, download_url: str) -> Dict[str, Any]:
     stem = Path(filename).stem
@@ -168,8 +187,8 @@ def main():
                             None
                         )
                         if matched_asset:
-                            rc["file_path"] = matched_asset.get("browser_download_url")
-                            rc["download_url"] = matched_asset.get("browser_download_url")
+                            rc["file_path"] = _to_r2_url(matched_asset.get("browser_download_url", ""))
+                            rc["download_url"] = _to_r2_url(matched_asset.get("browser_download_url", ""))
                             seen_files.add(matched_asset.get("name", "").lower())
                         rc["episode"] = rc.get("episode") or rel_name
 
@@ -192,7 +211,7 @@ def main():
 
         for a in assets:
             fname = a.get("name", "")
-            dl_url = a.get("browser_download_url", "")
+            dl_url = _to_r2_url(a.get("browser_download_url", ""))
 
             # Check if this asset is a clip (e.g. starts with timestamp like 07m19s or 03h05m20s)
             if fname.endswith(".mp3") and not re.match(r"^20\d{6}_", fname) and re.match(r"^(?:(\d+)h)?(\d+)m(\d+)s", fname):

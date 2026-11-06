@@ -48,15 +48,24 @@ export const getCategoryColor = (cat: string) => {
 };
 
 export const getAudioUrl = (clip: ClipItem): string => {
-  if (clip.download_url && clip.download_url.startsWith('http')) {
-    return clip.download_url;
-  }
-  if (clip.file_path) {
-    if (clip.file_path.startsWith('http')) return clip.file_path;
-    const cleanFn = clip.file_path.split(/[\\/]/).pop();
+  // Always route through Cloudflare R2 when we can derive an MP3 filename,
+  // regardless of whether the catalog entry points to GitHub Releases or a
+  // local path. GitHub release download URLs lack CORS headers and
+  // Content-Type: audio/mpeg, so the browser <audio> element stalls under
+  // the app's Cross-Origin-Embedder-Policy: require-corp header.
+  const rawUrl = clip.download_url || clip.file_path || '';
+  if (rawUrl) {
+    const cleanFn = rawUrl.split(/[\\/]/).pop()?.split('?')[0] || '';
     if (cleanFn && (cleanFn.endsWith('.mp3') || cleanFn.endsWith('.wav'))) {
+      // If the URL already points to our R2 CDN, return it as-is.
+      if (rawUrl.startsWith(CLOUDFLARE_R2_BASE_URL)) return rawUrl;
+      // Otherwise rewrite to R2 (covers GitHub Releases and local paths).
       return `${CLOUDFLARE_R2_BASE_URL}/${encodeURIComponent(cleanFn)}`;
     }
+    // Non-audio URLs (e.g. fully-qualified external URLs to other hosts).
+    if (rawUrl.startsWith('http')) return rawUrl;
+  }
+  if (clip.file_path && !clip.file_path.startsWith('http')) {
     const base = ((import.meta as any).env?.BASE_URL || '/').replace(/\/$/, '');
     const cleanPath = clip.file_path.replace(/^\.?\/?public\//, '').replace(/^\.?\//, '');
     return `${base}/${cleanPath}`;
