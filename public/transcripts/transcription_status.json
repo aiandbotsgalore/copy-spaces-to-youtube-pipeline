@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-05T20:28:20.238823+00:00",
+  "last_updated": "2026-11-06T01:58:05.554459+00:00",
   "total_episodes_with_audio": 839,
   "transcribed_count": 737,
   "untranscribed_count": 102,
@@ -7,7 +7,33 @@
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {},
+  "failed_episodes": {
+    "20260218_1yNxaNwbgmnKj": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-06T01:51:38.129420+00:00"
+    },
+    "20260217_1mnxeRnLmloKX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-06T01:51:38.129436+00:00"
+    },
+    "20260216_1djxXlkWdRkxZ": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-06T01:51:38.129439+00:00"
+    },
+    "20260217_1vAxRARvmDYJl": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-06T01:51:38.129442+00:00"
+    },
+    "20260217_1MnGnpjlkwdxO": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-06T01:51:38.129444+00:00"
+    }
+  },
   "next_in_queue": [
     {
       "tag": "20260218_1yNxaNwbgmnKj",
