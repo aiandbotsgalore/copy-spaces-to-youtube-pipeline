@@ -547,16 +547,16 @@ def call_highlight_discovery(
     elif p_norm == "heuristic":
         return []
 
-    # 'auto' mode: try high-capacity Cohere -> Google AI Pro CLI -> Inception Labs -> OpenRouter
+    # 'auto' mode: try Inception Labs (Mercury-3) -> high-capacity Cohere -> Google AI Pro CLI -> OpenRouter
+    clips = call_inception_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
+    if clips:
+        return clips
+
     clips = call_cohere_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
     if clips:
         return clips
 
     clips = call_agy_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
-    if clips:
-        return clips
-
-    clips = call_inception_highlight_discovery(transcript_text, limit=limit, category_filter=category_filter)
     if clips:
         return clips
 

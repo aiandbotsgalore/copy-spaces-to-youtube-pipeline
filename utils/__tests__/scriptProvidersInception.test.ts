@@ -9,6 +9,7 @@ import {
   roleMapNeedsBudget,
   verifyCrossFamily,
   DEFAULT_ROLE_MAP,
+  INCEPTION_ROLE_MAP,
 } from '../../server/scriptProviders';
 import type { RoleMap } from '../../utils/scriptTypes';
 
@@ -278,5 +279,13 @@ describe('Inception Role Parsing & Cross-Family verification', () => {
       judge: 'inception:mercury-3', // open_source == open_source
     };
     expect(verifyCrossFamily(invalidMap).ok).toBe(false);
+  });
+
+  it('validates exported INCEPTION_ROLE_MAP satisfies cross-family review rules', () => {
+    expect(verifyCrossFamily(INCEPTION_ROLE_MAP)).toEqual({ ok: true });
+    expect(INCEPTION_ROLE_MAP.reviser).toBe('inception:mercury-3');
+    expect(INCEPTION_ROLE_MAP.analyst).toBe('inception:mercury-3');
+    expect(INCEPTION_ROLE_MAP.critic).toBe('inception:mercury-3');
+    expect(familyOf(INCEPTION_ROLE_MAP.judge)).not.toBe(familyOf(INCEPTION_ROLE_MAP.reviser));
   });
 });

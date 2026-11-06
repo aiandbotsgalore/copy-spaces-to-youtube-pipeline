@@ -623,9 +623,10 @@ export function createCheaperInferenceAdapter(model: string, deps: { fetchImpl?:
 /* Inception Labs (Mercury-3)                                                                       */
 /* ------------------------------------------------------------------------------------------------ */
 
-/** USD per 1M tokens, Inception Labs public pricing (standard tier: $0.20 in, $0.70 out). */
+/** USD per 1M tokens, Inception Labs launch pricing ($0.10 in, $0.35 out). */
 export const INCEPTION_PRICES: Record<string, { in: number; out: number; family: Family }> = {
-  'mercury-3': { in: 0.20, out: 0.70, family: 'open_source' },
+  'mercury-3': { in: 0.10, out: 0.35, family: 'open_source' },
+  'mercury-2.5': { in: 0.20, out: 0.75, family: 'open_source' },
 };
 
 export function inceptionCostUsd(model: string, inTok: number, outTok: number): number {
@@ -948,6 +949,11 @@ export const FALLBACK_ROLE_MAP: RoleMap = {
 export const COHERE_ROLE_MAP: RoleMap = {
   analyst: 'cohere:command-a-03-2025', reviser: 'cohere:command-a-03-2025', critic: 'inception:mercury-3',
   judge: 'inception:mercury-3', factcheck: 'inception:mercury-3', polish: 'cohere:command-a-03-2025',
+};
+
+export const INCEPTION_ROLE_MAP: RoleMap = {
+  analyst: 'inception:mercury-3', reviser: 'inception:mercury-3', critic: 'inception:mercury-3',
+  judge: 'cohere:command-a-03-2025', factcheck: 'cohere:command-a-03-2025', polish: 'inception:mercury-3',
 };
 
 export type RoleSpec =

@@ -103,6 +103,8 @@ Script Studio uses multi-agent debate and consensus across models.
 
 ### Open Provider Architecture
 `ProviderId` and `Family` support:
+- `inception`: Inception Labs Mercury-3 text diffusion models (`inception:mercury-3`, default fast engine for ScriptStudio and highlight discovery).
+- `cohere`: High-capacity 256k context models (`cohere:command-a-03-2025`).
 - `claude_cli`: Official Claude Code CLI (`claude -p`).
 - `codex_cli`: ChatGPT / Codex CLI (`codex exec`).
 - `cheaperinference`: HTTP provider for cost-capped runs.
@@ -110,8 +112,9 @@ Script Studio uses multi-agent debate and consensus across models.
 - `groq`: Fast inference API (`groq:llama-3.3-70b`).
 - `openai_compatible`: Generic OpenAI API endpoints.
 
-### Cross-Family Review Rule
-`verifyCrossFamily(roleMap)` guarantees the `judge` or `factcheck` role is never in the same model family as the `reviser`. When using open-source models, `familyOf()` assigns `'open_source'`, allowing open models to pair with proprietary models for unbiased consensus.
+### Default Role Map & Cross-Family Review Rule
+- **Default Inception Map:** `INCEPTION_ROLE_MAP` uses `inception:mercury-3` for Analyst, Reviser, Critic, and Polish, while pairing with `cohere:command-a-03-2025` for Judge and Factcheck.
+- **Cross-Family Invariant:** `verifyCrossFamily(roleMap)` guarantees the `judge` or `factcheck` role is never in the same model family as the `reviser`. When using Inception (`'open_source'`), pairing with Cohere (`'cohere'`), Codex (`'openai'`), or Claude (`'anthropic'`) ensures an AI model never grades its own revisions.
 
 ---
 

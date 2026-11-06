@@ -1878,14 +1878,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         <div className="border-b border-slate-800 px-4 py-2 flex flex-wrap items-center gap-3 text-xs bg-slate-900/60 shrink-0 z-10">
           <label className="flex items-center gap-1">Mode
             <select className={input} value={roles.mode} onChange={e => setRoles(r => ({ ...r, mode: e.target.value as RoleChoice['mode'], roleMap: {} }))}>
+              <option value="inception">Inception Labs (Mercury-3 Diffusion - Fast)</option>
               <option value="subscription">Subscriptions (Claude Code + Google AI Plan + Codex)</option>
-              <option value="inception">Inception Labs (Mercury-3 Diffusion)</option>
               <option value="cohere">Cohere (Command A 03-2025 - 256k Context)</option>
               <option value="fallback">Custom Model Roles</option>
             </select>
           </label>
           {ROLES.filter(r => roles.mode !== 'subscription' || r !== 'polish').map(r => {
-            const def = (roles.mode === 'cohere' ? (status?.defaults as any)?.cohere : roles.mode === 'fallback' || roles.mode === 'inception' ? status?.defaults.fallback : status?.defaults.subscription)?.[r] || '';
+            const def = (roles.mode === 'inception' ? status?.defaults?.inception : roles.mode === 'cohere' ? status?.defaults?.cohere : roles.mode === 'fallback' ? status?.defaults?.fallback : status?.defaults?.subscription)?.[r] || '';
             return (
               <label key={r} className="flex items-center gap-1">{r}
                 <select className={input} value={roles.roleMap[r] || ''} onChange={e => setRoles(x => ({ ...x, roleMap: { ...x.roleMap, [r]: e.target.value || undefined } }))}>

@@ -27,7 +27,7 @@ async function call<T>(method: 'GET' | 'POST', route: string, body?: unknown): P
 }
 
 export interface ProviderHealth { ok: boolean; detail: string; provider: string; model: string; binPath?: string; code?: string }
-export interface StatusResponse { providers: Record<string, ProviderHealth>; storeDir: string; interruptedAtStart: number; promptVersions: Record<string, string>; defaults: { subscription: RoleMap; fallback: RoleMap } }
+export interface StatusResponse { providers: Record<string, ProviderHealth>; storeDir: string; interruptedAtStart: number; promptVersions: Record<string, string>; defaults: { subscription: RoleMap; fallback: RoleMap; inception?: RoleMap; cohere?: RoleMap } }
 export interface SpeakerStats { totalSec: number; unnamedShare: number; topUnnamed: { speaker: string; sec: number }[]; speakers: { speaker: string; sec: number }[] }
 export interface VersionMeta { id: string; parentId: string | null; createdAt: number; author: string; label?: string; decision?: ScriptVersion['decision'] }
 export interface RunMeta extends Omit<ScriptRun, 'events'> { eventCount: number; active: boolean }
@@ -191,8 +191,8 @@ export const ROLE_SPECS = [
 export function loadRoleChoice(): RoleChoice {
   try {
     const j = JSON.parse(localStorage.getItem(ROLE_STORAGE_KEY) || 'null');
-    if (j && (j.mode === 'subscription' || j.mode === 'fallback' || j.mode === 'inception' || j.mode === 'cohere')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 0, episodePass: j.episodePass !== false, polish: !!j.polish };
+    if (j && (j.mode === 'subscription' || j.mode === 'fallback' || j.mode === 'inception' || j.mode === 'cohere')) return { mode: j.mode, roleMap: j.roleMap || {}, maxUsd: Number(j.maxUsd) || 5.0, episodePass: j.episodePass !== false, polish: !!j.polish };
   } catch { /* ignore */ }
-  return { mode: 'subscription', roleMap: {}, maxUsd: 0, episodePass: true, polish: false };
+  return { mode: 'inception', roleMap: {}, maxUsd: 5.0, episodePass: true, polish: false };
 }
 export function saveRoleChoice(c: RoleChoice) { try { localStorage.setItem(ROLE_STORAGE_KEY, JSON.stringify(c)); } catch { /* ignore */ } }
