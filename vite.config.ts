@@ -156,7 +156,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
       },
       // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
       watch: {
@@ -166,7 +166,7 @@ export default defineConfig(({ mode }) => {
     preview: {
       headers: {
         'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
+        'Cross-Origin-Embedder-Policy': 'credentialless',
       },
     },
     optimizeDeps: {

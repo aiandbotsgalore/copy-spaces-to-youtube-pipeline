@@ -55,11 +55,15 @@ export const getAudioUrl = (clip: ClipItem): string => {
   // the app's Cross-Origin-Embedder-Policy: require-corp header.
   const rawUrl = clip.download_url || clip.file_path || '';
   if (rawUrl) {
-    const cleanFn = rawUrl.split(/[\\/]/).pop()?.split('?')[0] || '';
-    if (cleanFn && (cleanFn.endsWith('.mp3') || cleanFn.endsWith('.wav'))) {
-      // If the URL already points to our R2 CDN, return it as-is.
-      if (rawUrl.startsWith(CLOUDFLARE_R2_BASE_URL)) return rawUrl;
-      // Otherwise rewrite to R2 (covers GitHub Releases and local paths).
+    let decoded = rawUrl;
+    try {
+      decoded = decodeURIComponent(rawUrl);
+    } catch {
+      // ignore malformed URI encoding
+    }
+    const cleanPath = decoded.replace(/\\/g, '/');
+    const cleanFn = cleanPath.split('/').pop()?.split('?')[0]?.trim() || '';
+    if (cleanFn && (cleanFn.toLowerCase().endsWith('.mp3') || cleanFn.toLowerCase().endsWith('.wav'))) {
       return `${CLOUDFLARE_R2_BASE_URL}/${encodeURIComponent(cleanFn)}`;
     }
     // Non-audio URLs (e.g. fully-qualified external URLs to other hosts).
@@ -67,7 +71,7 @@ export const getAudioUrl = (clip: ClipItem): string => {
   }
   if (clip.file_path && !clip.file_path.startsWith('http')) {
     const base = ((import.meta as any).env?.BASE_URL || '/').replace(/\/$/, '');
-    const cleanPath = clip.file_path.replace(/^\.?\/?public\//, '').replace(/^\.?\//, '');
+    const cleanPath = clip.file_path.replace(/\\/g, '/').replace(/^\.?\/?public\//, '').replace(/^\.?\//, '');
     return `${base}/${cleanPath}`;
   }
   return '';

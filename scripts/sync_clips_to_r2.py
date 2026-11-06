@@ -127,6 +127,11 @@ def find_local_file(filename: str) -> Path | None:
     for c in candidates:
         if c.exists() and c.stat().st_size > 0:
             return c
+    # Also recursively search subdirectories of best_saved_clips
+    if Path("best_saved_clips").exists():
+        for match in Path("best_saved_clips").rglob(filename):
+            if match.is_file() and match.stat().st_size > 0:
+                return match
     return None
 
 

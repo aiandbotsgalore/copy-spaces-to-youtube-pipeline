@@ -42,10 +42,11 @@ import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate
 import { fetchReleaseAssetText } from '../utils/github';
 import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
-import { getEpisodeSegments, fetchSummaryIndex } from '../utils/transcriptData';
+import { getEpisodeSegments, fetchSummaryIndex, type SearchIndexSegment } from '../utils/transcriptData';
 import { cleanClipSpeakers, MAX_STAGE_SPEAKERS, planAvatarStage, resolveClipReleaseTag } from '../utils/avatarStage';
 import { normalizeClipSpeakers, normalizeViralScore } from '../utils/clipScore';
 import { annotateJunkSuspects } from '../utils/junkSuspect';
+import { enrichPlaceholderClipMetadata, hasPlaceholderClipMetadata } from '../utils/clipMetadata';
 
 import { ClipItem } from "../utils/contracts/clipCatalog";
 import {
@@ -395,8 +396,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                       // the app's Cross-Origin-Embedder-Policy: require-corp header.
                       const ghUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
                       const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
-                      const fileName = ghUrl.split('/').pop()?.split('?')[0] || '';
-                      const audioUrl = fileName && (fileName.endsWith('.mp3') || fileName.endsWith('.wav'))
+                      const cleanGhUrl = decodeURIComponent(ghUrl).replace(/\\/g, '/');
+                      const fileName = cleanGhUrl.split('/').pop()?.split('?')[0]?.trim() || '';
+                      const audioUrl = fileName && (fileName.toLowerCase().endsWith('.mp3') || fileName.toLowerCase().endsWith('.wav'))
                         ? `${r2Base}/${encodeURIComponent(fileName)}`
                         : ghUrl;
 
@@ -470,8 +472,8 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                     duration: 60,
                     speakers: ['Speaker'],
                     viral_score: 9,
-                    reason: `AI selected highlight moment from ${relTitle}.`,
-                    transcript_snippet: `Highlight moment from ${relTitle}`,
+                    reason: `${title} is a 60-second highlight beginning at ${formatSec(startSec)}.`,
+                    transcript_snippet: `${title} (${formatSec(startSec)}–${formatSec(startSec + 60)})`,
                     episode: relTitle,
                     file_path: r2Url,
                     download_url: r2Url,
@@ -485,10 +487,42 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         console.warn('Could not fetch live GitHub release clips:', err);
       }
 
-      setClips(annotateJunkSuspects(combinedClips));
+      // Older standalone MP3 records used the release title as a placeholder for
+      // both the explanation and quote. Ground those records in the clip title,
+      // then replace the fallback with the transcript turns in the clip window.
+      const placeholderClips = combinedClips.filter(hasPlaceholderClipMetadata);
+      let displayClips = combinedClips.map(clip => enrichPlaceholderClipMetadata(clip));
+      if (placeholderClips.length) {
+        try {
+          const summaries = await fetchSummaryIndex(owner, repo);
+          const releaseTags = Array.from(new Set(
+            placeholderClips
+              .map(clip => resolveClipReleaseTag(clip, summaries))
+              .filter(Boolean)
+          ));
+          const segmentEntries = await Promise.all(releaseTags.map(async tag => {
+            try {
+              return [tag, await getEpisodeSegments(tag, owner, repo)] as const;
+            } catch {
+              return [tag, [] as SearchIndexSegment[]] as const;
+            }
+          }));
+          const segmentsByTag = new Map(segmentEntries);
+          displayClips = displayClips.map((clip, index) => {
+            const sourceClip = combinedClips[index];
+            if (!sourceClip || !hasPlaceholderClipMetadata(sourceClip)) return clip;
+            const tag = resolveClipReleaseTag(sourceClip, summaries);
+            return enrichPlaceholderClipMetadata(sourceClip, segmentsByTag.get(tag) || []);
+          });
+        } catch (metadataErr) {
+          console.warn('Could not load transcript details for placeholder clips; using title-specific metadata:', metadataErr);
+        }
+      }
+
+      setClips(annotateJunkSuspects(displayClips));
       // Auto expand only the first 2 episodes initially to prevent browser OOM from 25,000+ DOM nodes
       const initialExpanded: Record<string, boolean> = {};
-      const distinctEps = Array.from(new Set(combinedClips.map(c => c.episode).filter(Boolean)));
+      const distinctEps = Array.from(new Set(displayClips.map(c => c.episode).filter(Boolean)));
       if (distinctEps[0]) initialExpanded[distinctEps[0]] = true;
       if (distinctEps[1]) initialExpanded[distinctEps[1]] = true;
       setExpandedEpisodes(initialExpanded);
@@ -747,6 +781,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
+        crossOrigin="anonymous"
+        preload="metadata"
+        onError={() => {
+          const err = audioRef.current?.error;
+          console.warn('Clip audio element error:', err?.code, err?.message);
+          setIsPlaying(false);
+        }}
         onTimeUpdate={() => {
           if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
