@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-06T11:46:06.800781+00:00",
+  "last_updated": "2026-11-06T19:53:53.539576+00:00",
   "total_episodes_with_audio": 839,
   "transcribed_count": 737,
   "untranscribed_count": 102,
@@ -9,29 +9,29 @@
   "fatal_error": null,
   "failed_episodes": {
     "20260218_1yNxaNwbgmnKj": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-06T11:38:04.786424+00:00"
+      "last_attempt": "2026-11-06T19:45:21.335557+00:00"
     },
     "20260217_1mnxeRnLmloKX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-06T11:38:04.786441+00:00"
+      "last_attempt": "2026-11-06T19:45:21.335574+00:00"
     },
     "20260216_1djxXlkWdRkxZ": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-06T11:38:04.786445+00:00"
+      "last_attempt": "2026-11-06T19:45:21.335577+00:00"
     },
     "20260217_1vAxRARvmDYJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-06T11:38:04.786447+00:00"
+      "last_attempt": "2026-11-06T19:45:21.335580+00:00"
     },
     "20260217_1MnGnpjlkwdxO": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-06T11:38:04.786449+00:00"
+      "last_attempt": "2026-11-06T19:45:21.335581+00:00"
     }
   },
   "next_in_queue": [
