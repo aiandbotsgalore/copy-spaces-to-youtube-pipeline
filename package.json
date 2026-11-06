@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "acceptance": "vitest run --config vitest.acceptance.config.ts"
+    "acceptance": "vitest run --config vitest.acceptance.config.ts",
+    "test:fast": "vitest run --project fast",
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
     "@sqlite.org/sqlite-wasm": "^3.54.1-build1",

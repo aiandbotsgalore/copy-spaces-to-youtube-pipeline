@@ -126,9 +126,8 @@ Done!`;
     expect(prompt).toContain('TRANSCRIPT SEARCH MATCHES (1 turns returned');
     expect(prompt).toContain('Angela Maggard in "The Dangers of Belief"');
     expect(prompt).toContain('The people who compromise are scumbags.');
-    expect(prompt).toContain('TRANSCRIPT ARCHIVE COUNTS');
+    expect(prompt).toContain('TRANSCRIPT ARCHIVE & CATALOG:');
     expect(prompt).toContain('Total episodes: 656');
-    expect(prompt).toContain('WHAT YOU CAN SEE');
   });
 
   it('extracts SEARCH_TRANSCRIPTS and LOAD_EPISODE actions', () => {

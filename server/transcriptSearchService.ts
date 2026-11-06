@@ -217,6 +217,10 @@ export function getArchiveStats(): {
 
 let embeddingPipelinePromise: Promise<any> | null = null;
 
+export function __setEmbeddingPipelineForTest(fn: any | null) {
+  embeddingPipelinePromise = fn ? Promise.resolve(fn) : null;
+}
+
 export async function getQueryEmbedder() {
   if (!embeddingPipelinePromise) {
     const { pipeline, env } = await import('@xenova/transformers');
@@ -394,7 +398,10 @@ export async function searchTranscriptLexical(
     if (targetTag && s.release_tag !== targetTag) continue;
 
     let boost = 0;
-    if (targetSpeaker && s.speakers?.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
+    if (targetSpeaker) {
+      if (s.speakers?.length && !s.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
+        continue;
+      }
       boost += 50;
     }
     if (qClean && s.title?.toLowerCase().includes(qClean)) {
@@ -523,6 +530,9 @@ export async function searchTranscriptVector(
 
   for (const tag of availableTags) {
     const summary = summaries.find(s => s.release_tag === tag);
+    if (targetSpeaker && summary?.speakers?.length && !summary.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
+      continue;
+    }
 
     const emb = getEpisodeEmbeddings(tag);
     if (!emb) continue;
@@ -702,10 +712,19 @@ export async function rerankWithCohere(
   }
 }
 
+let mockSearchTranscriptArchive: ((query: string, options?: SearchOptions) => Promise<TranscriptSearchResult[]>) | null = null;
+
+export function __setMockSearchTranscriptArchive(fn: ((query: string, options?: SearchOptions) => Promise<TranscriptSearchResult[]>) | null) {
+  mockSearchTranscriptArchive = fn;
+}
+
 export async function searchTranscriptArchive(
   query: string,
   options: SearchOptions = {}
 ): Promise<TranscriptSearchResult[]> {
+  if (mockSearchTranscriptArchive) {
+    return mockSearchTranscriptArchive(query, options);
+  }
   const mode = options.mode || 'hybrid';
   const max = options.maxResults || 15;
 

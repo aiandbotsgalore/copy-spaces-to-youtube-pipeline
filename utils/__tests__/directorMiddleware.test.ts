@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
 import { createDirectorMiddleware, isLoopback, scrub, __resetGatewayMemory } from '../../server/directorMiddleware';
+import { __setEmbeddingPipelineForTest, __setMockSearchTranscriptArchive } from '../../server/transcriptSearchService';
 
 const ENV_KEY = 'test_env_key_1234567890abcdef';
 const HEADER_KEY = 'test_header_key_0987654321fedcba';
@@ -77,7 +78,26 @@ const goodCut = {
 };
 const mw = (env: Record<string, string>, f: any) => createDirectorMiddleware({ getEnv: () => env, fetchImpl: f });
 
-beforeEach(() => __resetGatewayMemory());
+beforeEach(() => {
+  __resetGatewayMemory();
+  __setEmbeddingPipelineForTest(async () => ({ data: new Float32Array(384).fill(0.01) }));
+  __setMockSearchTranscriptArchive(async (_q, opts) => {
+    const isRerank = opts?.mode === 'rerank';
+    return [
+      {
+        episodeTitle: 'The Dangers of Belief',
+        releaseTag: '20260925_1qJDzWQRqWNKV',
+        speaker: 'Angela',
+        startSec: 124.5,
+        endSec: 145.0,
+        text: 'Angela made an emphatic statement on compromise at 14:20.',
+        matchType: isRerank ? 'rerank' : (opts?.mode || 'hybrid'),
+        relevanceScore: isRerank ? 0.942 : 0.88,
+        relevantSpans: isRerank ? [{ start: 0, end: 10, score: 0.91 }] : undefined,
+      },
+    ];
+  });
+});
 
 describe('guards and status', () => {
   it('isLoopback', () => {

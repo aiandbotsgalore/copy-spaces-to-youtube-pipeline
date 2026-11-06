@@ -138,7 +138,7 @@ const STATUS_FOR_CODE: Record<string, number> = {
 export const MAX_SOURCES = 12;
 
 export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback' | 'inception' | 'cohere'; maxUsd: number } {
-  const mode = (body?.mode === 'fallback' || body?.mode === 'inception' || body?.mode === 'cohere' || body?.mode === 'subscription') ? body.mode : 'inception';
+  const mode = (body?.mode === 'fallback' || body?.mode === 'inception' || body?.mode === 'cohere' || body?.mode === 'subscription') ? body.mode : 'subscription';
   const base = mode === 'cohere' ? COHERE_ROLE_MAP : mode === 'inception' ? INCEPTION_ROLE_MAP : mode === 'fallback' ? FALLBACK_ROLE_MAP : DEFAULT_ROLE_MAP;
   const roleMap: RoleMap = { ...base };
   const req = body?.roleMap && typeof body.roleMap === 'object' ? body.roleMap : {};

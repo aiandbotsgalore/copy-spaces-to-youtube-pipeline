@@ -913,11 +913,41 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
       }
 
       if (path === '/models' && req.method === 'GET') {
+        if (cfg.key) {
+          const r = await fetchImpl(`${cfg.baseUrl}/models`, { headers: { Authorization: `Bearer ${cfg.key}` } }).catch(() => null);
+          if (r && r.ok) {
+            const j: any = await r.json().catch(() => ({}));
+            const list: any[] = Array.isArray(j?.data) ? j.data : Array.isArray(j) ? j : [];
+            const models = list.map(m => m?.id).filter((id: unknown): id is string => typeof id === 'string' && isValidModelId(id)).sort();
+            return send(res, 200, { ok: true, models, default: cfg.defaultModel });
+          }
+        }
         const models = [
           { id: cfg.defaultModel, family: 'default' },
           { id: FALLBACK_DIRECTOR_MODEL, family: 'fallback' },
         ];
         return send(res, 200, { ok: true, models });
+      }
+
+      if (path === '/test' && req.method === 'POST') {
+        if (!cfg.key) return fail(res, 'NO_KEY', 'No API key configured.');
+        const started = Date.now();
+        const ctl = new AbortController();
+        const out = await callGateway({
+          fetchImpl,
+          baseUrl: cfg.baseUrl,
+          key: cfg.key,
+          model: cfg.defaultModel,
+          messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
+          schemaName: 'ping',
+          schema: { type: 'object', additionalProperties: false, required: ['ok'], properties: { ok: { type: 'boolean' } } },
+          temperature: 0,
+          maxTokens: 16,
+          timeoutMs: Math.min(cfg.timeoutMs, 30_000),
+          clientSignal: ctl.signal,
+        });
+        if (out.ok === false) return fail(res, out.code, out.message, { retryAfterSec: out.retryAfterSec });
+        return send(res, 200, { ok: true, model: out.model, fellBack: out.fellBack, ms: Date.now() - started });
       }
 
       if (path === '/transcripts/search' && req.method === 'GET') {
