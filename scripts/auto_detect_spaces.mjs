@@ -257,9 +257,7 @@ async function run() {
   const unavailableSpaces = [];
   const liveDeferredSpaces = [];
 
-  const CORE_APPROVED_HOSTS = new Set(
-    ['loganblack', 'angelamaggard3', 'txrrxstrxxl', 'nooneyoufollow_', 'nooneyoufollow', 'tupacabra', 'rst_podcast'].map(h => h.toLowerCase())
-  );
+  const CORE_CREATORS = new Set(['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase()));
 
   for (const space of newSpaces) {
     console.log(`\n🔎 Checking availability & broadcast status: ${space.url}`);
@@ -305,21 +303,28 @@ async function run() {
         continue;
       }
 
-      // Gatekeeper: Check host & speaker authorization
+      // Universal Gatekeeper Rule:
+      // Auto-approve any Space discovered on @LoganBlack's or @AngelaMaggard3's timeline/feed,
+      // hosted by them, or explicitly mentioning them in the title/description/tweet text.
       const uploaderIdLower = (uploaderId || '').toLowerCase().trim();
       const uploaderLower = (uploader || '').toLowerCase().trim();
-      const isApprovedHost = CORE_APPROVED_HOSTS.has(uploaderIdLower) || CORE_APPROVED_HOSTS.has(uploaderLower);
-      const isFoundViaCoreHost = CORE_APPROVED_HOSTS.has((space.foundVia || '').toLowerCase());
+      const foundViaLower = (space.foundVia || '').toLowerCase().trim();
+
+      const isCoreHost = CORE_CREATORS.has(uploaderIdLower) || CORE_CREATORS.has(uploaderLower);
+      const isFoundViaCoreFeed = CORE_CREATORS.has(foundViaLower);
       const combinedText = `${description} ${title} ${space.tweetText || ''}`.toLowerCase();
-      const isCoreParticipant =
+      const mentionsCoreCreator =
         combinedText.includes('logan') ||
         combinedText.includes('loganblack') ||
         combinedText.includes('@loganblack') ||
         combinedText.includes('angela') ||
         combinedText.includes('angelamaggard') ||
-        combinedText.includes('@angelamaggard3');
+        combinedText.includes('@angelamaggard3') ||
+        combinedText.includes('txrrxstrxxl');
 
-      if (!isApprovedHost && !isFoundViaCoreHost && !isCoreParticipant) {
+      const isApproved = isCoreHost || isFoundViaCoreFeed || mentionsCoreCreator;
+
+      if (!isApproved) {
         console.log(`   ⛔ Space ${space.spaceId} is hosted by @${uploaderId || uploader || 'unknown'} and not linked to core creators/participants. Skipping.`);
         continue;
       } else {

@@ -19,7 +19,7 @@ ROUTING & TOOL RULES:
 3. VOICE PROFILES & DATABASE INQUIRIES:
    - When asked about voice profiles, analyze the enrolled/pending catalog data provided in your context. Identify profiles with missing embeddings or low sample counts directly.
 4. HONESTY & GROUNDING:
-   - If a transcript search returns no matches, state so plainly. Never fabricate quotes, speaker timestamps, or episode titles.
+   - If a search returns no matches, say so plainly. Never fabricate quotes, speaker timestamps, or episode titles.
 
 You are directly hooked into the SpacePipe Gen application runtime. You can perform actions on behalf of the user by including one or more action code blocks in your response:
 
@@ -194,7 +194,7 @@ GUIDELINES FOR AUDIO PRODUCTION & APP ASSISTANCE:
       if (context.currentEpisode.speakers?.length) {
         prompt += `\nSPEAKERS IN EPISODE: ${context.currentEpisode.speakers.join(', ')}`;
       }
-      prompt += `\nWhat you have of this episode: the preview turns below and any segment samples provided in context.`;
+      prompt += `\nWhat you have of this episode: only the preview turns listed below and any segment samples provided in context.`;
       prompt += `\nOnly request SEARCH_TRANSCRIPTS if you are searching for a specific spoken quote or phrase that is missing. For general episode chapter outlines, summaries, or metadata inquiries, synthesize your answer directly from the available episode segments and context without triggering a search.`;
       if (context.currentEpisode.segmentsSample?.length) {
         prompt += `\nTRANSCRIPT PREVIEW SAMPLE (${context.currentEpisode.segmentsSample.length} turns):\n`;

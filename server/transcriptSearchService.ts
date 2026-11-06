@@ -505,18 +505,19 @@ export async function searchTranscriptVector(
   query: string,
   options: SearchOptions = {}
 ): Promise<TranscriptSearchResult[]> {
+  const targetTag = options.episodeTag?.trim();
+  let availableTags = getAvailableEmbeddingTags();
+  if (targetTag) {
+    availableTags = availableTags.filter(t => t === targetTag);
+  }
+  if (availableTags.length === 0) return [];
+
   const queryVec = await embedQuery(query);
   if (!queryVec) return [];
 
   const summaries = loadSummaries();
   const max = options.maxResults || 15;
   const targetSpeaker = normalizeSpeakerName(options.speaker);
-  const targetTag = options.episodeTag?.trim();
-
-  let availableTags = getAvailableEmbeddingTags();
-  if (targetTag) {
-    availableTags = availableTags.filter(t => t === targetTag);
-  }
 
   const results: TranscriptSearchResult[] = [];
 

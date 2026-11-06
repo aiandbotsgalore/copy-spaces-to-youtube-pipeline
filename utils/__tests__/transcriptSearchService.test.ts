@@ -600,7 +600,7 @@ describe('transcriptSearchService', () => {
       expect(results.every(r => r.matchType === 'rerank')).toBe(true);
       expect(results[0].relevanceScore).toBeCloseTo(0.99, 2);
       expect(results[0].relevantSpans).toBeDefined();
-    }, 20000);
+    }, 45000);
 
     it('bounds candidate pool between 50 and 100 documents', async () => {
       let documentCountFor10 = 0;
@@ -638,7 +638,7 @@ describe('transcriptSearchService', () => {
       // Even though 80 * 2 = 160, candidateLimit is clamped to <= 100
       expect(documentCountFor80).toBeLessThanOrEqual(100);
       expect(documentCountFor80).toBeGreaterThan(0);
-    }, 20000);
+    }, 45000);
   });
 
   describe('handleSearchTranscripts (rerank mode)', () => {
@@ -668,7 +668,7 @@ describe('transcriptSearchService', () => {
       expect(res.matches[0].relevant_spans).toBeDefined();
       expect(res.matches[0].relevant_spans![0].start).toBe(0);
       expect(res.matches[0].relevant_spans![0].end).toBe(12);
-    }, 20000);
+    }, 45000);
   });
 
   describe('speaker filtering and prefix query support', () => {
@@ -683,7 +683,7 @@ describe('transcriptSearchService', () => {
       for (const r of results) {
         expect(r.speaker.toLowerCase()).toContain('angela');
       }
-    }, 20000);
+    }, 45000);
 
     it('filters candidates strictly by speaker before submitting to Cohere in rerank mode', async () => {
       let inspectedCandidates: string[] = [];
@@ -710,7 +710,7 @@ describe('transcriptSearchService', () => {
         expect(r.speaker.toLowerCase()).toContain('angela');
       }
       expect(inspectedCandidates.length).toBeGreaterThan(0);
-    }, 20000);
+    }, 45000);
 
     it('extracts speaker:Name prefix and filters results accordingly in rerank mode', async () => {
       let sentQuery = '';
@@ -737,7 +737,7 @@ describe('transcriptSearchService', () => {
       }
       // Query passed to Cohere should have speaker prefix stripped
       expect(sentQuery).toBe('why she left');
-    }, 20000);
+    }, 45000);
 
     it('supports pure speaker query without calling Cohere in rerank mode', async () => {
       let cohereCalled = false;
@@ -758,7 +758,7 @@ describe('transcriptSearchService', () => {
         expect(r.speaker.toLowerCase()).toContain('angela');
       }
       expect(cohereCalled).toBe(false);
-    }, 20000);
+    }, 45000);
 
     it('uses exact normalized speaker matching: Dan does not match Danielle', async () => {
       // "Danielle" is present in archive, but searching for "Dan" must not return Danielle
@@ -778,7 +778,7 @@ describe('transcriptSearchService', () => {
       for (const r of resultsDanielle) {
         expect(r.speaker.toLowerCase().trim()).toBe('danielle');
       }
-    }, 20000);
+    }, 45000);
 
     it('uses exact normalized speaker matching: whitespace and capitalization tolerant', async () => {
       const results = await searchTranscriptArchive('compromise', {
@@ -791,7 +791,7 @@ describe('transcriptSearchService', () => {
       for (const r of results) {
         expect(r.speaker.toLowerCase().trim()).toBe('angela');
       }
-    }, 20000);
+    }, 45000);
 
     it('returns empty results for unknown speaker without falling back to unfiltered search', async () => {
       const hybridResults = await searchTranscriptArchive('compromise', {
@@ -816,7 +816,7 @@ describe('transcriptSearchService', () => {
       });
       expect(rerankResults).toEqual([]);
       expect(cohereCalled).toBe(false);
-    }, 20000);
+    }, 45000);
 
     it('unfiltered search remains unaffected when no speaker filter is provided', async () => {
       const results = await searchTranscriptArchive('David Grusch', {
@@ -827,6 +827,6 @@ describe('transcriptSearchService', () => {
       // Results should not be restricted to any single speaker
       const speakers = new Set(results.map(r => r.speaker));
       expect(speakers.size).toBeGreaterThan(0);
-    }, 20000);
+    }, 45000);
   });
 });

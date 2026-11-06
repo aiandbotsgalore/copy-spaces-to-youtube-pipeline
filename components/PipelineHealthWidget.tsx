@@ -93,8 +93,12 @@ export const PipelineHealthWidget: React.FC<Props> = ({
     const newerSuccess = recentRuns.find(other => {
       if (other.conclusion !== 'success') return false;
       if (new Date(other.created_at) <= new Date(r.created_at)) return false;
-      // Exact name or exact workflow path match
-      if (other.name === r.name || (!!other.path && !!r.path && other.path === r.path)) return true;
+      // Exact name, numeric workflow_id, or workflow path match
+      if (
+        other.name === r.name ||
+        ((other as any).workflow_id && (r as any).workflow_id && (other as any).workflow_id === (r as any).workflow_id) ||
+        (!!other.path && !!r.path && other.path === r.path)
+      ) return true;
       // Cross-engine transcription auto-heal: if an episode or batch transcribe failed earlier,
       // but a subsequent transcription run (e.g. Kaggle GPU Transcribe) succeeded afterward
       if (isTranscribeWorkflow(r) && isTranscribeWorkflow(other)) return true;

@@ -58,9 +58,7 @@ if (authToken && !existsSync('cookies.txt')) {
   }
 }
 
-const CORE_APPROVED_HOSTS = new Set(
-  ['loganblack', 'angelamaggard3', 'txrrxstrxxl', 'nooneyoufollow_', 'nooneyoufollow'].map(h => h.toLowerCase())
-);
+const CORE_CREATORS = new Set(['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase()));
 
 console.log('======================================================================');
 console.log('🛰️ SpacePipe Live Recording Daemon Initialized');
@@ -244,18 +242,21 @@ async function pollOnce() {
     if (liveStatus === 'is_live') {
       const uploaderIdLower = (uploaderId || '').toLowerCase().trim();
       const uploaderLower = (uploader || '').toLowerCase().trim();
-      const isApprovedHost = CORE_APPROVED_HOSTS.has(uploaderIdLower) || CORE_APPROVED_HOSTS.has(uploaderLower);
+      const foundViaLower = (space.foundVia || '').toLowerCase().trim();
 
-      let isAllowed = isApprovedHost;
-      if (!isAllowed) {
-        // Third-party host: check if approved participant (@AngelaMaggard3 or @nooneyoufollow_) is present
-        const combined = `${title} ${description} ${space.tweetText || ''}`.toLowerCase();
-        isAllowed =
-          combined.includes('angela') ||
-          combined.includes('angelamaggard') ||
-          combined.includes('nooneyoufollow') ||
-          combined.includes('logan');
-      }
+      const isCoreHost = CORE_CREATORS.has(uploaderIdLower) || CORE_CREATORS.has(uploaderLower);
+      const isFoundViaCoreFeed = CORE_CREATORS.has(foundViaLower);
+      const combined = `${title} ${description} ${space.tweetText || ''}`.toLowerCase();
+      const mentionsCoreCreator =
+        combined.includes('logan') ||
+        combined.includes('loganblack') ||
+        combined.includes('@loganblack') ||
+        combined.includes('angela') ||
+        combined.includes('angelamaggard') ||
+        combined.includes('@angelamaggard3') ||
+        combined.includes('txrrxstrxxl');
+
+      const isAllowed = isCoreHost || isFoundViaCoreFeed || mentionsCoreCreator;
 
       if (!isAllowed) {
         console.log(`⛔ Space ${spaceId} by @${uploaderId || uploader} not in approved circle. Skipping.`);

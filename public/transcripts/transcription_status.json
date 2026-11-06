@@ -7,53 +7,7 @@
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {
-    "20261022_1yxBePgOWAkJN": {
-      "attempts": 2,
-      "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-24T13:22:10.580045+00:00"
-    },
-    "20261023_1yGBePgdOgoKN": {
-      "attempts": 3,
-      "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-27T00:47:52.285609+00:00"
-    },
-    "20261023_1wxWjlNLyrRJQ": {
-      "attempts": 2,
-      "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-25T16:31:18.720212+00:00"
-    },
-    "20261025_1rGmqpPWWRzGy": {
-      "attempts": 4,
-      "last_error": "AttributeError: 'list' object has no attribute 'get'",
-      "last_attempt": "2026-10-27T12:28:36.722368+00:00"
-    },
-    "20260218_1yNxaNwbgmnKj": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-05T20:21:00.714041+00:00"
-    },
-    "20260217_1mnxeRnLmloKX": {
-      "attempts": 3,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-05T20:21:00.714059+00:00"
-    },
-    "20260216_1djxXlkWdRkxZ": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-05T20:21:00.714063+00:00"
-    },
-    "20260217_1vAxRARvmDYJl": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-05T20:21:00.714065+00:00"
-    },
-    "20260217_1MnGnpjlkwdxO": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-05T20:21:00.714068+00:00"
-    }
-  },
+  "failed_episodes": {},
   "next_in_queue": [
     {
       "tag": "20260218_1yNxaNwbgmnKj",
