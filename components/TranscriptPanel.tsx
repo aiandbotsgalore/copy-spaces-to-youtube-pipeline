@@ -18,6 +18,9 @@ import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dat
 import { AudioSlicerModal, SlicerTurnTarget } from './AudioSlicerModal';
 import { SpeakerRenameModal } from './transcript/SpeakerRenameModal';
 import { SavedSpeakersModal } from './transcript/SavedSpeakersModal';
+import { TranscriptSearchBar } from './transcript/TranscriptSearchBar';
+import { TranscriptModals } from './transcript/TranscriptModals';
+import { TranscriptExportBar } from './transcript/TranscriptExportBar';
 import { useMontage } from '../contexts/MontageContext';
 import { useCopilot } from '../contexts/CopilotContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
@@ -3142,316 +3145,44 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             {searchScope === 'all' ? (
               <div className="flex-1 flex flex-col min-h-0 bg-slate-950">
                 {/* Global Search Header / Filter Bar */}
-                <div className="p-4 md:px-8 bg-slate-900/90 border-b border-slate-800/80 space-y-3.5 flex-shrink-0">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      {/* Scope Selector */}
-                      <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
-                        <button
-                          onClick={() => { setSearchScope('all'); loadGlobalIndex(); }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-md transition-all cursor-pointer"
-                        >
-                          <Globe size={13} />
-                          <span>All Transcripts</span>
-                          <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[11px] font-semibold ml-0.5">
-                            {summaryIndex ? summaryIndex.length : (globalIndex ? globalIndex.length : 241)}
-                          </span>
-                        </button>
-                        {selectedRelease && (
-                          <button
-                            onClick={() => setSearchScope('current')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer"
-                          >
-                            <FileText size={13} />
-                            <span className="truncate max-w-[150px]">{selectedRelease.name || selectedRelease.tag_name}</span>
-                          </button>
-                        )}
-                      </div>
+                <TranscriptSearchBar
+                  search={search}
+                  setSearch={setSearch}
+                  searchScope={searchScope}
+                  setSearchScope={setSearchScope}
+                  loadGlobalIndex={loadGlobalIndex}
+                  selectedRelease={selectedRelease || null}
+                  summaryIndex={summaryIndex}
+                  globalIndex={globalIndex}
+                  totalGlobalSegments={totalGlobalSegments}
+                  globalIndexLoading={globalIndexLoading}
+                  isGlobalFilteringActive={isGlobalFilteringActive}
+                  matchCount={globalAllMatches.length}
+                  episodeMatchCount={globalResultEpisodeCounts.length}
+                  serverSearching={serverSearching}
+                  workerSearching={workerSearching}
+                  searchEngineMode={searchEngineMode}
+                  setSearchEngineMode={setSearchEngineMode}
+                  searchFallbackNotice={searchFallbackNotice}
+                  setSearchFallbackNotice={setSearchFallbackNotice}
+                  selectedGlobalTag={selectedGlobalTag}
+                  setSelectedGlobalTag={setSelectedGlobalTag}
+                  selectedGlobalSpeaker={selectedGlobalSpeaker}
+                  setSelectedGlobalSpeaker={setSelectedGlobalSpeaker}
+                  allArchiveSpeakers={allArchiveSpeakers}
+                  selectedMentionTarget={selectedMentionTarget}
+                  setSelectedMentionTarget={setSelectedMentionTarget}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  selectedSpeakerEpisodeCount={selectedSpeakerEpisodeCount}
+                  angelaEpisodeCount={angelaEpisodeCount}
+                  speakerZipLoading={speakerZipLoading}
+                  audioZipLoading={audioZipLoading}
+                  handleDownloadSpeakerZip={handleDownloadSpeakerZip}
+                  handleDownloadSpeakerAudioZip={handleDownloadSpeakerAudioZip}
+                />
 
-                      <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 pl-1">
-                        <Layers size={13} className="text-indigo-400" />
-                        <span className="font-semibold text-slate-200">
-                          {totalGlobalSegments > 0 ? totalGlobalSegments.toLocaleString() : '359,000+'}
-                        </span>
-                        <span>indexed turns</span>
-                      </div>
-                    </div>
-
-                    {/* Right status */}
-                    <div className="flex items-center gap-2">
-                      {globalIndexLoading && (
-                        <span className="flex items-center gap-1.5 text-xs text-indigo-400 animate-pulse font-medium">
-                          <Loader size={12} className="animate-spin" /> Loading transcript database…
-                        </span>
-                      )}
-                      {isGlobalFilteringActive && !globalIndexLoading && (
-                        <span className="text-xs text-amber-400 font-medium px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg shadow-sm inline-flex items-center gap-1.5">
-                          {globalAllMatches.length.toLocaleString()} match{globalAllMatches.length !== 1 ? 'es' : ''}
-                          {globalResultEpisodeCounts.length > 0 && ` across ${globalResultEpisodeCounts.length} episode${globalResultEpisodeCounts.length > 1 ? 's' : ''}`}
-                          {serverSearching ? (
-                            <span className="px-1.5 py-0.2 bg-indigo-950/80 text-[11px] text-indigo-300 rounded font-mono border border-indigo-500/30 inline-flex items-center gap-1">
-                              <Loader size={9} className="animate-spin text-indigo-400" /> Server Rerank
-                            </span>
-                          ) : (
-                            <span className="px-1.5 py-0.2 bg-emerald-950/80 text-[11px] text-emerald-300 rounded font-mono border border-emerald-500/30" title="Background Web Worker search engine active (60fps UI)">
-                              ⚡ 60fps Worker
-                            </span>
-                          )}
-                          {searchEngineMode === 'rerank' && (
-                            <span className="px-1.5 py-0.2 bg-amber-950/80 text-[11px] text-amber-300 rounded font-mono border border-amber-500/30">
-                              Deep Rerank
-                            </span>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Fallback Notice Banner */}
-                  {searchFallbackNotice && (
-                    <div className="flex items-center justify-between p-2.5 px-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-200 shadow-sm gap-2">
-                      <span className="flex items-center gap-2">
-                        <AlertCircle size={14} className="text-amber-400 flex-shrink-0" />
-                        <span>{searchFallbackNotice}</span>
-                      </span>
-                      <button onClick={() => setSearchFallbackNotice(null)} className="text-amber-400 hover:text-white p-1 cursor-pointer">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Global Search Bar and Filter Dropdowns */}
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative flex-1 min-w-[280px]">
-                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-400" />
-                      <input
-                        type="text"
-                        autoFocus
-                        placeholder={`Search across all ${summaryIndex?.length || globalIndex?.length || 241} transcripts (e.g. aliens, speaker:Angela, from:Logan)…`}
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700/90 focus:border-indigo-500 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-inner"
-                      />
-                      {(workerSearching || serverSearching) && (
-                        <div className="absolute right-9 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-indigo-950/90 border border-indigo-500/40 rounded text-[11px] text-indigo-300 font-mono shadow-sm pointer-events-none">
-                          <Loader size={10} className="animate-spin text-indigo-400" />
-                          <span>{serverSearching ? 'reranking…' : 'off-thread…'}</span>
-                        </div>
-                      )}
-                      {search && !workerSearching && !serverSearching && (
-                        <button
-                          onClick={() => setSearch('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors cursor-pointer"
-                          title="Clear search"
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Search Engine Retrieval Mode Selector */}
-                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm" title="Search retrieval algorithm">
-                      <SlidersHorizontal size={12} className={searchEngineMode === 'rerank' ? 'text-amber-400' : 'text-indigo-400'} />
-                      <select
-                        value={searchEngineMode}
-                        onChange={e => setSearchEngineMode(e.target.value as SearchEngineMode)}
-                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer"
-                        title="Select search algorithm"
-                      >
-                        <option value="hybrid" className="bg-slate-900 text-white">Hybrid (BM25 + Vector)</option>
-                        <option value="rerank" className="bg-slate-900 text-white">Deep Rerank (Cohere 5)</option>
-                        <option value="lexical" className="bg-slate-900 text-white">Lexical (Keyword)</option>
-                        <option value="vector" className="bg-slate-900 text-white">Vector (Semantic)</option>
-                      </select>
-                    </div>
-
-                    {/* Episode filter */}
-                    {((summaryIndex && summaryIndex.length > 0) || (globalIndex && globalIndex.length > 0)) && (
-                      <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
-                        <Radio size={12} className="text-indigo-400 flex-shrink-0" />
-                        <select
-                          value={selectedGlobalTag}
-                          onChange={e => setSelectedGlobalTag(e.target.value)}
-                          className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
-                          title="Filter by episode"
-                        >
-                          <option value="ALL" className="bg-slate-900 text-white">All Episodes ({(summaryIndex || globalIndex)?.length || 241})</option>
-                          {(summaryIndex || globalIndex || []).map(ep => (
-                            <option key={ep.release_tag} value={ep.release_tag} className="bg-slate-900 text-white">
-                              {ep.title || ep.release_tag}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-
-                    {/* Speaker filter — Always visible and accessible */}
-                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
-                      <Users size={12} className="text-emerald-400 flex-shrink-0" />
-                      <select
-                        value={selectedGlobalSpeaker}
-                        onChange={e => {
-                          setSelectedGlobalSpeaker(e.target.value);
-                          if (!globalIndex && !globalIndexLoading) {
-                            loadGlobalIndex();
-                          }
-                        }}
-                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[170px] truncate"
-                        title="Filter by speaker across all episodes"
-                      >
-                        <option value="ALL" className="bg-slate-900 text-white">
-                          All Speakers {allArchiveSpeakers.length > 0 ? `(${allArchiveSpeakers.length})` : ''}
-                        </option>
-                        {allArchiveSpeakers.map(spk => (
-                          <option key={spk.name} value={spk.name} className="bg-slate-900 text-white">
-                            {spk.name.toLowerCase() === 'angela' ? `⭐ ${spk.name}` : spk.name} ({spk.episodeCount} space{spk.episodeCount !== 1 ? 's' : ''}{spk.count > 0 ? `, ${spk.count} turns` : ''})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Target Mention Filter (e.g. Angela talking about Logan) */}
-                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 shadow-sm">
-                      <ShieldAlert size={12} className="text-amber-400 flex-shrink-0" />
-                      <select
-                        value={selectedMentionTarget}
-                        onChange={e => {
-                          setSelectedMentionTarget(e.target.value);
-                          if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
-                        }}
-                        className="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer max-w-[175px] truncate"
-                        title="Filter speaker turns mentioning a specific person or topic"
-                      >
-                        {MENTION_TARGETS.map(m => (
-                          <option key={m.id} value={m.id} className="bg-slate-900 text-white">
-                            {m.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Speaker ZIP Download Action Buttons */}
-                    {selectedGlobalSpeaker !== 'ALL' && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleDownloadSpeakerZip(selectedGlobalSpeaker)}
-                          disabled={speakerZipLoading}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer whitespace-nowrap"
-                          title={`Download all transcripts featuring ${selectedGlobalSpeaker} in one ZIP archive`}
-                        >
-                          <FileText size={12} className={speakerZipLoading ? 'animate-bounce text-emerald-400' : 'text-emerald-400'} />
-                          <span>
-                            {speakerZipLoading
-                              ? 'Creating ZIP…'
-                              : `Download ${selectedSpeakerEpisodeCount} Spaces (.zip)`}
-                          </span>
-                        </button>
-                        {selectedGlobalSpeaker.toLowerCase() === 'angela' && (
-                          <button
-                            onClick={() => handleDownloadSpeakerAudioZip('Angela')}
-                            disabled={audioZipLoading}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-50 text-white rounded-lg text-xs font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
-                            title="Download all 47 master audio clips of Angela (.wav & .mp3, 38.6 MB) in one ZIP archive"
-                          >
-                            <Headphones size={13} className={audioZipLoading ? 'animate-bounce' : ''} />
-                            <span>
-                              {audioZipLoading ? 'Downloading…' : 'Download Audio Clips (.zip)'}
-                            </span>
-                            <span className="px-1.5 py-0.5 bg-emerald-800/80 text-[11px] rounded-full text-emerald-200 font-mono">
-                              47 clips
-                            </span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Speaker Selector & Angela Quick Actions */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs border-t border-slate-800/60 mt-1">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-0.5 max-w-full">
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex-shrink-0 flex items-center gap-1">
-                        <Users size={11} className="text-emerald-400" /> Featured Speaker:
-                      </span>
-                      <button
-                        onClick={() => {
-                          setSelectedGlobalSpeaker(selectedGlobalSpeaker === 'Angela' ? 'ALL' : 'Angela');
-                          if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
-                        }}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 transition-all cursor-pointer border ${
-                          selectedGlobalSpeaker === 'Angela'
-                            ? 'bg-emerald-600 border-emerald-500 text-white shadow-md ring-1 ring-emerald-400'
-                            : 'bg-emerald-950/40 border-emerald-500/30 text-emerald-300 hover:bg-emerald-900/50 hover:text-white'
-                        }`}
-                        title="Filter all spaces featuring Angela"
-                      >
-                        <span>⭐ Angela</span>
-                        <span className="text-[11px] opacity-80">({angelaEpisodeCount} spaces)</span>
-                      </button>
-                      <button
-                        onClick={() => handleDownloadSpeakerZip('Angela')}
-                        disabled={speakerZipLoading}
-                        className="px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-emerald-300 hover:border-emerald-500/40 transition-colors cursor-pointer shadow-sm"
-                        title="Directly download all Angela transcripts as a single ZIP file"
-                      >
-                        <FileText size={11} className="text-emerald-400" />
-                        <span>Download Angela ({angelaEpisodeCount} Spaces .zip)</span>
-                      </button>
-                      <button
-                        onClick={() => handleDownloadSpeakerAudioZip('Angela')}
-                        disabled={audioZipLoading}
-                        className="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 flex-shrink-0 bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/80 hover:text-white transition-all cursor-pointer shadow-sm"
-                        title="Directly download all 47 master audio clips of Angela as a single ZIP archive (.wav & .mp3)"
-                      >
-                        <Headphones size={11} className="text-emerald-400" />
-                        <span>Download Audio Clips (47 Clips .zip)</span>
-                      </button>
-                    </div>
-
-                    {selectedGlobalSpeaker !== 'ALL' && (
-                      <button
-                        onClick={() => setSelectedGlobalSpeaker('ALL')}
-                        className="text-[11px] text-slate-400 hover:text-slate-200 underline ml-auto"
-                      >
-                        Reset speaker filter
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Thematic Category Dossier Chips */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/60 mt-1">
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
-                      <Tag size={10} className="text-indigo-400" /> Dossier Themes:
-                    </span>
-                    {THEMATIC_CATEGORIES.map(cat => {
-                      const isSelected = selectedCategory === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => {
-                            setSelectedCategory(isSelected ? 'ALL' : cat.id);
-                            if (!globalIndex && !globalIndexLoading) loadGlobalIndex();
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border ${
-                            isSelected
-                              ? 'bg-indigo-600 border-indigo-400 text-white shadow-md ring-1 ring-indigo-300'
-                              : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
-                          }`}
-                          title={`Filter quotes in theme: ${cat.name}`}
-                        >
-                          <span>{cat.emoji}</span>
-                          <span>{cat.name}</span>
-                        </button>
-                      );
-                    })}
-                    {selectedCategory !== 'ALL' && (
-                      <button
-                        onClick={() => setSelectedCategory('ALL')}
-                        className="text-[11px] text-slate-400 hover:text-slate-300 underline ml-1 cursor-pointer"
-                      >
-                        Clear theme
-                      </button>
-                    )}
-                  </div>
+                <div className="px-4 md:px-8 py-2 bg-slate-900/90 border-b border-slate-800/80 space-y-3 flex-shrink-0">
 
                   {/* Smart Banner if searching for 'angela' while not filtered to Angela */}
                   {search.trim().toLowerCase().includes('angela') && selectedGlobalSpeaker !== 'Angela' && (
@@ -3490,95 +3221,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
                   )}
 
-                  {/* Speaker Zip Progress Status Bar */}
-                  {speakerZipProgress && (
-                    <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-200 shadow-lg space-y-2">
-                      <div className="flex items-center justify-between font-semibold">
-                        <span className="flex items-center gap-2">
-                          <Loader size={13} className="animate-spin text-emerald-400" />
-                          <span>{speakerZipProgress.currentTitle}</span>
-                        </span>
-                        <span className="text-emerald-400 font-mono">{speakerZipProgress.percent}%</span>
-                      </div>
-                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-emerald-500 h-full transition-all duration-200"
-                          style={{ width: `${speakerZipProgress.percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Speaker Zip Success Banner */}
-                  {speakerZipSuccess && (
-                    <div className="flex items-center justify-between p-3 bg-emerald-950/60 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-md">
-                      <span className="flex items-center gap-2 font-medium">
-                        <CheckCircle2 size={14} className="text-emerald-400" />
-                        <span>{speakerZipSuccess}</span>
-                      </span>
-                      <button onClick={() => setSpeakerZipSuccess(null)} className="text-emerald-400 hover:text-white p-1">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Speaker Zip Error Banner */}
-                  {speakerZipError && (
-                    <div className="flex items-center justify-between p-3 bg-rose-950/60 border border-rose-500/30 rounded-xl text-xs text-rose-200 shadow-md">
-                      <span className="flex items-center gap-2 font-medium">
-                        <AlertCircle size={14} className="text-rose-400" />
-                        <span>{speakerZipError}</span>
-                      </span>
-                      <button onClick={() => setSpeakerZipError(null)} className="text-rose-400 hover:text-white p-1">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Audio Zip Progress Status Bar */}
-                  {audioZipProgress && (
-                    <div className="p-3 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-200 shadow-lg space-y-2">
-                      <div className="flex items-center justify-between font-semibold">
-                        <span className="flex items-center gap-2">
-                          <Loader size={13} className="animate-spin text-emerald-400" />
-                          <span>{audioZipProgress.currentTitle}</span>
-                        </span>
-                        <span className="text-emerald-400 font-mono">{audioZipProgress.percent}%</span>
-                      </div>
-                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-emerald-500 h-full transition-all duration-300"
-                          style={{ width: `${audioZipProgress.percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Audio Zip Success Banner */}
-                  {audioZipSuccess && (
-                    <div className="flex items-center justify-between p-3 bg-emerald-950/60 border border-emerald-500/30 rounded-xl text-xs text-emerald-200 shadow-md">
-                      <span className="flex items-center gap-2 font-medium">
-                        <CheckCircle2 size={14} className="text-emerald-400" />
-                        <span>{audioZipSuccess}</span>
-                      </span>
-                      <button onClick={() => setAudioZipSuccess(null)} className="text-emerald-400 hover:text-white p-1">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Audio Zip Error Banner */}
-                  {audioZipError && (
-                    <div className="flex items-center justify-between p-3 bg-rose-950/60 border border-rose-500/30 rounded-xl text-xs text-rose-200 shadow-md">
-                      <span className="flex items-center gap-2 font-medium">
-                        <AlertCircle size={14} className="text-rose-400" />
-                        <span>{audioZipError}</span>
-                      </span>
-                      <button onClick={() => setAudioZipError(null)} className="text-rose-400 hover:text-white p-1">
-                        <X size={13} />
-                      </button>
-                    </div>
-                  )}
+                  {/* Speaker and Audio ZIP Progress & Status Banners */}
+                  <TranscriptExportBar
+                    speakerZipProgress={speakerZipProgress}
+                    speakerZipSuccess={speakerZipSuccess}
+                    setSpeakerZipSuccess={setSpeakerZipSuccess}
+                    speakerZipError={speakerZipError}
+                    setSpeakerZipError={setSpeakerZipError}
+                    audioZipProgress={audioZipProgress}
+                    audioZipSuccess={audioZipSuccess}
+                    setAudioZipSuccess={setAudioZipSuccess}
+                    audioZipError={audioZipError}
+                    setAudioZipError={setAudioZipError}
+                  />
 
                   {/* Results View Mode Toggle (All Spoken Turns vs Master Audio Clips Archive) */}
                   {selectedGlobalSpeaker.toLowerCase() === 'angela' && extractedAudioClips.length > 0 && (
@@ -5075,11 +4730,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         </div>
       )}
 
-      {/* ── Quick Rename Single Speaker Modal ── */}
-      <SpeakerRenameModal
-        target={quickRenameTarget}
-        onClose={() => setQuickRenameTarget(null)}
-        onApply={(rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean) => {
+      {/* ── Modals: Rename, Saved Speakers, Audio Slicer ── */}
+      <TranscriptModals
+        quickRenameTarget={quickRenameTarget}
+        onCloseRenameModal={() => setQuickRenameTarget(null)}
+        onApplyRename={(rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean) => {
           saveSpeakerRename(rawSpeaker, newName);
           if (addToSaved) {
             addOrUpdatePermanentSpeaker({
@@ -5092,35 +4747,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           }
           setQuickRenameTarget(null);
         }}
-        onReset={(rawSpeaker: string) => saveSpeakerRename(rawSpeaker, '')}
-        onOpenSavedModal={() => {
-          setQuickRenameTarget(null);
-          setShowSavedSpeakersModal(true);
-        }}
+        onResetRename={(rawSpeaker: string) => saveSpeakerRename(rawSpeaker, '')}
         savedSpeakers={savedSpeakers}
-        defaultSavedSpeakers={DEFAULT_SAVED_SPEAKERS}
-        speakerColorMap={SPEAKER_COLOR_MAP}
-        dynamicColorOrder={DYNAMIC_COLOR_ORDER}
+        showSavedSpeakersModal={showSavedSpeakersModal}
+        setShowSavedSpeakersModal={setShowSavedSpeakersModal}
+        onDeletePermanentSpeaker={(idOrName: string) => deletePermanentSpeaker(idOrName)}
+        onAddPermanentSpeaker={(speaker: SavedSpeaker) => addOrUpdatePermanentSpeaker(speaker)}
         getSpeakerTheme={getSpeakerTheme}
-        getAutoSpeakerColor={getAutoSpeakerColor}
-        getAutoSpeakerEmoji={getAutoSpeakerEmoji}
-      />
-
-      {/* ── Saved Speakers Modal ── */}
-      <SavedSpeakersModal
-        isOpen={showSavedSpeakersModal}
-        onClose={() => setShowSavedSpeakersModal(false)}
-        savedSpeakers={savedSpeakers}
-        onDeleteSpeaker={(idOrName: string) => deletePermanentSpeaker(idOrName)}
-        onAddSpeaker={(speaker: SavedSpeaker) => addOrUpdatePermanentSpeaker(speaker)}
-        getSpeakerTheme={getSpeakerTheme}
-      />
-
-      {/* Interactive In-Browser Audio Slicer Modal */}
-      <AudioSlicerModal
-        isOpen={isSlicerOpen}
-        onClose={() => setIsSlicerOpen(false)}
-        target={slicerTarget}
+        isSlicerOpen={isSlicerOpen}
+        setIsSlicerOpen={setIsSlicerOpen}
+        slicerTarget={slicerTarget}
       />
     </div>
   );
