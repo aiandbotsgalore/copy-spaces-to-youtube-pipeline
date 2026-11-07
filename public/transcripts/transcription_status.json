@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-07T10:52:43.496236+00:00",
+  "last_updated": "2026-11-07T18:02:20.053641+00:00",
   "total_episodes_with_audio": 840,
   "transcribed_count": 737,
   "untranscribed_count": 103,
@@ -34,29 +34,29 @@
       "last_attempt": "2026-11-06T19:45:21.335581+00:00"
     },
     "20261005_1qxvvegyagBxB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-07T10:44:18.762880+00:00"
+      "last_attempt": "2026-11-07T17:54:14.827558+00:00"
     },
     "20260216_1BdGYykenzQGX": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-07T10:44:18.762896+00:00"
+      "last_attempt": "2026-11-07T17:54:14.827576+00:00"
     },
     "20260217_1vAxRAREEZqJl": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-07T10:44:18.762900+00:00"
+      "last_attempt": "2026-11-07T17:54:14.827579+00:00"
     },
     "20260217_1mrxmklrbokGy": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-07T10:44:18.762903+00:00"
+      "last_attempt": "2026-11-07T17:54:14.827581+00:00"
     },
     "20260216_1dRJZMkLrObGB": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-07T10:44:18.762905+00:00"
+      "last_attempt": "2026-11-07T17:54:14.827583+00:00"
     }
   },
   "next_in_queue": [
