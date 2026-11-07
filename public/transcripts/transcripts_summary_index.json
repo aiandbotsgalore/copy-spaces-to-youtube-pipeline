@@ -5264,32 +5264,6 @@
     ]
   },
   {
-    "release_id": 287709414,
-    "release_tag": "20260218_1dRJZdndpVgKB",
-    "title": "The Big Story",
-    "published_at": "2026-02-18T14:22:18Z",
-    "episode_date": "2024-11-06",
-    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1dRJZdndpVgKB/20260218_1dRJZdndpVgKB_The_Big_Story.mp3",
-    "segment_count": 4773,
-    "body": "**Title:** The Big Story\n**Host:** ŁØǤΔŇ (@LoganBlack)\n**Duration:** 18:20:33\n**Listeners:** 0\n**Recorded:** 20241106\n**Source:** https://x.com/i/spaces/1dRJZdndpVgKB\n**Space ID:** 1dRJZdndpVgKB\n\nTwitter Space participated by Red Panda Koala, Bruce R. Fenton, Interstellar, 💛Jaime H. 𝕏🫶🇺🇸🖖🗽💖, Good Morning UFO, Jay Dub, Guru, Jeff, Şheri Uçar 🐦‍⬛, ᴳᵒᵈˢᵃᵘᶜᵉ, Morning Glory, 🀄AL🀄, D👽☢️MerDaddy, Ion, Citizens' Dawn ✝️🐂, Andra, 𝕸𝖎𝖘𝖘 𝕸𝖔𝖗𝖕𝖍𝖔, 💛 Saneeta 💛, Fonda Deez, Nicola_W, _Lana., Terrestrial Material, FƏÅŘÏƏÇƏ, Edmonster, Chris Gill, ostra, Fletcher, Arcturiusanu ` lᴉɹΛ 𖣐 🍓Ari, HOSS 1776!, Dean Miller, New_Zat㊙️♊, Mongol Mortuhai, Rich, 𝓮., L.A.0, ⪾⋓⪾⪽, Eric Tumbleson, Kilian Kunst, Amethyst\n\n---\nMETADATA::DURATION::18:20:33\nMETADATA::LISTENERS::0\nMETADATA::DATE::20241106\n",
-    "duration_sec": 66033,
-    "host_handle": null,
-    "speakers": [
-      "Logan",
-      "Speaker 1",
-      "Speaker 10",
-      "Speaker 11",
-      "Speaker 2",
-      "Speaker 3",
-      "Speaker 4",
-      "Speaker 5",
-      "Speaker 6",
-      "Speaker 7",
-      "Speaker 8",
-      "Speaker 9"
-    ]
-  },
-  {
     "release_id": 287659373,
     "release_tag": "20260218_1ZkKzjzEYNqKv",
     "title": "Who Built The Pyramids",
@@ -15756,6 +15730,21 @@
       "Speaker 3",
       "Speaker 4",
       "Speaker 5"
+    ]
+  },
+  {
+    "release_id": 286982829,
+    "release_tag": "20260216_1DXGyjPLlRyJM",
+    "title": "private space audio test for guitar recording",
+    "published_at": "2026-02-16T20:03:07Z",
+    "episode_date": "2023-11-25",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyjPLlRyJM/20260216_1DXGyjPLlRyJM_private_space_audio_test_for_guitar_recording.mp3",
+    "segment_count": 5,
+    "body": "**Title:** private space audio test for guitar recording\n**Host:** ŁØǤΔŇ (@LoganBlack)\n**Duration:** 00:21:27\n**Listeners:** 0\n**Recorded:** 20231125\n**Source:** https://x.com/i/spaces/1DXGyjPLlRyJM\n**Space ID:** 1DXGyjPLlRyJM\n\nTwitter Space participated by nobody yet\n\n---\nMETADATA::DURATION::00:21:27\nMETADATA::LISTENERS::0\nMETADATA::DATE::20231125\n",
+    "duration_sec": 1287,
+    "host_handle": null,
+    "speakers": [
+      "Logan"
     ]
   },
   {

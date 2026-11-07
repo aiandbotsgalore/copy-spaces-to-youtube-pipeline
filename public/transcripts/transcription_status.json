@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-07T18:02:20.053641+00:00",
+  "last_updated": "2026-11-07T22:31:48.212348+00:00",
   "total_episodes_with_audio": 840,
   "transcribed_count": 737,
   "untranscribed_count": 103,
@@ -57,34 +57,34 @@
       "attempts": 3,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
       "last_attempt": "2026-11-07T17:54:14.827583+00:00"
+    },
+    "20260217_1rmGPkEmyDmKN": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-07T22:23:17.241738+00:00"
+    },
+    "20260217_1nAKErneLLVGL": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-07T22:23:17.241755+00:00"
+    },
+    "20260218_1ynKOarNamVJR": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-07T22:23:17.241760+00:00"
+    },
+    "20260217_1OdKrzmywLyKX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-07T22:23:17.241762+00:00"
+    },
+    "20260217_1kvKpmlVLvkGE": {
+      "attempts": 1,
+      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
+      "last_attempt": "2026-11-07T22:23:17.241765+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20261005_1qxvvegyagBxB",
-      "name": "Orb_People_Persons",
-      "date": "Oct 5, 2026"
-    },
-    {
-      "tag": "20260216_1BdGYykenzQGX",
-      "name": "The Otherworldly Hour - The Cosmos & Beyond \ud83d\udc7d\ud83c\udde6\ud83c\uddfa\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf2\ud83e\udd85\ud83e\udd96",
-      "date": "Dec 19, 2022"
-    },
-    {
-      "tag": "20260217_1vAxRAREEZqJl",
-      "name": "UFO 101 FAFO",
-      "date": "Dec 18, 2022"
-    },
-    {
-      "tag": "20260217_1mrxmklrbokGy",
-      "name": "Lost Souls of #UFOTwitter. We're talking about you @ElonMusk",
-      "date": "Dec 18, 2022"
-    },
-    {
-      "tag": "20260216_1dRJZMkLrObGB",
-      "name": "\ud83d\udc0d\ud83d\udc0a\ud83e\udd96REPTILLIANS \ud83d\udc0a\ud83d\udc0d\ud83e\udd96.  Lost souls of #UFOTwitter",
-      "date": "Dec 18, 2022"
-    },
     {
       "tag": "20260217_1rmGPkEmyDmKN",
       "name": "\ud83c\udf44\ud83d\udc7dCome get your #UFO Disclosure #ufotwitter\ud83d\udc79\ud83d\udc7b\ud83e\udd16",
@@ -159,6 +159,31 @@
       "tag": "20260217_1PlKQpopPwZxE",
       "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\u2620\ufe0f\ud83d\udc7d",
       "date": "Dec 9, 2022"
+    },
+    {
+      "tag": "20260217_1OyKAVkVeWrGb",
+      "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\ud83d\udd25\ud83d\udc7d",
+      "date": "Dec 9, 2022"
+    },
+    {
+      "tag": "20260217_1RDGlaprMkkJL",
+      "name": "Happy Birthday Natalie \ud83c\udf89\ud83d\udc83",
+      "date": "Dec 7, 2022"
+    },
+    {
+      "tag": "20260216_1djxXlDoBaPxZ",
+      "name": "25\ud83c\udf89",
+      "date": "Dec 7, 2022"
+    },
+    {
+      "tag": "20260218_1ZkJzXoNpLXKv",
+      "name": "I Believe in Doty the Bigtoe",
+      "date": "Dec 6, 2022"
+    },
+    {
+      "tag": "20260217_1OdKrzQRVneKX",
+      "name": "\u26a0\ufe0fTWITTER FILES LIVE\u2757",
+      "date": "Dec 6, 2022"
     }
   ]
 }
