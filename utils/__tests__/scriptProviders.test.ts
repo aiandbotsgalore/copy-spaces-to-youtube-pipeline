@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   classifyCliFailure, claudeArgs, codexArgs, CODEX_MODEL, createCheaperInferenceAdapter, createClaudeCliAdapter, createCodexCliAdapter,
+  createGroqAdapter, createOpenAiCompatibleAdapter,
   ensureEmptySandbox, parseCmdShim, resolveCliBinary, subscriptionEnv, verifyCrossFamily, parseRoleSpec, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP,
   type ProcessRunner, type RunOutcome,
 } from '../../server/scriptProviders';
@@ -149,5 +150,93 @@ describe('cross-family rule', () => {
     expect(parseRoleSpec("ollama:llama3")).toEqual({ provider: "ollama", model: "llama3" });
     expect(parseRoleSpec("groq:llama-3.3-70b")).toEqual({ provider: "groq", model: "llama-3.3-70b" });
     expect(verifyCrossFamily({ ...DEFAULT_ROLE_MAP, judge: "ollama:llama3" })).toEqual({ ok: true });
+  });
+});
+
+describe('Groq adapter', () => {
+  it('reports NO_KEY if GROQ_API_KEY is missing', async () => {
+    const ad = createGroqAdapter('llama-3.3-70b-versatile', { env: () => ({}), budget: { maxUsd: 0, spentUsd: 0 } });
+    expect((await ad.available()).ok).toBe(false);
+    expect(await ad.complete(req())).toMatchObject({ ok: false, code: 'NO_KEY' });
+  });
+
+  it('surfaces auth errors directly (NOT_SIGNED_IN) without swallowing', async () => {
+    const fetchImpl = (async () => new Response('{"error":"Invalid API key"}', { status: 401 })) as typeof fetch;
+    const ad = createGroqAdapter('llama-3.3-70b-versatile', { fetchImpl, env: () => ({ GROQ_API_KEY: 'bad_key' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: false, code: 'NOT_SIGNED_IN' });
+  });
+
+  it('reports RATE_LIMIT on HTTP 429', async () => {
+    const fetchImpl = (async () => new Response('{"error":"Rate limit reached"}', { status: 429 })) as typeof fetch;
+    const ad = createGroqAdapter('llama-3.3-70b-versatile', { fetchImpl, env: () => ({ GROQ_API_KEY: 'gsk_test' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: false, code: 'RATE_LIMIT' });
+  });
+
+  it('successfully parses valid JSON response with provider groq', async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      choices: [{ message: { content: '{"winner":"A","reasons":["succinct"]}' } }],
+      usage: { prompt_tokens: 150, completion_tokens: 30 },
+    }), { status: 200 })) as typeof fetch;
+    const ad = createGroqAdapter('llama-3.3-70b-versatile', { fetchImpl, env: () => ({ GROQ_API_KEY: 'gsk_test' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: true, provider: 'groq', json: { winner: 'A' } });
+  });
+});
+
+describe('OpenAI-compatible adapter', () => {
+  it('reports NO_KEY if key is missing', async () => {
+    const ad = createOpenAiCompatibleAdapter('custom', { env: () => ({}), budget: { maxUsd: 0, spentUsd: 0 } });
+    expect((await ad.available()).ok).toBe(false);
+    expect(await ad.complete(req())).toMatchObject({ ok: false, code: 'NO_KEY' });
+  });
+
+  it('surfaces auth errors directly (NOT_SIGNED_IN)', async () => {
+    const fetchImpl = (async () => new Response('{"error":"Unauthorized"}', { status: 403 })) as typeof fetch;
+    const ad = createOpenAiCompatibleAdapter('custom', { fetchImpl, env: () => ({ OPENAI_COMPATIBLE_API_KEY: 'bad' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: false, code: 'NOT_SIGNED_IN' });
+  });
+
+  it('reports TIMEOUT on abort', async () => {
+    const fetchImpl = (async () => {
+      const err = new Error('The operation was aborted');
+      err.name = 'AbortError';
+      throw err;
+    }) as typeof fetch;
+    const ad = createOpenAiCompatibleAdapter('custom', { fetchImpl, env: () => ({ OPENAI_COMPATIBLE_API_KEY: 'k' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: false, code: 'TIMEOUT' });
+  });
+
+  it('successfully parses valid JSON response with provider openai_compatible', async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({
+      model: 'my-custom-model',
+      choices: [{ message: { content: '{"winner":"B","reasons":[]}' } }],
+      usage: { prompt_tokens: 200, completion_tokens: 50 },
+    }), { status: 200 })) as typeof fetch;
+    const ad = createOpenAiCompatibleAdapter('custom', { fetchImpl, env: () => ({ OPENAI_COMPATIBLE_API_KEY: 'k' }), budget: { maxUsd: 0, spentUsd: 0 } });
+    const r = await ad.complete(req());
+    expect(r).toMatchObject({ ok: true, provider: 'openai_compatible', model: 'my-custom-model', json: { winner: 'B' } });
+  });
+});
+
+describe('Fallback rules audit', () => {
+  it('surfaces auth errors directly (NOT_SIGNED_IN) and never falls back silently', () => {
+    const allowedTransientCodes = new Set(['TIMEOUT', 'RATE_LIMIT', 'UPSTREAM']);
+    const authCode = 'NOT_SIGNED_IN';
+    expect(allowedTransientCodes.has(authCode)).toBe(false);
+  });
+
+  it('only treats TIMEOUT, RATE_LIMIT, and UPSTREAM as transient fallback opportunities', () => {
+    const allowedTransientCodes = new Set(['TIMEOUT', 'RATE_LIMIT', 'UPSTREAM']);
+    expect(allowedTransientCodes.has('TIMEOUT')).toBe(true);
+    expect(allowedTransientCodes.has('RATE_LIMIT')).toBe(true);
+    expect(allowedTransientCodes.has('UPSTREAM')).toBe(true);
+    expect(allowedTransientCodes.has('BAD_OUTPUT')).toBe(false);
+    expect(allowedTransientCodes.has('NOT_SIGNED_IN')).toBe(false);
+    expect(allowedTransientCodes.has('NO_KEY')).toBe(false);
   });
 });

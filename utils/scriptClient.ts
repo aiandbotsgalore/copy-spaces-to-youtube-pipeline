@@ -174,18 +174,17 @@ export function streamRun(projectId: string, runId: string, onEvent: (e: RunEven
 }
 
 export const ROLE_SPECS = [
+  'inception:mercury-3',
+  'cohere:command-a-03-2025',
+  'groq:llama-3.3-70b',
+  'openai_compatible:custom',
   'claude_cli:sonnet',
   'claude_cli:haiku',
   'agy_cli:gemini-3.8-flash-high',
-  'inception:mercury-3',
-  'cohere:command-a-03-2025',
   'codex_cli',
   'ci:claude-haiku-5.5',
   'ci:gpt-6-luna',
   'ci:claude-sonnet-5.5',
-  'ollama:llama3',
-  'groq:llama-3.3-70b',
-  'openai_compatible:custom',
 ];
 
 export function loadRoleChoice(): RoleChoice {

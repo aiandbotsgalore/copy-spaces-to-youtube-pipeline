@@ -624,11 +624,17 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
 
   const providerName = (spec: string) => {
     const names: Record<string, string> = {
+      'inception:mercury-3': 'Inception Labs (Mercury-3)',
+      'cohere:command-a-03-2025': 'Cohere Command A (256k)',
+      'groq:llama-3.3-70b': 'Groq (Llama 3.3 70B)',
+      'openai_compatible:custom': 'OpenAI-Compatible Custom Gateway',
       'claude_cli:sonnet': 'Claude Sonnet',
       'claude_cli:haiku': 'Claude Haiku',
+      'agy_cli:gemini-3.8-flash-high': 'Antigravity (Gemini 3.8 Flash)',
       codex_cli: 'Codex CLI',
       'ci:claude-haiku-5.5': 'Claude Haiku 5.5',
       'ci:gpt-6-luna': 'GPT-6 Luna',
+      'ci:claude-sonnet-5.5': 'Claude Sonnet 5.5',
     };
     return names[spec] || spec;
   };
@@ -897,7 +903,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
             </div>
             {!status ? <div className="text-sm text-[#ABB5C7]">Checking local and fallback providers…</div> : (
               <div className="space-y-2">
-                {Object.entries(status.providers).map(([spec, h]) => (
+                {Object.entries(status.providers).filter(([spec]) => !spec.startsWith('ollama') && !spec.includes('local')).map(([spec, h]) => (
                   <div key={spec} className="rounded-lg border border-[#313A4C] bg-[#0B0D11] p-3.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-2">
@@ -920,8 +926,35 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
               <div className="rounded-lg border border-[#313A4C] p-4">
                 <h3 className="text-sm font-semibold">AI routing</h3>
                 <div className="mt-3 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Subscription tools</span><span className={subscriptionReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{subscriptionReady ? 'Ready' : 'Needs setup'}</span></div>
-                <div className="mt-2 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Cloud AI models (Inception / Cohere)</span><span className={fallbackReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{fallbackReady ? 'Configured' : 'Needs setup'}</span></div>
+                <div className="mt-2 flex items-center justify-between text-xs"><span className="text-[#ABB5C7]">Cloud AI models (Inception / Cohere / Groq)</span><span className={fallbackReady ? 'text-[#55C9A2]' : 'text-[#E9BD67]'}>{fallbackReady ? 'Configured' : 'Needs setup'}</span></div>
                 <p className="mt-3 text-[11px] leading-4 text-[#8994A8]">Availability does not mean a model is running. Choose model roles inside a project.</p>
+              </div>
+
+              {/* Custom Cloud Provider Setup */}
+              <div className="rounded-lg border border-[#313A4C] bg-[#0B0D11] p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-[#E6EBF4]">Cloud Provider Setup</h3>
+                <p className="text-xs text-[#ABB5C7]">Keys and endpoints are read automatically from <code>.env</code> or <code>.env.local</code>.</p>
+                <div className="space-y-2 text-xs">
+                  <div className="p-2.5 rounded border border-[#252C3A] bg-[#12161F] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-200">Groq (Llama 3.3 70B)</span>
+                      <span className={status?.providers['groq:llama-3.3-70b']?.ok ? 'text-emerald-400 font-mono text-[11px]' : 'text-amber-400 font-mono text-[11px]'}>
+                        {status?.providers['groq:llama-3.3-70b']?.ok ? 'Active' : 'Needs GROQ_API_KEY'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400">Endpoint: https://api.groq.com/openai/v1</div>
+                  </div>
+
+                  <div className="p-2.5 rounded border border-[#252C3A] bg-[#12161F] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-200">OpenAI-Compatible Gateway</span>
+                      <span className={status?.providers['openai_compatible:custom']?.ok ? 'text-emerald-400 font-mono text-[11px]' : 'text-amber-400 font-mono text-[11px]'}>
+                        {status?.providers['openai_compatible:custom']?.ok ? 'Active' : 'Needs Key / URL'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400">Configured via OPENAI_COMPATIBLE_BASE_URL &amp; OPENAI_COMPATIBLE_API_KEY</div>
+                  </div>
+                </div>
               </div>
               {status.interruptedAtStart > 0 && <div className="rounded-lg border border-[#7B633D] bg-[#292315] p-3 text-xs leading-5 text-[#E9BD67]" role="status">
                 {status.interruptedAtStart} interrupted run(s) from the last server restart. Open the relevant project to resume.
@@ -2307,8 +2340,14 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                     {logEntries && <LogTable entries={logEntries} />}
                     <ol className="space-y-0.5 max-h-48 overflow-y-auto pt-1">
                       {events.map(e => (
-                        <li key={e.seq} className={cx('text-[11px]', e.type === 'error' ? 'text-rose-300' : e.type === 'judge' || e.type === 'decision' ? 'text-indigo-200' : 'text-slate-400')}>
-                          <span className="text-slate-600">{new Date(e.at).toLocaleTimeString()} </span>{e.message}
+                        <li key={e.seq} className={cx('text-[11px] flex flex-wrap items-center gap-1.5', e.type === 'error' ? 'text-rose-300' : e.type === 'judge' || e.type === 'decision' ? 'text-indigo-200' : 'text-slate-400')}>
+                          <span className="text-slate-600">{new Date(e.at).toLocaleTimeString()} </span>
+                          <span>{e.message}</span>
+                          {e.provider && (
+                            <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-indigo-300 font-mono border border-slate-700/60 inline-flex items-center gap-1">
+                              served by {e.provider}{e.model ? ` (${e.model})` : ''}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ol>

@@ -934,6 +934,227 @@ export function createCohereAdapter(
 }
 
 /* ------------------------------------------------------------------------------------------------ */
+/* Groq API (Cloud Fast LLM)                                                                        */
+/* ------------------------------------------------------------------------------------------------ */
+
+export function createGroqAdapter(
+  model: string,
+  deps: {
+    fetchImpl?: typeof fetch;
+    env: () => Record<string, string | undefined>;
+    budget: Budget;
+    now?: () => number;
+  }
+): ProviderAdapter {
+  const now = deps.now ?? Date.now;
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const family: Family = 'open_source';
+
+  const cfg = () => {
+    const env = deps.env();
+    const key = (env.GROQ_API_KEY || '').trim();
+    const targetModel = model || 'llama-3.3-70b-versatile';
+    return { key, targetModel };
+  };
+
+  const fail = (code: FailCode, message: string, rawOutput: string, started: number): CompleteResult =>
+    ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'groq', model });
+
+  return {
+    id: 'groq',
+    family,
+    model,
+    async available() {
+      const { key, targetModel } = cfg();
+      if (!key) return { ok: false, detail: 'No GROQ_API_KEY in environment or .env.local.', code: 'NO_KEY' };
+      return { ok: true, detail: `Groq key configured; ${targetModel}.` };
+    },
+    async complete(req) {
+      const started = now();
+      if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+      const { key, targetModel } = cfg();
+      if (!key) return fail('NO_KEY', 'No GROQ_API_KEY configured.', '', started);
+
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), req.timeoutMs);
+      const onAbort = () => ctl.abort();
+      if (req.signal.aborted) onAbort();
+      else req.signal.addEventListener('abort', onAbort, { once: true });
+
+      try {
+        const payload = {
+          model: targetModel,
+          messages: [
+            { role: 'system', content: req.system },
+            { role: 'user', content: `${req.user}\n\nRespond strictly with valid JSON conforming to the schema:\n${JSON.stringify(req.schema)}` },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+        };
+
+        const res = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: ctl.signal,
+        });
+
+        const text = await res.text();
+        const raw = text.split(key).join('[redacted]').slice(0, 4000);
+
+        if (res.status === 401 || res.status === 403) return fail('NOT_SIGNED_IN', 'Groq API key rejected.', raw, started);
+        if (res.status === 429) return fail('RATE_LIMIT', 'Rate limited by Groq API (HTTP 429).', raw, started);
+        if (!res.ok) return fail('UPSTREAM', `Groq API error (${res.status}): ${text.slice(0, 300)}`, raw, started);
+
+        const j: any = parseJsonLoose(text);
+        const content = j?.choices?.[0]?.message?.content;
+        const inTok = Number(j?.usage?.prompt_tokens) || 0;
+        const outTok = Number(j?.usage?.completion_tokens) || 0;
+
+        let cleanContent = typeof content === 'string' ? content.trim() : '';
+        if (cleanContent.startsWith('```')) {
+          const m = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (m) cleanContent = m[1].trim();
+        }
+
+        const json = parseJsonLoose(cleanContent);
+        if (!json || typeof json !== 'object') return fail('BAD_OUTPUT', 'Groq response was not valid JSON.', raw, started);
+
+        return {
+          ok: true,
+          json,
+          provider: 'groq',
+          model: String(j?.model || targetModel),
+          usage: { inTok, outTok, costUsd: 0 },
+          durationMs: now() - started,
+        };
+      } catch (e: any) {
+        if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+        if (e?.name === 'AbortError') return fail('TIMEOUT', `Groq API timed out after ${Math.round(req.timeoutMs / 1000)} s.`, '', started);
+        return fail('UPSTREAM', `Could not reach Groq API: ${e?.message || e}`, '', started);
+      } finally {
+        clearTimeout(timer);
+        req.signal.removeEventListener('abort', onAbort);
+      }
+    },
+  };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* OpenAI-Compatible API (Custom Cloud Gateway)                                                     */
+/* ------------------------------------------------------------------------------------------------ */
+
+export function createOpenAiCompatibleAdapter(
+  model: string,
+  deps: {
+    fetchImpl?: typeof fetch;
+    env: () => Record<string, string | undefined>;
+    budget: Budget;
+    now?: () => number;
+  }
+): ProviderAdapter {
+  const now = deps.now ?? Date.now;
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const family: Family = 'open_source';
+
+  const cfg = () => {
+    const env = deps.env();
+    const baseUrl = (env.OPENAI_COMPATIBLE_BASE_URL || env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+    const key = (env.OPENAI_COMPATIBLE_API_KEY || env.OPENAI_API_KEY || '').trim();
+    const targetModel = model || env.OPENAI_COMPATIBLE_MODEL || 'default';
+    return { baseUrl, key, targetModel };
+  };
+
+  const fail = (code: FailCode, message: string, rawOutput: string, started: number): CompleteResult =>
+    ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'openai_compatible', model });
+
+  return {
+    id: 'openai_compatible',
+    family,
+    model,
+    async available() {
+      const { baseUrl, key, targetModel } = cfg();
+      if (!key) return { ok: false, detail: 'No OPENAI_COMPATIBLE_API_KEY or OPENAI_API_KEY in environment or .env.local.', code: 'NO_KEY' };
+      return { ok: true, detail: `OpenAI-compatible gateway configured at ${baseUrl}; ${targetModel}.` };
+    },
+    async complete(req) {
+      const started = now();
+      if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+      const { baseUrl, key, targetModel } = cfg();
+      if (!key) return fail('NO_KEY', 'No API key configured for OpenAI-compatible provider.', '', started);
+
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), req.timeoutMs);
+      const onAbort = () => ctl.abort();
+      if (req.signal.aborted) onAbort();
+      else req.signal.addEventListener('abort', onAbort, { once: true });
+
+      try {
+        const payload = {
+          model: targetModel,
+          messages: [
+            { role: 'system', content: req.system },
+            { role: 'user', content: `${req.user}\n\nRespond strictly with valid JSON conforming to the schema:\n${JSON.stringify(req.schema)}` },
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.2,
+        };
+
+        const res = await fetchImpl(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: ctl.signal,
+        });
+
+        const text = await res.text();
+        const raw = text.split(key).join('[redacted]').slice(0, 4000);
+
+        if (res.status === 401 || res.status === 403) return fail('NOT_SIGNED_IN', 'OpenAI-compatible API key rejected.', raw, started);
+        if (res.status === 429) return fail('RATE_LIMIT', 'Rate limited by OpenAI-compatible API (HTTP 429).', raw, started);
+        if (!res.ok) return fail('UPSTREAM', `OpenAI-compatible API error (${res.status}): ${text.slice(0, 300)}`, raw, started);
+
+        const j: any = parseJsonLoose(text);
+        const content = j?.choices?.[0]?.message?.content;
+        const inTok = Number(j?.usage?.prompt_tokens) || 0;
+        const outTok = Number(j?.usage?.completion_tokens) || 0;
+
+        let cleanContent = typeof content === 'string' ? content.trim() : '';
+        if (cleanContent.startsWith('```')) {
+          const m = cleanContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (m) cleanContent = m[1].trim();
+        }
+
+        const json = parseJsonLoose(cleanContent);
+        if (!json || typeof json !== 'object') return fail('BAD_OUTPUT', 'OpenAI-compatible response was not valid JSON.', raw, started);
+
+        return {
+          ok: true,
+          json,
+          provider: 'openai_compatible',
+          model: String(j?.model || targetModel),
+          usage: { inTok, outTok, costUsd: 0 },
+          durationMs: now() - started,
+        };
+      } catch (e: any) {
+        if (req.signal.aborted) return fail('ABORTED', 'Cancelled.', '', started);
+        if (e?.name === 'AbortError') return fail('TIMEOUT', `OpenAI-compatible API timed out after ${Math.round(req.timeoutMs / 1000)} s.`, '', started);
+        return fail('UPSTREAM', `Could not reach OpenAI-compatible API: ${e?.message || e}`, '', started);
+      } finally {
+        clearTimeout(timer);
+        req.signal.removeEventListener('abort', onAbort);
+      }
+    },
+  };
+}
+
+/* ------------------------------------------------------------------------------------------------ */
 /* Role maps                                                                                         */
 /* ------------------------------------------------------------------------------------------------ */
 
@@ -1054,16 +1275,20 @@ export function createProviderRegistry(deps: RegistryDeps) {
       if (p.provider === 'agy_cli') return createAgyCliAdapter(p.model, { ...cli, resolve: () => resolve('agy') });
       if (p.provider === 'inception') return createInceptionAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
       if (p.provider === 'cohere') return createCohereAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
+      if (p.provider === 'groq') return createGroqAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
+      if (p.provider === 'openai_compatible') return createOpenAiCompatibleAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
       return createCheaperInferenceAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
     },
     async health() {
       const noBudget = { maxUsd: 0, spentUsd: 0 };
       const specs = [
+        'inception:mercury-3',
+        'cohere:command-a-03-2025',
+        'groq:llama-3.3-70b',
+        'openai_compatible:custom',
         'claude_cli:sonnet',
         'claude_cli:haiku',
         'agy_cli:gemini-3.8-flash-high',
-        'inception:mercury-3',
-        'cohere:command-a-03-2025',
         'codex_cli',
         'ci:claude-haiku-5.5',
         'ci:gpt-6-luna',
