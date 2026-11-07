@@ -5,6 +5,7 @@ export default defineConfig(async (env) => {
   const baseConfig = typeof viteConfig === 'function' ? await viteConfig(env) : viteConfig;
   return mergeConfig(baseConfig, {
     test: {
+      maxWorkers: 4,
       projects: [
         {
           name: 'fast',
