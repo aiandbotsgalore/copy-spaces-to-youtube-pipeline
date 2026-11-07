@@ -12,6 +12,7 @@ on:
       - 'components/transcript/**'
       - 'e2e/**'
       - 'playwright.transcripts.config.ts'
+      - 'vitest.config.ts'
       - '.github/workflows/transcript-workbench.yml'
 
 permissions:
