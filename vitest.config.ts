@@ -10,7 +10,7 @@ export default defineConfig(async (env) => {
           name: 'fast',
           test: {
             name: 'fast',
-            include: ['utils/__tests__/**/*.test.ts'],
+            include: ['utils/__tests__/**/*.test.ts', 'components/**/__tests__/**/*.test.ts'],
             exclude: ['utils/__tests__/**/*.integration.test.ts', 'scripts/acceptance/**'],
           },
         },
