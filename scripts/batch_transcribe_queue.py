@@ -152,11 +152,20 @@ def fetch_all_releases(repo: str, github_token: Optional[str] = None) -> List[Di
     return releases
 
 
-def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Identifies transcribed vs untranscribed episodes and sorts untranscribed from newest to oldest."""
+def analyze_releases(releases: List[Dict[str, Any]], since_date: str = "2026-10-27") -> Dict[str, Any]:
+    """Identifies transcribed vs untranscribed episodes and prioritizes recent episodes (since Oct 27, 2026) first."""
     transcribed = []
     untranscribed = []
     no_audio = []
+
+    cutoff_ms = 0
+    if since_date and since_date.lower() not in ("all", "none", "0"):
+        try:
+            parts = [int(p) for p in since_date.split("-")]
+            cutoff_dt = datetime(parts[0], parts[1], parts[2], 0, 0, 0, tzinfo=timezone.utc)
+            cutoff_ms = int(cutoff_dt.timestamp() * 1000)
+        except Exception:
+            cutoff_ms = int(datetime(2026, 10, 27, 0, 0, 0, tzinfo=timezone.utc).timestamp() * 1000)
 
     for rel in releases:
         tag = rel.get("tag_name", "")
@@ -187,6 +196,20 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         timestamp_ms, date_display = get_episode_recorded_timestamp(rel)
 
+        published_at = rel.get("published_at") or rel.get("created_at") or ""
+        pub_ts = 0
+        if published_at:
+            try:
+                pub_dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+                pub_ts = int(pub_dt.timestamp() * 1000)
+            except Exception:
+                pub_ts = 0
+
+        # Recent check: either recorded on/after cutoff OR published on/after cutoff
+        is_recent = False
+        if cutoff_ms > 0:
+            is_recent = (timestamp_ms >= cutoff_ms) or (pub_ts >= cutoff_ms)
+
         total_audio_bytes = sum(a.get("size", 0) for a in mp3_assets)
         is_placeholder = tag.startswith("test-placeholder") or "placeholder" in name.lower() or total_audio_bytes < 5000
 
@@ -194,6 +217,9 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
             "tag": tag,
             "name": name,
             "timestamp_ms": timestamp_ms,
+            "pub_ts": pub_ts,
+            "published_at": published_at,
+            "is_recent": is_recent,
             "date_display": date_display,
             "mp3_count": len(mp3_assets),
             "total_audio_bytes": total_audio_bytes,
@@ -223,23 +249,34 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
         except Exception:
             pass
 
-    # Sort strictly from newest (most recently released/aired) to oldest
-    untranscribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
+    # Separate recent episodes (since Oct 27, 2026) from older backlog
+    recent_untranscribed = [item for item in untranscribed if item.get("is_recent")]
+    backlog_untranscribed = [item for item in untranscribed if not item.get("is_recent")]
+
+    # Sort each partition from newest to oldest
+    recent_untranscribed.sort(key=lambda x: max(x["timestamp_ms"], x.get("pub_ts", 0)), reverse=True)
+    backlog_untranscribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
     transcribed.sort(key=lambda x: x["timestamp_ms"], reverse=True)
     missing_clips.sort(key=lambda x: x["timestamp_ms"], reverse=True)
 
-    # Separate healthy untranscribed from repeated failures (>= 3 attempts)
-    healthy_untranscribed = []
-    deprioritized = []
-    for item in untranscribed:
+    # For recent episodes, clear stale failure history (e.g. from previous Modal 429 credit issues)
+    for item in recent_untranscribed:
+        tag = item["tag"]
+        if tag in failed_history:
+            del failed_history[tag]
+
+    # Separate healthy untranscribed from repeated failures (>= 3 attempts) for backlog
+    healthy_backlog = []
+    deprioritized_backlog = []
+    for item in backlog_untranscribed:
         attempts = failed_history.get(item["tag"], {}).get("attempts", 0)
         if attempts >= 3:
-            deprioritized.append(item)
+            deprioritized_backlog.append(item)
         else:
-            healthy_untranscribed.append(item)
+            healthy_backlog.append(item)
 
-    # Place deprioritized at the very end so they never block the queue
-    ordered_untranscribed = healthy_untranscribed + deprioritized
+    # Ordered untranscribed: All recent episodes first, followed by backlog
+    ordered_untranscribed = recent_untranscribed + healthy_backlog + deprioritized_backlog
 
     return {
         "total_releases": len(releases),
@@ -247,7 +284,9 @@ def analyze_releases(releases: List[Dict[str, Any]]) -> Dict[str, Any]:
         "untranscribed": ordered_untranscribed,
         "missing_clips": missing_clips,
         "no_audio": no_audio,
-        "failed_history": failed_history
+        "failed_history": failed_history,
+        "recent_untranscribed": recent_untranscribed,
+        "since_date": since_date,
     }
 
 
@@ -260,13 +299,17 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
     pct = round((len(analysis["transcribed"]) / total_with_audio * 100), 1) if total_with_audio else 100.0
 
     history = failed_history if failed_history is not None else analysis.get("failed_history", {})
-    
+    recent_untranscribed = analysis.get("recent_untranscribed", [])
+
     fatal_error = None
     data = {
         "last_updated": datetime.now(timezone.utc).isoformat(),
         "total_episodes_with_audio": total_with_audio,
         "transcribed_count": len(analysis["transcribed"]),
         "untranscribed_count": len(analysis["untranscribed"]),
+        "recent_untranscribed_count": len(recent_untranscribed),
+        "focus_mode": "recent_only" if recent_untranscribed else "backlog",
+        "recent_cutoff": analysis.get("since_date", "2026-10-27"),
         "percent_complete": pct,
         "auto_chain_active": len(analysis["untranscribed"]) > 0 and not fatal_error,
         "is_queue_complete": len(analysis["untranscribed"]) == 0,
@@ -276,14 +319,16 @@ def save_status_manifest(analysis: Dict[str, Any], failed_history: Optional[Dict
             {
                 "tag": item["tag"],
                 "name": item["name"],
-                "date": item["date_display"]
+                "date": item["date_display"],
+                "is_recent": item.get("is_recent", False)
             }
             for item in analysis["untranscribed"][:20]
         ]
     }
     with open(status_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    print(f"[✓] Status manifest updated: {status_file} ({pct}% complete, {len(analysis['untranscribed'])} remaining)")
+    recent_msg = f", {len(recent_untranscribed)} recent since Oct 27" if recent_untranscribed else " (all recent finished!)"
+    print(f"[✓] Status manifest updated: {status_file} ({pct}% complete, {len(analysis['untranscribed'])} remaining{recent_msg})")
 
 
 def main():
@@ -291,6 +336,7 @@ def main():
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--limit", type=int, default=10, help="Number of episodes to transcribe (0 for all)")
     parser.add_argument("--engine", type=str, choices=["modal", "assemblyai"], default="assemblyai", help="Transcription engine (default: assemblyai)")
+    parser.add_argument("--since", type=str, default="2026-10-27", help="Prioritize episodes since date (YYYY-MM-DD, default: 2026-10-27). Pass 'all' to disable filter.")
     parser.add_argument("--missing-clips", action="store_true", help="Process transcribed episodes that are missing highlight clips")
     parser.add_argument("--dry-run", action="store_true", help="Preview queue and exit without running Modal")
     parser.add_argument("--emit-matrix", action="store_true", help="Outputs next batch as JSON array to GITHUB_OUTPUT for GitHub Actions matrix jobs")
@@ -302,11 +348,12 @@ def main():
         print("[!] No releases found.")
         sys.exit(1)
 
-    analysis = analyze_releases(releases)
+    analysis = analyze_releases(releases, since_date=args.since)
     save_status_manifest(analysis)
 
     total_with_audio = len(analysis["transcribed"]) + len(analysis["untranscribed"])
     pct = (len(analysis["transcribed"]) / total_with_audio * 100) if total_with_audio else 0
+    recent_pending = analysis.get("recent_untranscribed", [])
 
     print("\n" + "=" * 65)
     print("           EPISODE TRANSCRIPTION STATUS & QUEUE               ")
@@ -315,6 +362,7 @@ def main():
     print(f"  • Episodes with Audio:      {total_with_audio}")
     print(f"  • Already Transcribed:      {len(analysis['transcribed'])} ({pct:.1f}%)")
     print(f"  • Untranscribed Remaining:  {len(analysis['untranscribed'])}")
+    print(f"  • Untranscribed Recent:     {len(recent_pending)} (since {args.since})")
     print(f"  • Transcribed Missing Clips:{len(analysis['missing_clips'])}")
     print("=" * 65)
 
@@ -323,15 +371,22 @@ def main():
         if not queue:
             print("\n[🎉] All transcribed episodes already have highlight clips generated!")
             sys.exit(0)
+        to_process = queue if args.limit <= 0 else queue[:args.limit]
     else:
-        queue = analysis["untranscribed"]
-        if not queue:
-            print("\n[🎉] All episodes in the repository are already transcribed!")
-            sys.exit(0)
+        if recent_pending:
+            print(f"\n[🎯] FOCUS MODE: Prioritizing {len(recent_pending)} episode(s) since {args.since} to today.")
+            print("    Historical backlog will resume once all recent episodes finish.\n")
+            queue = recent_pending
+            to_process = queue if args.limit <= 0 else queue[:args.limit]
+        else:
+            print(f"\n[✓] All recent episodes since {args.since} are transcribed! Processing historical backlog.\n")
+            queue = analysis["untranscribed"]
+            if not queue:
+                print("\n[🎉] All episodes in the repository are already transcribed!")
+                sys.exit(0)
+            to_process = queue if args.limit <= 0 else queue[:args.limit]
 
-    to_process = queue if args.limit <= 0 else queue[:args.limit]
-
-    print(f"\n[*] Processing Order: Most Recently Released -> Oldest")
+    print(f"[*] Processing Order: Most Recently Released -> Oldest")
     print(f"[*] Batch size for this run: {len(to_process)} episode(s)\n")
 
     for i, item in enumerate(to_process, 1):
@@ -457,7 +512,7 @@ def main():
     fresh_analysis = analysis
     try:
         fresh_releases = fetch_all_releases(args.repo, args.token)
-        fresh_analysis = analyze_releases(fresh_releases)
+        fresh_analysis = analyze_releases(fresh_releases, since_date=args.since)
         save_status_manifest(fresh_analysis, failed_history)
     except Exception as e:
         print(f"[!] Notice: failed to update final status manifest: {e}")
