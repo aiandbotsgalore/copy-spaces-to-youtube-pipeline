@@ -5,7 +5,7 @@
  */
 import { EventEmitter } from 'node:events';
 import type {
-  Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
+  Block, Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
   ScriptProject, ScriptRun, ScriptVersion, Segment, StudioClip, NarrativeFunction,
 } from '../utils/scriptTypes';
 import { NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
@@ -28,6 +28,8 @@ import { dateOfTag } from '../utils/scriptFormats';
 import { roleMapNeedsBudget, verifyCrossFamily, type Budget, type CompleteResult, type ProviderRegistry } from './scriptProviders';
 import { newId, StoreError, type ScriptStore } from './scriptStore';
 import { Limiter } from './directorMiddleware';
+import { createQuoteLibrary } from './quoteLibrary';
+import { quoteToStudioClip } from './quoteAlign';
 
 export const MAX_ROUNDS = 4;
 export const LEDGER_MAX_CHARS = 1500 * 4;
@@ -56,6 +58,76 @@ export function createEngine(deps: EngineDeps) {
   bus.setMaxListeners(100);
   const controllers = new Map<string, AbortController>();
   const transcripts = new Map<string, LoadedTranscript>();
+  const quoteLib = createQuoteLibrary(deps.root, deps.store);
+
+  function ensureBoardClips(project: ScriptProject): { clipsById: Record<string, StudioClip>; boardQuotesStr: string; boardClaimsStr: string; boardSourcesStr: string; contextNotesStr: string; tapeBalance: 'tape_led' | 'balanced' | 'narration_led' } {
+    const board = deps.store.getBoard(project.id);
+    let boardQuotesStr = '';
+    let boardClaimsStr = '';
+    let boardSourcesStr = '';
+    let contextNotesStr = '';
+    const tapeBalance = board?.tapeBalance || 'balanced';
+
+    if (board && board.items && board.items.length > 0) {
+      const activeQuotes = board.items.filter(item => item.starred && !item.excluded);
+      const quoteSummaries: any[] = [];
+      const resolvedClips: StudioClip[] = [];
+
+      for (const bq of activeQuotes) {
+        const info = quoteLib.getQuoteAudioInfo(bq.ref);
+        if (info) {
+          const episodeAudioUrl = `/audio/${info.releaseTag}.m4a`;
+          const clip = quoteToStudioClip(info, episodeAudioUrl);
+          if (clip) {
+            resolvedClips.push(clip);
+            quoteSummaries.push({
+              quoteRef: bq.ref,
+              clipId: clip.clipId,
+              speaker: clip.speaker,
+              durationSec: clip.durationSec,
+              verbatim: clip.text,
+              note: bq.note || '',
+            });
+          }
+        }
+      }
+
+      // Merge into project.clips
+      const existingClips = new Map(project.clips.map(c => [c.clipId, c]));
+      let added = false;
+      for (const rc of resolvedClips) {
+        if (!existingClips.has(rc.clipId)) {
+          project.clips.push(rc);
+          existingClips.set(rc.clipId, rc);
+          added = true;
+        }
+      }
+      if (added) {
+        deps.store.saveProject(project);
+      }
+
+      boardQuotesStr = JSON.stringify(quoteSummaries, null, 2);
+      if (board.claims && board.claims.length > 0) {
+        boardClaimsStr = JSON.stringify(board.claims, null, 2);
+      }
+      if (board.sources && board.sources.length > 0) {
+        boardSourcesStr = JSON.stringify(board.sources, null, 2);
+      }
+      const recNotes: Record<string, string> = {};
+      for (const tag of project.sourceTags) {
+        const lib = deps.store.getLibrary(tag);
+        if (lib?.notes && lib.notes.length > 0) {
+          recNotes[tag] = lib.notes.map(n => n.text).join('\n');
+        }
+      }
+      if (Object.keys(recNotes).length > 0) {
+        contextNotesStr = JSON.stringify(recNotes, null, 2);
+      }
+    }
+
+    const clipsById = Object.fromEntries(project.clips.map(c => [c.clipId, c]));
+    return { clipsById, boardQuotesStr, boardClaimsStr, boardSourcesStr, contextNotesStr, tapeBalance };
+  }
 
   function transcript(tag: string): LoadedTranscript {
     const cached = transcripts.get(tag);
@@ -205,9 +277,14 @@ export function createEngine(deps: EngineDeps) {
   const memoryText = () => deps.store.getMemory().styleRules.slice(0, 30).map(r => `- ${r.rule}`).join('\n');
 
   async function outline(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx): Promise<ScriptVersion> {
+    const { boardQuotesStr, boardClaimsStr, boardSourcesStr, contextNotesStr } = ensureBoardClips(project);
     const r = await call('reviser', P.outlinePrompt({
       format: project.format, targetRuntimeSec: project.targetRuntimeSec, memory: memoryText(),
       recordings: corpusFor(project).legend(), thesis: project.thesis || '',
+      boardQuotes: boardQuotesStr || undefined,
+      boardClaims: boardClaimsStr || undefined,
+      boardSources: boardSourcesStr || undefined,
+      contextNotes: contextNotesStr || undefined,
       analysis: JSON.stringify({
         themes: analysis.themes, dynamics: analysis.dynamics, moments: analysis.moments.map(m => ({ id: m.id, kind: m.kind, why: m.why, speakers: m.speakers, themes: m.themes, ...(isMulti(project) ? { recorded: dateOfTag(m.releaseTag) } : {}) })), openQuestions: analysis.openQuestions,
         ...(project.format === 'investigative' ? { paperTrail: paperTrailView(project) } : {}),
@@ -218,15 +295,29 @@ export function createEngine(deps: EngineDeps) {
     }), { ...ctx, label: 'outline' });
     if (!r.ok) throw failToError(r, 'Outline');
     const clipIds = new Set(project.clips.map(c => c.clipId));
+    const board = deps.store.getBoard(project.id);
+    if (board && board.items) {
+      for (const bq of board.items) {
+        clipIds.add(bq.ref);
+        clipIds.add(`bq_${bq.ref.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
+      }
+    }
     const momentIds = new Set(analysis.moments.map(m => m.id));
     const j: any = r.json;
     const segments: Segment[] = [];
     for (const s of j?.segments || []) {
       const scenes = [];
       for (const sc of s?.scenes || []) {
-        const bad = (sc?.clipIds || []).filter((id: string) => !clipIds.has(id));
+        const rawClipIds: string[] = sc?.clipIds || [];
+        const mappedClipIds = rawClipIds.map(id => {
+          if (id.startsWith('aq:') || id.includes(':q_')) {
+            return `bq_${id.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+          }
+          return id;
+        });
+        const bad = mappedClipIds.filter((id: string) => !clipIds.has(id));
         if (bad.length) throw new StepError('INVENTED_CLIP', `The outline names clip ids that do not exist: ${bad.join(', ')}. Outline not saved.`, JSON.stringify(j));
-        scenes.push({ id: newId('sc'), title: String(sc.title || ''), purpose: String(sc.purpose || ''), blocks: [], suggestedClipIds: sc.clipIds || [], momentIds: (sc.momentIds || []).filter((id: string) => momentIds.has(id)) });
+        scenes.push({ id: newId('sc'), title: String(sc.title || ''), purpose: String(sc.purpose || ''), blocks: [], suggestedClipIds: mappedClipIds, momentIds: (sc.momentIds || []).filter((id: string) => momentIds.has(id)) });
       }
       segments.push({ id: newId('seg'), title: String(s.title || ''), scenes });
     }
@@ -294,11 +385,33 @@ export function createEngine(deps: EngineDeps) {
         const ev = corpus.toEvidenceRefs(b.claims);
         if (ev.ok === false) return ev;
         out.push({ kind: 'narration', text: String(b.text || ''), mode: b.mode === 'polished' ? 'polished' : 'live', claims: linkQuoteIds(ev.refs, loadPaperTrail(deps.root)) });
-      } else if (b?.kind === 'keep') out.push({ kind: 'keep', id: String(b.id) });
-      else if (b?.kind === 'clip') out.push({ kind: 'clip', clipId: String(b.clipId), keptText: String(b.keptText || ''), fn: b.fn || undefined, rationale: String(b.rationale || '') });
-      else if (b?.kind === 'pause') out.push({ kind: 'pause', sec: Number(b.sec) });
-      else if (b?.kind === 'music') out.push({ kind: 'music', cue: String(b.cue), note: String(b.note || '') });
-      else return { ok: false, reason: `Unknown block kind ${b?.kind}.` };
+      } else if (b?.kind === 'keep') {
+        out.push({ kind: 'keep', id: String(b.id) });
+      } else if (b?.kind === 'clip') {
+        let clipId = String(b.clipId || '');
+        const isBoardClip = !!b.quoteRef || clipId.startsWith('bq_');
+        if (b.quoteRef) {
+          const cleanRef = String(b.quoteRef).replace(/[^a-zA-Z0-9_-]/g, '_');
+          clipId = `bq_${cleanRef}`;
+        }
+        const clip = project.clips.find(c => c.clipId === clipId);
+        const keptText = isBoardClip && clip ? clip.text : String(b.keptText || (clip ? clip.text : ''));
+        out.push({
+          kind: 'clip',
+          clipId: clip ? clip.clipId : clipId,
+          keptText,
+          fn: b.fn || undefined,
+          rationale: String(b.rationale || ''),
+          isReprise: b.isReprise === true,
+          repriseRationale: b.repriseRationale ? String(b.repriseRationale) : undefined,
+        });
+      } else if (b?.kind === 'pause') {
+        out.push({ kind: 'pause', sec: Number(b.sec) });
+      } else if (b?.kind === 'music') {
+        out.push({ kind: 'music', cue: String(b.cue), note: String(b.note || '') });
+      } else {
+        return { ok: false, reason: `Unknown block kind ${b?.kind}.` };
+      }
     }
     return { ok: true, patch: out };
   }
@@ -322,7 +435,277 @@ export function createEngine(deps: EngineDeps) {
     return readCard(deps.store)?.text || '';
   }
 
+  async function draftWholeScript(
+    project: ScriptProject,
+    base: ScriptVersion,
+    analysis: EpisodeAnalysis | null,
+    ctx: CallCtx,
+    styleCard = '',
+    approvedPassages = ''
+  ): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
+    const { clipsById, boardQuotesStr, boardClaimsStr, boardSourcesStr, contextNotesStr, tapeBalance } = ensureBoardClips(project);
+    const trim = trimFor(project);
+
+    // Compute scene pacing and word budgets
+    const allScenes = base.segments.flatMap(s => s.scenes);
+    const totalScenes = Math.max(1, allScenes.length);
+    const sceneTargetSec = Math.round((project.targetRuntimeSec || 900) / totalScenes);
+
+    const scenesData = allScenes.map(sc => {
+      const assignedClipIds = sc.suggestedClipIds || [];
+      const tapeDurationSec = assignedClipIds.reduce((sum, id) => {
+        const c = clipsById[id];
+        return sum + (c ? c.durationSec : 0);
+      }, 0);
+      const pauseSec = 3;
+      // Formula: NarrationWords = max(0, SceneSec - TapeSec - PauseSec) * 2.4
+      const wordBudget = Math.round(Math.max(0, sceneTargetSec - tapeDurationSec - pauseSec) * 2.4);
+      return {
+        sceneId: sc.id,
+        title: sc.title,
+        purpose: sc.purpose,
+        targetSec: sceneTargetSec,
+        tapeDurationSec: Math.round(tapeDurationSec * 10) / 10,
+        wordBudget,
+        quoteRefs: assignedClipIds,
+        lockedBlocks: sc.blocks.filter(b => b.locked),
+      };
+    });
+
+    const totalEstimatedWords = scenesData.reduce((sum, s) => sum + s.wordBudget, 0);
+    // Token estimation: totalWords * 1.35 + (scenes * 120) + 200
+    const estCompletionTokens = Math.round(totalEstimatedWords * 1.35 + (allScenes.length * 120) + 200);
+
+    // If fits safely within model output window (threshold ~6000 tokens)
+    if (estCompletionTokens <= 6000) {
+      const prompt = P.wholeScriptDraftPrompt({
+        format: project.format,
+        targetRuntimeSec: project.targetRuntimeSec || 900,
+        tapeBalance,
+        scenes: JSON.stringify(scenesData, null, 2),
+        boardQuotes: boardQuotesStr,
+        boardClaims: boardClaimsStr,
+        boardSources: boardSourcesStr,
+        contextNotes: contextNotesStr,
+        styleCard,
+        approvedPassages,
+        memory: memoryText(),
+        thesis: project.thesis || '',
+        recordings: corpusFor(project).legend(),
+      });
+
+      const r = await call('reviser', prompt, { ...ctx, label: 'whole-script draft' });
+      if (!r.ok) throw failToError(r, 'Whole-Script Draft');
+
+      const returnedScenes: any[] = (r.json as any)?.scenes || [];
+      const returnedBySceneId = new Map(returnedScenes.map(s => [String(s.sceneId), s.blocks || []]));
+
+      // Verify all scenes present (no silent partial drafts)
+      const missing = allScenes.filter(sc => !returnedBySceneId.has(sc.id));
+      if (missing.length > 0) {
+        throw new StepError('INCOMPLETE_DRAFT', `Draft response was incomplete or truncated: missing scenes ${missing.map(m => m.id).join(', ')}.`, JSON.stringify(r.json));
+      }
+
+      const newSegments: Segment[] = [];
+      for (const seg of base.segments) {
+        const segScenes = [];
+        for (const sc of seg.scenes) {
+          const blocksJson = returnedBySceneId.get(sc.id) || [];
+          const conv = toPatch(blocksJson, project);
+          if (conv.ok === false) throw new StepError('INVALID_BLOCKS', `Scene "${sc.title}": ${conv.reason}`);
+          const existing = new Map(sc.blocks.map(b => [b.id, b]));
+          const mat = await materializeBlocks(conv.patch, existing, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'flag' });
+          if (mat.ok === false) throw new StepError('MATERIALIZE_FAILED', `Scene "${sc.title}": ${mat.reason}`);
+          const missingLocks = sc.blocks.filter(b => b.locked && !mat.blocks.some(x => x.id === b.id));
+          if (missingLocks.length) throw new StepError('LOCK_DROPPED', `Scene "${sc.title}" dropped locked block ${missingLocks[0].id}.`);
+          segScenes.push({ ...sc, blocks: mat.blocks });
+        }
+        newSegments.push({ ...seg, scenes: segScenes });
+      }
+
+      const gates = codeGates(newSegments, { ...gateContext(project, base.segments), changedBlockIds: undefined });
+      const v: ScriptVersion = {
+        id: newId('v'),
+        parentId: base.id,
+        projectId: project.id,
+        createdAt: now(),
+        author: 'loop',
+        label: gates.ok ? 'Candidate Draft (Gates Passed)' : 'Candidate Draft (Gate Issues)',
+        segments: newSegments,
+      };
+      deps.store.saveVersion(v);
+      return { version: v, gates };
+    }
+
+    // Long script fallback: Act-by-Act generation with compact continuity records
+    const newSegments: Segment[] = [];
+    const continuityLog: string[] = [];
+
+    for (let segIdx = 0; segIdx < base.segments.length; segIdx++) {
+      const seg = base.segments[segIdx];
+      const segScenesData = scenesData.filter(sd => seg.scenes.some(sc => sc.id === sd.sceneId));
+
+      const actPrompt = P.wholeScriptDraftPrompt({
+        format: project.format,
+        targetRuntimeSec: Math.round((project.targetRuntimeSec || 900) * (seg.scenes.length / totalScenes)),
+        tapeBalance,
+        scenes: JSON.stringify(segScenesData, null, 2),
+        boardQuotes: boardQuotesStr,
+        boardClaims: boardClaimsStr,
+        boardSources: boardSourcesStr,
+        contextNotes: `${contextNotesStr}\nContinuity from preceding acts:\n${continuityLog.join('\n') || '(Beginning of documentary)'}`,
+        styleCard,
+        approvedPassages,
+        memory: memoryText(),
+        thesis: project.thesis || '',
+        recordings: corpusFor(project).legend(),
+      });
+
+      const r = await call('reviser', actPrompt, { ...ctx, label: `draft act ${seg.title}` });
+      if (!r.ok) throw failToError(r, `Draft of Act "${seg.title}"`);
+
+      const returnedScenes: any[] = (r.json as any)?.scenes || [];
+      const returnedBySceneId = new Map(returnedScenes.map(s => [String(s.sceneId), s.blocks || []]));
+
+      const segScenes = [];
+      for (const sc of seg.scenes) {
+        const blocksJson = returnedBySceneId.get(sc.id) || [];
+        const conv = toPatch(blocksJson, project);
+        if (conv.ok === false) throw new StepError('INVALID_BLOCKS', `Scene "${sc.title}": ${conv.reason}`);
+        const existing = new Map(sc.blocks.map(b => [b.id, b]));
+        const mat = await materializeBlocks(conv.patch, existing, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'flag' });
+        if (mat.ok === false) throw new StepError('MATERIALIZE_FAILED', `Scene "${sc.title}": ${mat.reason}`);
+        segScenes.push({ ...sc, blocks: mat.blocks });
+      }
+      newSegments.push({ ...seg, scenes: segScenes });
+      continuityLog.push(`Act "${seg.title}": covered scenes ${seg.scenes.map(s => s.title).join(', ')}.`);
+    }
+
+    const gates = codeGates(newSegments, { ...gateContext(project, base.segments), changedBlockIds: undefined });
+    const v: ScriptVersion = {
+      id: newId('v'),
+      parentId: base.id,
+      projectId: project.id,
+      createdAt: now(),
+      author: 'loop',
+      label: gates.ok ? 'Candidate Draft (Gates Passed)' : 'Candidate Draft (Gate Issues)',
+      segments: newSegments,
+    };
+    deps.store.saveVersion(v);
+    return { version: v, gates };
+  }
+
+  async function rewriteScene(
+    project: ScriptProject,
+    base: ScriptVersion,
+    sceneId: string,
+    instruction: string | undefined,
+    ctx: CallCtx,
+    styleCard = '',
+    approvedPassages = ''
+  ): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
+    const { clipsById, boardQuotesStr, boardClaimsStr, contextNotesStr } = ensureBoardClips(project);
+    const trim = trimFor(project);
+
+    let targetScene: any = null;
+    let targetSegment: any = null;
+    for (const seg of base.segments) {
+      for (const sc of seg.scenes) {
+        if (sc.id === sceneId) {
+          targetScene = sc;
+          targetSegment = seg;
+          break;
+        }
+      }
+      if (targetScene) break;
+    }
+    if (!targetScene) {
+      throw new StepError('SCENE_NOT_FOUND', `Scene ${sceneId} not found in project version ${base.id}`);
+    }
+
+    const allScenes = base.segments.flatMap(s => s.scenes);
+    const sceneTargetSec = Math.round((project.targetRuntimeSec || 900) / Math.max(1, allScenes.length));
+    const assignedClipIds = targetScene.suggestedClipIds || [];
+    const tapeDurationSec = assignedClipIds.reduce((sum: number, id: string) => {
+      const c = clipsById[id];
+      return sum + (c ? c.durationSec : 0);
+    }, 0);
+    const pauseSec = 3;
+    const wordBudget = Math.round(Math.max(0, sceneTargetSec - tapeDurationSec - pauseSec) * 2.4);
+
+    const fullScriptContext = base.segments.map(seg => {
+      const sceneSummaries = seg.scenes.map(sc => {
+        const blkSummary = sc.blocks.map(b => b.kind === 'narration' ? `[Narration]: ${b.text}` : b.kind === 'clip' ? `[Clip ${b.clipId}]: ${b.keptText}` : `[${b.kind}]`).join('\n');
+        return `### Scene: ${sc.title} (ID: ${sc.id})\nPurpose: ${sc.purpose}\n${blkSummary || '(empty)'}`;
+      }).join('\n\n');
+      return `## Act: ${seg.title}\n${sceneSummaries}`;
+    }).join('\n\n---\n\n');
+
+    const prompt = P.sceneRewritePrompt({
+      format: project.format,
+      targetScene: JSON.stringify({
+        sceneId: targetScene.id,
+        title: targetScene.title,
+        purpose: targetScene.purpose,
+        targetSec: sceneTargetSec,
+        wordBudget,
+        quoteRefs: assignedClipIds,
+        lockedBlocks: targetScene.blocks.filter((b: any) => b.locked),
+      }, null, 2),
+      fullScriptContext,
+      boardQuotes: boardQuotesStr,
+      boardClaims: boardClaimsStr,
+      contextNotes: contextNotesStr,
+      styleCard,
+      approvedPassages,
+      memory: memoryText(),
+      instruction,
+    });
+
+    const r = await call('reviser', prompt, { ...ctx, label: `rewrite scene ${targetScene.title}` });
+    if (!r.ok) throw failToError(r, `Rewrite Scene "${targetScene.title}"`);
+
+    const blocksJson = (r.json as any)?.blocks || [];
+    const conv = toPatch(blocksJson, project);
+    if (conv.ok === false) throw new StepError('INVALID_BLOCKS', conv.reason);
+    const existing = new Map<string, Block>(targetScene.blocks.map((b: any) => [b.id, b]));
+    const mat = await materializeBlocks(conv.patch, existing, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'flag' });
+    if (mat.ok === false) throw new StepError('MATERIALIZE_FAILED', mat.reason);
+    const missingLocks = targetScene.blocks.filter((b: any) => b.locked && !mat.blocks.some((x: any) => x.id === b.id));
+    if (missingLocks.length) throw new StepError('LOCK_DROPPED', `Rewrite dropped locked block ${missingLocks[0].id}.`);
+
+    const newSegments: Segment[] = base.segments.map(seg => {
+      if (seg.id !== targetSegment.id) return seg;
+      return {
+        ...seg,
+        scenes: seg.scenes.map(sc => {
+          if (sc.id !== targetScene.id) return sc;
+          return { ...sc, blocks: mat.blocks };
+        }),
+      };
+    });
+
+    const changedBlockIdSet = new Set(mat.blocks.map(b => b.id));
+    const gates = codeGates(newSegments, { ...gateContext(project, base.segments), changedBlockIds: changedBlockIdSet });
+    const v: ScriptVersion = {
+      id: newId('v'),
+      parentId: base.id,
+      projectId: project.id,
+      createdAt: now(),
+      author: 'loop',
+      label: `Rewrite: ${targetScene.title} (${gates.ok ? 'Valid' : 'Issues'})`,
+      changedScope: { level: 'scene', ids: [targetScene.id] },
+      segments: newSegments,
+    };
+    deps.store.saveVersion(v);
+    return { version: v, gates };
+  }
+
   async function draft(project: ScriptProject, base: ScriptVersion, analysis: EpisodeAnalysis | null, ctx: CallCtx, styleCard = '', approvedPassages = ''): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
+    const board = deps.store.getBoard(project.id);
+    if (board && board.items && board.items.length > 0) {
+      return draftWholeScript(project, base, analysis, ctx, styleCard, approvedPassages);
+    }
     const clipsById = Object.fromEntries(project.clips.map(c => [c.clipId, c]));
     const trim = trimFor(project);
     const segments: Segment[] = [];
@@ -818,7 +1201,7 @@ export function createEngine(deps: EngineDeps) {
   }
 
   return {
-    bus, call, analyze, tagClips, outline, draft, transcript, gateContext, createRun, runJob, importCandidate, corpusFor,
+    bus, call, analyze, tagClips, outline, draft, draftWholeScript, rewriteScene, transcript, gateContext, createRun, runJob, importCandidate, corpusFor,
     start(run: ScriptRun) { void runJob(run.id, run.projectId); },
     cancel(projectId: string, runId: string): boolean {
       const c = controllers.get(runId);

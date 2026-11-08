@@ -82,7 +82,7 @@ import {
 } from './scriptHandoff';
 import { PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
-import { parseUploadedScript, parseTimeToSeconds } from '../utils/scriptUpload';
+import { parseUploadedScript, parseTimeToSeconds, extractScriptMetadata } from '../utils/scriptUpload';
 import { fetchGoogleDriveEvidence } from './googleDriveService';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
 import type { AsyncSynth } from './voxSynthesize';
@@ -520,12 +520,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         const t = loadSource(tags[0]);
         const tag = t.releaseTag;
         const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
+        const meta = extractScriptMetadata(scriptText);
         p = {
           id: newId('prj'),
-          title: String(body?.title || (body?.filename ? body.filename.replace(/\.[^/.]+$/, '') : 'Uploaded Script')).slice(0, 200),
+          title: String(body?.title && body.title !== 'Uploaded Script' ? body.title : (meta.title || (body?.filename ? body.filename.replace(/\.[^/.]+$/, '') : 'Uploaded Script'))).slice(0, 200),
           createdAt: now(),
           updatedAt: now(),
-          format: EPISODE_FORMATS.includes(body?.format) ? body.format : null,
+          format: EPISODE_FORMATS.includes(body?.format) ? body.format : (meta.format || 'narrative_doc'),
           sourceTags: [tag],
           targetRuntimeSec: Math.max(30, Number(body?.targetRuntimeSec) || 900),
           transcriptHashes: { [tag]: t.hash },
@@ -544,6 +545,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
 
       if (!isNew && typeof body?.googleDriveFolderUrl === 'string') {
         p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
+      }
+      if (!isNew && !p.format) {
+        const meta = extractScriptMetadata(scriptText);
+        if (meta.format) p.format = meta.format;
       }
 
       if (Array.isArray(body?.evidenceDocs) && body.evidenceDocs.length) {
@@ -706,9 +711,45 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const styleStatus = await ensureStyleCard(body);
       const styleIn = draftStyle(store, opts.root);
       const out = await engine.draft(p, base, analysis, ctx, styleIn.styleCard, styleIn.approvedPassages);
-      p.headVersionId = out.version.id;
-      touch(p);
-      return send(res, 200, { ok: true, version: out.version, gates: out.gates, spentUsd: ctx.budget.spentUsd, style: styleStatus });
+      const board = store.getBoard(p.id);
+      const isBoardProject = !!(board && board.items && board.items.length > 0);
+      const shouldPromote = body?.promote === true || (!isBoardProject && body?.promote !== false);
+      if (shouldPromote && out.gates.ok) {
+        p.headVersionId = out.version.id;
+        touch(p);
+      }
+      return send(res, 200, { ok: true, version: out.version, gates: out.gates, candidate: true, headMoved: shouldPromote && out.gates.ok, spentUsd: ctx.budget.spentUsd, style: styleStatus });
+    }
+
+    if (route === '/scene/rewrite' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const base = getVersion(p, body?.versionId || p.headVersionId);
+      const sceneId = String(body?.sceneId || '');
+      const instruction = body?.instruction ? String(body.instruction) : undefined;
+      const ctx = interactiveCtx(body, 'rewrite');
+      const styleIn = draftStyle(store, opts.root);
+      const out = await engine.rewriteScene(p, base, sceneId, instruction, ctx, styleIn.styleCard, styleIn.approvedPassages);
+      const shouldPromote = body?.promote === true;
+      if (shouldPromote && out.gates.ok) {
+        p.headVersionId = out.version.id;
+        touch(p);
+      }
+      return send(res, 200, { ok: true, version: out.version, gates: out.gates, candidate: true, headMoved: shouldPromote && out.gates.ok, spentUsd: ctx.budget.spentUsd });
+    }
+
+    if (route === '/board/tape-balance' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const board = store.getBoard(p.id);
+      if (!board) return send(res, 404, { ok: false, error: 'No board found for project' });
+      const balance = body?.tapeBalance;
+      if (balance !== 'tape_led' && balance !== 'balanced' && balance !== 'narration_led') {
+        return send(res, 400, { ok: false, error: 'Invalid tapeBalance' });
+      }
+      board.tapeBalance = balance;
+      store.saveBoard(p.id, board);
+      return send(res, 200, { ok: true, board });
     }
 
     if (route === '/version' && method === 'POST') {

@@ -2217,6 +2217,27 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                           Preview scene
                         </button>
                       )}
+                      <button
+                        className="text-[11px] text-slate-400 hover:text-indigo-300 disabled:opacity-40 flex items-center gap-1"
+                        disabled={dirty || !!busy}
+                        title="Rewrite this scene with AI while keeping other scenes intact"
+                        onClick={() => {
+                          const inst = window.prompt(`Instructions for rewriting "${sc.title}" (optional):`);
+                          if (inst === null) return;
+                          void act(`Rewriting ${sc.title}`, async () => {
+                            const res = await fetch('/api/script-studio/scene/rewrite', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ projectId: project.id, sceneId: sc.id, instruction: inst || undefined }),
+                            });
+                            const r = await res.json();
+                            if (!r.ok) throw new Error(r.error || r.message || 'Scene rewrite failed');
+                            await load(project.id);
+                          });
+                        }}
+                      >
+                        <Sparkles size={11} /> Rewrite
+                      </button>
                     </div>
 
                     {!collapsedScenes[sc.id] && (
@@ -2273,8 +2294,13 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               {preview.running ? (
                 <button className={btnGhost} onClick={() => void preview.cancel()}><Square size={12} /> Stop Preview</button>
               ) : (
-                <button className={btnGhost} disabled={!data?.head || dirty || !takesCount.narration} onClick={() => void preview.start()} title="Preview all narration with Vox">
-                  <Mic size={12} /> Preview audio
+                <button
+                  className={takesCount.withTake === 0 ? btnPrimary : btnGhost}
+                  disabled={!data?.head || dirty || !takesCount.narration}
+                  onClick={() => void preview.start()}
+                  title={takesCount.withTake === 0 ? "Synthesize all voiceover lines with Logan's Vox voice" : "Preview all narration with Vox"}
+                >
+                  <Mic size={12} /> {takesCount.withTake === 0 ? 'Synthesize All Vox Takes' : 'Preview audio'}
                 </button>
               )}
               <button className={btnGhost} disabled={!data?.head || dirty} onClick={sendToMontage} title="Send compiled script to Montage Studio timeline">

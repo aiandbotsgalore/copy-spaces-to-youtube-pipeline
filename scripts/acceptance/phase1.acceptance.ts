@@ -102,7 +102,9 @@ describe('Phase 1 acceptance', () => {
 
   it('starring one quote in two projects stores it once and leaves other projects unchanged', async () => {
     const projects = (await studio.api('GET', '/projects')).json.projects as any[];
-    const [a, b] = projects.filter(p => !/ZZ AUDIT/.test(p.title)).length >= 2 ? projects.filter(p => !/ZZ AUDIT/.test(p.title)) : projects;
+    const nonAudit = projects.filter(p => !/ZZ AUDIT/.test(p.title));
+    const withoutBoard = nonAudit.filter(p => !fs.existsSync(path.join(root, '.spacepipe-studio', 'projects', p.id, 'board.json')));
+    const [a, b] = withoutBoard.length >= 2 ? withoutBoard : (nonAudit.length >= 2 ? nonAudit : projects);
     const libDir = path.join(root, '.spacepipe-studio', 'library');
     const before = treeHashes(path.join(root, '.spacepipe-studio'));
     for (const p of [a, b]) {

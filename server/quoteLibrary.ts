@@ -202,6 +202,7 @@ export function createQuoteLibrary(root: string, store: ScriptStore, deps: { now
     },
 
     getQuoteAudioInfo(ref: string): {
+      id: string;
       releaseTag: string;
       verbatim: string;
       segStart: number;
@@ -218,18 +219,24 @@ export function createQuoteLibrary(root: string, store: ScriptStore, deps: { now
         if (!q) return null;
         const lib = store.getLibrary(q.release_tag);
         const link = lib?.aqLinks.find(l => l.aqId === aqId) ?? null;
+        if (!link || link.text.status === 'unlocated') return null;
+        const verbatim = link.text.status === 'exact'
+          ? (link.text.transcriptSpan || q.exact_quote)
+          : (link.text.transcriptSpan || '');
+        if (!verbatim) return null;
         const files = aqClipFiles(root);
         const wav = files.get(aqId);
         const [cStart, cEnd] = corpusWindow(q) || [0, 10];
         const segStart = link?.segStart ?? parseCutSec(q.cut_in) ?? cStart;
         const segEnd = link?.segEnd ?? parseCutSec(q.cut_out) ?? cEnd;
         return {
+          id: ref,
           releaseTag: q.release_tag,
-          verbatim: link?.text.transcriptSpan || q.exact_quote,
+          verbatim,
           segStart,
           segEnd,
           audio: link?.audio || corpusAudio(q),
-          speakerName: link?.speakerName,
+          speakerName: link?.speakerConfirmed ? link.speakerName : undefined,
           speakerLabel: (link?.speakerLabels && link.speakerLabels[0]) || q.speaker,
           wavUrl: wav?.url,
         };
@@ -238,13 +245,15 @@ export function createQuoteLibrary(root: string, store: ScriptStore, deps: { now
       const lib = store.getLibrary(tag);
       const q = lib?.quotes.find(x => x.id === ref);
       if (!q) return null;
+      if (q.text.status === 'unlocated') return null;
       return {
+        id: ref,
         releaseTag: q.releaseTag,
         verbatim: q.verbatim,
         segStart: q.segStart,
         segEnd: q.segEnd,
         audio: q.audio,
-        speakerName: q.speakerName,
+        speakerName: q.speakerConfirmed ? q.speakerName : undefined,
         speakerLabel: q.speakerLabel,
       };
     },

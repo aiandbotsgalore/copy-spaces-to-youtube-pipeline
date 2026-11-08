@@ -396,4 +396,68 @@ describe('structured clip detection for Sync Clips', () => {
     expect(iMatch?.groups?.time.trim()).toBe('12:34');
     expect(iMatch?.groups?.quote.trim()).toBe('Nobody will ever trace this back to us.');
   });
+
+  it('filters out frontmatter, metadata headers, dividers, and director notes without treating them as narration', () => {
+    const rawScript = `\\# THE PAPER TRAIL
+\\## The Friendship, the Files, and the People in Between
+\\### Master Broadcast Manuscript — Definitive Production Draft
+\\*\\*NARRATOR:\\*\\* Logan Black
+\\*\\*FORMAT:\\*\\* One continuous, audio-only investigative documentary.
+\\*\\*AUDIO DNA:\\*\\* Dry, original X Spaces audio...
+\\---
+## Production & Acoustic Conventions
+- **Voiceover Delivery:** Intimate and grounded.
+- **Audio Texture:** Clean archival tape.
+\\---
+
+PROLOGUE — The Reversal
+[SFX: Fade in from complete blackness.]
+[CLIP #1 | Space, Alice 12:34 - "Opening tape quote."]
+[NARRATOR — LOGAN]
+Seven months before she told an audience of dozens of listeners that I was a predator...
+
+\\---
+*[Sensory Grounding at the Emotional Climax (Scene 9: The Parking Lot)*
+*Scene 9 is the emotional peak of the entire documentary...*
+*The Elevation: Add just 2 or 3 sensory details...*
+
+\\## Scene 2 — The Alliance
+[NARRATOR — LOGAN]
+She called me her brother.
+
+\\## Scene 3 — The Facade Cracks
+[NARRATOR — LOGAN]
+And then the calls started coming in.`;
+
+    const segs = parseUploadedScript(rawScript);
+
+    // Verify all 3 scenes are split cleanly into distinct containers (not swallowed into Prologue)
+    expect(segs[0].scenes).toHaveLength(3);
+    expect(segs[0].scenes[0].title).toMatch(/prologue/i);
+    expect(segs[0].scenes[1].title).toContain('Scene 2');
+    expect(segs[0].scenes[2].title).toContain('Scene 3');
+
+    // Collect all narration text across all scenes
+    const allNarrationTexts = segs[0].scenes.flatMap(sc =>
+      sc.blocks.filter(b => b.kind === 'narration').map(b => b.text)
+    );
+
+    // Frontmatter titles and metadata MUST NOT be in narration
+    expect(allNarrationTexts.some(t => t.includes('# THE PAPER TRAIL'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('Master Broadcast Manuscript'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('NARRATOR: Logan Black'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('AUDIO DNA'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('Voiceover Delivery'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('---'))).toBe(false);
+
+    // Director notes MUST NOT be in narration
+    expect(allNarrationTexts.some(t => t.includes('Sensory Grounding'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('emotional peak'))).toBe(false);
+    expect(allNarrationTexts.some(t => t.includes('The Elevation'))).toBe(false);
+
+    // Only actual spoken lines exist
+    expect(allNarrationTexts.some(t => t.includes('Seven months before she told an audience'))).toBe(true);
+    expect(allNarrationTexts.some(t => t.includes('She called me her brother'))).toBe(true);
+    expect(allNarrationTexts.some(t => t.includes('And then the calls started coming in'))).toBe(true);
+  });
 });

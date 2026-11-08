@@ -3,11 +3,63 @@
  * Parses user-uploaded script files (Markdown, Plain Text, JSON) into valid Segments,
  * Scenes, and Blocks (narration, pause, music cues). Also handles evidence context documents.
  */
-import type { Block, MusicCue, Scene, Segment, ScriptEvidenceDoc, StudioClip } from './scriptTypes';
+import type { Block, MusicCue, Scene, Segment, ScriptEvidenceDoc, StudioClip, EpisodeFormat } from './scriptTypes';
 
 export interface ParseScriptOptions {
   idGenerator?: (prefix: string) => string;
   defaultTitle?: string;
+}
+
+export function unescapeMarkdownLine(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .replace(/^(\s*)\\([#*_\-\[\]])/, '$1$2')
+    .replace(/\\([#*_\-\[\]])/g, '$1');
+}
+
+export function extractScriptMetadata(scriptText: string): {
+  title?: string;
+  format?: EpisodeFormat;
+  narrator?: string;
+} {
+  const lines = scriptText.split(/\r?\n/).map(unescapeMarkdownLine);
+  let title: string | undefined;
+  let format: EpisodeFormat | undefined;
+  let narrator: string | undefined;
+
+  for (let i = 0; i < Math.min(lines.length, 50); i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    if (!title) {
+      const h1Match = /^#\s+(.+)$/.exec(line) || /^TITLE:\s*(.+)$/i.exec(line);
+      if (h1Match) {
+        title = h1Match[1].replace(/^\*+|\*+$/g, '').trim();
+      }
+    }
+
+    if (!format) {
+      const fmtMatch = /^(?:\*\*|\*|\[)?FORMAT\s*:\s*(.*?)(?:\*\*|\*|\])?$/i.exec(line);
+      if (fmtMatch) {
+        const val = fmtMatch[1].toLowerCase();
+        if (val.includes('investigative')) format = 'investigative';
+        else if (val.includes('narrative') || val.includes('documentary')) format = 'narrative_doc';
+        else if (val.includes('interview')) format = 'interview';
+        else if (val.includes('commentary')) format = 'commentary';
+        else if (val.includes('best') || val.includes('highlight')) format = 'best_of';
+        else if (val.includes('thematic')) format = 'thematic_multi';
+      }
+    }
+
+    if (!narrator) {
+      const narrMatch = /^(?:\*\*|\*|\[)?(?:NARRATOR|LEAD INVESTIGATOR)\s*:\s*(.*?)(?:\*\*|\*|\])?$/i.exec(line);
+      if (narrMatch) {
+        narrator = narrMatch[1].replace(/^\*+|\*+$/g, '').trim();
+      }
+    }
+  }
+
+  return { title, format, narrator };
 }
 
 export interface ParsedManuscriptClip {
@@ -447,11 +499,14 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
   }
 
   // 2. Parse as Markdown or plain text
-  const lines = scriptText.split(/\r?\n/);
+  const rawLines = scriptText.split(/\r?\n/);
+  const lines = rawLines.map(unescapeMarkdownLine);
   const segments: Segment[] = [];
   let curSeg: { id: string; title: string; scenes: Scene[] } | null = null;
   let curScene: { id: string; title: string; purpose: string; blocks: Block[] } | null = null;
   let paragraphBuffer: string[] = [];
+  let inFrontmatter = true;
+  let inConventions = false;
 
   const flushParagraph = () => {
     if (paragraphBuffer.length === 0) return;
@@ -532,43 +587,109 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
+    // 0. Horizontal divider rules (---, ***, ___)
+    if (/^[-*_]{3,}\s*$/.test(line)) {
+      flushParagraph();
+      if (inConventions) {
+        inConventions = false;
+        inFrontmatter = false;
+      }
+      continue; // Dividers separate scenes/sections; never create live narration blocks!
+    }
+
+    // Check for real script content that terminates frontmatter
+    const isPrologueOrSceneOrAct =
+      /^(?:##\s+|###\s+|\*\*)?(?:PROLOGUE|EPILOGUE)\b/i.test(line) ||
+      /^(?:#|##|###|\*\*)?\s*(?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)\b/i.test(line) ||
+      /^(?:##|###|\*\*)?\s*(?:SCENE)\s+(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)\b/i.test(line) ||
+      /^\[(?:SFX|CLIP|THEME|Silence|Pause|Music|NARRATOR\b)/i.test(line);
+
+    if (inFrontmatter) {
+      if (isPrologueOrSceneOrAct) {
+        inFrontmatter = false;
+        inConventions = false;
+      } else if (/^#\s+/.test(line)) {
+        // Document Title: skip from live narration
+        continue;
+      } else if (/^##\s+(?:The Friendship|Definitive|Master Broadcast|Podcast|Episode|Production Draft).+/i.test(line)) {
+        // Document Subtitle / Edition: skip from live narration
+        continue;
+      } else if (/^###\s+(?:Master Broadcast|Definitive|Production Draft).+/i.test(line)) {
+        // Document Subtitle / Edition: skip from live narration
+        continue;
+      } else if (/^(?:\*\*|\*|\[)?(?:NARRATOR|LEAD INVESTIGATOR|CENTRAL SUBJECT|FORMAT|AUDIO DNA|EDITORIAL BENCHMARK|PRODUCTION MASTER EDITION|GOVERNING RULE|VERSION|DATE|AUTHOR|TAGS)\b.*$/i.test(line)) {
+        // Frontmatter metadata tags: skip from live narration
+        continue;
+      } else if (/^##\s+.*(?:Conventions|Acoustic|Production|Guidelines|Rules|Formatting|Style\s+Guide).*/i.test(line)) {
+        inConventions = true;
+        continue;
+      } else if (inConventions && (/^[-*•]\s+/.test(line) || /^\*\*[A-Za-z0-9\s]+:\*\*/.test(line))) {
+        continue;
+      } else {
+        // Not a known frontmatter marker; exit frontmatter mode so plain text narration is preserved
+        inFrontmatter = false;
+        inConventions = false;
+      }
+    }
+
+    // Filter Director Notes, Writing Prompts, and Editorial Guidance (Issue 2)
+    const isDirectorNote =
+      /^\*\[\s*(?:Sensory Grounding|Director|Editorial|Writing Prompt|Production Note|Note|Instruction|Pacing|Climax)/i.test(line) ||
+      /^\[(?:DIRECTOR(?:'S)?\s+NOTE|WRITING\s+PROMPT|EDITORIAL\s+NOTE|PRODUCTION\s+NOTE|SENSORY\s+GROUNDING|NOTE|INSTRUCTION|GUIDANCE)\b.*\]$/i.test(line) ||
+      /^\*(?:The Elevation|The Goal|Scene \d+ is the emotional peak|Add just \d+|Sensory Grounding|Pacing|Editorial Note)\b/i.test(line) ||
+      (/^\*[^*]+\*$/.test(line) && /(?:sensory|elevation|emotional peak|writing prompt|director's note)/i.test(line));
+
+    if (isDirectorNote) {
+      flushParagraph();
+      continue; // Filtered out! Never treated as live spoken narration!
+    }
+
+    // Speaker boundary tags: [NARRATOR — LOGAN], [NARRATOR: ...], [LOGAN], [HOST]
+    const speakerTagMatch = /^\[(?:NARRATOR(?:\s*[:—–-]\s*.*)?|LOGAN|HOST)\]$/i.exec(line);
+    if (speakerTagMatch) {
+      flushParagraph();
+      continue; // Speaker transition boundary, not spoken text!
+    }
+
     // 1. Act / Segment Heading (e.g., "# Act 1: The Hook", "ACT I: THE HOOK", "ACT 1: ...", "PART 1: ...")
     const actMatch =
       /^#\s+(.+)$/.exec(line) ||
-      /^((?:ACT|PART|SEGMENT)\s+[IVXLCDM\d]+[:\s-]*.+)$/i.exec(line) ||
-      /^((?:ACT|PART|SEGMENT)\s+[IVXLCDM\d]+)$/i.exec(line);
+      /^##\s+((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)$/i.exec(line) ||
+      /^((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)$/i.exec(line) ||
+      /^\*\*((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)\*\*$/i.exec(line);
     if (actMatch) {
       flushSegment();
+      const rawTitle = (actMatch[1] || actMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
       curSeg = {
         id: newId('seg'),
-        title: actMatch[1].trim(),
+        title: rawTitle,
         scenes: [],
       };
       continue;
     }
 
     // 2. Scene Container Headings (e.g., "## Scene 1: The Revelation", "SCENE 1", "PROLOGUE", "EPILOGUE", or "### SCENE...")
-    const prologueMatch = /^PROLOGUE(?:\s*[:\s-]\s*(.*))?$/i.exec(line);
-    const epilogueMatch = /^EPILOGUE(?:\s*[:\s-]\s*(.*))?$/i.exec(line);
+    const prologueMatch = /^(?:##\s+|###\s+|\*\*)?PROLOGUE(?:\s*[:\s—–.-]\s*(.*?))?\**$/i.exec(line);
+    const epilogueMatch = /^(?:##\s+|###\s+|\*\*)?EPILOGUE(?:\s*[:\s—–.-]\s*(.*?))?\**$/i.exec(line);
     const h3SceneMatch = /^###\s+(?:SCENE|ACT|PROLOGUE|EPILOGUE)\b\s*(.*)$/i.exec(line);
     const sceneMatch =
       prologueMatch ? ['PROLOGUE', prologueMatch[1]?.trim() ? `Prologue: ${prologueMatch[1].trim()}` : 'Prologue'] :
       epilogueMatch ? ['EPILOGUE', epilogueMatch[1]?.trim() ? `Epilogue: ${epilogueMatch[1].trim()}` : 'Epilogue'] :
       h3SceneMatch ? ['H3SCENE', line.replace(/^###\s*/, '').trim()] :
       /^##\s+(.+)$/.exec(line) ||
-      /^(SCENE\s+\d+[:\s-]*.+)$/i.exec(line) ||
-      /^(SCENE\s+\d+)$/i.exec(line) ||
-      /^\[Scene:?\s*(.+)\]$/i.exec(line);
+      /^((?:SCENE)\s+(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)(?:[:\s—–.-].*)?)$/i.exec(line) ||
+      /^\*\*((?:SCENE\s+)?(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)(?:[:\s—–.-].*?))\*\*$/i.exec(line) ||
+      /^\[(?:Scene:?\s*|Scene\s+(?:\d+|[IVXLCDM]+)[:\s—–.-]\s*)(.*)\]$/i.exec(line);
 
     if (sceneMatch) {
       flushScene();
       if (!curSeg) {
         curSeg = { id: newId('seg'), title: opts.defaultTitle || 'Act 1', scenes: [] };
       }
-      const sceneTitle = sceneMatch[1].trim();
+      const rawTitle = (sceneMatch[1] || sceneMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
       curScene = {
         id: newId('sc'),
-        title: sceneTitle,
+        title: rawTitle,
         purpose: 'Narrative scene',
         blocks: [],
       };
@@ -817,8 +938,8 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
-    // Production notes: NARRATOR:, FORMAT:, AUDIO DNA:
-    const prodNoteMatch = /^(?:NARRATOR|FORMAT|AUDIO\s+DNA)\s*:\s*(.*)$/i.exec(line);
+    // Production notes: NARRATOR:, FORMAT:, AUDIO DNA:, etc.
+    const prodNoteMatch = /^(?:\*\*|\*|\[)?(?:NARRATOR|FORMAT|AUDIO\s+DNA|CENTRAL\s+SUBJECT|LEAD\s+INVESTIGATOR|EDITORIAL\s+BENCHMARK|PRODUCTION\s+MASTER\s+EDITION|GOVERNING\s+RULE)\b\s*:\s*(.*)$/i.exec(line);
     if (prodNoteMatch) {
       flushParagraph();
       ensureContext();

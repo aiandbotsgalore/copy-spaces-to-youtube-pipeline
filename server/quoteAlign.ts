@@ -474,13 +474,16 @@ export function quoteToStudioClip(
     return null;
   }
 
-  const speaker = quote.speakerName || quote.speakerLabel || 'Speaker';
-  const title = `${speaker}: "${quote.verbatim.slice(0, 40)}..."`;
+  const speaker = quote.speakerName || 'an unidentified speaker';
+  const speakerDisplay = quote.speakerName || 'Unidentified Speaker';
+  const title = `${speakerDisplay}: "${quote.verbatim.slice(0, 40)}..."`;
+  const cleanId = quote.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const clipId = `bq_${cleanId}`;
 
   if (quote.wavUrl) {
     const dur = (quote.audio.endSec ?? 0) - (quote.audio.startSec ?? 0);
     return {
-      clipId: `bq_${quote.id}`,
+      clipId,
       title,
       text: quote.verbatim,
       speaker,
@@ -498,7 +501,7 @@ export function quoteToStudioClip(
 
   const durationSec = Math.round((quote.audio.endSec - quote.audio.startSec) * 1000) / 1000;
   return {
-    clipId: `bq_${quote.id}`,
+    clipId,
     title,
     text: quote.verbatim,
     speaker,

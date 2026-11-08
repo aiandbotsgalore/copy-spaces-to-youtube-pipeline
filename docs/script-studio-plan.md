@@ -153,10 +153,42 @@ Verdict on `trimResolver`: for Script Studio it is replaced completely, because 
 
 ## 3. Drafting and evidence checks
 
-- Whole script draft in one call, fed exactly what exp2 validated: board quotes, claims, document excerpts, context notes, two transcript lines either side of each quote, and the outline.
-- Scene tools: one call with the full current script as read only context and one scene writable; `importCandidate` replaces only that scene.
-- Voice: polished mode by default (live mode caused the filler drift in exp1 B and C and exp2 C); a cleaned Arm A excerpt added as `speaker_samples/Logan/narration_examples/00_investigative_voice.txt` so the existing style mechanism includes it first; a word budget per scene from the target runtime (Arm A ran 33% long).
-- Tape balance setting changes the draft instruction and the reported target: tape led (about 40% original audio or more), balanced, narration led (narration carries the story, tape as exhibits).
+- **Evidence Board Integration:** Outlining and whole-script drafting consume the project's Evidence Board (`board.json`) and shared library directly:
+  - Starred Board quotes resolved into canonical references (`aq:AQ-xxxx` or `<tag>:<hash>`).
+  - Board claims (verified, allegation, disputed, unsupported) with supporting/contradicting quote refs.
+  - Board documentary sources (exact excerpts of research documents).
+  - Recording context notes from `RecordingLibrary.notes` (who is present, diarization/label cautions, AI-persona context).
+  - Two transcript lines either side of each cited quote for conversational context.
+  - Backward compatibility: Projects without a board gracefully fall back to legacy `project.clips` and analysis moments.
+- **Deterministic Original Tape:**
+  - The model selects quotes by canonical reference (`quoteRef`) and decides placement.
+  - Code materializes the exact verified verbatim text and approved audio boundaries (`quoteToStudioClip` in `server/quoteAlign.ts`), making tape 100% deterministic.
+  - The model is never permitted to invent, edit, or paraphrase tape content. Unknown or unresolvable quote references are strictly rejected.
+  - Speaker identity is never inferred from raw transcript labels alone; unconfirmed speakers are rendered as "an unidentified speaker" or by role.
+  - No fallback to full transcript segments; quotes without usable audio are barred from renders until reviewed.
+- **Whole-Script Draft in One Call:**
+  - Entire outline across all segments is submitted and drafted in a single model call, preserving continuity and global narrative arc.
+  - Detection of missing scenes, duplicate scene IDs, malformed output, or token-limit truncations. Partial scripts are rejected.
+  - Scalability guard: For scripts exceeding single-call token ceilings, controlled multi-act wave generation is available as a fallback.
+- **Validation Gates & Version Protection:**
+  - Generated drafts are validated via `codeGates()` before advancing the project head.
+  - If gates pass: project head advances to the new version.
+  - If gates fail: the draft is saved as a reviewable candidate version (`parentId = head`), but the approved project head does not move, preventing corruption of the working baseline.
+- **Scene Rewrite Tools:**
+  - Reuses existing `applyPatch()`, `materializeBlocks()`, and `importCandidate()`.
+  - Sends full script as read-only continuity context; designates only the target scene as writable.
+  - Replaces only the target scene's block IDs; all other scenes and locked blocks remain identical byte-for-byte, preserving Vox audio take caches.
+  - Rejects stale-version conflicts.
+- **Tape Balance & Dynamic Runtime Budgeting:**
+  - Uses the existing `EvidenceBoard.tapeBalance` setting (`tape_led` | `balanced` | `narration_led`):
+    - `tape_led`: Target ~35–40% tape share (acceptance floor $\ge 30\%$). Tape carries major dramatic revelations.
+    - `balanced`: Target ~20–30% tape share. Balanced dialogue between narration and archival exhibits.
+    - `narration_led`: Target ~10–20% tape share. Narration drives the narrative arc; tape serves as brief exhibits.
+  - Scene word budgeting: Subtracts actual selected tape duration and planned pauses from scene target runtime before calculating narration words ($T_{\text{narration}} \times 2.4$ words/sec).
+  - Target runtime guides pacing; runtime variances surface as advisory warnings rather than hard failures.
+- **Voice Calibration:**
+  - Clearly separates authentic Logan narration recordings (`gary_mckinnon_narration.txt`, saved passages) from editorial documentary style guidelines.
+  - Default narration mode is `polished`, avoiding filler drift and internet slang while preserving authentic emotional weight, forensic curiosity, and compelling storytelling. Avoids generic AI documentary cliches.
 
 Evidence checks, in order:
 1. Code (deterministic): quote and claim text verbatim; tape audio usable; narration that cites an allegation or disputed claim uses attribution wording (`ATTRIBUTION_RE`); speaker names match confirmations; no raw labels; no duplicate quotes; no repeated sentences across scenes; runtime against target (advisory).
@@ -216,7 +248,24 @@ Every phase ends with: typecheck, existing vitest suite and build green; a small
 - Accept: on the AQ quotes with corpus cut points in 20260908_1wxWjlrwXokJQ and 20260918_1AxRnZMeZNYxl (used only as a benchmark, never overwritten), every automatic `aligned` result is within 1.0 s of the corpus cut and the median is within 0.3 s; anything outside is `needs_review`; no tape item is longer than its quote; a `needs_review` quote cannot enter a final render; Script Studio no longer calls the trim path.
 
 **Phase 4: outline, whole script draft, scene tools, voice**
-- Accept: rerunning exp2's `board.json` and `outline.json` through the app gives one draft call, 100% verbatim, no raw labels, no duplicate quotes, original audio at least 30% in tape led mode, runtime within 15% of target; a scene rewrite changes only that scene's block ids; tape led and narration led modes produce visibly different tape shares; you judge the voice against Arm A.
+- Real-audio alignment benchmark prerequisite: verify faster-whisper on a real audio slice against known cut points.
+- Whole-script draft consumes Evidence Board quotes, claims, sources, and context notes.
+- Deterministic tape materialization: model chooses quote references; code looks up and locks exact verbatim text and approved audio boundaries (`quoteToStudioClip`).
+- Pacing word budgeting: scene word budget subtracts actual selected tape duration and planned pauses before calculating narration word targets.
+- Draft validation gates: failed validation saves draft as candidate version without advancing approved project head.
+- Scene rewrite tools: full script read-only continuity context, single scene writable, preserves all other scene block IDs and locked blocks.
+- Accept: rerunning exp2's `board.json` and `outline.json` through the app gives:
+  1. Exactly one drafting model call for the entire script.
+  2. Complete coverage of all outline scenes (no silent partial drafts).
+  3. 100% exact tape wording from resolved library references.
+  4. 0 unverified speaker names or raw transcript labels in narration.
+  5. 0 accidental duplicate quotes across scenes (deliberate reprises permitted if justified).
+  6. Original audio at least 30% in tape led mode (target 35–40%).
+  7. Estimated runtime within 15% of target runtime, properly accounting for actual tape duration.
+  8. A scene rewrite changes only that scene's block IDs and leaves all other scenes byte-identical.
+  9. `tape_led` and `narration_led` modes produce visibly different tape shares.
+  10. Failed drafts do not advance the project head.
+  11. Existing projects without an Evidence Board open and save unchanged.
 
 **Phase 5: evidence checks and legacy removal**
 - Code checks, evidence pairing, the evidence check call, checks panel; remove the replaced loop, judge, quality, clip tag and trim code with their tests.

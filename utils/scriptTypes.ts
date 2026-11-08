@@ -58,6 +58,9 @@ export type Block =
       date?: string;
       time?: string;
       speaker?: string;
+      isReprise?: boolean;
+      repriseRationale?: string;
+      repriseApproved?: boolean;
     }
   | {
       id: string; kind: 'pause'; sec: number; locked?: boolean;

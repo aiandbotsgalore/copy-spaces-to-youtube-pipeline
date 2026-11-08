@@ -92,6 +92,32 @@ export default function ScriptBoard({ lib, projectId, question, onOpenLibrary, o
           <div className="text-[11px] text-slate-500">
             {starred.length} starred · {excluded.length} excluded · {usable} of the starred have usable audio · {confirmed} speakers confirmed by listening
           </div>
+          {projectId && (
+            <div className="flex items-center gap-2 pt-1 text-xs">
+              <span className="text-slate-400">Tape Balance:</span>
+              <select
+                value={lib.board?.tapeBalance || 'balanced'}
+                onChange={async e => {
+                  const balance = e.target.value as any;
+                  try {
+                    await fetch('/api/script-studio/board/tape-balance', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ projectId, tapeBalance: balance }),
+                    });
+                    await lib.reload();
+                  } catch (err) {
+                    console.error('Failed to update tape balance', err);
+                  }
+                }}
+                className="bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-xs text-slate-200"
+              >
+                <option value="tape_led">Tape-led (~35–40% original audio)</option>
+                <option value="balanced">Balanced (~20–30% original audio)</option>
+                <option value="narration_led">Narration-led (~10–20% original audio)</option>
+              </select>
+            </div>
+          )}
         </div>
         {projectId && (
           <div className="flex items-center gap-2">

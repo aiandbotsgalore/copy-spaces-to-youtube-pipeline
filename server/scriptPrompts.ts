@@ -28,6 +28,8 @@ export const PROMPT_VERSIONS = {
   styleCard: 'style-card.v1',
   distill: 'distill-rules.v1',
   handoff: 'handoff.v1',
+  wholeDraft: 'whole-draft.v1',
+  sceneRewrite: 'scene-rewrite.v1',
 } as const;
 
 /** Recording legend and thesis for multi-recording projects; empty for a single recording. */
@@ -118,6 +120,9 @@ export const PATCH_BLOCK_SCHEMA = obj({
   id: nstr,
   text: nstr, mode: nen(['live', 'polished']), claims: { type: ['array', 'null'], items: quoteRef },
   clipId: nstr, keptText: nstr, fn: nen(NARRATIVE_FUNCTIONS), rationale: nstr,
+  quoteRef: nstr,
+  isReprise: { type: ['boolean', 'null'] },
+  repriseRationale: nstr,
   sec: { type: ['number', 'null'] },
   cue: nen(['sting', 'bed_in', 'bed_out', 'transition']), note: nstr,
 });
@@ -194,22 +199,38 @@ ${dataBlock(args.clips)}`,
   };
 }
 
-export function outlinePrompt(args: { format: EpisodeFormat | null; targetRuntimeSec: number; analysis: string; clips: string; memory: string; recordings?: string; thesis?: string }): Prompt {
+export function outlinePrompt(args: {
+  format: EpisodeFormat | null;
+  targetRuntimeSec: number;
+  analysis?: string;
+  clips?: string;
+  memory: string;
+  recordings?: string;
+  thesis?: string;
+  boardQuotes?: string;
+  boardClaims?: string;
+  boardSources?: string;
+  contextNotes?: string;
+}): Prompt {
+  const usingBoard = !!args.boardQuotes;
   return {
     version: PROMPT_VERSIONS.outline, schemaName: 'beat_outline', schema: OUTLINE_SCHEMA, maxTokens: 2500,
     system: `${BASE_RULES}
-Task: write a beat outline (segments made of scenes) for an episode script. Each scene gets a title, a one-sentence purpose, the ids of clips it should use (only ids from the clip list) and the ids of analysis moments it draws on. No narration text yet.
+Task: write a beat outline (segments made of scenes) for an episode script. Each scene gets a title, a one-sentence purpose, the ids/references of clips it should use and the ids of analysis moments or claims it draws on. No narration text yet.
 ${formatBrief(args.format)}
 Target runtime: about ${Math.round(args.targetRuntimeSec / 60)} minutes.
 ${recordingsNote(args.recordings, args.thesis)}`,
     user: `Editorial rules learned from Logan:
 ${args.memory || '(none yet)'}
 
-Episode analysis (JSON):
-${dataBlock(args.analysis)}
+${usingBoard ? `Evidence Board Quotes (canonical quote references):
+${args.boardQuotes}
+
+${args.boardClaims ? `Evidence Board Claims:\n${args.boardClaims}\n` : ''}${args.boardSources ? `Documentary Sources:\n${args.boardSources}\n` : ''}${args.contextNotes ? `Recording Context Notes:\n${args.contextNotes}\n` : ''}` : `Episode analysis (JSON):
+${dataBlock(args.analysis || '')}
 
 Available clips (JSON: clipId, title, speaker, fn, durationSec, text):
-${dataBlock(args.clips)}`,
+${dataBlock(args.clips || '')}`}`,
   };
 }
 
@@ -247,6 +268,109 @@ ${dataBlock(args.clips)}
 
 Evidence (transcript lines for the moments these scenes draw on):
 ${dataBlock(args.evidence)}`,
+  };
+}
+
+export function wholeScriptDraftPrompt(args: {
+  format: EpisodeFormat | null;
+  targetRuntimeSec: number;
+  tapeBalance?: 'tape_led' | 'balanced' | 'narration_led';
+  scenes: string;
+  boardQuotes: string;
+  boardClaims?: string;
+  boardSources?: string;
+  contextNotes?: string;
+  styleCard?: string;
+  approvedPassages?: string;
+  memory?: string;
+  recordings?: string;
+  thesis?: string;
+  maxTokens?: number;
+}): Prompt {
+  const balance = args.tapeBalance || 'balanced';
+  const balanceDesc =
+    balance === 'tape_led'
+      ? 'Tape-led mode: original audio should represent ~35-40% of runtime (minimum 30%). Archival tape carries the major dramatic revelations and confrontations; narration sets context, poses questions, and connects exhibits.'
+      : balance === 'narration_led'
+      ? 'Narration-led mode: narration carries the core narrative arc and investigation (~10-20% tape). Archival tape is used sparingly as brief, surgical exhibits.'
+      : 'Balanced mode: balanced dialogue between Logan\'s spoken investigation and archival tape (~20-30% tape).';
+
+  return {
+    version: PROMPT_VERSIONS.wholeDraft,
+    schemaName: 'whole_script_draft',
+    schema: DRAFT_SCHEMA,
+    maxTokens: args.maxTokens || 8000,
+    system: `${BASE_RULES}
+Task: draft the complete documentary script across all scenes. For every scene given in the outline, return its ordered blocks (narration, clip, pause, music).
+
+Documentary Craft & Pacing Rules:
+1. Pacing & Word Budget: Each scene specifies a target runtime and a computed word budget. The word budget accounts for tape duration and pauses. Conform closely to this word budget: NarrationWords = max(0, SceneSec - TapeSec - PauseSec) * 2.4 words/sec.
+2. Tape Balance: ${balanceDesc}
+3. Archival Tape: Use quotes from the Evidence Board by setting "kind": "clip", "quoteRef": "<canonical quote id>" (e.g. "aq:AQ-0261" or "<releaseTag>:<quoteId>"), with "fn" and "rationale". Do not alter, paraphrase, or invent tape content. Code materializes verified verbatim tape and approved audio bounds.
+4. Reprises: If a quote is repeated across scenes for genuine dramatic effect, you MUST set "isReprise": true and give a "repriseRationale". Otherwise do not duplicate quotes.
+5. Speaker Identity & Attribution: Refer to speakers only by confirmed names or by clear role ("an unidentified speaker"). Never use raw diarization labels like "Speaker 1". Any allegation or disputed claim must be explicitly attributed in narration.
+6. Voice & Tone: Write narration in Logan's authentic voice. Default to "polished" mode (investigative documentary, thoughtful, direct, sensory grounding). Avoid AI cliches (never use "devastating", avoid "it's not X, but Y", avoid asking and answering your own questions).
+${formatBrief(args.format)}
+${recordingsNote(args.recordings, args.thesis)}`,
+    user: `Outline & Scenes (JSON: sceneId, title, purpose, targetSec, wordBudget, quoteRefs, lockedBlocks):
+${args.scenes}
+
+Evidence Board Quotes (canonical references, confirmed speakers, verified text, duration):
+${args.boardQuotes || '(none)'}
+
+${args.boardClaims ? `Evidence Board Claims:\n${args.boardClaims}\n` : ''}${args.boardSources ? `Documentary Sources:\n${args.boardSources}\n` : ''}${args.contextNotes ? `Recording Context Notes:\n${args.contextNotes}\n` : ''}
+Style Card:
+${args.styleCard || '(none yet)'}
+
+Logan's Approved Voice Passages:
+${args.approvedPassages || '(none yet)'}
+
+Editorial Rules:
+${args.memory || '(none yet)'}`,
+  };
+}
+
+export function sceneRewritePrompt(args: {
+  format: EpisodeFormat | null;
+  targetScene: string;
+  fullScriptContext: string;
+  boardQuotes: string;
+  boardClaims?: string;
+  contextNotes?: string;
+  styleCard?: string;
+  approvedPassages?: string;
+  memory?: string;
+  instruction?: string;
+}): Prompt {
+  return {
+    version: PROMPT_VERSIONS.sceneRewrite,
+    schemaName: 'scene_rewrite',
+    schema: REVISE_SCHEMA,
+    maxTokens: 4000,
+    system: `${BASE_RULES}
+Task: rewrite ONE scene within the documentary script to improve pacing, narrative momentum, or evidence integration.
+The full script is provided as read-only context. Rewrite ONLY the target scene.
+Return the replacement blocks for this scene. Any locked block must be preserved via {"kind": "keep", "id": "<blockId>"}.
+Conform to the scene's word budget: NarrationWords = max(0, SceneSec - TapeSec - PauseSec) * 2.4.
+${args.instruction ? `Specific Revision Instruction: ${args.instruction}` : ''}
+${formatBrief(args.format)}`,
+    user: `Target Scene to Rewrite:
+${args.targetScene}
+
+Full Script Context (Read-Only Continuity):
+${args.fullScriptContext}
+
+Relevant Evidence Board Quotes:
+${args.boardQuotes || '(none)'}
+
+Style Card:
+${args.styleCard || '(none)'}
+
+Approved Passages:
+${args.approvedPassages || '(none)'}
+
+Editorial Rules:
+${args.memory || '(none)'}`,
   };
 }
 

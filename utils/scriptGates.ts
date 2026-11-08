@@ -163,7 +163,7 @@ export function locksIntact(baseline: Segment[], candidate: Segment[]): string[]
 export type PatchBlock =
   | { kind: 'keep'; id: string }
   | { kind: 'narration'; text: string; mode?: 'live' | 'polished'; claims?: EvidenceRef[] }
-  | { kind: 'clip'; clipId: string; keptText: string; fn?: string; rationale?: string }
+  | { kind: 'clip'; clipId: string; keptText: string; fn?: string; rationale?: string; isReprise?: boolean; repriseRationale?: string }
   | { kind: 'pause'; sec: number }
   | { kind: 'music'; cue: string; note: string };
 
@@ -208,12 +208,12 @@ export async function materializeBlocks(
           const t = await opts.trim(clip, p.keptText || clip.text);
           if (t.ok === false) {
             if (opts.onBadTrim === 'reject') return { ok: false, reason: `Clip ${p.clipId}: ${t.reason}` };
-            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '', flag: `Trim not applied: ${t.reason}` });
+            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '', flag: `Trim not applied: ${t.reason}`, isReprise: p.isReprise, repriseRationale: p.repriseRationale });
           } else {
-            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: p.keptText || clip.text, inSec: t.inSec, outSec: t.outSec, trimBasis: t.basis, fn, rationale: p.rationale || '' });
+            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: p.keptText || clip.text, inSec: t.inSec, outSec: t.outSec, trimBasis: t.basis, fn, rationale: p.rationale || '', isReprise: p.isReprise, repriseRationale: p.repriseRationale });
           }
         } else {
-          out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '' });
+          out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '', isReprise: p.isReprise, repriseRationale: p.repriseRationale });
         }
         break;
       }
@@ -306,6 +306,10 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
       }
     }
     if (b.kind === 'narration' && isChanged) {
+      if (/\bSpeaker\s+\d+\b/i.test(b.text)) {
+        faithful = false;
+        failures.push(`Narration contains raw diarization label: "${b.text.slice(0, 60)}..."`);
+      }
       for (const ref of b.claims) {
         const segs = ctx.transcripts[ref.releaseTag];
         if (!segs) { factual = false; failures.push(`Claim cites ${ref.releaseTag}, whose transcript is not loaded.`); continue; }
@@ -314,6 +318,33 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
       }
       const a = attributionFailure(b, ctx.format);
       if (a) { faithful = false; failures.push(a); }
+    }
+  }
+  const seenClips = new Map<string, { sceneTitle: string; blockId: string }>();
+  for (const seg of candidate) {
+    for (const sc of seg.scenes) {
+      for (const b of sc.blocks) {
+        if (b.kind === 'clip') {
+          const prev = seenClips.get(b.clipId);
+          if (prev) {
+            if (ctx.changedBlockIds && !ctx.changedBlockIds.has(b.id) && !ctx.changedBlockIds.has(prev.blockId)) {
+              continue;
+            }
+            const isReprise = b.isReprise === true;
+            const rationale = b.repriseRationale || b.rationale;
+            if (!isReprise || !rationale) {
+              faithful = false;
+              failures.push(`Duplicate archival clip ${b.clipId} used in "${prev.sceneTitle}" and "${sc.title}" without reprise justification.`);
+            } else {
+              if (b.repriseApproved !== true) {
+                warnings.push(`Archival clip ${b.clipId} repeated in "${sc.title}" (rationale: ${rationale}). Editorial review advised.`);
+              }
+            }
+          } else {
+            seenClips.set(b.clipId, { sceneTitle: sc.title, blockId: b.id });
+          }
+        }
+      }
     }
   }
   const lockFailures = locksIntact(ctx.baseline, candidate);

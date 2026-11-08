@@ -9,6 +9,7 @@ import http from 'node:http';
 import { createHash } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { createScriptStudioMiddleware } from '../../server/scriptStudioMiddleware';
+import type { ProcessRunner } from '../../server/scriptProviders';
 
 export const REPO = path.resolve(__dirname, '..', '..');
 export const STUDIO = path.join(REPO, '.spacepipe-studio');
@@ -50,10 +51,10 @@ export function removeTempRoot(root: string) {
   fs.rmSync(root, { recursive: true, force: true });
 }
 
-export async function startStudio(root: string) {
+export async function startStudio(root: string, customRunner?: ProcessRunner) {
   const mw = createScriptStudioMiddleware({
     root, getEnv: () => ({ PATH: process.env.PATH }),
-    runner: async () => { throw new Error('acceptance scripts make no model calls'); },
+    runner: customRunner ?? (async () => { throw new Error('acceptance scripts make no model calls'); }),
     resolveOverride: async name => ({ ok: true, file: `/none/${name}`, prefixArgs: [], via: 'path', found: `/none/${name}` }),
   });
   const server = http.createServer((req, res) => { void mw(req, res); });

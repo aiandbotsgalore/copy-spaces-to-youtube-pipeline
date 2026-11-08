@@ -1880,7 +1880,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
     if (hasActiveSearch) {
       const searchTarget = `${u.speaker}: ${u.text}`;
-      if (!evaluateTurnMatch(searchTarget, searchAst)) return false;
+      if (!evaluateTurnMatch(searchTarget, searchAst, { startSec: u.startSec, endSec: u.endSec ?? undefined })) return false;
     }
     return true;
   }), [utterances, speakerFilter, hasActiveSearch, searchAst, selectedCategory, selectedMentionTarget]);
@@ -1948,7 +1948,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const matchCount = useMemo(() => {
     if (!hasActiveSearch) return 0;
-    return utterances.filter(u => evaluateTurnMatch(`${u.speaker}: ${u.text}`, searchAst)).length;
+    return utterances.filter(u => evaluateTurnMatch(`${u.speaker}: ${u.text}`, searchAst, { startSec: u.startSec, endSec: u.endSec ?? undefined })).length;
   }, [hasActiveSearch, searchAst, utterances]);
 
   const totalGlobalSegments = useMemo(() => {
@@ -2315,7 +2315,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         // Google Search Query terms
         if (hasActiveDeferredSearch) {
           const searchTarget = seg._search ?? `${seg.speaker ? seg.speaker + ': ' : ''}${seg.text || ''}`;
-          if (!evaluateTurnMatch(searchTarget, deferredSearchAst)) {
+          if (!evaluateTurnMatch(searchTarget, deferredSearchAst, { startSec: seg.start, endSec: seg.end ?? undefined })) {
             continue;
           }
         }
