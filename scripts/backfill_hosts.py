@@ -19,6 +19,9 @@ import json
 import re
 import subprocess
 import sys
+from pathlib import Path
+
+YTDLP_PLUGIN_DIR = str(Path(__file__).resolve().parent / "ytdlp_plugins")
 
 
 def sh(cmd, check=True):
@@ -41,7 +44,7 @@ def list_releases(repo):
 
 def host_for(space_id):
     url = f"https://x.com/i/spaces/{space_id}"
-    r = sh(["yt-dlp", "--print", "uploader_id", "--no-warnings", url], check=False)
+    r = sh(["yt-dlp", "--plugin-dirs", YTDLP_PLUGIN_DIR, "--print", "uploader_id", "--no-warnings", url], check=False)
     lines = [l.strip() for l in r.stdout.splitlines() if l.strip() and l.strip() != "NA"]
     return lines[0].lstrip("@") if lines else None
 

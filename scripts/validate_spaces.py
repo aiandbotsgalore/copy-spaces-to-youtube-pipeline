@@ -20,8 +20,12 @@ import os
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from pathlib import Path
 import argparse
 import re
+
+# Same extractor plugin ingest.sh loads. Without it, 14-character Space ids crash yt-dlp.
+YTDLP_PLUGIN_DIR = str(Path(__file__).resolve().parent / "ytdlp_plugins")
 
 # Configuration
 MAX_WORKERS = 10  # Concurrent validation threads (conservative to avoid rate limits)
@@ -66,6 +70,8 @@ def validate_url(url: str) -> dict:
         result = subprocess.run(
             [
                 "yt-dlp",
+                "--plugin-dirs",
+                YTDLP_PLUGIN_DIR,
                 "--dump-json",
                 "--no-download",
                 "--no-warnings",

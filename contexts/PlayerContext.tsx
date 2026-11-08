@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
+import { attachAudioSource } from '../utils/hlsPlayer';
 
 export interface NowPlayingEpisode {
   id: number | string;
@@ -39,9 +40,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
+  const hlsCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const audio = new Audio();
+    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
     audio.playbackRate = playbackRate;
     audio.volume = volume;
@@ -77,6 +80,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       audio.removeEventListener('canplay', onCanPlay);
       audio.removeEventListener('ended', onEnded);
       audio.pause();
+      hlsCleanupRef.current?.();
+      hlsCleanupRef.current = null;
     };
   }, []);
 
@@ -132,7 +137,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     if (current?.id !== episode.id) {
-      audio.src = episode.audioUrl;
+      hlsCleanupRef.current?.();
+      const { destroy } = attachAudioSource(audio, episode.audioUrl);
+      hlsCleanupRef.current = destroy;
       audio.playbackRate = playbackRate;
       audio.volume = volume;
       audio.muted = isMuted;

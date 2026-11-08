@@ -1,6 +1,7 @@
 import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react';
-import { RotateCcw, Volume2, Scissors } from 'lucide-react';
+import { RotateCcw, Volume2, Scissors, Activity } from 'lucide-react';
 import { MontageClipItem } from '../contexts/MontageContext';
+import { getAudioPeaks } from '../utils/audioPeaks';
 
 interface Props {
   clip: MontageClipItem;
@@ -24,6 +25,7 @@ export const VisualWaveformTrim: React.FC<Props> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeHandle, setActiveHandle] = useState<'start' | 'end' | null>(null);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [realPeaks, setRealPeaks] = useState<number[] | null>(null);
 
   // Compute the visible timeline bounds around this clip
   const origStart = clip.origStartSec ?? clip.startSec;
@@ -33,9 +35,9 @@ export const VisualWaveformTrim: React.FC<Props> = ({
   const spanEnd = Math.max(clip.endSec, origEnd) + padding;
   const spanDuration = Math.max(0.5, spanEnd - spanStart);
 
-  // Generate deterministic realistic pseudo-waveform bars
+  // Fallback synthetic waveform bars
   const approxDur = Math.max(1, Math.round((clip.origEndSec ?? clip.endSec) - (clip.origStartSec ?? clip.startSec)));
-  const bars = useMemo(() => {
+  const fallbackBars = useMemo(() => {
     const numBars = 54;
     const seedStr = `${clip.id}_${clip.quoteId || ''}_${approxDur}`;
     let hash = 0;
@@ -52,6 +54,27 @@ export const VisualWaveformTrim: React.FC<Props> = ({
     }
     return result;
   }, [clip.id, clip.quoteId, approxDur]);
+
+  // Load real audio waveform peaks asynchronously when audioUrl is available
+  useEffect(() => {
+    let active = true;
+    if (clip.audioUrl) {
+      getAudioPeaks(clip.audioUrl, 54)
+        .then(peaks => {
+          if (active && peaks && peaks.length > 0) {
+            setRealPeaks(peaks);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setRealPeaks(null);
+    }
+    return () => {
+      active = false;
+    };
+  }, [clip.audioUrl]);
+
+  const bars = realPeaks || fallbackBars;
 
   // Compute percentage positions for in-point and out-point
   const inPct = Math.max(0, Math.min(100, ((clip.startSec - spanStart) / spanDuration) * 100));
@@ -221,6 +244,12 @@ export const VisualWaveformTrim: React.FC<Props> = ({
           <span className="text-indigo-400 font-bold">
             Len: {effectiveDur.toFixed(2)}s
           </span>
+          {realPeaks && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-teal-400 font-medium" title="True audio peak envelope loaded via Web Audio">
+              <Activity size={10} className="animate-pulse" />
+              <span>Real Waveform</span>
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">

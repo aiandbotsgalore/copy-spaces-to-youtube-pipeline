@@ -10,6 +10,7 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
+  Film,
   Clock,
   User,
   RefreshCw,
@@ -44,7 +45,7 @@ import { EnhancedConfig } from '../types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { getEpisodeSegments, fetchSummaryIndex, type SearchIndexSegment } from '../utils/transcriptData';
 import { cleanClipSpeakers, MAX_STAGE_SPEAKERS, planAvatarStage, resolveClipReleaseTag } from '../utils/avatarStage';
-import { normalizeClipSpeakers, normalizeViralScore } from '../utils/clipScore';
+import { canonicalizeSpeakerName, normalizeClipSpeakers, normalizeViralScore } from '../utils/clipScore';
 import { annotateJunkSuspects } from '../utils/junkSuspect';
 import { enrichPlaceholderClipMetadata, hasPlaceholderClipMetadata } from '../utils/clipMetadata';
 
@@ -60,6 +61,7 @@ import { ClipCard } from "./clips/ClipCard";
 import { ClipFilterBar } from "./clips/ClipFilterBar";
 import { AvatarModal } from "./clips/AvatarModal";
 import { AvatarCropModal } from './AvatarCropModal';
+import { SocialShortModal } from './SocialShortModal';
 
 export type { ClipItem };
 
@@ -97,6 +99,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   // EchoMimicV3 Cloud Talking Avatar Modal state
   const [avatarModalClip, setAvatarModalClip] = useState<ClipItem | null>(null);
+  const [shortModalClip, setShortModalClip] = useState<ClipItem | null>(null);
   const [speakerAvatarMap, setSpeakerAvatarMap] = useState<Record<string, string>>({});
   const [avatarLayoutMode, setAvatarLayoutMode] = useState<'stage_grid' | 'split_screen' | 'solo'>('stage_grid');
   const [avatarRatio, setAvatarRatio] = useState<'9:16' | '1:1' | '16:9'>('9:16');
@@ -577,14 +580,23 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
 
   // Unique Speakers list
   const speakerList = useMemo(() => {
-    const displayName = (speaker: string) => (/^[A-Za-z]$/.test(speaker) || /^speaker[_ ]\d+$/i.test(speaker) ? 'Unverified / unmapped' : speaker);
+    const displayName = (speaker: string) => {
+      const canonical = canonicalizeSpeakerName(speaker);
+      return (/^[A-Za-z]$/.test(canonical) || /^speaker[_ ]\d+$/i.test(canonical) ? 'Unverified / unmapped' : canonical);
+    };
     const spkSet = new Set<string>();
     clips.forEach(c => {
       (c.speakers || []).forEach(s => {
-        if (s && s !== 'Speaker') spkSet.add(displayName(s));
+        const tokens = String(s ?? '').split(/[,;&|/]+/);
+        tokens.forEach(tok => {
+          const norm = canonicalizeSpeakerName(tok);
+          if (norm && norm !== 'Speaker') {
+            spkSet.add(displayName(norm));
+          }
+        });
       });
     });
-    return Array.from(spkSet).sort();
+    return Array.from(spkSet).sort((a, b) => a.localeCompare(b));
   }, [clips]);
 
   // Filtered and Sorted Clips
@@ -597,7 +609,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       .filter(c => {
         const matchesCategory = selectedCategory === 'ALL' || normalizeCategory(c.category) === normalizeCategory(selectedCategory);
         const matchesEpisode = selectedEpisode === 'ALL' || c.episode === selectedEpisode;
-        const matchesSpeaker = selectedSpeaker === 'ALL' || (c.speakers && c.speakers.some(s => ( /^[A-Za-z]$/.test(s) || /^speaker[_ ]\d+$/i.test(s) ? 'Unverified / unmapped' : s) === selectedSpeaker));
+        const matchesSpeaker = selectedSpeaker === 'ALL' || (c.speakers && c.speakers.some(s => {
+          const tokens = String(s ?? '').split(/[,;&|/]+/);
+          return tokens.some(tok => {
+            const canonical = canonicalizeSpeakerName(tok);
+            const mapped = /^[A-Za-z]$/.test(canonical) || /^speaker[_ ]\d+$/i.test(canonical)
+              ? 'Unverified / unmapped'
+              : canonical;
+            return mapped === selectedSpeaker;
+          });
+        }));
         const matchesTopRated = !onlyTopRated || (c.viral_score >= 9);
 
         const query = search.toLowerCase().trim();
@@ -608,7 +629,10 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           c.title.toLowerCase().includes(query) ||
           (c.reason && c.reason.toLowerCase().includes(query)) ||
           (c.transcript_snippet && c.transcript_snippet.toLowerCase().includes(query)) ||
-          (c.speakers && c.speakers.some(s => s.toLowerCase().includes(query))) ||
+          (c.speakers && c.speakers.some(s => {
+            const tokens = String(s ?? '').split(/[,;&|/]+/);
+            return tokens.some(tok => canonicalizeSpeakerName(tok).toLowerCase().includes(query));
+          })) ||
           (c.episode && c.episode.toLowerCase().includes(query)) ||
           epTitle.includes(query);
 
@@ -865,7 +889,19 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         episodes={episodeList.map(e => e.name)}
         selectedEpisode={selectedEpisode}
         setSelectedEpisode={setSelectedEpisode}
-        speakers={speakerList.map(spk => ({ name: spk, count: clips.filter(c => c.speakers?.some(s => ( /^[A-Za-z]$/.test(s) || /^speaker[_ ]\d+$/i.test(s) ? 'Unverified / unmapped' : s) === spk)).length }))}
+        speakers={speakerList.map(spk => ({
+          name: spk,
+          count: clips.filter(c => c.speakers?.some(s => {
+            const tokens = String(s ?? '').split(/[,;&|/]+/);
+            return tokens.some(tok => {
+              const canonical = canonicalizeSpeakerName(tok);
+              const mapped = /^[A-Za-z]$/.test(canonical) || /^speaker[_ ]\d+$/i.test(canonical)
+                ? 'Unverified / unmapped'
+                : canonical;
+              return mapped === spk;
+            });
+          })).length
+        }))}
         selectedSpeaker={selectedSpeaker}
         setSelectedSpeaker={setSelectedSpeaker}
         onlyTopRated={onlyTopRated}
@@ -1015,6 +1051,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                             setAvatarModalClip(c);
                             setAvatarDispatchStatus(null);
                           }}
+                          onOpenShortModal={c => setShortModalClip(c)}
                         />
                       ))}
                     </div>
@@ -1054,6 +1091,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                   setAvatarModalClip(c);
                   setAvatarDispatchStatus(null);
                 }}
+                onOpenShortModal={c => setShortModalClip(c)}
               />
             ))}
           </div>
@@ -1193,6 +1231,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                             title="Animate Talking Avatar (EchoMimicV3 Cloud GPU)"
                           >
                             <Video size={13} />
+                          </button>
+                          <button
+                            onClick={() => setShortModalClip(clip)}
+                            className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                            title="Create 9:16 Social Video Short (Audiogram)"
+                          >
+                            <Film size={13} />
                           </button>
                         </div>
                       </td>
@@ -1407,6 +1452,13 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         owner={owner}
         repo={repo}
       />
+      {shortModalClip && (
+        <SocialShortModal
+          clip={shortModalClip}
+          isOpen={Boolean(shortModalClip)}
+          onClose={() => setShortModalClip(null)}
+        />
+      )}
     </div>
   );
 };

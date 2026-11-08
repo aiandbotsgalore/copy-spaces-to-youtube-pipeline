@@ -1079,6 +1079,30 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const p = getProject(q('projectId'));
       return send(res, 200, { ok: true, job: audio.previewJob(p.id) });
     }
+    if (route === '/preview/events' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('Connection', 'keep-alive');
+      const current = audio.previewJob(p.id);
+      if (current) res.write(`data: ${JSON.stringify(current)}\n\n`);
+      const onJob = (job: any) => {
+        res.write(`data: ${JSON.stringify(job)}\n\n`);
+        if (job.state !== 'running') {
+          cleanup();
+          res.end();
+        }
+      };
+      const ping = setInterval(() => res.write(': ping\n\n'), 15_000);
+      const cleanup = () => {
+        clearInterval(ping);
+        audio.bus.off(p.id, onJob);
+      };
+      audio.bus.on(p.id, onJob);
+      req.on('close', cleanup);
+      return;
+    }
     if (route === '/preview/cancel' && method === 'POST') {
       const body = await readBody(req);
       const p = getProject(body?.projectId);

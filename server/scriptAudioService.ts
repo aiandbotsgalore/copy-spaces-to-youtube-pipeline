@@ -14,6 +14,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { EventEmitter } from 'node:events';
 import { createHash, randomUUID } from 'node:crypto';
 import child_process from 'node:child_process';
 import type { IncomingMessage, ServerResponse } from 'http';
@@ -85,6 +86,7 @@ export function createAudioService(deps: AudioServiceDeps) {
   const probe = deps.probe ?? defaultProbeDurationAsync;
   const jobs = new Map<string, PreviewJob>();       // latest job per project
   const cancelled = new Set<string>();
+  const bus = new EventEmitter();
   let queue: Promise<unknown> = Promise.resolve();  // one synthesis at a time across all projects
   const voxDir = path.join(deps.root, 'public', 'output', 'vox');
 
@@ -136,16 +138,24 @@ export function createAudioService(deps: AudioServiceDeps) {
     for (const [hash, e] of byHash) {
       if (index[hash]) { job.cached++; job.done++; } else todo.push({ hash, ...e });
     }
-    const finish = (state: PreviewJob['state']) => { job.state = state; job.current = null; job.finishedAt = now(); };
+    const finish = (state: PreviewJob['state']) => {
+      job.state = state;
+      job.current = null;
+      job.finishedAt = now();
+      bus.emit(project.id, { ...job });
+    };
+    bus.emit(project.id, { ...job });
     if (!todo.length) { finish('finished'); return job; }
     queue = queue.then(async () => {
       for (const t of todo) {
         if (cancelled.has(job.id)) { finish('cancelled'); return; }
         job.current = t.blockIds[0];
+        bus.emit(project.id, { ...job });
         try {
           await synthOne(t.text, t.hash);
           job.synthesized++;
           job.done++;
+          bus.emit(project.id, { ...job });
         } catch (e: any) {
           const message = e?.message || String(e);
           job.failures.push({ blockId: t.blockIds[0], message });
@@ -280,6 +290,7 @@ export function createAudioService(deps: AudioServiceDeps) {
       serveFile(req, res, await windowCut(audioUrl, off, durationSec, label), 'audio/wav');
     },
     startPreview,
+    bus,
     previewJob: (projectId: string) => jobs.get(projectId) || null,
     cancelPreview(projectId: string): boolean {
       const j = jobs.get(projectId);

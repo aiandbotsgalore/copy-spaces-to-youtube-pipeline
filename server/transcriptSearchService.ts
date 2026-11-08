@@ -28,6 +28,14 @@ export interface DialogueTurn {
   end: number;
 }
 
+export interface DocumentLocation {
+  filePath: string;
+  pageNumber?: number;
+  lineNumber?: number;
+  messageIndex?: number;
+  displayText: string;
+}
+
 export interface TranscriptSearchResult {
   episodeTitle: string;
   releaseTag: string;
@@ -41,6 +49,11 @@ export interface TranscriptSearchResult {
   matchType?: 'lexical' | 'vector' | 'hybrid' | 'proximity' | 'rerank';
   relevantSpans?: RelevantSpan[];
   dialogueWindow?: DialogueTurn[];
+  chunkId?: string;
+  sourceType?: 'space_transcript' | 'direct_message' | 'court_record' | 'recorded_call' | 'public_post' | 'research_dossier';
+  sourceClassification?: 'primary_record' | 'derivative_material';
+  contentNature?: 'verbatim_statement' | 'official_record' | 'unverified_allegation' | 'editorial_note';
+  documentLocation?: DocumentLocation;
 }
 
 export interface EpisodeSummaryItem {
@@ -53,6 +66,8 @@ export interface EpisodeSummaryItem {
   segment_count?: number;
   speakers?: string[];
   body?: string;
+  source_type?: string;
+  source_classification?: string;
 }
 
 export interface EmbeddingManifestSegment {
@@ -61,6 +76,11 @@ export interface EmbeddingManifestSegment {
   end: number;
   speaker: string;
   text: string;
+  chunkId?: string;
+  sourceType?: 'space_transcript' | 'direct_message' | 'court_record' | 'recorded_call' | 'public_post' | 'research_dossier';
+  sourceClassification?: 'primary_record' | 'derivative_material';
+  contentNature?: 'verbatim_statement' | 'official_record' | 'unverified_allegation' | 'editorial_note';
+  documentLocation?: DocumentLocation;
 }
 
 export interface EmbeddingManifest {
@@ -71,6 +91,9 @@ export interface EmbeddingManifest {
   segmentCount: number;
   generatedAt: string;
   segments: EmbeddingManifestSegment[];
+  sourceType?: 'space_transcript' | 'direct_message' | 'court_record' | 'recorded_call' | 'public_post' | 'research_dossier';
+  sourceClassification?: 'primary_record' | 'derivative_material';
+  documentLocation?: DocumentLocation;
 }
 
 export interface SearchOptions {
@@ -82,6 +105,8 @@ export interface SearchOptions {
   apiKey?: string;
   fetchImpl?: typeof fetch;
   activeSegments?: Array<{ speaker: string; text: string; start: number; end: number }>;
+  sourceType?: string;
+  sourceClassification?: string;
 }
 
 let cachedSummaries: EpisodeSummaryItem[] | null = null;
@@ -117,17 +142,39 @@ export function registerEpisodeSegments(
 
 export function loadSummaries(): EpisodeSummaryItem[] {
   if (cachedSummaries) return cachedSummaries;
+  let summaries: EpisodeSummaryItem[] = [];
   try {
     const summaryPath = resolvePath('public', 'transcripts', 'transcripts_summary_index.json');
     if (fs.existsSync(summaryPath)) {
       const raw = fs.readFileSync(summaryPath, 'utf8');
-      cachedSummaries = JSON.parse(raw);
-      return cachedSummaries || [];
+      summaries = JSON.parse(raw) || [];
     }
   } catch (err) {
     console.warn('[TranscriptSearchService] Failed to load transcripts_summary_index.json:', err);
   }
-  return [];
+
+  try {
+    const evidenceCatalogPath = resolvePath('.cache', 'evidence', 'evidence_catalog.json');
+    if (fs.existsSync(evidenceCatalogPath)) {
+      const evRaw = fs.readFileSync(evidenceCatalogPath, 'utf8');
+      const evData = JSON.parse(evRaw);
+      const evItems = Array.isArray(evData) ? evData : evData.items || [];
+      const evSummaries: EpisodeSummaryItem[] = evItems.map((e: any) => ({
+        release_tag: e.tag || e.release_tag,
+        title: e.title || e.tag,
+        episode_date: e.date,
+        speakers: e.speakers || [],
+        source_type: e.source_type || 'evidence_document',
+        source_classification: e.source_classification || 'primary_record',
+      }));
+      summaries = [...summaries, ...evSummaries];
+    }
+  } catch (err) {
+    console.warn('[TranscriptSearchService] Failed to load evidence_catalog.json:', err);
+  }
+
+  cachedSummaries = summaries;
+  return cachedSummaries;
 }
 
 export function getTagToFileMap(): Map<string, string> {
@@ -434,6 +481,14 @@ export async function searchTranscriptLexical(
   for (const ep of tagsToSearch) {
     if (results.length >= max * 3) break;
 
+    const sum = summaries.find(s => s.release_tag === ep.tag);
+    if (options.sourceType && sum?.source_type && sum.source_type !== options.sourceType) {
+      continue;
+    }
+    if (options.sourceClassification && sum?.source_classification && sum.source_classification !== options.sourceClassification) {
+      continue;
+    }
+
     const filePath = fileMap.get(ep.tag);
     if (!filePath || !fs.existsSync(filePath)) continue;
 
@@ -449,7 +504,7 @@ export async function searchTranscriptLexical(
       }
 
       const data = JSON.parse(raw);
-      const segments: Array<{ start: number; end: number; speaker?: string; text?: string }> = Array.isArray(data.segments)
+      const segments: Array<{ start: number; end: number; speaker?: string; text?: string; chunkId?: string; sourceType?: any; sourceClassification?: any; contentNature?: any; documentLocation?: any }> = Array.isArray(data.segments)
         ? data.segments
         : Array.isArray(data)
         ? data
@@ -458,6 +513,13 @@ export async function searchTranscriptLexical(
       for (let sIdx = 0; sIdx < segments.length; sIdx++) {
         const seg = segments[sIdx];
         if (!seg.text) continue;
+
+        const effectiveSourceType = seg.sourceType || data.sourceType || sum?.source_type || 'space_transcript';
+        if (options.sourceType && effectiveSourceType !== options.sourceType) continue;
+
+        const effectiveClassification = seg.sourceClassification || data.sourceClassification || sum?.source_classification || 'primary_record';
+        if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;
+
         const textLower = seg.text.toLowerCase();
         const speakerName = seg.speaker || 'Unknown Speaker';
 
@@ -495,6 +557,11 @@ export async function searchTranscriptLexical(
           dialogueWindow,
           relevanceScore: score,
           matchType: 'lexical',
+          chunkId: seg.chunkId || `${ep.tag}#seg-${sIdx}`,
+          sourceType: effectiveSourceType,
+          sourceClassification: effectiveClassification,
+          contentNature: seg.contentNature || data.contentNature || 'verbatim_statement',
+          documentLocation: seg.documentLocation || data.documentLocation,
         });
 
         if (results.length >= max * 3) break;
@@ -546,6 +613,12 @@ export async function searchTranscriptVector(
         continue;
       }
 
+      const effectiveSourceType = seg.sourceType || manifest.sourceType || summary?.source_type || 'space_transcript';
+      if (options.sourceType && effectiveSourceType !== options.sourceType) continue;
+
+      const effectiveClassification = seg.sourceClassification || manifest.sourceClassification || summary?.source_classification || 'primary_record';
+      if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;
+
       const sim = dotProduct(vectors, i * 384, queryVec);
       if (sim > 0.22) {
         const dialogueWindow: DialogueTurn[] = manifest.segments
@@ -569,6 +642,11 @@ export async function searchTranscriptVector(
           dialogueWindow,
           relevanceScore: Number(sim.toFixed(4)),
           matchType: 'vector',
+          chunkId: seg.chunkId || `${tag}#seg-${i}`,
+          sourceType: effectiveSourceType,
+          sourceClassification: effectiveClassification,
+          contentNature: seg.contentNature || 'verbatim_statement',
+          documentLocation: seg.documentLocation || manifest.documentLocation,
         });
       }
     }
@@ -589,14 +667,14 @@ export function computeRRF(
   >();
 
   lexicalResults.forEach((item, idx) => {
-    const key = `${item.releaseTag}#${item.startSec.toFixed(2)}`;
+    const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`;
     const rank = idx + 1;
     const contribution = 1 / (k + rank);
     scoreMap.set(key, { item, rrfScore: contribution, lexicalRank: rank });
   });
 
   vectorResults.forEach((item, idx) => {
-    const key = `${item.releaseTag}#${item.startSec.toFixed(2)}`;
+    const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`;
     const rank = idx + 1;
     const contribution = 1 / (k + rank);
     const existing = scoreMap.get(key);
@@ -604,6 +682,10 @@ export function computeRRF(
       existing.rrfScore += contribution;
       existing.vectorRank = rank;
       if (!existing.item.audioUrl && item.audioUrl) existing.item.audioUrl = item.audioUrl;
+      if (!existing.item.documentLocation && item.documentLocation) existing.item.documentLocation = item.documentLocation;
+      if (!existing.item.sourceType && item.sourceType) existing.item.sourceType = item.sourceType;
+      if (!existing.item.sourceClassification && item.sourceClassification) existing.item.sourceClassification = item.sourceClassification;
+      if (!existing.item.contentNature && item.contentNature) existing.item.contentNature = item.contentNature;
       existing.item.matchType = 'hybrid';
     } else {
       scoreMap.set(key, { item, rrfScore: contribution, vectorRank: rank });
@@ -1074,6 +1156,11 @@ export interface TranscriptMatch {
   relevance_score?: number;
   relevant_spans?: RelevantSpan[];
   dialogue_window?: DialogueTurn[];
+  chunk_id?: string;
+  source_type?: string;
+  source_classification?: string;
+  content_nature?: string;
+  document_location?: DocumentLocation;
 }
 
 export interface HandleSearchTranscriptsResult {
@@ -1212,7 +1299,7 @@ export async function handleSearchTranscripts(
     episode_title: r.episodeTitle,
     start_timestamp: r.startSec,
     end_timestamp: r.endSec,
-    formatted_time: formatTimestamp(r.startSec),
+    formatted_time: r.documentLocation?.displayText || formatTimestamp(r.startSec),
     speaker: r.speaker,
     snippet: r.text,
     audio_url: r.audioUrl,
@@ -1220,6 +1307,11 @@ export async function handleSearchTranscripts(
     relevance_score: r.relevanceScore,
     relevant_spans: r.relevantSpans,
     dialogue_window: r.dialogueWindow,
+    chunk_id: r.chunkId,
+    source_type: r.sourceType,
+    source_classification: r.sourceClassification,
+    content_nature: r.contentNature,
+    document_location: r.documentLocation,
   }));
 
   return {

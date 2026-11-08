@@ -21,11 +21,12 @@ const btnGhost = `${btn} bg-slate-900 border-slate-700 text-slate-200 hover:bg-s
 const btnPrimary = `${btn} bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500`;
 const mmss = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.round(Math.max(0, s) % 60)).padStart(2, '0')}`;
 
-/** The latest preview job of a project, polled while it runs. */
+/** The latest preview job of a project, using Server-Sent Events (SSE) with polling fallback. */
 export function usePreviewJob(projectId: string | null, onDone: () => void) {
   const [job, setJob] = useState<PreviewJob | null>(null);
   const [error, setError] = useState<unknown>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sseRef = useRef<EventSource | null>(null);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
 
@@ -39,11 +40,51 @@ export function usePreviewJob(projectId: string | null, onDone: () => void) {
     } catch (e) { setError(e); }
   }, []);
 
+  const connectSSE = useCallback((pid: string) => {
+    if (typeof EventSource === 'undefined') {
+      void poll(pid);
+      return;
+    }
+    if (sseRef.current) sseRef.current.close();
+
+    const sse = new EventSource(`/api/script/preview/events?projectId=${encodeURIComponent(pid)}`);
+    sseRef.current = sse;
+
+    sse.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        setJob(data);
+        if (data.state !== 'running') {
+          sse.close();
+          sseRef.current = null;
+          doneRef.current();
+        }
+      } catch {}
+    };
+
+    sse.onerror = () => {
+      sse.close();
+      sseRef.current = null;
+      void poll(pid);
+    };
+  }, [poll]);
+
   useEffect(() => {
     setJob(null);
-    if (projectId) void scriptApi.previewStatus(projectId).then(r => { setJob(r.job); if (r.job?.state === 'running') void poll(projectId); }).catch(setError);
-    return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [projectId, poll]);
+    if (projectId) {
+      void scriptApi.previewStatus(projectId).then(r => {
+        setJob(r.job);
+        if (r.job?.state === 'running') connectSSE(projectId);
+      }).catch(setError);
+    }
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+      if (sseRef.current) {
+        sseRef.current.close();
+        sseRef.current = null;
+      }
+    };
+  }, [projectId, connectSSE]);
 
   const start = useCallback(async (sceneId?: string) => {
     if (!projectId) return;
@@ -51,9 +92,9 @@ export function usePreviewJob(projectId: string | null, onDone: () => void) {
     try {
       const r = await scriptApi.preview(projectId, sceneId);
       setJob(r.job);
-      void poll(projectId);
+      connectSSE(projectId);
     } catch (e) { setError(e); }
-  }, [projectId, poll]);
+  }, [projectId, connectSSE]);
   const cancel = useCallback(async () => {
     if (!projectId) return;
     try { await scriptApi.cancelPreview(projectId); } catch (e) { setError(e); }

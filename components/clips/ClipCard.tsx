@@ -9,6 +9,7 @@ import {
   Check,
   Download,
   Video,
+  Film,
 } from 'lucide-react';
 import { ClipItem } from '../../utils/contracts/clipCatalog';
 import { getClipRecordedDate } from '../../utils/dates';
@@ -23,6 +24,7 @@ export interface ClipCardProps {
   onPlay: (clip: ClipItem) => void;
   onCopyQuote: (title: string, text: string) => void;
   onOpenAvatarModal: (clip: ClipItem) => void;
+  onOpenShortModal?: (clip: ClipItem) => void;
 }
 
 export const ClipCard: React.FC<ClipCardProps> = ({
@@ -34,6 +36,7 @@ export const ClipCard: React.FC<ClipCardProps> = ({
   onPlay,
   onCopyQuote,
   onOpenAvatarModal,
+  onOpenShortModal,
 }) => {
   const catColor = getCategoryColor(clip.category);
   const starsCount = Math.min(5, Math.max(1, Math.round((clip.viral_score || 8) / 2)));
@@ -154,6 +157,15 @@ export const ClipCard: React.FC<ClipCardProps> = ({
             >
               <Video size={14} />
             </button>
+            {onOpenShortModal && (
+              <button
+                onClick={() => onOpenShortModal(clip)}
+                className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Create 9:16 Social Video Short (Audiogram)"
+              >
+                <Film size={14} />
+              </button>
+            )}
           </div>
         </div>
       </div>

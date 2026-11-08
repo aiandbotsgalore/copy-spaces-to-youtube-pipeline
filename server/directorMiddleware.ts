@@ -961,6 +961,8 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
         const mode = (rawMode === 'lexical' || rawMode === 'vector' || rawMode === 'rerank' || rawMode === 'hybrid') ? rawMode : 'hybrid';
         const rawRerankModel = urlObj.searchParams.get('rerankModel') || urlObj.searchParams.get('model');
         const rerankModel = (rawRerankModel === 'rerank-v5.0-fast' || rawRerankModel === 'rerank-v5.0-pro') ? rawRerankModel : undefined;
+        const sourceType = urlObj.searchParams.get('sourceType') || undefined;
+        const sourceClassification = urlObj.searchParams.get('sourceClassification') || undefined;
         const results = await searchTranscriptArchive(q, {
           speaker,
           episodeTag,
@@ -969,6 +971,8 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
           rerankModel,
           apiKey: cfg.env.COHERE_API_KEY,
           fetchImpl: opts.fetchImpl,
+          sourceType,
+          sourceClassification,
         });
         return send(res, 200, { ok: true, mode, results, count: results.length });
       }

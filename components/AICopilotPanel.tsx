@@ -21,6 +21,7 @@ import {
   SplitSquareVertical,
   Activity,
   Check,
+  Copy,
   AlertTriangle,
   ShieldAlert,
   Clock,
@@ -89,6 +90,7 @@ export const AICopilotPanel: React.FC = () => {
 
   const [input, setInput] = useState('');
   const [showCanvas, setShowCanvas] = useState(true);
+  const [copiedMatchKey, setCopiedMatchKey] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
@@ -317,19 +319,42 @@ export const AICopilotPanel: React.FC = () => {
                       </span>
                     </div>
                     <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                      {m.matches.map((match, idx) => (
+                      {m.matches.map((match, idx) => {
+                        const matchKey = match.chunk_id || `${match.episode_id}_${match.start_timestamp}_${idx}`;
+                        const isCopied = copiedMatchKey === matchKey;
+                        const hasAudio = Boolean(match.audio_url || (match.source_type === 'space_transcript' && contextPayload.currentEpisode?.audioUrl));
+                        const isDocument = match.source_type && match.source_type !== 'space_transcript';
+
+                        return (
                         <div key={idx} className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs hover:border-slate-700 transition-colors">
                           <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                               <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 font-semibold text-[10px] border border-blue-500/20 flex-shrink-0">
                                 {match.speaker}
                               </span>
+
+                              {match.source_classification && (
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border flex-shrink-0 ${
+                                  match.source_classification === 'primary_record'
+                                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20'
+                                    : 'bg-purple-500/15 text-purple-300 border-purple-500/20'
+                                }`}>
+                                  {match.source_classification === 'primary_record' ? 'PRIMARY RECORD' : 'DERIVATIVE ANALYSIS'}
+                                </span>
+                              )}
+
+                              {isDocument && (
+                                <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[9px] font-mono border border-slate-700 flex-shrink-0">
+                                  {match.source_type?.replace(/_/g, ' ').toUpperCase()}
+                                </span>
+                              )}
+
                               {match.match_type === 'rerank' && (
                                 <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[9px] font-mono flex-shrink-0">
                                   Rerank 5{match.relevant_spans && match.relevant_spans.length > 0 && ' · Focus'}
                                 </span>
                               )}
-                              <span className="text-slate-400 text-[11px] truncate">
+                              <span className="text-slate-400 text-[11px] truncate" title={match.episode_title || match.episode_id}>
                                 in {match.episode_title || match.episode_id}
                               </span>
                             </div>
@@ -339,8 +364,8 @@ export const AICopilotPanel: React.FC = () => {
                                   Score: {match.relevance_score.toFixed(3)}
                                 </span>
                               )}
-                              <span className="text-[10px] text-slate-500 font-mono">
-                                {match.formatted_time || formatTime(match.start_timestamp)} - {formatTime(match.end_timestamp)}
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {match.document_location?.displayText || match.formatted_time || `${formatTime(match.start_timestamp)} - ${formatTime(match.end_timestamp)}`}
                               </span>
                             </div>
                           </div>
@@ -354,57 +379,96 @@ export const AICopilotPanel: React.FC = () => {
                             )}"
                           </p>
 
-                          <div className="flex items-center gap-2">
+                          {/* Surrounding Dialogue / Exchange Context Window */}
+                          {match.dialogue_window && match.dialogue_window.length > 1 && (
+                            <details className="mb-2 text-[10px] text-slate-400 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
+                              <summary className="cursor-pointer font-medium text-slate-400 hover:text-slate-200 select-none">
+                                View Surrounding Dialogue Context ({match.dialogue_window.length} turns)
+                              </summary>
+                              <div className="mt-2 space-y-1 pl-1 border-l-2 border-slate-700/60 max-h-36 overflow-y-auto pr-1">
+                                {match.dialogue_window.map((dw, dIdx) => (
+                                  <div key={dIdx} className={dw.text === match.snippet ? "text-amber-200 font-medium" : "text-slate-400"}>
+                                    <span className="font-semibold text-slate-300">{dw.speaker}:</span> {dw.text}
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          )}
+
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {hasAudio && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    const targetUrl = match.audio_url || contextPayload.currentEpisode?.audioUrl;
+                                    if (targetUrl) {
+                                      player.play(
+                                        {
+                                          id: match.episode_id || Date.now(),
+                                          title: match.episode_title || 'Episode Space',
+                                          audioUrl: targetUrl,
+                                        },
+                                        match.start_timestamp
+                                      );
+                                    } else {
+                                      player.seek(match.start_timestamp);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded text-[11px] font-semibold border border-indigo-500/30 transition-colors cursor-pointer"
+                                  title="Seek audio player to this segment"
+                                >
+                                  <Play size={10} className="fill-current" />
+                                  ▶ Jump to Timestamp
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                                    montage.addClip({
+                                      id: newClipId,
+                                      title: `${match.speaker}: ${match.snippet.slice(0, 30)}...`,
+                                      quote: match.snippet,
+                                      speaker: match.speaker,
+                                      sourceTitle: match.episode_title,
+                                      sourceTag: match.episode_id,
+                                      audioUrl: match.audio_url || contextPayload.currentEpisode?.audioUrl,
+                                      startSec: match.start_timestamp,
+                                      endSec: match.end_timestamp || match.start_timestamp + 25,
+                                      category: 'Highlights',
+                                      severity: 8,
+                                      tensionScore: 7,
+                                      directorNote: `Extracted from search quote in ${match.episode_title}`,
+                                    });
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded text-[11px] font-semibold border border-emerald-500/30 transition-colors cursor-pointer"
+                                  title="Append this slice to the Active Montage Reel"
+                                >
+                                  <Sparkles size={10} />
+                                  + Append to Reel
+                                </button>
+                              </>
+                            )}
+
+                            {/* Copy Citation into Script button */}
                             <button
                               onClick={() => {
-                                const targetUrl = match.audio_url || contextPayload.currentEpisode?.audioUrl;
-                                if (targetUrl) {
-                                  player.play(
-                                    {
-                                      id: match.episode_id || Date.now(),
-                                      title: match.episode_title || 'Episode Space',
-                                      audioUrl: targetUrl,
-                                    },
-                                    match.start_timestamp
-                                  );
-                                } else {
-                                  player.seek(match.start_timestamp);
-                                }
+                                const loc = match.document_location?.displayText || (match.start_timestamp ? `Timestamp ${formatTime(match.start_timestamp)}` : 'Document Excerpt');
+                                const docTitle = match.episode_title || match.episode_id;
+                                const classification = match.source_classification === 'primary_record' ? 'Primary Record' : 'Derivative Analysis';
+                                const citation = `> **[Source: ${docTitle} | ${loc} (${classification})]**\n> **${match.speaker}**: "${match.snippet}"`;
+                                navigator.clipboard.writeText(citation);
+                                setCopiedMatchKey(matchKey);
+                                setTimeout(() => setCopiedMatchKey(null), 2500);
                               }}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded text-[11px] font-semibold border border-indigo-500/30 transition-colors cursor-pointer"
-                              title="Seek audio player to this segment"
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-semibold border border-slate-700 transition-colors cursor-pointer"
+                              title="Copy formatted quote citation for manuscript drafting"
                             >
-                              <Play size={10} className="fill-current" />
-                              ▶ Jump to Timestamp
-                            </button>
-                            <button
-                              onClick={() => {
-                                const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                                montage.addClip({
-                                  id: newClipId,
-                                  title: `${match.speaker}: ${match.snippet.slice(0, 30)}...`,
-                                  quote: match.snippet,
-                                  speaker: match.speaker,
-                                  sourceTitle: match.episode_title,
-                                  sourceTag: match.episode_id,
-                                  audioUrl: match.audio_url || contextPayload.currentEpisode?.audioUrl,
-                                  startSec: match.start_timestamp,
-                                  endSec: match.end_timestamp || match.start_timestamp + 25,
-                                  category: 'Highlights',
-                                  severity: 8,
-                                  tensionScore: 7,
-                                  directorNote: `Extracted from search quote in ${match.episode_title}`,
-                                });
-                              }}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded text-[11px] font-semibold border border-emerald-500/30 transition-colors cursor-pointer"
-                              title="Append this slice to the Active Montage Reel"
-                            >
-                              <Sparkles size={10} />
-                              + Append to Reel
+                              {isCopied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                              {isCopied ? '✓ Copied Citation' : '📋 Copy Citation into Script'}
                             </button>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

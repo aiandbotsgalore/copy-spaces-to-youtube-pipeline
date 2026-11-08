@@ -15,8 +15,11 @@ import os
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from pathlib import Path
 import argparse
 import re
+
+YTDLP_PLUGIN_DIR = str(Path(__file__).resolve().parent / "ytdlp_plugins")
 
 MAX_WORKERS = 10
 TIMEOUT_SECONDS = 30
@@ -47,7 +50,7 @@ def check_duration(url: str) -> dict:
 
     try:
         result = subprocess.run(
-            ["yt-dlp", "--dump-json", "--no-download", "--no-warnings", url],
+            ["yt-dlp", "--plugin-dirs", YTDLP_PLUGIN_DIR, "--dump-json", "--no-download", "--no-warnings", url],
             capture_output=True,
             text=True,
             timeout=TIMEOUT_SECONDS

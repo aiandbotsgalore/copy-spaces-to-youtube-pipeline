@@ -14,6 +14,10 @@ if [[ ! -f "$QUEUE_FILE" && -f "space_queue.txt" ]]; then
 fi
 WORK_DIR="work"
 TARGET_URL=""
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# X Space ids grew from 13 to 14 characters. Stock yt-dlp 2026.10.26 truncates
+# them and crashes with KeyError('metadata'). scripts/ytdlp_plugins fixes that.
+YTDLP_PLUGIN_ARGS=(--plugin-dirs "$REPO_ROOT/scripts/ytdlp_plugins")
 
 # 0. Handle Pre-Staged Local Audio Upload Release (if MANUAL_RELEASE_TAG is set)
 if [[ -n "${MANUAL_RELEASE_TAG:-}" ]]; then
@@ -234,7 +238,7 @@ EOF
     COOKIE_ARGS=(--cookies "$COOKIE_TMP")
 fi
 
-SPACE_ID=$(yt-dlp "${COOKIE_ARGS[@]}" --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+SPACE_ID=$(yt-dlp "${YTDLP_PLUGIN_ARGS[@]}" "${COOKIE_ARGS[@]}" --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 # Fallback to URL regex if yt-dlp query fails (e.g. rate limit, access control denial)
 if [[ -z "$SPACE_ID" ]]; then
     if [[ "$TARGET_URL" =~ (twitter\.com|x\.com)/i/spaces/([a-zA-Z0-9]{12,14}) ]]; then
@@ -244,7 +248,7 @@ if [[ -z "$SPACE_ID" ]]; then
     fi
 fi
 # Host handle (yt-dlp uploader_id), stored in the release body so the transcript list can show who hosted
-HOST_HANDLE=$(yt-dlp "${COOKIE_ARGS[@]}" --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
+HOST_HANDLE=$(yt-dlp "${YTDLP_PLUGIN_ARGS[@]}" "${COOKIE_ARGS[@]}" --print uploader_id --no-warnings "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 
 if [[ -n "$SPACE_ID" ]]; then
     echo "Source ID: $SPACE_ID"
@@ -341,7 +345,7 @@ echo "--- End duplicate check ---"
 # Live stream capture will only proceed if RECORD_LIVE is explicitly set to true.
 RECORD_LIVE="${RECORD_LIVE:-false}"
 echo "Checking live stream status..."
-LIVE_STATUS=$(yt-dlp "${COOKIE_ARGS[@]}" --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
+LIVE_STATUS=$(yt-dlp "${YTDLP_PLUGIN_ARGS[@]}" "${COOKIE_ARGS[@]}" --print live_status --no-warnings "$TARGET_URL" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "unknown")
 echo "Live status: $LIVE_STATUS (RECORD_LIVE=$RECORD_LIVE)"
 
 if [[ "$LIVE_STATUS" == "is_live" && "$RECORD_LIVE" != "true" ]]; then
@@ -383,6 +387,7 @@ fi
 DOWNLOAD_LOG=$(mktemp)
 set +e
 yt-dlp \
+    "${YTDLP_PLUGIN_ARGS[@]}" \
     "${COOKIE_ARGS[@]}" \
     "${CONCURRENT_ARGS[@]}" \
     --retries 5 \

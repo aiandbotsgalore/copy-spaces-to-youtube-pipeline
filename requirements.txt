@@ -1,1 +1,2 @@
+# Space id length and the AudioSpaceById query are corrected by scripts/ytdlp_plugins.
 yt-dlp>=2025.1.1

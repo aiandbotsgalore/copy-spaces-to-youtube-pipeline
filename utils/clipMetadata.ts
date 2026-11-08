@@ -1,118 +1,115 @@
-/**
- * Detects and repairs clip records whose reason/quote fields are still placeholders
- * (often the release title, or a "Highlight moment from <release>" stub from live scans).
- * When transcript segments are available, replaces those stubs with turns in the clip window.
- */
-
 import type { ClipItem } from './contracts/clipCatalog';
-import type { SearchIndexSegment } from './transcriptData';
 
-const norm = (s: unknown) =>
-  String(s ?? '')
-    .toLowerCase()
-    .replace(/_/g, ' ')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-
-const looksLikeReleaseTitle = (value: string, episode?: string): boolean => {
-  const v = norm(value);
-  if (!v) return true;
-  const ep = norm(episode);
-  if (ep && (v === ep || v.includes(ep) || ep.includes(v))) return true;
-  // Live-scan stubs and near-empty filler.
-  if (/^(ai selected )?highlight moment from /.test(v)) return true;
-  if (/^(n\/?a|none|unknown|placeholder|tbd)$/.test(v)) return true;
-  return false;
-};
-
-/** True when reason and/or transcript_snippet still look like release-title placeholders. */
-export function hasPlaceholderClipMetadata(clip: ClipItem): boolean {
-  const reason = String(clip.reason ?? '').trim();
-  const snippet = String(clip.transcript_snippet ?? '').trim();
-  return looksLikeReleaseTitle(reason, clip.episode) || looksLikeReleaseTitle(snippet, clip.episode);
+export interface ClipMetadataSegment {
+  start?: unknown;
+  end?: unknown;
+  speaker?: unknown;
+  text?: unknown;
 }
 
-function titleFallback(clip: ClipItem): { reason: string; transcript_snippet: string } {
-  const title = String(clip.title ?? '').trim() || 'Untitled Moment';
-  return {
-    reason: `Highlight: ${title}`,
-    transcript_snippet: title,
-  };
+const PLACEHOLDER_REASON = /^(?:AI selected highlight moment from\s+|.+ is a \d+-second highlight beginning at \d+:\d+\.)/i;
+const PLACEHOLDER_SNIPPET = /^Highlight moment from\s+/i;
+
+export function hasPlaceholderClipMetadata(clip: Pick<ClipItem, 'reason' | 'transcript_snippet'>): boolean {
+  return PLACEHOLDER_REASON.test(String(clip.reason || '').trim())
+    || PLACEHOLDER_SNIPPET.test(String(clip.transcript_snippet || '').trim());
 }
 
-function quoteFromSegments(
-  clip: ClipItem,
-  segments: SearchIndexSegment[],
-): { reason: string; transcript_snippet: string; speakers?: string[] } | null {
-  if (!segments.length) return null;
-  const start = Number(clip.start_seconds) || 0;
-  const endRaw = Number(clip.end_seconds);
-  const end =
-    Number.isFinite(endRaw) && endRaw > start
-      ? endRaw
-      : start + (Number(clip.duration) > 0 ? Number(clip.duration) : 60);
+function finiteNumber(value: unknown): number | null {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
 
-  const inWindow = segments.filter(seg => {
-    const s = Number(seg.start);
-    const e = seg.end == null ? s : Number(seg.end);
-    if (!Number.isFinite(s)) return false;
-    const segEnd = Number.isFinite(e) ? e : s;
-    return segEnd >= start && s <= end;
-  });
-  if (!inWindow.length) return null;
+function formatSeconds(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const remainder = total % 60;
+  return `${minutes}:${String(remainder).padStart(2, '0')}`;
+}
 
-  const lines = inWindow
-    .map(seg => {
-      const speaker = String(seg.speaker || '').trim();
-      const text = String(seg.text || '').trim();
-      if (!text) return '';
-      return speaker ? `${speaker}: ${text}` : text;
+function clipQuote(clip: Pick<ClipItem, 'start_seconds' | 'end_seconds' | 'duration'>, segments: ClipMetadataSegment[]): string {
+  const start = finiteNumber(clip.start_seconds) ?? 0;
+  const duration = finiteNumber(clip.duration) ?? 60;
+  const endValue = finiteNumber(clip.end_seconds);
+  const end = endValue !== null && endValue > start ? endValue : start + duration;
+
+  const usable = (segments || [])
+    .map((segment, index) => {
+      const segmentStart = finiteNumber(segment.start);
+      if (segmentStart === null) return null;
+      const segmentEnd = finiteNumber(segment.end) ?? segmentStart;
+      const text = String(segment.text ?? '').replace(/\s+/g, ' ').trim();
+      if (!text) return null;
+      return {
+        index,
+        start: segmentStart,
+        end: Math.max(segmentStart, segmentEnd),
+        speaker: String(segment.speaker ?? '').trim(),
+        text,
+      };
     })
-    .filter(Boolean);
+    .filter((segment): segment is { index: number; start: number; end: number; speaker: string; text: string } => Boolean(segment));
 
-  if (!lines.length) return null;
+  let selected = usable.filter(segment => segment.start < end && segment.end >= start);
+  if (!selected.length) {
+    selected = usable
+      .filter(segment => segment.start >= start - 10 && segment.start <= end + 10)
+      .slice(0, 8);
+  }
+  if (!selected.length && usable.length) {
+    const nearest = usable.reduce((best, segment) =>
+      Math.abs(segment.start - start) < Math.abs(best.start - start) ? segment : best
+    );
+    // Do not attach an unrelated line from a very short or mismatched source
+    // episode to a clip that sits minutes away from it.
+    if (Math.abs(nearest.start - start) <= 30) selected = [nearest];
+  }
 
-  const transcript_snippet = lines.join(' ').slice(0, 480);
-  const title = String(clip.title ?? '').trim();
-  const reason = title
-    ? `From the transcript around "${title}"`
-    : 'Grounded from transcript turns in this clip window';
-
-  const speakers = Array.from(
-    new Set(
-      inWindow
-        .map(seg => String(seg.speaker || '').trim())
-        .filter(name => name && !/^(speaker|spk|unknown)(\s*\d+)?$/i.test(name)),
-    ),
-  );
-
-  return {
-    reason,
-    transcript_snippet,
-    ...(speakers.length ? { speakers } : {}),
-  };
+  const lines: string[] = [];
+  let length = 0;
+  for (const segment of selected.sort((a, b) => a.start - b.start)) {
+    const prefix = segment.speaker ? `${segment.speaker}: ` : '';
+    const remaining = 360 - length - (lines.length ? 1 : 0);
+    if (remaining <= prefix.length + 12) break;
+    const text = segment.text.length > remaining - prefix.length
+      ? `${segment.text.slice(0, Math.max(0, remaining - prefix.length - 1)).trimEnd()}…`
+      : segment.text;
+    lines.push(`${prefix}${text}`);
+    length += lines[lines.length - 1].length + (lines.length > 1 ? 1 : 0);
+    if (length >= 350) break;
+  }
+  return lines.join(' ');
 }
 
 /**
- * Replace placeholder reason/quote fields. With no segments, grounds them on the clip title.
- * With segments, prefers dialogue from the clip's time window.
+ * Replaces the old release-title placeholder with metadata grounded in the clip
+ * title and the transcript turns that overlap the clip's time window.
  */
 export function enrichPlaceholderClipMetadata(
   clip: ClipItem,
-  segments?: SearchIndexSegment[],
+  segments: ClipMetadataSegment[] = [],
 ): ClipItem {
   if (!hasPlaceholderClipMetadata(clip)) return clip;
 
-  const fromTranscript = segments?.length ? quoteFromSegments(clip, segments) : null;
-  const fallback = titleFallback(clip);
-  const next = fromTranscript ?? fallback;
+  const title = String(clip.title || 'Untitled moment').trim() || 'Untitled moment';
+  const start = finiteNumber(clip.start_seconds) ?? 0;
+  const end = finiteNumber(clip.end_seconds);
+  const duration = finiteNumber(clip.duration) ?? (end !== null && end > start ? end - start : 60);
+  const quote = clipQuote(clip, segments);
 
   return {
     ...clip,
-    reason: next.reason,
-    transcript_snippet: next.transcript_snippet,
-    ...(fromTranscript?.speakers?.length && (!clip.speakers || !clip.speakers.length)
-      ? { speakers: fromTranscript.speakers }
-      : {}),
+    reason: quote
+      ? `${title} captures a ${Math.round(duration)}-second exchange: ${quote}`
+      : `${title} is a ${Math.round(duration)}-second highlight beginning at ${formatSeconds(start)}.`,
+    transcript_snippet: quote || `${title} (${formatSeconds(start)}–${formatSeconds(start + duration)})`,
   };
+}
+
+export function enrichPlaceholderClips(
+  clips: ClipItem[],
+  segmentsByReleaseTag: Map<string, ClipMetadataSegment[]>,
+  releaseTagForClip: (clip: ClipItem) => string,
+): ClipItem[] {
+  return clips.map(clip => enrichPlaceholderClipMetadata(clip, segmentsByReleaseTag.get(releaseTagForClip(clip)) || []));
 }

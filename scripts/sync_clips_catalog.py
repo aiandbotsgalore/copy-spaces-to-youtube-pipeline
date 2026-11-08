@@ -25,6 +25,26 @@ PUBLIC_CATALOG = Path("public/clips/clips_catalog.json")
 _R2_CDN_BASE = "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev"
 
 
+def _is_placeholder_metadata(clip: Dict[str, Any]) -> bool:
+    reason = str(clip.get("reason") or "").strip()
+    snippet = str(clip.get("transcript_snippet") or "").strip()
+    return (
+        reason.lower().startswith("ai selected highlight moment from")
+        or snippet.lower().startswith("highlight moment from")
+        or bool(re.match(r"^.+ is a \d+-second highlight beginning at \d+:\d+\.$", reason, re.IGNORECASE))
+    )
+
+
+def _title_specific_fallback(clip: Dict[str, Any]) -> None:
+    title = str(clip.get("title") or "Untitled moment").strip() or "Untitled moment"
+    start = float(clip.get("start_seconds") or 0)
+    duration = float(clip.get("duration") or 60)
+    total = max(0, round(start))
+    end = max(0, round(start + duration))
+    clip["reason"] = f"{title} is a {round(duration)}-second highlight beginning at {total // 60}:{total % 60:02d}."
+    clip["transcript_snippet"] = f"{title} ({total // 60}:{total % 60:02d}–{end // 60}:{end % 60:02d})"
+
+
 def _to_r2_url(gh_url: str) -> str:
     """Convert any GitHub release URL (or other URL) to its R2 CDN equivalent.
 
@@ -64,8 +84,11 @@ def parse_clip_info(filename: str, release_title: str, download_url: str) -> Dic
         "duration": 60.0,
         "speakers": ["Speaker"],
         "viral_score": 8,
-        "reason": f"AI selected highlight moment from {release_title}.",
-        "transcript_snippet": f"Highlight moment from {release_title}",
+        # This is a metadata fallback for an MP3 with no companion JSON. Keep it
+        # specific to the clip asset so the catalog never presents the same
+        # release-title placeholder for every clip in an episode.
+        "reason": f"{title} is a 60-second highlight beginning at {int(start_sec // 60)}:{int(start_sec % 60):02d}.",
+        "transcript_snippet": f"{title} (starting at {int(start_sec // 60)}:{int(start_sec % 60):02d})",
         "episode": release_title,
         "file_path": download_url,
         "download_url": download_url
@@ -148,6 +171,12 @@ def main():
         except Exception:
             existing_clips = []
 
+    # Repair old releases/catalogs as they are read so a future sync cannot
+    # reintroduce the release-title placeholder.
+    for clip in existing_clips:
+        if _is_placeholder_metadata(clip):
+            _title_specific_fallback(clip)
+
     initial_count = len(existing_clips)
     print(f"[*] Found {initial_count} existing catalog entries.")
 
@@ -178,6 +207,8 @@ def main():
 
                 if isinstance(remote_meta, list):
                     for rc in remote_meta:
+                        if _is_placeholder_metadata(rc):
+                            _title_specific_fallback(rc)
                         rc_start = round(rc.get("start_seconds", 0))
                         matched_asset = next(
                             (a for a in assets if a.get("name", "").endswith(".mp3") and (
@@ -202,6 +233,9 @@ def main():
                             None
                         )
                         if ex_idx is not None:
+                            if _is_placeholder_metadata(rc) and not _is_placeholder_metadata(existing_clips[ex_idx]):
+                                rc["reason"] = existing_clips[ex_idx].get("reason", rc.get("reason"))
+                                rc["transcript_snippet"] = existing_clips[ex_idx].get("transcript_snippet", rc.get("transcript_snippet"))
                             existing_clips[ex_idx] = rc
                         else:
                             existing_clips.append(rc)
@@ -233,13 +267,13 @@ def main():
         if dl and "\\" in dl:
             c["download_url"] = dl.replace("\\", "/")
         fname = Path(fp).name.lower()
-        is_placeholder = "AI selected highlight moment from" in c.get("reason", "")
+        is_placeholder = _is_placeholder_metadata(c)
         if fname and fname.endswith(".mp3"):
             if fname not in entries_by_file:
                 entries_by_file[fname] = c
             else:
                 curr = entries_by_file[fname]
-                curr_is_placeholder = "AI selected highlight moment from" in curr.get("reason", "")
+                curr_is_placeholder = _is_placeholder_metadata(curr)
                 if curr_is_placeholder and not is_placeholder:
                     entries_by_file[fname] = c
                 elif not curr_is_placeholder and not is_placeholder:
