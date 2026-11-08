@@ -1,56 +1,19 @@
 {
-  "timestamp": "2026-11-08T05:57:29.574553+00:00",
-  "overall_status": "CRITICAL",
+  "timestamp": "2026-11-08T17:50:37.785447+00:00",
+  "overall_status": "HEALTHY",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 721,
-    "indexed_transcripts": 721,
+    "on_disk_transcripts": 722,
+    "indexed_transcripts": 722,
     "expected_releases_approx": 793,
-    "gap_estimate": 72
+    "gap_estimate": 71
   },
-  "recent_failures_count": 4,
-  "triaged_failures": [
-    {
-      "run_id": 42418412595,
-      "name": "Ingest https://x.com/i/spaces/1vylmgmJadRMzE?s=20",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42418412595",
-      "root_cause": "Execution Error: Run 42418412595 failed in Ingest https://x.com/i/spaces/1vylmgmJadRMzE?s=20",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 42418411900,
-      "name": "Ingest https://x.com/i/spaces/1rJqboeezyXgAQ?s=20",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42418411900",
-      "root_cause": "Execution Error: Run 42418411900 failed in Ingest https://x.com/i/spaces/1rJqboeezyXgAQ?s=20",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 42400186896,
-      "name": "Ingest https://x.com/i/spaces/1vylmgmJadRMzE?s=20",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42400186896",
-      "root_cause": "Execution Error: Run 42400186896 failed in Ingest https://x.com/i/spaces/1vylmgmJadRMzE?s=20",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 42395529594,
-      "name": "Ingest https://x.com/i/spaces/1rJqboeezyXgAQ?s=20",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42395529594",
-      "root_cause": "Execution Error: Run 42395529594 failed in Ingest https://x.com/i/spaces/1rJqboeezyXgAQ?s=20",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    }
-  ],
+  "recent_failures_count": 0,
+  "triaged_failures": [],
   "auto_retried_count": 0,
-  "quarantined_count": 4
+  "quarantined_count": 0
 }
