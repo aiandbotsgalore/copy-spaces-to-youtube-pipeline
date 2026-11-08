@@ -8,6 +8,7 @@ import {
   computeRRF,
   getEpisodeEmbeddings,
   searchTranscriptVector,
+  searchTranscriptLexical,
   TranscriptSearchResult,
   normalizeSpokenQuery,
   handleSearchTranscripts,
@@ -495,6 +496,93 @@ describe('transcriptSearchService', () => {
       expect(results[0].relevantSpans![0].start).toBe(0);
       expect(results[0].relevantSpans![0].end).toBe(15);
       expect(results[0].relevantSpans![0].text).toBe(mockCandidates[0].text.slice(0, 15));
+    });
+  });
+
+  describe('Evidence Ingestion & Search Integration', () => {
+    it('discovers evidence catalogs in loadSummaries()', () => {
+      const summaries = loadSummaries();
+      const doc = summaries.find(s => s.release_tag === 'evidence_01_angela_and_sav_short_exchange_txt');
+      expect(doc).toBeDefined();
+      expect(doc?.source_type).toBe('direct_message');
+      expect(doc?.source_classification).toBe('primary_record');
+      expect(doc?.speakers).toContain('Angela');
+      expect(doc?.speakers).toContain('Ϟ sav Ϟ');
+    });
+
+    it('retrieves evidence via lexical search with complete metadata and location', async () => {
+      const results = await searchTranscriptLexical('rationalized it didnt admit it', {
+        sourceType: 'direct_message',
+        maxResults: 5,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      const top = results[0];
+      expect(top.releaseTag).toBe('evidence_01_angela_and_sav_short_exchange_txt');
+      expect(top.speaker).toBe('Angela');
+      expect(top.chunkId).toBeDefined();
+      expect(top.chunkId?.length).toBeGreaterThan(8);
+      expect(top.sourceType).toBe('direct_message');
+      expect(top.sourceClassification).toBe('primary_record');
+      expect(top.contentNature).toBe('verbatim_statement');
+      expect(top.documentLocation).toBeDefined();
+      expect(top.documentLocation?.displayText).toContain('Lines 1');
+      expect(top.documentLocation?.lineNumber).toBe(1);
+    });
+
+    it('preserves chunk identity and avoids collisions in computeRRF', () => {
+      const mockLex: TranscriptSearchResult[] = [
+        {
+          episodeTitle: 'DM Exchange',
+          releaseTag: 'evidence_dm_angela_sav_short',
+          speaker: 'Angela',
+          startSec: 0,
+          endSec: 0,
+          text: 'girl i rationalized it',
+          chunkId: 'chunk_001',
+          sourceType: 'direct_message',
+          sourceClassification: 'primary_record',
+          documentLocation: { filePath: 'foo.txt', displayText: 'Message 1' },
+        },
+        {
+          episodeTitle: 'DM Exchange',
+          releaseTag: 'evidence_dm_angela_sav_short',
+          speaker: 'sav',
+          startSec: 0,
+          endSec: 0,
+          text: 'you admitted it',
+          chunkId: 'chunk_002',
+          sourceType: 'direct_message',
+          sourceClassification: 'primary_record',
+          documentLocation: { filePath: 'foo.txt', displayText: 'Message 2' },
+        },
+      ];
+
+      const mockVec: TranscriptSearchResult[] = [
+        {
+          episodeTitle: 'DM Exchange',
+          releaseTag: 'evidence_dm_angela_sav_short',
+          speaker: 'sav',
+          startSec: 0,
+          endSec: 0,
+          text: 'you admitted it',
+          chunkId: 'chunk_002',
+          sourceType: 'direct_message',
+          sourceClassification: 'primary_record',
+          documentLocation: { filePath: 'foo.txt', displayText: 'Message 2' },
+        },
+      ];
+
+      const fused = computeRRF(mockLex, mockVec);
+      // Both chunks have startSec: 0, but distinct chunkIds!
+      // They must NOT collide or overwrite each other.
+      expect(fused.length).toBe(2);
+      expect(fused.map(f => f.chunkId)).toContain('chunk_001');
+      expect(fused.map(f => f.chunkId)).toContain('chunk_002');
+      // chunk_002 appears in both, so it should rank higher
+      expect(fused[0].chunkId).toBe('chunk_002');
+      expect(fused[0].matchType).toBe('hybrid');
+      expect(fused[1].chunkId).toBe('chunk_001');
     });
   });
 });

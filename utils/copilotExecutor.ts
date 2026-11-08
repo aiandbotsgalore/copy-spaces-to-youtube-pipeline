@@ -24,6 +24,7 @@ import {
   readRepositoryTextFile,
   getRepositoryDefaultBranch,
   getWorkflowRuns,
+  inspectRunFailure,
 } from './github';
 import { scriptApi, RoleChoice } from './scriptClient';
 
@@ -404,34 +405,95 @@ export async function executeCopilotAction(
           return {
             ok: true,
             status: 'completed',
-            resultData: { runStatus: 'unavailable', message: 'GitHub connection not configured.' },
+            resultData: {
+              runStatus: 'unavailable',
+              total: 0,
+              runs: [],
+              message: 'GitHub credentials (token, owner, repo) are not configured in settings. Configure them in Settings to inspect live workflow runs.'
+            },
           };
         }
 
-        const runs = await getWorkflowRuns(githubToken, ownerName.trim(), repoName.trim());
-        let filtered = runs;
-        if (params.status === 'active') {
-          filtered = runs.filter(r => r.status === 'in_progress' || r.status === 'queued');
-        } else if (params.status === 'failed') {
-          filtered = runs.filter(r => r.conclusion === 'failure');
-        } else if (params.status === 'completed') {
-          filtered = runs.filter(r => r.status === 'completed');
+        try {
+          const runs = await getWorkflowRuns(githubToken, ownerName.trim(), repoName.trim());
+          let filtered = runs;
+          if (params.status === 'active') {
+            filtered = runs.filter(r => r.status === 'in_progress' || r.status === 'queued');
+          } else if (params.status === 'failed') {
+            filtered = runs.filter(r => r.conclusion === 'failure');
+          } else if (params.status === 'completed') {
+            filtered = runs.filter(r => r.status === 'completed');
+          }
+
+          const limit = typeof params.limit === 'number' && params.limit > 0 ? params.limit : 10;
+          const sample = filtered.slice(0, limit).map(r => ({
+            id: r.id,
+            name: r.name,
+            status: r.status,
+            conclusion: r.conclusion,
+            createdAt: r.created_at,
+            htmlUrl: r.html_url,
+            headBranch: (r as any).head_branch || 'main',
+            event: (r as any).event || 'push',
+            runNumber: (r as any).run_number,
+          }));
+
+          const failedCount = runs.filter(r => r.conclusion === 'failure').length;
+
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              total: filtered.length,
+              failedCount,
+              filterStatus: params.status || 'all',
+              runs: sample,
+              repo: `${ownerName.trim()}/${repoName.trim()}`,
+            },
+          };
+        } catch (err: any) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: err?.message || 'Failed to fetch GitHub Actions runs',
+            resultData: {
+              error: err?.message,
+              repo: `${ownerName.trim()}/${repoName.trim()}`,
+            },
+          };
         }
+      }
 
-        const sample = filtered.slice(0, params.limit).map(r => ({
-          id: r.id,
-          name: r.name,
-          status: r.status,
-          conclusion: r.conclusion,
-          createdAt: r.created_at,
-          htmlUrl: r.html_url,
-        }));
-
-        return {
-          ok: true,
-          status: 'completed',
-          resultData: { total: filtered.length, runs: sample },
-        };
+      case 'GET_RUN_JOBS': {
+        const { githubToken, ownerName, repoName } = ctx.config;
+        const owner = ownerName?.trim() || 'aiandbotsgalore';
+        const repo = repoName?.trim() || 'copy-spaces-to-youtube-pipeline';
+        const runId = Number(params.runId);
+        if (!runId) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'runId parameter is required for GET_RUN_JOBS',
+          };
+        }
+        try {
+          const failureInfo = await inspectRunFailure(githubToken || '', owner, repo, runId);
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              runId,
+              repo: `${owner}/${repo}`,
+              ...failureInfo,
+            },
+          };
+        } catch (err: any) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: err?.message || `Failed to inspect jobs for run #${runId}`,
+          };
+        }
       }
 
       case 'GET_VOICE_PROFILES': {

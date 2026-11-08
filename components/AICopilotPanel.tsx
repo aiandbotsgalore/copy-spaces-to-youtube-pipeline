@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { COPILOT_MODEL_OPTIONS } from '../utils/copilotModels';
 import {
   Bot,
@@ -25,7 +25,12 @@ import {
   AlertTriangle,
   ShieldAlert,
   Clock,
-  XCircle
+  XCircle,
+  AlertCircle,
+  ExternalLink,
+  Code,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -81,6 +86,7 @@ export const AICopilotPanel: React.FC = () => {
     sendMessage,
     applyAction,
     revertAction,
+    analyzeActionResults,
     clearMessages,
     contextPayload,
   } = useCopilot();
@@ -92,6 +98,14 @@ export const AICopilotPanel: React.FC = () => {
   const [showCanvas, setShowCanvas] = useState(true);
   const [copiedMatchKey, setCopiedMatchKey] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  const activeRunningAction = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const running = messages[i].actions?.find(a => a.status === 'running');
+      if (running) return running;
+    }
+    return null;
+  }, [messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -289,7 +303,20 @@ export const AICopilotPanel: React.FC = () => {
 
         {/* Messages Stream */}
         <div className="flex-1 p-4 overflow-y-auto space-y-4">
-          {messages.map(m => (
+          {messages.map(m => {
+            const isTelemetryPrompt = m.role === 'user' && typeof m.content === 'string' && m.content.startsWith('[ACTION RESULT TELEMETRY]');
+            if (isTelemetryPrompt) {
+              return (
+                <div key={m.id} className="flex justify-center my-1.5">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-xs text-indigo-300 shadow-sm">
+                    <Activity size={13} className="text-indigo-400 animate-pulse flex-shrink-0" />
+                    <span className="font-medium">System Telemetry Dispatched: Live pipeline inspection results forwarded to Copilot for analysis</span>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
             <div
               key={m.id}
               className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -486,6 +513,7 @@ export const AICopilotPanel: React.FC = () => {
                         action={action}
                         onApply={(opts) => applyAction(action, opts)}
                         onRevert={() => revertAction(action)}
+                        onAnalyze={analyzeActionResults}
                       />
                     ))}
                   </div>
@@ -501,7 +529,30 @@ export const AICopilotPanel: React.FC = () => {
                 )}
               </div>
             </div>
-          ))}
+            );
+          })}
+
+          {/* Realtime Live Action Telemetry Banner */}
+          {activeRunningAction && (
+            <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-xs flex items-center justify-between gap-3 animate-pulse shadow-lg shadow-indigo-950/50">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-indigo-600/30 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                  <Activity size={14} className="animate-spin" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-semibold text-white truncate">
+                    Executing: {activeRunningAction.explanation || activeRunningAction.action}
+                  </p>
+                  <p className="text-[11px] text-indigo-300/80">
+                    Realtime pipeline execution in progress...
+                  </p>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono text-[10px] font-bold flex-shrink-0 border border-indigo-500/30">
+                LIVE ACTION
+              </span>
+            </div>
+          )}
 
           {loading && (
             <div className="flex gap-3 items-center text-slate-400 text-xs">
@@ -678,12 +729,15 @@ interface ActionCardProps {
   action: CopilotAction;
   onApply: (options?: { confirmed?: boolean }) => void;
   onRevert: () => void;
+  onAnalyze?: (action: CopilotAction) => void;
 }
 
-const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) => {
-  const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH';
+const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAnalyze }) => {
+  const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS';
+  const isInspectionAction = action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH';
   const tier = action.tier ?? resolveActionTier(action.action, action.params);
   const isTier2 = tier === 2;
+  const [showTelemetry, setShowTelemetry] = useState(false);
 
   const getBadge = () => {
     switch (action.action) {
@@ -732,7 +786,7 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
   const badge = getBadge();
 
   return (
-    <div className={`p-3 rounded-xl border flex flex-col gap-2.5 text-xs transition-colors ${
+    <div className={`p-3.5 rounded-xl border flex flex-col gap-2.5 text-xs transition-colors ${
       isTier2 && !action.applied && action.status !== 'accepted' && action.status !== 'completed'
         ? 'bg-amber-950/20 border-amber-500/40 shadow-sm shadow-amber-950/40'
         : 'bg-slate-950/70 border-slate-800'
@@ -808,6 +862,225 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
             </div>
           )}
 
+          {/* Rich Results for GET_RUN_HISTORY */}
+          {action.action === 'GET_RUN_HISTORY' && action.resultData && (
+            <div className="mt-2 space-y-2">
+              {action.resultData.runStatus === 'unavailable' ? (
+                <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2">
+                  <AlertCircle size={14} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold">GitHub Actions Telemetry Unavailable</p>
+                    <p className="text-[11px] text-amber-200/80 mt-0.5">
+                      {action.resultData.message || 'Configure your GitHub Token in Settings to inspect live workflow runs.'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400">
+                    <span className="font-semibold text-white">
+                      Workflow Runs ({action.resultData.runs?.length || 0} of {action.resultData.total || 0})
+                    </span>
+                    {action.resultData.failedCount !== undefined && action.resultData.failedCount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                        {action.resultData.failedCount} Failed
+                      </span>
+                    )}
+                  </div>
+                  {action.resultData.runs && action.resultData.runs.length > 0 ? (
+                    <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                      {action.resultData.runs.map((run: any) => {
+                        const isFail = run.conclusion === 'failure';
+                        const isSuccess = run.conclusion === 'success';
+                        const isRunning = run.status === 'in_progress' || run.status === 'queued';
+                        return (
+                          <div key={run.id} className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-white truncate">{run.name || 'Workflow Run'}</span>
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                  isFail ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' :
+                                  isSuccess ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                                  isRunning ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse' :
+                                  'bg-slate-800 text-slate-400'
+                                }`}>
+                                  {run.conclusion || run.status}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                                <span>Branch: {run.headBranch || 'master'}</span>
+                                <span>•</span>
+                                <span>{run.createdAt ? new Date(run.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'Recent'}</span>
+                                {run.runNumber && <span>• #{run.runNumber}</span>}
+                              </div>
+                            </div>
+                            {run.htmlUrl && (
+                              <a
+                                href={run.htmlUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[11px] font-medium flex items-center gap-1 transition-colors flex-shrink-0"
+                                title="View run logs on GitHub"
+                              >
+                                <span>Logs</span>
+                                <ExternalLink size={10} />
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 italic">No workflow runs found matching this filter.</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Rich Results for GET_QUEUE */}
+          {action.action === 'GET_QUEUE' && action.resultData?.queues && (
+            <div className="mt-2 space-y-2">
+              <span className="text-[11px] font-semibold text-white block">Queue Files Inspection</span>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {Object.entries(action.resultData.queues).map(([file, items]: [string, any]) => (
+                  <div key={file} className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-mono text-cyan-300 text-[11px] font-semibold">{file}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{Array.isArray(items) ? items.length : 0} items</span>
+                    </div>
+                    {Array.isArray(items) && items.length > 0 ? (
+                      <ul className="space-y-0.5 pl-2 border-l border-slate-700/60 max-h-24 overflow-y-auto">
+                        {items.slice(0, 10).map((it, idx) => (
+                          <li key={idx} className="text-[10px] text-slate-400 truncate font-mono">
+                            {typeof it === 'string' ? it : JSON.stringify(it)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-[10px] text-slate-500 italic">Queue is currently empty.</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Rich Results for GET_VOICE_PROFILES */}
+          {action.action === 'GET_VOICE_PROFILES' && action.resultData?.profiles && (
+            <div className="mt-2 space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <span className="font-semibold text-white">Voice Profiles Catalog ({action.resultData.profiles.length})</span>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {action.resultData.profiles.slice(0, 10).map((p: any, idx: number) => (
+                  <div key={idx} className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-2 text-xs">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-white truncate">{p.name}</p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5">
+                        <span className={`px-1 rounded text-[9px] font-semibold ${p.enrolled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                          {p.enrolled ? 'Enrolled' : 'Pending'}
+                        </span>
+                        {p.traits?.length > 0 && <span>• {p.traits.join(', ')}</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Rich Results for GET_SCRIPT_PROJECTS */}
+          {action.action === 'GET_SCRIPT_PROJECTS' && action.resultData?.projects && (
+            <div className="mt-2 space-y-2">
+              <span className="text-[11px] font-semibold text-white block">Script Projects ({action.resultData.projects.length})</span>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {action.resultData.projects.map((p: any) => (
+                  <div key={p.id} className="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-semibold text-white">{p.title}</p>
+                      <p className="text-[10px] text-slate-500">{p.format || 'Standard'} • {p.clipsCount || 0} clips</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Rich Results for CREATE_CLIP / TRIM_CLIP */}
+          {(action.action === 'CREATE_CLIP' || action.action === 'TRIM_CLIP') && action.resultData?.clip && (
+            <div className="mt-2 p-2.5 rounded-lg bg-indigo-950/40 border border-indigo-500/30 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-white truncate">{action.resultData.clip.title}</span>
+                {action.resultData.clip.viral_score && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    🔥 {action.resultData.clip.viral_score}/10
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1 italic line-clamp-2">"{action.resultData.clip.quote || action.resultData.clip.transcript_snippet}"</p>
+              <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500">
+                <span>Speaker: {action.resultData.clip.speaker || action.resultData.clip.speakers?.[0]}</span>
+                <span>•</span>
+                <span>{action.resultData.clip.startSec}s - {action.resultData.clip.endSec}s</span>
+              </div>
+            </div>
+          )}
+
+          {/* Universal 100% Full Telemetry & Payloads Inspector */}
+          <div className="mt-2 pt-2 border-t border-slate-800/80">
+            <button
+              onClick={() => setShowTelemetry(!showTelemetry)}
+              className="text-[10px] font-semibold text-slate-400 hover:text-slate-200 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <Code size={11} className="text-slate-500" />
+              <span>{showTelemetry ? 'Hide' : 'View'} Raw Action Telemetry &amp; Payloads</span>
+              {action.executionDurationMs !== undefined && (
+                <span className="text-[9px] text-slate-500 font-mono ml-auto">
+                  ⏱️ {action.executionDurationMs}ms
+                </span>
+              )}
+              {showTelemetry ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            </button>
+            {showTelemetry && (
+              <div className="mt-2 space-y-2 p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[10px] font-mono">
+                <div>
+                  <span className="text-slate-400 font-sans font-semibold block mb-0.5">Parameters Sent:</span>
+                  <pre className="p-2 rounded bg-slate-950 text-slate-300 overflow-x-auto max-h-32">
+                    {JSON.stringify(action.params || {}, null, 2)}
+                  </pre>
+                </div>
+                {action.resultData && (
+                  <div>
+                    <span className="text-slate-400 font-sans font-semibold block mb-0.5">Execution Result Data:</span>
+                    <pre className="p-2 rounded bg-slate-950 text-emerald-300/90 overflow-x-auto max-h-40">
+                      {JSON.stringify(action.resultData, null, 2)}
+                    </pre>
+                  </div>
+                )}
+                {action.errorMessage && (
+                  <div>
+                    <span className="text-rose-400 font-sans font-semibold block mb-0.5">Error Message:</span>
+                    <pre className="p-2 rounded bg-rose-950/40 border border-rose-500/30 text-rose-300 overflow-x-auto">
+                      {action.errorMessage}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Analyze Findings with Copilot CTA */}
+          {action.resultData && (isInspectionAction || isSearchAction) && action.status === 'completed' && onAnalyze && (
+            <button
+              onClick={() => onAnalyze(action)}
+              className="w-full mt-2.5 py-1.5 px-3 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Sparkles size={12} className="text-amber-400" />
+              <span>Ask Copilot to Analyze These Results</span>
+            </button>
+          )}
+
           {/* Error Message if Failed */}
           {action.status === 'failed' && action.errorMessage && (
             <p className="mt-1 text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-1 rounded">
@@ -818,20 +1091,32 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
 
         {/* Action Controls & Status Badges */}
         <div className="flex items-center gap-1.5 flex-shrink-0 self-center">
-          {isSearchAction ? (
-            action.status === 'running' ? (
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400">
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-                Querying...
-              </span>
-            ) : action.status === 'no_matches' || action.matchCount === 0 ? (
+          {action.status === 'running' ? (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30 animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+              Executing...
+            </span>
+          ) : isSearchAction ? (
+            action.status === 'no_matches' || action.matchCount === 0 ? (
               <span className="text-[11px] font-semibold text-slate-400">
                 No matches found
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-300">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
                 <CheckCircle2 size={13} className="text-blue-400" />
                 Found {action.matchCount ?? 'matches'}
+              </span>
+            )
+          ) : isInspectionAction ? (
+            action.status === 'failed' ? (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                <XCircle size={13} />
+                Failed
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                <CheckCircle2 size={13} className="text-emerald-400" />
+                Completed
               </span>
             )
           ) : action.status === 'accepted' ? (
@@ -843,11 +1128,6 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert }) =>
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30">
               <XCircle size={13} />
               Failed
-            </span>
-          ) : action.status === 'running' ? (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/15 text-blue-300 border border-blue-500/30">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-              Executing...
             </span>
           ) : action.applied ? (
             <>

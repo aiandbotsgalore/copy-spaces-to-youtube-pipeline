@@ -1,3 +1,5 @@
+import { canonicalizeSpeakerName } from './clipScore';
+
 /**
  * Builds what the Spaces Live Stage avatar worker needs from a catalog clip: the source episode,
  * the speakers on stage, and each speaker's turns as clip relative offsets.
@@ -54,14 +56,15 @@ export const speakerKey = (s: unknown) => String(s ?? '').toLowerCase().replace(
 /** Placeholder labels that do not identify a person. */
 const isGeneric = (name: string) => /^(speaker|spk|unknown|guest)([a-z]|\d{1,3})?$/.test(speakerKey(name));
 
-/** Repairs a name split into letters, drops one letter junk and duplicates. */
+/** Repairs a name split into letters, splits delimited strings, drops junk and consolidates names. */
 export function cleanClipSpeakers(raw: unknown): string[] {
   let list = Array.isArray(raw) ? raw.map(v => String(v ?? '')) : [];
   if (list.length >= 3 && list.every(v => v.length <= 1)) list = [list.join('').replace(/\s+/g, ' ')];
+  const splitValues = list.flatMap(entry => entry.split(/[,;&|/]+/)).map(v => v.trim()).filter(Boolean);
   const seen = new Set<string>();
   const out: string[] = [];
-  for (const value of list) {
-    const name = value.trim();
+  for (const value of splitValues) {
+    const name = canonicalizeSpeakerName(value);
     const key = speakerKey(name);
     if (key.length < 2 || seen.has(key)) continue;
     seen.add(key);

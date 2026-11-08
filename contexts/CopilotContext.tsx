@@ -36,6 +36,7 @@ export interface CopilotContextType {
     options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
   ) => Promise<boolean>;
   revertAction: (action: CopilotAction) => Promise<boolean>;
+  analyzeActionResults?: (action: CopilotAction) => Promise<void>;
   clearMessages: () => void;
   activePanelNavHandler?: (panel: string) => void;
   setActivePanelNavHandler: (fn: (panel: string) => void) => void;
@@ -136,6 +137,25 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       action: CopilotAction,
       options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
     ): Promise<boolean> => {
+      // 1. Immediately mark action as 'running' in message state for instant realtime feedback!
+      const startTime = Date.now();
+      const runningAction: CopilotAction = {
+        ...action,
+        status: 'running',
+        appliedAt: new Date().toISOString(),
+        triggerSource: options?.triggerSource || action.triggerSource || 'user',
+      };
+
+      setMessages(prev =>
+        prev.map(m => {
+          if (!m.actions) return m;
+          return {
+            ...m,
+            actions: m.actions.map(a => (a.id === action.id ? runningAction : a)),
+          };
+        })
+      );
+
       const ctx: CopilotExecutionContext = {
         config,
         updateConfig,
@@ -155,12 +175,14 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       };
 
       const res = await executeCopilotAction(action, ctx, options);
+      const executionDurationMs = Date.now() - startTime;
 
       const updatedAction: CopilotAction = {
         ...action,
         tier: action.tier ?? resolveActionTier(action.action, action.params),
         applied: res.ok,
-        appliedAt: res.ok ? new Date().toISOString() : action.appliedAt,
+        appliedAt: new Date().toISOString(),
+        executionDurationMs,
         status: res.status,
         snapshot: res.snapshot || action.snapshot,
         resultData: res.resultData || action.resultData,
@@ -311,10 +333,27 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             content: m.content,
           })),
           model,
-          context: dynamicContext,
+          context: {
+            ...dynamicContext,
+            ownerName: config.ownerName,
+            repoName: config.repoName,
+          },
         };
 
-        const res = await sendCopilotMessage({ req });
+        const res = await sendCopilotMessage({
+          req,
+          githubToken: config.githubToken,
+        });
+
+        if (res.inspectedRuns && Object.keys(res.inspectedRuns).length > 0) {
+          setContextPayload(prev => ({
+            ...prev,
+            inspectedRuns: {
+              ...(prev.inspectedRuns || {}),
+              ...res.inspectedRuns,
+            },
+          }));
+        }
 
         const enrichedActions: CopilotAction[] = (res.actions || []).map(a => {
           const tier = a.tier ?? resolveActionTier(a.action, a.params);
@@ -344,7 +383,24 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (autoApply && enrichedActions.length > 0) {
           for (const action of enrichedActions) {
             if (action.tier !== undefined && action.tier < 2 && action.action !== 'SEARCH_TRANSCRIPTS') {
-              await applyAction(action, { triggerSource: 'auto_apply' });
+              const success = await applyAction(action, { triggerSource: 'auto_apply' });
+              // If an inspection query (GET_RUN_HISTORY, GET_QUEUE, etc.) was executed and returned data,
+              // automatically trigger the follow-up diagnosis so the user gets their complete answer!
+              if (success && action.action.startsWith('GET_') && !action.analyzed) {
+                action.analyzed = true;
+                setTimeout(() => {
+                  setMessages(currentMessages => {
+                    const latestAsst = currentMessages[currentMessages.length - 1];
+                    const targetAction = latestAsst?.actions?.find(a => a.id === action.id) || action;
+                    if (targetAction?.resultData) {
+                      sendMessage(
+                        `[ACTION RESULT TELEMETRY]: Action ${targetAction.action} executed.\nData payload:\n${JSON.stringify(targetAction.resultData, null, 2)}\n\nPlease analyze this live system data immediately, identify any errors or failures, and provide your full diagnosis and recommended fixes.`
+                      );
+                    }
+                    return currentMessages;
+                  });
+                }, 350);
+              }
             }
           }
         }
@@ -356,6 +412,17 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     },
     [messages, loading, model, contextPayload, montage.clips, config, autoApply, applyAction]
+  );
+
+  const analyzeActionResults = useCallback(
+    async (action: CopilotAction) => {
+      if (!action.resultData) return;
+      const payloadStr = JSON.stringify(action.resultData, null, 2);
+      await sendMessage(
+        `[ACTION RESULT TELEMETRY]: Action ${action.action} executed.\nData payload:\n${payloadStr}\n\nPlease analyze this live system data immediately, identify any errors or failures, and provide your full diagnosis and recommended fixes.`
+      );
+    },
+    [sendMessage]
   );
 
   const clearMessages = useCallback(() => {
@@ -383,6 +450,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sendMessage,
         applyAction,
         revertAction,
+        analyzeActionResults,
         clearMessages,
         activePanelNavHandler,
         setActivePanelNavHandler,

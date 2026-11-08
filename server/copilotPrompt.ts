@@ -130,10 +130,24 @@ AVAILABLE ACTIONS:
 
 14. READ_ONLY_INSPECTION_TOOLS (Tier 0):
     - GET_QUEUE: { "queueType": "batch" | "priority" | "both" }
-    - GET_RUN_HISTORY: { "limit": 10 }
+    - GET_RUN_HISTORY: { "limit": 10, "status": "all" | "failed" | "completed" | "active" }
+    - GET_RUN_JOBS: { "runId": 12345678 }
     - GET_VOICE_PROFILES: {}
     - GET_SCRIPT_PROJECTS: {}
     - INSPECT_KNOWLEDGE_GRAPH: { "episodeTag": "..." }
+
+CRITICAL OPERATIONAL RULES FOR PIPELINE & ACTION INSPECTION:
+1. NEVER output future-tense promises or placeholder waiting statements such as:
+   - "Let me pull that up..."
+   - "Give me a second to crunch the numbers..."
+   - "I'll report back once the logs arrive..."
+   If you need inspection data, emit the tool call directly. If tool results or context evidence are already present, ANALYZE THEM IMMEDIATELY in the same response.
+2. WINDOW AWARENESS: When a user asks about a specific number of failed runs (e.g. "why are there four failed runs?"), notice the search limit. If a query with limit: 10 returns 2 failures in that window, explicitly state:
+   "Within the 10 most recent workflow runs inspected, 2 failures occurred: [Run A and Run B]. Here is what caused them..."
+   Then analyze the step failures, and query with status: "failed" or offer to expand the window if older runs are needed.
+3. CAPABILITY GROUNDING:
+   - If GitHub authentication is configured, use GET_RUN_HISTORY and GET_RUN_JOBS to inspect real failures.
+   - If credentials are not configured and unauthenticated access fails due to rate limits or privacy, explain plainly that a GitHub Personal Access Token is needed in Settings, and emit NAVIGATE_TAB with tab: "config". Do not invent workflow runs.
 
 APPLICATION ARCHITECTURE, UI LAYOUT & FEATURE MAP:
 1. AI STUDIO & COPILOT HEADER (Your Primary View):
@@ -244,6 +258,26 @@ GUIDELINES FOR AUDIO PRODUCTION & APP ASSISTANCE:
 
     if (context.compactStateSummary) {
       prompt += `\n\nLIVE SYSTEM STATE SUMMARY:\n${context.compactStateSummary}`;
+    }
+
+    if (context.githubToken) {
+      prompt += `\n\nGITHUB AUTHENTICATION: Active. Connected to repository ${context.ownerName || 'aiandbotsgalore'}/${context.repoName || 'copy-spaces-to-youtube-pipeline'}. You have direct API access to inspect workflow runs and job logs.`;
+    } else {
+      prompt += `\n\nGITHUB AUTHENTICATION: Not configured or using public rate-limited access. If private logs cannot be retrieved, explain that a token is needed in Settings (tab: "config").`;
+    }
+
+    if (context.inspectedRuns && Object.keys(context.inspectedRuns).length > 0) {
+      prompt += `\n\nPREVIOUSLY INSPECTED GITHUB WORKFLOW EVIDENCE (${Object.keys(context.inspectedRuns).length} runs cached):\n`;
+      for (const [runId, ev] of Object.entries(context.inspectedRuns)) {
+        prompt += `- Run #${runId}: "${ev.name}" on ${ev.headBranch || 'master'} (${ev.conclusion || ev.status || 'unknown'})\n`;
+        prompt += `  Inspected: ${ev.inspectedAt}\n`;
+        if (ev.failedJob) prompt += `  Failed Job: ${ev.failedJob}\n`;
+        if (ev.failedStep) prompt += `  Failed Step: ${ev.failedStep}\n`;
+        if (ev.errorExcerpt) {
+          prompt += `  Log Excerpt:\n"""\n${ev.errorExcerpt.trim().slice(0, 1000)}\n"""\n`;
+        }
+      }
+      prompt += `(Ground your explanations directly in this inspected evidence. Do NOT output future-tense waiting promises.)\n`;
     }
     if (context.transcriptSearchResults?.length) {
       prompt += `\nTRANSCRIPT SEARCH MATCHES (${context.transcriptSearchResults.length} turns returned by the app's search for this message):\n`;

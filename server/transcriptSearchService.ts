@@ -643,8 +643,8 @@ export async function searchTranscriptVector(
           relevanceScore: Number(sim.toFixed(4)),
           matchType: 'vector',
           chunkId: seg.chunkId || `${tag}#seg-${i}`,
-          sourceType: effectiveSourceType,
-          sourceClassification: effectiveClassification,
+          sourceType: effectiveSourceType as any,
+          sourceClassification: effectiveClassification as any,
           contentNature: seg.contentNature || 'verbatim_statement',
           documentLocation: seg.documentLocation || manifest.documentLocation,
         });

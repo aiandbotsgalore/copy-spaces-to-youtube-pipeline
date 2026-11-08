@@ -203,6 +203,10 @@ export const GetRunHistoryParamsSchema = z.object({
   status: z.enum(['all', 'active', 'failed', 'completed']).default('all'),
 });
 
+export const GetRunJobsParamsSchema = z.object({
+  runId: z.preprocess(v => Number(v), z.number().int().positive('runId must be a positive integer')),
+});
+
 export const GetVoiceProfilesParamsSchema = z.object({
   filter: z.enum(['all', 'enrolled', 'missing_avatar']).default('all'),
 });
@@ -279,6 +283,7 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   DISPATCH_WORKFLOW: DispatchWorkflowParamsSchema,
   GET_QUEUE: GetQueueParamsSchema,
   GET_RUN_HISTORY: GetRunHistoryParamsSchema,
+  GET_RUN_JOBS: GetRunJobsParamsSchema,
   GET_VOICE_PROFILES: GetVoiceProfilesParamsSchema,
   GET_SCRIPT_PROJECTS: GetScriptProjectsParamsSchema,
   INSPECT_KNOWLEDGE_GRAPH: InspectKnowledgeGraphParamsSchema,
@@ -333,6 +338,7 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'SEARCH_TRANSCRIPTS':
     case 'GET_QUEUE':
     case 'GET_RUN_HISTORY':
+    case 'GET_RUN_JOBS':
     case 'GET_VOICE_PROFILES':
     case 'GET_SCRIPT_PROJECTS':
     case 'INSPECT_KNOWLEDGE_GRAPH':

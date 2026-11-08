@@ -400,6 +400,102 @@ export async function getWorkflowRuns(token: string, owner: string, repo: string
   return data.workflow_runs || [];
 }
 
+export interface WorkflowJobStep {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  number: number;
+  started_at?: string;
+  completed_at?: string;
+}
+
+export interface WorkflowJob {
+  id: number;
+  run_id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  started_at: string;
+  completed_at: string;
+  html_url: string;
+  steps: WorkflowJobStep[];
+}
+
+export async function getWorkflowRunJobs(token: string, owner: string, repo: string, runId: number): Promise<WorkflowJob[]> {
+  const res = await ghFetch(token, `/repos/${owner}/${repo}/actions/runs/${runId}/jobs`);
+  assertNotRateLimited(res);
+  if (!res.ok) {
+    if (res.status === 404) throw new Error(`Run #${runId} not found or no jobs exist.`);
+    throw new Error(`Could not fetch jobs for run #${runId}. Check token permissions.`);
+  }
+  const data = await res.json();
+  return data.jobs || [];
+}
+
+export async function getJobStepLogExcerpt(
+  token: string,
+  owner: string,
+  repo: string,
+  jobId: number,
+  stepNumber?: number,
+  maxBytes = 2048
+): Promise<string> {
+  try {
+    const res = await ghFetch(token, `/repos/${owner}/${repo}/actions/jobs/${jobId}/logs`, {
+      redirect: 'follow',
+    });
+    if (!res.ok) {
+      return '';
+    }
+    const fullLog = await res.text();
+    if (!fullLog) return '';
+
+    const lines = fullLog.split(/\r?\n/);
+    const errorIndices: number[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (/##\[error\]|\b(fatal|exception|error|failed with exit code)\b/i.test(lines[i])) {
+        errorIndices.push(i);
+      }
+    }
+
+    if (errorIndices.length > 0) {
+      const firstError = errorIndices[0];
+      const start = Math.max(0, firstError - 5);
+      const end = Math.min(lines.length, firstError + 25);
+      const snippet = lines.slice(start, end).join('\n');
+      return snippet.slice(0, maxBytes);
+    }
+
+    return lines.slice(-30).join('\n').slice(0, maxBytes);
+  } catch (err: any) {
+    console.warn(`[github] Could not retrieve log for job ${jobId}:`, err?.message);
+    return '';
+  }
+}
+
+export async function inspectRunFailure(
+  token: string,
+  owner: string,
+  repo: string,
+  runId: number
+): Promise<{ failedJobName?: string; failedStepName?: string; errorExcerpt?: string }> {
+  const jobs = await getWorkflowRunJobs(token, owner, repo, runId);
+  const failedJob = jobs.find(j => j.conclusion === 'failure') || jobs[0];
+  if (!failedJob) return {};
+
+  const failedStep = (failedJob.steps || []).find(s => s.conclusion === 'failure');
+  let errorExcerpt = '';
+  if (failedJob.id) {
+    errorExcerpt = await getJobStepLogExcerpt(token, owner, repo, failedJob.id, failedStep?.number);
+  }
+
+  return {
+    failedJobName: failedJob.name,
+    failedStepName: failedStep?.name,
+    errorExcerpt: errorExcerpt || undefined,
+  };
+}
+
 interface ReleasesCacheEntry {
   data: Release[];
   timestamp: number;
