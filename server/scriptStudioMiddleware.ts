@@ -71,7 +71,8 @@ import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNames
 import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard, readNarrationExamples, scanCorpus, type CorpusScan, type Renames } from './scriptStyle';
 import { searchRecordings } from './scriptSearch';
 import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
-import { createQuoteLibrary } from './quoteLibrary';
+import { createQuoteLibrary, type ReadModelCaller } from './quoteLibrary';
+import { loadAqCorpus } from './quoteCorpus';
 import { setBoardItem } from './evidenceBoard';
 import { dateOfTag } from '../utils/scriptFormats';
 import {
@@ -908,6 +909,54 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const query = String(q('q') || p.thesis || p.title).slice(0, 300);
       const r = searchRecordings(opts.root, query, { exclude: p.sourceTags, limit: 10 });
       return send(res, 200, { ok: true, query, ...r });
+    }
+
+    if (route === '/discover' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const query = String(q('q') || p.thesis || p.title).slice(0, 300);
+      const r = searchRecordings(opts.root, query, { limit: 20 });
+      const board = store.getBoard(p.id);
+      const corpus = loadAqCorpus(opts.root);
+      const hits = r.hits.map(hit => {
+        const lib = store.getLibrary(hit.releaseTag);
+        const aqCount = corpus.quotes.filter(aq => aq.release_tag === hit.releaseTag).length;
+        const boardRec = board?.recordings.find(b => b.releaseTag === hit.releaseTag);
+        return {
+          ...hit,
+          libraryQuotesCount: lib?.quotes.length ?? 0,
+          aqQuotesCount: aqCount,
+          readCount: lib?.reads.length ?? 0,
+          boardStatus: boardRec?.status ?? (p.sourceTags.includes(hit.releaseTag) ? 'candidate' : undefined),
+        };
+      });
+      return send(res, 200, { ok: true, query, terms: r.terms, hits, scanned: r.scanned });
+    }
+
+    if (route === '/read' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const tag = String(body?.releaseTag || '');
+      if (!tag || !isSafeTag(tag)) throw new StepError('BAD_REQUEST', 'Missing or invalid releaseTag.');
+      const question = String(body?.question || p.thesis || p.title || '').trim();
+      if (!question) throw new StepError('BAD_REQUEST', 'Missing question to read for.');
+      const ctx = interactiveCtx(body, `read ${tag} for question`);
+      const callAnalyst: ReadModelCaller = async (prompt) => {
+        const r = await engine.call('analyst', prompt, ctx);
+        if (!r.ok) throw new StepError(r.code, `Analyst model failed: ${r.message}`, r.rawOutput);
+        return { ok: true, json: r.json as any, model: `${r.provider}:${r.model}` };
+      };
+      const result = await library.readForQuestion(tag, question, callAnalyst, { force: Boolean(body?.force) });
+      const board = store.getBoard(p.id);
+      if (board) {
+        const recIdx = board.recordings.findIndex(r => r.releaseTag === tag);
+        if (recIdx >= 0) {
+          board.recordings[recIdx].status = 'read';
+        } else {
+          board.recordings.push({ releaseTag: tag, status: 'read' });
+        }
+        store.saveBoard(p.id, board);
+      }
+      return send(res, 200, { ok: true, result, spentUsd: ctx.budget.spentUsd });
     }
 
     if (route === '/paper-trail' && method === 'GET') {

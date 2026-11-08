@@ -23,6 +23,7 @@ export const PROMPT_VERSIONS = {
   episodeCritique: 'episode-critique.v1',
   polish: 'polish.v1',
   factcheck: 'factcheck.v1',
+  read: 'read-question.v1',
   styleTraits: 'style-traits.v1',
   styleCard: 'style-card.v1',
   distill: 'distill-rules.v1',
@@ -96,6 +97,19 @@ export const REDUCE_SCHEMA = obj({
 export const CLIP_TAGS_SCHEMA = obj({ tags: arr(obj({ clipId: str, fn: en(NARRATIVE_FUNCTIONS), rationale: str })) });
 export const OUTLINE_SCHEMA = obj({
   segments: arr(obj({ title: str, scenes: arr(obj({ title: str, purpose: str, clipIds: strArr, momentIds: strArr })) })),
+});
+
+export const READ_SCHEMA = obj({
+  quotes: arr(obj({
+    utteranceIds: strArr,
+    verbatim: str,
+    speaker: str,
+    about: str,
+    type: en(['accusation', 'evidence_claim', 'motive', 'threat_or_plan', 'admission', 'response', 'other']),
+    status: en(['checkable', 'allegation', 'opinion']),
+    why: str,
+  })),
+  context: str,
 });
 
 /** One flat block shape (strict schemas handle this better than a union). Unused fields are null. */
@@ -408,5 +422,19 @@ ${dataBlock(args.approved || '(none)')}
 
 Rejected rewrites:
 ${dataBlock(args.rejected || '(none)')}`,
+  };
+}
+
+export function readPrompt(args: { releaseTag: string; title: string; lines: string; question: string }): Prompt {
+  return {
+    version: PROMPT_VERSIONS.read, schemaName: 'evidence_read', schema: READ_SCHEMA, maxTokens: 4000,
+    system: `${BASE_RULES}
+Task: an investigative producer is researching one question. Read the whole recording and pull out every passage that helps answer it, as exact quotes.
+Question: ${args.question}
+For each quote: the utterance ids it comes from, the words copied exactly (a quote may span consecutive utterances of one speaker; keep each quote under about 120 words, pick the strongest contiguous excerpt), the speaker label as given, who or what it is about, its type, whether it can be checked from the recording itself or is only the speaker's allegation or opinion, and one sentence on why it matters to the question.
+Include passages that complicate or contradict the speaker's account, not only supporting ones. Do not include filler. "context": a few sentences on who is present, who is being addressed and anything a scriptwriter must not get wrong.`,
+    user: `Recording ${args.releaseTag}: ${args.title}
+Lines are [utteranceId hh:mm:ss Speaker] text.
+${dataBlock(args.lines)}`,
   };
 }

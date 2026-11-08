@@ -3,7 +3,7 @@ import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
 import type { RenderManifest } from './scriptCompile';
 import type { HandoffKind, HandoffRecord, ImportSummary } from '../server/scriptHandoff';
-import type { AqLink, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
+import type { AqLink, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, LibraryQuote, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
 import type { ViewEntry } from './quoteView';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
@@ -136,6 +136,37 @@ export const scriptApi = {
   library: (projectId?: string | null) => call<{ sync: LibrarySync; entries: ViewEntry[]; board: EvidenceBoard | null }>('GET', `/library${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
   confirmSpeaker: (ref: string, name: string | null) => call<{ link: AqLink }>('POST', '/library/speaker', { ref, name }),
   boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
+  discover: (projectId: string, q?: string) => call<{
+    query: string;
+    terms: string[];
+    scanned: number;
+    hits: Array<{
+      releaseTag: string;
+      title: string;
+      date: string | null;
+      score: number;
+      terms: Record<string, number>;
+      samples: { start: number; speaker: string; text: string }[];
+      libraryQuotesCount: number;
+      aqQuotesCount: number;
+      readCount: number;
+      boardStatus?: 'candidate' | 'read' | 'skipped';
+    }>;
+  }>('GET', `/discover?projectId=${encodeURIComponent(projectId)}${q ? `&q=${encodeURIComponent(q)}` : ''}`),
+  readRecording: (projectId: string, releaseTag: string, question?: string, force?: boolean) => call<{
+    result: {
+      fromCache: boolean;
+      releaseTag: string;
+      question: string;
+      model: string;
+      newQuotes: LibraryQuote[];
+      mergedRefs: string[];
+      rejected: Array<{ verbatim: string; reason: string; at: number }>;
+      contextNote?: string;
+      totalQuotes: number;
+    };
+    spentUsd?: number;
+  }>('POST', '/read', { projectId, releaseTag, question, force }),
   savePassage: (projectId: string, text: string) => call<StyleState>('POST', '/style/passage', { projectId, text }),
   distill: (roles: RoleChoice) => call<StyleState & { status: DistillStatus }>('POST', '/style/distill', roles),
   quality: () => call<{ report: QualityReport; prompts: PromptOutcomeRow[]; calls: CallStatsRow[]; history: { at: number; pairs: number; conclusive: number; agreementRate: number | null; kappa: number | null }[]; currentPromptVersions: Record<string, string> }>('GET', '/quality'),

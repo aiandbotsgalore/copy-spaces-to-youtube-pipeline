@@ -2109,7 +2109,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               </button>
             ))}
           </div>
-          {mainView === 'board' && <ScriptBoard lib={lib} question={lib.board?.question || project.thesis || ''} onOpenLibrary={() => setMainView('library')} onListen={listenQuote} playingUrl={playingUrl} />}
+          {mainView === 'board' && <ScriptBoard lib={lib} projectId={project.id} question={lib.board?.question || project.thesis || ''} onOpenLibrary={() => setMainView('library')} onListen={listenQuote} playingUrl={playingUrl} />}
           {mainView === 'library' && <QuoteLibrary lib={lib} projectId={project.id} onListen={listenQuote} playingUrl={playingUrl} />}
           {mainView === 'script' && (<>
           {/* Scene Navigator / Minimap Bar */}

@@ -8,10 +8,13 @@
  * audio are kept.
  */
 import fs from 'node:fs';
-import type { AqLink, AudioBoundary, RecordingLibrary } from '../utils/scriptTypes';
+import crypto from 'node:crypto';
+import type { AqLink, AudioBoundary, LibraryQuote, RecordingLibrary, TextCheck } from '../utils/scriptTypes';
 import { LOCATOR_VERSION, locateQuote, textCheck } from '../utils/quoteLocate';
-import { parseTranscriptJson, transcriptPath, type LoadedTranscript } from './scriptData';
+import { namedSegments, parseTranscriptJson, transcriptPath, utteranceLine, type LoadedTranscript } from './scriptData';
 import { aqClipFiles, corpusAudio, corpusWindow, loadAqCorpus, type AqClipFile, type AqQuote } from './quoteCorpus';
+import { readPrompt, type Prompt } from './scriptPrompts';
+import { verifyVerbatim } from '../utils/scriptGates';
 import type { ScriptStore } from './scriptStore';
 
 export interface AqEntry { ref: string; aqId: string; releaseTag: string; corpus: AqQuote; link: AqLink | null; clipFile?: AqClipFile; warnings: string[] }
@@ -30,6 +33,66 @@ function warningsFor(link: AqLink | null): string[] {
 export interface SyncResult { quotes: number; located: number; exact: number; differs: number; unlocated: number; updated: string[] }
 
 export const aqRef = (aqId: string) => `aq:${aqId}`;
+
+const WORD_RE = /[A-Za-z0-9‘’'`]+/g;
+const normWord = (w: string) => w.toLowerCase().replace(/[‘’'`]/g, '');
+const wordsOf = (s: string) => (s.match(WORD_RE) || []).map(normWord).filter(Boolean);
+
+/**
+ * True if two texts share at least minWords (default 8) consecutive words,
+ * or if either quote is short (< minWords) and fully contained in the other.
+ */
+export function sharesConsecutiveWords(textA: string, textB: string, minWords = 8): boolean {
+  const wordsA = wordsOf(textA);
+  const wordsB = wordsOf(textB);
+  if (!wordsA.length || !wordsB.length) return false;
+  if (wordsA.length < minWords || wordsB.length < minWords) {
+    const sA = wordsA.join(' ');
+    const sB = wordsB.join(' ');
+    return sA.includes(sB) || sB.includes(sA);
+  }
+  const textBJoined = ' ' + wordsB.join(' ') + ' ';
+  for (let i = 0; i <= wordsA.length - minWords; i++) {
+    const gram = ' ' + wordsA.slice(i, i + minWords).join(' ') + ' ';
+    if (textBJoined.includes(gram)) return true;
+  }
+  return false;
+}
+
+export interface RawCandidateQuote {
+  utteranceIds: string[];
+  verbatim: string;
+  speaker: string;
+  about: string;
+  type: LibraryQuote['type'];
+  status: LibraryQuote['status'];
+  why: string;
+}
+
+export interface ReadModelCallResult {
+  ok: boolean;
+  json?: {
+    quotes?: RawCandidateQuote[];
+    context?: string;
+  };
+  model?: string;
+  code?: string;
+  message?: string;
+}
+
+export type ReadModelCaller = (prompt: Prompt) => Promise<ReadModelCallResult>;
+
+export interface ReadForQuestionResult {
+  fromCache: boolean;
+  releaseTag: string;
+  question: string;
+  model: string;
+  newQuotes: LibraryQuote[];
+  mergedRefs: string[];
+  rejected: { verbatim: string; reason: string; at: number }[];
+  contextNote?: string;
+  totalQuotes: number;
+}
 
 const emptyLibrary = (releaseTag: string, transcriptHash: string): RecordingLibrary =>
   ({ version: 1, releaseTag, transcriptHash, reads: [], notes: [], rejected: [], quotes: [], aqLinks: [] });
@@ -136,6 +199,214 @@ export function createQuoteLibrary(root: string, store: ScriptStore, deps: { now
       lib.aqLinks[i] = link;
       store.saveLibrary(lib);
       return link;
+    },
+
+    /**
+     * Reads a transcript for an investigative question, extracting and verifying candidate quotes.
+     * Deduplicates against existing library quotes and the AQ corpus.
+     * Caches reads by question and transcript hash so subsequent calls make 0 model calls.
+     */
+    async readForQuestion(
+      tag: string,
+      question: string,
+      callModel: ReadModelCaller,
+      opts: { force?: boolean } = {}
+    ): Promise<ReadForQuestionResult> {
+      const cleanQ = question.trim();
+      if (!cleanQ) throw new Error('Investigative question cannot be empty.');
+      const normQ = cleanQ.toLowerCase();
+
+      const t = transcript(tag);
+      if (!t) throw new Error(`No transcript found on disk for ${tag}.`);
+
+      const stored = store.getLibrary(tag);
+      const lib = stored ? structuredClone(stored) : emptyLibrary(tag, t.hash);
+      const hashChanged = lib.transcriptHash !== t.hash;
+      lib.transcriptHash = t.hash;
+
+      // 1. Read Cache: Check if already read for this question with matching transcript hash
+      const cachedRead = lib.reads.find(r => r.question.trim().toLowerCase() === normQ);
+      if (cachedRead && !opts.force && !hashChanged) {
+        const matchingQuotes = lib.quotes.filter(q => cachedRead.quoteIds.includes(q.id));
+        const mergedRefs = cachedRead.quoteIds.filter(id => id.startsWith('aq:') || (!id.startsWith('aq:') && !lib.quotes.some(q => q.id === id)));
+        const note = lib.notes.find(n => n.question.trim().toLowerCase() === normQ)?.text;
+        return {
+          fromCache: true,
+          releaseTag: tag,
+          question: cleanQ,
+          model: cachedRead.model,
+          newQuotes: matchingQuotes,
+          mergedRefs,
+          rejected: [],
+          contextNote: note,
+          totalQuotes: lib.quotes.length + lib.aqLinks.length,
+        };
+      }
+
+      // 2. Build prompt and invoke model
+      const lines = t.utterances.map(u => utteranceLine(u, {})).join('\n');
+      const pr = readPrompt({ releaseTag: tag, title: t.title, lines, question: cleanQ });
+      const res = await callModel(pr);
+      if (!res.ok || !res.json) {
+        throw new Error(res.message || `Failed to read ${tag} for question.`);
+      }
+
+      const modelName = res.model || 'model';
+      const rawQuotes = Array.isArray(res.json.quotes) ? res.json.quotes : [];
+      const contextText = typeof res.json.context === 'string' ? res.json.context.trim() : '';
+      const at = now();
+
+      const segs = namedSegments(t, {});
+      const byId = new Map(t.utterances.map(u => [u.id, u]));
+      const corpus = loadAqCorpus(root);
+      const aqQuotesForTag = corpus.quotes.filter(q => q.release_tag === tag);
+
+      const newQuotes: LibraryQuote[] = [];
+      const mergedRefs: string[] = [];
+      const quoteIdsForRead: string[] = [];
+
+      for (const raw of rawQuotes) {
+        const verbatim = String(raw.verbatim || '').trim();
+        const rawUttIds = Array.isArray(raw.utteranceIds) ? raw.utteranceIds.map(String) : [];
+        const us = rawUttIds.map(id => byId.get(id)).filter((u): u is LoadedTranscript['utterances'][0] => Boolean(u));
+
+        if (!verbatim || !us.length) {
+          lib.rejected.push({
+            verbatim: verbatim || '(empty quote)',
+            reason: 'Missing verbatim quote text or invalid utterance IDs.',
+            at,
+          });
+          continue;
+        }
+
+        // 3. Verbatim check
+        const v = verifyVerbatim({
+          releaseTag: tag,
+          segStart: us[0].start,
+          segEnd: us[us.length - 1].end,
+          speaker: us[0].speaker,
+          verbatim,
+        }, segs);
+
+        if (v.ok !== true) {
+          const loc = locateQuote(verbatim, t.utterances);
+          lib.rejected.push({
+            verbatim,
+            reason: loc.located && loc.span
+              ? `Wording differs from transcript. Exact transcript span: "${loc.span.slice(0, 160)}"`
+              : (v.reason || 'Not found verbatim in transcript speech.'),
+            at,
+          });
+          continue;
+        }
+
+        // 4. Deduplicate against AQ corpus quotes for this recording
+        let matchedAq: AqQuote | undefined;
+        for (const aq of aqQuotesForTag) {
+          const link = lib.aqLinks.find(l => l.aqId === aq.quote_id);
+          const aqUtts = link?.utteranceIds || [];
+          const sharesUtt = !aqUtts.length || rawUttIds.some(id => aqUtts.includes(id));
+          if (sharesUtt && sharesConsecutiveWords(verbatim, aq.exact_quote, 8)) {
+            matchedAq = aq;
+            break;
+          }
+        }
+        if (matchedAq) {
+          const ref = aqRef(matchedAq.quote_id);
+          if (!mergedRefs.includes(ref)) mergedRefs.push(ref);
+          if (!quoteIdsForRead.includes(ref)) quoteIdsForRead.push(ref);
+          continue; // Deduplicated against AQ quote
+        }
+
+        // 5. Deduplicate against existing library quotes
+        let matchedExisting: LibraryQuote | undefined;
+        for (const ex of lib.quotes) {
+          const sharesUtt = rawUttIds.some(id => ex.utteranceIds.includes(id));
+          if (sharesUtt && sharesConsecutiveWords(verbatim, ex.verbatim, 8)) {
+            matchedExisting = ex;
+            break;
+          }
+        }
+        if (matchedExisting) {
+          if (!matchedExisting.foundBy.some(f => f.question.trim().toLowerCase() === normQ)) {
+            matchedExisting.foundBy.push({ question: cleanQ, at });
+          }
+          if (!mergedRefs.includes(matchedExisting.id)) mergedRefs.push(matchedExisting.id);
+          if (!quoteIdsForRead.includes(matchedExisting.id)) quoteIdsForRead.push(matchedExisting.id);
+          continue; // Deduplicated against existing library quote
+        }
+
+        // 6. Genuinely new verified quote
+        const shortHash = crypto.createHash('sha256').update(verbatim.toLowerCase()).digest('hex').slice(0, 8);
+        const quoteId = `${tag}:${shortHash}`;
+
+        // Double-check ID collision
+        const idHit = lib.quotes.find(q => q.id === quoteId);
+        if (idHit) {
+          if (!idHit.foundBy.some(f => f.question.trim().toLowerCase() === normQ)) {
+            idHit.foundBy.push({ question: cleanQ, at });
+          }
+          if (!mergedRefs.includes(quoteId)) mergedRefs.push(quoteId);
+          if (!quoteIdsForRead.includes(quoteId)) quoteIdsForRead.push(quoteId);
+          continue;
+        }
+
+        const newQuote: LibraryQuote = {
+          id: quoteId,
+          releaseTag: tag,
+          utteranceIds: rawUttIds,
+          speakerLabel: us[0].speaker,
+          speakerConfirmed: false,
+          verbatim,
+          segStart: us[0].start,
+          segEnd: us[us.length - 1].end,
+          text: {
+            status: 'exact',
+            checkedAt: at,
+            transcriptHash: t.hash,
+          },
+          audio: {
+            status: 'none',
+          },
+          about: String(raw.about || '').trim(),
+          why: String(raw.why || '').trim(),
+          type: raw.type || 'other',
+          status: raw.status || 'opinion',
+          foundBy: [{ question: cleanQ, at }],
+        };
+
+        lib.quotes.push(newQuote);
+        newQuotes.push(newQuote);
+        quoteIdsForRead.push(quoteId);
+      }
+
+      // 7. Store context note
+      if (contextText && !lib.notes.some(n => n.question.trim().toLowerCase() === normQ && n.text === contextText)) {
+        lib.notes.push({ at, question: cleanQ, text: contextText });
+      }
+
+      // 8. Record read
+      const prevReadIdx = lib.reads.findIndex(r => r.question.trim().toLowerCase() === normQ);
+      const readEntry = { question: cleanQ, at, model: modelName, quoteIds: quoteIdsForRead };
+      if (prevReadIdx >= 0) {
+        lib.reads[prevReadIdx] = readEntry;
+      } else {
+        lib.reads.push(readEntry);
+      }
+
+      store.saveLibrary(lib);
+
+      return {
+        fromCache: false,
+        releaseTag: tag,
+        question: cleanQ,
+        model: modelName,
+        newQuotes,
+        mergedRefs,
+        rejected: lib.rejected.filter(r => r.at === at),
+        contextNote: contextText || undefined,
+        totalQuotes: lib.quotes.length + lib.aqLinks.length,
+      };
     },
   };
 }
