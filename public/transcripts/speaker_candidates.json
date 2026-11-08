@@ -1,0 +1,1525 @@
+{
+  "updated_at": "2026-11-08T05:40:00Z",
+  "total_candidates": 84,
+  "candidates": [
+    {
+      "id": "cand_305670",
+      "suggested_name": "Taylor",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 6,
+      "total_duration_sec": 187.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 6155.54,
+          "end": 6244.78,
+          "snippet": "working for me I understand because that happens to me sometimes too so no big deal I was just gonna say origin of life "
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 6156.38,
+          "end": 6244.78,
+          "snippet": "I understand because that happens to me sometimes too so no big deal I was just gonna say origin of life origin of how w"
+        }
+      ]
+    },
+    {
+      "id": "cand_19361",
+      "suggested_name": "Sigma",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 4,
+      "total_duration_sec": 146.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 7577.05,
+          "end": 7584.97,
+          "snippet": "with your own body again and again and again and again and again and waste your seat away thanks Sigma yeah you're the d"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 7584.97,
+          "end": 7652.13,
+          "snippet": "thank you bye you need to promote the narrative because it gives them leverage they know this I think implicitly like th"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 7584.97,
+          "end": 7652.13,
+          "snippet": "thank you bye you need to promote the narrative because it gives them leverage they know this I think implicitly like th"
+        }
+      ]
+    },
+    {
+      "id": "cand_710369",
+      "suggested_name": "Jesus",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 4,
+      "total_duration_sec": 13.2,
+      "sample_clips": []
+    },
+    {
+      "id": "cand_294994",
+      "suggested_name": "But",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 60.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 764.4,
+          "end": 794.51,
+          "snippet": "But what do you think there is reasons for that? Isn't it crazy that her family is the same Maxwell as, um, the, the sci"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 764.4,
+          "end": 794.51,
+          "snippet": "But what do you think there is reasons for that? Isn't it crazy that her family is the same Maxwell as, um, the, the sci"
+        }
+      ]
+    },
+    {
+      "id": "cand_110174",
+      "suggested_name": "Rose",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 12.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 7418.57,
+          "end": 7424.89,
+          "snippet": "Sue had a aging disease and hung herself at 12 but go ahead Rose okay"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 7418.57,
+          "end": 7424.89,
+          "snippet": "Sue had a aging disease and hung herself at 12 but go ahead Rose okay"
+        }
+      ]
+    },
+    {
+      "id": "cand_76732",
+      "suggested_name": "And",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 2,
+      "episodes": [
+        "20260202_1770145946",
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 149.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 19748.49,
+          "end": 19823.32,
+          "snippet": "Specifically? I'm not sure. Um, I really, yeah, there's, there's no telling, but this is where I think things happen in "
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 19748.49,
+          "end": 19823.32,
+          "snippet": "Specifically? I'm not sure. Um, I really, yeah, there's, there's no telling, but this is where I think things happen in "
+        }
+      ]
+    },
+    {
+      "id": "cand_411862",
+      "suggested_name": "Carol",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 2.8,
+      "sample_clips": []
+    },
+    {
+      "id": "cand_727804",
+      "suggested_name": "Logan",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 167.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 12169.24,
+          "end": 12180.5,
+          "snippet": "hey Logan hit me with some some gay sex buddy"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 12180.5,
+          "end": 12336.54,
+          "snippet": "I'm gonna clip that and it's four leaf"
+        }
+      ]
+    },
+    {
+      "id": "cand_470562",
+      "suggested_name": "Jamie",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 2,
+      "total_duration_sec": 21.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 42600.16,
+          "end": 42618.16,
+          "snippet": "was ever investigated by the UAP task force under Jay Stratton's leadership? thanks Jamie Jamie, I don't know it's as si"
+        }
+      ]
+    },
+    {
+      "id": "cand_850274",
+      "suggested_name": "Can",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 99.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 12922.01,
+          "end": 13021.58,
+          "snippet": "So yeah, about the Kundalini and the chakra, uh, chakras are viewed as psychoactive energy. This is from the purple pill"
+        }
+      ]
+    },
+    {
+      "id": "cand_921882",
+      "suggested_name": "Snuggles",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 0.8,
+      "sample_clips": []
+    },
+    {
+      "id": "cand_622104",
+      "suggested_name": "Grider",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 2.9,
+      "sample_clips": []
+    },
+    {
+      "id": "cand_721131",
+      "suggested_name": "God",
+      "raw_speaker": "Speaker 11",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1RDxlAyeoegKL"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 184.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 5391.17,
+          "end": 5575.86,
+          "snippet": "Yeah, I've actually come here for a rematch with Snuggles. But before that rematch, I would just like to say I'm becomin"
+        }
+      ]
+    },
+    {
+      "id": "cand_923573",
+      "suggested_name": "Sarah",
+      "raw_speaker": "Speaker 9",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 2.6,
+      "sample_clips": []
+    },
+    {
+      "id": "cand_845248",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 455,
+      "total_duration_sec": 6718.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 99.22,
+          "end": 108.7,
+          "snippet": "You got to kind of like let it like play itself out."
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 232.62,
+          "end": 244.71,
+          "snippet": "Something. It was very sus. Dude, RPK, I was like agreeing with you this morning and shit and then you accused me of lea"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 262.26,
+          "end": 267.36,
+          "snippet": "Chase is still going. He's like, he's really fucked up. And yeah, I just hopped in there for a bit."
+        }
+      ]
+    },
+    {
+      "id": "cand_223479",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 424,
+      "total_duration_sec": 6028.9,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 662.41,
+          "end": 667.81,
+          "snippet": "If it's, if it's cliche and, and the usual thing, what's the more productive thing?"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 708.4,
+          "end": 716.08,
+          "snippet": "Nah, I'm always saying it. It has nothing to do with anything other than the fact that, uh, every point in the time"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 4086.89,
+          "end": 4107.58,
+          "snippet": "wait dark side of the force is a pathway to many abilities um considered to be considered to be natural yeah not from a "
+        }
+      ]
+    },
+    {
+      "id": "cand_988377",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 394,
+      "total_duration_sec": 5759.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 4107.58,
+          "end": 4121.05,
+          "snippet": "king was a motherfucking preposterous movie space wizards and the vietcong star wars i mean like"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 4721.07,
+          "end": 4736.3,
+          "snippet": "trust our guts that's what i thought you said boy you know that's not the first thing that happened to"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 7439.98,
+          "end": 7672.4,
+          "snippet": "the ultimate mall song dude logan you've gotten me onto this tears for fears fucking kick"
+        }
+      ]
+    },
+    {
+      "id": "cand_712148",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 389,
+      "total_duration_sec": 4718.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 235.24,
+          "end": 244.67,
+          "snippet": "And meanwhile, the rest of us peasants are down here using sentences like, stuckers. And the feed. Oh, Christ. The feed."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 352.51,
+          "end": 359.09,
+          "snippet": "Nah, he honestly, you know who stole a lot of Bill Hicks' stuff?"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 611.72,
+          "end": 617.08,
+          "snippet": "I think I must have hit like the space bar or something like that by accident. No, it's fine. Yeah."
+        }
+      ]
+    },
+    {
+      "id": "cand_140104",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 384,
+      "total_duration_sec": 4698.9,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 235.24,
+          "end": 243.81,
+          "snippet": "And meanwhile, the rest of us peasants are down here using sentences like, stuckers. And the feed. Oh, Christ."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 352.51,
+          "end": 359.09,
+          "snippet": "Nah, he honestly, you know who stole a lot of Bill Hicks' stuff?"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 611.72,
+          "end": 617.08,
+          "snippet": "I think I must have hit like the space bar or something like that by accident. No, it's fine. Yeah."
+        }
+      ]
+    },
+    {
+      "id": "cand_474194",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 350,
+      "total_duration_sec": 6091.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 224.22,
+          "end": 232.38,
+          "snippet": "There's been some very weird developments and everyday occurrences with people that a pattern is starting to form. We've"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 394.48,
+          "end": 406.08,
+          "snippet": "What's weird? I took mine now. Still buy eggs and stuff. And you need to wash socks. I mean, ain't that weird? All right"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 506.32,
+          "end": 512.04,
+          "snippet": "Oh, you know, I'm just feeling X, Y, and Z. It's all, it's, you're always coming from that gloomy gloom town."
+        }
+      ]
+    },
+    {
+      "id": "cand_534527",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 4",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 311,
+      "total_duration_sec": 3673.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 536.55,
+          "end": 541.95,
+          "snippet": "Start with, um, a more positive outlook. Speak from a positive, uh, energy field."
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 584.66,
+          "end": 592.24,
+          "snippet": "Come on. You know, they're going to, you know, what space, which, which one? Come on. Just a couple of minutes ago. Like"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 740.18,
+          "end": 748.2,
+          "snippet": "You just, do you just feel unfulfilled at the work side? What do you just feel? Does your daily life feel unfulfilled? D"
+        }
+      ]
+    },
+    {
+      "id": "cand_881669",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 9",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 263,
+      "total_duration_sec": 4020.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 345.28,
+          "end": 350.56,
+          "snippet": "25 years ago. Allegedly. Allegedly? The positive dickity."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 436.25,
+          "end": 442.59,
+          "snippet": "Um, and poor people go to jail for way less things, uh, for decades."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 663.77,
+          "end": 675.74,
+          "snippet": "So I'm gonna, I'm gonna throat chop you. So, um, it was talked about with, uh, the father made a deal with Epstein."
+        }
+      ]
+    },
+    {
+      "id": "cand_743109",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 9",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 244,
+      "total_duration_sec": 2726.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 7071.12,
+          "end": 7085.08,
+          "snippet": "our new alt account uh logan jesus jesus no oh you've had that one yeah i mean i never usually"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 8910.0,
+          "end": 8915.04,
+          "snippet": "that kind of i don't know how else or tick tock or youtube or whatever however you know people are"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 8929.84,
+          "end": 8936.67,
+          "snippet": "if you do want to pursue something where um or not maybe maybe not even try to pursue it like a lot of"
+        }
+      ]
+    },
+    {
+      "id": "cand_163710",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 242,
+      "total_duration_sec": 1844.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 251.75,
+          "end": 258.34,
+          "snippet": "I randomly woke up in the middle of the night."
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2140.9,
+          "end": 2156.44,
+          "snippet": "You know, I haven't heard about that, but I think there's probably a lot more instances than people realize about how of"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2181.26,
+          "end": 2187.9,
+          "snippet": "I mean, the only thing I remember about the Gravitron is the amount of puke from the person next to you."
+        }
+      ]
+    },
+    {
+      "id": "cand_474277",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 215,
+      "total_duration_sec": 1246.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 474.22,
+          "end": 480.8,
+          "snippet": "themselves, but I don't think anybody really wants to do that unless they're totally in"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 496.18,
+          "end": 505.94,
+          "snippet": "And I don't think that's going to happen, uh, personally. And I'm not advocating for violence, but like, I'm just saying"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 581.82,
+          "end": 588.17,
+          "snippet": "regrets, as we all do. Um, uh, people say, uh, you know, people are great about, uh, taking LSD."
+        }
+      ]
+    },
+    {
+      "id": "cand_103602",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 215,
+      "total_duration_sec": 2140.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 944.0,
+          "end": 972.18,
+          "snippet": "Real quick. Y'all, I just literally had to put my shoulder back in again. It's like the age of time. Are you double join"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 987.89,
+          "end": 993.05,
+          "snippet": "I'm not going to go to the hospital tomorrow and be like, I'm, this was a fucking bad one, dude."
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 1014.61,
+          "end": 1019.61,
+          "snippet": "Cut off my whole fucking arm at this point. I don't even want the arm. Get rid of it."
+        }
+      ]
+    },
+    {
+      "id": "cand_511714",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 203,
+      "total_duration_sec": 1343.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 468.66,
+          "end": 474.22,
+          "snippet": "No, not unless, uh, people start, like, actually taking action and doing something about it"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 484.87,
+          "end": 496.18,
+          "snippet": "I think I know what's going to happen. No, I mean, as in, like, I, the, the only thing that I think is going to scare th"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 505.94,
+          "end": 512.28,
+          "snippet": "Healthcare CEO was, um, shot and killed, you know, they were accepting, uh, like United"
+        }
+      ]
+    },
+    {
+      "id": "cand_267896",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 200,
+      "total_duration_sec": 1195.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 474.22,
+          "end": 480.8,
+          "snippet": "themselves, but I don't think anybody really wants to do that unless they're totally in"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 496.18,
+          "end": 505.94,
+          "snippet": "And I don't think that's going to happen, uh, personally. And I'm not advocating for violence, but like, I'm just saying"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 581.82,
+          "end": 588.17,
+          "snippet": "regrets, as we all do. Um, uh, people say, uh, you know, people are great about, uh, taking LSD."
+        }
+      ]
+    },
+    {
+      "id": "cand_979742",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 197,
+      "total_duration_sec": 1363.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 53.27,
+          "end": 62.63,
+          "snippet": "It was a George Carlin thing."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 386.93,
+          "end": 394.39,
+          "snippet": "Two things I remember. I should have made love more. So that's my, uh, put that out of the tombstone."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 526.26,
+          "end": 531.37,
+          "snippet": "Um, so, yeah, I'm just saying, you know, like, it's fucking, it's always worked."
+        }
+      ]
+    },
+    {
+      "id": "cand_996487",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 196,
+      "total_duration_sec": 1765.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 321.98,
+          "end": 330.14,
+          "snippet": "Did he not check any of the links for context? I don't know what he did to do what he did, but yeah."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 936.43,
+          "end": 944.07,
+          "snippet": "I kind of am a little bit with, I'm not sure who said it, but where it was possibly not"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 1229.14,
+          "end": 1234.44,
+          "snippet": "And if you looked at the trending, if you look at your trending, the, the, the files, like,"
+        }
+      ]
+    },
+    {
+      "id": "cand_293166",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 195,
+      "total_duration_sec": 1068.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 1869.02,
+          "end": 1875.5,
+          "snippet": "Like, you told me, like, don't be clipping up his stuff. You have not sat through an entire doom room from beginning to "
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 1878.78,
+          "end": 1886.23,
+          "snippet": "I know, but you fucked up already. But you'll definitely be able to come up there and ask your questions. And bring your"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 7331.43,
+          "end": 7341.53,
+          "snippet": "to talk in your space it was hilarious people kept muting him every time he say something like yeah they muted him can I"
+        }
+      ]
+    },
+    {
+      "id": "cand_427186",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 194,
+      "total_duration_sec": 1318.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 53.27,
+          "end": 62.63,
+          "snippet": "It was a George Carlin thing."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 386.93,
+          "end": 394.39,
+          "snippet": "Two things I remember. I should have made love more. So that's my, uh, put that out of the tombstone."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 526.26,
+          "end": 531.37,
+          "snippet": "Um, so, yeah, I'm just saying, you know, like, it's fucking, it's always worked."
+        }
+      ]
+    },
+    {
+      "id": "cand_751492",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 183,
+      "total_duration_sec": 1436.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 134.8,
+          "end": 141.86,
+          "snippet": "Because some billionaire with a messiah complex decided Twitter sounded too much like a bird shitting on your windshield"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 170.52,
+          "end": 186.22,
+          "snippet": "Sitting cross-legged in the lotus position. Third eye glowing like it just smoked a joint rolled from the Upanishads. Fl"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 205.22,
+          "end": 214.46,
+          "snippet": "Then you look at the bio. Nothing. Just sparkles and sparkles. Sparkles and those creepy heart hands emojis."
+        }
+      ]
+    },
+    {
+      "id": "cand_256291",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 11",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 182,
+      "total_duration_sec": 1948.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2609.88,
+          "end": 2619.81,
+          "snippet": "and spinning spinning and spinning and spinning and i was like stop the grass when gravity slows"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2638.0,
+          "end": 2644.56,
+          "snippet": "noticed that you just kind of low-key kind of thought okay there's cool ones here well but by"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 3781.93,
+          "end": 3800.24,
+          "snippet": "i'll just keep talking to myself the eternal is that carmine i think i think there's a lot of fanboys in the community p"
+        }
+      ]
+    },
+    {
+      "id": "cand_197363",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 173,
+      "total_duration_sec": 3491.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2815.47,
+          "end": 2826.44,
+          "snippet": "that was fucked up i believe if you're over 500 pounds or something you eat for free yeah you eat"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 2986.89,
+          "end": 2993.61,
+          "snippet": "yeah you're screwed dude you're gonna get canceled i was talking about hanging out with whatever whatever"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 3230.38,
+          "end": 3238.91,
+          "snippet": "god damn god damn yeah we all do all the shit bro i will tell you i agree with you a little paul"
+        }
+      ]
+    },
+    {
+      "id": "cand_742115",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 168,
+      "total_duration_sec": 1593.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 936.43,
+          "end": 944.07,
+          "snippet": "I kind of am a little bit with, I'm not sure who said it, but where it was possibly not"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 1229.14,
+          "end": 1234.44,
+          "snippet": "And if you looked at the trending, if you look at your trending, the, the, the files, like,"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 1424.18,
+          "end": 1437.3,
+          "snippet": "There is a way more to this in understanding the complexities and the fact that this is not, it's, it's not the same."
+        }
+      ]
+    },
+    {
+      "id": "cand_45717",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 167,
+      "total_duration_sec": 1131.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 418.32,
+          "end": 424.54,
+          "snippet": "You guys, how, what's going to happen as a result of these Epstein vials?"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 445.37,
+          "end": 467.52,
+          "snippet": "Well, I, tender, thank you for informing me that we have a fake justice system, but I don't assume that most of the shit"
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 823.96,
+          "end": 846.86,
+          "snippet": "Milo. I think this one's a little bit different. I think with these 3 million files, I think there's rumors that more wi"
+        }
+      ]
+    },
+    {
+      "id": "cand_316460",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 11",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 148,
+      "total_duration_sec": 1061.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 418.32,
+          "end": 424.54,
+          "snippet": "You guys, how, what's going to happen as a result of these Epstein vials?"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 445.37,
+          "end": 467.52,
+          "snippet": "Well, I, tender, thank you for informing me that we have a fake justice system, but I don't assume that most of the shit"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 823.96,
+          "end": 846.86,
+          "snippet": "Milo. I think this one's a little bit different. I think with these 3 million files, I think there's rumors that more wi"
+        }
+      ]
+    },
+    {
+      "id": "cand_602057",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 140,
+      "total_duration_sec": 947.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 992.38,
+          "end": 1000.38,
+          "snippet": "You know what I'm talking about? Arthur. No, no, no, no, no, no, no, no, no. The guy that was, uh, involved in the crypt"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1813.13,
+          "end": 1830.9,
+          "snippet": "And Natalie and the woman are the ones that plotted against. Yeah. So Natalie's dad was in cohorts with the local sherif"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1835.9,
+          "end": 1840.9,
+          "snippet": "And I got recordings that I never made public of us speaking on."
+        }
+      ]
+    },
+    {
+      "id": "cand_971362",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 136,
+      "total_duration_sec": 998.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 430.83,
+          "end": 436.25,
+          "snippet": "We have a two-tiered justice system, Doomer. The rich and powerful get away with pretty much anything."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 468.66,
+          "end": 474.22,
+          "snippet": "No, not unless, uh, people start, like, actually taking action and doing something about it"
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 484.87,
+          "end": 496.18,
+          "snippet": "I think I know what's going to happen. No, I mean, as in, like, I, the, the only thing that I think is going to scare th"
+        }
+      ]
+    },
+    {
+      "id": "cand_216886",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20260202_1770145946"
+      ],
+      "total_turns": 126,
+      "total_duration_sec": 1565.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 512.28,
+          "end": 519.7,
+          "snippet": "Healthcare just, and pretty much every other health insurance company just started, um, accepting every medical claim."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 756.49,
+          "end": 763.23,
+          "snippet": "The Trump administration moved her to that, uh, to that camp cause she was in a different one and they moved her."
+        },
+        {
+          "episode_tag": "20260202_1770145946",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/06h08m44s_The_Public_Log_of_Shit.mp3",
+          "start": 2174.49,
+          "end": 2375.67,
+          "snippet": "you know the reason i think just plainly no information i don't research the topic i didn't read the files but why peopl"
+        }
+      ]
+    },
+    {
+      "id": "cand_926998",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 125,
+      "total_duration_sec": 2114.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 46.0,
+          "end": 71.07,
+          "snippet": "Check this out you motherfuckers."
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 134.19,
+          "end": 148.83,
+          "snippet": "Enjoy your oxygen while it lasts."
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 205.86,
+          "end": 214.38,
+          "snippet": "Pretending."
+        }
+      ]
+    },
+    {
+      "id": "cand_857097",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 124,
+      "total_duration_sec": 1298.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1115.15,
+          "end": 1142.31,
+          "snippet": "It's not like I expected it to. But anyway, I wonder what DMs he got. What made him panic if he panicked. This is all sp"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1163.18,
+          "end": 1173.18,
+          "snippet": "Because you would put Fessler in a very difficult position, where if he does know the identity, and he doesn't reveal it"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1349.2,
+          "end": 1359.2,
+          "snippet": "You definitely should think carefully before you do ask the question because you're going to put them up against the wal"
+        }
+      ]
+    },
+    {
+      "id": "cand_163654",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1RDxlAyeoegKL"
+      ],
+      "total_turns": 121,
+      "total_duration_sec": 2560.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 658.4,
+          "end": 680.35,
+          "snippet": "Well, I met a friend that's in the music business and I think we're going to start doing some music and write some songs"
+        },
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 685.64,
+          "end": 745.73,
+          "snippet": "Well, the thing is, everything I've done with my artwork, I won first where I carved stone and was in art shows and stuf"
+        },
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 769.8,
+          "end": 842.87,
+          "snippet": "Yeah. It's kind of like the metrics. You got to understand when you speak things out into existence in this world, it ac"
+        }
+      ]
+    },
+    {
+      "id": "cand_564832",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 108,
+      "total_duration_sec": 901.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 240.95,
+          "end": 255.12,
+          "snippet": "Uh, no. It did not. Yeah, I know. It was cool. It was a little more mellow. You know what I mean? Yeah. Maybe like Tupac"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 265.9,
+          "end": 271.82,
+          "snippet": "Yeah. Viked out. You know what I mean? Perked up."
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 277.46,
+          "end": 306.76,
+          "snippet": "Just chilling, yo. I was, uh, that space ended abruptly. Um. It did, didn't it? Yeah. Yeah. It was suddenly closing time"
+        }
+      ]
+    },
+    {
+      "id": "cand_728748",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1YpJkklXEgZJj"
+      ],
+      "total_turns": 107,
+      "total_duration_sec": 1537.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 512.28,
+          "end": 519.7,
+          "snippet": "Healthcare just, and pretty much every other health insurance company just started, um, accepting every medical claim."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 756.49,
+          "end": 763.23,
+          "snippet": "The Trump administration moved her to that, uh, to that camp cause she was in a different one and they moved her."
+        },
+        {
+          "episode_tag": "20260204_1YpJkklXEgZJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/02h51m04s_Cosmic_Sex_and_Planetary_Children.mp3",
+          "start": 2174.49,
+          "end": 2375.67,
+          "snippet": "you know the reason i think just plainly no information i don't research the topic i didn't read the files but why peopl"
+        }
+      ]
+    },
+    {
+      "id": "cand_968280",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 101,
+      "total_duration_sec": 875.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 121.95,
+          "end": 134.19,
+          "snippet": "I'm gonna try it."
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1142.31,
+          "end": 1163.18,
+          "snippet": "Okay, now with that disclaimer out of the way, Tupa, it would be really interesting if you ask Fessler what Mike Disclos"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 1174.21,
+          "end": 1179.21,
+          "snippet": "You should probably think of three different people who you should ask that question to."
+        }
+      ]
+    },
+    {
+      "id": "cand_53779",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1LyGBXoBMVjxN"
+      ],
+      "total_turns": 99,
+      "total_duration_sec": 1884.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 8385.36,
+          "end": 8396.56,
+          "snippet": "responding to you or is that not choosing not to engage it either way you're no longer worth my time or energy when you "
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 8433.68,
+          "end": 8445.12,
+          "snippet": "rejoin the world of actual human communication you'll find me elsewhere having discussions with people who possess the b"
+        },
+        {
+          "episode_tag": "20260204_1LyGBXoBMVjxN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/12h08m38s_Speaker_We_are_honored_To_hear.mp3",
+          "start": 9340.92,
+          "end": 9346.04,
+          "snippet": "they're just one connection intellectual terrorism by punctuation marks i refuse to enable this digital"
+        }
+      ]
+    },
+    {
+      "id": "cand_95434",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1RDxlAyeoegKL"
+      ],
+      "total_turns": 77,
+      "total_duration_sec": 463.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 328.99,
+          "end": 336.89,
+          "snippet": "Hallelujah. I can't hear Carolyn, though."
+        },
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 382.6,
+          "end": 392.66,
+          "snippet": "I think this works now, right? I can hear Logan, but I don't hear Carolyn Way at all. Can you hear him?"
+        },
+        {
+          "episode_tag": "20260204_1RDxlAyeoegKL",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/01h02m57s_Unconventional_Wisdom_Garlic_Baths_Parasites_and_M.mp3",
+          "start": 406.3,
+          "end": 426.36,
+          "snippet": "Carolyn Way! Well, I was reading the captions before, because I could not hear you before I dipped and came back. But I "
+        }
+      ]
+    },
+    {
+      "id": "cand_317211",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 4",
+      "episode_count": 1,
+      "episodes": [
+        "20260204_1eaKbjrLaQnKX"
+      ],
+      "total_turns": 70,
+      "total_duration_sec": 708.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 781.62,
+          "end": 794.62,
+          "snippet": "That if, um, Fessler's channel was really under, um, duress, like if it was really going to get shut down or he was goin"
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 843.62,
+          "end": 851.53,
+          "snippet": "If a Fessler is going to face any sort of jail for any sort of legal actions on him, then he would definitely write him."
+        },
+        {
+          "episode_tag": "20260204_1eaKbjrLaQnKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/02h28m38s_The_Dangers_of_US_Tipping_Culture.mp3",
+          "start": 2407.62,
+          "end": 2412.62,
+          "snippet": "So like. What. Where do you go? Like. Where are you at?"
+        }
+      ]
+    }
+  ]
+}

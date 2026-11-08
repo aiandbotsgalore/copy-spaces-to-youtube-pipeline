@@ -4,11 +4,17 @@ import { sanitizeCopilotText } from '../utils/copilotText';
 
 export { sanitizeCopilotText };
 
+export interface TimestampPlayMeta {
+  audioUrl?: string;
+  episodeTitle?: string;
+  episodeId?: string | number;
+}
+
 export interface CopilotMarkdownProps {
   content: string;
   onSeek?: (sec: number) => void;
-  onPlay?: (sec: number) => void;
-  onAppendToReel?: () => void;
+  onPlay?: (sec: number, meta?: TimestampPlayMeta) => void;
+  onAppendToReel?: (meta?: TimestampPlayMeta) => void;
   className?: string;
 }
 
@@ -20,20 +26,21 @@ function renderInlineText(
   keyPrefix: string,
   callbacks?: {
     onSeek?: (sec: number) => void;
-    onPlay?: (sec: number) => void;
-    onAppendToReel?: () => void;
+    onPlay?: (sec: number, meta?: TimestampPlayMeta) => void;
+    onAppendToReel?: (meta?: TimestampPlayMeta) => void;
   }
 ): React.ReactNode[] {
   if (!text) return [];
 
   // Tokenize regex matching:
   // 1. [+ Append to Reel]
-  // 2. [▶ Jump to ...] or [▶ Play MM:SS] or [▶ MM:SS] or standalone ▶ MM:SS or MM:SS
-  // 3. [text](url)
-  // 4. `inline code`
-  // 5. **bold** or __bold__
-  // 6. *italic* or _italic_
-  const tokenRegex = /(\[\+\s*Append to Reel\]|\[▶\s*(?:Jump to|Play)?\s*\d{1,2}:\d{2}\]|▶\s*\d{1,2}:\d{2}|\b\d{1,2}:\d{2}\b|\[[^\]]+\]\([^\)]+\)|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_)/g;
+  // 2. Combined timestamp audio link: [▶ MM:SS](url) or ▶ MM:SS (url)
+  // 3. Standalone bracketed/arrow timestamp: [▶ MM:SS], ▶ MM:SS, MM:SS
+  // 4. [text](url)
+  // 5. `inline code`
+  // 6. **bold** or __bold__
+  // 7. *italic* or _italic_
+  const tokenRegex = /(\[\+\s*Append to Reel\]|\[▶?\s*(?:Jump to|Play)?\s*\d{1,2}:\d{2}(?::\d{2})?\]\([^\)]+\)|▶\s*\d{1,2}:\d{2}(?::\d{2})?\s*\([^\)]+\)|\[▶?\s*(?:Jump to|Play)?\s*\d{1,2}:\d{2}(?::\d{2})?\]|▶\s*\d{1,2}:\d{2}(?::\d{2})?|\b\d{1,2}:\d{2}(?::\d{2})?\b|\[[^\]]+\]\([^\)]+\)|`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_)/g;
 
   const parts = text.split(tokenRegex);
   return parts.map((part, idx) => {
@@ -57,31 +64,48 @@ function renderInlineText(
       );
     }
 
-    // 2. Timestamps
-    const timeMatch = part.match(/(\d{1,2}):(\d{2})/);
-    const isTimestamp =
-      timeMatch &&
-      (/▶|play|jump/i.test(part) || /^\d{1,2}:\d{2}$/.test(part) || /^\[▶/.test(part));
+    // 2. Combined or standalone timestamps
+    const combinedMatch = part.match(/^(?:\[▶?\s*(?:Jump to|Play)?\s*(\d{1,2}:\d{2}(?::\d{2})?)\]|▶\s*(\d{1,2}:\d{2}(?::\d{2})?)\s*)\((https?:\/\/[^\s\)]+)\)$/i);
+    const standaloneTimeMatch = !combinedMatch && part.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    const isTimestamp = combinedMatch || (
+      standaloneTimeMatch &&
+      (/▶|play|jump/i.test(part) || /^\d{1,2}:\d{2}(?::\d{2})?$/.test(part) || /^\[▶/.test(part))
+    );
 
-    if (isTimestamp && timeMatch) {
-      const minutes = parseInt(timeMatch[1], 10);
-      const seconds = parseInt(timeMatch[2], 10);
-      const totalSec = minutes * 60 + seconds;
-      const displayTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    if (isTimestamp) {
+      let totalSec = 0;
+      let displayTime = '';
+      let targetAudioUrl: string | undefined = undefined;
+
+      if (combinedMatch) {
+        const timeStr = combinedMatch[1] || combinedMatch[2];
+        targetAudioUrl = combinedMatch[3]?.trim();
+        const segs = timeStr.split(':').map(Number);
+        if (segs.length === 3) totalSec = segs[0] * 3600 + segs[1] * 60 + segs[2];
+        else totalSec = segs[0] * 60 + segs[1];
+        displayTime = timeStr;
+      } else if (standaloneTimeMatch) {
+        const timeStr = standaloneTimeMatch[0];
+        const segs = timeStr.split(':').map(Number);
+        if (segs.length === 3) totalSec = segs[0] * 3600 + segs[1] * 60 + segs[2];
+        else totalSec = segs[0] * 60 + segs[1];
+        displayTime = timeStr;
+      }
 
       return (
         <button
           key={key}
           type="button"
           onClick={() => {
-            if (callbacks?.onPlay) callbacks.onPlay(totalSec);
+            const meta = targetAudioUrl ? { audioUrl: targetAudioUrl } : undefined;
+            if (callbacks?.onPlay) callbacks.onPlay(totalSec, meta);
             else if (callbacks?.onSeek) callbacks.onSeek(totalSec);
           }}
           className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 rounded border border-indigo-500/30 transition-colors cursor-pointer align-baseline"
-          title={`Seek player to ${displayTime}`}
+          title={`Play audio from ${displayTime}`}
         >
           <Play size={10} className="fill-current" />
-          <span>▶ {displayTime}</span>
+          <span>{displayTime}</span>
         </button>
       );
     }

@@ -24,6 +24,8 @@ export type CopilotActionType =
   | 'DRAFT_PROJECT'
   | 'REFINE_PROJECT'
   | 'SYNTHESIZE_VOX'
+  | 'GET_TRANSCRIPT_GAPS'
+  | 'DISPATCH_TRANSCRIPT_BACKFILL'
   | 'RENDER_AVATAR';
 
 export type ActionTier = 0 | 1 | 2;

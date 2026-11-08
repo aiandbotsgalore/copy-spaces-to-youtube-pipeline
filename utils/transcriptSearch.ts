@@ -19,6 +19,42 @@ export interface SearchQueryAST {
   excludedTerms: string[];    // terms prefixed with -
   excludedPhrases: string[];  // phrases prefixed with -"..."
   orGroups: string[][];       // terms joined by OR / |
+  minEnergy?: number;         // energy:>0.8 or energy:high
+  maxEnergy?: number;         // energy:<0.3 or energy:low
+  minPacingWps?: number;      // pace:>4 or pace:fast
+}
+
+/**
+ * Computes conversational energy and speech pacing from utterance text and boundaries.
+ */
+export function computeSegmentEnergy(
+  text: string,
+  startSec?: number,
+  endSec?: number
+): { energyScore: number; pacingWps: number } {
+  if (!text) return { energyScore: 0.5, pacingWps: 2.5 };
+
+  const duration = typeof startSec === 'number' && typeof endSec === 'number' && endSec > startSec
+    ? (endSec - startSec)
+    : 0;
+
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+
+  const pacingWps = duration > 0.5 ? Number((wordCount / duration).toFixed(2)) : 2.5;
+
+  const exclamations = (text.match(/!/g) || []).length;
+  const questions = (text.match(/\?/g) || []).length;
+  const uppercaseWords = words.filter(w => w.length >= 2 && w === w.toUpperCase() && /[A-Z]/.test(w)).length;
+  const intensifiers = (text.match(/\b(?:fucking|totally|absolutely|insane|ridiculous|unbelievable|completely|literally|screaming|shouting|crazy|explosive)\b/gi) || []).length;
+
+  const pacingScore = Math.min(1.0, Math.max(0.1, (pacingWps - 1.0) / 3.2));
+  const lexicalScore = Math.min(1.0, (exclamations * 0.25) + (uppercaseWords * 0.15) + (intensifiers * 0.20) + (questions * 0.05));
+
+  const composite = Number((0.55 * pacingScore + 0.45 * lexicalScore).toFixed(2));
+  const energyScore = Math.min(1.0, Math.max(0.05, composite));
+
+  return { energyScore, pacingWps };
 }
 
 export function escapeRegex(str: string): string {
@@ -97,10 +133,23 @@ export function parseGoogleQuery(query: string): SearchQueryAST {
     if (match[1].trim()) ast.exactPhrases.push(match[1].trim().toLowerCase());
   }
 
-  // Strip all quoted expressions to parse remaining terms
+  // 3. Extract energy & pacing modifiers
+  const energyMinMatch = trimmed.match(/\benergy:\s*>\s*([0-9.]+)/i);
+  if (energyMinMatch) ast.minEnergy = parseFloat(energyMinMatch[1]);
+
+  const energyMaxMatch = trimmed.match(/\benergy:\s*<\s*([0-9.]+)/i);
+  if (energyMaxMatch) ast.maxEnergy = parseFloat(energyMaxMatch[1]);
+
+  if (/\benergy:\s*high\b/i.test(trimmed)) ast.minEnergy = 0.75;
+  if (/\benergy:\s*low\b/i.test(trimmed)) ast.maxEnergy = 0.35;
+  if (/\bpace:\s*fast\b/i.test(trimmed)) ast.minPacingWps = 3.8;
+
+  // Strip all quoted expressions and energy/pace modifiers to parse remaining terms
   const unquoted = trimmed
     .replace(/-"[^"]+"/g, ' ')
     .replace(/"[^"]+"/g, ' ')
+    .replace(/\benergy:\s*(?:>[0-9.]+|>\s*[0-9.]+|(?<!>)[0-9.]+|high|low)\b/gi, ' ')
+    .replace(/\bpace:\s*(?:fast|slow|[0-9.]+)\b/gi, ' ')
     .trim();
 
   // 3. Handle OR groups: term1 OR term2 or term1 | term2
@@ -133,11 +182,29 @@ export function hasActiveQuery(ast: SearchQueryAST): boolean {
     ast.mustTerms.length > 0 ||
     ast.excludedTerms.length > 0 ||
     ast.excludedPhrases.length > 0 ||
-    ast.orGroups.length > 0
+    ast.orGroups.length > 0 ||
+    ast.minEnergy !== undefined ||
+    ast.maxEnergy !== undefined ||
+    ast.minPacingWps !== undefined
   );
 }
 
-export function evaluateTurnMatch(text: string, ast: SearchQueryAST): boolean {
+export function evaluateTurnMatch(
+  text: string,
+  ast: SearchQueryAST,
+  options?: { startSec?: number; endSec?: number; precomputedEnergy?: number }
+): boolean {
+  // Energy & pacing filtering if specified
+  if (ast.minEnergy !== undefined || ast.maxEnergy !== undefined || ast.minPacingWps !== undefined) {
+    const { energyScore, pacingWps } = options?.precomputedEnergy !== undefined
+      ? { energyScore: options.precomputedEnergy, pacingWps: 2.5 }
+      : computeSegmentEnergy(text, options?.startSec, options?.endSec);
+
+    if (ast.minEnergy !== undefined && energyScore < ast.minEnergy) return false;
+    if (ast.maxEnergy !== undefined && energyScore > ast.maxEnergy) return false;
+    if (ast.minPacingWps !== undefined && pacingWps < ast.minPacingWps) return false;
+  }
+
   const normalizedText = text.toLowerCase();
 
   // 1. Exclusions check (Fail immediately if any excluded term is present)

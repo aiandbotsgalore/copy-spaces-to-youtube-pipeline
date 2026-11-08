@@ -42,7 +42,8 @@ import {
   validateRefine,
 } from '../utils/directorValidate';
 import type { CopilotAction, CopilotContextPayload, CopilotRequestBody, InspectedRunEvidence } from '../utils/copilotTypes';
-import { getWorkflowRuns, inspectRunFailure } from '../utils/github';
+import { getWorkflowRuns, inspectRunFailure, getReleases } from '../utils/github';
+import { diffTranscriptGaps, enqueueMissingTranscripts } from './transcriptGapService';
 import { buildCopilotSystemPrompt, extractCopilotActions } from './copilotPrompt';
 import { sanitizeCopilotText } from '../utils/copilotText';
 import {
@@ -638,13 +639,17 @@ const COPILOT_TOOLS = [
     type: 'function',
     function: {
       name: 'get_run_jobs',
-      description: 'Inspect the detailed jobs, steps, and failure log excerpts of a specific GitHub Actions workflow run.',
+      description: 'Inspect the detailed jobs, steps, and failure log excerpts of one or more GitHub Actions workflow runs concurrently.',
       parameters: {
         type: 'object',
         properties: {
           runId: { type: 'number', description: 'The numeric GitHub Actions workflow run ID to inspect' },
+          runIds: {
+            type: 'array',
+            items: { type: 'number' },
+            description: 'List of numeric workflow run IDs to inspect concurrently in batch'
+          },
         },
-        required: ['runId'],
       },
     },
   },
@@ -657,6 +662,44 @@ const COPILOT_TOOLS = [
         type: 'object',
         properties: {
           queue: { type: 'string', enum: ['space_queue.txt', 'batch_queue.txt', 'all'] },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_voice_profiles',
+      description: 'Fetch the live voice profile library, enrolled speakers, sample counts, and neural embeddings.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_transcript_gaps',
+      description: 'Audit GitHub repository releases against local/published transcripts to identify untranscribed episodes.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Maximum number of missing episodes to return in sample (default 10)' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'dispatch_transcript_backfill',
+      description: 'Enqueue untranscribed episodes into batch_queue.txt for automated background transcription.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Number of missing episodes to enqueue (default 5, max 20)' },
+          tags: { type: 'array', items: { type: 'string' }, description: 'Specific release tags to enqueue' },
         },
       },
     },
@@ -745,12 +788,15 @@ async function executeGetRunHistoryTool(
       runNumber: (r as any).run_number,
     }));
     const failedInWindow = sample.filter(r => r.conclusion === 'failure').length;
-    const totalFailedOverall = allRuns.filter(r => r.conclusion === 'failure').length;
+    const allFailedRuns = allRuns.filter(r => r.conclusion === 'failure');
+    const totalFailedOverall = allFailedRuns.length;
+    const allFailedRunIds = allFailedRuns.map(r => r.id).slice(0, 10);
     const resultData = {
       totalReturned: sample.length,
       windowLimit: limit,
       failedInWindow,
       totalFailedOverall,
+      allFailedRunIds,
       filter: status,
       repo: `${owner}/${repo}`,
       runs: sample,
@@ -761,7 +807,7 @@ async function executeGetRunHistoryTool(
         id: `act_runs_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         action: 'GET_RUN_HISTORY',
         params: { limit, status },
-        explanation: `Fetched ${sample.length} recent workflow runs for ${owner}/${repo}`,
+        explanation: `Fetched ${sample.length} recent workflow runs for ${owner}/${repo} (${failedInWindow} failed in window, ${totalFailedOverall} total failures)`,
         status: 'completed',
         resultData,
       },
@@ -788,71 +834,105 @@ async function executeGetRunHistoryTool(
 }
 
 async function executeGetRunJobsTool(
-  params: { runId: number },
+  params: { runId?: number | string; runIds?: Array<number | string> },
   ghToken: string,
   owner: string,
   repo: string,
   inspectedRuns: Record<number, InspectedRunEvidence>
 ): Promise<{ toolResult: Record<string, any>; action: CopilotAction }> {
-  const runId = Number(params.runId);
-  if (!runId) {
-    const resultData = { error: 'runId is required for GET_RUN_JOBS' };
+  const ids: number[] = [];
+  if (Array.isArray(params.runIds)) {
+    for (const r of params.runIds) {
+      const num = Number(r);
+      if (num && !ids.includes(num)) ids.push(num);
+    }
+  }
+  if (params.runId) {
+    const single = Number(params.runId);
+    if (single && !ids.includes(single)) ids.push(single);
+  }
+
+  if (ids.length === 0) {
+    const resultData = { error: 'runId or runIds is required for GET_RUN_JOBS' };
     return {
       toolResult: resultData,
       action: {
         id: `act_jobs_${Date.now()}_invalid`,
         action: 'GET_RUN_JOBS',
-        params: { runId },
-        explanation: 'Missing runId for job inspection',
+        params,
+        explanation: 'Missing runId or runIds for job inspection',
         status: 'failed',
-        errorMessage: 'runId is required',
+        errorMessage: 'runId or runIds is required',
         resultData,
       },
     };
   }
+
+  // Cap batch size to 6 to stay well within GitHub API and context limits
+  const targetIds = ids.slice(0, 6);
+
   try {
-    const failureInfo = await inspectRunFailure(ghToken, owner, repo, runId);
-    inspectedRuns[runId] = {
-      runId,
-      name: `Run #${runId}`,
-      conclusion: 'failure',
-      failedJob: failureInfo.failedJobName,
-      failedStep: failureInfo.failedStepName,
-      errorExcerpt: failureInfo.errorExcerpt,
-      inspectedAt: new Date().toISOString(),
-      htmlUrl: `https://github.com/${owner}/${repo}/actions/runs/${runId}`,
-    };
+    const inspectionPromises = targetIds.map(async id => {
+      try {
+        const failureInfo = await inspectRunFailure(ghToken, owner, repo, id);
+        const evidence: InspectedRunEvidence = {
+          runId: id,
+          name: `Run #${id}`,
+          conclusion: 'failure',
+          failedJob: failureInfo.failedJobName,
+          failedStep: failureInfo.failedStepName,
+          errorExcerpt: failureInfo.errorExcerpt,
+          inspectedAt: new Date().toISOString(),
+          htmlUrl: `https://github.com/${owner}/${repo}/actions/runs/${id}`,
+        };
+        inspectedRuns[id] = evidence;
+        return {
+          runId: id,
+          ok: true,
+          failedJob: failureInfo.failedJobName || 'unknown',
+          failedStep: failureInfo.failedStepName || 'unknown',
+          errorExcerpt: failureInfo.errorExcerpt || 'No error log excerpt available.',
+        };
+      } catch (err: any) {
+        return {
+          runId: id,
+          ok: false,
+          error: err?.message || 'Failed to inspect job',
+        };
+      }
+    });
+
+    const settled = await Promise.all(inspectionPromises);
     const resultData = {
-      runId,
+      inspectedCount: settled.length,
       repo: `${owner}/${repo}`,
-      failedJob: failureInfo.failedJobName || 'unknown',
-      failedStep: failureInfo.failedStepName || 'unknown',
-      errorExcerpt: failureInfo.errorExcerpt || 'No error log excerpt available.',
+      runs: settled,
     };
+
     return {
       toolResult: resultData,
       action: {
-        id: `act_jobs_${Date.now()}_${runId}`,
+        id: `act_jobs_${Date.now()}_${targetIds.join('_')}`,
         action: 'GET_RUN_JOBS',
-        params: { runId },
-        explanation: `Inspected failure logs for run #${runId}`,
+        params: { runId: targetIds[0], runIds: targetIds },
+        explanation: `Inspected failure logs for ${targetIds.length} workflow run(s): ${targetIds.map(id => `#${id}`).join(', ')}`,
         status: 'completed',
         resultData,
       },
     };
   } catch (err: any) {
     const resultData = {
-      runId,
+      runs: targetIds,
       repo: `${owner}/${repo}`,
-      error: err?.message || `Failed to inspect jobs for run #${runId}`,
+      error: err?.message || `Failed to inspect runs: ${targetIds.join(', ')}`,
     };
     return {
       toolResult: resultData,
       action: {
-        id: `act_jobs_${Date.now()}_${runId}`,
+        id: `act_jobs_${Date.now()}_err`,
         action: 'GET_RUN_JOBS',
-        params: { runId },
-        explanation: `Failed to inspect jobs for run #${runId}: ${err?.message}`,
+        params,
+        explanation: `Failed to inspect jobs: ${err?.message}`,
         status: 'failed',
         errorMessage: err?.message,
         resultData,
@@ -889,6 +969,156 @@ function executeGetQueueTool(params: { queue?: string }): { toolResult: Record<s
   };
 }
 
+function executeGetVoiceProfilesTool(): { toolResult: Record<string, any>; action: CopilotAction } {
+  let catalog: Record<string, any> = { total: 0, enrolled: 0, pending: 0, speakers: [] };
+  try {
+    const vpFile = path.resolve(process.cwd(), 'voice_profiles.json');
+    if (fs.existsSync(vpFile)) {
+      const parsed = JSON.parse(fs.readFileSync(vpFile, 'utf8'));
+      const rawProfiles = parsed?.profiles;
+      const list: any[] = Array.isArray(rawProfiles)
+        ? rawProfiles
+        : (rawProfiles && typeof rawProfiles === 'object')
+          ? Object.values(rawProfiles)
+          : Array.isArray(parsed)
+            ? parsed
+            : [];
+
+      const speakers = list.map((p: any) => {
+        const hasEmb = Array.isArray(p.embedding) && p.embedding.length > 0;
+        const sampleCount = p.sample_count || p.samples?.length || 0;
+        const isEnrolled = hasEmb || p.status === 'enrolled' || p.enrolled === true || sampleCount > 0;
+        return {
+          name: p.name || p.speaker_name,
+          role: p.role,
+          status: isEnrolled ? 'enrolled' : 'pending',
+          hasEmbedding: hasEmb,
+          sampleCount,
+        };
+      });
+
+      catalog = {
+        total: list.length,
+        enrolled: speakers.filter(s => s.status === 'enrolled').length,
+        pending: speakers.filter(s => s.status === 'pending').length,
+        speakers,
+      };
+    }
+  } catch (err: any) {
+    catalog.error = err?.message || 'Failed to read voice_profiles.json';
+  }
+
+  const resultData = { voiceProfilesCatalog: catalog };
+  return {
+    toolResult: resultData,
+    action: {
+      id: `act_vp_${Date.now()}`,
+      action: 'GET_VOICE_PROFILES',
+      params: {},
+      explanation: `Fetched voice profile registry: ${catalog.enrolled} enrolled / ${catalog.total} total profiles`,
+      status: 'completed',
+      resultData,
+    },
+  };
+}
+
+async function executeGetTranscriptGapsTool(
+  params: { limit?: number },
+  ghToken: string,
+  owner: string,
+  repo: string
+): Promise<{ toolResult: Record<string, any>; action: CopilotAction }> {
+  const limit = typeof params?.limit === 'number' && params.limit > 0 ? Math.min(params.limit, 50) : 10;
+  try {
+    const releases = await getReleases(ghToken, owner, repo);
+    const gapReport = diffTranscriptGaps(releases as any);
+    const sample = gapReport.missingEpisodes.slice(0, limit);
+
+    const resultData = {
+      totalReleases: gapReport.totalReleases,
+      transcribedCount: gapReport.transcribedCount,
+      missingCount: gapReport.missingCount,
+      missingSample: sample,
+    };
+
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_gaps_${Date.now()}`,
+        action: 'GET_TRANSCRIPT_GAPS',
+        params: { limit },
+        explanation: `Audited transcript archive: ${gapReport.missingCount} untranscribed episodes identified`,
+        status: 'completed',
+        resultData,
+      },
+    };
+  } catch (err: any) {
+    const resultData = { error: err?.message || 'Failed to audit transcript gaps' };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_gaps_${Date.now()}_err`,
+        action: 'GET_TRANSCRIPT_GAPS',
+        params,
+        explanation: `Failed to audit transcript gaps: ${err?.message}`,
+        status: 'failed',
+        errorMessage: err?.message,
+        resultData,
+      },
+    };
+  }
+}
+
+async function executeDispatchTranscriptBackfillTool(
+  params: { limit?: number; tags?: string[] },
+  ghToken: string,
+  owner: string,
+  repo: string
+): Promise<{ toolResult: Record<string, any>; action: CopilotAction }> {
+  try {
+    let tagsToEnqueue = params?.tags || [];
+    if (!tagsToEnqueue.length) {
+      const releases = await getReleases(ghToken, owner, repo);
+      const gapReport = diffTranscriptGaps(releases as any);
+      const limit = typeof params?.limit === 'number' && params.limit > 0 ? Math.min(params.limit, 20) : 5;
+      tagsToEnqueue = gapReport.missingEpisodes.slice(0, limit).map(e => e.tag);
+    }
+
+    const res = enqueueMissingTranscripts(tagsToEnqueue);
+    const resultData = {
+      enqueuedCount: res.enqueued,
+      totalInQueue: res.totalInQueue,
+      enqueuedTags: tagsToEnqueue,
+    };
+
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_backfill_${Date.now()}`,
+        action: 'DISPATCH_TRANSCRIPT_BACKFILL',
+        params: { count: tagsToEnqueue.length, tags: tagsToEnqueue },
+        explanation: `Enqueued ${res.enqueued} untranscribed episodes into batch_queue.txt (${res.totalInQueue} total in queue)`,
+        status: 'completed',
+        resultData,
+      },
+    };
+  } catch (err: any) {
+    const resultData = { error: err?.message || 'Failed to enqueue backfill episodes' };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_backfill_${Date.now()}_err`,
+        action: 'DISPATCH_TRANSCRIPT_BACKFILL',
+        params,
+        explanation: `Failed to enqueue backfill episodes: ${err?.message}`,
+        status: 'failed',
+        errorMessage: err?.message,
+        resultData,
+      },
+    };
+  }
+}
+
 async function runCopilot(
   req: CopilotRequestBody,
   gw: Omit<GatewayParams, 'messages' | 'schemaName' | 'schema' | 'temperature'>,
@@ -911,16 +1141,33 @@ async function runCopilot(
     const vpFile = path.resolve(process.cwd(), 'voice_profiles.json');
     if (fs.existsSync(vpFile)) {
       const parsed = JSON.parse(fs.readFileSync(vpFile, 'utf8'));
-      const list = Array.isArray(parsed?.profiles) ? parsed.profiles : Array.isArray(parsed) ? parsed : [];
+      const rawProfiles = parsed?.profiles;
+      const list: any[] = Array.isArray(rawProfiles)
+        ? rawProfiles
+        : (rawProfiles && typeof rawProfiles === 'object')
+          ? Object.values(rawProfiles)
+          : Array.isArray(parsed)
+            ? parsed
+            : [];
+
+      const speakers = list.map((p: any) => {
+        const hasEmb = Array.isArray(p.embedding) && p.embedding.length > 0;
+        const sampleCount = p.sample_count || p.samples?.length || 0;
+        const isEnrolled = hasEmb || p.status === 'enrolled' || p.enrolled === true || sampleCount > 0;
+        return {
+          name: p.name || p.speaker_name,
+          role: p.role,
+          status: isEnrolled ? 'enrolled' : 'pending',
+          hasEmbedding: hasEmb,
+          sampleCount,
+        };
+      });
+
       vpCatalog = {
         total: list.length,
-        enrolled: list.filter((p: any) => p.status === 'enrolled' || p.enrolled === true).length,
-        pending: list.filter((p: any) => p.status === 'pending' || !p.enrolled).length,
-        speakers: list.map((p: any) => ({
-          name: p.name || p.speaker_name,
-          status: p.status || (p.enrolled ? 'enrolled' : 'pending'),
-          sampleCount: p.sample_count || p.samples?.length || 0,
-        })),
+        enrolled: speakers.filter(s => s.status === 'enrolled').length,
+        pending: speakers.filter(s => s.status === 'pending').length,
+        speakers,
       };
     }
   } catch {
@@ -1062,7 +1309,9 @@ async function runCopilot(
       a.action === 'SEARCH_TRANSCRIPTS' ||
       a.action === 'GET_RUN_HISTORY' ||
       a.action === 'GET_RUN_JOBS' ||
-      a.action === 'GET_QUEUE'
+      a.action === 'GET_QUEUE' ||
+      a.action === 'GET_VOICE_PROFILES' ||
+      a.action === 'GET_TRANSCRIPT_GAPS'
     );
 
     const wantsToolExecution = (hasNativeToolCalls || readOnlyTextActions.length > 0) && (toolRoundsExecuted < MAX_TOOL_ROUNDS);
@@ -1121,6 +1370,33 @@ async function runCopilot(
               name: fnName,
               content: JSON.stringify(res.toolResult),
             });
+          } else if (fnName === 'get_voice_profiles') {
+            const res = executeGetVoiceProfilesTool();
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else if (fnName === 'get_transcript_gaps') {
+            const res = await executeGetTranscriptGapsTool(parsedArgs, ghToken, owner, repo);
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else if (fnName === 'dispatch_transcript_backfill') {
+            const res = await executeDispatchTranscriptBackfillTool(parsedArgs, ghToken, owner, repo);
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
           } else {
             turnMessages.push({
               role: 'tool',
@@ -1150,17 +1426,28 @@ async function runCopilot(
           } else if (act.action === 'GET_RUN_JOBS') {
             const res = await executeGetRunJobsTool(act.params as any, ghToken, owner, repo, accumulatedInspectedRuns);
             executedActions.push(res.action);
-            observationBlocks.push(`[TOOL RESULT: GET_RUN_JOBS (Run #${act.params?.runId})]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+            const inspectedLabel = Array.isArray(act.params?.runIds)
+              ? act.params.runIds.map(id => `#${id}`).join(', ')
+              : `#${act.params?.runId}`;
+            observationBlocks.push(`[TOOL RESULT: GET_RUN_JOBS (${inspectedLabel})]:\n${JSON.stringify(res.toolResult, null, 2)}`);
           } else if (act.action === 'GET_QUEUE') {
             const res = executeGetQueueTool(act.params || {});
             executedActions.push(res.action);
             observationBlocks.push(`[TOOL RESULT: GET_QUEUE]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+          } else if (act.action === 'GET_VOICE_PROFILES') {
+            const res = executeGetVoiceProfilesTool();
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: GET_VOICE_PROFILES (${res.toolResult.voiceProfilesCatalog?.enrolled || 0} enrolled / ${res.toolResult.voiceProfilesCatalog?.total || 0} total)]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+          } else if (act.action === 'GET_TRANSCRIPT_GAPS') {
+            const res = await executeGetTranscriptGapsTool(act.params || {}, ghToken, owner, repo);
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: GET_TRANSCRIPT_GAPS (${res.toolResult.missingCount || 0} untranscribed episodes)]:\n${JSON.stringify(res.toolResult, null, 2)}`);
           }
         }
 
         turnMessages.push({
           role: 'user',
-          content: `${observationBlocks.join('\n\n')}\n\n[SYSTEM INSTRUCTION: Telemetry and tool results are above. Formulate your complete, evidence-backed answer immediately. Do NOT output placeholder waiting messages.]`,
+          content: `[SYSTEM OBSERVATION & LIVE TELEMETRY RESULTS]:\n${observationBlocks.join('\n\n')}\n\n[DIRECTIVE: Use the live telemetry and failure excerpts above to formulate your final comprehensive, evidence-backed diagnosis immediately. Detail the exact failure reasons, step names, and errors for all inspected runs. Do NOT output placeholder waiting messages.]`,
         });
       }
 
@@ -1174,7 +1461,9 @@ async function runCopilot(
       a.action !== 'SEARCH_TRANSCRIPTS' &&
       a.action !== 'GET_RUN_HISTORY' &&
       a.action !== 'GET_RUN_JOBS' &&
-      a.action !== 'GET_QUEUE'
+      a.action !== 'GET_QUEUE' &&
+      a.action !== 'GET_VOICE_PROFILES' &&
+      a.action !== 'GET_TRANSCRIPT_GAPS'
     );
     const allActions = [...executedActions, ...mutationActions];
 
@@ -1198,7 +1487,9 @@ async function runCopilot(
     a.action !== 'SEARCH_TRANSCRIPTS' &&
     a.action !== 'GET_RUN_HISTORY' &&
     a.action !== 'GET_RUN_JOBS' &&
-    a.action !== 'GET_QUEUE'
+    a.action !== 'GET_QUEUE' &&
+    a.action !== 'GET_VOICE_PROFILES' &&
+    a.action !== 'GET_TRANSCRIPT_GAPS'
   );
   return {
     ok: true,

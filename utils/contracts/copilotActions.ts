@@ -263,6 +263,15 @@ export const RenderAvatarParamsSchema = z.object({
   avatarId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
 });
 
+export const GetTranscriptGapsParamsSchema = z.object({
+  limit: z.preprocess(v => (v !== undefined ? Number(v) : 10), z.number().int().positive().default(10)),
+});
+
+export const DispatchTranscriptBackfillParamsSchema = z.object({
+  limit: z.preprocess(v => (v !== undefined ? Number(v) : 5), z.number().int().positive().default(5)),
+  tags: z.array(z.string()).optional(),
+});
+
 /* -------------------------------------------------------------------------- */
 /* Action Schema Registry                                                     */
 /* -------------------------------------------------------------------------- */
@@ -294,6 +303,8 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   REFINE_PROJECT: RefineProjectParamsSchema,
   SYNTHESIZE_VOX: SynthesizeVoxParamsSchema,
   RENDER_AVATAR: RenderAvatarParamsSchema,
+  GET_TRANSCRIPT_GAPS: GetTranscriptGapsParamsSchema,
+  DISPATCH_TRANSCRIPT_BACKFILL: DispatchTranscriptBackfillParamsSchema,
 };
 
 /**

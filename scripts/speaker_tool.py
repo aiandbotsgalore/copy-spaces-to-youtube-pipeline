@@ -44,6 +44,10 @@ def main():
     p_relabel.add_argument("--from-speaker", required=True, help="Current speaker label to replace")
     p_relabel.add_argument("--to-speaker", required=True, help="New speaker label")
 
+    # scan-candidates
+    p_candidates = subparsers.add_parser("scan-candidates", help="Scan transcripts for recurring unassigned speaker clusters")
+    p_candidates.add_argument("--limit", type=int, default=0, help="Limit number of episode files scanned")
+
     args, unknown = parser.parse_known_args()
 
     if not args.command:
@@ -67,6 +71,12 @@ def main():
         cmd = [sys.executable, str(scripts_dir / "relabel_speakers.py"), "--from-speaker", args.from_speaker, "--to-speaker", args.to_speaker]
         if args.release_tag:
             cmd.extend(["--release-tag", args.release_tag])
+        cmd.extend(unknown)
+        sys.exit(subprocess.call(cmd))
+    elif args.command == "scan-candidates":
+        cmd = [sys.executable, str(scripts_dir / "scan_unassigned_clusters.py")]
+        if args.limit:
+            cmd.extend(["--limit", str(args.limit)])
         cmd.extend(unknown)
         sys.exit(subprocess.call(cmd))
 

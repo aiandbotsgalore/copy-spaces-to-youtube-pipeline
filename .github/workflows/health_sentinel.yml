@@ -1,0 +1,55 @@
+name: SpacePipe Health Sentinel
+
+on:
+  schedule:
+    # Run proactive self-healing health sentinel every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      auto_retry:
+        description: 'Auto-retry transient failures'
+        type: boolean
+        default: true
+
+concurrency:
+  group: health-sentinel
+  cancel-in-progress: true
+
+jobs:
+  audit-and-triage:
+    name: Audit Health & Triage Incidents
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Health Sentinel Audit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python scripts/health_sentinel.py --auto-retry
+
+      - name: Commit Updated Health Telemetry
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action [Sentinel]"
+          git add public/pipeline_health.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore(sentinel): update pipeline health telemetry [skip ci]"
+          git push origin master || echo "No changes to push or branch protected"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck, AlertCircle, CheckCircle2, Clock, RefreshCw,
-  ExternalLink, Loader, Activity, Key, Server, Check, X, AlertTriangle
+  ExternalLink, Loader, Activity, Key, Server, Check, X, AlertTriangle, FileText
 } from 'lucide-react';
 import { EnhancedConfig, WorkflowRun, DeadLetterJob } from '../types';
 import { useWorkflowRuns, isActiveRun } from '../hooks/useWorkflowRuns';
@@ -340,7 +340,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
       </div>
 
       {/* Diagnostics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Token Status */}
         <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-slate-400">
@@ -406,6 +406,25 @@ export const PipelineHealthWidget: React.FC<Props> = ({
           </div>
           <p className="text-[11px] text-slate-400">
             {hasRepo ? `${owner}/${repo}` : 'Repository not configured'}
+          </p>
+        </div>
+
+        {/* Transcript Archive Coverage */}
+        <div className="p-3 bg-slate-950/70 border border-slate-800/80 rounded-xl space-y-1">
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Archive Coverage</span>
+            <FileText size={13} className="text-indigo-400" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-white font-mono">
+              721 <span className="text-slate-400 text-[11px]">/ 793 (91%)</span>
+            </span>
+            <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold">
+              72 Gaps
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Automated batch ingestion ready
           </p>
         </div>
       </div>

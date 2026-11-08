@@ -96,4 +96,19 @@ Section 2`;
     expect(html).toContain('Critical Failure Analysis');
     expect(html).toContain('Space 1');
   });
+
+  it('renders combined timestamp audio links as single-arrow play buttons without raw URL text leakage', () => {
+    const markdown = `* Timestamp: [▶ 34:31](https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261013/audio.mp3)`;
+    const html = renderToString(React.createElement(CopilotMarkdown, { content: markdown }));
+
+    // Should have rendered the play button with 34:31
+    expect(html).toContain('34:31');
+    expect(html).toContain('<button');
+    expect(html).toContain('title="Play audio from 34:31"');
+    // Should NOT have rendered double play arrows
+    expect(html).not.toContain('▶ 34:31');
+    expect(html).not.toContain('▶ ▶');
+    // Should NOT have rendered the raw MP3 URL in paragraph text
+    expect(html).not.toContain('(https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261013/audio.mp3)');
+  });
 });

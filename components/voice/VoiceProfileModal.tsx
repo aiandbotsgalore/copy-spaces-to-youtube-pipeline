@@ -7,7 +7,7 @@ import { AudioPreCheckResult, ColorOption } from './types';
 
 interface VoiceProfileModalProps {
   isOpen: boolean;
-  modalMode: 'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | null;
+  modalMode: 'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | 'CANDIDATES' | null;
   targetProfile: VoiceProfile | null;
   formName: string;
   setFormName: (val: string) => void;

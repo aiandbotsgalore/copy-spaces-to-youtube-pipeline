@@ -54,6 +54,8 @@ export interface TranscriptSearchResult {
   sourceClassification?: 'primary_record' | 'derivative_material';
   contentNature?: 'verbatim_statement' | 'official_record' | 'unverified_allegation' | 'editorial_note';
   documentLocation?: DocumentLocation;
+  energyScore?: number;
+  pacingWps?: number;
 }
 
 export interface EpisodeSummaryItem {
@@ -81,6 +83,8 @@ export interface EmbeddingManifestSegment {
   sourceClassification?: 'primary_record' | 'derivative_material';
   contentNature?: 'verbatim_statement' | 'official_record' | 'unverified_allegation' | 'editorial_note';
   documentLocation?: DocumentLocation;
+  energyScore?: number;
+  pacingWps?: number;
 }
 
 export interface EmbeddingManifest {
@@ -1161,6 +1165,8 @@ export interface TranscriptMatch {
   source_classification?: string;
   content_nature?: string;
   document_location?: DocumentLocation;
+  energy_score?: number;
+  pacing_wps?: number;
 }
 
 export interface HandleSearchTranscriptsResult {

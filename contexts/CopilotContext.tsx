@@ -380,27 +380,12 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         // Auto-apply if enabled — STRICTLY restricted to Tier 0 or Tier 1 actions!
         // Tier 2 actions (enqueuing, workflows, GPU/paid generation, sensitive config)
         // ALWAYS require user confirmation, even with autoApply ON.
+        // Read-only actions (GET_*, SEARCH_TRANSCRIPTS) are resolved autonomously server-side.
         if (autoApply && enrichedActions.length > 0) {
           for (const action of enrichedActions) {
-            if (action.tier !== undefined && action.tier < 2 && action.action !== 'SEARCH_TRANSCRIPTS') {
-              const success = await applyAction(action, { triggerSource: 'auto_apply' });
-              // If an inspection query (GET_RUN_HISTORY, GET_QUEUE, etc.) was executed and returned data,
-              // automatically trigger the follow-up diagnosis so the user gets their complete answer!
-              if (success && action.action.startsWith('GET_') && !action.analyzed) {
-                action.analyzed = true;
-                setTimeout(() => {
-                  setMessages(currentMessages => {
-                    const latestAsst = currentMessages[currentMessages.length - 1];
-                    const targetAction = latestAsst?.actions?.find(a => a.id === action.id) || action;
-                    if (targetAction?.resultData) {
-                      sendMessage(
-                        `[ACTION RESULT TELEMETRY]: Action ${targetAction.action} executed.\nData payload:\n${JSON.stringify(targetAction.resultData, null, 2)}\n\nPlease analyze this live system data immediately, identify any errors or failures, and provide your full diagnosis and recommended fixes.`
-                      );
-                    }
-                    return currentMessages;
-                  });
-                }, 350);
-              }
+            const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_');
+            if (!isReadOnly && action.status !== 'completed' && action.tier !== undefined && action.tier < 2) {
+              await applyAction(action, { triggerSource: 'auto_apply' });
             }
           }
         }

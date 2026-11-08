@@ -15,6 +15,7 @@ import { CliEnrollmentGuideModal } from './voice/CliEnrollmentGuideModal';
 import { RawJsonViewerModal } from './voice/RawJsonViewerModal';
 import { PipelineArchitectureModal } from './voice/PipelineArchitectureModal';
 import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
+import { DiscoveredCandidatesModal, SpeakerCandidate } from './voice/DiscoveredCandidatesModal';
 import { AudioPreCheckResult } from './voice/types';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { AvatarCropModal } from './AvatarCropModal';
@@ -135,7 +136,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Modals
-  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | null>(null);
+  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | 'CANDIDATES' | null>(null);
   const [targetProfile, setTargetProfile] = useState<VoiceProfile | null>(null);
   const [audioPreCheck, setAudioPreCheck] = useState<AudioPreCheckResult | null>(null);
   const [inspectingAudio, setInspectingAudio] = useState(false);
@@ -1001,6 +1002,15 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             </button>
 
             <button
+              onClick={() => setModalMode('CANDIDATES')}
+              className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              title="Review recurring unassigned speakers discovered across archive transcripts"
+            >
+              <Users size={14} className="text-indigo-400" />
+              <span>Discovered Candidates</span>
+            </button>
+
+            <button
               onClick={() => setModalMode('SEPARATION_MATRIX')}
               className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
             >
@@ -1617,6 +1627,24 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         onClose={() => setModalMode(null)}
         stats={stats}
         confusionPairs={confusionPairs}
+      />
+
+      <DiscoveredCandidatesModal
+        isOpen={modalMode === 'CANDIDATES'}
+        onClose={() => setModalMode(null)}
+        onEnrollCandidate={(candidate) => {
+          setTargetProfile(null);
+          setFormName(candidate.suggested_name !== 'Unidentified Speaker' ? candidate.suggested_name : '');
+          setFormRole('Guest');
+          setFormColor('indigo');
+          setFormEmoji('🎙️');
+          setFormNotes(`Auto-discovered candidate from ${candidate.episode_count} episodes (${candidate.raw_speaker}).`);
+          setFormAudioUrl(candidate.sample_clips?.[0]?.audio_url || '');
+          setLocalAudioFile(null);
+          setLocalAudioPreviewUrl(null);
+          setAudioPreCheck(null);
+          setModalMode('CREATE');
+        }}
       />
     </div>
   );

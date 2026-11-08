@@ -341,13 +341,20 @@ export const AICopilotPanel: React.FC = () => {
                   <CopilotMarkdown
                     content={m.content}
                     onSeek={(sec) => player.seek(sec)}
-                    onPlay={(sec) => {
-                      const audioUrl = m.matches?.[0]?.audio_url || contextPayload.currentEpisode?.audioUrl;
+                    onPlay={(sec, meta) => {
+                      const matched = m.matches?.find(match =>
+                        meta?.audioUrl && match.audio_url === meta.audioUrl
+                      ) || m.matches?.[0];
+
+                      const audioUrl = meta?.audioUrl || matched?.audio_url || contextPayload.currentEpisode?.audioUrl;
+                      const title = meta?.episodeTitle || matched?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio';
+                      const id = meta?.episodeId || matched?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now();
+
                       if (audioUrl) {
                         player.play(
                           {
-                            id: m.matches?.[0]?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now(),
-                            title: m.matches?.[0]?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio',
+                            id,
+                            title,
                             audioUrl,
                           },
                           sec

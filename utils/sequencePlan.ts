@@ -90,3 +90,66 @@ export function formatClock(sec: number): string {
   const s = Math.max(0, Math.round(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
+
+export interface TensionScoredClip extends PlanClip {
+  id: string;
+  tensionScore?: number;
+  severity?: number;
+  quote?: string;
+  speaker?: string;
+}
+
+/**
+ * Arranges clips into a cinematic 4-Beat narrative tension arc:
+ * Beat 1: The Hook (Initial high impact statement, tension 8-10)
+ * Beat 2: The Context (Exposition / build-up, tension 4-6)
+ * Beat 3: The Climax (Peak emotional intensity / rants, tension 9-10)
+ * Beat 4: The Mic-Drop (Falling action / punchline outro, tension 6-7)
+ */
+export function sequenceBy4BeatTensionArc<T extends TensionScoredClip>(clips: T[]): T[] {
+  if (clips.length <= 2) return [...clips];
+
+  const getScore = (c: T): number => {
+    if (typeof c.tensionScore === 'number') return c.tensionScore;
+    if (typeof c.severity === 'number') return c.severity;
+    return 5;
+  };
+
+  const pool = [...clips];
+  pool.sort((a, b) => getScore(b) - getScore(a));
+
+  const result: T[] = [];
+  const used = new Set<string>();
+
+  // 1. Climax is the absolute peak tension in the pool
+  const climax = pool[0];
+  used.add(climax.id);
+
+  // 2. Hook is the opening grabber (high tension, distinct from climax)
+  const hook = pool.find(c => !used.has(c.id) && getScore(c) >= 7.5) || pool.find(c => !used.has(c.id)) || climax;
+  used.add(hook.id);
+  result.push(hook);
+
+  // 3. Outro is the closing resolution/punchline
+  const outro = pool.find(c => !used.has(c.id) && getScore(c) >= 5 && getScore(c) <= 7.5) || pool.find(c => !used.has(c.id));
+  if (outro) used.add(outro.id);
+
+  // 4. Context / Build-up clips sorted ascending to escalate toward the climax
+  const contextClips = pool.filter(c => !used.has(c.id));
+  contextClips.sort((a, b) => getScore(a) - getScore(b));
+  for (const c of contextClips) {
+    result.push(c);
+  }
+
+  // Insert Climax before Outro
+  if (climax.id !== hook.id) {
+    result.push(climax);
+  }
+
+  // Insert Outro last
+  if (outro && outro.id !== hook.id && outro.id !== climax.id) {
+    result.push(outro);
+  }
+
+  return result;
+}
