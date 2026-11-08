@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-08T11:56:25.800635+00:00",
+  "last_updated": "2026-11-08T14:02:42.846864+00:00",
   "total_episodes_with_audio": 841,
   "transcribed_count": 738,
   "untranscribed_count": 103,
@@ -84,7 +84,7 @@
     "20261005_1qxvvegyagBxB": {
       "attempts": 1,
       "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-11-08T11:49:04.047078+00:00"
+      "last_attempt": "2026-11-08T13:56:05.524933+00:00"
     }
   },
   "next_in_queue": [
