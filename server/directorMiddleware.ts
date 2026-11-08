@@ -41,7 +41,8 @@ import {
   validateGenerate,
   validateRefine,
 } from '../utils/directorValidate';
-import type { CopilotRequestBody } from '../utils/copilotTypes';
+import type { CopilotAction, CopilotContextPayload, CopilotRequestBody, InspectedRunEvidence } from '../utils/copilotTypes';
+import { getWorkflowRuns, inspectRunFailure } from '../utils/github';
 import { buildCopilotSystemPrompt, extractCopilotActions } from './copilotPrompt';
 import {
   searchTranscriptArchive,
@@ -618,11 +619,279 @@ const COPILOT_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_run_history',
+      description: 'Fetch recent GitHub Actions workflow runs to inspect and diagnose pipeline failures or check execution status.',
+      parameters: {
+        type: 'object',
+        properties: {
+          limit: { type: 'number', description: 'Number of recent runs to return (default: 10, max: 30)' },
+          status: { type: 'string', enum: ['all', 'failed', 'completed', 'active'], description: 'Filter by run status' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_run_jobs',
+      description: 'Inspect the detailed jobs, steps, and failure log excerpts of a specific GitHub Actions workflow run.',
+      parameters: {
+        type: 'object',
+        properties: {
+          runId: { type: 'number', description: 'The numeric GitHub Actions workflow run ID to inspect' },
+        },
+        required: ['runId'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_queue',
+      description: 'Inspect current items in batch_queue.txt or space_queue.txt awaiting automated ingest.',
+      parameters: {
+        type: 'object',
+        properties: {
+          queue: { type: 'string', enum: ['space_queue.txt', 'batch_queue.txt', 'all'] },
+        },
+      },
+    },
+  },
 ];
+
+async function executeSearchTranscriptsTool(
+  params: { query?: string; scope?: 'active_episode' | 'all_transcripts'; speaker_hint?: string; timestamp_sec?: number; mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank' },
+  enrichedContext: CopilotContextPayload,
+  searchIntent: any,
+  fetchImpl?: typeof fetch
+): Promise<{ toolResult: Record<string, any>; action: CopilotAction; matches: TranscriptMatch[] }> {
+  let query = (params.query || '').trim();
+  const scope: 'active_episode' | 'all_transcripts' = params.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
+  let speakerHint = params.speaker_hint;
+  let timestampSec = params.timestamp_sec;
+  let mode = params.mode;
+
+  if (!query && searchIntent?.query) {
+    query = searchIntent.query;
+  }
+  if (!speakerHint && searchIntent?.speaker) {
+    speakerHint = searchIntent.speaker;
+  }
+  if (timestampSec === undefined && searchIntent?.timestampSec !== undefined) {
+    timestampSec = searchIntent.timestampSec;
+  }
+
+  const activeEpTag = enrichedContext.currentEpisode?.releaseTag;
+  const searchRes = await handleSearchTranscripts({
+    query,
+    scope,
+    speaker_hint: speakerHint,
+    episodeTag: scope === 'active_episode' ? activeEpTag : undefined,
+    timestamp_sec: timestampSec,
+    activeSegments: enrichedContext.currentEpisode?.allSegments,
+    maxResults: 12,
+    mode,
+    fetchImpl,
+  });
+
+  const action: CopilotAction = {
+    id: `act_search_${Date.now()}`,
+    action: 'SEARCH_TRANSCRIPTS',
+    params: { query: searchRes.queryUsed, scope: searchRes.scopeUsed, speaker_hint: searchRes.speakerFilterApplied, timestamp_sec: timestampSec },
+    explanation: `Searched transcripts for "${searchRes.queryUsed || 'timestamp'}"`,
+    status: searchRes.matches.length > 0 ? 'completed' : 'no_matches',
+    matchCount: searchRes.matches.length,
+    resultData: { total_matches: searchRes.totalMatches, matches: searchRes.matches },
+  };
+
+  return {
+    toolResult: { total_matches: searchRes.totalMatches, matches: searchRes.matches },
+    action,
+    matches: searchRes.matches,
+  };
+}
+
+async function executeGetRunHistoryTool(
+  params: { limit?: number; status?: 'all' | 'failed' | 'completed' | 'active' },
+  ghToken: string,
+  owner: string,
+  repo: string
+): Promise<{ toolResult: Record<string, any>; action: CopilotAction }> {
+  const limit = typeof params.limit === 'number' && params.limit > 0 ? Math.min(params.limit, 30) : 10;
+  const status = params.status || 'all';
+  try {
+    const allRuns = await getWorkflowRuns(ghToken, owner, repo);
+    let filtered = allRuns;
+    if (status === 'active') {
+      filtered = allRuns.filter(r => r.status === 'in_progress' || r.status === 'queued');
+    } else if (status === 'failed') {
+      filtered = allRuns.filter(r => r.conclusion === 'failure');
+    } else if (status === 'completed') {
+      filtered = allRuns.filter(r => r.status === 'completed');
+    }
+    const sample = filtered.slice(0, limit).map(r => ({
+      id: r.id,
+      name: r.name,
+      status: r.status,
+      conclusion: r.conclusion,
+      createdAt: r.created_at,
+      htmlUrl: r.html_url,
+      headBranch: (r as any).head_branch || 'master',
+      event: (r as any).event || 'push',
+      runNumber: (r as any).run_number,
+    }));
+    const failedInWindow = sample.filter(r => r.conclusion === 'failure').length;
+    const totalFailedOverall = allRuns.filter(r => r.conclusion === 'failure').length;
+    const resultData = {
+      totalReturned: sample.length,
+      windowLimit: limit,
+      failedInWindow,
+      totalFailedOverall,
+      filter: status,
+      repo: `${owner}/${repo}`,
+      runs: sample,
+    };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_runs_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        action: 'GET_RUN_HISTORY',
+        params: { limit, status },
+        explanation: `Fetched ${sample.length} recent workflow runs for ${owner}/${repo}`,
+        status: 'completed',
+        resultData,
+      },
+    };
+  } catch (err: any) {
+    const resultData = {
+      error: err?.message || 'Failed to fetch workflow runs',
+      repo: `${owner}/${repo}`,
+      runs: [],
+    };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_runs_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        action: 'GET_RUN_HISTORY',
+        params: { limit, status },
+        explanation: `Failed to fetch workflow runs: ${err?.message}`,
+        status: 'failed',
+        errorMessage: err?.message,
+        resultData,
+      },
+    };
+  }
+}
+
+async function executeGetRunJobsTool(
+  params: { runId: number },
+  ghToken: string,
+  owner: string,
+  repo: string,
+  inspectedRuns: Record<number, InspectedRunEvidence>
+): Promise<{ toolResult: Record<string, any>; action: CopilotAction }> {
+  const runId = Number(params.runId);
+  if (!runId) {
+    const resultData = { error: 'runId is required for GET_RUN_JOBS' };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_jobs_${Date.now()}_invalid`,
+        action: 'GET_RUN_JOBS',
+        params: { runId },
+        explanation: 'Missing runId for job inspection',
+        status: 'failed',
+        errorMessage: 'runId is required',
+        resultData,
+      },
+    };
+  }
+  try {
+    const failureInfo = await inspectRunFailure(ghToken, owner, repo, runId);
+    inspectedRuns[runId] = {
+      runId,
+      name: `Run #${runId}`,
+      conclusion: 'failure',
+      failedJob: failureInfo.failedJobName,
+      failedStep: failureInfo.failedStepName,
+      errorExcerpt: failureInfo.errorExcerpt,
+      inspectedAt: new Date().toISOString(),
+      htmlUrl: `https://github.com/${owner}/${repo}/actions/runs/${runId}`,
+    };
+    const resultData = {
+      runId,
+      repo: `${owner}/${repo}`,
+      failedJob: failureInfo.failedJobName || 'unknown',
+      failedStep: failureInfo.failedStepName || 'unknown',
+      errorExcerpt: failureInfo.errorExcerpt || 'No error log excerpt available.',
+    };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_jobs_${Date.now()}_${runId}`,
+        action: 'GET_RUN_JOBS',
+        params: { runId },
+        explanation: `Inspected failure logs for run #${runId}`,
+        status: 'completed',
+        resultData,
+      },
+    };
+  } catch (err: any) {
+    const resultData = {
+      runId,
+      repo: `${owner}/${repo}`,
+      error: err?.message || `Failed to inspect jobs for run #${runId}`,
+    };
+    return {
+      toolResult: resultData,
+      action: {
+        id: `act_jobs_${Date.now()}_${runId}`,
+        action: 'GET_RUN_JOBS',
+        params: { runId },
+        explanation: `Failed to inspect jobs for run #${runId}: ${err?.message}`,
+        status: 'failed',
+        errorMessage: err?.message,
+        resultData,
+      },
+    };
+  }
+}
+
+function executeGetQueueTool(params: { queue?: string }): { toolResult: Record<string, any>; action: CopilotAction } {
+  const queues: Record<string, string[]> = {};
+  try {
+    const sqPath = path.resolve(process.cwd(), 'space_queue.txt');
+    const bqPath = path.resolve(process.cwd(), 'batch_queue.txt');
+    queues['space_queue.txt'] = fs.existsSync(sqPath)
+      ? fs.readFileSync(sqPath, 'utf8').split('\n').map(l => l.trim()).filter(l => Boolean(l) && !l.startsWith('#'))
+      : [];
+    queues['batch_queue.txt'] = fs.existsSync(bqPath)
+      ? fs.readFileSync(bqPath, 'utf8').split('\n').map(l => l.trim()).filter(l => Boolean(l) && !l.startsWith('#'))
+      : [];
+  } catch (err: any) {
+    queues['error'] = [err?.message || 'Could not read queue files'];
+  }
+  const resultData = { queues };
+  return {
+    toolResult: resultData,
+    action: {
+      id: `act_queue_${Date.now()}`,
+      action: 'GET_QUEUE',
+      params: { queue: params.queue || 'all' },
+      explanation: 'Inspected local space queues',
+      status: 'completed',
+      resultData,
+    },
+  };
+}
 
 async function runCopilot(
   req: CopilotRequestBody,
-  gw: Omit<GatewayParams, 'messages' | 'schemaName' | 'schema' | 'temperature'>
+  gw: Omit<GatewayParams, 'messages' | 'schemaName' | 'schema' | 'temperature'>,
+  extra?: { env?: DirectorEnv; githubToken?: string }
 ): Promise<{ ok: true; body: Record<string, unknown> } | { ok: false; code: DirectorErrorCode; message: string; retryAfterSec?: number }> {
   const started = Date.now();
 
@@ -657,8 +926,22 @@ async function runCopilot(
     // ignore
   }
 
-  const enrichedContext = {
+  const env = extra?.env || {};
+  const ghToken = (extra?.githubToken || rawContext.githubToken || '').trim() ||
+    (env.GITHUB_TOKEN || env.GH_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+  const owner = (rawContext.ownerName || (rawContext.configSummary as any)?.ownerName || (rawContext.configSummary as any)?.githubOwner || env.GITHUB_OWNER || 'aiandbotsgalore').trim();
+  const repo = (rawContext.repoName || (rawContext.configSummary as any)?.repoName || (rawContext.configSummary as any)?.githubRepo || env.GITHUB_REPO || 'copy-spaces-to-youtube-pipeline').trim();
+
+  const accumulatedInspectedRuns: Record<number, InspectedRunEvidence> = {
+    ...(rawContext.inspectedRuns || {}),
+  };
+
+  const enrichedContext: CopilotContextPayload = {
     ...rawContext,
+    githubToken: ghToken,
+    ownerName: owner,
+    repoName: repo,
+    inspectedRuns: accumulatedInspectedRuns,
     archiveStats: {
       ...getArchiveStats(),
       ...(vpCatalog ? { voiceProfilesCatalog: vpCatalog } : {}),
@@ -691,6 +974,11 @@ async function runCopilot(
           matchType: (m.match_type as any) || 'hybrid',
           relevantSpans: m.relevant_spans,
           dialogueWindow: m.dialogue_window,
+          chunkId: m.chunk_id,
+          sourceType: m.source_type,
+          sourceClassification: m.source_classification,
+          contentNature: m.content_nature,
+          documentLocation: m.document_location,
         }));
       }
     } catch (searchErr) {
@@ -718,11 +1006,11 @@ async function runCopilot(
 
   let totalUsage: DirectorUsage = { promptTokens: 0, completionTokens: 0 };
   let executedMatches: TranscriptMatch[] = [];
-  let searchActionExecuted: any = null;
+  const executedActions: CopilotAction[] = [];
   let lastModel = req.model || gw.model;
+  let lastOutcomeText = '';
 
   const isActionBlockModel = /claude|mercury/i.test(lastModel);
-  const toolsToPass = isActionBlockModel ? undefined : COPILOT_TOOLS;
 
   if (enrichedContext.transcriptSearchResults?.length) {
     executedMatches = enrichedContext.transcriptSearchResults.map(r => ({
@@ -730,7 +1018,7 @@ async function runCopilot(
       episode_title: r.episodeTitle,
       start_timestamp: r.startSec,
       end_timestamp: r.endSec,
-      formatted_time: `${Math.floor(r.startSec / 60)}:${Math.floor(r.startSec % 60).toString().padStart(2, '0')}`,
+      formatted_time: r.documentLocation?.displayText || `${Math.floor(r.startSec / 60)}:${Math.floor(r.startSec % 60).toString().padStart(2, '0')}`,
       speaker: r.speaker,
       snippet: r.text,
       audio_url: r.audioUrl,
@@ -738,15 +1026,26 @@ async function runCopilot(
       match_type: r.matchType,
       relevant_spans: r.relevantSpans,
       dialogue_window: (r as any).dialogueWindow,
+      chunk_id: r.chunkId,
+      source_type: r.sourceType,
+      source_classification: r.sourceClassification,
+      content_nature: r.contentNature,
+      document_location: r.documentLocation,
     }));
   }
 
-  const MAX_TOOL_TURNS = 3;
-  for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
+  const MAX_TOOL_ROUNDS = 2;
+  const MAX_MODEL_CALLS = 3;
+  let toolRoundsExecuted = 0;
+
+  for (let modelCall = 0; modelCall < MAX_MODEL_CALLS; modelCall++) {
+    const isFinalSynthesisCall = toolRoundsExecuted >= MAX_TOOL_ROUNDS || modelCall === MAX_MODEL_CALLS - 1;
+    const activeTools = isFinalSynthesisCall || isActionBlockModel ? undefined : COPILOT_TOOLS;
+
     const outcome = await callGateway({
       ...gw,
       messages: turnMessages,
-      tools: toolsToPass,
+      tools: activeTools,
       temperature: 0.4,
     });
 
@@ -754,100 +1053,129 @@ async function runCopilot(
 
     totalUsage = addUsage(totalUsage, outcome.usage);
     lastModel = outcome.model;
+    lastOutcomeText = outcome.text || '';
 
-    const nativeToolCall = outcome.tool_calls?.find(t => t.function?.name === 'search_transcripts');
-    const textActions = extractCopilotActions(outcome.text);
-    const textSearchAction = textActions.actions.find(a => a.action === 'SEARCH_TRANSCRIPTS');
+    const hasNativeToolCalls = Array.isArray(outcome.tool_calls) && outcome.tool_calls.length > 0;
+    const textExtracted = extractCopilotActions(outcome.text);
+    const readOnlyTextActions = textExtracted.actions.filter(a =>
+      a.action === 'SEARCH_TRANSCRIPTS' ||
+      a.action === 'GET_RUN_HISTORY' ||
+      a.action === 'GET_RUN_JOBS' ||
+      a.action === 'GET_QUEUE'
+    );
 
-    if (nativeToolCall || textSearchAction) {
-      let query = '';
-      let scope: 'active_episode' | 'all_transcripts' = 'all_transcripts';
-      let speakerHint: string | undefined;
-      let timestampSec: number | undefined;
-      let mode: 'hybrid' | 'lexical' | 'vector' | 'rerank' | undefined;
+    const wantsToolExecution = (hasNativeToolCalls || readOnlyTextActions.length > 0) && (toolRoundsExecuted < MAX_TOOL_ROUNDS);
 
-      if (nativeToolCall) {
-        try {
-          const parsed = JSON.parse(nativeToolCall.function.arguments || '{}');
-          query = parsed.query || '';
-          scope = parsed.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
-          speakerHint = parsed.speaker_hint || parsed.speaker;
-          timestampSec = parsed.timestamp_sec ?? parsed.timestampSec ?? searchIntent.timestampSec;
-          mode = parsed.mode;
-        } catch {
-          query = '';
-        }
-      } else if (textSearchAction) {
-        query = textSearchAction.params?.query || '';
-        scope = textSearchAction.params?.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
-        speakerHint = textSearchAction.params?.speaker_hint || textSearchAction.params?.speaker;
-        timestampSec = textSearchAction.params?.timestamp_sec ?? textSearchAction.params?.timestampSec ?? searchIntent.timestampSec;
-        mode = textSearchAction.params?.mode;
-      }
-
-      if (!query && searchIntent.query) {
-        query = searchIntent.query;
-      }
-      if (timestampSec === undefined && searchIntent.timestampSec !== undefined) {
-        timestampSec = searchIntent.timestampSec;
-      }
-
-      const activeEpTag = enrichedContext.currentEpisode?.releaseTag;
-      const searchRes = await handleSearchTranscripts({
-        query,
-        scope,
-        speaker_hint: speakerHint,
-        episodeTag: scope === 'active_episode' ? activeEpTag : undefined,
-        timestamp_sec: timestampSec,
-        activeSegments: enrichedContext.currentEpisode?.allSegments,
-        maxResults: 12,
-        mode,
-        fetchImpl: gw.fetchImpl,
-      });
-
-      executedMatches = searchRes.matches;
-      searchActionExecuted = {
-        id: `act_search_${Date.now()}`,
-        action: 'SEARCH_TRANSCRIPTS',
-        params: { query: searchRes.queryUsed, scope: searchRes.scopeUsed, speaker_hint: searchRes.speakerFilterApplied, timestamp_sec: timestampSec },
-        explanation: `Searched transcripts for "${searchRes.queryUsed || 'timestamp'}"`,
-        status: searchRes.matches.length > 0 ? 'completed' : 'no_matches',
-        matchCount: searchRes.matches.length,
-      };
-
-      if (nativeToolCall) {
+    if (wantsToolExecution) {
+      if (hasNativeToolCalls && outcome.tool_calls) {
         turnMessages.push({
           role: 'assistant',
           content: outcome.text || null,
           tool_calls: outcome.tool_calls,
         });
-        turnMessages.push({
-          role: 'tool',
-          tool_call_id: nativeToolCall.id,
-          name: 'search_transcripts',
-          content: JSON.stringify({ total_matches: searchRes.totalMatches, matches: searchRes.matches }),
-        });
-      } else {
+
+        for (const tc of outcome.tool_calls) {
+          const fnName = tc.function?.name;
+          let parsedArgs: any = {};
+          try {
+            parsedArgs = JSON.parse(tc.function?.arguments || '{}');
+          } catch {
+            parsedArgs = {};
+          }
+
+          if (fnName === 'search_transcripts') {
+            const res = await executeSearchTranscriptsTool(parsedArgs, enrichedContext, searchIntent, gw.fetchImpl);
+            executedMatches = res.matches;
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else if (fnName === 'get_run_history') {
+            const res = await executeGetRunHistoryTool(parsedArgs, ghToken, owner, repo);
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else if (fnName === 'get_run_jobs') {
+            const res = await executeGetRunJobsTool(parsedArgs, ghToken, owner, repo, accumulatedInspectedRuns);
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else if (fnName === 'get_queue') {
+            const res = executeGetQueueTool(parsedArgs);
+            executedActions.push(res.action);
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName,
+              content: JSON.stringify(res.toolResult),
+            });
+          } else {
+            turnMessages.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              name: fnName || 'tool',
+              content: JSON.stringify({ ok: true, status: 'unsupported_read_only_tool' }),
+            });
+          }
+        }
+      } else if (readOnlyTextActions.length > 0) {
         turnMessages.push({
           role: 'assistant',
           content: outcome.text,
         });
+
+        const observationBlocks: string[] = [];
+        for (const act of readOnlyTextActions) {
+          if (act.action === 'SEARCH_TRANSCRIPTS') {
+            const res = await executeSearchTranscriptsTool(act.params || {}, enrichedContext, searchIntent, gw.fetchImpl);
+            executedMatches = res.matches;
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: SEARCH_TRANSCRIPTS (${res.matches.length} matches)]:\n${JSON.stringify(res.matches.slice(0, 8), null, 2)}`);
+          } else if (act.action === 'GET_RUN_HISTORY') {
+            const res = await executeGetRunHistoryTool(act.params || {}, ghToken, owner, repo);
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: GET_RUN_HISTORY (${owner}/${repo})]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+          } else if (act.action === 'GET_RUN_JOBS') {
+            const res = await executeGetRunJobsTool(act.params as any, ghToken, owner, repo, accumulatedInspectedRuns);
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: GET_RUN_JOBS (Run #${act.params?.runId})]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+          } else if (act.action === 'GET_QUEUE') {
+            const res = executeGetQueueTool(act.params || {});
+            executedActions.push(res.action);
+            observationBlocks.push(`[TOOL RESULT: GET_QUEUE]:\n${JSON.stringify(res.toolResult, null, 2)}`);
+          }
+        }
+
         turnMessages.push({
           role: 'user',
-          content: searchRes.matches.length > 0
-            ? `[SYSTEM NOTIFICATION: Search returned ${searchRes.matches.length} matching dialogue turns]:\n${JSON.stringify(searchRes.matches, null, 2)}\n\nNow, formulate the full answer requested by the user using these matches. Do NOT output another SEARCH_TRANSCRIPTS block.`
-            : `[SYSTEM NOTIFICATION: The search for "${searchRes.queryUsed}" returned 0 matches]. Tell the user plainly that nothing was found.`,
+          content: `${observationBlocks.join('\n\n')}\n\n[SYSTEM INSTRUCTION: Telemetry and tool results are above. Formulate your complete, evidence-backed answer immediately. Do NOT output placeholder waiting messages.]`,
         });
       }
 
+      toolRoundsExecuted++;
       continue;
     }
 
+    // No more tools requested or limit reached: final synthesis
     const finalExtracted = extractCopilotActions(outcome.text);
-    const mutationActions = finalExtracted.actions.filter(a => a.action !== 'SEARCH_TRANSCRIPTS');
-    const allActions = searchActionExecuted
-      ? [searchActionExecuted, ...mutationActions]
-      : mutationActions;
+    const mutationActions = finalExtracted.actions.filter(a =>
+      a.action !== 'SEARCH_TRANSCRIPTS' &&
+      a.action !== 'GET_RUN_HISTORY' &&
+      a.action !== 'GET_RUN_JOBS' &&
+      a.action !== 'GET_QUEUE'
+    );
+    const allActions = [...executedActions, ...mutationActions];
 
     return {
       ok: true,
@@ -856,6 +1184,7 @@ async function runCopilot(
         text: finalExtracted.cleanedText || outcome.text,
         actions: allActions,
         matches: executedMatches,
+        inspectedRuns: accumulatedInspectedRuns,
         model: lastModel,
         usage: totalUsage,
         ms: Date.now() - started,
@@ -863,13 +1192,21 @@ async function runCopilot(
     };
   }
 
+  const finalExtracted = extractCopilotActions(lastOutcomeText);
+  const mutationActions = finalExtracted.actions.filter(a =>
+    a.action !== 'SEARCH_TRANSCRIPTS' &&
+    a.action !== 'GET_RUN_HISTORY' &&
+    a.action !== 'GET_RUN_JOBS' &&
+    a.action !== 'GET_QUEUE'
+  );
   return {
     ok: true,
     body: {
       ok: true,
-      text: 'Transcript search complete.',
-      actions: searchActionExecuted ? [searchActionExecuted] : [],
+      text: finalExtracted.cleanedText || lastOutcomeText || 'Analysis complete.',
+      actions: [...executedActions, ...mutationActions],
       matches: executedMatches,
+      inspectedRuns: accumulatedInspectedRuns,
       model: lastModel,
       usage: totalUsage,
       ms: Date.now() - started,
@@ -1081,6 +1418,9 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
           if (!res.writableEnded) clientCtl.abort();
         });
 
+        const rawGhHeader = req.headers['x-github-token'];
+        const headerGhToken = (Array.isArray(rawGhHeader) ? rawGhHeader[0] : rawGhHeader || '').trim();
+
         const copilotReq = raw as CopilotRequestBody;
         const result = await limiter.run(() =>
           runCopilot(copilotReq, {
@@ -1091,7 +1431,7 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
             maxTokens: DIRECTOR_MAX_TOKENS,
             timeoutMs: cfg.timeoutMs,
             clientSignal: clientCtl.signal,
-          })
+          }, { env: cfg.env, githubToken: headerGhToken })
         );
         if (result.ok === false) return fail(res, result.code, scrub(result.message, cfg.key), { retryAfterSec: result.retryAfterSec });
         return send(res, 200, result.body);

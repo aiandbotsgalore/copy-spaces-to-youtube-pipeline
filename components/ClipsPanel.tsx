@@ -1402,6 +1402,16 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
                 />
               </div>
 
+              {/* Social Short / Video Generator */}
+              <button
+                onClick={() => setShortModalClip(activeClip)}
+                className="p-2 bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-pink-400 border border-slate-800 rounded-xl transition-colors cursor-pointer"
+                title="Create 9:16 Social Short Video"
+                aria-label="Create 9:16 Social Short Video"
+              >
+                <Film size={15} />
+              </button>
+
               <a
                 href={getAudioUrl(activeClip)}
                 download
