@@ -3,7 +3,7 @@ import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
 import type { RenderManifest } from './scriptCompile';
 import type { HandoffKind, HandoffRecord, ImportSummary } from '../server/scriptHandoff';
-import type { AqLink, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, LibraryQuote, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
+import type { AqLink, AudioBoundary, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, LibraryQuote, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
 import type { ViewEntry } from './quoteView';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
@@ -135,6 +135,17 @@ export const scriptApi = {
   styleRule: (change: { add?: string; remove?: string }) => call<StyleState>('POST', '/style/rules', change),
   library: (projectId?: string | null) => call<{ sync: LibrarySync; entries: ViewEntry[]; board: EvidenceBoard | null }>('GET', `/library${projectId ? `?projectId=${encodeURIComponent(projectId)}` : ''}`),
   confirmSpeaker: (ref: string, name: string | null) => call<{ link: AqLink }>('POST', '/library/speaker', { ref, name }),
+  alignQuote: (ref: string, force?: boolean) => call<{ ok: boolean; audio: AudioBoundary }>('POST', '/align', { ref, force }),
+  reviewAudio: (
+    ref: string,
+    action: {
+      action: 'approve' | 'nudge' | 'set_range';
+      startSec?: number;
+      endSec?: number;
+      deltaStartSec?: number;
+      deltaEndSec?: number;
+    }
+  ) => call<{ ok: boolean; audio: AudioBoundary }>('POST', '/quote/review-audio', { ref, ...action }),
   boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
   discover: (projectId: string, q?: string) => call<{
     query: string;

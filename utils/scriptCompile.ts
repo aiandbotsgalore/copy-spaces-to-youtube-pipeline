@@ -86,7 +86,15 @@ export function compileScript(project: ScriptProject, version: ScriptVersion, op
     }
     const clip = clips.get(b.clipId);
     if (!clip) { blocked.push({ blockId: b.id, sceneTitle: sc.title, reason: `Clip ${b.clipId} is no longer in the project.` }); continue; }
+    if ((clip as any).audioStatus === 'needs_review' || (clip as any).audioStatus === 'none') {
+      blocked.push({ blockId: b.id, sceneTitle: sc.title, reason: `Clip "${clip.title}" has audio status "${(clip as any).audioStatus}"; review its audio before rendering.` });
+      continue;
+    }
     if (!clip.audioUrl) { blocked.push({ blockId: b.id, sceneTitle: sc.title, reason: `Clip "${clip.title}" has no audio file.` }); continue; }
+    if (b.outSec - b.inSec > clip.durationSec + 1e-4) {
+      blocked.push({ blockId: b.id, sceneTitle: sc.title, reason: `Tape item "${clip.title}" (${(b.outSec - b.inSec).toFixed(2)}s) is longer than its quote (${clip.durationSec.toFixed(2)}s).` });
+      continue;
+    }
     if (!(b.inSec >= 0 && b.outSec > b.inSec && b.outSec <= clip.durationSec + 1e-6)) {
       blocked.push({ blockId: b.id, sceneTitle: sc.title, reason: `Clip "${clip.title}": ${b.inSec}s to ${b.outSec}s is outside 0 to ${clip.durationSec}s.` });
       continue;

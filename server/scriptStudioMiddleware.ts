@@ -74,6 +74,7 @@ import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
 import { createQuoteLibrary, type ReadModelCaller } from './quoteLibrary';
 import { loadAqCorpus } from './quoteCorpus';
 import { setBoardItem } from './evidenceBoard';
+import { alignQuoteAudio, reviewQuoteAudio } from './quoteAlign';
 import { dateOfTag } from '../utils/scriptFormats';
 import {
   buildPack, checkFactchecks, checkRecordings, checkResultHeader, HANDOFF_KINDS, packHash,
@@ -866,25 +867,76 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
 
     if (route === '/library/audio' && (method === 'GET' || method === 'HEAD')) {
       const ref = String(q('ref') || '');
-      const e = library.entries().find(x => x.ref === ref);
-      if (!e?.link) throw new StepError('NOT_FOUND', `Unknown quote ${ref}.`);
-      const a = e.link.audio;
-      // Usable audio (corpus cut or verified boundaries) by default; the transcript window only when asked,
+      const info = library.getQuoteAudioInfo(ref);
+      if (!info) throw new StepError('NOT_FOUND', `Unknown quote ${ref}.`);
+      const a = info.audio;
+      // Usable audio (corpus cut, manual, or aligned boundaries) by default; the transcript window only when asked,
       // for listening while reviewing, never as the quote's audio.
       let start: number, end: number, label: string;
       if (q('mode') === 'window') {
-        if (e.link.segStart === undefined || e.link.segEnd === undefined) throw new StepError('CONFLICT', `${e.aqId} was not located in its transcript.`);
-        start = e.link.segStart; end = e.link.segEnd; label = `${e.aqId} transcript window`;
+        if (info.segStart === undefined || info.segEnd === undefined) throw new StepError('CONFLICT', `${ref} has no located transcript window.`);
+        start = info.segStart; end = info.segEnd; label = `${ref} transcript window`;
       } else {
-        if ((a.status !== 'verified' && a.status !== 'aligned') || a.startSec === undefined || a.endSec === undefined) throw new StepError('CONFLICT', `${e.aqId} has no usable audio yet (${a.reason || a.status}).`);
-        start = a.startSec; end = a.endSec; label = `${e.aqId} audio`;
+        if ((a.status !== 'verified' && a.status !== 'aligned') || a.startSec === undefined || a.endSec === undefined) {
+          throw new StepError('CONFLICT', `${ref} has no usable audio yet (${a.reason || a.status}).`);
+        }
+        start = a.startSec; end = a.endSec; label = `${ref} audio`;
       }
-      const t = library.transcript(e.releaseTag);
-      if (!t) throw new StepError('NO_TRANSCRIPT', `No transcript for ${e.releaseTag}.`);
+      const t = library.transcript(info.releaseTag);
+      if (!t) throw new StepError('NO_TRANSCRIPT', `No transcript for ${info.releaseTag}.`);
       const env = opts.getEnv();
       const src = await resolveEpisodeAudio(t, opts.fetchImpl ?? fetch, env.GITHUB_TOKEN);
       if (src.ok === false) throw new StepError('NO_EPISODE_AUDIO', src.reason);
       return audio.serveWindow(req, res, src.url, start, Math.round((end - start) * 1000) / 1000, label);
+    }
+
+    if (route === '/align' && method === 'POST') {
+      const body = await readBody(req);
+      const ref = String(body?.ref || '');
+      if (!ref) throw new StepError('BAD_REQUEST', 'Quote ref is required.');
+      const info = library.getQuoteAudioInfo(ref);
+      if (!info) throw new StepError('NOT_FOUND', `Quote ${ref} not found.`);
+      const t = library.transcript(info.releaseTag);
+      if (!t) throw new StepError('NO_TRANSCRIPT', `No transcript for ${info.releaseTag}.`);
+      const env = opts.getEnv();
+      const src = await resolveEpisodeAudio(t, opts.fetchImpl ?? fetch, env.GITHUB_TOKEN);
+      if (src.ok === false) throw new StepError('NO_EPISODE_AUDIO', src.reason);
+
+      const boundary = await alignQuoteAudio(
+        {
+          releaseTag: info.releaseTag,
+          verbatim: info.verbatim,
+          segStart: info.segStart,
+          segEnd: info.segEnd,
+          audioUrl: src.url,
+        },
+        { root: opts.root }
+      );
+      library.updateAudio(ref, boundary);
+      return send(res, 200, { ok: true, audio: boundary });
+    }
+
+    if (route === '/quote/review-audio' && method === 'POST') {
+      const body = await readBody(req);
+      const ref = String(body?.ref || '');
+      if (!ref) throw new StepError('BAD_REQUEST', 'Quote ref is required.');
+      const info = library.getQuoteAudioInfo(ref);
+      if (!info) throw new StepError('NOT_FOUND', `Quote ${ref} not found.`);
+
+      const action = body?.action as 'approve' | 'nudge' | 'set_range';
+      if (!['approve', 'nudge', 'set_range'].includes(action)) {
+        throw new StepError('BAD_REQUEST', `Unknown review action: ${action}`);
+      }
+
+      const updated = reviewQuoteAudio(info.audio, {
+        action,
+        startSec: typeof body?.startSec === 'number' ? body.startSec : undefined,
+        endSec: typeof body?.endSec === 'number' ? body.endSec : undefined,
+        deltaStartSec: typeof body?.deltaStartSec === 'number' ? body.deltaStartSec : undefined,
+        deltaEndSec: typeof body?.deltaEndSec === 'number' ? body.deltaEndSec : undefined,
+      });
+      library.updateAudio(ref, updated);
+      return send(res, 200, { ok: true, audio: updated });
     }
 
     if (route === '/board' && method === 'GET') {

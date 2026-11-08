@@ -173,10 +173,10 @@ export interface TrimFn {
 
 export interface PatchOptions {
   clipsById: Record<string, StudioClip>;
-  trim: TrimFn;
+  trim?: TrimFn;
   newId: () => string;
   /** 'reject' (revision) fails the whole patch on a bad trim; 'flag' (draft) keeps the full clip and flags it. */
-  onBadTrim: 'reject' | 'flag';
+  onBadTrim?: 'reject' | 'flag';
 }
 
 const MUSIC_CUES = ['sting', 'bed_in', 'bed_out', 'transition'];
@@ -204,12 +204,16 @@ export async function materializeBlocks(
         const clip = opts.clipsById[p.clipId];
         if (!clip) return { ok: false, reason: `Patch names unknown clip ${p.clipId}.` };
         const fn = (NARRATIVE_FUNCTIONS as string[]).includes(p.fn || '') ? (p.fn as NarrativeFunction) : (clip.fn || 'evidence');
-        const t = await opts.trim(clip, p.keptText || clip.text);
-        if (t.ok === false) {
-          if (opts.onBadTrim === 'reject') return { ok: false, reason: `Clip ${p.clipId}: ${t.reason}` };
-          out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '', flag: `Trim not applied: ${t.reason}` });
+        if (opts.trim) {
+          const t = await opts.trim(clip, p.keptText || clip.text);
+          if (t.ok === false) {
+            if (opts.onBadTrim === 'reject') return { ok: false, reason: `Clip ${p.clipId}: ${t.reason}` };
+            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '', flag: `Trim not applied: ${t.reason}` });
+          } else {
+            out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: p.keptText || clip.text, inSec: t.inSec, outSec: t.outSec, trimBasis: t.basis, fn, rationale: p.rationale || '' });
+          }
         } else {
-          out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: p.keptText || clip.text, inSec: t.inSec, outSec: t.outSec, trimBasis: t.basis, fn, rationale: p.rationale || '' });
+          out.push({ id: opts.newId(), kind: 'clip', clipId: clip.clipId, keptText: clip.text, inSec: 0, outSec: clip.durationSec, trimBasis: 'full', fn, rationale: p.rationale || '' });
         }
         break;
       }

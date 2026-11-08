@@ -12,7 +12,7 @@ import crypto from 'node:crypto';
 import type { AqLink, AudioBoundary, LibraryQuote, RecordingLibrary, TextCheck } from '../utils/scriptTypes';
 import { LOCATOR_VERSION, locateQuote, textCheck } from '../utils/quoteLocate';
 import { namedSegments, parseTranscriptJson, transcriptPath, utteranceLine, type LoadedTranscript } from './scriptData';
-import { aqClipFiles, corpusAudio, corpusWindow, loadAqCorpus, type AqClipFile, type AqQuote } from './quoteCorpus';
+import { aqClipFiles, corpusAudio, corpusWindow, loadAqCorpus, parseCutSec, type AqClipFile, type AqQuote } from './quoteCorpus';
 import { readPrompt, type Prompt } from './scriptPrompts';
 import { verifyVerbatim } from '../utils/scriptGates';
 import type { ScriptStore } from './scriptStore';
@@ -199,6 +199,72 @@ export function createQuoteLibrary(root: string, store: ScriptStore, deps: { now
       lib.aqLinks[i] = link;
       store.saveLibrary(lib);
       return link;
+    },
+
+    getQuoteAudioInfo(ref: string): {
+      releaseTag: string;
+      verbatim: string;
+      segStart: number;
+      segEnd: number;
+      audio: AudioBoundary;
+      speakerName?: string;
+      speakerLabel?: string;
+      wavUrl?: string;
+    } | null {
+      if (ref.startsWith('aq:')) {
+        const aqId = ref.slice(3);
+        const corpus = loadAqCorpus(root);
+        const q = corpus.byId.get(aqId);
+        if (!q) return null;
+        const lib = store.getLibrary(q.release_tag);
+        const link = lib?.aqLinks.find(l => l.aqId === aqId) ?? null;
+        const files = aqClipFiles(root);
+        const wav = files.get(aqId);
+        const [cStart, cEnd] = corpusWindow(q) || [0, 10];
+        const segStart = link?.segStart ?? parseCutSec(q.cut_in) ?? cStart;
+        const segEnd = link?.segEnd ?? parseCutSec(q.cut_out) ?? cEnd;
+        return {
+          releaseTag: q.release_tag,
+          verbatim: link?.text.transcriptSpan || q.exact_quote,
+          segStart,
+          segEnd,
+          audio: link?.audio || corpusAudio(q),
+          speakerName: link?.speakerName,
+          speakerLabel: (link?.speakerLabels && link.speakerLabels[0]) || q.speaker,
+          wavUrl: wav?.url,
+        };
+      }
+      const tag = ref.split(':')[0];
+      const lib = store.getLibrary(tag);
+      const q = lib?.quotes.find(x => x.id === ref);
+      if (!q) return null;
+      return {
+        releaseTag: q.releaseTag,
+        verbatim: q.verbatim,
+        segStart: q.segStart,
+        segEnd: q.segEnd,
+        audio: q.audio,
+        speakerName: q.speakerName,
+        speakerLabel: q.speakerLabel,
+      };
+    },
+
+    updateAudio(ref: string, audio: AudioBoundary): AudioBoundary {
+      if (ref.startsWith('aq:')) {
+        const { lib, i } = findLink(ref);
+        const link = { ...lib.aqLinks[i], audio };
+        lib.aqLinks[i] = link;
+        store.saveLibrary(lib);
+        return audio;
+      }
+      const tag = ref.split(':')[0];
+      const lib = store.getLibrary(tag);
+      if (!lib) throw new Error(`Unknown recording library ${tag}.`);
+      const i = lib.quotes.findIndex(x => x.id === ref);
+      if (i < 0) throw new Error(`Unknown quote ${ref} in library ${tag}.`);
+      lib.quotes[i] = { ...lib.quotes[i], audio };
+      store.saveLibrary(lib);
+      return audio;
     },
 
     /**

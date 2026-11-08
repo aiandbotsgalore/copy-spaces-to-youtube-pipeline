@@ -6,10 +6,10 @@
  * Corpus cut points are labelled "Corpus cut": supplied by the corpus, not independently checked.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Ban, Check, ChevronDown, ChevronRight, FileAudio, Loader2, Pause, Play, Search, Star, StickyNote, UserCheck } from 'lucide-react';
+import { AlertTriangle, Ban, Check, CheckCircle2, ChevronDown, ChevronRight, FileAudio, Loader2, Pause, Play, Search, Sliders, Sparkles, Star, StickyNote, UserCheck, Volume2 } from 'lucide-react';
 import { scriptApi, type LibrarySync } from '../utils/scriptClient';
 import { audioLabel, facetValues, filterEntries, listenOptions, type EntryFilters, type ListenOption, type ViewEntry } from '../utils/quoteView';
-import type { BoardItem, EvidenceBoard } from '../utils/scriptTypes';
+import type { AudioBoundary, BoardItem, EvidenceBoard } from '../utils/scriptTypes';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 const chip = 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border';
@@ -44,7 +44,10 @@ export function useLibrary(projectId: string | null, enabled: boolean) {
       setEntries(prev => prev && prev.map(e => (e.ref === ref ? { ...e, link } : e)));
     } catch (e) { setError(e); }
   }, []);
-  return { entries, board, sync, loading, error, reload, setItem, confirmSpeaker };
+  const updateAudio = useCallback((ref: string, audio: AudioBoundary) => {
+    setEntries(prev => prev && prev.map(e => (e.ref === ref && e.link ? { ...e, link: { ...e.link, audio } } : e)));
+  }, []);
+  return { entries, board, sync, loading, error, reload, setItem, confirmSpeaker, updateAudio };
 }
 export type LibraryState = ReturnType<typeof useLibrary>;
 
@@ -67,17 +70,72 @@ function AudioBadge({ e }: { e: ViewEntry }) {
   return <span className={cx(chip, tone)} title={l.detail}>{l.short}{range}</span>;
 }
 
-export function QuoteRow({ entry: e, item, canEdit, onItem, onSpeaker, onListen, playingUrl }: {
+export function QuoteRow({ entry: e, item, canEdit, onItem, onSpeaker, onListen, onUpdateAudio, playingUrl }: {
   entry: ViewEntry; item?: BoardItem; canEdit: boolean;
   onItem: (ref: string, patch: ItemPatch) => void; onSpeaker: (ref: string, name: string | null) => void;
-  onListen: (e: ViewEntry, o: ListenOption) => void; playingUrl: string | null;
+  onListen: (e: ViewEntry, o: ListenOption) => void;
+  onUpdateAudio?: (ref: string, audio: AudioBoundary) => void;
+  playingUrl: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [aligning, setAligning] = useState(false);
+  const [startSec, setStartSec] = useState<number | null>(null);
+  const [endSec, setEndSec] = useState<number | null>(null);
+  const [reviewMsg, setReviewMsg] = useState<string | null>(null);
   const [note, setNote] = useState(item?.note || '');
   const [speaker, setSpeaker] = useState(e.link?.speakerName || str(e.corpus.speaker).replace(/\s*\(.*\)$/, ''));
   useEffect(() => setNote(item?.note || ''), [item?.note]);
   const link = e.link;
   const options = listenOptions(e);
+
+  const curStart = startSec ?? link?.audio.startSec ?? link?.audio.suggestedStartSec ?? link?.segStart ?? 0;
+  const curEnd = endSec ?? link?.audio.endSec ?? link?.audio.suggestedEndSec ?? link?.segEnd ?? (curStart + 5);
+
+  const handleAlign = async () => {
+    setAligning(true);
+    setReviewMsg(null);
+    try {
+      const res = await scriptApi.alignQuote(e.ref);
+      if (res.ok) {
+        onUpdateAudio?.(e.ref, res.audio);
+        if (res.audio.status === 'aligned') {
+          setReviewMsg(`✓ Aligned (${hms(res.audio.startSec!)} to ${hms(res.audio.endSec!)})`);
+        } else {
+          setReviewMsg(`Needs review: ${res.audio.reason}`);
+          setShowReview(true);
+        }
+      }
+    } catch (err: any) {
+      setReviewMsg(`Alignment failed: ${err?.message || err}`);
+    } finally {
+      setAligning(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    setReviewMsg(null);
+    try {
+      const res = await scriptApi.reviewAudio(e.ref, {
+        action: 'approve',
+        startSec: curStart,
+        endSec: curEnd,
+      });
+      if (res.ok) {
+        onUpdateAudio?.(e.ref, res.audio);
+        setReviewMsg(`✓ Approved as verified audio (${hms(res.audio.startSec!)} to ${hms(res.audio.endSec!)})`);
+      }
+    } catch (err: any) {
+      setReviewMsg(`Approval failed: ${err?.message || err}`);
+    }
+  };
+
+  const handleNudge = (deltaS: number, deltaE: number) => {
+    const nextS = Math.max(0, curStart + deltaS);
+    const nextE = Math.max(nextS + 0.1, curEnd + deltaE);
+    setStartSec(Math.round(nextS * 1000) / 1000);
+    setEndSec(Math.round(nextE * 1000) / 1000);
+  };
   return (
     <div className={cx('rounded-md border p-3 space-y-2 transition-colors', item?.excluded ? 'border-slate-800/60 bg-slate-950/40 opacity-60' : item?.starred ? 'border-amber-700/40 bg-amber-950/10' : 'border-slate-800 bg-slate-950/60')}>
       <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
@@ -120,6 +178,16 @@ export function QuoteRow({ entry: e, item, canEdit, onItem, onSpeaker, onListen,
             {playingUrl === o.url ? <Pause size={11} /> : <Play size={11} />} {o.label}
           </button>
         ))}
+        {link && (
+          <>
+            <button className={btnTiny} disabled={aligning} onClick={handleAlign} title="Run faster-whisper word alignment on this quote">
+              {aligning ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />} Align audio
+            </button>
+            <button className={cx(btnTiny, showReview && 'border-indigo-600 text-indigo-200')} onClick={() => setShowReview(!showReview)} title="Inspect boundaries, listen, nudge and approve">
+              <Sliders size={11} /> Review boundaries
+            </button>
+          </>
+        )}
         {canEdit && (
           <button className={cx(btnTiny, item?.excluded && 'border-rose-800 text-rose-300')} onClick={() => onItem(e.ref, { excluded: !item?.excluded })} title="Exclude from this project">
             <Ban size={11} /> {item?.excluded ? 'Excluded' : 'Exclude'}
@@ -130,6 +198,58 @@ export function QuoteRow({ entry: e, item, canEdit, onItem, onSpeaker, onListen,
           {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />} Note, speaker and corpus fields
         </button>
       </div>
+
+      {showReview && (
+        <div className="rounded-md border border-indigo-900/40 bg-slate-900/90 p-3 space-y-2.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-slate-200 flex items-center gap-1.5"><Sliders size={13} className="text-indigo-400" /> Audio Boundary Review</span>
+            <AudioBadge e={e} />
+          </div>
+          {link?.audio.reason && (
+            <div className="text-[11px] text-amber-300 bg-amber-950/30 border border-amber-900/40 rounded px-2 py-1">
+              {link.audio.reason}
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-300">
+            <div className="space-y-1">
+              <div className="text-[11px] text-slate-400">Start Boundary</div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm font-bold text-slate-100">{hms(curStart)}</span>
+                <span className="font-mono text-[11px] text-slate-500">({curStart.toFixed(2)}s)</span>
+                <button className={btnTiny} onClick={() => handleNudge(-0.25, 0)}>-0.25s</button>
+                <button className={btnTiny} onClick={() => handleNudge(0.25, 0)}>+0.25s</button>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-[11px] text-slate-400">End Boundary (duration: {(curEnd - curStart).toFixed(2)}s)</div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm font-bold text-slate-100">{hms(curEnd)}</span>
+                <span className="font-mono text-[11px] text-slate-500">({curEnd.toFixed(2)}s)</span>
+                <button className={btnTiny} onClick={() => handleNudge(0, -0.25)}>-0.25s</button>
+                <button className={btnTiny} onClick={() => handleNudge(0, 0.25)}>+0.25s</button>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <button
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium border border-emerald-600 bg-emerald-950/50 text-emerald-300 hover:bg-emerald-900 hover:text-white transition-colors"
+              onClick={handleApprove}
+            >
+              <CheckCircle2 size={13} /> Approve Boundaries
+            </button>
+            <button
+              className={btnTiny}
+              disabled={aligning}
+              onClick={handleAlign}
+            >
+              {aligning ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />} Re-run alignment
+            </button>
+            {reviewMsg && (
+              <span className="text-[11px] font-mono text-indigo-300">{reviewMsg}</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {open && (
         <div className="space-y-3 pt-2 border-t border-slate-800/80">
@@ -228,7 +348,7 @@ export default function QuoteLibrary({ lib, projectId, onListen, playingUrl }: {
       {lib.error ? <div className="text-[11px] text-rose-300">{String((lib.error as any)?.message || lib.error)}</div> : null}
       <div className="space-y-2.5">
         {shown.slice(0, limit).map(e => (
-          <QuoteRow key={e.ref} entry={e} item={items.get(e.ref)} canEdit={!!projectId} onItem={lib.setItem} onSpeaker={lib.confirmSpeaker} onListen={onListen} playingUrl={playingUrl} />
+          <QuoteRow key={e.ref} entry={e} item={items.get(e.ref)} canEdit={!!projectId} onItem={lib.setItem} onSpeaker={lib.confirmSpeaker} onListen={onListen} onUpdateAudio={lib.updateAudio} playingUrl={playingUrl} />
         ))}
         {shown.length > limit && <button className={btnTiny} onClick={() => setLimit(limit + PAGE)}>Show {Math.min(PAGE, shown.length - limit)} more</button>}
         {!shown.length && <div className="text-xs text-slate-500 italic">No quotes match these filters.</div>}
