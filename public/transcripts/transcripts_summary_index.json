@@ -23,6 +23,22 @@
     ]
   },
   {
+    "release_id": 438412471,
+    "release_tag": "20261031_1NglyKYEjkBrXb",
+    "title": "ReSpace_Redux_42",
+    "published_at": "2026-11-08T17:46:38Z",
+    "episode_date": "2026-10-31",
+    "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261031_1NglyKYEjkBrXb/20261031_1NglyKYEjkBrXb_ReSpace_Redux_42.mp3",
+    "segment_count": 714,
+    "body": "- **Space Title:** ReSpace_Redux_42\n- **Duration:** 03:44:39\n- **Processed:** 20261031_1NglyKYEjkBrXb\n- **Source ID:** 1NglyKYEjkBrXb\n\n---\nMETADATA::DURATION::03:44:39\nMETADATA::SOURCE_ID::1NglyKYEjkBrXb\nMETADATA::EPISODE_DATE::20261031\nMETADATA::HOST::StopTehMadness\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
+    "duration_sec": 13479,
+    "host_handle": "StopTehMadness",
+    "speakers": [
+      "Mary",
+      "Rose"
+    ]
+  },
+  {
     "release_id": 434607356,
     "release_tag": "20261024_1wGWjlXlLQnKQ",
     "title": "UFO_WAFFLE_HOUSE",
