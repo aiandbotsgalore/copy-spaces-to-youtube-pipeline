@@ -147,4 +147,31 @@ I am searching the archive now.`;
     expect(actions[0].params.query).toBe('compromise');
     expect(actions[0].params.speaker).toBe('Angela');
   });
+
+  it('extracts actions from ```json blocks and strips them from user text', () => {
+    const rawResponse = `Here is what we should run:
+\`\`\`json
+{
+  "action": "ENQUEUE_SPACE",
+  "params": { "spaceUrl": "https://x.com/i/spaces/1vylmgmJadRMzE" },
+  "explanation": "Enqueuing space"
+}
+\`\`\`
+Enqueued!`;
+
+    const { actions, cleanedText } = extractCopilotActions(rawResponse);
+    expect(actions).toHaveLength(1);
+    expect(actions[0].action).toBe('ENQUEUE_SPACE');
+    expect(cleanedText).not.toContain('ENQUEUE_SPACE');
+    expect(cleanedText).toContain('Here is what we should run:');
+    expect(cleanedText).toContain('Enqueued!');
+  });
+
+  it('includes executive presentation & readability standards in system prompt', () => {
+    const prompt = buildCopilotSystemPrompt();
+    expect(prompt).toContain('EXECUTIVE PRESENTATION & READABILITY STANDARDS:');
+    expect(prompt).toContain('High Scannability');
+    expect(prompt).toContain('Tables for Multi-Item Comparisons');
+    expect(prompt).toContain('No Leaked Action Blobs');
+  });
 });

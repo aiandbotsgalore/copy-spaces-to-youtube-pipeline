@@ -44,6 +44,7 @@ import {
 import type { CopilotAction, CopilotContextPayload, CopilotRequestBody, InspectedRunEvidence } from '../utils/copilotTypes';
 import { getWorkflowRuns, inspectRunFailure } from '../utils/github';
 import { buildCopilotSystemPrompt, extractCopilotActions } from './copilotPrompt';
+import { sanitizeCopilotText } from '../utils/copilotText';
 import {
   searchTranscriptArchive,
   detectSearchIntent,
@@ -990,7 +991,7 @@ async function runCopilot(
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(m => {
       let content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
-      content = content.replace(/```(?:action|json:action)[\s\S]*?```/gi, '').trim();
+      content = sanitizeCopilotText(content);
       return {
         role: m.role as 'user' | 'assistant',
         content: content || '...',

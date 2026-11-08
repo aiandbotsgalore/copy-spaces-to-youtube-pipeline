@@ -1,4 +1,5 @@
 import type { CopilotAction, CopilotContextPayload } from '../utils/copilotTypes';
+import { sanitizeCopilotText } from '../utils/copilotText';
 
 export function buildCopilotSystemPrompt(context?: CopilotContextPayload): string {
   let prompt = `You are the SpacePipe Executive Audio Producer & Copilot.
@@ -188,6 +189,14 @@ GUIDELINES FOR AUDIO PRODUCTION & APP ASSISTANCE:
 - When creating montages, utilize narrative pacing: Hook ➔ Exposition ➔ Conflict/Escalation ➔ Climax ➔ Punchline/Outro.
 - When user asks to play, jump to, trim, create, sequence, or configure, output the corresponding action block.
 - Be direct and conversational like an experienced audio director and podcast producer.
+
+EXECUTIVE PRESENTATION & READABILITY STANDARDS:
+- High Scannability: Structure answers cleanly for fast scanning. Always start responses with a concise 1-2 sentence bold summary or TL;DR (**Summary:** ... or **TL;DR:** ...).
+- Markdown Hierarchy: Use clear markdown headings (## Section, ### Subsection) to separate distinct points or sections.
+- Tables for Multi-Item Comparisons: When reporting on multiple runs, episodes, or clips, use GitHub Flavored Markdown (GFM) tables (| Header 1 | Header 2 |) with concise column headers.
+- Actionable Priority Steps: When giving remediation steps or recommendations, format them as numbered lists with bold headers (1. **Immediate Fix** — ...).
+- Audio Timestamps & Triggers: When referencing timestamps, format them as [▶ MM:SS] or ▶ MM:SS so the user can click them directly to listen.
+- No Leaked Action Blobs: Never mention action JSON schemas, code blocks, or internal keys ("action", "params") in conversational text. Keep action blocks strictly fenced in \`\`\`action ... \`\`\` blocks without commentary inside the block.
 `;
 
   if (context) {
@@ -304,12 +313,9 @@ export function extractCopilotActions(text: string): { cleanedText: string; acti
   const actions: CopilotAction[] = [];
   let actionIdx = 0;
 
-  const actionRegex = /```(?:action|json:action)\s*\n([\s\S]*?)\n```/gi;
-  let match: RegExpExecArray | null;
-
-  while ((match = actionRegex.exec(text)) !== null) {
+  const tryAddAction = (raw: string) => {
     try {
-      const parsed = JSON.parse(match[1]);
+      const parsed = JSON.parse(raw);
       if (parsed && typeof parsed.action === 'string') {
         actionIdx++;
         actions.push({
@@ -318,34 +324,65 @@ export function extractCopilotActions(text: string): { cleanedText: string; acti
           params: parsed.params || {},
           explanation: parsed.explanation || parsed.reason || `Executed ${parsed.action}`,
         });
+        return true;
       }
     } catch {
       // ignore malformed action block
     }
+    return false;
+  };
+
+  // 1. Fenced blocks: ```action, ```json:action, or ```json with an action payload
+  const actionRegex = /```(?:action|json:action|json)?\s*[\r\n]+([\s\S]*?)[\r\n]+```/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = actionRegex.exec(text)) !== null) {
+    tryAddAction(match[1]);
   }
 
+  // 2. XML <action> tags
   const xmlActionRegex = /<action>\s*([\s\S]*?)\s*<\/action>/gi;
   while ((match = xmlActionRegex.exec(text)) !== null) {
-    try {
-      const parsed = JSON.parse(match[1]);
-      if (parsed && typeof parsed.action === 'string') {
-        actionIdx++;
-        actions.push({
-          id: `act_${Date.now()}_${actionIdx}`,
-          action: parsed.action,
-          params: parsed.params || {},
-          explanation: parsed.explanation || parsed.reason || `Executed ${parsed.action}`,
-        });
+    tryAddAction(match[1]);
+  }
+
+  // 3. Unfenced balanced JSON objects that contain an "action" field
+  if (actions.length === 0) {
+    let i = 0;
+    while (i < text.length) {
+      if (text[i] === '{') {
+        let depth = 1;
+        let j = i + 1;
+        let inString = false;
+        let escape = false;
+
+        while (j < text.length && depth > 0) {
+          const ch = text[j];
+          if (escape) {
+            escape = false;
+          } else if (ch === '\\') {
+            escape = true;
+          } else if (ch === '"') {
+            inString = !inString;
+          } else if (!inString) {
+            if (ch === '{') depth++;
+            else if (ch === '}') depth--;
+          }
+          j++;
+        }
+
+        if (depth === 0) {
+          const candidate = text.slice(i, j);
+          if (/"action"\s*:\s*"[A-Z0-9_]+"/i.test(candidate)) {
+            tryAddAction(candidate);
+          }
+        }
       }
-    } catch {
-      // ignore
+      i++;
     }
   }
 
-  let cleanedText = text
-    .replace(/```(?:action|json:action)\s*\n[\s\S]*?\n```/gi, '')
-    .replace(/<action>\s*[\s\S]*?\s*<\/action>/gi, '')
-    .trim();
+  const cleanedText = sanitizeCopilotText(text);
 
   return { cleanedText, actions };
 }

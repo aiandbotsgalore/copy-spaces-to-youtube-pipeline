@@ -40,6 +40,7 @@ import { TargetWindowGauge } from './TargetWindowGauge';
 import type { CopilotAction } from '../utils/copilotTypes';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { renderTranscriptWithContextFocus } from '../utils/searchWorker';
+import { CopilotMarkdown } from './CopilotMarkdown';
 
 const PRESET_PILLS = [
   {
@@ -334,7 +335,48 @@ export const AICopilotPanel: React.FC = () => {
                     : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-sm shadow-lg'
                 }`}
               >
-                <div className="whitespace-pre-wrap">{renderMessageContent(m.content, m.matches?.[0])}</div>
+                {m.role === 'user' ? (
+                  <div className="whitespace-pre-wrap">{m.content}</div>
+                ) : (
+                  <CopilotMarkdown
+                    content={m.content}
+                    onSeek={(sec) => player.seek(sec)}
+                    onPlay={(sec) => {
+                      const audioUrl = m.matches?.[0]?.audio_url || contextPayload.currentEpisode?.audioUrl;
+                      if (audioUrl) {
+                        player.play(
+                          {
+                            id: m.matches?.[0]?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now(),
+                            title: m.matches?.[0]?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio',
+                            audioUrl,
+                          },
+                          sec
+                        );
+                      } else {
+                        player.seek(sec);
+                      }
+                    }}
+                    onAppendToReel={() => {
+                      const firstMatch = m.matches?.[0];
+                      if (firstMatch) {
+                        montage.addClip({
+                          id: `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                          title: `${firstMatch.speaker}: ${firstMatch.snippet.slice(0, 30)}...`,
+                          quote: firstMatch.snippet,
+                          speaker: firstMatch.speaker,
+                          sourceTitle: firstMatch.episode_title,
+                          sourceTag: firstMatch.episode_id,
+                          audioUrl: firstMatch.audio_url || contextPayload.currentEpisode?.audioUrl,
+                          startSec: firstMatch.start_timestamp,
+                          endSec: firstMatch.end_timestamp || firstMatch.start_timestamp + 25,
+                          category: 'Highlights',
+                          severity: 8,
+                          tensionScore: 7,
+                        });
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Render Structured Transcript Matches */}
                 {m.matches && m.matches.length > 0 && (

@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
 import { Play, Sparkles, ExternalLink } from 'lucide-react';
+import { sanitizeCopilotText } from '../utils/copilotText';
+
+export { sanitizeCopilotText };
 
 export interface CopilotMarkdownProps {
   content: string;
@@ -140,27 +143,6 @@ function renderInlineText(
   });
 }
 
-/**
- * Sanitizes copilot output to strip raw action code blocks or leaked JSON
- * so the user never sees raw JSON blocks in conversational text.
- */
-function sanitizeCopilotText(raw: string): string {
-  if (!raw) return '';
-
-  return raw
-    // Strip fenced action blocks
-    .replace(/```(?:action|json:action)\s*\n[\s\S]*?\n```/gi, '')
-    // Strip fenced json blocks that contain "action":
-    .replace(/```(?:json)?\s*\n\{[\s\S]*?"action"\s*:[\s\S]*?\}\s*\n```/gi, '')
-    // Strip XML <action> tags
-    .replace(/<action>\s*[\s\S]*?\s*<\/action>/gi, '')
-    // Strip orphaned JSON action blocks that leaked without backticks
-    .replace(/\{\s*"action"\s*:\s*"[A-Z0-9_]+"[^}]*?\}/gi, '')
-    // Strip unclosed code block at end if it contains action/json
-    .replace(/```(?:action|json:action|json)?\s*\{[\s\S]*?"action"[\s\S]*$/gi, '')
-    .trim();
-}
-
 type Block =
   | { type: 'heading'; level: number; text: string }
   | { type: 'hr' }
@@ -188,8 +170,8 @@ function parseBlocks(markdown: string): Block[] {
       continue;
     }
 
-    // 2. Horizontal rule: --- or ***
-    if (/^(?:---|\*\*\*|___)$/.test(trimmed)) {
+    // 2. Horizontal rule: ---, ***, ___
+    if (/^(?:-{3,}|\*{3,}|_{3,})\s*$/.test(trimmed)) {
       blocks.push({ type: 'hr' });
       i++;
       continue;
@@ -224,7 +206,7 @@ function parseBlocks(markdown: string): Block[] {
     // 5. GFM Table: line has pipes and next line has separator |-|-|
     if (trimmed.includes('|') && i + 1 < lines.length) {
       const nextTrimmed = lines[i + 1]?.trim() || '';
-      const isSeparator = /^\|?(?:\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?$/.test(nextTrimmed);
+      const isSeparator = /^[\s|:-]+$/.test(nextTrimmed) && nextTrimmed.includes('-') && nextTrimmed.includes('|');
 
       if (isSeparator) {
         const splitRow = (r: string) =>
