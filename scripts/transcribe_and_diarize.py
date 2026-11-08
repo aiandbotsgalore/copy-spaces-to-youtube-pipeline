@@ -39,6 +39,23 @@ except Exception:
     pass
 
 
+def load_env_files():
+    for f in [".env.local", ".env"]:
+        p = Path(f)
+        if p.exists():
+            try:
+                for line in p.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            except Exception:
+                pass
+
+
+load_env_files()
+
+
 
 def find_ffmpeg() -> str:
     """Finds ffmpeg executable across Linux, macOS, and Windows environments."""

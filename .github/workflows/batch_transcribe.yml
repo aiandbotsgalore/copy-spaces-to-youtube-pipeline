@@ -1,5 +1,5 @@
 name: Batch Transcribe Episodes (Newest to Oldest)
-run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via Modal Cloud GPU
+run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via AssemblyAI Cloud
 
 on:
   schedule:
@@ -69,21 +69,21 @@ jobs:
           echo "[*] Extracting highlight clips for transcribed episodes missing clips (limit: $LIMIT)..."
           python scripts/batch_transcribe_queue.py --missing-clips --limit "$LIMIT"
 
-      - name: Execute Batch Transcription on Modal Cloud GPU
+      - name: Execute Batch Transcription via AssemblyAI Cloud
         id: run_batch
         if: inputs.dry_run != true && inputs.missing_clips != true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
-          echo "[*] Executing batch transcription on Modal Cloud GPU (limit: $LIMIT)..."
-          python scripts/batch_transcribe_queue.py --engine modal --limit "$LIMIT"
-          echo "[✓] Modal GPU batch transcription completed!"
+          echo "[*] Executing batch transcription on AssemblyAI Cloud (limit: $LIMIT)..."
+          python scripts/batch_transcribe_queue.py --engine assemblyai --limit "$LIMIT"
+          echo "[✓] AssemblyAI batch transcription completed!"
 
       - name: Commit & Push Updated Transcripts
         if: inputs.dry_run != true

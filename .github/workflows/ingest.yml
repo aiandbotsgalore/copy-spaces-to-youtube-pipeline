@@ -219,7 +219,7 @@ jobs:
             gh release upload "$REL_TAG" work/*.mp3 --clobber
           fi
 
-      - name: Trigger Cloud GPU Transcription (Modal)
+      - name: Trigger Cloud Audio Transcription (AssemblyAI)
         if: success() && steps.process.outputs.already_exists != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,5 @@
 name: Transcribe Episode
-run-name: Transcribe ${{ inputs.release_tag }} via Modal Cloud GPU
+run-name: Transcribe ${{ inputs.release_tag }} via AssemblyAI Cloud
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ permissions:
   actions: write
 
 jobs:
-  transcribe-modal:
+  transcribe:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -39,17 +39,21 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements-worker.txt
 
-      - name: Transcribe Episode on Modal Cloud GPU
+      - name: Transcribe Episode via AssemblyAI Cloud
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo "[*] Transcribing ${{ inputs.release_tag }} on Modal Cloud GPU..."
-          python scripts/modal_transcribe_client.py --release-tag "${{ inputs.release_tag }}"
+          FORCE_ARG=""
+          if [ "${{ inputs.force }}" = "true" ]; then
+            FORCE_ARG="--force"
+          fi
+          echo "[*] Transcribing ${{ inputs.release_tag }} via AssemblyAI Cloud..."
+          python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
 
       - name: Rebuild Transcript Index
         env:
