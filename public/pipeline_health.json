@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-08T17:50:37.785447+00:00",
+  "timestamp": "2026-11-08T21:54:23.375298+00:00",
   "overall_status": "HEALTHY",
   "voice_profiles": {
     "total": 15,
@@ -7,10 +7,10 @@
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 722,
-    "indexed_transcripts": 722,
+    "on_disk_transcripts": 723,
+    "indexed_transcripts": 723,
     "expected_releases_approx": 793,
-    "gap_estimate": 71
+    "gap_estimate": 70
   },
   "recent_failures_count": 0,
   "triaged_failures": [],
