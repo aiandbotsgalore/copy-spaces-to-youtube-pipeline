@@ -131,7 +131,7 @@ export interface GateResult {
   factual: 'pass' | 'fail'; faithful: 'pass' | 'fail'; locksIntact: boolean;
   clipBoundsOk: boolean; runtimeOk: boolean; failures: string[];
   warnings?: string[];
-  factcheck?: { claim: string; label: 'supported' | 'overstated' | 'unsupported'; note: string }[];
+  factcheck?: { claim: string; label: 'supported' | 'overstated' | 'misattributed' | 'unsupported' | 'uncertain'; note: string }[];
 }
 
 export interface RefinementDecision {

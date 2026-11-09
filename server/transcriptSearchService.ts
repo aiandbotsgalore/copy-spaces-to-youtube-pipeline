@@ -274,7 +274,7 @@ export function __setEmbeddingPipelineForTest(fn: any | null) {
 
 export async function getQueryEmbedder() {
   if (!embeddingPipelinePromise) {
-    const { pipeline, env } = await import('@xenova/transformers');
+    const { pipeline, env } = await import('@huggingface/transformers');
     const modelsDir = resolvePath('.cache', 'models');
     env.cacheDir = modelsDir;
     env.localModelPath = modelsDir;
@@ -283,7 +283,7 @@ export async function getQueryEmbedder() {
       env.allowRemoteModels = false;
     }
     embeddingPipelinePromise = pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
-      quantized: true,
+      dtype: 'q8',
     });
   }
   return embeddingPipelinePromise;

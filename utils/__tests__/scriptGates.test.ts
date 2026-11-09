@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  applyPatch, attributionFailure, codeGates, diffVersions, estimateRuntime, judgeConsensus, localTextChecks,
-  locksIntact, mostConsequential, runtimeWithin, sameSpeakerRuns, verifyVerbatim, type TranscriptSeg,
+  applyPatch, attributionFailure, checkNarrationTapeOverlapAdvisory, codeGates,
+  detectConsecutiveWordOverlap, diffVersions, estimateRuntime, hasRawDiarizationLabel,
+  judgeConsensus, localTextChecks, locksIntact, mostConsequential, runtimeWithin,
+  sameSpeakerRuns, verifyVerbatim, type TranscriptSeg,
 } from '../scriptGates';
 import type { Critique, ScriptVersion, StudioClip } from '../scriptTypes';
 import { makeClipTrim } from '../scriptTrim';
@@ -120,6 +122,127 @@ describe('code gates', () => {
     const v = base();
     v.segments[0].scenes[0].blocks = [];
     expect(locksIntact(base().segments, v.segments)).toEqual(['Locked block b1 was dropped.']);
+  });
+
+  describe('raw diarization label detection and scope', () => {
+    it('catches Speaker 1 and Speaker_1 numeral variants', () => {
+      expect(hasRawDiarizationLabel('As Speaker 1 mentioned earlier in the space.')).toBe(true);
+      expect(hasRawDiarizationLabel('According to Speaker_1, the room went cold.')).toBe(true);
+      expect(hasRawDiarizationLabel('Then Speaker-2 walked into the meeting.')).toBe(true);
+      expect(hasRawDiarizationLabel('SPEAKER 01 said it repeatedly.')).toBe(true);
+    });
+
+    it('fails codeGates when narration contains raw diarization label like Speaker_1', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks.push({
+        id: 'b-raw', kind: 'narration', text: 'Speaker_1 claimed that orange cream cheese is delicious.', mode: 'live', claims: [],
+      });
+      const g = codeGates(v.segments, ctx);
+      expect(g.faithful).toBe('fail');
+      expect(g.ok).toBe(false);
+      expect(g.failures.some(f => f.includes('raw diarization label'))).toBe(true);
+    });
+
+    it('does not treat unconfirmed renames as identity proof', () => {
+      const confirmed = {
+        'Speaker_1': 'Danielle',
+        '20260101_aaaa::Speaker 2': 'Eric Hecker',
+      };
+      expect(hasRawDiarizationLabel('Speaker_1 said hello', confirmed)).toBe(true);
+      expect(hasRawDiarizationLabel('Speaker 1 said hello', confirmed)).toBe(true);
+      expect(hasRawDiarizationLabel('Speaker 2 was present', confirmed)).toBe(true);
+      expect(hasRawDiarizationLabel('Speaker_3 was not renamed', confirmed)).toBe(true);
+      expect(hasRawDiarizationLabel('Danielle said hello', new Set(['Speaker_1']))).toBe(false);
+    });
+
+    it('does not flag raw diarization labels inside quoted original tape text', () => {
+      // E.g., Narration quotes an excerpt: Logan said, "Speaker 1 was completely wrong."
+      expect(hasRawDiarizationLabel('Logan said, "Speaker 1 was completely wrong."')).toBe(false);
+      expect(hasRawDiarizationLabel('He testified, “Speaker_2 was right there.”')).toBe(false);
+      // Apostrophes in contractions should NOT mask raw diarization labels outside quotes
+      expect(hasRawDiarizationLabel("I didn't think Speaker 1 would say it's true.")).toBe(true);
+    });
+
+    it('does not flag clip speaker labels as narration errors', () => {
+      const v = base();
+      // Clip has speaker "Speaker_1", but narration has clean text
+      const rawClip: StudioClip = { ...clip, clipId: 'c-raw', speaker: 'Speaker_1' };
+      const originalLockedNarration = v.segments[0].scenes[0].blocks[0];
+      v.segments[0].scenes[0].blocks = [
+        originalLockedNarration, // Preserve the locked baseline block exactly: test only clip speaker scope.
+        { id: 'b2', kind: 'clip', clipId: 'c-raw', keptText: SEGS[1].text, inSec: 0, outSec: 12.16, trimBasis: 'full', fn: 'evidence', rationale: '' },
+      ];
+      const g = codeGates(v.segments, { ...ctx, clipsById: { 'c-raw': rawClip } });
+      expect(g.failures).toEqual([]);
+      expect(g.ok).toBe(true);
+    });
+  });
+
+  describe('overlap advisory detector (>= 4 consecutive normalized words)', () => {
+    it('detects 4 consecutive words between narration and tape', () => {
+      // In normalizeText():
+      // '... orange cream cheese is delicious ...' -> 'orange cream cheese is delicious'
+      // Tape text with 'is delicious' creates a 4-consecutive-word match:
+      const narr = 'The witness said that orange cream cheese is delicious in the cake.';
+      const tape = 'It is not cut, it is orange cream cheese is delicious.';
+      const overlap = detectConsecutiveWordOverlap(narr, tape, 4);
+      expect(overlap).toBe('orange cream cheese is');
+    });
+
+    it('returns null when overlap is under 4 consecutive words or words are not consecutive', () => {
+      // Narr: 'orange cream cheese is delicious' (has 'is')
+      // Tape: 'orange cream cheese. Delicious.' -> normalized to 'orange cream cheese delicious' (no 'is')
+      // Consecutive runs are 'orange cream cheese' (3 words) and 'delicious' (1 word).
+      const narr = 'The witness said that orange cream cheese is delicious in the cake.';
+      const tape = 'It is not cut, it is orange cream cheese. Delicious.';
+      expect(detectConsecutiveWordOverlap(narr, tape, 4)).toBeNull();
+    });
+
+    it('checkNarrationTapeOverlapAdvisory generates advisory warnings only', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks = [
+        { id: 'b1', kind: 'narration', text: 'Yo this thing is stuffed with orange cream cheese.', mode: 'live', claims: [], locked: true },
+        { id: 'b2', kind: 'clip', clipId: 'c1', keptText: SEGS[1].text, inSec: 0, outSec: 12.16, trimBasis: 'full', fn: 'evidence', rationale: '' },
+      ];
+      const advisories = checkNarrationTapeOverlapAdvisory(v.segments, ctx.clipsById, 4);
+      expect(advisories.length).toBeGreaterThan(0);
+      expect(advisories[0]).toMatch(/Editorial advisory/);
+    });
+  });
+
+  describe('clip reprises and duplicate clip behavior', () => {
+    it('fails when an unexplained duplicate clip is reused without reprise justification', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks.push(
+        { id: 'b3', kind: 'clip', clipId: 'c1', keptText: SEGS[1].text, inSec: 0, outSec: 12.16, trimBasis: 'full', fn: 'evidence', rationale: '' }
+      );
+      const g = codeGates(v.segments, ctx);
+      expect(g.faithful).toBe('fail');
+      expect(g.ok).toBe(false);
+      expect(g.failures.some(f => f.includes('Duplicate archival clip c1') && f.includes('without reprise justification'))).toBe(true);
+    });
+
+    it('treats isReprise with rationale as advisory warning until repriseApproved, not hard blocking', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks.push(
+        { id: 'b3', kind: 'clip', clipId: 'c1', keptText: SEGS[1].text, inSec: 0, outSec: 12.16, trimBasis: 'full', fn: 'evidence', rationale: 'Callback to opening premise', isReprise: true, repriseRationale: 'Callback to opening premise' }
+      );
+      const g = codeGates(v.segments, ctx);
+      expect(g.failures).toEqual([]);
+      expect(g.ok).toBe(true);
+      expect(g.warnings?.some(w => w.includes('repeated in "Scene"') && w.includes('Editorial review advised'))).toBe(true);
+    });
+
+    it('produces no warning when repriseApproved is true', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks.push(
+        { id: 'b3', kind: 'clip', clipId: 'c1', keptText: SEGS[1].text, inSec: 0, outSec: 12.16, trimBasis: 'full', fn: 'evidence', rationale: 'Callback to opening premise', isReprise: true, repriseRationale: 'Callback to opening premise', repriseApproved: true }
+      );
+      const g = codeGates(v.segments, ctx);
+      expect(g.failures).toEqual([]);
+      expect(g.ok).toBe(true);
+      expect(g.warnings?.some(w => w.includes('Editorial review advised'))).toBe(false);
+    });
   });
 });
 

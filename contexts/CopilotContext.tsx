@@ -12,14 +12,36 @@ import { sendCopilotMessage } from '../utils/copilotClient';
 import { executeCopilotAction, revertCopilotAction, type CopilotExecutionContext } from '../utils/copilotExecutor';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { buildCompactStateSummary } from '../utils/copilotState';
+import {
+  type CopilotSession,
+  type PinnedContextItem,
+  loadAllSessions,
+  saveSession,
+  deleteSessionFromDB,
+  exportSessionToMarkdown,
+  ACTIVE_SESSION_ID_KEY,
+  WIDGET_SESSION_ID,
+  DEFAULT_SESSION_ID,
+  INITIAL_WELCOME_MESSAGE,
+} from '../utils/copilotStorage';
+import { triggerBlobDownload } from '../utils/zipUtils';
 import { useConfig } from './ConfigContext';
 import { useMontage } from './MontageContext';
 import { usePlayer } from './PlayerContext';
 
-const COPILOT_MESSAGES_STORAGE_KEY = 'spacepipe_copilot_messages_v1';
 const COPILOT_MODEL_KEY = 'spacepipe_copilot_model_v1';
 
 export interface CopilotContextType {
+  sessions: CopilotSession[];
+  activeSessionId: string;
+  setActiveSessionId: (id: string) => void;
+  createSession: (title?: string, isWidget?: boolean) => Promise<string>;
+  deleteSession: (id: string) => Promise<void>;
+  renameSession: (id: string, newTitle: string) => Promise<void>;
+  exportSessionMarkdown: (id?: string) => void;
+  pinnedContexts: PinnedContextItem[];
+  addPinnedContext: (item: PinnedContextItem) => void;
+  removePinnedContext: (id: string) => void;
   messages: CopilotMessage[];
   loading: boolean;
   error: string | null;
@@ -30,36 +52,24 @@ export interface CopilotContextType {
   actionHistory: CopilotAction[];
   contextPayload: CopilotContextPayload;
   setContextPayload: React.Dispatch<React.SetStateAction<CopilotContextPayload>>;
-  sendMessage: (content: string, override?: Partial<CopilotContextPayload>) => Promise<void>;
+  sendMessage: (
+    content: string,
+    override?: Partial<CopilotContextPayload>,
+    options?: { targetSessionId?: string; liveContext?: string }
+  ) => Promise<void>;
   applyAction: (
     action: CopilotAction,
     options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
   ) => Promise<boolean>;
   revertAction: (action: CopilotAction) => Promise<boolean>;
   analyzeActionResults?: (action: CopilotAction) => Promise<void>;
-  clearMessages: () => void;
+  clearMessages: (sessionId?: string) => void;
   activePanelNavHandler?: (panel: string) => void;
   setActivePanelNavHandler: (fn: (panel: string) => void) => void;
   loadEpisodeHandler?: (tag: string) => void;
   setLoadEpisodeHandler: (fn: (tag: string) => void) => void;
+  widgetSessionId: string;
 }
-
-const INITIAL_WELCOME_MESSAGE: CopilotMessage = {
-  id: 'welcome_1',
-  role: 'assistant',
-  content: `👋 **Welcome to the SpacePipe AI Studio & Copilot!**
-
-I am your **Executive Audio Producer & Pipeline Assistant**.
-
-Here are some things I can do for you right now:
-* ⚡ **"Soundbite Hunter"**: Scan any transcript for the highest-energy rants, debates, or viral quotes.
-* 🍿 **"The Debate Duel"**: Reorder your montage clips into an escalating clash with a mic-drop resolution.
-* ✂️ **"Word-Perfect Trimming"**: Tighten In/Out points to remove filler words and dead air.
-* 🩺 **"Diagnose Pipeline"**: Audit your GitHub Actions YAML and cron settings with 1-click auto-fixes.
-
-How can I help with your episodes or pipeline today?`,
-  timestamp: Date.now(),
-};
 
 const CopilotContext = createContext<CopilotContextType | null>(null);
 
@@ -68,22 +78,13 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const montage = useMontage();
   const player = usePlayer();
 
-  const [messages, setMessages] = useState<CopilotMessage[]>(() => {
+  const [sessions, setSessions] = useState<CopilotSession[]>([]);
+  const [activeSessionId, setActiveSessionIdState] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem(COPILOT_MESSAGES_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((m: CopilotMessage) => ({
-            ...m,
-            content: typeof m.content === 'string' ? m.content.replace(/,?\s*powered by \*\*CheaperInference\*\*/gi, '') : m.content,
-          }));
-        }
-      }
+      return localStorage.getItem(ACTIVE_SESSION_ID_KEY) || DEFAULT_SESSION_ID;
     } catch {
-      // fallback
+      return DEFAULT_SESSION_ID;
     }
-    return [INITIAL_WELCOME_MESSAGE];
   });
 
   const [model, setModelState] = useState<string>(() => {
@@ -97,9 +98,139 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [autoApply, setAutoApply] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [actionHistory, setActionHistory] = useState<CopilotAction[]>([]);
   const [contextPayload, setContextPayload] = useState<CopilotContextPayload>({});
   const navHandlerRef = useRef<((panel: string) => void) | undefined>(undefined);
+  const loadEpisodeHandlerRef = useRef<((tag: string) => void) | undefined>(undefined);
+
+  // Initialize sessions from IndexedDB on startup
+  useEffect(() => {
+    let isMounted = true;
+    loadAllSessions().then((loaded) => {
+      if (!isMounted) return;
+      setSessions(loaded);
+      if (loaded.length > 0 && !loaded.some(s => s.id === activeSessionId)) {
+        const nextId = loaded.find(s => s.id !== WIDGET_SESSION_ID)?.id || loaded[0].id;
+        setActiveSessionIdState(nextId);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const setActiveSessionId = useCallback((id: string) => {
+    setActiveSessionIdState(id);
+    try {
+      localStorage.setItem(ACTIVE_SESSION_ID_KEY, id);
+    } catch {}
+  }, []);
+
+  const currentSession = sessions.find(s => s.id === activeSessionId) || sessions[0] || {
+    id: DEFAULT_SESSION_ID,
+    title: 'Session 1',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messages: [INITIAL_WELCOME_MESSAGE],
+    actionHistory: [],
+    pinnedContexts: [],
+  };
+
+  const messages = currentSession.messages || [];
+  const actionHistory = currentSession.actionHistory || [];
+  const pinnedContexts = currentSession.pinnedContexts || [];
+
+  const updateSessionData = useCallback((sessionId: string, updater: (prev: CopilotSession) => CopilotSession) => {
+    setSessions((prev) => {
+      const idx = prev.findIndex((s) => s.id === sessionId);
+      if (idx === -1) return prev;
+      const updated = updater(prev[idx]);
+      const next = [...prev];
+      next[idx] = updated;
+      saveSession(updated);
+      return next;
+    });
+  }, []);
+
+  const createSession = useCallback(async (title?: string, isWidget = false): Promise<string> => {
+    const newId = `session_${Date.now()}`;
+    const newSession: CopilotSession = {
+      id: newId,
+      title: title || `Session ${sessions.filter(s => !s.isWidgetSession).length + 1}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      messages: [INITIAL_WELCOME_MESSAGE],
+      actionHistory: [],
+      pinnedContexts: [],
+      isWidgetSession: isWidget,
+    };
+
+    await saveSession(newSession);
+    setSessions((prev) => [...prev, newSession]);
+    setActiveSessionId(newId);
+    return newId;
+  }, [sessions, setActiveSessionId]);
+
+  const deleteSession = useCallback(async (id: string) => {
+    if (id === WIDGET_SESSION_ID) return; // Prevent deleting designated widget session
+    await deleteSessionFromDB(id);
+    setSessions((prev) => {
+      const remaining = prev.filter((s) => s.id !== id);
+      if (activeSessionId === id && remaining.length > 0) {
+        const fallback = remaining.find((s) => s.id !== WIDGET_SESSION_ID) || remaining[0];
+        setActiveSessionId(fallback.id);
+      }
+      return remaining;
+    });
+  }, [activeSessionId, setActiveSessionId]);
+
+  const renameSession = useCallback(async (id: string, newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed) return;
+    updateSessionData(id, (prev) => ({
+      ...prev,
+      title: trimmed,
+      updatedAt: Date.now(),
+    }));
+  }, [updateSessionData]);
+
+  const clearMessages = useCallback((sessionId?: string) => {
+    const targetId = sessionId || activeSessionId;
+    updateSessionData(targetId, (prev) => ({
+      ...prev,
+      messages: [INITIAL_WELCOME_MESSAGE],
+      actionHistory: [],
+      updatedAt: Date.now(),
+    }));
+  }, [activeSessionId, updateSessionData]);
+
+  const addPinnedContext = useCallback((item: PinnedContextItem) => {
+    updateSessionData(activeSessionId, (prev) => {
+      const existing = prev.pinnedContexts || [];
+      if (existing.some((c) => c.id === item.id)) return prev;
+      return {
+        ...prev,
+        pinnedContexts: [...existing, { ...item, addedAt: Date.now() }],
+        updatedAt: Date.now(),
+      };
+    });
+  }, [activeSessionId, updateSessionData]);
+
+  const removePinnedContext = useCallback((id: string) => {
+    updateSessionData(activeSessionId, (prev) => ({
+      ...prev,
+      pinnedContexts: (prev.pinnedContexts || []).filter((c) => c.id !== id),
+      updatedAt: Date.now(),
+    }));
+  }, [activeSessionId, updateSessionData]);
+
+  const exportSessionMarkdown = useCallback((id?: string) => {
+    const target = sessions.find((s) => s.id === (id || activeSessionId)) || currentSession;
+    const md = exportSessionToMarkdown(target);
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const filename = `Copilot_${target.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_${new Date().toISOString().slice(0, 10)}.md`;
+    triggerBlobDownload(blob, filename);
+  }, [sessions, activeSessionId, currentSession]);
+
   const setActivePanelNavHandler = useCallback((fn: (panel: string) => void) => {
     navHandlerRef.current = fn;
   }, []);
@@ -107,7 +238,6 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     navHandlerRef.current?.(panel);
   }, []);
 
-  const loadEpisodeHandlerRef = useRef<((tag: string) => void) | undefined>(undefined);
   const setLoadEpisodeHandler = useCallback((fn: (tag: string) => void) => {
     loadEpisodeHandlerRef.current = fn;
   }, []);
@@ -115,21 +245,11 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     loadEpisodeHandlerRef.current?.(tag);
   }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(COPILOT_MESSAGES_STORAGE_KEY, JSON.stringify(messages));
-    } catch {
-      // ignore
-    }
-  }, [messages]);
-
   const setModel = (m: string) => {
     setModelState(m);
     try {
       localStorage.setItem(COPILOT_MODEL_KEY, m);
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   const applyAction = useCallback(
@@ -137,7 +257,6 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       action: CopilotAction,
       options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
     ): Promise<boolean> => {
-      // 1. Immediately mark action as 'running' in message state for instant realtime feedback!
       const startTime = Date.now();
       const runningAction: CopilotAction = {
         ...action,
@@ -146,15 +265,16 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         triggerSource: options?.triggerSource || action.triggerSource || 'user',
       };
 
-      setMessages(prev =>
-        prev.map(m => {
+      updateSessionData(activeSessionId, (prev) => ({
+        ...prev,
+        messages: prev.messages.map((m) => {
           if (!m.actions) return m;
           return {
             ...m,
-            actions: m.actions.map(a => (a.id === action.id ? runningAction : a)),
+            actions: m.actions.map((a) => (a.id === action.id ? runningAction : a)),
           };
-        })
-      );
+        }),
+      }));
 
       const ctx: CopilotExecutionContext = {
         config,
@@ -190,24 +310,21 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         triggerSource: options?.triggerSource || action.triggerSource || 'user',
       };
 
-      setActionHistory(prev => [
-        updatedAction,
-        ...prev.filter(a => a.id !== action.id),
-      ]);
-
-      setMessages(prev =>
-        prev.map(m => {
+      updateSessionData(activeSessionId, (prev) => ({
+        ...prev,
+        actionHistory: [updatedAction, ...(prev.actionHistory || []).filter((a) => a.id !== action.id)],
+        messages: prev.messages.map((m) => {
           if (!m.actions) return m;
           return {
             ...m,
-            actions: m.actions.map(a => (a.id === action.id ? updatedAction : a)),
+            actions: m.actions.map((a) => (a.id === action.id ? updatedAction : a)),
           };
-        })
-      );
+        }),
+      }));
 
       return res.ok;
     },
-    [config, updateConfig, montage, player, contextPayload]
+    [activeSessionId, config, updateConfig, montage, player, contextPayload, updateSessionData]
   );
 
   const revertAction = useCallback(
@@ -239,28 +356,34 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           status: 'pending',
         };
 
-        setActionHistory(prev =>
-          prev.map(a => (a.id === action.id ? updatedAction : a))
-        );
-
-        setMessages(prev =>
-          prev.map(m => {
+        updateSessionData(activeSessionId, (prev) => ({
+          ...prev,
+          actionHistory: (prev.actionHistory || []).map((a) => (a.id === action.id ? updatedAction : a)),
+          messages: prev.messages.map((m) => {
             if (!m.actions) return m;
             return {
               ...m,
-              actions: m.actions.map(a => (a.id === action.id ? updatedAction : a)),
+              actions: m.actions.map((a) => (a.id === action.id ? updatedAction : a)),
             };
-          })
-        );
+          }),
+        }));
       }
       return reverted;
     },
-    [config, updateConfig, montage, player, contextPayload]
+    [activeSessionId, config, updateConfig, montage, player, contextPayload, updateSessionData]
   );
 
   const sendMessage = useCallback(
-    async (content: string, override?: Partial<CopilotContextPayload>) => {
+    async (
+      content: string,
+      override?: Partial<CopilotContextPayload>,
+      options?: { targetSessionId?: string; liveContext?: string }
+    ) => {
       if (!content.trim() || loading) return;
+
+      const targetId = options?.targetSessionId || activeSessionId;
+      const targetSession = sessions.find((s) => s.id === targetId) || currentSession;
+      const existingMessages = targetSession.messages || [];
 
       const userMsg: CopilotMessage = {
         id: `user_${Date.now()}`,
@@ -269,19 +392,32 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         timestamp: Date.now(),
       };
 
-      const updatedMessages = [...messages, userMsg];
-      setMessages(updatedMessages);
+      const updatedMessages = [...existingMessages, userMsg];
+
+      // Optimistically update target session
+      updateSessionData(targetId, (prev) => ({
+        ...prev,
+        messages: updatedMessages,
+        updatedAt: Date.now(),
+      }));
+
       setLoading(true);
       setError(null);
 
-      // Merge current dynamic runtime context
+      // Build live grounding including pinned items & liveContext
+      const sessionPinned = targetSession.pinnedContexts || [];
+      const pinnedText = sessionPinned.length > 0
+        ? `PINNED GROUNDING CONTEXTS:\n${sessionPinned.map((c) => `- [${c.type.toUpperCase()}] ${c.title}: ${c.detail || ''}`).join('\n')}`
+        : '';
+
+      const liveContextSummary = options?.liveContext ? `LIVE VIEW STATE: ${options.liveContext}` : '';
+
       const dynamicContext: CopilotContextPayload = {
         ...contextPayload,
         ...override,
-        // An explicit override (even `undefined`, used by the Copilot's context chips) wins over the live Reel.
         activeMontageClips: override && 'activeMontageClips' in override
           ? override.activeMontageClips
-          : montage.clips.map(c => ({
+          : montage.clips.map((c) => ({
               id: c.id,
               title: c.title,
               quote: c.quote,
@@ -301,34 +437,38 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           repoName: config.repoName,
           podcastTitle: config.podcastTitle,
         },
-        compactStateSummary: buildCompactStateSummary({
-          activePanel: contextPayload.activeTab,
-          player: {
-            isPlaying: player.isPlaying,
-            current: (player as any).current,
-            currentTime: (player as any).currentTime,
-            duration: (player as any).duration,
-          },
-          montage: {
-            clipCount: montage.clips.length,
-            totalDurationSec: montage.clips.reduce((acc, c) => acc + Math.max(0, c.endSec - c.startSec), 0),
-            targetDurationSec: montage.targetDurationSec,
-            isAuditioning: montage.isAuditioning,
-          },
-          config: {
-            enableTranscription: config.enableTranscription,
-            enableScheduledMonitoring: config.enableScheduledMonitoring,
-            enableDiscordWebhook: config.enableDiscordWebhook,
-            enableSlackWebhook: config.enableSlackWebhook,
-            hasGithubToken: Boolean(config.githubToken),
-            targetRepo: config.repoName ? `${config.ownerName}/${config.repoName}` : undefined,
-          },
-        }),
+        compactStateSummary: [
+          liveContextSummary,
+          pinnedText,
+          buildCompactStateSummary({
+            activePanel: contextPayload.activeTab,
+            player: {
+              isPlaying: player.isPlaying,
+              current: (player as any).current,
+              currentTime: (player as any).currentTime,
+              duration: (player as any).duration,
+            },
+            montage: {
+              clipCount: montage.clips.length,
+              totalDurationSec: montage.clips.reduce((acc, c) => acc + Math.max(0, c.endSec - c.startSec), 0),
+              targetDurationSec: montage.targetDurationSec,
+              isAuditioning: montage.isAuditioning,
+            },
+            config: {
+              enableTranscription: config.enableTranscription,
+              enableScheduledMonitoring: config.enableScheduledMonitoring,
+              enableDiscordWebhook: config.enableDiscordWebhook,
+              enableSlackWebhook: config.enableSlackWebhook,
+              hasGithubToken: Boolean(config.githubToken),
+              targetRepo: config.repoName ? `${config.ownerName}/${config.repoName}` : undefined,
+            },
+          }),
+        ].filter(Boolean).join('\n\n'),
       };
 
       try {
         const req: CopilotRequestBody = {
-          messages: updatedMessages.map(m => ({
+          messages: updatedMessages.map((m) => ({
             role: m.role,
             content: m.content,
           })),
@@ -346,7 +486,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
         if (res.inspectedRuns && Object.keys(res.inspectedRuns).length > 0) {
-          setContextPayload(prev => ({
+          setContextPayload((prev) => ({
             ...prev,
             inspectedRuns: {
               ...(prev.inspectedRuns || {}),
@@ -355,7 +495,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }));
         }
 
-        const enrichedActions: CopilotAction[] = (res.actions || []).map(a => {
+        const enrichedActions: CopilotAction[] = (res.actions || []).map((a) => {
           const tier = a.tier ?? resolveActionTier(a.action, a.params);
           return {
             ...a,
@@ -375,12 +515,12 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           usage: res.usage,
         };
 
-        setMessages(prev => [...prev, assistantMsg]);
+        updateSessionData(targetId, (prev) => ({
+          ...prev,
+          messages: [...prev.messages, assistantMsg],
+          updatedAt: Date.now(),
+        }));
 
-        // Auto-apply if enabled — STRICTLY restricted to Tier 0 or Tier 1 actions!
-        // Tier 2 actions (enqueuing, workflows, GPU/paid generation, sensitive config)
-        // ALWAYS require user confirmation, even with autoApply ON.
-        // Read-only actions (GET_*, SEARCH_TRANSCRIPTS) are resolved autonomously server-side.
         if (autoApply && enrichedActions.length > 0) {
           for (const action of enrichedActions) {
             const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_');
@@ -396,32 +536,37 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoading(false);
       }
     },
-    [messages, loading, model, contextPayload, montage.clips, config, autoApply, applyAction]
+    [
+      loading,
+      activeSessionId,
+      sessions,
+      currentSession,
+      updateSessionData,
+      contextPayload,
+      montage.clips,
+      montage.targetDurationSec,
+      montage.isAuditioning,
+      config,
+      player,
+      model,
+      autoApply,
+      applyAction,
+    ]
   );
-
-  const analyzeActionResults = useCallback(
-    async (action: CopilotAction) => {
-      if (!action.resultData) return;
-      const payloadStr = JSON.stringify(action.resultData, null, 2);
-      await sendMessage(
-        `[ACTION RESULT TELEMETRY]: Action ${action.action} executed.\nData payload:\n${payloadStr}\n\nPlease analyze this live system data immediately, identify any errors or failures, and provide your full diagnosis and recommended fixes.`
-      );
-    },
-    [sendMessage]
-  );
-
-  const clearMessages = useCallback(() => {
-    setMessages([INITIAL_WELCOME_MESSAGE]);
-    try {
-      localStorage.removeItem(COPILOT_MESSAGES_STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-  }, []);
 
   return (
     <CopilotContext.Provider
       value={{
+        sessions,
+        activeSessionId,
+        setActiveSessionId,
+        createSession,
+        deleteSession,
+        renameSession,
+        exportSessionMarkdown,
+        pinnedContexts,
+        addPinnedContext,
+        removePinnedContext,
         messages,
         loading,
         error,
@@ -435,12 +580,12 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         sendMessage,
         applyAction,
         revertAction,
-        analyzeActionResults,
         clearMessages,
         activePanelNavHandler,
         setActivePanelNavHandler,
         loadEpisodeHandler,
         setLoadEpisodeHandler,
+        widgetSessionId: WIDGET_SESSION_ID,
       }}
     >
       {children}
@@ -448,30 +593,10 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 };
 
-const FALLBACK_COPILOT_CONTEXT: CopilotContextType = {
-  messages: [],
-  loading: false,
-  error: null,
-  model: DEFAULT_COPILOT_MODEL,
-  setModel: () => {},
-  autoApply: false,
-  setAutoApply: () => {},
-  actionHistory: [],
-  contextPayload: {},
-  setContextPayload: () => {},
-  sendMessage: async () => {},
-  applyAction: async () => false,
-  revertAction: async () => false,
-  clearMessages: () => {},
-  setActivePanelNavHandler: () => {},
-  setLoadEpisodeHandler: () => {},
-};
-
 export const useCopilot = (): CopilotContextType => {
-  const ctx = useContext(CopilotContext);
-  if (!ctx) {
-    console.warn('[CopilotContext] useCopilot invoked outside a CopilotProvider. Returning safe fallback context.');
-    return FALLBACK_COPILOT_CONTEXT;
+  const context = useContext(CopilotContext);
+  if (!context) {
+    throw new Error('useCopilot must be used within a CopilotProvider');
   }
-  return ctx;
+  return context;
 };

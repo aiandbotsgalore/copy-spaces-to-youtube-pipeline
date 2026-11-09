@@ -90,4 +90,45 @@ describe('POST /version checks before the head moves', () => {
     expect(r.json.headMoved).toBe(true);
     expect((await api('GET', `/project?id=${projectId}`)).json.project.headVersionId).toBe(r.json.version.id);
   });
+
+  it('blocks rejected /head and /decide acceptance without mutation, while force restores explicitly', async () => {
+    const p0 = (await api('GET', `/project?id=${projectId}`)).json.project;
+    const bad = await api('POST', '/version', { projectId, parentId: p0.headVersionId, segments: script([narr('b_one', 'Oor tastes the cake.', [badRef]), narr('b_two', 'A candidate line.')]), label: 'bad candidate' });
+    expect(bad.json.headMoved).toBe(false);
+    const before = (await api('GET', `/project?id=${projectId}`)).json.project.headVersionId;
+    const blockedHead = await api('POST', '/head', { projectId, versionId: bad.json.version.id });
+    expect(blockedHead.status).toBe(422);
+    expect(blockedHead.json.code).toBe('BLOCKED_BY_GATES');
+    expect((await api('GET', `/project?id=${projectId}`)).json.project.headVersionId).toBe(before);
+    const blockedDecision = await api('POST', '/decide', { projectId, candidateId: bad.json.version.id, decision: 'accept' });
+    expect(blockedDecision.status).toBe(422);
+    expect(blockedDecision.json.code).toBe('BLOCKED_BY_GATES');
+    expect((await api('GET', `/version?projectId=${projectId}&id=${bad.json.version.id}`)).json.version.decision).toBeUndefined();
+    const forced = await api('POST', '/head', { projectId, versionId: bad.json.version.id, force: true });
+    expect(forced.status).toBe(200);
+    expect(forced.json.forced).toBe(true);
+    expect(forced.json.gates.ok).toBe(false);
+    expect((await api('GET', `/project?id=${projectId}`)).json.project.headVersionId).toBe(bad.json.version.id);
+  });
+
+  it('does not invoke an AI model when an explicitly reviewed version has no evidence pairings', async () => {
+    const id = 'v_without_evidence';
+    mw.store.saveVersion({ id, projectId, parentId: null, createdAt: Date.now(), author: 'logan', segments: script([]) } as any);
+    const modelCallsBefore = calls.length;
+    const checked = await api('POST', '/evidence-check', { projectId, versionId: id });
+    expect(checked.status).toBe(200);
+    expect(checked.json.ok).toBe(true);
+    expect(checked.json.findings).toEqual([]);
+    expect(checked.json.pairings).toEqual([]);
+    expect(calls).toHaveLength(modelCallsBefore);
+  });
+
+  it('reports uncertainty rather than a fabricated verdict when manual semantic review is unavailable', async () => {
+    const checked = await api('POST', '/evidence-check', { projectId, versionId: v1 });
+    expect(checked.status, JSON.stringify(checked.json)).toBe(200);
+    expect(checked.json.ok).toBe(true);
+    expect(checked.json.pairings.length).toBeGreaterThan(0);
+    expect(checked.json.error).toBeDefined();
+    expect(checked.json.findings.some((f: any) => f.status === 'uncertain')).toBe(true);
+  });
 });

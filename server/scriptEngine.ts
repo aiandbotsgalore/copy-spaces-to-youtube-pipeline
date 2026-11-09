@@ -30,6 +30,7 @@ import { newId, StoreError, type ScriptStore } from './scriptStore';
 import { Limiter } from './directorMiddleware';
 import { createQuoteLibrary } from './quoteLibrary';
 import { quoteToStudioClip } from './quoteAlign';
+import { pairEvidenceAndTape } from '../utils/evidencePairing';
 
 export const MAX_ROUNDS = 4;
 export const LEDGER_MAX_CHARS = 1500 * 4;
@@ -416,12 +417,16 @@ export function createEngine(deps: EngineDeps) {
     return { ok: true, patch: out };
   }
 
-  function gateContext(project: ScriptProject, baseline: Segment[]) {
+  function gateContext(project: ScriptProject, baseline: Segment[], subject: Segment[] = baseline) {
     const tr: Record<string, ReturnType<typeof namedSegments>> = {};
     for (const tag of project.sourceTags) { try { tr[tag] = namedSegments(transcript(tag), namesForTag(project.speakerNames, tag)); } catch { /* missing */ } }
+    const libraries: Record<string, any> = {};
+    for (const tag of project.sourceTags) { const lib = deps.store.getLibrary(tag); if (lib) libraries[tag] = lib; }
+    const pairings = pairEvidenceAndTape({ project, segments: subject, board: deps.store.getBoard(project.id), libraries, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])) }).pairings;
     return {
       baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])),
       targetRuntimeSec: project.targetRuntimeSec, runtimeTolerance: project.runtimeTolerance, format: project.format as EpisodeFormat | null,
+      transcriptHashes: project.transcriptHashes, evidencePairings: pairings,
       formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
     };
   }

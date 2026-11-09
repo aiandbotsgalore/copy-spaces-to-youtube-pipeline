@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, useDeferredValue } from 'react';
-import JSZip from 'jszip';
+import { createZipBlob, triggerBlobDownload } from '../utils/zipUtils';
 import { useTranscriptLayout } from './transcript/useTranscriptLayout';
 import type { TranscriptLayoutPreset } from './transcript/useTranscriptLayout';
 import './transcript/ApprovedTranscript.css';
@@ -2576,10 +2576,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       }
 
       const totalCount = matchedEps.length;
-      const zip = new JSZip();
+      const zipFiles: Record<string, string | Uint8Array> = {};
       const folderName = `Transcripts_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-      const zipFolder = zip.folder(folderName) || zip;
-      const jsonFolder = zipFolder.folder('raw_json');
 
       const allQuotes: string[] = [
         `================================================================================`,
@@ -2617,9 +2615,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
             try {
               const parsed = JSON.parse(rawText);
               segments = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.segments) ? parsed.segments : []);
-              if (jsonFolder) {
-                jsonFolder.file(`${ep.release_tag}.json`, rawText);
-              }
+              zipFiles[`${folderName}/raw_json/${ep.release_tag}.json`] = rawText;
             } catch {}
           }
         }
@@ -2676,11 +2672,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           .trim()
           .replace(/\s+/g, '_')
           .slice(0, 80);
-        zipFolder.file(`${ep.release_tag}_${safeTitle}.txt`, formattedTranscript);
+        zipFiles[`${folderName}/${ep.release_tag}_${safeTitle}.txt`] = formattedTranscript;
       }
 
-      zipFolder.file(`00_INDEX_ALL_${spk.toUpperCase()}_SPACES.txt`, indexTable.join('\n'));
-      zipFolder.file(`00_ALL_${spk.toUpperCase()}_DIALOGUE.txt`, allQuotes.join('\n'));
+      zipFiles[`${folderName}/00_INDEX_ALL_${spk.toUpperCase()}_SPACES.txt`] = indexTable.join('\n');
+      zipFiles[`${folderName}/00_ALL_${spk.toUpperCase()}_DIALOGUE.txt`] = allQuotes.join('\n');
 
       setSpeakerZipProgress({
         current: totalCount,
@@ -2689,22 +2685,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         percent: 92,
       });
 
-      const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
-        setSpeakerZipProgress(prev => prev ? {
-          ...prev,
-          percent: Math.min(99, 92 + Math.round(meta.percent * 0.07)),
-        } : null);
-      });
-
-      const downloadUrl = URL.createObjectURL(zipBlob);
-      const downloadAnchor = document.createElement('a');
+      const zipBlob = await createZipBlob(zipFiles);
       const zipFileName = `Transcripts_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}_(${totalCount}_Spaces).zip`;
-      downloadAnchor.href = downloadUrl;
-      downloadAnchor.download = zipFileName;
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      document.body.removeChild(downloadAnchor);
-      setTimeout(() => URL.revokeObjectURL(downloadUrl), 3000);
+      triggerBlobDownload(zipBlob, zipFileName);
 
       setSpeakerZipSuccess(`Downloaded ${zipFileName} containing all ${totalCount} transcripts!`);
       setSpeakerZipProgress(null);
@@ -2787,11 +2770,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         return;
       }
 
-      // Fallback: Dynamic JSZip generation
-      const zip = new JSZip();
+      // Fallback: Dynamic zip generation via fflate
       const folderName = `Audio_Clips_${spk.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-      const zipFolder = zip.folder(folderName) || zip;
       const clipsToDownload = extractedAudioClips.length > 0 ? extractedAudioClips : [];
+      const audioZipFiles: Record<string, string | Uint8Array> = {};
 
       let done = 0;
       for (const clip of clipsToDownload) {
@@ -2806,7 +2788,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
           const fileRes = await fetch(`./${clip.url}`);
           if (fileRes.ok) {
             const blobData = await fileRes.blob();
-            zipFolder.file(clip.filename, blobData);
+            const u8 = new Uint8Array(await blobData.arrayBuffer());
+            audioZipFiles[`${folderName}/${clip.filename}`] = u8;
           }
         } catch (fErr) {
           console.warn(`Failed to add clip ${clip.filename}:`, fErr);
@@ -2820,21 +2803,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         percent: 90,
       });
 
-      const zipBlob = await zip.generateAsync({ type: 'blob' }, (meta) => {
-        setAudioZipProgress(prev => prev ? {
-          ...prev,
-          percent: Math.min(99, 90 + Math.round(meta.percent * 0.09)),
-        } : null);
-      });
-
-      const dUrl = URL.createObjectURL(zipBlob);
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.href = dUrl;
-      downloadAnchor.download = `Audio_Clips_${spk}_(${clipsToDownload.length}_Clips).zip`;
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      document.body.removeChild(downloadAnchor);
-      setTimeout(() => URL.revokeObjectURL(dUrl), 4000);
+      const zipBlob = await createZipBlob(audioZipFiles);
+      const zipFileName = `Audio_Clips_${spk}_(${clipsToDownload.length}_Clips).zip`;
+      triggerBlobDownload(zipBlob, zipFileName);
 
       setAudioZipSuccess(`Downloaded Audio_Clips_${spk} (${clipsToDownload.length} clips)!`);
       setTimeout(() => setAudioZipProgress(null), 3000);

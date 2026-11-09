@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { pipeline, env } from '@xenova/transformers';
+import { pipeline, env } from '@huggingface/transformers';
 
 // Setup local cache path
 const modelsDir = path.resolve(process.cwd(), '.cache', 'models');
@@ -466,7 +466,7 @@ async function main() {
 
   console.log('\n2. Initializing Xenova/all-MiniLM-L6-v2 pipeline...');
   const extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
-    quantized: true,
+    dtype: 'q8',
   });
   console.log('✓ Pipeline loaded successfully.\n');
 

@@ -115,6 +115,124 @@ export function runtimeWithin(estimatedSec: number, targetSec: number, tol = RUN
 
 export const ATTRIBUTION_RE = /\b(according to|alleg(e|es|ed|ing|ation|ations)|claim(s|ed|ing)?|said|says|told|accus(e|es|ed|ing)|assert(s|ed)?|insist(s|ed)?|maintain(s|ed)?|in (his|her|their) (words|telling|account))\b/i;
 
+// Raw diarization label regex: Speaker 1, Speaker_1, Speaker 01, Speaker-1, SPEAKER 2, etc.
+export const RAW_SPEAKER_LABEL_RE = /\bSpeaker[_\-\s]+\d+\b/i;
+
+/** Normalizes raw speaker label e.g. "Speaker_1", "Speaker-01", "SPEAKER  1" -> "speaker 1" */
+export function normalizeSpeakerLabel(label: string): string {
+  const m = (label || '').trim().match(/^Speaker[_\-\s]+(\d+)$/i);
+  if (!m) return (label || '').trim().toLowerCase();
+  return `speaker ${parseInt(m[1], 10)}`;
+}
+
+/**
+ * Checks whether text contains a raw diarization label (e.g. "Speaker 1", "Speaker_1").
+ * Only an explicit confirmed-label Set can exempt a label; speaker rename maps remain
+ * editorial display metadata. Labels inside quoted original tape text are ignored.
+ *
+ * A Set may contain flat or tag-scoped raw labels, matching exact or normalized variants.
+ */
+export function hasRawDiarizationLabel(
+  text: string,
+  confirmedSpeakers?: Record<string, string> | Set<string>
+): boolean {
+  if (!text) return false;
+  // Mask out paired double quotes or curly quotes representing original tape/quotes.
+  // Note: Avoid masking single quotes/apostrophes so words like didn't or it's do not swallow labels.
+  const strippedQuotes = text.replace(/["“][^"”]*["”]/g, ' ');
+  const matches = strippedQuotes.match(new RegExp(RAW_SPEAKER_LABEL_RE.source, 'gi'));
+  if (!matches) return false;
+
+  // Build a normalized set of confirmed labels if provided
+  let confirmedNorm: Set<string> | null = null;
+  if (confirmedSpeakers) {
+    confirmedNorm = new Set<string>();
+    // A rename map is editorial display metadata, not proof that Logan confirmed the
+    // underlying voice. Only an explicit Set is an identity confirmation.
+    const keys = confirmedSpeakers instanceof Set ? Array.from(confirmedSpeakers) : [];
+    for (const k of keys) {
+      // If tag-scoped e.g. "20260101_aaaa::Speaker 1", extract speaker part
+      const rawPart = k.includes('::') ? k.slice(k.indexOf('::') + 2) : k;
+      confirmedNorm.add(rawPart.trim().toLowerCase());
+      confirmedNorm.add(normalizeSpeakerLabel(rawPart));
+    }
+  }
+
+  for (const m of matches) {
+    const raw = m.trim();
+    if (confirmedNorm) {
+      if (confirmedNorm.has(raw.toLowerCase()) || confirmedNorm.has(normalizeSpeakerLabel(raw))) {
+        continue;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Detects whether narration shares >= minWords (default 4) consecutive normalized words with tape text.
+ * Returns the matching n-gram phrase if found, or null.
+ * Pure deterministic function for narration vs tape overlap.
+ */
+export function detectConsecutiveWordOverlap(
+  narrationText: string,
+  tapeText: string,
+  minWords = 4
+): string | null {
+  const normNarr = normalizeText(narrationText);
+  const normTape = normalizeText(tapeText);
+  if (!normNarr || !normTape) return null;
+
+  const narrWords = normNarr.split(' ').filter(Boolean);
+  const tapeWords = normTape.split(' ').filter(Boolean);
+  if (narrWords.length < minWords || tapeWords.length < minWords) return null;
+
+  const tapeJoined = ' ' + tapeWords.join(' ') + ' ';
+  for (let i = 0; i <= narrWords.length - minWords; i++) {
+    const gramWords = narrWords.slice(i, i + minWords);
+    const gram = ' ' + gramWords.join(' ') + ' ';
+    if (tapeJoined.includes(gram)) {
+      return gramWords.join(' ');
+    }
+  }
+  return null;
+}
+
+/**
+ * Checks for >= 4 consecutive normalized-word overlap between narration blocks and associated archival tape.
+ * Returns advisory warning messages (never hard failures).
+ */
+export function checkNarrationTapeOverlapAdvisory(
+  candidate: Segment[],
+  clipsById: Record<string, StudioClip>,
+  minWords = 4
+): string[] {
+  const warnings: string[] = [];
+  for (const seg of candidate) {
+    for (const sc of seg.scenes) {
+      // Find all narration blocks and all archival clip blocks in this scene (or scene context)
+      const narrations = sc.blocks.filter((b): b is Extract<Block, { kind: 'narration' }> => b.kind === 'narration');
+      const clips = sc.blocks.filter((b): b is Extract<Block, { kind: 'clip' }> => b.kind === 'clip');
+
+      for (const n of narrations) {
+        for (const c of clips) {
+          const clip = clipsById[c.clipId];
+          const tapeText = c.keptText || clip?.text || '';
+          if (!tapeText) continue;
+          const overlap = detectConsecutiveWordOverlap(n.text, tapeText, minWords);
+          if (overlap) {
+            warnings.push(
+              `Editorial advisory: Narration ${n.id} shares ${minWords}+ consecutive words with archival tape (${c.clipId}): "${overlap}". Review for echo.`
+            );
+          }
+        }
+      }
+    }
+  }
+  return warnings;
+}
+
 /** Investigative format: a narration block resting on a single source must attribute it in words. */
 export function attributionFailure(b: Block, format: EpisodeFormat | null): string | null {
   if (format !== 'investigative' || b.kind !== 'narration' || b.claims.length === 0) return null;
@@ -280,6 +398,14 @@ export interface GateContext {
   changedBlockIds?: Set<string>;
   /** Format rules (utils/scriptFormats.ts). With changedBlockIds, only findings new against the baseline fail. */
   formatCheck?: (segments: Segment[]) => { hard: { key: string; message: string }[] };
+  /** Pairings are supplied by the deterministic evidence-pairing layer. */
+  evidencePairings?: readonly {
+    narrationBlockId: string;
+    tapeBlock?: { exactTapeText: string; provenanceStatus?: string };
+    claims?: readonly { provenanceStatus?: string }[];
+  }[];
+  /** Loaded transcript hashes, when the caller has them. */
+  transcriptHashes?: Record<string, string>;
 }
 
 export function changedBlockIds(baseline: Segment[], candidate: Segment[]): Set<string> {
@@ -306,7 +432,7 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
       }
     }
     if (b.kind === 'narration' && isChanged) {
-      if (/\bSpeaker\s+\d+\b/i.test(b.text)) {
+      if (hasRawDiarizationLabel(b.text)) {
         faithful = false;
         failures.push(`Narration contains raw diarization label: "${b.text.slice(0, 60)}..."`);
       }
@@ -364,6 +490,25 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
     const pct = ctx.targetRuntimeSec > 0 ? Math.round((Math.abs(delta) / ctx.targetRuntimeSec) * 100) : 0;
     warnings.push(`Runtime discrepancy: ${Math.round(rt.sec)}s${rt.estimated ? ' (estimated)' : ''} differs from ${ctx.targetRuntimeSec}s target (${sign}s, ${pct}% delta). Informational only.`);
   }
+
+  // Overlap is advisory and is limited to tape that the pairing layer actually
+  // associated with this narration block. It never scans every clip in a scene.
+  if (ctx.evidencePairings) {
+    for (const pair of ctx.evidencePairings) {
+      for (const claim of pair.claims || []) {
+        if (claim.provenanceStatus === 'hash_mismatch') { factual = false; failures.push(`Evidence for narration ${pair.narrationBlockId} has a transcript provenance hash mismatch.`); }
+        else if (claim.provenanceStatus === 'needs_review') warnings.push(`Evidence for narration ${pair.narrationBlockId} needs provenance review.`);
+      }
+      if (pair.tapeBlock?.provenanceStatus === 'hash_mismatch') { factual = false; failures.push(`Paired tape for narration ${pair.narrationBlockId} has a transcript provenance hash mismatch.`); }
+      else if (pair.tapeBlock?.provenanceStatus === 'needs_review') warnings.push(`Paired tape for narration ${pair.narrationBlockId} needs provenance review.`);
+      if (!pair.tapeBlock?.exactTapeText) continue;
+      const narration = allBlocks(candidate).find(b => b.id === pair.narrationBlockId);
+      if (!narration || narration.kind !== 'narration') continue;
+      const overlap = detectConsecutiveWordOverlap(narration.text, pair.tapeBlock.exactTapeText, 4);
+      if (overlap) warnings.push(`Editorial advisory: Narration ${narration.id} shares 4+ consecutive words with paired archival tape: "${overlap}". Review for echo.`);
+    }
+  }
+
   const result: GateResult = {
     factual: factual ? 'pass' : 'fail', faithful: faithful ? 'pass' : 'fail', locksIntact: lockFailures.length === 0,
     clipBoundsOk: boundsOk, runtimeOk: rtOk, failures, warnings,

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
 import { attachAudioSource } from '../utils/hlsPlayer';
+import { toFetchableUrl } from '../utils/audioUrl';
 
 export interface NowPlayingEpisode {
   id: number | string;
@@ -44,7 +45,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     const audio = new Audio();
-    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
     audio.playbackRate = playbackRate;
     audio.volume = volume;
@@ -136,9 +136,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       pendingSeekRef.current = startTime;
     }
 
-    if (current?.id !== episode.id) {
+    if (current?.id !== episode.id || current?.audioUrl !== episode.audioUrl) {
       hlsCleanupRef.current?.();
-      const { destroy } = attachAudioSource(audio, episode.audioUrl);
+      const streamUrl = toFetchableUrl(episode.audioUrl);
+      const { destroy } = attachAudioSource(audio, streamUrl);
       hlsCleanupRef.current = destroy;
       audio.playbackRate = playbackRate;
       audio.volume = volume;

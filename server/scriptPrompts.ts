@@ -145,7 +145,7 @@ export const EPISODE_CRITIQUE_SCHEMA = obj({
 });
 export const POLISH_SCHEMA = obj({ blocks: arr(obj({ id: str, text: str })), notes: str });
 export const JUDGE_SCHEMA = obj({ winner: en(['A', 'B', 'tie']), reasons: strArr });
-export const FACTCHECK_SCHEMA = obj({ claims: arr(obj({ index: { type: 'integer' }, label: en(['supported', 'overstated', 'unsupported']), note: str })) });
+export const FACTCHECK_SCHEMA = obj({ claims: arr(obj({ index: { type: 'integer' }, label: en(['supported', 'overstated', 'misattributed', 'unsupported', 'uncertain']), note: str })) });
 
 /* ------------------------------------------------------------------------------------------------ */
 /* Prompt builders                                                                                   */
@@ -448,7 +448,7 @@ export function factcheckPrompt(args: { claims: string }): Prompt {
   return {
     version: PROMPT_VERSIONS.factcheck, schemaName: 'factcheck', schema: FACTCHECK_SCHEMA, maxTokens: 600,
     system: `${BASE_RULES}
-Task: fact-check narration against the transcript excerpts it cites. For each claim index, label it supported (the narration says no more than the excerpt), overstated (goes beyond it, or states an allegation as fact) or unsupported (the excerpt does not back it), with a one-line note.`,
+Task: fact-check narration against the supplied evidence pairing. For each claim index, label it supported (the evidence supports the narration), overstated (the narration goes beyond it), misattributed (the speaker or source is wrong), unsupported (the evidence does not establish it), or uncertain (the supplied evidence is incomplete or ambiguous). Never infer identity from a raw diarization label or an unconfirmed display name. Give a concise rationale.`,
     user: `Claims (JSON: index, narration, excerpts):
 ${dataBlock(args.claims)}`,
   };

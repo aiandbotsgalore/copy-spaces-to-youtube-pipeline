@@ -14,6 +14,7 @@
  *   POST /draft                  draft every segment -> new version, with code-gate results
  *   POST /version                save Logan's edit (rejected unless its parent is the current head)
  *   POST /head                   move the head version (rollback)
+ *   POST /evidence-check         explicit semantic evidence review (never implicit in save/draft)
  *   POST /refine                 start a detached refinement run -> 202 { runId }
  *   GET  /events?projectId&runId SSE: replays saved events, then streams live ones
  *   GET  /run?projectId&runId    run record with its candidates and diffs
@@ -80,13 +81,14 @@ import {
   buildPack, checkFactchecks, checkRecordings, checkResultHeader, HANDOFF_KINDS, packHash,
   type HandoffKind, type HandoffRecord, type ImportSummary,
 } from './scriptHandoff';
-import { PROMPT_VERSIONS } from './scriptPrompts';
+import { factcheckPrompt, PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
 import { parseUploadedScript, parseTimeToSeconds, extractScriptMetadata } from '../utils/scriptUpload';
 import { fetchGoogleDriveEvidence } from './googleDriveService';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
 import type { AsyncSynth } from './voxSynthesize';
 import { callStats, collectPairs, promptOutcomes, qualityReport, summarizeLog, type LogEntry } from '../utils/scriptQuality';
+import { pairEvidenceAndTape } from '../utils/evidencePairing';
 
 export interface ScriptStudioOptions {
   root: string;
@@ -761,7 +763,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       // so an old failure elsewhere never blocks a save. A failing edit is still saved as a version.
       const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
       const baseline = head ? head.segments : [];
-      const gates = codeGates(segments, { ...engine.gateContext(p, baseline), changedBlockIds: changedBlockIds(baseline, segments) });
+      const gates = codeGates(segments, { ...engine.gateContext(p, baseline, segments), changedBlockIds: changedBlockIds(baseline, segments) });
       const v: ScriptVersion = { id: newId('v'), parentId: p.headVersionId, projectId: p.id, createdAt: now(), author: 'logan', label: String(body?.label || 'Edit').slice(0, 80), segments };
       store.saveVersion(v);
       if (gates.ok) { p.headVersionId = v.id; touch(p); }
@@ -772,9 +774,74 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const body = await readBody(req);
       const p = getProject(body?.projectId);
       const v = getVersion(p, body?.versionId);
+      const head = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+      const gates = codeGates(v.segments, { ...engine.gateContext(p, head?.segments || [], v.segments), changedBlockIds: undefined });
+      // Only this explicit history/rollback route permits an intentional force override.
+      if (!gates.ok && body?.force !== true) {
+        return send(res, 422, { ok: false, code: 'BLOCKED_BY_GATES',
+          message: 'This version fails technical checks; use explicit rollback confirmation to restore it.',
+          failures: gates.failures, warnings: gates.warnings, gates });
+      }
       p.headVersionId = v.id;
       touch(p);
-      return send(res, 200, { ok: true, project: p });
+      return send(res, 200, { ok: true, project: p, gates, forced: !gates.ok && body?.force === true });
+    }
+
+    if (route === '/evidence-check' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const version = body?.versionId ? getVersion(p, body.versionId) : (p.headVersionId ? getVersion(p, p.headVersionId) : null);
+      if (!version) throw new StepError('NO_VERSION', 'A versionId or current project head is required.');
+      const libraries: Record<string, any> = {};
+      for (const tag of p.sourceTags) { const lib = store.getLibrary(tag); if (lib) libraries[tag] = lib; }
+      const pairings = pairEvidenceAndTape({ project: p, segments: version.segments, board: store.getBoard(p.id), libraries, clipsById: Object.fromEntries(p.clips.map(c => [c.clipId, c])) });
+      const reviewItems = pairings.pairings.map((pair, index) => ({
+        index, narrationBlockId: pair.narrationBlockId, narration: pair.narrationText,
+        claims: pair.claims, tape: pair.tapeBlock, pairingStatus: pair.pairingStatus, pairingNote: pair.pairingNote,
+      }));
+      // No supporting pairings means there is nothing useful to send to a model.
+      if (!reviewItems.length) return send(res, 200, {
+        ok: true, versionId: version.id, findings: [], pairings: [], warnings: pairings.warnings, spentUsd: 0,
+      });
+      const ctx = interactiveCtx(body, 'semantic evidence check');
+      const prompt = factcheckPrompt({ claims: JSON.stringify(reviewItems) });
+      // The shared factcheck prompt defaults to 600 output tokens, which can
+      // silently truncate whole-script reviews containing many paired claims.
+      prompt.maxTokens = Math.min(4096, Math.max(prompt.maxTokens, reviewItems.length * 100));
+      let result: Awaited<ReturnType<typeof engine.call>>;
+      try {
+        result = await engine.call('factcheck', prompt, ctx);
+      } catch (error) {
+        // Provider adapters can throw before returning a structured failure.
+        // Evidence review is advisory: preserve the script and report uncertainty.
+        const message = error instanceof Error ? error.message : String(error);
+        return send(res, 200, {
+          ok: true, versionId: version.id,
+          findings: [{ index: -1, status: 'uncertain', rationale: `Semantic review unavailable: ${message}` }],
+          error: { code: 'REVIEW_UNAVAILABLE', message },
+          pairings: pairings.pairings, warnings: pairings.warnings, spentUsd: ctx.budget.spentUsd,
+        });
+      }
+      if (!result.ok) {
+        return send(res, 200, { ok: true, versionId: version.id, findings: [{ index: -1, status: 'uncertain', rationale: `Semantic review unavailable: ${result.code}: ${result.message}` }], error: { code: result.code, message: result.message }, pairings: pairings.pairings, warnings: pairings.warnings, spentUsd: ctx.budget.spentUsd });
+      }
+      const rawFindings = Array.isArray((result.json as any)?.claims) ? (result.json as any).claims : [];
+      const findings: { index: number; status: string; rationale: string }[] = rawFindings.map((f: any) => {
+        const index = Number(f?.index);
+        const hasValidIndex = Number.isInteger(index) && index >= 0 && index < reviewItems.length;
+        const hasValidStatus = ['supported', 'overstated', 'misattributed', 'unsupported', 'uncertain'].includes(f?.label);
+        return {
+          index: hasValidIndex ? index : -1,
+          status: hasValidIndex && hasValidStatus ? f.label : 'uncertain',
+          rationale: typeof f?.note === 'string' && f.note.trim() ? f.note.trim() : 'Provider returned an incomplete finding; treat this as uncertain.',
+        };
+      });
+      const covered = new Set(findings.map(f => f.index).filter(i => i >= 0));
+      for (const item of reviewItems) if (!covered.has(item.index)) findings.push({
+        index: item.index, status: 'uncertain', rationale: 'The semantic provider did not return a finding for this evidence pairing.',
+      });
+      if (!rawFindings.length) findings.push({ index: -1, status: 'uncertain', rationale: 'Semantic provider returned no structured findings.' });
+      return send(res, 200, { ok: true, versionId: version.id, findings, pairings: pairings.pairings, warnings: pairings.warnings, spentUsd: ctx.budget.spentUsd, provider: result.provider, model: result.model });
     }
 
     if (route === '/version' && method === 'GET') {
@@ -870,6 +937,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const cand = getVersion(p, body?.candidateId);
       const decision = body?.decision === 'accept' ? 'accept' : body?.decision === 'reject' ? 'reject' : null;
       if (!decision) throw new StepError('BAD_REQUEST', 'decision must be accept or reject.');
+      if (decision === 'accept') {
+        const currentHead = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
+        const gates = codeGates(cand.segments, { ...engine.gateContext(p, currentHead?.segments || [], cand.segments), changedBlockIds: undefined });
+        if (!gates.ok) {
+          return send(res, 422, { ok: false, code: 'BLOCKED_BY_GATES', message: 'This candidate fails the full promotion checks.', failures: gates.failures, warnings: gates.warnings, gates });
+        }
+      }
       if (!cand.decision) cand.decision = { candidateId: cand.id, baselineId: cand.parentId || '', round: -1, promptVersion: 'manual', gates: { factual: 'pass', faithful: 'pass', locksIntact: true, clipBoundsOk: true, runtimeOk: true, failures: [], warnings: [] }, loopAccepted: false };
       cand.decision.loganDecision = decision;
       store.saveVersion(cand);

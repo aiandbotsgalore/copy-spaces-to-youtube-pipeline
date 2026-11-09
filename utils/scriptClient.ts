@@ -100,7 +100,13 @@ export const scriptApi = {
   draft: (projectId: string, roles: RoleChoice) => call<{ version: ScriptVersion; gates: GateResult; style: { built: boolean; warning?: string } }>('POST', '/draft', { projectId, ...roles, renames: transcriptViewerRenames() }),
   saveVersion: (projectId: string, parentId: string | null, segments: Segment[], label: string) => call<{ version: ScriptVersion; gates: GateResult & { ok?: boolean }; headMoved: boolean }>('POST', '/version', { projectId, parentId, segments, label }),
   version: (projectId: string, id: string) => call<{ version: ScriptVersion; diff: BlockDiff[] }>('GET', `/version?projectId=${encodeURIComponent(projectId)}&id=${encodeURIComponent(id)}`),
-  setHead: (projectId: string, versionId: string) => call<{ project: ScriptProject }>('POST', '/head', { projectId, versionId }),
+  setHead: (projectId: string, versionId: string, options: { force?: boolean } = {}) => call<{ project: ScriptProject; gates: GateResult & { ok: boolean }; forced?: boolean }>('POST', '/head', { projectId, versionId, ...options }),
+  evidenceCheck: (projectId: string, versionId?: string, roles: RoleChoice = loadRoleChoice()) => call<{
+    versionId: string;
+    findings: { index: number; status: 'supported' | 'overstated' | 'misattributed' | 'unsupported' | 'uncertain'; rationale: string }[];
+    pairings: unknown[]; warnings: string[]; spentUsd?: number; provider?: string; model?: string;
+    error?: { code: string; message: string };
+  }>('POST', '/evidence-check', { projectId, ...(versionId ? { versionId } : {}), ...roles }),
   refine: (projectId: string, roles: RoleChoice, opts: { targetSceneIds?: string[]; critiqueOnly?: boolean; spoken?: boolean } = {}) => call<{ runId: string }>('POST', '/refine', {
     projectId, ...roles, targetSceneIds: opts.targetSceneIds, critiqueOnly: !!opts.critiqueOnly, spoken: !!opts.spoken,
     episodePass: opts.spoken ? false : roles.episodePass !== false, polish: !opts.spoken && roles.mode === 'fallback' && !!roles.polish,

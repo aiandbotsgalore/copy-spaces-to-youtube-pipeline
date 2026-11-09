@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-09T12:22:06.255738+00:00",
+  "last_updated": "2026-11-09T21:35:42.563481+00:00",
   "total_episodes_with_audio": 842,
   "transcribed_count": 739,
   "untranscribed_count": 103,
@@ -80,11 +80,6 @@
       "attempts": 2,
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
       "last_attempt": "2026-11-08T06:45:59.301572+00:00"
-    },
-    "20261005_1qxvvegyagBxB": {
-      "attempts": 1,
-      "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
-      "last_attempt": "2026-11-09T12:13:03.438569+00:00"
     }
   },
   "next_in_queue": [

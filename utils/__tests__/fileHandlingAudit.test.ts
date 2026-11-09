@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import JSZip from 'jszip';
+import { unzipSync, strFromU8 } from 'fflate';
+import { generatePipelineZipBytes } from '../exportZip';
 import {
   generateIngestYaml,
   generateIngestScript,
@@ -69,7 +70,24 @@ describe('Exhaustive File Handling, Serialization & Compatibility Regression Tes
     expect(ingestScript).toContain('Denied by access control');
   });
 
-  it('sets 0755 UNIX permissions and UNIX platform in JSZip bundles for shell scripts', async () => {
+  function parseZipUnixPermissions(buf: Uint8Array): Record<string, number> {
+    const nodeBuf = Buffer.from(buf);
+    const perms: Record<string, number> = {};
+    for (let i = 0; i < nodeBuf.length - 46; i++) {
+      if (nodeBuf[i] === 0x50 && nodeBuf[i + 1] === 0x4b && nodeBuf[i + 2] === 0x01 && nodeBuf[i + 3] === 0x02) {
+        const fnLen = nodeBuf.readUInt16LE(i + 28);
+        const extLen = nodeBuf.readUInt16LE(i + 30);
+        const commentLen = nodeBuf.readUInt16LE(i + 32);
+        const extAttrs = nodeBuf.readUInt32LE(i + 38);
+        const filename = nodeBuf.toString('utf8', i + 46, i + 46 + fnLen);
+        perms[filename] = (extAttrs >>> 16) & 0o777;
+        i += 46 + fnLen + extLen + commentLen - 1;
+      }
+    }
+    return perms;
+  }
+
+  it('sets 0755 UNIX permissions and UNIX platform in fflate bundles for shell scripts', async () => {
     const files: PipelineFile[] = [
       {
         path: 'scripts/ingest.sh',
@@ -87,25 +105,16 @@ describe('Exhaustive File Handling, Serialization & Compatibility Regression Tes
       },
     ];
 
-    const zip = new JSZip();
-    for (const f of files) {
-      const isExec = f.path.endsWith('.sh') || f.language === 'bash';
-      zip.file(toPosixPath(f.path), normalizeLineEndings(f.content(mockConfig)), {
-        unixPermissions: isExec ? 0o755 : 0o644,
-      });
-    }
+    const buffer = await generatePipelineZipBytes(files, mockConfig);
+    const unzipped = unzipSync(buffer);
 
-    const buffer = await zip.generateAsync({ type: 'nodebuffer', platform: 'UNIX' });
-    const loadedZip = await JSZip.loadAsync(buffer);
+    expect(unzipped['scripts/ingest.sh']).toBeDefined();
+    expect(unzipped['README.md']).toBeDefined();
 
-    const shEntry = loadedZip.file('scripts/ingest.sh');
-    const mdEntry = loadedZip.file('README.md');
-
-    expect(shEntry).toBeDefined();
-    expect(mdEntry).toBeDefined();
+    const perms = parseZipUnixPermissions(buffer);
     // 0o755 octal is 493 in decimal, 0o644 is 420
-    expect(shEntry!.unixPermissions).toBe(0o755);
-    expect(mdEntry!.unixPermissions).toBe(0o644);
+    expect(perms['scripts/ingest.sh']).toBe(0o755);
+    expect(perms['README.md']).toBe(0o644);
   });
 
   it('generates full pipeline bundle where all files have 0 carriage returns and correct UNIX modes', async () => {
@@ -147,27 +156,21 @@ describe('Exhaustive File Handling, Serialization & Compatibility Regression Tes
       },
     ];
 
-    const zip = new JSZip();
-    for (const f of pipelineFiles) {
-      const isExec = f.path.endsWith('.sh') || f.language === 'bash';
-      zip.file(toPosixPath(f.path), normalizeLineEndings(f.content(mockConfig)), {
-        unixPermissions: isExec ? 0o755 : 0o644,
-      });
-    }
-
-    const buffer = await zip.generateAsync({ type: 'nodebuffer', platform: 'UNIX' });
-    const loadedZip = await JSZip.loadAsync(buffer);
+    const buffer = await generatePipelineZipBytes(pipelineFiles, mockConfig);
+    const unzipped = unzipSync(buffer);
+    const perms = parseZipUnixPermissions(buffer);
 
     for (const f of pipelineFiles) {
-      const entry = loadedZip.file(toPosixPath(f.path));
-      expect(entry).toBeDefined();
-      const text = await entry!.async('string');
+      const entryKey = toPosixPath(f.path);
+      const fileBytes = unzipped[entryKey];
+      expect(fileBytes).toBeDefined();
+      const text = strFromU8(fileBytes);
       expect(text).not.toContain('\r');
       expect(text).not.toContain('\r\n');
       if (f.path.endsWith('.sh')) {
-        expect(entry!.unixPermissions).toBe(0o755);
+        expect(perms[entryKey]).toBe(0o755);
       } else {
-        expect(entry!.unixPermissions).toBe(0o644);
+        expect(perms[entryKey]).toBe(0o644);
       }
     }
   });

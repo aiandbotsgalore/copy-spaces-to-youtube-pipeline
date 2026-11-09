@@ -14,6 +14,7 @@ import { CopilotProvider, useCopilot } from './contexts/CopilotContext';
 import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { CopilotCommandPalette } from './components/copilot/CopilotCommandPalette';
+import { FloatingCopilotWidget } from './components/FloatingCopilotWidget';
 import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { loadStoredToken, saveToken } from './utils/storage';
@@ -821,6 +822,7 @@ function AppContent() {
       <PlayerBar />
       <MontageReelDrawer isHidden={activePanel === 'montage'} />
       <CopilotCommandPalette />
+      <FloatingCopilotWidget activeTab={activePanel} />
     </div>
     </CopilotProvider>
     </MontageProvider>

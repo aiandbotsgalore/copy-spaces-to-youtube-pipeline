@@ -29,6 +29,7 @@ import { countTakes, hasValidTake } from '../utils/scriptAudio';
 import { setUnsavedGuard } from '../utils/unsavedGuard';
 import QuoteLibrary, { useLibrary } from './QuoteLibrary';
 import ScriptBoard from './ScriptBoard';
+import ScriptChecksPanel, { type EvidenceCheckResult } from './ScriptChecksPanel';
 import type { ListenOption, ViewEntry } from '../utils/quoteView';
 import {
   extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, type ParsedManuscriptClip,
@@ -1274,6 +1275,9 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const [drawerOpen, setDrawerOpen] = useState<'refine' | 'versions' | null>(null);
   const [collapsedScenes, setCollapsedScenes] = useState<Record<string, boolean>>({});
   const [audioProgress, setAudioProgress] = useState<string | null>(null);
+  const [evidenceReview, setEvidenceReview] = useState<EvidenceCheckResult | null>(null);
+  const [evidenceReviewLoading, setEvidenceReviewLoading] = useState(false);
+  const [evidenceReviewError, setEvidenceReviewError] = useState<string | null>(null);
   const stopRef = useRef<{ id: string; at: number } | null>(null);
   const dirtyRef = useRef(false);
   dirtyRef.current = dirty;
@@ -1312,6 +1316,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
       const r = await scriptApi.project(id);
       setData(r);
       setSegments(r.head ? r.head.segments : null);
+      setEvidenceReview(null);
+      setEvidenceReviewError(null);
       setDirty(false);
       return r;
     } catch (e) {
@@ -1409,6 +1415,21 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     if (dirty && !window.confirm('You have unsaved edits. Continue and discard them?')) return;
     setBusy(label); setError(null);
     try { await fn(); if (projectId) await load(projectId); } catch (e) { setError(e); } finally { setBusy(null); }
+  };
+
+  const reviewEvidence = async () => {
+    if (!project || !data?.head || dirty || evidenceReviewLoading) return;
+    setEvidenceReviewLoading(true);
+    setEvidenceReview(null);
+    setEvidenceReviewError(null);
+    try {
+      const result = await scriptApi.evidenceCheck(project.id, data.head.id, roles);
+      setEvidenceReview(result as EvidenceCheckResult);
+    } catch (e: any) {
+      setEvidenceReviewError(e?.message || String(e));
+    } finally {
+      setEvidenceReviewLoading(false);
+    }
   };
 
   if (!projectId || !project) {
@@ -2179,6 +2200,16 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                 )}
               </div>
             )}
+
+            <ScriptChecksPanel
+              gates={data?.gates}
+              review={dirty ? null : evidenceReview}
+              loading={evidenceReviewLoading}
+              error={evidenceReviewError}
+              dirty={dirty}
+              onReview={() => void reviewEvidence()}
+              onJump={sceneId => document.getElementById(`scene-${sceneId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            />
 
             {!segments && <div className="text-sm text-slate-500 py-12 text-center">Run the analysis and outline stages from the left panel to generate your documentary script.</div>}
 

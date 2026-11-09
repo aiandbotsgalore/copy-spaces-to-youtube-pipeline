@@ -110,8 +110,8 @@ jobs:
           python-version: '3.10'
           cache: 'pip'
 
-      - name: Install yt-dlp
-        run: python3 -m pip install -r requirements.txt
+      - name: Install Latest yt-dlp
+        run: python3 -m pip install --upgrade --no-cache-dir yt-dlp -r requirements.txt
 
       - name: Run Ingest Script
         id: process

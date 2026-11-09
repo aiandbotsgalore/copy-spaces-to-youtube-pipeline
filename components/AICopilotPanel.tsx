@@ -31,6 +31,13 @@ import {
   Code,
   ChevronDown,
   ChevronUp,
+  Pin,
+  Plus,
+  MessageSquare,
+  Download,
+  Film,
+  FileText,
+  X,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -77,6 +84,16 @@ const PRESET_PILLS = [
 
 export const AICopilotPanel: React.FC = () => {
   const {
+    sessions,
+    activeSessionId,
+    setActiveSessionId,
+    createSession,
+    deleteSession,
+    renameSession,
+    exportSessionMarkdown,
+    pinnedContexts,
+    addPinnedContext,
+    removePinnedContext,
     messages,
     loading,
     error,
@@ -90,6 +107,7 @@ export const AICopilotPanel: React.FC = () => {
     analyzeActionResults,
     clearMessages,
     contextPayload,
+    widgetSessionId,
   } = useCopilot();
 
   const montage = useMontage();
@@ -98,6 +116,9 @@ export const AICopilotPanel: React.FC = () => {
   const [input, setInput] = useState('');
   const [showCanvas, setShowCanvas] = useState(true);
   const [copiedMatchKey, setCopiedMatchKey] = useState<string | null>(null);
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [showPinDropdown, setShowPinDropdown] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const activeRunningAction = useMemo(() => {
@@ -257,17 +278,217 @@ export const AICopilotPanel: React.FC = () => {
             >
               <SplitSquareVertical size={16} />
             </button>
+          </div>
+        </div>
 
-            {/* Clear button */}
+        {/* Multi-Tab Session Bar */}
+        <div className="px-3 pt-2 pb-0 bg-slate-950/70 border-b border-slate-800/80 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {sessions.map((sess) => {
+              const isActive = sess.id === activeSessionId;
+              const isWidget = sess.isWidgetSession || sess.id === widgetSessionId;
+              const isEditing = editingSessionId === sess.id;
+
+              return (
+                <div
+                  key={sess.id}
+                  onClick={() => !isEditing && setActiveSessionId(sess.id)}
+                  onDoubleClick={() => {
+                    if (!isWidget) {
+                      setEditingSessionId(sess.id);
+                      setEditingTitle(sess.title);
+                    }
+                  }}
+                  className={`group relative flex items-center gap-2 px-3 py-1.5 rounded-t-lg text-xs font-medium border-t border-x cursor-pointer transition-all ${
+                    isActive
+                      ? 'bg-slate-900 text-indigo-300 border-slate-700 shadow-sm border-b-transparent'
+                      : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 border-slate-800/80 hover:bg-slate-900/60'
+                  }`}
+                  title={isWidget ? 'Quick Widget Chat (Synced with Floating Widget)' : 'Double-click to rename'}
+                >
+                  {isWidget ? (
+                    <Zap size={12} className="text-amber-400 flex-shrink-0" />
+                  ) : (
+                    <MessageSquare size={12} className={isActive ? 'text-indigo-400' : 'text-slate-500'} />
+                  )}
+
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editingTitle}
+                      autoFocus
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onBlur={() => {
+                        renameSession(sess.id, editingTitle);
+                        setEditingSessionId(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          renameSession(sess.id, editingTitle);
+                          setEditingSessionId(null);
+                        } else if (e.key === 'Escape') {
+                          setEditingSessionId(null);
+                        }
+                      }}
+                      className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-xs border border-indigo-500 focus:outline-none w-28"
+                    />
+                  ) : (
+                    <span className="truncate max-w-[130px]">{sess.title}</span>
+                  )}
+
+                  {!isWidget && sessions.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if ((sess.messages?.length || 0) > 1) {
+                          if (!window.confirm(`Close and delete "${sess.title}"?`)) return;
+                        }
+                        deleteSession(sess.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 hover:text-rose-400 p-0.5 rounded transition-opacity"
+                      title="Close session"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+
             <button
-              onClick={clearMessages}
-              className="p-1.5 rounded-lg border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 transition-colors cursor-pointer"
-              title="Clear chat history"
+              type="button"
+              onClick={() => createSession()}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-t-lg text-xs text-slate-400 hover:text-white hover:bg-slate-900/80 transition-colors cursor-pointer"
+              title="Open New Chat Session"
             >
-              <Trash2 size={16} />
+              <Plus size={13} />
+              <span>New</span>
+            </button>
+          </div>
+
+          {/* Session Action Controls */}
+          <div className="flex items-center gap-1.5 pb-1">
+            <button
+              type="button"
+              onClick={() => setShowPinDropdown(!showPinDropdown)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors cursor-pointer ${
+                pinnedContexts.length > 0
+                  ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                  : 'bg-slate-800 text-slate-400 border-slate-700/80 hover:text-slate-200'
+              }`}
+              title="Pin grounding context to this session"
+            >
+              <Pin size={11} className={pinnedContexts.length > 0 ? 'text-amber-400 fill-current' : ''} />
+              <span>Pin Context {pinnedContexts.length > 0 ? `(${pinnedContexts.length})` : ''}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => exportSessionMarkdown()}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 hover:bg-slate-750 transition-colors cursor-pointer"
+              title="Export session conversation and citations to Markdown"
+            >
+              <Download size={11} />
+              <span>Export .md</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => clearMessages()}
+              className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Clear active session chat"
+            >
+              <Trash2 size={13} />
             </button>
           </div>
         </div>
+
+        {/* Context Pinning Bar */}
+        {(showPinDropdown || pinnedContexts.length > 0) && (
+          <div className="px-4 py-2 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+              <Pin size={12} className="fill-current" /> Grounding:
+            </span>
+
+            {pinnedContexts.map((pin) => (
+              <span
+                key={pin.id}
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-200 border border-slate-700 text-[11px]"
+              >
+                <span className="text-indigo-400 font-semibold uppercase text-[10px]">[{pin.type}]</span>
+                <span className="truncate max-w-[160px]">{pin.title}</span>
+                <button
+                  type="button"
+                  onClick={() => removePinnedContext(pin.id)}
+                  className="hover:text-rose-400 cursor-pointer"
+                  title="Unpin"
+                >
+                  <X size={10} />
+                </button>
+              </span>
+            ))}
+
+            <div className="flex items-center gap-1 ml-auto">
+              {contextPayload.currentEpisode && !pinnedContexts.some(p => p.id === contextPayload.currentEpisode?.releaseTag) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    addPinnedContext({
+                      id: contextPayload.currentEpisode!.releaseTag || 'ep',
+                      type: 'episode',
+                      title: contextPayload.currentEpisode!.title || contextPayload.currentEpisode!.releaseTag || 'Episode',
+                      detail: `${contextPayload.currentEpisode!.speakers?.join(', ') || ''}`,
+                    });
+                  }}
+                  className="px-2 py-0.5 rounded text-[11px] bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors cursor-pointer"
+                >
+                  + Pin Episode
+                </button>
+              )}
+
+              {montage.clips.length > 0 && !pinnedContexts.some(p => p.id === 'active_montage_reel') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    addPinnedContext({
+                      id: 'active_montage_reel',
+                      type: 'reel',
+                      title: `Active Montage Reel (${montage.clips.length} clips)`,
+                      detail: `${Math.round(montage.clips.reduce((acc, c) => acc + (c.endSec - c.startSec), 0))}s total duration`,
+                    });
+                  }}
+                  className="px-2 py-0.5 rounded text-[11px] bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors cursor-pointer"
+                >
+                  + Pin Reel
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    const draft = localStorage.getItem('spacepipe_script_studio_active_draft');
+                    if (draft) {
+                      const p = JSON.parse(draft);
+                      addPinnedContext({
+                        id: 'script_draft',
+                        type: 'script',
+                        title: p.title || 'Script Draft',
+                        detail: `${p.scenes?.length || 0} scenes`,
+                      });
+                    } else {
+                      window.alert('No active script draft found in Script Studio to pin.');
+                    }
+                  } catch {}
+                }}
+                className="px-2 py-0.5 rounded text-[11px] bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 border border-violet-500/30 transition-colors cursor-pointer"
+              >
+                + Pin Script Draft
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Quick Action Pills */}
         <div className="px-4 py-2 border-b border-slate-800/40 bg-slate-900/30 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
@@ -568,6 +789,34 @@ export const AICopilotPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* Cross-Studio Dispatch: Send Outline to Script Studio */}
+                {m.role === 'assistant' && (
+                  <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try {
+                          const draft = {
+                            title: 'Copilot Generated Outline',
+                            outlineSummary: m.content,
+                            scenes: [],
+                            updatedAt: Date.now(),
+                          };
+                          localStorage.setItem('spacepipe_script_studio_active_draft', JSON.stringify(draft));
+                          window.location.hash = '#script-studio';
+                        } catch (e) {
+                          console.warn('Failed to send outline to Script Studio:', e);
+                        }
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-violet-600/20 text-violet-300 hover:bg-violet-600/30 border border-violet-500/30 transition-colors cursor-pointer"
+                      title="Send this text and structure into Script Studio as an active project"
+                    >
+                      <FileText size={12} />
+                      <span>📄 Send Outline to Script Studio</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Usage Footer */}
                 {m.usage && (
                   <div className="mt-2 text-[10px] text-slate-500 flex items-center justify-end gap-2">
@@ -662,9 +911,22 @@ export const AICopilotPanel: React.FC = () => {
                 <Layers size={16} className="text-indigo-400" />
                 <h3 className="font-bold text-sm text-white">Active Montage Reel</h3>
               </div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium">
-                {montage.clips.length} clips
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = '#montage';
+                  }}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 border border-indigo-500/30 transition-colors cursor-pointer"
+                  title="Open current reel in Montage Studio"
+                >
+                  <Film size={11} />
+                  <span>🎬 Open in Montage Studio</span>
+                </button>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-medium">
+                  {montage.clips.length} clips
+                </span>
+              </div>
             </div>
 
             {/* Target Window Gauge */}

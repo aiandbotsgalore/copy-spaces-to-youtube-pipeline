@@ -267,9 +267,21 @@ Every phase ends with: typecheck, existing vitest suite and build green; a small
   10. Failed drafts do not advance the project head.
   11. Existing projects without an Evidence Board open and save unchanged.
 
-**Phase 5: evidence checks and legacy removal**
-- Code checks, evidence pairing, the evidence check call, checks panel; remove the replaced loop, judge, quality, clip tag and trim code with their tests.
-- Accept: on the exp2 drafts the checks flag Arm A's six raw labels and Arm C's duplicate, pair Arm A's "He says so himself" with Speaker 4's tape and surface it, and raise no false attribution flags on lines verified correct in `docs/experiments/02_multispeaker_validation/REPORT.md`.
+**Phase 5: evidence checks, semantic review and legacy retirement**
+- **Three-stage evidence verification:**
+  1. *Deterministic code checks:* Exact verbatim transcript checks, audio clip bounds/availability, raw diarization labels (`Speaker \d+` in narration) as hard blockers, and 4+ word duplicate quotation advisories.
+  2. *Evidence pairing engine:* Connects narration lead-in statements and tape setups with succeeding tape blocks, evaluating speaker identity alignment and cross-referencing Evidence Board and Paper Trail contradiction pairs.
+  3. *Targeted semantic evidence review:* A single-pass model evaluation (`POST /api/script/evidence-check` with `projectId`, `versionId`, and optional `semantic: true`) that evaluates whether the evidence supports, overstates, misattributes, or fails to establish the narration's claims. Surfaced as structured editorial advisories with rationale—never treated as blind automated blockers.
+- **Backend promotion gate:** `POST /head` and candidate promotion run full, fresh deterministic gates on all blocks (`changedBlockIds: undefined`). Candidates with hard blockers are refused promotion to head, while intentional historical rollbacks remain accessible.
+- **Dedicated Checks Panel UI:** Embeds in `ScriptStudio.tsx`, presenting blockers with jump-to-block actions, pairing cards with precise alignment badges (e.g., "Speaker Matched (Semantic Review Pending)"), and editorial advisories (reprise approval, 4-word overlap warnings).
+- **Phased legacy retirement:** Split into two deliverables: 5.1 (Evidence Checks & Review System) and 5.2 (Audited Legacy Retirement). Code actively called by the UI or client (such as `LogTable`, logging types, and the `/decide` endpoint used by learned style-rule distillation) is preserved until its callers have been migrated or intentionally retired.
+- **Acceptance criteria (Experiment 02 benchmark):**
+  1. Accurately flags all 7 raw diarization label occurrences in Arm A narration (reconciled against `report.json`).
+  2. Flags Arm C Scene 2's 4-word quotation overlap (`"the same imperative reasoning"`) as an inspectable editorial advisory.
+  3. Semantic review accurately detects and explains Arm A Scene 3's content mismatch (narration sets up Logan reading a transcript via *"He says so himself"*, but following tape `u659` is Speaker 4 offering legal advice).
+  4. Preserves the report's distinction between confirmed content mismatch (Arm A) and probable unproven speaker persona (Arm C).
+  5. Raises zero false attribution flags on verified positive examples (Logan scene 1 to `u9`, Speaker 1 scene 1 to `u13`, Logan scene 2 to `u565`, unidentified speaker scene 2 to `u566`).
+  6. Existing projects open, evaluate, and save without regressions.
 
 **Phase 6: audio production**
 - Rough cut with placeholders, per sentence Vox, `AudioPanel` back with download, production lock, Montage hand off messages.

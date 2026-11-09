@@ -65,8 +65,8 @@ jobs:
           cache: 'pip'
           cache-dependency-path: 'requirements.txt'
 
-      - name: Install yt-dlp
-        run: python3 -m pip install -U -r requirements.txt
+      - name: Install Latest yt-dlp
+        run: python3 -m pip install --upgrade --no-cache-dir yt-dlp -r requirements.txt
 
       - name: Run Ingest Script
         id: process
