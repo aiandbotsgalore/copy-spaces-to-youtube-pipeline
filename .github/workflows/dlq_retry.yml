@@ -49,8 +49,12 @@ jobs:
           comment = os.environ.get("COMMENT_BODY", "")
           repo = os.environ.get("REPO", "")
 
-          # Only a standalone /retry command line counts (not prose like "A `/retry` would fail").
-          if not re.search(r"(?m)^\s*/retry(?:\s|$)", comment):
+          # Only an unfenced standalone /retry line counts (not prose or fenced examples).
+          def strip_fenced_blocks(text: str) -> str:
+              return re.sub(r"(?ms)^```.*?^```\s*", "", text)
+
+          bare = strip_fenced_blocks(comment)
+          if not re.search(r"(?m)^\s*/retry\s*$", bare):
               print("[*] Skipping: comment mentions /retry but is not a standalone retry command")
               sys.exit(0)
 
