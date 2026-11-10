@@ -11,7 +11,8 @@
     "test": "vitest run",
     "acceptance": "vitest run --config vitest.acceptance.config.ts",
     "test:fast": "vitest run --project fast",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "embeddings:generate": "tsx scripts/generateTranscriptEmbeddings.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.3.3",
@@ -33,6 +34,7 @@
     "@vitejs/plugin-react": "^5.0.0",
     "playwright": "^1.65.0",
     "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
     "typescript": "~5.8.2",
     "vite": "^6.4.5",
     "vitest": "^5.1.0",

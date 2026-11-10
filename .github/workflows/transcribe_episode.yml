@@ -39,6 +39,11 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements-worker.txt
 
+      - name: Install System Audio Utilities (FFmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Transcribe Episode via AssemblyAI Cloud
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,6 +74,27 @@ jobs:
           git commit -m "chore(transcripts): update transcript index for ${{ inputs.release_tag }} [skip ci]" || echo "No changes to commit"
           git pull --rebase origin master || true
           git push origin master || echo "Notice: Push skipped or up to date"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Generate Transcript Embeddings
+        run: |
+          npm run embeddings:generate -- --tag "${{ inputs.release_tag }}"
+
+      - name: Upload Embeddings to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ls .cache/transcripts/${{ inputs.release_tag }}.embeddings.* 1> /dev/null 2>&1; then
+            gh release upload "${{ inputs.release_tag }}" .cache/transcripts/${{ inputs.release_tag }}.embeddings.* --clobber || echo "Notice: Embeddings upload to release skipped or failed"
+          fi
 
       - name: Trigger Web App & RSS Deployment
         env:

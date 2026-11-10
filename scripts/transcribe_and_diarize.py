@@ -128,6 +128,16 @@ def get_audio_duration(file_path: Path) -> float:
     except Exception:
         pass
 
+    # Fallback for MP3 files based on standard 160 kbps CBR stream rate (20,000 bytes/sec)
+    try:
+        if file_path.exists() and file_path.stat().st_size > 0:
+            bytes_size = file_path.stat().st_size
+            est_seconds = bytes_size / 20000.0
+            print(f"[*] Estimated duration from MP3 file size ({bytes_size / (1024*1024):.1f} MB): {format_timestamp(est_seconds)}")
+            return est_seconds
+    except Exception:
+        pass
+
     return 0.0
 
 
@@ -941,10 +951,15 @@ def transcribe_audio_chunk_whisper(
     time_offset: float = 0.0,
     title: str = ""
 ) -> List[Dict[str, Any]]:
-    """Free local fallback using faster-whisper when cloud APIs are unavailable."""
-    print(f"[*] Transcribing {audio_path.name} via faster-whisper (free engine)...")
+    """Local fallback using faster-whisper when available."""
     try:
         from faster_whisper import WhisperModel
+    except ImportError:
+        raise RuntimeError(
+            f"Cannot transcribe {audio_path.name}: AssemblyAI failed and local 'faster_whisper' is not installed in the environment."
+        )
+    print(f"[*] Transcribing {audio_path.name} via faster-whisper (local engine)...")
+    try:
         import torch
         device = "cuda" if torch.cuda.is_available() else "cpu"
         compute_type = "float16" if device == "cuda" else "int8"
@@ -1019,12 +1034,13 @@ def process_audio_file(
         except Exception as e:
             print(f"[!] Notice: FFmpeg compression skipped ({e}); proceeding with original audio.")
 
-    # 2. Marathon Space Chunking: If duration > 10 hours (AssemblyAI single-file limit is 10 hours)
+    # 2. Marathon Space Chunking: If duration > 8 hours or file_size > 450 MB (AssemblyAI hard limit is 10 hours)
     all_segments: List[Dict[str, Any]] = []
 
-    if duration_sec > 36000.0 or file_size > 2.0 * (1024 ** 3):
+    is_marathon = duration_sec > 28800.0 or file_size > 450 * (1024 ** 2)
+    if is_marathon:
         chunk_seconds = 14400  # 4-hour slices
-        print(f"\n[⚡ Marathon Space Workaround] Extremely long Space detected ({format_timestamp(duration_sec)}).")
+        print(f"\n[⚡ Marathon Space Workaround] Long Space detected (duration: {format_timestamp(duration_sec)}, size: {file_size / (1024*1024):.1f} MB).")
         print(f"[*] Slicing audio into 4-hour segments via FFmpeg...")
 
         chunks_dir = input_audio.parent / "audio_chunks"
@@ -1090,19 +1106,15 @@ def process_audio_file(
             else:
                 all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
     else:
-        # Standard Single-Pass transcription with automatic free fallback
-        try:
-            if assemblyai_key:
-                all_segments = transcribe_audio_chunk_assemblyai(
-                    audio_path=active_audio,
-                    assemblyai_key=assemblyai_key,
-                    time_offset=0.0,
-                    title=title
-                )
-            else:
-                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-        except Exception as e:
-            print(f"[!] Cloud transcription failed ({e}). Falling back to free local faster-whisper...")
+        # Standard Single-Pass transcription
+        if assemblyai_key:
+            all_segments = transcribe_audio_chunk_assemblyai(
+                audio_path=active_audio,
+                assemblyai_key=assemblyai_key,
+                time_offset=0.0,
+                title=title
+            )
+        else:
             all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
 
     # Clean temporary compressed audio if generated

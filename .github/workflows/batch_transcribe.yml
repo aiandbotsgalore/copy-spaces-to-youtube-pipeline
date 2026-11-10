@@ -49,6 +49,11 @@ jobs:
       - name: Install Queue Dependencies
         run: pip install -r requirements-worker.txt
 
+      - name: Install System Audio Utilities (FFmpeg)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
       - name: Dry Run - Discover Queue
         if: inputs.dry_run == true
         env:

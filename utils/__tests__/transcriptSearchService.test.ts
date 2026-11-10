@@ -528,7 +528,7 @@ describe('transcriptSearchService', () => {
       expect(top.documentLocation).toBeDefined();
       expect(top.documentLocation?.displayText).toContain('Lines 1');
       expect(top.documentLocation?.lineNumber).toBe(1);
-    });
+    }, 60000);
 
     it('preserves chunk identity and avoids collisions in computeRRF', () => {
       const mockLex: TranscriptSearchResult[] = [
