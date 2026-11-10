@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-10T17:30:57.220820+00:00",
+  "last_updated": "2026-11-10T23:55:44.322815+00:00",
   "total_episodes_with_audio": 842,
   "transcribed_count": 768,
   "untranscribed_count": 74,
@@ -72,34 +72,32 @@
       "last_attempt": "2026-11-10T17:23:14.316171+00:00"
     },
     "20260217_1rmGPkVNvNYKN": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-10T17:23:14.316173+00:00"
+      "last_attempt": "2026-11-10T23:49:20.020612+00:00"
     },
     "20260216_1BRKjZMLNBLKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-10T17:23:14.316175+00:00"
+      "last_attempt": "2026-11-10T23:49:20.020631+00:00"
     },
     "20260217_1MYxNgQrNqNKw": {
-      "attempts": 2,
+      "attempts": 3,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-10T17:23:14.316177+00:00"
+      "last_attempt": "2026-11-10T23:49:20.020636+00:00"
+    },
+    "20260217_1rmGPkVLZEmKN": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-10T23:49:20.020639+00:00"
+    },
+    "20260216_1eaKbrZjzYRKX": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-10T23:49:20.020641+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgLDbZXmxL",
-      "name": "\ud83d\udc7dMorning UFO",
-      "date": "Nov 29, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1PlKQpqOreMxE",
-      "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
-      "date": "Nov 28, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1rmGPkVNvNYKN",
       "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
@@ -206,6 +204,18 @@
       "tag": "20260216_1BdGYymjXOYGX",
       "name": "Chewbacca: After Dark",
       "date": "Oct 27, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1nAKErNpDYAGL",
+      "name": "NASA-Not A Space Agency",
+      "date": "Oct 26, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1mnxeRbNvAaKX",
+      "name": "beep",
+      "date": "Oct 26, 2022",
       "is_recent": false
     }
   ]
