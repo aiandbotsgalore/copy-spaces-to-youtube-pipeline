@@ -159,8 +159,28 @@ export default defineConfig(({ mode }) => {
         'Cross-Origin-Embedder-Policy': 'credentialless',
       },
       // The app's own writes (Script Studio state, Vox takes) must never trigger HMR or a server restart.
+      // Additionally ignore large asset, transcript, planning, agent, and build directories so the watcher doesn't exhaust Windows handles.
       watch: {
-        ignored: ['**/.spacepipe-studio/**', '**/.spacepipe-studio-backups/**', '**/public/output/**'],
+        ignored: [
+          '**/.git/**',
+          '**/.spacepipe-studio/**',
+          '**/.spacepipe-studio-backups/**',
+          '**/public/output/**',
+          '**/public/transcripts/**',
+          '**/.agents/**',
+          '**/.planning/**',
+          '**/.cache/**',
+          '**/.gemini/**',
+          '**/.devcontainer/**',
+          '**/.pytest_cache/**',
+          '**/.freebuff/**',
+          '**/dist/**',
+          '**/docs/**',
+          '**/attached_assets/**',
+          '**/best_saved_clips/**',
+          '**/batches/**',
+          '**/diagnostics/**',
+        ],
       },
     },
     preview: {
@@ -170,6 +190,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
+      entries: ['index.html'],
       exclude: ['@sqlite.org/sqlite-wasm'],
     },
     worker: {
