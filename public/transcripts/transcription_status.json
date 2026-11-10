@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-09T22:53:53.738337+00:00",
+  "last_updated": "2026-11-10T08:32:40.906905+00:00",
   "total_episodes_with_audio": 842,
-  "transcribed_count": 739,
-  "untranscribed_count": 103,
-  "recent_untranscribed_count": 1,
-  "focus_mode": "recent_only",
+  "transcribed_count": 745,
+  "untranscribed_count": 97,
+  "recent_untranscribed_count": 0,
+  "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 87.8,
+  "percent_complete": 88.5,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -56,31 +56,6 @@
       "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
       "last_attempt": "2026-11-07T17:54:14.827583+00:00"
     },
-    "20260217_1rmGPkEmyDmKN": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-08T06:45:59.301543+00:00"
-    },
-    "20260217_1nAKErneLLVGL": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-08T06:45:59.301561+00:00"
-    },
-    "20260218_1ynKOarNamVJR": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-08T06:45:59.301566+00:00"
-    },
-    "20260217_1OdKrzmywLyKX": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-08T06:45:59.301569+00:00"
-    },
-    "20260217_1kvKpmlVLvkGE": {
-      "attempts": 2,
-      "last_error": "RuntimeError: Modal HTTP request failed: Modal Endpoint returned HTTP 429: modal-http: Input rate limit (0/s) exceeded f",
-      "last_attempt": "2026-11-08T06:45:59.301572+00:00"
-    },
     "20261005_1qxvvegyagBxB": {
       "attempts": 1,
       "last_error": "ModuleNotFoundError: No module named 'faster_whisper'",
@@ -88,42 +63,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20261005_1qxvvegyagBxB",
-      "name": "Orb_People_Persons",
-      "date": "Oct 5, 2026",
-      "is_recent": true
-    },
-    {
-      "tag": "20260217_1rmGPkEmyDmKN",
-      "name": "\ud83c\udf44\ud83d\udc7dCome get your #UFO Disclosure #ufotwitter\ud83d\udc79\ud83d\udc7b\ud83e\udd16",
-      "date": "Dec 17, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1nAKErneLLVGL",
-      "name": "AI Alien Debate After midnight\ud83d\udeac\ud83e\udd16\ud83d\udc7e \ud83d\udc7d #ufotwitter #NASA",
-      "date": "Dec 17, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynKOarNamVJR",
-      "name": "MISSING 411 - The UFO Connection",
-      "date": "Dec 16, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1OdKrzmywLyKX",
-      "name": "UFO news & discussion #ufotwitter #twitterspace",
-      "date": "Dec 16, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1kvKpmlVLvkGE",
-      "name": "Mr. Rogers is getting SuperFreq \ud83e\udd20\ud83d\udc7d and so is Daniel!",
-      "date": "Dec 15, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260216_1djGXlkYALPGZ",
       "name": "Mr.Rogers lives in the ghetto with Elmo",
@@ -206,6 +145,42 @@
       "tag": "20260218_1ZkJzXoNpLXKv",
       "name": "I Believe in Doty the Bigtoe",
       "date": "Dec 6, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1OdKrzQRVneKX",
+      "name": "\u26a0\ufe0fTWITTER FILES LIVE\u2757",
+      "date": "Dec 6, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1vOxwMDOgZPGB",
+      "name": "Recorded Banshee Live while Rod Roddy Piper battles Kent drunk",
+      "date": "Dec 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1djGXlDApoyGZ",
+      "name": "Today's #Hot Topics ft. Keith Morrison",
+      "date": "Dec 4, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1mrGmkLLZpMxy",
+      "name": "Love",
+      "date": "Dec 2, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1mnxeRPnORaKX",
+      "name": "\ud83c\udf44\ud83d\udc7dShameless Saucer Society- Sending Tayler \u2764",
+      "date": "Dec 2, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1vOxwMDQDLdGB",
+      "name": "LOVE IS ALL YOU NEED & TAYLER",
+      "date": "Dec 1, 2022",
       "is_recent": false
     }
   ]
