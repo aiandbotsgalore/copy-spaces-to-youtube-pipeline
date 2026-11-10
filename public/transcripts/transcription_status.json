@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-10T08:48:59.100681+00:00",
+  "last_updated": "2026-11-10T09:18:52.837301+00:00",
   "total_episodes_with_audio": 842,
-  "transcribed_count": 750,
-  "untranscribed_count": 92,
+  "transcribed_count": 755,
+  "untranscribed_count": 87,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 89.1,
+  "percent_complete": 89.7,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -63,36 +63,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OyKAVnaLzrGb",
-      "name": "DJ Loyalty Radio taking song Requests",
-      "date": "Dec 12, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1lDxLnqYOaMGm",
-      "name": "boom",
-      "date": "Dec 11, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1rmxPkBvDpXJN",
-      "name": "XXX freedom",
-      "date": "Dec 10, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1kvKpmLmOaVGE",
-      "name": "Bloodlines of the Illuminati",
-      "date": "Dec 9, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1PlKQpopPwZxE",
-      "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\u2620\ufe0f\ud83d\udc7d",
-      "date": "Dec 9, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1OyKAVkVeWrGb",
       "name": "Bloodlines of the Illuminati \ud83d\udc41\ufe0f\u200d\ud83d\udde8\ufe0f\ud83d\udd25\ud83d\udc7d",
@@ -181,6 +151,36 @@
       "tag": "20260217_1PlKQpqOreMxE",
       "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
       "date": "Nov 28, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1rmGPkVNvNYKN",
+      "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
+      "date": "Nov 25, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1BRKjZMLNBLKw",
+      "name": "after astral party \ud83c\udf8a",
+      "date": "Nov 24, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1MYxNgQrNqNKw",
+      "name": "The physiognomy of ulterior, superior, and anterior races of humanoid.",
+      "date": "Nov 18, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1rmGPkVLZEmKN",
+      "name": "Planets & Produce",
+      "date": "Nov 17, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1eaKbrZjzYRKX",
+      "name": "love love",
+      "date": "Nov 17, 2022",
       "is_recent": false
     }
   ]
