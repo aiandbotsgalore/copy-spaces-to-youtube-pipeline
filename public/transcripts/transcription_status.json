@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-10T08:32:40.906905+00:00",
+  "last_updated": "2026-11-10T08:48:59.100681+00:00",
   "total_episodes_with_audio": 842,
-  "transcribed_count": 745,
-  "untranscribed_count": 97,
+  "transcribed_count": 750,
+  "untranscribed_count": 92,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 88.5,
+  "percent_complete": 89.1,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -63,36 +63,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1djGXlkYALPGZ",
-      "name": "Mr.Rogers lives in the ghetto with Elmo",
-      "date": "Dec 15, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1BdxYykLvbyxX",
-      "name": "12/12 Twitter took away 4650 of the people I'm following.(This is why)",
-      "date": "Dec 13, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mrxmklDwWNGy",
-      "name": "SLEEP SCIENCE",
-      "date": "Dec 13, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1gqxvyAPBonJB",
-      "name": "12/12",
-      "date": "Dec 13, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1YpJkgjrgrmJj",
-      "name": "Chat gpt Ai",
-      "date": "Dec 12, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1OyKAVnaLzrGb",
       "name": "DJ Loyalty Radio taking song Requests",
@@ -181,6 +151,36 @@
       "tag": "20260218_1vOxwMDQDLdGB",
       "name": "LOVE IS ALL YOU NEED & TAYLER",
       "date": "Dec 1, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1vAxRAmjWnRJl",
+      "name": "Your Space",
+      "date": "Dec 1, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1BRJjZoOvdZJw",
+      "name": "Rock Hard Late Night with Bruce Johnny\ud83d\ude0e",
+      "date": "Dec 1, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1OdJrzQrynpJX",
+      "name": "21hr Marathon UFO/UAP SPICY Fiesta Combo #spaces",
+      "date": "Nov 29, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1jMJgLDbZXmxL",
+      "name": "\ud83d\udc7dMorning UFO",
+      "date": "Nov 29, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1PlKQpqOreMxE",
+      "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
+      "date": "Nov 28, 2022",
       "is_recent": false
     }
   ]
