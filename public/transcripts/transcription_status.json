@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-10T09:51:36.783711+00:00",
+  "last_updated": "2026-11-10T10:45:51.750651+00:00",
   "total_episodes_with_audio": 842,
-  "transcribed_count": 760,
-  "untranscribed_count": 82,
+  "transcribed_count": 765,
+  "untranscribed_count": 77,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 90.3,
+  "percent_complete": 90.9,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -63,36 +63,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260218_1vOxwMDOgZPGB",
-      "name": "Recorded Banshee Live while Rod Roddy Piper battles Kent drunk",
-      "date": "Dec 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1djGXlDApoyGZ",
-      "name": "Today's #Hot Topics ft. Keith Morrison",
-      "date": "Dec 4, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mrGmkLLZpMxy",
-      "name": "Love",
-      "date": "Dec 2, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mnxeRPnORaKX",
-      "name": "\ud83c\udf44\ud83d\udc7dShameless Saucer Society- Sending Tayler \u2764",
-      "date": "Dec 2, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1vOxwMDQDLdGB",
-      "name": "LOVE IS ALL YOU NEED & TAYLER",
-      "date": "Dec 1, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1vAxRAmjWnRJl",
       "name": "Your Space",
@@ -181,6 +151,36 @@
       "tag": "20260217_1RDxlabMgrrKL",
       "name": "Jesus Christ died for our sins?",
       "date": "Nov 9, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1vAxRAeoDNzJl",
+      "name": "MiNDWAR",
+      "date": "Nov 8, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1vOxwMWlYPmGB",
+      "name": "\ud83d\udc7dUFO Brekkie",
+      "date": "Nov 7, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1mrGmkOMbgBxy",
+      "name": "\ud83d\udc7d A.i in charge of disclosure? -NO Hands\ud83e\udd1a",
+      "date": "Nov 6, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1OdKrzdBRenKX",
+      "name": "All aboard the crazy train! Woo Woo! \ud83d\ude82",
+      "date": "Nov 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1RDGlaDQRgzJL",
+      "name": "Sunrise \ud83c\udf04 Surprise \ud83d\udef8\ud83d\udc7d\ud83e\udee2 #mRna",
+      "date": "Nov 4, 2022",
       "is_recent": false
     }
   ]
