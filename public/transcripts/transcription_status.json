@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-11T07:25:07.729056+00:00",
-  "total_episodes_with_audio": 843,
-  "transcribed_count": 768,
-  "untranscribed_count": 75,
-  "recent_untranscribed_count": 1,
-  "focus_mode": "recent_only",
+  "last_updated": "2026-11-11T17:49:58.989777+00:00",
+  "total_episodes_with_audio": 844,
+  "transcribed_count": 770,
+  "untranscribed_count": 74,
+  "recent_untranscribed_count": 0,
+  "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 91.1,
+  "percent_complete": 91.2,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -95,20 +95,9 @@
       "attempts": 1,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
       "last_attempt": "2026-11-10T23:49:20.020641+00:00"
-    },
-    "20261111_1gqkAWAXYLebnv": {
-      "attempts": 1,
-      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-11T07:16:17.929577+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20261111_1gqkAWAXYLebnv",
-      "name": "Exploring_the_Contours_of_Consciousness",
-      "date": "Nov 11, 2026",
-      "is_recent": true
-    },
     {
       "tag": "20260217_1rmGPkVLZEmKN",
       "name": "Planets & Produce",
@@ -221,6 +210,12 @@
       "tag": "20260216_1BdxYyzwXevxX",
       "name": "TOWN SQUARE.. NO HANDS. OPEN FORUM, SPEAK FREELY",
       "date": "Oct 25, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynKOabBOerJR",
+      "name": "\u269b\ufe0f\ud83c\udf0eWandering Thoughts Of Collective Consciousness Though the Unknown\ud83d\udc7d\ud83d\udc7b",
+      "date": "Oct 24, 2022",
       "is_recent": false
     }
   ]
