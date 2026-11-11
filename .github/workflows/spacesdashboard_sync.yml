@@ -47,7 +47,13 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        run: |
+          # --with-deps needs apt fonts; GitHub runners sometimes fail DNS to
+          # azure.archive.ubuntu.com. Fall back to the browser binary alone.
+          npx playwright install --with-deps chromium || {
+            echo "::warning::Playwright OS deps failed; installing Chromium binary only"
+            npx playwright install chromium
+          }
 
       - name: Run SpacesDashboard Scraper
         env:
