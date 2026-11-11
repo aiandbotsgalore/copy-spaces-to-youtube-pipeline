@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-11T17:49:58.989777+00:00",
+  "last_updated": "2026-11-11T18:40:29.597094+00:00",
   "total_episodes_with_audio": 844,
-  "transcribed_count": 770,
-  "untranscribed_count": 74,
+  "transcribed_count": 775,
+  "untranscribed_count": 69,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 91.2,
+  "percent_complete": 91.8,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -85,49 +85,9 @@
       "attempts": 3,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
       "last_attempt": "2026-11-10T23:49:20.020636+00:00"
-    },
-    "20260217_1rmGPkVLZEmKN": {
-      "attempts": 1,
-      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-10T23:49:20.020639+00:00"
-    },
-    "20260216_1eaKbrZjzYRKX": {
-      "attempts": 1,
-      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-10T23:49:20.020641+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1rmGPkVLZEmKN",
-      "name": "Planets & Produce",
-      "date": "Nov 17, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1eaKbrZjzYRKX",
-      "name": "love love",
-      "date": "Nov 17, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1yoKMZgZglwGQ",
-      "name": "\ud83d\ude80NASA conspiracies & Area 51 \ud83d\udc7d",
-      "date": "Nov 16, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1jMJgLadNWmxL",
-      "name": "5-1030pm Richard Doty Q & A , then afterParty till morning\ud83d\udef8\ud83d\udc7d",
-      "date": "Nov 13, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1LyxBqmjYoYJN",
-      "name": "Paranormal",
-      "date": "Nov 12, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1rmGPkwjrzYKN",
       "name": "Houston, we have a problem  #Elon Come hang\ud83d\udc7d",
@@ -216,6 +176,36 @@
       "tag": "20260218_1ynKOabBOerJR",
       "name": "\u269b\ufe0f\ud83c\udf0eWandering Thoughts Of Collective Consciousness Though the Unknown\ud83d\udc7d\ud83d\udc7b",
       "date": "Oct 24, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1djxXlaQRnexZ",
+      "name": "UFO AFTER DARK \ud83e\uddeb\ud83e\uddea",
+      "date": "Oct 24, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynJOabwAvQKR",
+      "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
+      "date": "Oct 23, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1LyGBqVBnMnKN",
+      "name": "MICHAEL JACKSON \u2728\ud83d\udc40",
+      "date": "Oct 21, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynJOabzEqOKR",
+      "name": "The Doghouse",
+      "date": "Oct 20, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1djGXlaaolNGZ",
+      "name": "A calming oasis in the desert of my confusion",
+      "date": "Oct 18, 2022",
       "is_recent": false
     }
   ]
