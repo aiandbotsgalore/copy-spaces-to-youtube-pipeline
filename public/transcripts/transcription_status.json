@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-11T19:58:54.930725+00:00",
+  "last_updated": "2026-11-11T20:41:29.833796+00:00",
   "total_episodes_with_audio": 844,
-  "transcribed_count": 780,
-  "untranscribed_count": 64,
+  "transcribed_count": 785,
+  "untranscribed_count": 59,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 92.4,
+  "percent_complete": 93.0,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -88,36 +88,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1OdKrzdBRenKX",
-      "name": "All aboard the crazy train! Woo Woo! \ud83d\ude82",
-      "date": "Nov 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1RDGlaDQRgzJL",
-      "name": "Sunrise \ud83c\udf04 Surprise \ud83d\udef8\ud83d\udc7d\ud83e\udee2 #mRna",
-      "date": "Nov 4, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1MnxnpobBqdGO",
-      "name": "Fearless Monkey Alliance- Sleepers welcome",
-      "date": "Oct 29, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1MYxNgvZeNnKw",
-      "name": "Religion/ Freemasonry",
-      "date": "Oct 27, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BdGYymjXOYGX",
-      "name": "Chewbacca: After Dark",
-      "date": "Oct 27, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1nAKErNpDYAGL",
       "name": "NASA-Not A Space Agency",
@@ -206,6 +176,36 @@
       "tag": "20260216_1eaKbrMybgoKX",
       "name": "Salsa dancing with my confusion",
       "date": "Oct 10, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1BRJjZDzQRWJw",
+      "name": "Conscious Connections \u269c\ufe0f",
+      "date": "Oct 9, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1DXxyvkAAjbKM",
+      "name": "MIDDAY Thursday Thoughts",
+      "date": "Oct 6, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynJOagRAqyKR",
+      "name": "14 HR Intermission mark",
+      "date": "Oct 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1lPKqBaoOedGb",
+      "name": "stuff and heavy metal\ud83c\udfb8\ud83e\udd18\ud83d\udc7d",
+      "date": "Oct 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1OwxWwRWyZZxQ",
+      "name": "Semi Quiet & Curious Paranormal Researchers \ud83d\udd2e\ud83d\udef8\ud83d\udc7d\ud83c\udfb8",
+      "date": "Oct 5, 2022",
       "is_recent": false
     }
   ]
