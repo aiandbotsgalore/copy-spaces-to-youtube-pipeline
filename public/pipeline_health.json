@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-11T05:43:32.810282+00:00",
+  "timestamp": "2026-11-11T13:56:45.651891+00:00",
   "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
@@ -12,18 +12,27 @@
     "expected_releases_approx": 793,
     "gap_estimate": 43
   },
-  "recent_failures_count": 1,
+  "recent_failures_count": 2,
   "triaged_failures": [
     {
-      "run_id": 42789671945,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42789671945",
-      "root_cause": "Execution Error: Run 42789671945 failed in Update RSS Feed & Deploy Web App",
+      "run_id": 43023328937,
+      "name": "Transcribe 20261102_local_1jo2znt68x via AssemblyAI Cloud",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43023328937",
+      "root_cause": "Execution Error: Run 43023328937 failed in Transcribe 20261102_local_1jo2znt68x via AssemblyAI Cloud",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
+    },
+    {
+      "run_id": 42978079913,
+      "name": "Transcribe 20261111_1gqkAWAXYLebnv via AssemblyAI Cloud",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/42978079913",
+      "root_cause": "Execution Error: Run 42978079913 failed in Transcribe 20261111_1gqkAWAXYLebnv via AssemblyAI Cloud",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": true,
+      "action": "auto_retried"
     }
   ],
-  "auto_retried_count": 0,
+  "auto_retried_count": 1,
   "quarantined_count": 1
 }
