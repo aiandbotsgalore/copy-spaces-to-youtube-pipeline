@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-11T18:40:29.597094+00:00",
+  "last_updated": "2026-11-11T19:58:54.930725+00:00",
   "total_episodes_with_audio": 844,
-  "transcribed_count": 775,
-  "untranscribed_count": 69,
+  "transcribed_count": 780,
+  "untranscribed_count": 64,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 91.8,
+  "percent_complete": 92.4,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -88,36 +88,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1rmGPkwjrzYKN",
-      "name": "Houston, we have a problem  #Elon Come hang\ud83d\udc7d",
-      "date": "Nov 9, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1RDxlabMgrrKL",
-      "name": "Jesus Christ died for our sins?",
-      "date": "Nov 9, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1vAxRAeoDNzJl",
-      "name": "MiNDWAR",
-      "date": "Nov 8, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1vOxwMWlYPmGB",
-      "name": "\ud83d\udc7dUFO Brekkie",
-      "date": "Nov 7, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mrGmkOMbgBxy",
-      "name": "\ud83d\udc7d A.i in charge of disclosure? -NO Hands\ud83e\udd1a",
-      "date": "Nov 6, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260217_1OdKrzdBRenKX",
       "name": "All aboard the crazy train! Woo Woo! \ud83d\ude82",
@@ -206,6 +176,36 @@
       "tag": "20260216_1djGXlaaolNGZ",
       "name": "A calming oasis in the desert of my confusion",
       "date": "Oct 18, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1jMJgLjqREgxL",
+      "name": "Navigating Disclosure \ud83d\udc7d\ud83d\udef8\u2764\ufe0f",
+      "date": "Oct 14, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1jMJgLjPnvjxL",
+      "name": "--TESTING-- Don't Enter",
+      "date": "Oct 14, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1PlKQpBqpyyxE",
+      "name": "3kdjrbrj",
+      "date": "Oct 11, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynJOavvNblKR",
+      "name": "can you hear me? can't get this app to work today",
+      "date": "Oct 10, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1eaKbrMybgoKX",
+      "name": "Salsa dancing with my confusion",
+      "date": "Oct 10, 2022",
       "is_recent": false
     }
   ]
