@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-12T00:24:47.715383+00:00",
+  "timestamp": "2026-11-12T14:58:24.928780+00:00",
   "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
@@ -7,18 +7,18 @@
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 767,
-    "indexed_transcripts": 767,
+    "on_disk_transcripts": 773,
+    "indexed_transcripts": 773,
     "expected_releases_approx": 793,
-    "gap_estimate": 26
+    "gap_estimate": 20
   },
   "recent_failures_count": 1,
   "triaged_failures": [
     {
-      "run_id": 43023328937,
-      "name": "Transcribe 20261102_local_1jo2znt68x via AssemblyAI Cloud",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43023328937",
-      "root_cause": "Execution Error: Run 43023328937 failed in Transcribe 20261102_local_1jo2znt68x via AssemblyAI Cloud",
+      "run_id": 43191415044,
+      "name": "Transcribe 20261111_local_1i69faszbw via AssemblyAI Cloud",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43191415044",
+      "root_cause": "Execution Error: Run 43191415044 failed in Transcribe 20261111_local_1i69faszbw via AssemblyAI Cloud",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
