@@ -104,6 +104,8 @@ export interface SearchOptions {
   speaker?: string;
   episodeTag?: string;
   maxResults?: number;
+  maxDurationSec?: number;
+  excludeMetaCommentary?: boolean;
   mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
   rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
   apiKey?: string;
@@ -289,7 +291,7 @@ export async function getQueryEmbedder() {
   return embeddingPipelinePromise;
 }
 
-export async function embedQuery(text: string): Promise<Float32Array | null> {
+export async function embedQuery(text: string): Promise<Float32Array null |> {
   const clean = text.trim();
   if (!clean) return null;
   try {
@@ -318,8 +320,7 @@ export function getEpisodeEmbeddings(tag: string): { manifest: EmbeddingManifest
   }
 
   const cacheDir = resolvePath('.cache', 'transcripts');
-  const binPath = path.join(cacheDir, `${tag}.embeddings.bin`);
-  const manifestPath = path.join(cacheDir, `${tag}.embeddings.json`);
+  const binPath = path.join(cacheDir, `${tag}.embeddings.bin`); const manifestPath = path.join(cacheDir, `${tag}.embeddings.json`);
 
   if (!fs.existsSync(binPath) || !fs.existsSync(manifestPath)) {
     return null;
@@ -365,391 +366,7 @@ export function formatTimestamp(seconds: number): string {
   const mins = Math.floor((totalSec % 3600) / 60);
   const secs = totalSec % 60;
   if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-export function parseTimestampSec(text: string): number | null {
-  if (!text) return null;
-  const colonMatch = text.match(/(?:▶\s*|@\s*|\bat\s+)?\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/);
-  if (colonMatch) {
-    const hrs = colonMatch[1] ? parseInt(colonMatch[1], 10) : 0;
-    const mins = parseInt(colonMatch[2], 10);
-    const secs = parseInt(colonMatch[3], 10);
-    return hrs * 3600 + mins * 60 + secs;
-  }
-  const secMatch = text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*(?:s\b|sec\b|secs\b|seconds\b)/i);
-  if (secMatch) {
-    const num = parseInt(secMatch[1].replace(/,/g, ''), 10);
-    return Number.isFinite(num) ? num : null;
-  }
-  return null;
-}
-
-export async function searchTranscriptLexical(
-  query: string,
-  options: SearchOptions = {}
-): Promise<TranscriptSearchResult[]> {
-  const summaries = loadSummaries();
-  const fileMap = getTagToFileMap();
-  const max = options.maxResults || 15;
-  const targetSpeaker = normalizeSpeakerName(options.speaker);
-  const targetTag = options.episodeTag?.trim();
-  const qClean = query.toLowerCase().trim();
-
-  const results: TranscriptSearchResult[] = [];
-  if (!qClean && !targetSpeaker && !targetTag && (!options.activeSegments || options.activeSegments.length === 0)) {
-    return results;
-  }
-
-  const queryTokens = qClean.split(/\s+/).filter(t => t.length > 2);
-
-  if (options.activeSegments && options.activeSegments.length > 0) {
-    const epSum = targetTag ? summaries.find(s => s.release_tag === targetTag) : null;
-    const epTitle = epSum?.title || targetTag || 'Active Episode';
-    for (const seg of options.activeSegments) {
-      if (!seg.text) continue;
-      const textLower = seg.text.toLowerCase();
-      const speakerName = seg.speaker || 'Unknown Speaker';
-
-      if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
-        continue;
-      }
-
-      let score = 50;
-      if (qClean && textLower.includes(qClean)) {
-        score += 100;
-      } else if (queryTokens.length > 0) {
-        const matchedCount = queryTokens.filter(t => textLower.includes(t)).length;
-        if (matchedCount === 0) continue;
-        score += matchedCount * 25;
-      } else if (!qClean) {
-        score += 10;
-      }
-
-      results.push({
-        episodeTitle: epTitle,
-        releaseTag: targetTag || 'active_episode',
-        audioUrl: epSum?.audio_url,
-        episodeDate: epSum?.episode_date,
-        speaker: speakerName,
-        startSec: seg.start,
-        endSec: seg.end,
-        text: seg.text.trim(),
-        relevanceScore: score,
-        matchType: 'lexical',
-      });
-    }
-  }
-
-  const prioritizedTags: Array<{ tag: string; title: string; audioUrl?: string; date?: string; boost: number }> = [];
-
-  for (const s of summaries) {
-    if (targetTag && s.release_tag !== targetTag) continue;
-
-    let boost = 0;
-    if (targetSpeaker) {
-      if (s.speakers?.length && !s.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
-        continue;
-      }
-      boost += 50;
-    }
-    if (qClean && s.title?.toLowerCase().includes(qClean)) {
-      boost += 30;
-    }
-    prioritizedTags.push({
-      tag: s.release_tag,
-      title: s.title,
-      audioUrl: s.audio_url,
-      date: s.episode_date,
-      boost,
-    });
-  }
-
-  prioritizedTags.sort((a, b) => b.boost - a.boost);
-
-  const tagsToSearch = prioritizedTags.length > 0
-    ? prioritizedTags
-    : Array.from(fileMap.keys()).slice(0, 50).map(tag => {
-        const sum = summaries.find(s => s.release_tag === tag);
-        return {
-          tag,
-          title: sum?.title || tag,
-          audioUrl: sum?.audio_url,
-          date: sum?.episode_date,
-          boost: 0,
-        };
-      });
-
-  for (const ep of tagsToSearch) {
-    if (results.length >= max * 3) break;
-
-    const sum = summaries.find(s => s.release_tag === ep.tag);
-    if (options.sourceType && sum?.source_type && sum.source_type !== options.sourceType) {
-      continue;
-    }
-    if (options.sourceClassification && sum?.source_classification && sum.source_classification !== options.sourceClassification) {
-      continue;
-    }
-
-    const filePath = fileMap.get(ep.tag);
-    if (!filePath || !fs.existsSync(filePath)) continue;
-
-    try {
-      const raw = fs.readFileSync(filePath, 'utf8');
-      if (qClean && !raw.toLowerCase().includes(qClean)) {
-        if (queryTokens.length > 1) {
-          const matchCount = queryTokens.filter(t => raw.toLowerCase().includes(t)).length;
-          if (matchCount < Math.min(2, queryTokens.length)) continue;
-        } else {
-          continue;
-        }
-      }
-
-      const data = JSON.parse(raw);
-      const segments: Array<{ start: number; end: number; speaker?: string; text?: string; chunkId?: string; sourceType?: any; sourceClassification?: any; contentNature?: any; documentLocation?: any }> = Array.isArray(data.segments)
-        ? data.segments
-        : Array.isArray(data)
-        ? data
-        : [];
-
-      for (let sIdx = 0; sIdx < segments.length; sIdx++) {
-        const seg = segments[sIdx];
-        if (!seg.text) continue;
-
-        const effectiveSourceType = seg.sourceType || data.sourceType || sum?.source_type || 'space_transcript';
-        if (options.sourceType && effectiveSourceType !== options.sourceType) continue;
-
-        const effectiveClassification = seg.sourceClassification || data.sourceClassification || sum?.source_classification || 'primary_record';
-        if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;
-
-        const textLower = seg.text.toLowerCase();
-        const speakerName = seg.speaker || 'Unknown Speaker';
-
-        if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
-          continue;
-        }
-
-        let score = ep.boost;
-        if (qClean && textLower.includes(qClean)) {
-          score += 100;
-        } else if (queryTokens.length > 0) {
-          const matchedCount = queryTokens.filter(t => textLower.includes(t)).length;
-          if (matchedCount === 0) continue;
-          score += matchedCount * 20;
-        }
-
-        const dialogueWindow: DialogueTurn[] = segments
-          .slice(Math.max(0, sIdx - 2), Math.min(segments.length, sIdx + 3))
-          .map(s => ({
-            speaker: s.speaker || 'Unknown Speaker',
-            text: (s.text || '').trim(),
-            start: s.start,
-            end: s.end,
-          }));
-
-        results.push({
-          episodeTitle: ep.title,
-          releaseTag: ep.tag,
-          audioUrl: ep.audioUrl,
-          episodeDate: ep.date,
-          speaker: speakerName,
-          startSec: seg.start,
-          endSec: seg.end,
-          text: seg.text.trim(),
-          dialogueWindow,
-          relevanceScore: score,
-          matchType: 'lexical',
-          chunkId: seg.chunkId || `${ep.tag}#seg-${sIdx}`,
-          sourceType: effectiveSourceType,
-          sourceClassification: effectiveClassification,
-          contentNature: seg.contentNature || data.contentNature || 'verbatim_statement',
-          documentLocation: seg.documentLocation || data.documentLocation,
-        });
-
-        if (results.length >= max * 3) break;
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  results.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
-  return results.slice(0, max);
-}
-
-export async function searchTranscriptVector(
-  query: string,
-  options: SearchOptions = {}
-): Promise<TranscriptSearchResult[]> {
-  const targetTag = options.episodeTag?.trim();
-  let availableTags = getAvailableEmbeddingTags();
-  if (targetTag) {
-    availableTags = availableTags.filter(t => t === targetTag);
-  }
-  if (availableTags.length === 0) return [];
-
-  const queryVec = await embedQuery(query);
-  if (!queryVec) return [];
-
-  const summaries = loadSummaries();
-  const max = options.maxResults || 15;
-  const targetSpeaker = normalizeSpeakerName(options.speaker);
-
-  const results: TranscriptSearchResult[] = [];
-
-  for (const tag of availableTags) {
-    const summary = summaries.find(s => s.release_tag === tag);
-    if (targetSpeaker && summary?.speakers?.length && !summary.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) {
-      continue;
-    }
-
-    const emb = getEpisodeEmbeddings(tag);
-    if (!emb) continue;
-
-    const { manifest, vectors } = emb;
-    const segmentCount = manifest.segments.length;
-
-    for (let i = 0; i < segmentCount; i++) {
-      const seg = manifest.segments[i];
-      if (targetSpeaker && !isNormalizedSpeakerMatch(seg.speaker, targetSpeaker)) {
-        continue;
-      }
-
-      const effectiveSourceType = seg.sourceType || manifest.sourceType || summary?.source_type || 'space_transcript';
-      if (options.sourceType && effectiveSourceType !== options.sourceType) continue;
-
-      const effectiveClassification = seg.sourceClassification || manifest.sourceClassification || summary?.source_classification || 'primary_record';
-      if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;
-
-      const sim = dotProduct(vectors, i * 384, queryVec);
-      if (sim > 0.22) {
-        const dialogueWindow: DialogueTurn[] = manifest.segments
-          .slice(Math.max(0, i - 2), Math.min(segmentCount, i + 3))
-          .map(s => ({
-            speaker: s.speaker,
-            text: s.text,
-            start: s.start,
-            end: s.end,
-          }));
-
-        results.push({
-          episodeTitle: manifest.title || summary?.title || tag,
-          releaseTag: tag,
-          audioUrl: summary?.audio_url,
-          episodeDate: summary?.episode_date,
-          speaker: seg.speaker,
-          startSec: seg.start,
-          endSec: seg.end,
-          text: seg.text,
-          dialogueWindow,
-          relevanceScore: Number(sim.toFixed(4)),
-          matchType: 'vector',
-          chunkId: seg.chunkId || `${tag}#seg-${i}`,
-          sourceType: effectiveSourceType as any,
-          sourceClassification: effectiveClassification as any,
-          contentNature: seg.contentNature || 'verbatim_statement',
-          documentLocation: seg.documentLocation || manifest.documentLocation,
-        });
-      }
-    }
-  }
-
-  results.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
-  return results.slice(0, max * 2);
-}
-
-export function computeRRF(
-  lexicalResults: TranscriptSearchResult[],
-  vectorResults: TranscriptSearchResult[],
-  k: number = 60
-): TranscriptSearchResult[] {
-  const scoreMap = new Map<
-    string,
-    { item: TranscriptSearchResult; rrfScore: number; lexicalRank?: number; vectorRank?: number }
-  >();
-
-  lexicalResults.forEach((item, idx) => {
-    const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`;
-    const rank = idx + 1;
-    const contribution = 1 / (k + rank);
-    scoreMap.set(key, { item, rrfScore: contribution, lexicalRank: rank });
-  });
-
-  vectorResults.forEach((item, idx) => {
-    const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`;
-    const rank = idx + 1;
-    const contribution = 1 / (k + rank);
-    const existing = scoreMap.get(key);
-    if (existing) {
-      existing.rrfScore += contribution;
-      existing.vectorRank = rank;
-      if (!existing.item.audioUrl && item.audioUrl) existing.item.audioUrl = item.audioUrl;
-      if (!existing.item.documentLocation && item.documentLocation) existing.item.documentLocation = item.documentLocation;
-      if (!existing.item.sourceType && item.sourceType) existing.item.sourceType = item.sourceType;
-      if (!existing.item.sourceClassification && item.sourceClassification) existing.item.sourceClassification = item.sourceClassification;
-      if (!existing.item.contentNature && item.contentNature) existing.item.contentNature = item.contentNature;
-      existing.item.matchType = 'hybrid';
-    } else {
-      scoreMap.set(key, { item, rrfScore: contribution, vectorRank: rank });
-    }
-  });
-
-  const combined = Array.from(scoreMap.values());
-  combined.sort((a, b) => b.rrfScore - a.rrfScore);
-
-  return combined.map(entry => ({
-    ...entry.item,
-    relevanceScore: Number(entry.rrfScore.toFixed(6)),
-    matchType: entry.item.matchType || (entry.vectorRank ? 'vector' : 'lexical'),
-  }));
-}
-
-export interface RerankOptions {
-  apiKey?: string;
-  model?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
-  topN?: number;
-  threshold?: number;
-  fetchImpl?: typeof fetch;
-}
-
-export async function rerankWithCohere(
-  query: string,
-  candidates: TranscriptSearchResult[],
-  options: RerankOptions = {}
-): Promise<TranscriptSearchResult[]> {
-  if (!candidates || candidates.length === 0 || !query || !query.trim()) return candidates || [];
-
-  const apiKey = (options.apiKey !== undefined ? options.apiKey : (process.env.COHERE_API_KEY || '')).trim();
-  if (!apiKey) {
-    console.warn('[TranscriptSearchService] No COHERE_API_KEY available. Preserving candidate ranking.');
-    return candidates;
-  }
-
-  const model = options.model || 'rerank-v5.0-fast';
-  const topN = Math.min(candidates.length, options.topN || candidates.length);
-  const fetcher = options.fetchImpl || fetch;
-
-  const documents = candidates.map(c => c.text);
-
-  const payload: Record<string, unknown> = {
-    model,
-    query,
-    top_n: topN,
-    documents,
-    relevant_spans: {
-      mode: 'enabled',
-      threshold: options.threshold ?? 0.3,
-      max_spans: 3,
-    },
-  };
-
-  try {
-    const res = await fetcher('https://api.cohere.com/v2/rerank', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`; } return `${mins}:${secs.toString().padStart(2, '0')}`; }  /** * Extracts a maximum clip duration constraint (e.g. "10 seconds max", "under 15s", "10 second clip") * so duration limits are never confused with playback timestamps. */ export function parseMaxDurationSec(text: string): number \vert{} null { if (!text) return null; const postMatch = text.match( /\b(\d{1,3})\s*(?:s\vert{}sec\vert{}secs\vert{}second\vert{}seconds)\s*(?:max\vert{}maximum\vert{}or less\vert{}or shorter\vert{}or under\vert{}limit\vert{}long\vert{}clip\vert{}soundbite)\b/i ); if (postMatch) { const val = parseInt(postMatch[1], 10); return Number.isFinite(val) && val > 0 ? val : null; } const preMatch = text.match( /\b(?:under\vert{}max\vert{}maximum\vert{}up to\vert{}less than\vert{}shorter than\vert{}within\vert{}no more than\vert{}no longer than)\s+(\d{1,3})\s*(?:s\vert{}sec\vert{}secs\vert{}second\vert{}seconds)\b/i ); if (preMatch) { const val = parseInt(preMatch[1], 10); return Number.isFinite(val) && val > 0 ? val : null; } return null; }  export function parseTimestampSec(text: string): number \vert{} null { if (!text) return null; const colonMatch = text.match(/(?:▶\s*\vert{}@\s*\vert{}\bat\s+)?\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/); if (colonMatch) { const hrs = colonMatch[1] ? parseInt(colonMatch[1], 10) : 0; const mins = parseInt(colonMatch[2], 10); const secs = parseInt(colonMatch[3], 10); return hrs * 3600 + mins * 60 + secs; } // If the "N seconds" phrase is a clip duration constraint, do NOT parse it as a timeline timestamp. if (parseMaxDurationSec(text) !== null) { return null; } const secMatch = text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*\vert{}[0-9]+)\s*(?:s\b\vert{}sec\b\vert{}secs\b\vert{}seconds\b)/i); if (secMatch) { const num = parseInt(secMatch[1].replace(/,/g, ''), 10); return Number.isFinite(num) ? num : null; } return null; }  const META_CLIP_COMMENTARY_REGEX = /\b(?:funny clip\vert{}best clip\vert{}hilarious clip\vert{}clip that\vert{}make a clip\vert{}good clip\vert{}great clip\vert{}soundboard\vert{}on the soundboard)\b/i;  function scoreEditorialCandidateTurn(text: string, durationSec: number, maxDurationSec?: number): number { const clean = text.trim(); const words = clean.split(/\s+/).filter(Boolean); if (words.length < 4) return -100; // Skip 1-3 word filler turns ("Yeah", "Right", "Okay") if (maxDurationSec && durationSec > maxDurationSec) return -100; if (durationSec > 0 && durationSec < 1.2) return -50; if (META_CLIP_COMMENTARY_REGEX.test(clean)) return -200;  let score = 40; // Sweet spot for self-contained punchlines / soundbites: 6 to 45 words if (words.length >= 6 && words.length <= 45) score += 35; else if (words.length > 45 && words.length <= 80) score += 15;  // Expressive punctuation / conversational reaction cues if (/[?!]/.test(clean)) score += 15; if (/\b(?:actually\vert{}literally\vert{}imagine\vert{}wait\vert{}bro\vert{}dude\vert{}hilarious\vert{}ridiculous\vert{}insane\vert{}wild\vert{}never\vert{}always\vert{}swear)\b/i.test(clean)) { score += 10; } return score; }  export async function searchTranscriptLexical( query: string, options: SearchOptions = {} ): Promise<TranscriptSearchResult[]> { const summaries = loadSummaries(); const fileMap = getTagToFileMap(); const max = options.maxResults \vert{}\vert{} 15; const targetSpeaker = normalizeSpeakerName(options.speaker); const targetTag = options.episodeTag?.trim(); const qClean = query.toLowerCase().trim(); const maxDurationSec = options.maxDurationSec; const excludeMeta = options.excludeMetaCommentary;  const results: TranscriptSearchResult[] = []; if (!qClean && !targetSpeaker && !targetTag && (!options.activeSegments \vert{}\vert{} options.activeSegments.length === 0)) { return results; }  const queryTokens = qClean.split(/\s+/).filter(t => t.length > 2);  if (options.activeSegments && options.activeSegments.length > 0) { const epSum = targetTag ? summaries.find(s => s.release_tag === targetTag) : null; const epTitle = epSum?.title \vert{}\vert{} targetTag \vert{}\vert{} 'Active Episode'; for (let sIdx = 0; sIdx < options.activeSegments.length; sIdx++) { const seg = options.activeSegments[sIdx]; if (!seg.text) continue; const textLower = seg.text.toLowerCase(); const speakerName = seg.speaker \vert{}\vert{} 'Unknown Speaker'; const dur = (seg.end \vert{}\vert{} 0) - (seg.start \vert{}\vert{} 0);  if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) { continue; } if (maxDurationSec && dur > maxDurationSec) { continue; } if (excludeMeta && META_CLIP_COMMENTARY_REGEX.test(seg.text)) { continue; }  let score = 50; if (qClean && textLower.includes(qClean)) { score += 100; } else if (queryTokens.length > 0) { const matchedCount = queryTokens.filter(t => textLower.includes(t)).length; if (matchedCount === 0) continue; score += matchedCount * 25; } else if (!qClean) { const editorialScore = scoreEditorialCandidateTurn(seg.text, dur, maxDurationSec); if (editorialScore < 0) continue; score += editorialScore; }  const dialogueWindow: DialogueTurn[] = options.activeSegments .slice(Math.max(0, sIdx - 2), Math.min(options.activeSegments.length, sIdx + 3)) .map(s => ({ speaker: s.speaker \vert{}\vert{} 'Unknown Speaker', text: (s.text \vert{}\vert{} '').trim(), start: s.start, end: s.end, }));  results.push({ episodeTitle: epTitle, releaseTag: targetTag \vert{}\vert{} 'active_episode', audioUrl: epSum?.audio_url, episodeDate: epSum?.episode_date, speaker: speakerName, startSec: seg.start, endSec: seg.end, text: seg.text.trim(), dialogueWindow, relevanceScore: score, matchType: 'lexical', }); } }  const prioritizedTags: Array<{ tag: string; title: string; audioUrl?: string; date?: string; boost: number }> = [];  for (const s of summaries) { if (targetTag && s.release_tag !== targetTag) continue;  let boost = 0; if (targetSpeaker) { if (s.speakers?.length && !s.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) { continue; } boost += 50; } if (qClean && s.title?.toLowerCase().includes(qClean)) { boost += 30; } prioritizedTags.push({ tag: s.release_tag, title: s.title, audioUrl: s.audio_url, date: s.episode_date, boost, }); }  prioritizedTags.sort((a, b) => b.boost - a.boost);  const tagsToSearch = prioritizedTags.length > 0 ? prioritizedTags : Array.from(fileMap.keys()).slice(0, 50).map(tag => { const sum = summaries.find(s => s.release_tag === tag); return { tag, title: sum?.title \vert{}\vert{} tag, audioUrl: sum?.audio_url, date: sum?.episode_date, boost: 0, }; });  for (const ep of tagsToSearch) { if (results.length >= max * 3) break;  const sum = summaries.find(s => s.release_tag === ep.tag); if (options.sourceType && sum?.source_type && sum.source_type !== options.sourceType) { continue; } if (options.sourceClassification && sum?.source_classification && sum.source_classification !== options.sourceClassification) { continue; }  const filePath = fileMap.get(ep.tag); if (!filePath \vert{}\vert{} !fs.existsSync(filePath)) continue;  try { const raw = fs.readFileSync(filePath, 'utf8'); if (qClean && !raw.toLowerCase().includes(qClean)) { if (queryTokens.length > 1) { const matchCount = queryTokens.filter(t => raw.toLowerCase().includes(t)).length; if (matchCount < Math.min(2, queryTokens.length)) continue; } else { continue; } }  const data = JSON.parse(raw); const segments: Array<{ start: number; end: number; speaker?: string; text?: string; chunkId?: string; sourceType?: any; sourceClassification?: any; contentNature?: any; documentLocation?: any }> = Array.isArray(data.segments) ? data.segments : Array.isArray(data) ? data : [];  let perEpisodeAdded = 0; const maxPerEpisodeWhenBrowsing = !qClean && !targetTag ? 4 : max * 3;  for (let sIdx = 0; sIdx < segments.length; sIdx++) { const seg = segments[sIdx]; if (!seg.text) continue; const dur = (seg.end \vert{}\vert{} 0) - (seg.start \vert{}\vert{} 0);  const effectiveSourceType = seg.sourceType \vert{}\vert{} data.sourceType \vert{}\vert{} sum?.source_type \vert{}\vert{} 'space_transcript'; if (options.sourceType && effectiveSourceType !== options.sourceType) continue;  const effectiveClassification = seg.sourceClassification \vert{}\vert{} data.sourceClassification \vert{}\vert{} sum?.source_classification \vert{}\vert{} 'primary_record'; if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;  const textLower = seg.text.toLowerCase(); const speakerName = seg.speaker \vert{}\vert{} 'Unknown Speaker';  if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) { continue; } if (maxDurationSec && dur > maxDurationSec) { continue; } if (excludeMeta && META_CLIP_COMMENTARY_REGEX.test(seg.text)) { continue; }  let score = ep.boost; if (qClean && textLower.includes(qClean)) { score += 100; } else if (queryTokens.length > 0) { const matchedCount = queryTokens.filter(t => textLower.includes(t)).length; if (matchedCount === 0) continue; score += matchedCount * 20; } else if (!qClean) { const editorialScore = scoreEditorialCandidateTurn(seg.text, dur, maxDurationSec); if (editorialScore < 0) continue; score += editorialScore; }  const dialogueWindow: DialogueTurn[] = segments .slice(Math.max(0, sIdx - 2), Math.min(segments.length, sIdx + 3)) .map(s => ({ speaker: s.speaker \vert{}\vert{} 'Unknown Speaker', text: (s.text \vert{}\vert{} '').trim(), start: s.start, end: s.end, }));  results.push({ episodeTitle: ep.title, releaseTag: ep.tag, audioUrl: ep.audioUrl, episodeDate: ep.date, speaker: speakerName, startSec: seg.start, endSec: seg.end, text: seg.text.trim(), dialogueWindow, relevanceScore: score, matchType: 'lexical', chunkId: seg.chunkId \vert{}\vert{} `${ep.tag}#seg-${sIdx}`, sourceType: effectiveSourceType, sourceClassification: effectiveClassification, contentNature: seg.contentNature \vert{}\vert{} data.contentNature \vert{}\vert{} 'verbatim_statement', documentLocation: seg.documentLocation \vert{}\vert{} data.documentLocation, });  perEpisodeAdded++; if (perEpisodeAdded >= maxPerEpisodeWhenBrowsing \vert{}\vert{} results.length >= max * 3) break; } } catch { // ignore } }  results.sort((a, b) => (b.relevanceScore \vert{}\vert{} 0) - (a.relevanceScore \vert{}\vert{} 0)); return results.slice(0, max); }  export async function searchTranscriptVector( query: string, options: SearchOptions = {} ): Promise<TranscriptSearchResult[]> { const targetTag = options.episodeTag?.trim(); let availableTags = getAvailableEmbeddingTags(); if (targetTag) { availableTags = availableTags.filter(t => t === targetTag); } if (availableTags.length === 0) return [];  const queryVec = await embedQuery(query); if (!queryVec) return [];  const summaries = loadSummaries(); const max = options.maxResults \vert{}\vert{} 15; const targetSpeaker = normalizeSpeakerName(options.speaker); const maxDurationSec = options.maxDurationSec; const excludeMeta = options.excludeMetaCommentary;  const results: TranscriptSearchResult[] = [];  for (const tag of availableTags) { const summary = summaries.find(s => s.release_tag === tag); if (targetSpeaker && summary?.speakers?.length && !summary.speakers.some(sp => isNormalizedSpeakerMatch(sp, targetSpeaker))) { continue; }  const emb = getEpisodeEmbeddings(tag); if (!emb) continue;  const { manifest, vectors } = emb; const segmentCount = manifest.segments.length;  for (let i = 0; i < segmentCount; i++) { const seg = manifest.segments[i]; if (targetSpeaker && !isNormalizedSpeakerMatch(seg.speaker, targetSpeaker)) { continue; } const dur = (seg.end \vert{}\vert{} 0) - (seg.start \vert{}\vert{} 0); if (maxDurationSec && dur > maxDurationSec) { continue; } if (excludeMeta && META_CLIP_COMMENTARY_REGEX.test(seg.text)) { continue; }  const effectiveSourceType = seg.sourceType \vert{}\vert{} manifest.sourceType \vert{}\vert{} summary?.source_type \vert{}\vert{} 'space_transcript'; if (options.sourceType && effectiveSourceType !== options.sourceType) continue;  const effectiveClassification = seg.sourceClassification \vert{}\vert{} manifest.sourceClassification \vert{}\vert{} summary?.source_classification \vert{}\vert{} 'primary_record'; if (options.sourceClassification && effectiveClassification !== options.sourceClassification) continue;  const sim = dotProduct(vectors, i * 384, queryVec); if (sim > 0.22) { const dialogueWindow: DialogueTurn[] = manifest.segments .slice(Math.max(0, i - 2), Math.min(segmentCount, i + 3)) .map(s => ({ speaker: s.speaker, text: s.text, start: s.start, end: s.end, }));  results.push({ episodeTitle: manifest.title \vert{}\vert{} summary?.title \vert{}\vert{} tag, releaseTag: tag, audioUrl: summary?.audio_url, episodeDate: summary?.episode_date, speaker: seg.speaker, startSec: seg.start, endSec: seg.end, text: seg.text, dialogueWindow, relevanceScore: Number(sim.toFixed(4)), matchType: 'vector', chunkId: seg.chunkId \vert{}\vert{} `${tag}#seg-${i}`, sourceType: effectiveSourceType as any, sourceClassification: effectiveClassification as any, contentNature: seg.contentNature \vert{}\vert{} 'verbatim_statement', documentLocation: seg.documentLocation \vert{}\vert{} manifest.documentLocation, }); } } }  results.sort((a, b) => (b.relevanceScore \vert{}\vert{} 0) - (a.relevanceScore \vert{}\vert{} 0)); return results.slice(0, max * 2); }  export function computeRRF( lexicalResults: TranscriptSearchResult[], vectorResults: TranscriptSearchResult[], k: number = 60 ): TranscriptSearchResult[] { const scoreMap = new Map< string, { item: TranscriptSearchResult; rrfScore: number; lexicalRank?: number; vectorRank?: number } >();  lexicalResults.forEach((item, idx) => { const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`; const rank = idx + 1; const contribution = 1 / (k + rank); scoreMap.set(key, { item, rrfScore: contribution, lexicalRank: rank }); });  vectorResults.forEach((item, idx) => { const key = item.chunkId ? `${item.releaseTag}#${item.chunkId}` : `${item.releaseTag}#${item.startSec.toFixed(2)}`; const rank = idx + 1; const contribution = 1 / (k + rank); const existing = scoreMap.get(key); if (existing) { existing.rrfScore += contribution; existing.vectorRank = rank; if (!existing.item.audioUrl && item.audioUrl) existing.item.audioUrl = item.audioUrl; if (!existing.item.documentLocation && item.documentLocation) existing.item.documentLocation = item.documentLocation; if (!existing.item.sourceType && item.sourceType) existing.item.sourceType = item.sourceType; if (!existing.item.sourceClassification && item.sourceClassification) existing.item.sourceClassification = item.sourceClassification; if (!existing.item.contentNature && item.contentNature) existing.item.contentNature = item.contentNature; existing.item.matchType = 'hybrid'; } else { scoreMap.set(key, { item, rrfScore: contribution, vectorRank: rank }); } });  const combined = Array.from(scoreMap.values()); combined.sort((a, b) => b.rrfScore - a.rrfScore);  return combined.map(entry => ({ ...entry.item, relevanceScore: Number(entry.rrfScore.toFixed(6)), matchType: entry.item.matchType \vert{}\vert{} (entry.vectorRank ? 'vector' : 'lexical'), })); }  export interface RerankOptions { apiKey?: string; model?: 'rerank-v5.0-fast' \vert{} 'rerank-v5.0-pro'; topN?: number; threshold?: number; fetchImpl?: typeof fetch; }  export async function rerankWithCohere( query: string, candidates: TranscriptSearchResult[], options: RerankOptions = {} ): Promise<TranscriptSearchResult[]> { if (!candidates \vert{}\vert{} candidates.length === 0 \vert{}\vert{} !query \vert{}\vert{} !query.trim()) return candidates \vert{}\vert{} [];  const apiKey = (options.apiKey !== undefined ? options.apiKey : (process.env.COHERE_API_KEY \vert{}\vert{} '')).trim(); if (!apiKey) { console.warn('[TranscriptSearchService] No COHERE_API_KEY available. Preserving candidate ranking.'); return candidates; }  const model = options.model \vert{}\vert{} 'rerank-v5.0-fast'; const topN = Math.min(candidates.length, options.topN \vert{}\vert{} candidates.length); const fetcher = options.fetchImpl \vert{}\vert{} fetch;  const documents = candidates.map(c => c.text);  const payload: Record<string, unknown> = { model, query, top_n: topN, documents, relevant_spans: { mode: 'enabled', threshold: options.threshold ?? 0.3, max_spans: 3, }, };  try { const res = await fetcher('[https://api.cohere.com/v2/rerank](https://api.cohere.com/v2/rerank)', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
       },
@@ -758,7 +375,7 @@ export async function rerankWithCohere(
 
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
-      console.warn(`[TranscriptSearchService] Cohere Rerank error ${res.status}: ${errText.slice(0, 200)}. Falling back to candidate ranking.`);
+      console.warn(`[TranscriptSearchService] Cohere Rerank error ${res.status}:${errText.slice(0, 200)}. Falling back to candidate ranking.`);
       return candidates;
     }
 
@@ -830,6 +447,11 @@ export async function searchTranscriptArchive(
     speaker: effectiveSpeaker,
   };
 
+  // If browsing by speaker/episode without a topical keyword, use lexical candidate browsing directly
+  if (!effectiveQuery.trim()) {
+    return searchTranscriptLexical('', effectiveOptions);
+  }
+
   if (mode === 'lexical') {
     return searchTranscriptLexical(effectiveQuery, effectiveOptions);
   }
@@ -890,19 +512,85 @@ export async function searchTranscriptArchive(
   }
 }
 
+/**
+ * Extracts a speaker constraint from natural language phrases like:
+ * - "a clip of Logan speaking"
+ * - "when Angela talked"
+ * - "quotes by Eric Hecker"
+ * - or matches known speaker names from the archive.
+ */
+function extractNaturalSpeaker(text: string): { speaker?: string; cleanedText: string } {
+  let working = text;
+
+  const patterns = [
+    /\b(?:clips?|soundbites?|moments?|quotes?|parts?|turns?)\s+(?:of|from|by|with|where)\s+([A-Za-z][A-Za-z0-9._-]{1,20}(?:\s+[A-Z][a-z0-9._-]{1,20})?)\s+(?:speaking|talking|saying|ranting|joking|laughing)\b/i,
+    /\b(?:of|from|by|where)\s+([A-Za-z][A-Za-z0-9._-]{1,20}(?:\s+[A-Z][a-z0-9._-]{1,20})?)\s+(?:is\s+)?(?:speaking|talking|ranting|joking)\b/i,
+    /\b([A-Za-z][A-Za-z0-9._-]{1,20})\s+(?:speaking|talking)\b/i,
+    /(?:where|what did|when did|who said)?\s*\b([A-Za-z][A-Za-z0-9._-]{1,20}(?:\s+[A-Z][a-z0-9._-]{1,20})?)\s+(?:say|said|talk|talked|mention|mentioned)\b/i,
+  ];
+
+  const nonSpeakerStopwords = new Set([
+    'someone', 'anyone', 'everyone', 'nobody', 'they', 'them', 'him', 'her',
+    'you', 'people', 'host', 'speaker', 'speakers', 'clip', 'clips', 'what', 'who', 'where', 'when'
+  ]);
+
+  for (const pat of patterns) {
+    const match = working.match(pat);
+    if (match && match[1]) {
+      const candidate = match[1].trim();
+      if (!nonSpeakerStopwords.has(candidate.toLowerCase())) {
+        working = working.replace(match[0], ' ').replace(/\s+/g, ' ').trim();
+        return { speaker: candidate, cleanedText: working };
+      }
+    }
+  }
+
+  return { speaker: undefined, cleanedText: working };
+}
+
+/**
+ * Strips editorial/meta wrappers ("a clip that's hilarious", "10 seconds max", "funny moment")
+ * so editorial selection criteria are never passed as literal keyword search tokens.
+ */
+function stripEditorialAndDurationFraming(raw: string): { cleanedQuery: string; isEditorial: boolean } {
+  const isEditorial =
+    /\b(?:funny|hilarious|funniest|best|wild|wildest|craziest|viral|contradict\w*|defensive|rant\w*|banter|punchline|joke|humor|humorous)\b/i.test(
+      raw
+    );
+
+  let q = raw
+    // Strip duration phrases ("thats 10 seconds max", "under 10s", etc.)
+    .replace(/\b(?:that'?s|thats|which is|is)?\s*(?:under|max|maximum|up to|less than|shorter than|within|no more than|no longer than)\s+\d{1,3}\s*(?:s|sec|secs|second|seconds)\b/gi, ' ')
+    .replace(/\b(?:that'?s|thats|which is|is)?\s*\d{1,3}\s*(?:s|sec|secs|second|seconds)\s*(?:max|maximum|or less|or shorter|or under|limit|long|clip|soundbite)?\b/gi, ' ')
+    // Strip clip/soundbite request nouns and editorial adjectives
+    .replace(/\b(?:find|get|give|show|pull|make|create|search(?:\s+for)?|look(?:\s+for)?)\s+(?:me\s+)?/gi, ' ')
+    .replace(/\b(?:a|an|the|some|any)?\s*(?:really\s+|super\s+|genuinely\s+|most\s+)?(?:funny|hilarious|funniest|best|wild|wildest|craziest|viral|good|great|short|quick)?\s*(?:clips?|soundbites?|moments?|quotes?|excerpts?|parts?)\b/gi, ' ')
+    .replace(/\b(?:that'?s|thats|which is|where it'?s|it is|is)\s+(?:really\s+|super\s+|genuinely\s+)?(?:funny|hilarious|funniest|best|wild|wildest|craziest|viral|max|maximum)\b/gi, ' ')
+    .replace(/\b(?:funny|hilarious|funniest|viral|max|maximum)\b/gi, ' ')
+    .replace(/^(?:of|from|by|with|about|for|that|thats|that's|and|or|\s)+/gi, '')
+    .replace(/(?:of|from|by|with|about|for|that|thats|that's|and|or|\s)+$/gi, '')
+    .replace(/[?.,!]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return { cleanedQuery: q, isEditorial };
+}
+
 export function detectSearchIntent(userMessage: string): {
   isCapabilityInquiry: boolean;
   isSearchQuery: boolean;
+  isEditorialQuery?: boolean;
   query?: string;
   speaker?: string;
   episodeTag?: string;
   timestampSec?: number;
+  maxDurationSec?: number;
 } {
   const m = userMessage.trim();
   const lower = m.toLowerCase();
 
   // Negative check: never hijack system, pipeline, bug, or ingest questions
-  if (/(?:why|how come|not|broken|bug|error|fail|stop|cron|pipeline|ingest|update|updating)/i.test(lower) && /(?:transcript|episode|feed|job|audio)/i.test(lower)) {
+  if (/(?:why|how come|not|broken|bug|error|fail|stop|cron|pipeline|ingest|update|updating)/i.test(lower) && /(?:transcript|episode|feed|job|audio|run)/i.test(lower)) {
     return { isCapabilityInquiry: false, isSearchQuery: false };
   }
 
@@ -913,6 +601,7 @@ export function detectSearchIntent(userMessage: string): {
     return { isCapabilityInquiry: true, isSearchQuery: false };
   }
 
+  const maxDurationSec = parseMaxDurationSec(m) || undefined;
   const parsedTimestamp = parseTimestampSec(m);
 
   let episodeTag: string | undefined;
@@ -933,16 +622,12 @@ export function detectSearchIntent(userMessage: string): {
     }
   }
 
-  if (parsedTimestamp !== null) {
-    let speaker: string | undefined;
-    const speakerMatch = m.match(
-      /(?:where|what did|when did|who said)?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:say|said|talk|talked|mention|mentioned)\s+(?:about\s+)?(.+)/i
-    );
-    if (speakerMatch) {
-      speaker = speakerMatch[1];
-    }
+  const naturalSpeaker = extractNaturalSpeaker(m);
 
-    let cleanQuery = m
+  if (parsedTimestamp !== null) {
+    const speaker = naturalSpeaker.speaker;
+
+    let cleanQuery = naturalSpeaker.cleanedText
       .replace(/(?:▶\s*|@\s*|\bat\s+)?\b(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\b/g, ' ')
       .replace(/\b([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*(?:s\b|sec\b|secs\b|seconds\b)/gi, ' ')
       .replace(/\b(2026\d{4}_[A-Za-z0-9]+)\b/g, ' ');
@@ -952,7 +637,8 @@ export function detectSearchIntent(userMessage: string): {
         cleanQuery = cleanQuery.replace(new RegExp(s.title.replace(/_/g, '[_ ]'), 'gi'), ' ');
       }
     }
-    cleanQuery = cleanQuery
+    const stripped = stripEditorialAndDurationFraming(cleanQuery);
+    cleanQuery = stripped.cleanedQuery
       .replace(/^(?:at|around|near|in|from|check|what was said|what did|who said|find|search)\s+/gi, '')
       .replace(/^(?:someone|they|she|he|we)\s+said\s+/gi, '')
       .replace(/[?.,!]+$/, '')
@@ -961,16 +647,18 @@ export function detectSearchIntent(userMessage: string): {
     return {
       isCapabilityInquiry: false,
       isSearchQuery: true,
+      isEditorialQuery: stripped.isEditorial,
       query: cleanQuery,
       speaker,
       episodeTag,
       timestampSec: parsedTimestamp,
+      maxDurationSec,
     };
   }
 
   const searchTriggers = [
-    /(?:search|find|look for|any mention of|where did|who said|what did|what was said about|did anyone talk about|quotes? about|soundbites? on|discuss(?:ed|ing)?)\s+(.+)/i,
-    /(?:dialogue|spoken words|soundbites?)\s+(?:for|about|containing|with)\s+(.+)/i,
+    /(?:search|find|get|give me|pull|make|create|look for|any mention of|where did|who said|what did|what was said about|did anyone talk about|quotes? about|soundbites? on|clips? of|clips? from|clips? by|discuss(?:ed|ing)?)\s+(.+)/i,
+    /(?:dialogue|spoken words|soundbites?|clips?)\s+(?:for|about|containing|with|of|from|by)\s+(.+)/i,
     /(?:someone|they|she|he|we)\s+said\s+["']?([^"']+)["']?/i,
   ];
 
@@ -978,14 +666,16 @@ export function detectSearchIntent(userMessage: string): {
     const match = m.match(pat);
     if (match && match[1]) {
       let raw = match[1].replace(/[?.,!]+$/, '').trim();
+      let speaker = naturalSpeaker.speaker;
 
-      let speaker: string | undefined;
-      const sm = raw.match(
-        /(?:where|what did|when did|who said)?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:say|said|talk|talked|mention|mentioned)\s+(?:about\s+)?(.+)/i
-      );
-      if (sm) {
-        speaker = sm[1];
-        raw = sm[2];
+      if (!speaker) {
+        const innerSpeaker = extractNaturalSpeaker(raw);
+        if (innerSpeaker.speaker) {
+          speaker = innerSpeaker.speaker;
+          raw = innerSpeaker.cleanedText;
+        }
+      } else {
+        raw = extractNaturalSpeaker(raw).cleanedText;
       }
 
       if (!episodeTag) {
@@ -1000,15 +690,32 @@ export function detectSearchIntent(userMessage: string): {
       raw = raw.replace(/\s+(?:in|across)\s+(?:all\s+)?(?:the\s+)?transcripts?$/i, '');
       raw = raw.replace(/^(?:for|about)\s+/i, '');
 
+      const stripped = stripEditorialAndDurationFraming(raw);
+
       return {
         isCapabilityInquiry: false,
         isSearchQuery: true,
-        query: raw.trim(),
+        isEditorialQuery: stripped.isEditorial,
+        query: stripped.cleanedQuery,
         speaker,
         episodeTag,
-        timestampSec: parsedTimestamp || undefined,
+        timestampSec: undefined,
+        maxDurationSec,
       };
     }
+  }
+
+  if (naturalSpeaker.speaker) {
+    const stripped = stripEditorialAndDurationFraming(naturalSpeaker.cleanedText);
+    return {
+      isCapabilityInquiry: false,
+      isSearchQuery: true,
+      isEditorialQuery: stripped.isEditorial,
+      query: stripped.cleanedQuery,
+      speaker: naturalSpeaker.speaker,
+      episodeTag,
+      maxDurationSec,
+    };
   }
 
   const tagDirect = m.match(/\b(2026\d{4}_[A-Za-z0-9]+)\b/);
@@ -1018,6 +725,7 @@ export function detectSearchIntent(userMessage: string): {
       isSearchQuery: true,
       query: '',
       episodeTag: tagDirect[1],
+      maxDurationSec,
     };
   }
 
@@ -1139,6 +847,8 @@ export interface HandleSearchTranscriptsInput {
   speaker_hint?: string;
   episodeTag?: string;
   timestamp_sec?: number;
+  max_duration_sec?: number;
+  exclude_meta?: boolean;
   maxResults?: number;
   mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
   rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
@@ -1181,12 +891,22 @@ export interface HandleSearchTranscriptsResult {
 export async function handleSearchTranscripts(
   input: HandleSearchTranscriptsInput
 ): Promise<HandleSearchTranscriptsResult> {
-  const normalizedQuery = normalizeSpokenQuery(input.query);
+  // Strip any accidental editorial/meta keywords ("funny clip", "10 seconds max") if passed in query
+  const strippedInput = stripEditorialAndDurationFraming(input.query || '');
+  const effectiveRawQuery = strippedInput.isEditorial ? strippedInput.cleanedQuery : (input.query || '');
+  const normalizedQuery = normalizeSpokenQuery(effectiveRawQuery);
   const max = input.maxResults || 12;
   const scope: 'active_episode' | 'all_transcripts' =
     input.scope === 'active_episode' && input.episodeTag ? 'active_episode' : 'all_transcripts';
   const targetTag = scope === 'active_episode' ? input.episodeTag : undefined;
   let speakerHint = input.speaker_hint?.trim() || undefined;
+  const maxDurationSec = input.max_duration_sec || parseMaxDurationSec(input.query || '') || undefined;
+  const excludeMeta = input.exclude_meta ?? strippedInput.isEditorial;
+
+  if (!speakerHint && input.query) {
+    const nat = extractNaturalSpeaker(input.query);
+    if (nat.speaker) speakerHint = nat.speaker;
+  }
 
   if (input.episodeTag && input.activeSegments?.length) {
     registerEpisodeSegments(input.episodeTag, input.activeSegments);
@@ -1248,13 +968,16 @@ export async function handleSearchTranscripts(
     }
   }
 
-  if (rawResults.length === 0 && normalizedQuery) {
-    const searchMode = input.mode || 'hybrid';
+  // Primary search: supports both keyword search AND speaker/editorial candidate browsing (when normalizedQuery is empty)
+  if (rawResults.length === 0 && (normalizedQuery || speakerHint || targetTag)) {
+    const searchMode = normalizedQuery ? (input.mode || 'hybrid') : 'lexical';
     rawResults = await searchTranscriptArchive(normalizedQuery, {
       speaker: speakerHint,
       episodeTag: targetTag,
       activeSegments: input.activeSegments,
       maxResults: max,
+      maxDurationSec,
+      excludeMetaCommentary: excludeMeta,
       mode: searchMode,
       rerankModel: input.rerankModel,
       apiKey: input.apiKey,
@@ -1276,10 +999,12 @@ export async function handleSearchTranscripts(
 
     if (anchorWords.length > 0) {
       const anchorQuery = anchorWords.join(' ');
-      let anchorResults = await searchTranscriptLexical(anchorQuery, {
+      const anchorResults = await searchTranscriptLexical(anchorQuery, {
         speaker: speakerApplied,
         episodeTag: targetTag,
         activeSegments: input.activeSegments,
+        maxDurationSec,
+        excludeMetaCommentary: excludeMeta,
         maxResults: max * 2,
       });
 

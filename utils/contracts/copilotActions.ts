@@ -138,10 +138,12 @@ export const LoadEpisodeParamsSchema = z.object({
 });
 
 export const SearchTranscriptsParamsSchema = z.object({
-  query: z.preprocess(v => String(v || '').trim(), z.string()),
+  query: z.preprocess(v => String(v || '').trim(), z.string().default('')),
   scope: z.enum(['all_transcripts', 'active_episode']).default('all_transcripts'),
   speaker_hint: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  speaker: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
   timestamp_sec: z.preprocess(v => (v !== undefined ? Number(v) : undefined), z.number().nonnegative().optional()),
+  max_duration_sec: z.preprocess(v => (v !== undefined ? Number(v) : undefined), z.number().positive().optional()),
 });
 
 export const UpdateConfigParamsSchema = z.object({
