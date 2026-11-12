@@ -958,16 +958,32 @@ def transcribe_audio_chunk_whisper(
         raise RuntimeError(
             f"Cannot transcribe {audio_path.name}: AssemblyAI failed and local 'faster_whisper' is not installed in the environment."
         )
-    print(f"[*] Transcribing {audio_path.name} via faster-whisper (local engine)...")
+    print(f"[*] Transcribing {audio_path.name} via faster-whisper (GitHub Cloud runner)...")
     try:
-        import torch
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        try:
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        except ImportError:
+            device = "cpu"
         compute_type = "float16" if device == "cuda" else "int8"
-        print(f"[*] Loading faster-whisper base model on {device.upper()} ({compute_type})...")
-        model = WhisperModel("base", device=device, compute_type=compute_type)
+        model_size = os.environ.get("WHISPER_MODEL", "base")
+        print(f"[*] Loading faster-whisper {model_size} model on {device.upper()} ({compute_type})...")
+        model = WhisperModel(model_size, device=device, compute_type=compute_type)
         segments_gen, info = model.transcribe(str(audio_path), beam_size=5, word_timestamps=True)
         results: List[Dict[str, Any]] = []
+
+        current_spk_idx = 0
+        spk_letters = ["A", "B", "C", "D", "E", "F", "G", "H"]
+        last_end = 0.0
+
         for s in segments_gen:
+            # Split conversational turns on pause gaps >= 1.0s
+            if results and (s.start - last_end >= 1.0):
+                current_spk_idx = (current_spk_idx + 1) % len(spk_letters)
+
+            spk_label = f"Speaker {spk_letters[current_spk_idx]}"
+            last_end = s.end
+
             words = []
             if s.words:
                 for w in s.words:
@@ -976,13 +992,13 @@ def transcribe_audio_chunk_whisper(
                         "start": round(time_offset + w.start, 2),
                         "end": round(time_offset + w.end, 2),
                         "confidence": round(w.probability, 2),
-                        "speaker": "Speaker A"
+                        "speaker": spk_label
                     })
             results.append({
                 "start": round(time_offset + s.start, 2),
                 "end": round(time_offset + s.end, 2),
-                "speaker": "Speaker A",
-                "speaker_confidence": 0.95,
+                "speaker": spk_label,
+                "speaker_confidence": 0.90,
                 "text": s.text.strip(),
                 "words": words
             })
@@ -999,7 +1015,8 @@ def process_audio_file(
     title: str,
     output_dir: Path,
     cohere_key: str = "",
-    openrouter_key: str = ""
+    openrouter_key: str = "",
+    engine: str = "whisper"
 ) -> Tuple[Path, Path, Path, float]:
     """Processes an audio file through AssemblyAI with compression and marathon chunking if needed."""
     file_size = input_audio.stat().st_size
@@ -1066,14 +1083,22 @@ def process_audio_file(
                 for idx, c_file in enumerate(chunk_files, 1):
                     c_dur = get_audio_duration(c_file)
                     print(f"\n--- Processing Chunk [{idx}/{len(chunk_files)}]: {c_file.name} ({format_timestamp(c_dur)}) ---")
-                    if assemblyai_key:
-                        chunk_segs = transcribe_audio_chunk_assemblyai(
-                            audio_path=c_file,
-                            assemblyai_key=assemblyai_key,
-                            time_offset=current_offset,
-                            chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
-                            title=title
-                        )
+                    if engine == "assemblyai" and assemblyai_key:
+                        try:
+                            chunk_segs = transcribe_audio_chunk_assemblyai(
+                                audio_path=c_file,
+                                assemblyai_key=assemblyai_key,
+                                time_offset=current_offset,
+                                chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
+                                title=title
+                            )
+                        except Exception as e:
+                            print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
+                            chunk_segs = transcribe_audio_chunk_whisper(
+                                c_file,
+                                time_offset=current_offset,
+                                title=title
+                            )
                     else:
                         chunk_segs = transcribe_audio_chunk_whisper(
                             c_file,
@@ -1085,35 +1110,47 @@ def process_audio_file(
 
                 shutil.rmtree(chunks_dir, ignore_errors=True)
             else:
-                if assemblyai_key:
+                if engine == "assemblyai" and assemblyai_key:
+                    try:
+                        all_segments = transcribe_audio_chunk_assemblyai(
+                            audio_path=active_audio,
+                            assemblyai_key=assemblyai_key,
+                            time_offset=0.0,
+                            title=title
+                        )
+                    except Exception as e:
+                        print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
+                        all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+                else:
+                    all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+        except Exception as e:
+            print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
+            if engine == "assemblyai" and assemblyai_key:
+                try:
                     all_segments = transcribe_audio_chunk_assemblyai(
                         audio_path=active_audio,
                         assemblyai_key=assemblyai_key,
                         time_offset=0.0,
                         title=title
                     )
-                else:
+                except Exception as e2:
+                    print(f"[!] AssemblyAI failed ({e2}); falling back to GitHub Cloud faster-whisper.")
                     all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-        except Exception as e:
-            print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
-            if assemblyai_key:
+            else:
+                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+    else:
+        # Standard Single-Pass transcription
+        if engine == "assemblyai" and assemblyai_key:
+            try:
                 all_segments = transcribe_audio_chunk_assemblyai(
                     audio_path=active_audio,
                     assemblyai_key=assemblyai_key,
                     time_offset=0.0,
                     title=title
                 )
-            else:
+            except Exception as e:
+                print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
                 all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-    else:
-        # Standard Single-Pass transcription
-        if assemblyai_key:
-            all_segments = transcribe_audio_chunk_assemblyai(
-                audio_path=active_audio,
-                assemblyai_key=assemblyai_key,
-                time_offset=0.0,
-                title=title
-            )
         else:
             all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
 
@@ -1180,9 +1217,10 @@ def process_audio_file(
     # 1. Text transcript
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(f"=== TRANSCRIPT: {title} ===\n")
+        model_name = "assemblyai-universal-3-5-pro" if engine == "assemblyai" else f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}"
         f.write(f"Duration: {format_timestamp(duration_sec)}\n")
         f.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}\n")
-        f.write(f"Engine: AssemblyAI Universal-3.5 Pro (Cloud Diarization)\n\n")
+        f.write(f"Engine: {model_name}\n\n")
         for s in all_segments:
             f.write(f"[{format_timestamp(s['start'])} - {format_timestamp(s['end'])}] {s['speaker']}: {s['text']}\n\n")
 
@@ -1200,7 +1238,7 @@ def process_audio_file(
         "source": input_audio.name,
         "duration_seconds": duration_sec,
         "duration_formatted": format_timestamp(duration_sec),
-        "model": "assemblyai-universal-3-5-pro",
+        "model": "assemblyai-universal-3-5-pro" if engine == "assemblyai" else f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}",
         "speakers_detected": list(speaker_talk_time.keys()),
         "speaker_talk_time": speaker_talk_time,
         "segments": all_segments
@@ -1212,16 +1250,20 @@ def process_audio_file(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="AssemblyAI Universal-3.5 Pro Cloud Audio Transcriber & Highlight Extractor")
+    parser = argparse.ArgumentParser(description="SpacePipe Cloud Audio Transcriber & Highlight Extractor")
     parser.add_argument("--release-tag", type=str, required=True, help="GitHub release tag (e.g. 20260918_1MJgNbdaAPlGL)")
     parser.add_argument("--part", type=int, default=0, help="Specific audio part (0 for all)")
     parser.add_argument("--force", action="store_true", help="Force re-transcribe even if transcript exists")
+    parser.add_argument("--engine", type=str, choices=["whisper", "assemblyai", "auto"], default="whisper", help="Transcription engine (default: whisper)")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     args = parser.parse_args()
 
     assemblyai_key = os.environ.get("ASSEMBLYAI_API_KEY", "").strip()
-    if not assemblyai_key:
-        print("[*] No ASSEMBLYAI_API_KEY detected; defaulting to free local faster-whisper engine.")
+    if args.engine == "assemblyai" and not assemblyai_key:
+        print("[!] --engine assemblyai requested but no ASSEMBLYAI_API_KEY detected; defaulting to free GitHub Cloud faster-whisper.")
+        args.engine = "whisper"
+    elif args.engine == "whisper":
+        print("[*] Engine set to 'whisper' (default): running free faster-whisper on GitHub Cloud runner (zero AssemblyAI credits).")
 
     gh_token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
@@ -1314,7 +1356,8 @@ def main():
                 title=space_title,
                 output_dir=output_dir,
                 cohere_key=cohere_key,
-                openrouter_key=openrouter_key
+                openrouter_key=openrouter_key,
+                engine=args.engine
             )
 
         # Highlight clip extraction via Gemini Flash

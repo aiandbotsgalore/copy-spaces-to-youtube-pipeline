@@ -1,5 +1,5 @@
 name: Batch Transcribe Episodes (Newest to Oldest)
-run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via AssemblyAI Cloud
+run-name: Batch Transcribe ${{ inputs.limit || '5' }} episodes via ${{ inputs.engine || 'GitHub Cloud (whisper)' }}
 
 on:
   schedule:
@@ -12,6 +12,14 @@ on:
         required: false
         default: '5'
         type: string
+      engine:
+        description: 'Transcription engine (whisper = free GitHub Cloud, assemblyai = paid API)'
+        required: false
+        default: 'whisper'
+        type: choice
+        options:
+          - whisper
+          - assemblyai
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
         required: false
@@ -74,7 +82,7 @@ jobs:
           echo "[*] Extracting highlight clips for transcribed episodes missing clips (limit: $LIMIT)..."
           python scripts/batch_transcribe_queue.py --missing-clips --limit "$LIMIT"
 
-      - name: Execute Batch Transcription via AssemblyAI Cloud
+      - name: Execute Batch Transcription (Cloud Runner)
         id: run_batch
         if: inputs.dry_run != true && inputs.missing_clips != true
         env:
@@ -86,9 +94,10 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
-          echo "[*] Executing batch transcription on AssemblyAI Cloud (limit: $LIMIT)..."
-          python scripts/batch_transcribe_queue.py --engine assemblyai --limit "$LIMIT"
-          echo "[✓] AssemblyAI batch transcription completed!"
+          ENGINE="${{ inputs.engine || 'whisper' }}"
+          echo "[*] Executing batch transcription on Cloud Runner via $ENGINE (limit: $LIMIT)..."
+          python scripts/batch_transcribe_queue.py --engine "$ENGINE" --limit "$LIMIT"
+          echo "[✓] Batch transcription completed!"
 
       - name: Commit & Push Updated Transcripts
         if: inputs.dry_run != true

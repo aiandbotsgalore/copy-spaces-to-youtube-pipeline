@@ -335,7 +335,7 @@ def main():
     parser = argparse.ArgumentParser(description="Batch Transcribe Episodes in order from newest to oldest")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--limit", type=int, default=10, help="Number of episodes to transcribe (0 for all)")
-    parser.add_argument("--engine", type=str, choices=["modal", "assemblyai"], default="assemblyai", help="Transcription engine (default: assemblyai)")
+    parser.add_argument("--engine", type=str, choices=["modal", "assemblyai", "whisper"], default="whisper", help="Transcription engine (default: whisper)")
     parser.add_argument("--since", type=str, default="2026-10-27", help="Prioritize episodes since date (YYYY-MM-DD, default: 2026-10-27). Pass 'all' to disable filter.")
     parser.add_argument("--missing-clips", action="store_true", help="Process transcribed episodes that are missing highlight clips")
     parser.add_argument("--dry-run", action="store_true", help="Preview queue and exit without running Modal")
@@ -444,7 +444,7 @@ def main():
         elif args.engine == "modal":
             cmd = [sys.executable, "scripts/modal_transcribe_client.py", "--release-tag", tag, "--repo", args.repo]
         else:
-            cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag, "--repo", args.repo]
+            cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag, "--repo", args.repo, "--engine", args.engine]
         start_time = time.time()
         try:
             res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")

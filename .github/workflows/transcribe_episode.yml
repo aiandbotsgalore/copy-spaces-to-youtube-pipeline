@@ -1,5 +1,5 @@
 name: Transcribe Episode
-run-name: Transcribe ${{ inputs.release_tag }} via AssemblyAI Cloud
+run-name: Transcribe ${{ inputs.release_tag }} via ${{ inputs.engine || 'GitHub Cloud (whisper)' }}
 
 on:
   workflow_dispatch:
@@ -8,6 +8,14 @@ on:
         description: 'Release tag to transcribe (e.g. 20260902_1AJEmvwnykXJL)'
         required: true
         type: string
+      engine:
+        description: 'Transcription engine (whisper = free GitHub Cloud, assemblyai = paid API)'
+        required: false
+        default: 'whisper'
+        type: choice
+        options:
+          - whisper
+          - assemblyai
       force:
         description: 'Force re-transcription even if transcript already exists'
         required: false
@@ -44,7 +52,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Transcribe Episode via AssemblyAI Cloud
+      - name: Transcribe Episode (Cloud Runner)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
@@ -57,8 +65,9 @@ jobs:
           if [ "${{ inputs.force }}" = "true" ]; then
             FORCE_ARG="--force"
           fi
-          echo "[*] Transcribing ${{ inputs.release_tag }} via AssemblyAI Cloud..."
-          python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
+          ENGINE_ARG="--engine ${{ inputs.engine || 'whisper' }}"
+          echo "[*] Transcribing ${{ inputs.release_tag }} via engine '${{ inputs.engine || 'whisper' }}'..."
+          python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG $ENGINE_ARG
 
       - name: Rebuild Transcript Index & Refresh Discovered Speaker Candidates
         env:
