@@ -105,6 +105,8 @@ interface MontageContextType {
   exportAudacityLabels: () => void;
   isExporting: boolean;
   exportProgress: string;
+  exportNotice: { type: 'success' | 'warning' | 'error'; message: string } | null;
+  clearExportNotice: () => void;
 }
 
 export interface AuditionProgress {
@@ -213,6 +215,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [auditionProgress, setAuditionProgress] = useState<AuditionProgress | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState('');
+  const [exportNotice, setExportNotice] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  const clearExportNotice = useCallback(() => setExportNotice(null), []);
 
   const playerRef = useRef<SequencePlayer | null>(null);
   const [auditionStatus, setAuditionStatus] = useState('');
@@ -746,16 +750,30 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           try {
             const fetchUrl = (await getCachedAudioUrl(key)) || key;
             const finalUrl = toSliceableUrl(fetchUrl, c.startSec, c.endSec, c.sourceDurationSec);
-            const res = await fetch(finalUrl);
+            let res = await fetch(finalUrl);
             if (!res.ok) {
-              skipped.push(`"${c.title}" (HTTP ${res.status})`);
+              // Graceful fallback: try direct fetchable URL before giving up on this clip
+              const fallbackUrl = toFetchableUrl(fetchUrl);
+              if (fallbackUrl !== finalUrl) {
+                try {
+                  const retryRes = await fetch(fallbackUrl);
+                  if (retryRes.ok) {
+                    res = retryRes;
+                  }
+                } catch {
+                  /* fallback network error, continue */
+                }
+              }
+            }
+            if (!res.ok) {
+              skipped.push(`"${c.title || c.speaker || 'Clip'}" (HTTP ${res.status})`);
               continue;
             }
             setExportProgress(`[${i + 1}/${plan.items.length}] Decoding audio: ${c.title || c.speaker}…`);
             full = await audioCtx.decodeAudioData(await res.arrayBuffer());
           } catch (err: any) {
             console.warn(`Failed to process clip "${c.title}":`, err);
-            skipped.push(`"${c.title}" (${err.message || 'decode failure'})`);
+            skipped.push(`"${c.title || c.speaker || 'Clip'}" (${err.message || 'decode failure'})`);
             continue;
           }
         }
@@ -804,14 +822,30 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setExportProgress('Encoding lossless 16-bit PCM broadcast WAV…');
       triggerDownload(audioBufferToWav(masterBuffer), `Montage_Studio_Master_${parts.length}_Clips.wav`);
 
+      if (skipped.length > 0) {
+        setExportNotice({
+          type: 'warning',
+          message: `Export completed with ${parts.length} clip(s). Skipped ${skipped.length} clip(s) due to unresolvable audio: ${skipped.join(', ')}`,
+        });
+      } else {
+        setExportNotice({
+          type: 'success',
+          message: `Master export complete! Rendered ${parts.length} clip(s) with -16 LUFS loudness matching.`,
+        });
+      }
+
       setExportProgress(
         skipped.length > 0
-          ? `Master export complete. Skipped ${skipped.length} clip(s) whose window is outside the audio: ${skipped.join(', ')}`
+          ? `Master export complete. Skipped ${skipped.length} clip(s): ${skipped.join(', ')}`
           : 'Master export complete!'
       );
       setTimeout(() => setIsExporting(false), skipped.length > 0 ? 4000 : 1200);
     } catch (err: any) {
       console.error('Failed to export montage WAV:', err);
+      setExportNotice({
+        type: 'error',
+        message: `Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`,
+      });
       alert(`Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`);
       setIsExporting(false);
     }
@@ -918,6 +952,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         exportAudacityLabels,
         isExporting,
         exportProgress,
+        exportNotice,
+        clearExportNotice,
       }}
     >
       {children}

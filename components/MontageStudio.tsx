@@ -56,36 +56,7 @@ import { probeFileDuration, reconcileWindow } from '../utils/clipProbe';
 import { toSliceableUrl } from '../utils/audioUrl';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
-
-interface RawCatalogClip {
-  title: string;
-  category: string;
-  start_seconds: number;
-  end_seconds: number;
-  duration?: number;
-  speakers: string[];
-  viral_score?: number;
-  reason?: string;
-  transcript_snippet?: string;
-  episode?: string;
-  file_path?: string;
-  download_url?: string;
-}
-
-interface RawManifestClip {
-  id: string;
-  filename: string;
-  title: string;
-  quote: string;
-  space_tag?: string;
-  space_title?: string;
-  timestamp?: string;
-  url?: string;
-  speaker?: string;
-  quote_id?: string;
-  category?: string;
-  duration?: number;
-}
+import type { CanonicalClip as RawCatalogClip, ManifestClip as RawManifestClip } from '../types';
 
 interface AuditCueItem {
   cue_id: string;
@@ -170,6 +141,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     exportAudacityLabels,
     isExporting,
     exportProgress,
+    exportNotice,
+    clearExportNotice,
   } = useMontage();
 
   const copilot = useCopilot();
@@ -987,6 +960,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             onSkipAudition={skipAudition}
             isExporting={isExporting}
             exportProgress={exportProgress}
+            exportNotice={exportNotice}
+            onClearExportNotice={clearExportNotice}
             onExportStitchedWav={exportStitchedWav}
             onExportAudacityLabels={exportAudacityLabels}
             onExportManifestJson={exportManifestJson}

@@ -7,6 +7,8 @@ import { normalizeClipSpeakers, normalizeViralScore } from '../clipScore';
  * Bridges Python pipeline outputs (clips_catalog.json, *_clips.json, cue sheets)
  * with frontend Studios (ClipsPanel, MontageStudio, ScriptStudio).
  */
+import type { ManifestClip, CanonicalClip } from '../../types';
+
 export const ClipItemSchema = z.object({
   id: z.string().optional(),
   title: z.preprocess(v => String(v || '').trim() || 'Untitled Moment', z.string()),
@@ -46,7 +48,12 @@ export const ClipItemSchema = z.object({
   episode: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
   file_path: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
   download_url: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
-}).transform(clip => {
+  source_duration_sec: z.preprocess(v => {
+    const num = Number(v);
+    return Number.isFinite(num) && num > 0 ? num : undefined;
+  }, z.number().positive().optional()),
+  quote: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+}).transform((clip): CanonicalClip => {
   // Ensure duration is always populated accurately
   const calculatedDuration = Math.max(0, clip.end_seconds - clip.start_seconds);
   return {
@@ -54,10 +61,34 @@ export const ClipItemSchema = z.object({
     file_path: clip.file_path ? toPosixPath(clip.file_path) : undefined,
     download_url: clip.download_url ? toPosixPath(clip.download_url) : undefined,
     duration: clip.duration ?? (calculatedDuration > 0 ? calculatedDuration : undefined),
+    quote: clip.quote || clip.transcript_snippet,
   };
 });
 
 export type ClipItem = z.infer<typeof ClipItemSchema>;
+
+/** Converts an extracted manifest clip (e.g. clips/angela/manifest.json) into a canonical ClipItem */
+export function manifestClipToClipItem(manifest: ManifestClip): ClipItem {
+  const dur = manifest.duration || 30;
+  const quote = (manifest.quote || manifest.title || '').trim();
+  return {
+    id: manifest.id,
+    title: manifest.title || 'Extracted Clip',
+    category: manifest.category || 'Highlights',
+    start_seconds: 0,
+    end_seconds: dur,
+    duration: dur,
+    speakers: manifest.speaker ? [manifest.speaker] : [],
+    viral_score: 8,
+    reason: manifest.title || '',
+    transcript_snippet: quote,
+    quote,
+    episode: manifest.space_tag,
+    file_path: manifest.url || manifest.filename,
+    download_url: manifest.url,
+    source_duration_sec: manifest.duration,
+  };
+}
 
 export const ClipCatalogSchema = z.array(ClipItemSchema);
 

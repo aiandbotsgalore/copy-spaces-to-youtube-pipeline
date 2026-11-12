@@ -149,3 +149,53 @@ export interface VoiceProfilesCatalog {
   profiles: Record<string, VoiceProfile>;
   dlq?: DeadLetterJob[];
 }
+
+/**
+ * Universal Clip Definitions
+ * Unifies the divergent interfaces across clips_catalog.json, release manifests,
+ * cue sheets, TranscriptPanel, and MontageStudio.
+ */
+
+export interface CanonicalClip {
+  id?: string;
+  title: string;
+  category: string;
+  start_seconds: number;
+  end_seconds: number;
+  duration?: number;
+  speakers: string[];
+  viral_score: number;
+  reason?: string;
+  transcript_snippet: string;
+  quote?: string;
+  episode?: string;
+  file_path?: string;
+  download_url?: string;
+  url?: string;
+  junk_suspect?: boolean;
+  junk_score?: number;
+  junk_reason?: string;
+  source_duration_sec?: number;
+}
+
+export interface ManifestClip {
+  id: string;
+  filename: string;
+  title: string;
+  quote: string;
+  space_tag?: string;
+  space_title?: string;
+  timestamp?: string;
+  size_bytes?: number;
+  format?: string;
+  url?: string;
+  speaker?: string;
+  quote_id?: string;
+  category?: string;
+  duration?: number;
+}
+
+export type ExtractedClip = ManifestClip;
+export type RawCatalogClip = CanonicalClip;
+export type RawManifestClip = ManifestClip;
+

@@ -134,7 +134,9 @@ describe('Template Generation & Escaping Safety', () => {
     const pythonScript = buildPythonRSSScript();
     expect(pythonScript).toContain("podcast_archive.xml");
     expect(pythonScript).toContain("podcast.xml");
+    expect(pythonScript).toContain("clips.xml");
     expect(pythonScript).toContain("(11 * 3600 + 58 * 60)");
+    expect(pythonScript).toContain("CHUNK_SECS = 36000");
   });
 });
 

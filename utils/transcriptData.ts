@@ -47,18 +47,8 @@ export interface SavedSpeaker {
   role?: string;
 }
 
-export interface ExtractedClip {
-  id: string;
-  filename: string;
-  title: string;
-  quote: string;
-  space_tag?: string;
-  space_title?: string;
-  timestamp?: string;
-  size_bytes?: number;
-  format?: string;
-  url: string;
-}
+import type { ExtractedClip } from '../types';
+export type { ExtractedClip };
 
 export interface SearchIndexSegment {
   start: number;

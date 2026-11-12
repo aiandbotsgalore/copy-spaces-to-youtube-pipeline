@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { parseClipItem, parseClipCatalog } from '../contracts/clipCatalog';
+import { parseClipItem, parseClipCatalog, manifestClipToClipItem } from '../contracts/clipCatalog';
 import { normalizeTimestampToSeconds, parseTranscriptSegments, parseEpisodeSummaries } from '../contracts/transcript';
 import { findEpisodeInSummary } from '../transcriptData';
+import { ManifestClip } from '../../types';
 
 describe('Contracts: clipCatalog', () => {
   it('parses valid clip items with type coercion and duration calculation', () => {
@@ -14,6 +15,7 @@ describe('Contracts: clipCatalog', () => {
       speakers: ['Logan', 'Guest'],
       reason: 'Key insight',
       transcript_snippet: 'This is the quote snippet',
+      source_duration_sec: '3600',
     };
     const clip = parseClipItem(raw);
     expect(clip).not.toBeNull();
@@ -22,6 +24,32 @@ describe('Contracts: clipCatalog', () => {
     expect(clip?.duration).toBe(32.5);
     expect(clip?.viral_score).toBe(9);
     expect(clip?.speakers).toEqual(['Logan', 'Guest']);
+    expect(clip?.source_duration_sec).toBe(3600);
+    expect(clip?.quote).toBe('This is the quote snippet');
+  });
+
+  it('converts an extracted manifest clip to a canonical ClipItem', () => {
+    const manifest: ManifestClip = {
+      id: 'clip_01',
+      filename: 'angela_predator.mp3',
+      title: 'Predator Allegations',
+      quote: 'He was acting like a predator.',
+      space_tag: '20260918_12345',
+      space_title: 'Late Night Space',
+      duration: 45,
+      speaker: 'Angela Maggard',
+      url: 'clips/angela/angela_predator.mp3',
+    };
+    const converted = manifestClipToClipItem(manifest);
+    expect(converted.id).toBe('clip_01');
+    expect(converted.title).toBe('Predator Allegations');
+    expect(converted.transcript_snippet).toBe('He was acting like a predator.');
+    expect(converted.quote).toBe('He was acting like a predator.');
+    expect(converted.start_seconds).toBe(0);
+    expect(converted.end_seconds).toBe(45);
+    expect(converted.duration).toBe(45);
+    expect(converted.speakers).toEqual(['Angela Maggard']);
+    expect(converted.file_path).toBe('clips/angela/angela_predator.mp3');
   });
 
   it('rejects clips where end_seconds <= start_seconds', () => {

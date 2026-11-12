@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Play, Pause, SkipBack, SkipForward, Loader2, Download, FileText
+  Play, Pause, SkipBack, SkipForward, Loader2, Download, FileText, CheckCircle2, AlertTriangle, AlertCircle, X
 } from 'lucide-react';
 
 export interface StudioExportBarProps {
@@ -12,6 +12,8 @@ export interface StudioExportBarProps {
   onSkipAudition: (idx: number) => void;
   isExporting: boolean;
   exportProgress: string;
+  exportNotice?: { type: 'success' | 'warning' | 'error'; message: string } | null;
+  onClearExportNotice?: () => void;
   onExportStitchedWav: () => void;
   onExportAudacityLabels: () => void;
   onExportManifestJson: () => void;
@@ -26,6 +28,8 @@ export const StudioExportBar: React.FC<StudioExportBarProps> = ({
   onSkipAudition,
   isExporting,
   exportProgress,
+  exportNotice,
+  onClearExportNotice,
   onExportStitchedWav,
   onExportAudacityLabels,
   onExportManifestJson,
@@ -74,6 +78,39 @@ export const StudioExportBar: React.FC<StudioExportBarProps> = ({
           </div>
         )}
       </div>
+
+      {/* Export Notice Pill (if present) */}
+      {exportNotice && (
+        <div
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs max-w-md ${
+            exportNotice.type === 'success'
+              ? 'bg-emerald-950/70 border-emerald-700/60 text-emerald-300'
+              : exportNotice.type === 'warning'
+              ? 'bg-amber-950/70 border-amber-700/60 text-amber-300'
+              : 'bg-rose-950/70 border-rose-700/60 text-rose-300'
+          }`}
+        >
+          {exportNotice.type === 'success' ? (
+            <CheckCircle2 size={13} className="shrink-0 text-emerald-400" />
+          ) : exportNotice.type === 'warning' ? (
+            <AlertTriangle size={13} className="shrink-0 text-amber-400" />
+          ) : (
+            <AlertCircle size={13} className="shrink-0 text-rose-400" />
+          )}
+          <span className="truncate" title={exportNotice.message}>
+            {exportNotice.message}
+          </span>
+          {onClearExportNotice && (
+            <button
+              onClick={onClearExportNotice}
+              className="p-0.5 hover:text-white transition-colors cursor-pointer shrink-0 ml-1"
+              title="Dismiss notice"
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Master Export Buttons */}
       <div className="flex items-center gap-2">
