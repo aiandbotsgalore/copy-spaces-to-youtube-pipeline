@@ -156,15 +156,12 @@ def main():
         rel_name = r.get("name") or rel_tag
         assets = r.get("assets", [])
 
-        mp3_asset = next(
-            (
-                a
-                for a in assets
-                if a.get("name", "").endswith(".mp3")
-                and not ("m" in a.get("name")[:7] and "s" in a.get("name")[:7])
-            ),
-            None,
-        )
+        eligible_mp3_assets = [
+            a for a in assets
+            if a.get("name", "").endswith(".mp3")
+            and not ("m" in a.get("name")[:7] and "s" in a.get("name")[:7])
+        ]
+        mp3_asset = eligible_mp3_assets[0] if eligible_mp3_assets else None
         if not mp3_asset:
             mp3_asset = next((a for a in assets if a.get("name", "").endswith(".mp3")), None)
 
@@ -289,6 +286,29 @@ def main():
             host_h = _host_handle(body)
             cleaned_segments = clean_episode_segments(segments, rel_name, host_h or "")
             total_segments += len(cleaned_segments)
+
+            # Smart multi-part MP3 matching: pair transcript with the exact physical part
+            if len(eligible_mp3_assets) > 1:
+                t_name = transcript_asset.get("name", "") if transcript_asset else ""
+                part_match = re.search(r"part[_\s\-]?(\d+)", t_name, re.IGNORECASE)
+                matched_by_part = None
+                if part_match:
+                    p_num = part_match.group(1)
+                    matched_by_part = next(
+                        (a for a in eligible_mp3_assets if re.search(rf"part[_\s\-]?{p_num}(?!\d)", a.get("name", ""), re.IGNORECASE)),
+                        None
+                    )
+                if matched_by_part:
+                    mp3_asset = matched_by_part
+                else:
+                    trans_dur = max((s.get("end", 0) for s in cleaned_segments), default=0)
+                    if trans_dur > 0:
+                        def _mp3_dur_diff(a):
+                            # standard SpacePipe 160kbps CBR is ~20,000 bytes/sec
+                            est_dur = a.get("size", 0) / 20000.0
+                            return abs(est_dur - trans_dur)
+                        mp3_asset = min(eligible_mp3_assets, key=_mp3_dur_diff)
+
             date_m = re.search(r"METADATA::(?:EPISODE_DATE|DATE)::(\d{4})[-/]?(\d{2})[-/]?(\d{2})", body)
             ep_date = f"{date_m.group(1)}-{date_m.group(2)}-{date_m.group(3)}" if date_m else None
             index.append(
@@ -330,6 +350,12 @@ def main():
     summary = []
     for ep in index:
         spks = sorted(list(set(s.get("speaker", "").strip() for s in ep.get("segments", []) if s.get("speaker", "").strip())))
+        body_dur = _duration_sec(ep.get("body", ""))
+        trans_max = max((s.get("end", 0) for s in ep.get("segments", [])), default=0)
+        final_dur = body_dur
+        if trans_max > 0 and (not body_dur or abs(body_dur - trans_max) > 1800):
+            final_dur = round(trans_max)
+
         summary.append({
             "release_id": ep["release_id"],
             "release_tag": ep["release_tag"],
@@ -339,7 +365,7 @@ def main():
             "audio_url": ep.get("audio_url", ""),
             "segment_count": ep.get("segment_count", len(ep.get("segments", []))),
             "body": ep.get("body", ""),
-            "duration_sec": _duration_sec(ep.get("body", "")),
+            "duration_sec": final_dur,
             "host_handle": _host_handle(ep.get("body", "")),
             "speakers": spks,
         })

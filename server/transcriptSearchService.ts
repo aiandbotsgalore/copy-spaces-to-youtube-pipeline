@@ -1080,7 +1080,7 @@ export function getEpisodeTranscript(releaseTag: string): {
     return {
       title: data.title || sum?.title || releaseTag,
       releaseTag: targetTag,
-      audioUrl: sum?.audio_url,
+      audioUrl: data.audio_url || sum?.audio_url,
       speakers: data.speakers_detected || sum?.speakers || [],
       segments: segs.map(s => ({
         start: s.start || 0,

@@ -716,7 +716,7 @@ export const AICopilotPanel: React.FC = () => {
                               <>
                                 {(() => {
                                   const ep = findEpisodeInSummary(episodeSummaries, match.episode_id || match.episode_title);
-                                  const verifiedAudioUrl = match.audio_url || ep?.audio_url || contextPayload.currentEpisode?.audioUrl || '';
+                                  const verifiedAudioUrl = ep?.audio_url || match.audio_url || contextPayload.currentEpisode?.audioUrl || '';
                                   const verifiedDuration = ep?.duration_sec || contextPayload.currentEpisode?.durationSec || 3600;
                                   const isAppended = recentlyAppendedMatchKey === matchKey;
 

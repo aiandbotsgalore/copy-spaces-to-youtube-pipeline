@@ -1303,6 +1303,10 @@ def main():
                 f.write(j_resp.content)
         else:
             space_title = release_data.get("name") or stem
+            if len(mp3_assets) > 1 and "part" in stem.lower() and "part" not in space_title.lower():
+                part_m = re.search(r"part[_\s\-]?(\d+)", stem, re.IGNORECASE)
+                p_suffix = f" (Part {part_m.group(1)})" if part_m else f" ({stem})"
+                space_title = f"{space_title}{p_suffix}"
             txt_path, srt_path, json_path, _ = process_audio_file(
                 input_audio=local_mp3,
                 assemblyai_key=assemblyai_key,
