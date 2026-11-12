@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-12T01:51:00.565468+00:00",
+  "last_updated": "2026-11-12T02:04:34.592566+00:00",
   "total_episodes_with_audio": 844,
   "transcribed_count": 791,
   "untranscribed_count": 53,
@@ -87,24 +87,29 @@
       "last_attempt": "2026-11-10T23:49:20.020636+00:00"
     },
     "20260218_1ynJOabwAvQKR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-12T01:44:29.477935+00:00"
+      "last_attempt": "2026-11-12T01:56:47.820216+00:00"
     },
     "20260217_1LyGBqVBnMnKN": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-12T01:44:29.477949+00:00"
+      "last_attempt": "2026-11-12T01:56:47.820235+00:00"
     },
     "20260218_1ynJOabzEqOKR": {
-      "attempts": 1,
+      "attempts": 2,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-12T01:44:29.477952+00:00"
+      "last_attempt": "2026-11-12T01:56:47.820238+00:00"
     },
     "20260216_1djGXlaaolNGZ": {
+      "attempts": 2,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T01:56:47.820241+00:00"
+    },
+    "20260216_1jMJgLjqREgxL": {
       "attempts": 1,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
-      "last_attempt": "2026-11-12T01:44:29.477954+00:00"
+      "last_attempt": "2026-11-12T01:56:47.820243+00:00"
     }
   },
   "next_in_queue": [
