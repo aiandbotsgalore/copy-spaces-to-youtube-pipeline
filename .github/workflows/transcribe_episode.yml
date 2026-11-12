@@ -60,11 +60,12 @@ jobs:
           echo "[*] Transcribing ${{ inputs.release_tag }} via AssemblyAI Cloud..."
           python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG
 
-      - name: Rebuild Transcript Index
+      - name: Rebuild Transcript Index & Refresh Discovered Speaker Candidates
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/build_transcripts_index.py
+          python scripts/speaker_tool.py scan-candidates
 
       - name: Commit & Push Updated Transcripts
         run: |

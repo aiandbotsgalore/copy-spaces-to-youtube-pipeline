@@ -28,7 +28,15 @@ HANDOFF_PATTERNS = [
 
 EXCLUDED_NAMES = {
     "The", "This", "That", "Yeah", "Sure", "Well", "Right", "Like", "Just", "Good", "Here", "There",
-    "Someone", "Everyone", "Nobody", "Anyone", "Today", "Tonight", "Yesterday", "Bro", "Man", "Dude"
+    "Someone", "Everyone", "Nobody", "Anyone", "Today", "Tonight", "Yesterday", "Bro", "Man", "Dude",
+    # Conjunctions, prepositions, auxiliary verbs & common sentence starters/fillers
+    "And", "But", "Can", "So", "Now", "Or", "If", "Because", "What", "When", "Where", "Why", "How",
+    "Also", "Then", "Which", "Who", "Whom", "Whose", "They", "Them", "Their", "We", "You", "Your",
+    "Are", "Were", "Was", "Been", "Have", "Has", "Had", "Will", "Would", "Could", "Should", "Shall",
+    "Did", "Does", "Doing", "Done", "Going", "Come", "Came", "Got", "Getting", "Get",
+    "Please", "Okay", "Oh", "Uh", "Um", "Wait", "See", "Look", "Listen", "Tell", "Say", "Let", "Make",
+    "First", "Second", "Last", "Next", "Another", "One", "Two", "Three", "Four", "Five",
+    "Yes", "No", "Nope", "Yep", "Alright", "Actually", "Basically", "Probably", "Maybe"
 }
 
 
@@ -129,8 +137,9 @@ def scan_clusters(limit_episodes: int = 0) -> Dict[str, Any]:
 
     formatted_candidates.sort(key=lambda x: (x["suggested_name"] != "Unidentified Speaker", x["episode_count"], x["total_turns"]), reverse=True)
 
+    from datetime import datetime, timezone
     result = {
-        "updated_at": "2026-11-08T05:40:00Z",
+        "updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "total_candidates": len(formatted_candidates),
         "candidates": formatted_candidates[:50],
     }

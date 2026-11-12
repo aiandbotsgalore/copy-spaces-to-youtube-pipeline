@@ -16,7 +16,24 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
-const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || 'AngelaMaggard3,txrrxstrxxl,LoganBlack';
+const DEFAULT_MONITORED_HANDLES = [
+  'AngelaMaggard3',
+  'txrrxstrxxl',
+  'LoganBlack',
+  'TurtleOfTime12',
+  'UFOkimball',
+  'Gabe_Trust',
+  'Kaalos_',
+  'shdw_nxs',
+  'DecipheringTV',
+  'RedPandaKoala',
+  'tupacabra',
+  'GodSawUs',
+  'StopTehMadness',
+  'YOIMSTEVE_'
+].join(',');
+
+const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || DEFAULT_MONITORED_HANDLES;
 const HANDLES = RAW_HANDLES.split(',').map(h => h.trim().replace(/^@/, '')).filter(Boolean);
 const TWEET_LIMIT = parseInt(process.env.TWEET_LIMIT || process.env.INPUT_LIMIT || '20', 10);
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -257,7 +274,22 @@ async function run() {
   const unavailableSpaces = [];
   const liveDeferredSpaces = [];
 
-  const CORE_CREATORS = new Set(['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase()));
+  const CORE_CREATORS = new Set([
+    'loganblack',
+    'angelamaggard3',
+    'txrrxstrxxl',
+    'turtleoftime12',
+    'ufokimball',
+    'gabe_trust',
+    'kaalos_',
+    'shdw_nxs',
+    'decipheringtv',
+    'redpandakoala',
+    'tupacabra',
+    'godsawus',
+    'stoptehmadness',
+    'yoimsteve_'
+  ]);
 
   for (const space of newSpaces) {
     console.log(`\n🔎 Checking availability & broadcast status: ${space.url}`);
@@ -320,7 +352,10 @@ async function run() {
         combinedText.includes('angela') ||
         combinedText.includes('angelamaggard') ||
         combinedText.includes('@angelamaggard3') ||
-        combinedText.includes('txrrxstrxxl');
+        combinedText.includes('txrrxstrxxl') ||
+        combinedText.includes('yoimsteve') ||
+        combinedText.includes('@yoimsteve_') ||
+        foundViaLower === 'yoimsteve_';
 
       const isApproved = isCoreHost || isFoundViaCoreFeed || mentionsCoreCreator;
 

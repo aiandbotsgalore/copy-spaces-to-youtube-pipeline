@@ -140,17 +140,22 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
     setScanning(true);
     setNotice(null);
     const targetHandle = config.authorName?.replace(/^@/, '').trim() || 'LoganBlack';
+    const watched = (config.watchedHosts && config.watchedHosts.length > 0)
+      ? config.watchedHosts
+      : ['TurtleOfTime12', 'UFOkimball', 'Gabe_Trust', 'Kaalos_', 'shdw_nxs', 'DecipheringTV', 'RedPandaKoala', 'tupacabra', 'GodSawUs', 'StopTehMadness', 'YOIMSTEVE_'];
+    const allHandlesToScan = Array.from(new Set(['AngelaMaggard3', 'txrrxstrxxl', targetHandle, ...watched]));
+
     try {
       await dispatchWorkflow(
         config.githubToken,
         owner,
         repo,
         'auto_detect_spaces.yml',
-        { x_handles: Array.from(new Set(['AngelaMaggard3', 'txrrxstrxxl', targetHandle])).join(',') }
+        { x_handles: allHandlesToScan.join(',') }
       );
       setNotice({
         kind: 'success',
-        message: `🛰️ Auto-detection scan triggered for @AngelaMaggard3, @txrrxstrxxl, and @${targetHandle}! Checking recent tweets for new Spaces in GitHub Actions...`,
+        message: `🛰️ Auto-detection scan triggered for ${allHandlesToScan.length} monitored accounts (including @TurtleOfTime12, @UFOkimball, @${targetHandle})! Checking recent tweets for new Spaces in GitHub Actions...`,
       });
     } catch (err) {
       setNotice({

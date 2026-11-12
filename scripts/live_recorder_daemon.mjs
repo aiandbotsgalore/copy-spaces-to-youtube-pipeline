@@ -17,7 +17,25 @@ import os from 'os';
 import path from 'path';
 
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_SECS || '60', 10) * 1000;
-const RAW_HANDLES = process.env.X_HANDLES || 'AngelaMaggard3,txrrxstrxxl,LoganBlack,nooneyoufollow_';
+const DEFAULT_MONITORED_HANDLES = [
+  'AngelaMaggard3',
+  'txrrxstrxxl',
+  'LoganBlack',
+  'nooneyoufollow_',
+  'TurtleOfTime12',
+  'UFOkimball',
+  'Gabe_Trust',
+  'Kaalos_',
+  'shdw_nxs',
+  'DecipheringTV',
+  'RedPandaKoala',
+  'tupacabra',
+  'GodSawUs',
+  'StopTehMadness',
+  'YOIMSTEVE_'
+].join(',');
+
+const RAW_HANDLES = process.env.X_HANDLES || DEFAULT_MONITORED_HANDLES;
 const HANDLES = RAW_HANDLES.split(',').map(h => h.trim().replace(/^@/, '')).filter(Boolean);
 const TWEET_LIMIT = parseInt(process.env.TWEET_LIMIT || '15', 10);
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -58,7 +76,23 @@ if (authToken && !existsSync('cookies.txt')) {
   }
 }
 
-const CORE_CREATORS = new Set(['loganblack', 'angelamaggard3', 'txrrxstrxxl'].map(h => h.toLowerCase()));
+const CORE_CREATORS = new Set([
+  'loganblack',
+  'angelamaggard3',
+  'txrrxstrxxl',
+  'nooneyoufollow_',
+  'turtleoftime12',
+  'ufokimball',
+  'gabe_trust',
+  'kaalos_',
+  'shdw_nxs',
+  'decipheringtv',
+  'redpandakoala',
+  'tupacabra',
+  'godsawus',
+  'stoptehmadness',
+  'yoimsteve_'
+]);
 
 console.log('======================================================================');
 console.log('🛰️ SpacePipe Live Recording Daemon Initialized');
@@ -254,7 +288,10 @@ async function pollOnce() {
         combined.includes('angela') ||
         combined.includes('angelamaggard') ||
         combined.includes('@angelamaggard3') ||
-        combined.includes('txrrxstrxxl');
+        combined.includes('txrrxstrxxl') ||
+        combined.includes('yoimsteve') ||
+        combined.includes('@yoimsteve_') ||
+        foundViaLower === 'yoimsteve_';
 
       const isAllowed = isCoreHost || isFoundViaCoreFeed || mentionsCoreCreator;
 
