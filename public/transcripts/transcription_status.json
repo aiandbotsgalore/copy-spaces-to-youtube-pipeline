@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-12T01:34:44.743717+00:00",
+  "last_updated": "2026-11-12T01:51:00.565468+00:00",
   "total_episodes_with_audio": 844,
-  "transcribed_count": 790,
-  "untranscribed_count": 54,
+  "transcribed_count": 791,
+  "untranscribed_count": 53,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 93.6,
+  "percent_complete": 93.7,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -85,15 +85,29 @@
       "attempts": 3,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
       "last_attempt": "2026-11-10T23:49:20.020636+00:00"
+    },
+    "20260218_1ynJOabwAvQKR": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T01:44:29.477935+00:00"
+    },
+    "20260217_1LyGBqVBnMnKN": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T01:44:29.477949+00:00"
+    },
+    "20260218_1ynJOabzEqOKR": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T01:44:29.477952+00:00"
+    },
+    "20260216_1djGXlaaolNGZ": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T01:44:29.477954+00:00"
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260216_1djxXlaQRnexZ",
-      "name": "UFO AFTER DARK \ud83e\uddeb\ud83e\uddea",
-      "date": "Oct 24, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260218_1ynJOabwAvQKR",
       "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
@@ -206,6 +220,12 @@
       "tag": "20260216_1djGXlBeqXXGZ",
       "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
       "date": "Sep 18, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1eaKbrdvNdkKX",
+      "name": "Be Patient \ud83d\udef8",
+      "date": "Sep 15, 2022",
       "is_recent": false
     }
   ]
