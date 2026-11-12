@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-12T02:04:34.592566+00:00",
-  "total_episodes_with_audio": 844,
+  "last_updated": "2026-11-12T12:04:06.359558+00:00",
+  "total_episodes_with_audio": 845,
   "transcribed_count": 791,
-  "untranscribed_count": 53,
-  "recent_untranscribed_count": 0,
-  "focus_mode": "backlog",
+  "untranscribed_count": 54,
+  "recent_untranscribed_count": 1,
+  "focus_mode": "recent_only",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 93.7,
+  "percent_complete": 93.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -110,9 +110,20 @@
       "attempts": 1,
       "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
       "last_attempt": "2026-11-12T01:56:47.820243+00:00"
+    },
+    "20261111_local_1i69faszbw": {
+      "attempts": 1,
+      "last_error": "RuntimeError: AssemblyAI submit failed (400): {\"error\": \"Your current account balance is negative. Please top up to cont",
+      "last_attempt": "2026-11-12T11:55:53.963089+00:00"
     }
   },
   "next_in_queue": [
+    {
+      "tag": "20261111_local_1i69faszbw",
+      "name": "angelaDeacon2",
+      "date": "Nov 11, 2026",
+      "is_recent": true
+    },
     {
       "tag": "20260218_1ynJOabwAvQKR",
       "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
@@ -225,12 +236,6 @@
       "tag": "20260216_1djGXlBeqXXGZ",
       "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
       "date": "Sep 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1eaKbrdvNdkKX",
-      "name": "Be Patient \ud83d\udef8",
-      "date": "Sep 15, 2022",
       "is_recent": false
     }
   ]
