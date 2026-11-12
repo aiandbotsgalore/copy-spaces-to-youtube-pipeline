@@ -1,19 +1,46 @@
 {
-  "timestamp": "2026-11-12T14:58:24.928780+00:00",
-  "overall_status": "DEGRADED",
+  "timestamp": "2026-11-12T23:26:45.978639+00:00",
+  "overall_status": "CRITICAL",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 773,
-    "indexed_transcripts": 773,
+    "on_disk_transcripts": 774,
+    "indexed_transcripts": 774,
     "expected_releases_approx": 793,
-    "gap_estimate": 20
+    "gap_estimate": 19
   },
-  "recent_failures_count": 1,
+  "recent_failures_count": 4,
   "triaged_failures": [
+    {
+      "run_id": 43315355008,
+      "name": "Update RSS Feed & Deploy Web App",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43315355008",
+      "root_cause": "Execution Error: Run 43315355008 failed in Update RSS Feed & Deploy Web App",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 43315354954,
+      "name": "Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43315354954",
+      "root_cause": "Execution Error: Run 43315354954 failed in Transcript Workbench Validation",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 43315354942,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43315354942",
+      "root_cause": "Execution Error: Run 43315354942 failed in Approved transcript UI checks",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
     {
       "run_id": 43191415044,
       "name": "Transcribe 20261111_local_1i69faszbw via AssemblyAI Cloud",
@@ -25,5 +52,5 @@
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 1
+  "quarantined_count": 4
 }
