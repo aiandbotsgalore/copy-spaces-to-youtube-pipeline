@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-11T20:41:29.833796+00:00",
+  "last_updated": "2026-11-12T01:34:44.743717+00:00",
   "total_episodes_with_audio": 844,
-  "transcribed_count": 785,
-  "untranscribed_count": 59,
+  "transcribed_count": 790,
+  "untranscribed_count": 54,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 93.0,
+  "percent_complete": 93.6,
   "auto_chain_active": true,
   "is_queue_complete": false,
   "fatal_error": null,
@@ -88,36 +88,6 @@
     }
   },
   "next_in_queue": [
-    {
-      "tag": "20260217_1nAKErNpDYAGL",
-      "name": "NASA-Not A Space Agency",
-      "date": "Oct 26, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mnxeRbNvAaKX",
-      "name": "beep",
-      "date": "Oct 26, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1DXxyvPdmZEKM",
-      "name": "InFamous brings da noize",
-      "date": "Oct 26, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BdxYyzwXevxX",
-      "name": "TOWN SQUARE.. NO HANDS. OPEN FORUM, SPEAK FREELY",
-      "date": "Oct 25, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynKOabBOerJR",
-      "name": "\u269b\ufe0f\ud83c\udf0eWandering Thoughts Of Collective Consciousness Though the Unknown\ud83d\udc7d\ud83d\udc7b",
-      "date": "Oct 24, 2022",
-      "is_recent": false
-    },
     {
       "tag": "20260216_1djxXlaQRnexZ",
       "name": "UFO AFTER DARK \ud83e\uddeb\ud83e\uddea",
@@ -206,6 +176,36 @@
       "tag": "20260217_1OwxWwRWyZZxQ",
       "name": "Semi Quiet & Curious Paranormal Researchers \ud83d\udd2e\ud83d\udef8\ud83d\udc7d\ud83c\udfb8",
       "date": "Oct 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1BdGYyBelqYGX",
+      "name": "NO DEMON HITCHHIKERS IN OUR ENERGY/SPACE!! ADDRESSING THE - ENERGY. \u2764\ufe0f\ud83d\udc7b",
+      "date": "Oct 5, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260218_1ynJOagYErQKR",
+      "name": "MilitaryWitness2 UAP Livestream audio(watch video instead if possible)",
+      "date": "Oct 4, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1kvJpmNyjpgxE",
+      "name": "UFO/UAP Ancient Aliens and Disclosure \u2764\ufe0f\ud83c\udf0d",
+      "date": "Sep 28, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260217_1OyKAVwwNqrGb",
+      "name": "Supporting Roswell UFO Symposium Premier @mindEscapePodcast",
+      "date": "Sep 18, 2022",
+      "is_recent": false
+    },
+    {
+      "tag": "20260216_1djGXlBeqXXGZ",
+      "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
+      "date": "Sep 18, 2022",
       "is_recent": false
     }
   ]
