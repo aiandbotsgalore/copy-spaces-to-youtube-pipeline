@@ -304,8 +304,8 @@ async function callGateway(p: GatewayParams): Promise<GatewayOutcome> {
 
       const isModelError =
         (res.status === 404 || res.status === 400 || res.status === 422) &&
-        /model/.test(lower) &&
-        /(not found|does not exist|unknown|invalid|unsupported|no such)/.test(lower);
+        /model/.test(lower) && !/(response_format|json_schema|structured|schema|max_tokens|max_completion_tokens)/.test(lower) &&
+        /(not found|does not exist|unknown|invalid|unsupported|no such|must be one of|not available|not supported)/.test(lower);
       if (isModelError) {
         if (!fellBack && model !== FALLBACK_DIRECTOR_MODEL) {
           model = FALLBACK_DIRECTOR_MODEL;
@@ -615,9 +615,10 @@ const COPILOT_TOOLS = [
           scope: { type: 'string', enum: ['active_episode', 'all_transcripts'] },
           speaker_hint: { type: 'string' },
           timestamp_sec: { type: 'number' },
+          max_duration_sec: { type: 'number' },
           mode: { type: 'string', enum: ['hybrid', 'lexical', 'vector', 'rerank'] },
         },
-        required: ['query', 'scope'],
+        required: ['scope'],
       },
     },
   },
@@ -707,26 +708,17 @@ const COPILOT_TOOLS = [
 ];
 
 async function executeSearchTranscriptsTool(
-  params: { query?: string; scope?: 'active_episode' | 'all_transcripts'; speaker_hint?: string; timestamp_sec?: number; mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank' },
+  params: { query?: string; scope?: 'active_episode' | 'all_transcripts'; speaker_hint?: string; speaker?: string; timestamp_sec?: number; max_duration_sec?: number; mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank' },
   enrichedContext: CopilotContextPayload,
   searchIntent: any,
   fetchImpl?: typeof fetch
 ): Promise<{ toolResult: Record<string, any>; action: CopilotAction; matches: TranscriptMatch[] }> {
-  let query = (params.query || '').trim();
+  const query = params.query !== undefined ? String(params.query).trim() : (searchIntent?.query || '');
   const scope: 'active_episode' | 'all_transcripts' = params.scope === 'active_episode' ? 'active_episode' : 'all_transcripts';
-  let speakerHint = params.speaker_hint;
-  let timestampSec = params.timestamp_sec;
-  let mode = params.mode;
-
-  if (!query && searchIntent?.query) {
-    query = searchIntent.query;
-  }
-  if (!speakerHint && searchIntent?.speaker) {
-    speakerHint = searchIntent.speaker;
-  }
-  if (timestampSec === undefined && searchIntent?.timestampSec !== undefined) {
-    timestampSec = searchIntent.timestampSec;
-  }
+  const speakerHint = params.speaker_hint || params.speaker || searchIntent?.speaker;
+  const timestampSec = params.timestamp_sec !== undefined ? params.timestamp_sec : undefined;
+  const maxDurationSec = params.max_duration_sec !== undefined ? params.max_duration_sec : searchIntent?.maxDurationSec;
+  const mode = params.mode;
 
   const activeEpTag = enrichedContext.currentEpisode?.releaseTag;
   const searchRes = await handleSearchTranscripts({
@@ -735,6 +727,8 @@ async function executeSearchTranscriptsTool(
     speaker_hint: speakerHint,
     episodeTag: scope === 'active_episode' ? activeEpTag : undefined,
     timestamp_sec: timestampSec,
+    max_duration_sec: maxDurationSec,
+    exclude_meta: searchIntent?.isEditorialQuery,
     activeSegments: enrichedContext.currentEpisode?.allSegments,
     maxResults: 12,
     mode,
@@ -1205,6 +1199,8 @@ async function runCopilot(
         speaker_hint: searchIntent.speaker,
         episodeTag: searchIntent.episodeTag || activeEpTag,
         timestamp_sec: searchIntent.timestampSec,
+        max_duration_sec: searchIntent.maxDurationSec,
+        exclude_meta: searchIntent.isEditorialQuery,
         activeSegments: rawContext.currentEpisode?.allSegments,
         maxResults: 12,
         fetchImpl: gw.fetchImpl,

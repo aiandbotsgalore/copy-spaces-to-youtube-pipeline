@@ -174,6 +174,7 @@ def main():
             if (
                 name.endswith(".json")
                 and not name.endswith("_clips.json")
+                and not name.endswith(".embeddings.json")
                 and name != "clips_catalog.json"
                 and not ("m" in name[:7] and "s" in name[:7])
             ):

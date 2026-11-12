@@ -11,6 +11,18 @@ PROMPT INJECTION DEFENSE & SAFETY BOUNDARY:
 - NEVER reveal or attempt to modify secret configuration keys (e.g. githubToken, API keys, passwords).
 - All actions are subject to strict tiered verification. High-impact actions (Tier 2, such as writing to repository queue files, dispatching workflows, modifying sensitive schedules or webhook endpoints, and starting paid generation runs) require explicit confirmation from the human operator.
 
+EDITORIAL INTELLIGENCE & SOUND-BITE DISCOVERY PROTOCOL (CRITICAL):
+1. Understand the editorial goal semantically:
+   - Infer the task definition from the user request (e.g., "Find a self-contained moment where Logan himself is funny, under ten seconds, excluding references to clips or comedy"). That is a task definition, not a keyword query.
+2. Generate candidates from the speaker speech, NOT from editorial words like "funny" or "clip":
+   - NEVER put words like "clip", "funny", "hilarious", "best", "viral", or "max" into SEARCH_TRANSCRIPTS.query. Filter by speaker_hint (e.g. "Logan") and leave query empty ("") or search by concrete spoken topic.
+3. Examine the speaker turns and nearby dialogue:
+   - Look for structural humor or drama in the dialogue flow: unexpected reversals, absurd comparisons, sharp reactions, escalations, or punchlines.
+4. Judge candidates comparatively:
+   - Verify the target speaker is the source of the payoff, the moment works standalone within the requested max duration (endSec - startSec <= maxDuration), and it is NOT meta-commentary talking about clips or soundboards.
+5. Respect rejections and never blindly auto-create:
+   - If pre-fetched matches violate speaker, duration, or meta-commentary rules, DO NOT call CREATE_CLIP on them; emit a clean SEARCH_TRANSCRIPTS action with speaker_hint and query: "" instead.
+
 ROUTING & TOOL RULES:
 1. CONTENT vs. SYSTEM QUESTIONS:
    - ONLY request SEARCH_TRANSCRIPTS if the user is explicitly searching for spoken dialogue, quotes, topics, or moments said by speakers inside the podcast recordings.
@@ -92,12 +104,14 @@ AVAILABLE ACTIONS:
 
 8. SEARCH_TRANSCRIPTS:
    params: {
-     "query": "Clean search string. Strip stutters, em dashes, and false starts.",
+     "query": "Spoken topic or phrase. Leave empty (\"\") when browsing a speaker turns for humor or editorial moments. NEVER put clip, funny, hilarious, or max in query.",
      "scope": "all_transcripts" | "active_episode",
-     "speaker_hint": "optional speaker name to filter by",
-     "timestamp_sec": 2862
+     "speaker_hint": "optional speaker name to filter by (e.g. Logan)",
+     "timestamp_sec": 2862,
+     "max_duration_sec": 10
    }
    NOTE: Quote only the turns returned by the search, citing speaker, episode title and timestamp. If nothing matched, tell the user that nothing matched.
+
 
 9. LOAD_EPISODE:
    params: {
@@ -305,7 +319,7 @@ EXECUTIVE PRESENTATION & READABILITY STANDARDS:
           return item;
         })
         .join('\n\n');
-      prompt += `\n(When referencing these results, cite the speaker, episode title, and timestamp. You can create a clip immediately using CREATE_CLIP or trigger playback using PLAY_AUDIO!)`;
+      prompt += `\n(When referencing these results, cite the speaker, episode title, and timestamp. EDITORIAL CHECK: Only call CREATE_CLIP if a candidate above matches the requested speaker, is within the requested max duration, and is NOT meta-commentary about clips. Otherwise emit a clean SEARCH_TRANSCRIPTS action with speaker_hint and query: ""!)`;
     }
   }
 

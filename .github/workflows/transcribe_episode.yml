@@ -80,10 +80,12 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/transcripts/
+          git add public/transcripts/ public/clips/
           git commit -m "chore(transcripts): update transcript index for ${{ inputs.release_tag }} [skip ci]" || echo "No changes to commit"
+          git stash --include-untracked || true
           git pull --rebase origin master || true
-          git push origin master || echo "Notice: Push skipped or up to date"
+          git stash pop || true
+          git push origin master || (git pull --rebase origin master && git push origin master) || echo "Notice: Push skipped or up to date"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

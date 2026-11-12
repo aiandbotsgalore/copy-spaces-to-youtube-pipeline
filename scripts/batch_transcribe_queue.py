@@ -182,7 +182,7 @@ def analyze_releases(releases: List[Dict[str, Any]], since_date: str = "2026-10-
         has_audio = len(mp3_assets) > 0
         transcript_assets = [
             a for a in assets 
-            if (a.get("name", "").endswith(".json") and not a.get("name", "").endswith("_clips.json") and a.get("name") != "clips_catalog.json") 
+            if (a.get("name", "").endswith(".json") and not a.get("name", "").endswith("_clips.json") and not a.get("name", "").endswith(".embeddings.json") and a.get("name") != "clips_catalog.json") 
             or a.get("name", "").endswith(".txt")
         ]
         has_transcript = any(a.get("size", 0) > 100 for a in transcript_assets)

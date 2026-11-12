@@ -104,6 +104,8 @@ export interface SearchOptions {
   speaker?: string;
   episodeTag?: string;
   maxResults?: number;
+  maxDurationSec?: number;
+  excludeMetaCommentary?: boolean;
   mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
   rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
   apiKey?: string;
@@ -379,12 +381,46 @@ export function parseTimestampSec(text: string): number | null {
     const secs = parseInt(colonMatch[3], 10);
     return hrs * 3600 + mins * 60 + secs;
   }
+  if (parseMaxDurationSec(text) !== null) {
+    return null;
+  }
   const secMatch = text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*(?:s\b|sec\b|secs\b|seconds\b)/i);
   if (secMatch) {
     const num = parseInt(secMatch[1].replace(/,/g, ''), 10);
     return Number.isFinite(num) ? num : null;
   }
   return null;
+}
+
+export function parseMaxDurationSec(text: string): number | null {
+  if (!text) return null;
+  const postMatch = text.match(/\b(\d{1,3})\s*(?:s|sec|secs|second|seconds)\s*(?:max|maximum|or less|or shorter|or under|limit|long)\b/i);
+  if (postMatch) {
+    const val = parseInt(postMatch[1], 10);
+    return Number.isFinite(val) && val > 0 ? val : null;
+  }
+  const preMatch = text.match(/\b(?:under|max|maximum|up to|less than|shorter than|within|no more than|no longer than)\s+(\d{1,3})\s*(?:s|sec|secs|second|seconds)\b/i);
+  if (preMatch) {
+    const val = parseInt(preMatch[1], 10);
+    return Number.isFinite(val) && val > 0 ? val : null;
+  }
+  return null;
+}
+
+const META_CLIP_COMMENTARY_REGEX = /\b(?:funny clip|best clip|hilarious clip|clip that|make a clip|good clip|great clip|soundboard|on the soundboard)\b/i;
+
+function scoreEditorialCandidateTurn(text: string, durationSec: number, maxDurationSec?: number): number {
+  const clean = text.trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length < 4) return -100;
+  if (maxDurationSec && durationSec > maxDurationSec) return -100;
+  if (durationSec > 0 && durationSec < 1.2) return -50;
+  if (META_CLIP_COMMENTARY_REGEX.test(clean)) return -200;
+  let score = 40;
+  if (words.length >= 6 && words.length <= 45) score += 35;
+  else if (words.length > 45 && words.length <= 80) score += 15;
+  if (/[?!]/.test(clean)) score += 15;
+  return score;
 }
 
 export async function searchTranscriptLexical(
@@ -413,7 +449,14 @@ export async function searchTranscriptLexical(
       const textLower = seg.text.toLowerCase();
       const speakerName = seg.speaker || 'Unknown Speaker';
 
+      const dur = (seg.end || 0) - (seg.start || 0);
       if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
+        continue;
+      }
+      if (options.maxDurationSec && dur > options.maxDurationSec) {
+        continue;
+      }
+      if (options.excludeMetaCommentary && META_CLIP_COMMENTARY_REGEX.test(seg.text)) {
         continue;
       }
 
@@ -425,7 +468,9 @@ export async function searchTranscriptLexical(
         if (matchedCount === 0) continue;
         score += matchedCount * 25;
       } else if (!qClean) {
-        score += 10;
+        const editorialScore = scoreEditorialCandidateTurn(seg.text, dur, options.maxDurationSec);
+        if (editorialScore < 0) continue;
+        score += editorialScore;
       }
 
       results.push({
@@ -527,7 +572,14 @@ export async function searchTranscriptLexical(
         const textLower = seg.text.toLowerCase();
         const speakerName = seg.speaker || 'Unknown Speaker';
 
+        const dur = (seg.end || 0) - (seg.start || 0);
         if (targetSpeaker && !isNormalizedSpeakerMatch(speakerName, targetSpeaker)) {
+          continue;
+        }
+        if (options.maxDurationSec && dur > options.maxDurationSec) {
+          continue;
+        }
+        if (options.excludeMetaCommentary && META_CLIP_COMMENTARY_REGEX.test(seg.text)) {
           continue;
         }
 
@@ -538,6 +590,10 @@ export async function searchTranscriptLexical(
           const matchedCount = queryTokens.filter(t => textLower.includes(t)).length;
           if (matchedCount === 0) continue;
           score += matchedCount * 20;
+        } else if (!qClean) {
+          const editorialScore = scoreEditorialCandidateTurn(seg.text, dur, options.maxDurationSec);
+          if (editorialScore < 0) continue;
+          score += editorialScore;
         }
 
         const dialogueWindow: DialogueTurn[] = segments
@@ -830,6 +886,10 @@ export async function searchTranscriptArchive(
     speaker: effectiveSpeaker,
   };
 
+  if (!effectiveQuery.trim()) {
+    return searchTranscriptLexical('', effectiveOptions);
+  }
+
   if (mode === 'lexical') {
     return searchTranscriptLexical(effectiveQuery, effectiveOptions);
   }
@@ -890,13 +950,43 @@ export async function searchTranscriptArchive(
   }
 }
 
+function refineEditorialAndSpeakerIntent(rawText: string, existingSpeaker?: string): { query: string; speaker?: string; isEditorial: boolean } {
+  let text = rawText;
+  let speaker = existingSpeaker;
+  if (!speaker) {
+    const spkMatch = text.match(/(?:\b(?:clips?|soundbites?|moments?|quotes?|turns?)\s+(?:of|from|by|with|where)\s+)?\b([A-Za-z][A-Za-z0-9._-]{1,20})\s+(?:speaking|talking)\b/i);
+    if (spkMatch && spkMatch[1]) {
+      const cand = spkMatch[1].trim();
+      if (!/^(?:someone|anyone|everyone|they|people|clip|clips)/i.test(cand)) {
+        speaker = cand;
+        text = text.replace(spkMatch[0], ' ').replace(/\s+/g, ' ').trim();
+      }
+    }
+  }
+  const isEditorial = /\b(?:funny|hilarious|funniest|best|wild|viral|punchline|joke|humor)\b/i.test(text);
+  if (isEditorial || parseMaxDurationSec(text) !== null) {
+    text = text
+      .replace(/\b(?:that'?s|thats|which is|is)?\s*(?:under|max|maximum|up to|less than|shorter than|within|no more than|no longer than)\s+\d{1,3}\s*(?:s|sec|secs|second|seconds)\b/gi, ' ')
+      .replace(/\b(?:that'?s|thats|which is|is)?\s*\d{1,3}\s*(?:s|sec|secs|second|seconds)\s*(?:max|maximum|or less|or shorter|or under|limit|long|clip|soundbite)?\b/gi, ' ')
+      .replace(/\b(?:a|an|the)?\s*(?:really\s+|genuinely\s+)?(?:funny|hilarious|funniest|best|wild|viral|short|quick)?\s*(?:clips?|soundbites?|moments?|quotes?)\b/gi, ' ')
+      .replace(/\b(?:that'?s|thats|which is|is)\s+(?:really\s+|genuinely\s+)?(?:funny|hilarious|funniest|best|wild|viral|max|maximum)\b/gi, ' ')
+      .replace(/\b(?:funny|hilarious|funniest|viral|max|maximum)\b/gi, ' ')
+      .replace(/^(?:of|from|by|with|about|for|that|thats|and|or|\s)+/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  return { query: text, speaker, isEditorial };
+}
+
 export function detectSearchIntent(userMessage: string): {
   isCapabilityInquiry: boolean;
   isSearchQuery: boolean;
+  isEditorialQuery?: boolean;
   query?: string;
   speaker?: string;
   episodeTag?: string;
   timestampSec?: number;
+  maxDurationSec?: number;
 } {
   const m = userMessage.trim();
   const lower = m.toLowerCase();
@@ -1000,13 +1090,17 @@ export function detectSearchIntent(userMessage: string): {
       raw = raw.replace(/\s+(?:in|across)\s+(?:all\s+)?(?:the\s+)?transcripts?$/i, '');
       raw = raw.replace(/^(?:for|about)\s+/i, '');
 
+      const refined = refineEditorialAndSpeakerIntent(raw.trim(), speaker);
+      const maxDurationSec = parseMaxDurationSec(m) || undefined;
       return {
         isCapabilityInquiry: false,
         isSearchQuery: true,
-        query: raw.trim(),
-        speaker,
+        isEditorialQuery: refined.isEditorial,
+        query: refined.query,
+        speaker: refined.speaker,
         episodeTag,
         timestampSec: parsedTimestamp || undefined,
+        maxDurationSec,
       };
     }
   }
@@ -1139,6 +1233,8 @@ export interface HandleSearchTranscriptsInput {
   speaker_hint?: string;
   episodeTag?: string;
   timestamp_sec?: number;
+  max_duration_sec?: number;
+  exclude_meta?: boolean;
   maxResults?: number;
   mode?: 'hybrid' | 'lexical' | 'vector' | 'rerank';
   rerankModel?: 'rerank-v5.0-fast' | 'rerank-v5.0-pro';
@@ -1248,13 +1344,24 @@ export async function handleSearchTranscripts(
     }
   }
 
-  if (rawResults.length === 0 && normalizedQuery) {
-    const searchMode = input.mode || 'hybrid';
-    rawResults = await searchTranscriptArchive(normalizedQuery, {
+  const refinedInput = refineEditorialAndSpeakerIntent(input.query || "", speakerHint);
+  if (!speakerHint && refinedInput.speaker) {
+    speakerHint = refinedInput.speaker;
+    speakerApplied = speakerHint;
+  }
+  const effectiveQuery = refinedInput.isEditorial ? normalizeSpokenQuery(refinedInput.query) : normalizedQuery;
+  const maxDurationSec = input.max_duration_sec || parseMaxDurationSec(input.query || "") || undefined;
+  const excludeMeta = input.exclude_meta ?? refinedInput.isEditorial;
+
+  if (rawResults.length === 0 && (effectiveQuery || speakerHint || targetTag)) {
+    const searchMode = effectiveQuery ? (input.mode || 'hybrid') : 'lexical';
+    rawResults = await searchTranscriptArchive(effectiveQuery, {
       speaker: speakerHint,
       episodeTag: targetTag,
       activeSegments: input.activeSegments,
       maxResults: max,
+      maxDurationSec,
+      excludeMetaCommentary: excludeMeta,
       mode: searchMode,
       rerankModel: input.rerankModel,
       apiKey: input.apiKey,
