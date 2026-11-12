@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Users, X, Play, Plus, RefreshCw, CheckCircle2, Volume2, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, X, Play, Square, Plus, RefreshCw, CheckCircle2, Volume2, Sparkles, ExternalLink, AlertCircle } from 'lucide-react';
+import { toFetchableUrl, toSliceableUrl } from '../../utils/audioUrl';
 
 export interface SpeakerCandidate {
   id: string;
@@ -34,9 +35,84 @@ export const DiscoveredCandidatesModal: React.FC<DiscoveredCandidatesModalProps>
   const [candidates, setCandidates] = useState<SpeakerCandidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [playingClipId, setPlayingClipId] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopPlayback = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    setPlayingClipId(null);
+  };
+
+  const handleTogglePlay = (candId: string, audioUrl: string, startSec: number, endSec?: number) => {
+    if (playingClipId === candId) {
+      stopPlayback();
+      return;
+    }
+
+    if (onPlaySample) {
+      setPlayingClipId(candId);
+      onPlaySample(audioUrl, startSec);
+      return;
+    }
+
+    if (!audioUrl) {
+      setAudioError('No audio URL found for this clip.');
+      return;
+    }
+
+    setAudioError(null);
+    setPlayingClipId(candId);
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+    }
+
+    const audio = audioRef.current;
+    const playUrl = (startSec != null && endSec != null && endSec > startSec)
+      ? toSliceableUrl(audioUrl, startSec, endSec)
+      : toFetchableUrl(audioUrl);
+    const isSliced = playUrl !== audioUrl && playUrl.includes('/slice?');
+    audio.src = playUrl;
+    audio.currentTime = isSliced ? 0 : Math.max(0, startSec);
+
+    const checkEndTime = () => {
+      const current = isSliced ? (startSec + audio.currentTime) : audio.currentTime;
+      if (endSec && current >= endSec) {
+        audio.pause();
+        setPlayingClipId(null);
+        audio.removeEventListener('timeupdate', checkEndTime);
+      }
+    };
+
+    audio.removeEventListener('timeupdate', checkEndTime);
+    if (endSec) {
+      audio.addEventListener('timeupdate', checkEndTime);
+    }
+
+    audio.onended = () => {
+      setPlayingClipId(null);
+    };
+
+    audio.onerror = () => {
+      setAudioError('Failed to load audio sample. Opening fallback or direct asset.');
+      setPlayingClipId(null);
+    };
+
+    audio.play().catch(err => {
+      console.warn('Direct audio play blocked or error:', err);
+      setAudioError('Autoplay blocked or stream error. Try clicking again.');
+      setPlayingClipId(null);
+    });
+  };
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      stopPlayback();
+      return;
+    }
     setLoading(true);
     fetch('/transcripts/speaker_candidates.json')
       .then(r => r.json())
@@ -76,6 +152,13 @@ export const DiscoveredCandidatesModal: React.FC<DiscoveredCandidatesModalProps>
             <X size={16} />
           </button>
         </div>
+
+        {audioError && (
+          <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+            <AlertCircle size={14} className="flex-shrink-0" />
+            <span>{audioError}</span>
+          </div>
+        )}
 
         {/* Content */}
         <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1 text-xs">
@@ -135,25 +218,51 @@ export const DiscoveredCandidatesModal: React.FC<DiscoveredCandidatesModalProps>
 
                       {/* Sample snippet */}
                       {firstClip && (
-                        <div className="p-2 rounded bg-slate-900 border border-slate-800/80 text-[11px] text-slate-300 space-y-1.5">
+                        <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80 text-[11px] text-slate-300 space-y-2">
                           <p className="line-clamp-2 italic text-slate-300">
                             &ldquo;{firstClip.snippet}&rdquo;
                           </p>
-                          <div className="flex items-center justify-between text-[10px] text-slate-500">
-                            <span className="truncate max-w-[180px] font-mono">{firstClip.episode_tag}</span>
-                            {onPlaySample && firstClip.audio_url && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setPlayingClipId(cand.id);
-                                  onPlaySample(firstClip.audio_url, firstClip.start);
-                                }}
-                                className="inline-flex items-center gap-1 text-indigo-400 hover:text-indigo-300 font-bold transition-colors cursor-pointer"
-                              >
-                                <Play size={10} className="fill-current" />
-                                <span>Preview Audio</span>
-                              </button>
-                            )}
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-800/60">
+                            <span className="truncate max-w-[150px] font-mono" title={firstClip.episode_tag}>
+                              {firstClip.episode_tag}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {firstClip.audio_url && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleTogglePlay(cand.id, firstClip.audio_url, firstClip.start, firstClip.end)}
+                                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                                    playingClipId === cand.id
+                                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                      : 'bg-indigo-500/15 text-indigo-300 hover:bg-indigo-500/25 border border-indigo-500/30'
+                                  }`}
+                                  title={`Listen to sample (${Math.round(firstClip.start)}s - ${Math.round(firstClip.end)}s)`}
+                                >
+                                  {playingClipId === cand.id ? (
+                                    <>
+                                      <Square size={10} className="fill-current text-amber-300" />
+                                      <span>Stop</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Play size={10} className="fill-current text-indigo-400" />
+                                      <span>Preview Sample</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                              {firstClip.audio_url && (
+                                <a
+                                  href={firstClip.audio_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+                                  title="Open raw audio file in new tab"
+                                >
+                                  <ExternalLink size={12} />
+                                </a>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}

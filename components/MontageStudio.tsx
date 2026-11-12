@@ -53,6 +53,7 @@ import { TimelineClipCard } from './montage/TimelineClipCard';
 import { CandidateClipCard } from './montage/CandidateClipCard';
 import { StudioExportBar } from './montage/StudioExportBar';
 import { probeFileDuration, reconcileWindow } from '../utils/clipProbe';
+import { toSliceableUrl } from '../utils/audioUrl';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
 
@@ -465,8 +466,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     }
 
     const audio = previewAudioRef.current;
-    audio.src = clip.audioUrl;
-    audio.currentTime = Math.max(0, clip.startSec);
+    const playUrl = toSliceableUrl(clip.audioUrl, clip.startSec, clip.endSec, clip.sourceDurationSec);
+    const isSliced = playUrl !== clip.audioUrl && playUrl.includes('/slice?');
+    audio.src = playUrl;
+    audio.currentTime = isSliced ? 0 : Math.max(0, clip.startSec);
 
     audio.oncanplay = () => {
       audio.play().catch(e => {
@@ -477,7 +480,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     };
 
     const handleTimeUpdate = () => {
-      if (clip.endSec > 0 && audio.currentTime >= clip.endSec) {
+      const current = isSliced ? (clip.startSec + audio.currentTime) : audio.currentTime;
+      if (clip.endSec > 0 && current >= clip.endSec) {
         audio.pause();
         audio.removeEventListener('timeupdate', handleTimeUpdate);
         setIsPreviewPlaying(false);

@@ -60,8 +60,11 @@ describe('client routing', () => {
     expect(needsAudioProxy('clips/angela/a.wav', 'http://localhost:5000')).toBe(false);
     expect(needsAudioProxy('blob:http://localhost:5000/xyz', 'http://localhost:5000')).toBe(false);
     expect(needsAudioProxy('https://example.com/a.mp3', 'http://localhost:5000')).toBe(false);
-    expect(toFetchableUrl(GH, 'http://localhost:5000')).toBe('/api/montage/audio?url=' + encodeURIComponent(GH));
     const edgeBase = getEdgeSlicerBaseUrl();
+    const expectedFetchable = edgeBase
+      ? `${edgeBase}/slice?url=${encodeURIComponent(GH)}`
+      : '/api/montage/audio?url=' + encodeURIComponent(GH);
+    expect(toFetchableUrl(GH, 'http://localhost:5000')).toBe(expectedFetchable);
     const expectedSliced = edgeBase
       ? `${edgeBase}/slice?url=${encodeURIComponent(GH)}&start=10&end=25&dur=3600`
       : `/api/montage/audio?url=${encodeURIComponent(GH)}&start=10&end=25&dur=3600`;

@@ -21,6 +21,7 @@ import {
 import { PipelineConfig } from '../types';
 import { getSpeakerTheme } from '../utils/transcriptData';
 import { usePlayer } from '../contexts/PlayerContext';
+import { toSliceableUrl, toFetchableUrl } from '../utils/audioUrl';
 
 interface ContradictionPairing {
   pairing_id: string;
@@ -126,6 +127,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
     end: number;
     quoteId: string;
     nextQuote?: { quoteId: string; releaseTag: string; timeWindow?: string };
+    isSlice?: boolean;
   } | null>(null);
 
   const globalPlayer = usePlayer();
@@ -215,26 +217,23 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
       const audio = audioRef.current;
 
       if (!range) {
-        currentRangeRef.current = { start: 0, end: 999999, quoteId, nextQuote };
+        currentRangeRef.current = { start: 0, end: 999999, quoteId, nextQuote, isSlice: false };
         setPlayingQuoteId(quoteId);
-        audio.src = audioUrl;
+        audio.src = toFetchableUrl(audioUrl);
         audio.currentTime = 0;
         audio.play().catch(console.error);
         return;
       }
 
-      currentRangeRef.current = { start: range.start, end: range.end, quoteId, nextQuote };
+      currentRangeRef.current = { start: range.start, end: range.end, quoteId, nextQuote, isSlice: true };
       setPlayingQuoteId(quoteId);
-      setPlayProgress({ current: 0, duration: Math.max(1, range.end - range.start) });
+      const clipDuration = Math.max(1, range.end - range.start);
+      setPlayProgress({ current: 0, duration: clipDuration });
 
-      if (audio.src === audioUrl) {
-        audio.currentTime = range.start;
-        audio.play().catch(console.error);
-      } else {
-        audio.src = audioUrl;
-        audio.currentTime = range.start;
-        audio.play().catch(console.error);
-      }
+      const slicedUrl = toSliceableUrl(audioUrl, range.start, range.end);
+      audio.src = slicedUrl;
+      audio.currentTime = 0;
+      audio.play().catch(console.error);
     },
     [audioMap, onOpenTranscript, playingQuoteId]
   );
@@ -256,9 +255,12 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
 
     const onTimeUpdate = () => {
       if (!currentRangeRef.current) return;
-      const { start, end, nextQuote } = currentRangeRef.current;
+      const { start, end, nextQuote, isSlice } = currentRangeRef.current;
       const curr = audio.currentTime;
-      if (curr >= end) {
+      const clipDuration = Math.max(1, end - start);
+      const isFinished = isSlice ? (curr >= clipDuration - 0.05) : (curr >= end);
+
+      if (isFinished) {
         audio.pause();
         if (nextQuote) {
           setTimeout(() => {
@@ -271,8 +273,8 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
         }
       } else {
         setPlayProgress({
-          current: Math.max(0, curr - start),
-          duration: Math.max(1, end - start)
+          current: isSlice ? curr : Math.max(0, curr - start),
+          duration: clipDuration
         });
       }
     };

@@ -21,7 +21,12 @@ export function needsAudioProxy(url: string, pageOrigin?: string): boolean {
 
 /** The URL to use when the browser must read the bytes (fetch / decodeAudioData / metadata probe). */
 export function toFetchableUrl(url: string, pageOrigin?: string): string {
-  return needsAudioProxy(url, pageOrigin) ? `${AUDIO_PROXY_PATH}?url=${encodeURIComponent(url)}` : url;
+  if (!needsAudioProxy(url, pageOrigin)) return url;
+  const edgeBase = getEdgeSlicerBaseUrl();
+  if (edgeBase) {
+    return `${edgeBase}/slice?url=${encodeURIComponent(url)}`;
+  }
+  return `${AUDIO_PROXY_PATH}?url=${encodeURIComponent(url)}`;
 }
 
 export function getEdgeSlicerBaseUrl(): string {

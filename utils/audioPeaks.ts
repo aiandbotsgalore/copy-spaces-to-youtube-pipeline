@@ -9,6 +9,8 @@
  *  4. Fast Float32Array root-mean-square (RMS) and peak amplitude sampling
  */
 
+import { toFetchableUrl } from './audioUrl';
+
 const PEAKS_CACHE = new Map<string, number[]>();
 const MAX_CACHE_SIZE = 100;
 
@@ -109,7 +111,8 @@ export async function getAudioPeaks(
 
   // 2. Decode audio via Web Audio API
   try {
-    const res = await fetch(audioUrl, { mode: 'cors' });
+    const fetchUrl = toFetchableUrl(audioUrl);
+    const res = await fetch(fetchUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const arrayBuffer = await res.arrayBuffer();
 

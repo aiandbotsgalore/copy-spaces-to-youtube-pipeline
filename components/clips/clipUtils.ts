@@ -1,5 +1,6 @@
 import { getClipRecordedDate } from '../../utils/dates';
 import { ClipItem } from '../../utils/contracts/clipCatalog';
+import { toSliceableUrl } from '../../utils/audioUrl';
 
 export const CLOUDFLARE_R2_BASE_URL = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
 
@@ -48,12 +49,21 @@ export const getCategoryColor = (cat: string) => {
 };
 
 export const getAudioUrl = (clip: ClipItem): string => {
+  const rawUrl = clip.download_url || clip.file_path || '';
+  if (
+    rawUrl &&
+    clip.start_seconds !== undefined &&
+    clip.end_seconds !== undefined &&
+    clip.end_seconds > clip.start_seconds
+  ) {
+    const sliced = toSliceableUrl(rawUrl, clip.start_seconds, clip.end_seconds, clip.duration);
+    if (sliced) return sliced;
+  }
   // Always route through Cloudflare R2 when we can derive an MP3 filename,
   // regardless of whether the catalog entry points to GitHub Releases or a
   // local path. GitHub release download URLs lack CORS headers and
   // Content-Type: audio/mpeg, so the browser <audio> element stalls under
   // the app's Cross-Origin-Embedder-Policy: require-corp header.
-  const rawUrl = clip.download_url || clip.file_path || '';
   if (rawUrl) {
     let decoded = rawUrl;
     try {

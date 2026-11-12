@@ -6,6 +6,7 @@ import {
 import { useMontage } from '../contexts/MontageContext';
 import { audioBufferToWav, sliceAudioBuffer } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
+import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
 
 export interface SlicerTurnTarget {
   speaker: string;
@@ -14,6 +15,7 @@ export interface SlicerTurnTarget {
   startSec: number;
   endSec: number | null;
   audioUrl?: string;
+  audioDurationSec?: number | null;
   releaseTitle?: string;
   sourceTitle?: string;
   releaseTag?: string;
@@ -114,6 +116,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
         let fetchUrl = target.audioUrl!;
         const cached = await getCachedAudioUrl(target.audioUrl!);
         if (cached) fetchUrl = cached;
+        else fetchUrl = toFetchableUrl(fetchUrl);
 
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const res = await fetch(fetchUrl);
@@ -344,14 +347,19 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
     let playUrl = target.audioUrl;
     const cached = await getCachedAudioUrl(target.audioUrl);
-    if (cached) playUrl = cached;
+    if (cached) {
+      playUrl = cached;
+    } else {
+      playUrl = toSliceableUrl(target.audioUrl, startSec, endSec, target.audioDurationSec ?? undefined);
+    }
 
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
     const audio = audioRef.current;
+    const isSliced = playUrl !== target.audioUrl && playUrl.includes('/slice?');
     audio.src = playUrl;
-    audio.currentTime = Math.max(0, startSec);
+    audio.currentTime = isSliced ? 0 : Math.max(0, startSec);
     setCurrentPreviewSec(startSec);
 
     audio.oncanplay = () => {
@@ -360,10 +368,11 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
     };
 
     const handleTimeUpdate = () => {
-      setCurrentPreviewSec(audio.currentTime);
-      if (audio.currentTime >= endSec) {
+      const current = isSliced ? (startSec + audio.currentTime) : audio.currentTime;
+      setCurrentPreviewSec(current);
+      if (current >= endSec) {
         audio.pause();
-        audio.currentTime = startSec;
+        audio.currentTime = isSliced ? 0 : startSec;
         setCurrentPreviewSec(startSec);
         setIsPlayingSlice(false);
         audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -419,6 +428,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
       let fetchUrl = target.audioUrl;
       const cached = await getCachedAudioUrl(target.audioUrl);
       if (cached) fetchUrl = cached;
+      else fetchUrl = toFetchableUrl(fetchUrl);
 
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const res = await fetch(fetchUrl);

@@ -1006,7 +1006,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
-  const { addClip } = useMontage();
+  const { addClip, auditionSoloClip } = useMontage();
   const copilot = useCopilot();
 
   const openQuickSlicer = (target: SlicerTurnTarget) => {
@@ -1039,17 +1039,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       sev = 9;
     }
 
+    const epDur = utterances[utterances.length - 1]?.endSec || 15939;
     addClip({
       title: `${speaker}: "${cleanQuoteSlug}…"`,
       quote: text,
       speaker,
-      sourceTitle: title || 'Space Episode',
-      sourceTag: tag,
-      audioUrl,
+      sourceTitle: title || selectedRelease?.name || 'Space Episode',
+      sourceTag: tag || selectedRelease?.tag_name,
+      audioUrl: audioUrl || mp3Asset?.browser_download_url,
       startSec,
       endSec: endSec !== null && endSec > startSec ? endSec : startSec + 12,
       category: cat,
       severity: sev,
+      sourceDurationSec: epDur,
     });
   };
 
@@ -4484,11 +4486,42 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
                                     {/* Timestamp seek button */}
                                     <button onClick={e => { e.stopPropagation(); handlePlayUtterance(utterance.startSec); }}
-                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer">
+                                      className="inline-flex items-center gap-1 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-300 border border-slate-700/60 transition-colors cursor-pointer"
+                                      title="Seek global player to this turn">
                                       <Play size={9} className="text-indigo-400 fill-indigo-400/40" />
                                       <span>{utterance.startLabel}</span>
                                       {utterance.endLabel && <span className="text-slate-400 font-normal"> – {utterance.endLabel}</span>}
                                     </button>
+
+                                    {/* Instant Solo Turn Audition via Edge Slicer */}
+                                    {mp3Asset?.browser_download_url && (
+                                      <button
+                                        type="button"
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          const end = utterance.endSec !== null && utterance.endSec > utterance.startSec ? utterance.endSec : utterance.startSec + 12;
+                                          const epDur = utterances[utterances.length - 1]?.endSec || 15939;
+                                          auditionSoloClip({
+                                            id: `turn_${utterance.id}`,
+                                            title: `${utterance.speaker}: ${utterance.text.slice(0, 30)}...`,
+                                            quote: utterance.text,
+                                            speaker: utterance.speaker,
+                                            sourceTitle: selectedRelease?.name || 'Space Episode',
+                                            sourceTag: selectedRelease?.tag_name || '',
+                                            audioUrl: mp3Asset.browser_download_url,
+                                            startSec: utterance.startSec,
+                                            endSec: end,
+                                            sourceDurationSec: epDur,
+                                            category: 'Highlights',
+                                          });
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 cursor-pointer"
+                                        title="Instant edge slice preview of this turn (<50ms)"
+                                      >
+                                        <Play size={8} className="fill-current" />
+                                        <span>Solo</span>
+                                      </button>
+                                    )}
 
                                     {/* 1-click audio seek sync calibration */}
                                     {isPlaying && (

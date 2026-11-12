@@ -2,6 +2,7 @@ import React, { useRef, useMemo, useState, useEffect, useCallback } from 'react'
 import { RotateCcw, Volume2, Scissors, Activity } from 'lucide-react';
 import { MontageClipItem } from '../contexts/MontageContext';
 import { getAudioPeaks } from '../utils/audioPeaks';
+import { toSliceableUrl } from '../utils/audioUrl';
 
 interface Props {
   clip: MontageClipItem;
@@ -59,7 +60,8 @@ export const VisualWaveformTrim: React.FC<Props> = ({
   useEffect(() => {
     let active = true;
     if (clip.audioUrl) {
-      getAudioPeaks(clip.audioUrl, 54)
+      const targetUrl = toSliceableUrl(clip.audioUrl, clip.startSec, clip.endSec, clip.sourceDurationSec);
+      getAudioPeaks(targetUrl, 54)
         .then(peaks => {
           if (active && peaks && peaks.length > 0) {
             setRealPeaks(peaks);
@@ -72,7 +74,7 @@ export const VisualWaveformTrim: React.FC<Props> = ({
     return () => {
       active = false;
     };
-  }, [clip.audioUrl]);
+  }, [clip.audioUrl, clip.startSec, clip.endSec, clip.sourceDurationSec]);
 
   const bars = realPeaks || fallbackBars;
 
