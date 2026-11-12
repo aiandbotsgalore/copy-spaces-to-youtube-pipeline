@@ -6,7 +6,7 @@
  * Timing comes from the same buildSequencePlan() used by export and labels, so what you hear is what you render.
  */
 import type { PlanClip, SequencePlan } from './sequencePlan';
-import { toFetchableUrl } from './audioUrl';
+import { toFetchableUrl, toSliceableUrl } from './audioUrl';
 import { reconcileWindow } from './clipProbe';
 import type { ClipLike } from './directorTypes';
 
@@ -160,7 +160,12 @@ export function createSequencePlayer<T extends PlayerClip>(opts: SequencePlayerO
     const buffers: Array<AudioBuffer | null> = [];
     for (let i = 0; i < items.length; i++) {
       opts.callbacks.onStatus(items.length > 1 ? `Decoding ${i + 1}/${items.length}…` : 'Decoding…');
-      const url = items[i].clip.audioUrl;
+      const it = items[i];
+      const clip = it.clip as any;
+      let url = clip?.audioUrl;
+      if (url && (clip?.startSec > 0 || (clip?.sourceDurationSec && clip.sourceDurationSec > 180))) {
+        url = toSliceableUrl(url, clip.startSec, clip.endSec, clip.sourceDurationSec);
+      }
       buffers.push(url ? await decode(url, ctx) : null);
       if (token !== my) return; // stopped or restarted while decoding
     }
@@ -180,8 +185,9 @@ export function createSequencePlayer<T extends PlayerClip>(opts: SequencePlayerO
       let effStart = it.effStart;
       let effDur = it.effDur;
       const c = it.clip as any;
-      if (!c?.windowVerified && effStart >= buf.duration - 0.02) {
-        const reconciled = reconcileWindow(c as ClipLike, buf.duration);
+      if (effStart >= buf.duration - 0.02) {
+        const unverified = { ...c, windowVerified: false };
+        const reconciled = reconcileWindow(unverified as ClipLike, buf.duration);
         effStart = reconciled.startSec;
         effDur = reconciled.endSec - reconciled.startSec;
       }

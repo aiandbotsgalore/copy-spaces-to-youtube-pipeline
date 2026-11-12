@@ -1,0 +1,9 @@
+name = "spacepipe-edge-slicer"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# Bind directly to your Cloudflare R2 bucket for instant sub-20ms edge clip caching
+[[r2_buckets]]
+binding = "CLIPS_BUCKET"
+bucket_name = "documentary-audio-clips"
+preview_bucket_name = "documentary-audio-clips"

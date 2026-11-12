@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseClipItem, parseClipCatalog } from '../contracts/clipCatalog';
 import { normalizeTimestampToSeconds, parseTranscriptSegments, parseEpisodeSummaries } from '../contracts/transcript';
+import { findEpisodeInSummary } from '../transcriptData';
 
 describe('Contracts: clipCatalog', () => {
   it('parses valid clip items with type coercion and duration calculation', () => {
@@ -78,5 +79,25 @@ describe('Contracts: transcript', () => {
     const parsed = parseEpisodeSummaries(summaries);
     expect(parsed.length).toBe(1);
     expect(parsed[0].release_tag).toBe('20260220_1MYGNgPOMBzJw');
+  });
+
+  it('finds episodes in summary by tag, id, or title substring', () => {
+    const list = [
+      {
+        release_id: 438179238,
+        release_tag: '20261107_1nQBEpjBqPNZLr',
+        title: 'Washer_Load_Wake-Up_Call_-_Unburden_By_What_Has_Been',
+        published_at: '2026-11-08T10:44:03Z',
+        audio_url: 'https://example.com/washer.mp3',
+        segment_count: 2319,
+        duration_sec: 15939,
+      },
+    ];
+
+    expect(findEpisodeInSummary(list, 438179238)?.release_tag).toBe('20261107_1nQBEpjBqPNZLr');
+    expect(findEpisodeInSummary(list, '20261107_1nQBEpjBqPNZLr')?.duration_sec).toBe(15939);
+    expect(findEpisodeInSummary(list, 'Washer_Load')?.audio_url).toBe('https://example.com/washer.mp3');
+    expect(findEpisodeInSummary(list, 'nonexistent')).toBeUndefined();
+    expect(findEpisodeInSummary([], 'test')).toBeUndefined();
   });
 });

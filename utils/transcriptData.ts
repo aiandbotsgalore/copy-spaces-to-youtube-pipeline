@@ -548,6 +548,23 @@ export async function fetchSummaryIndex(owner?: string, repo?: string): Promise<
   throw lastErr || new Error('Failed to load transcripts summary index');
 }
 
+/**
+ * Fast multi-attribute episode lookup in summary index (by tag, release_id, or title).
+ */
+export function findEpisodeInSummary(summaries: EpisodeSummary[], query?: string | number | null): EpisodeSummary | undefined {
+  if (!summaries || summaries.length === 0 || !query) return undefined;
+  const qStr = String(query).trim().toLowerCase();
+  const qNum = typeof query === 'number' ? query : Number(query);
+  return summaries.find(ep => {
+    if (qNum && !Number.isNaN(qNum) && ep.release_id === qNum) return true;
+    if (ep.release_tag && ep.release_tag.toLowerCase() === qStr) return true;
+    if (ep.title && ep.title.toLowerCase() === qStr) return true;
+    if (ep.release_tag && (ep.release_tag.toLowerCase().includes(qStr) || qStr.includes(ep.release_tag.toLowerCase()))) return true;
+    if (ep.title && (ep.title.toLowerCase().includes(qStr) || qStr.includes(ep.title.toLowerCase()))) return true;
+    return false;
+  });
+}
+
 export async function fetchSingleEpisodeTranscript(releaseTag: string, owner?: string, repo?: string): Promise<string | null> {
   const base = (((import.meta as any).env?.BASE_URL as string) || '/').replace(/\/$/, '');
   const pathBase = typeof window !== 'undefined' ? window.location.pathname.replace(/\/[^/]*$/, '') : '';

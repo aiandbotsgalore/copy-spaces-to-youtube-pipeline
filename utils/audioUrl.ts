@@ -23,3 +23,50 @@ export function needsAudioProxy(url: string, pageOrigin?: string): boolean {
 export function toFetchableUrl(url: string, pageOrigin?: string): string {
   return needsAudioProxy(url, pageOrigin) ? `${AUDIO_PROXY_PATH}?url=${encodeURIComponent(url)}` : url;
 }
+
+export function getEdgeSlicerBaseUrl(): string {
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_EDGE_SLICER_URL) {
+      return String(import.meta.env.VITE_EDGE_SLICER_URL).trim().replace(/\/+$/, '');
+    }
+  } catch {}
+  return '';
+}
+
+/**
+ * Resolves an audio URL to a sliced proxy URL if start/end timestamps are provided,
+ * preventing multi-gigabyte monolithic file downloads into Web Audio memory.
+ * If VITE_EDGE_SLICER_URL is configured, routes directly to the Cloudflare Worker edge slicer.
+ */
+export function toSliceableUrl(
+  url: string,
+  startSec?: number,
+  endSec?: number,
+  durationSec?: number,
+  pageOrigin?: string
+): string {
+  if (!url) return '';
+  if (
+    startSec !== undefined &&
+    endSec !== undefined &&
+    Number.isFinite(startSec) &&
+    Number.isFinite(endSec) &&
+    endSec > startSec &&
+    (startSec > 0 || (durationSec && durationSec > 180))
+  ) {
+    const params = new URLSearchParams({
+      url,
+      start: String(startSec),
+      end: String(endSec),
+    });
+    if (durationSec && Number.isFinite(durationSec) && durationSec > 0) {
+      params.set('dur', String(durationSec));
+    }
+    const edgeBase = getEdgeSlicerBaseUrl();
+    if (edgeBase) {
+      return `${edgeBase}/slice?${params.toString()}`;
+    }
+    return `${AUDIO_PROXY_PATH}?${params.toString()}`;
+  }
+  return toFetchableUrl(url, pageOrigin);
+}

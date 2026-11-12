@@ -35,6 +35,9 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
     startAudition,
     stopAudition,
     skipAudition,
+    auditionSoloClip,
+    nudgeClipStart,
+    nudgeClipEnd,
     exportStitchedWav,
     exportManifestJson,
     exportAudacityLabels,
@@ -46,9 +49,21 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
   const [isSorting, setIsSorting] = useState(false);
   const [sortMsg, setSortMsg] = useState<{ kind: 'ok' | 'info' | 'err'; text: string; canUndo?: boolean } | null>(null);
   const sortAbortRef = useRef<AbortController | null>(null);
+  const activeCardRef = useRef<HTMLDivElement | null>(null);
   const clipsRef = useRef(clips);
   clipsRef.current = clips;
   useEffect(() => () => sortAbortRef.current?.abort(), []);
+
+  // Auto-scroll the active playing clip into view in the horizontal reel during audition
+  useEffect(() => {
+    if (isAuditioning && activeCardRef.current) {
+      activeCardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [isAuditioning, currentAuditionIndex]);
 
   const runAiSort = async () => {
     if (isSorting) {
@@ -369,19 +384,38 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
               return (
                 <div
                   key={clip.id}
-                  className={`w-72 p-3 rounded-xl border transition-all flex flex-col justify-between relative ${
+                  ref={isPlayingThis ? activeCardRef : undefined}
+                  className={`w-76 p-3 rounded-xl border transition-all flex flex-col justify-between relative ${
                     isPlayingThis
                       ? 'bg-slate-900 border-indigo-500 ring-2 ring-indigo-500/40'
                       : 'bg-slate-900/90 border-slate-800 hover:border-slate-700'
                   }`}
                 >
                   <div>
-                    {/* Header: Rank, Category, Severity */}
+                    {/* Header: Rank, Solo Audition, Category, Severity */}
                     <div className="flex items-center justify-between gap-1 mb-2">
                       <div className="flex items-center gap-1.5">
                         <span className="w-5 h-5 rounded-md bg-slate-800 text-slate-200 font-mono text-[11px] font-bold flex items-center justify-center border border-slate-700">
                           {idx + 1}
                         </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isAuditioning && currentAuditionIndex === idx) {
+                              stopAudition();
+                            } else {
+                              auditionSoloClip(clip);
+                            }
+                          }}
+                          className={`p-1 rounded-md border transition-all cursor-pointer ${
+                            isPlayingThis
+                              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
+                          }`}
+                          title={isPlayingThis ? 'Pause clip' : 'Solo preview this clip'}
+                        >
+                          {isPlayingThis ? <Pause size={10} className="fill-current" /> : <Play size={10} className="fill-current" />}
+                        </button>
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300">
                           <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${categoryDotClass(clip.category)}`} aria-hidden="true" />
                           {clip.category || 'Quote'}
@@ -427,12 +461,44 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
                     </p>
                   </div>
 
-                  {/* Footer: Speaker and Duration */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                    <span className="text-slate-300 font-sans font-semibold truncate max-w-[150px]">
-                      {clip.speaker}
-                    </span>
-                    <span>{clipDur.toFixed(1)}s</span>
+                  {/* Footer: Speaker, Duration & In-Place Trim Nudges */}
+                  <div className="pt-2 border-t border-slate-800/80 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                      <span className="text-slate-300 font-sans font-semibold truncate max-w-[150px]">
+                        {clip.speaker}
+                      </span>
+                      <span className="text-indigo-300 font-bold">{clipDur.toFixed(1)}s</span>
+                    </div>
+
+                    {/* Nudge Buttons */}
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/50">
+                      <div className="flex items-center gap-0.5 bg-slate-950/80 px-1 py-0.5 rounded border border-slate-800/80">
+                        <span className="text-slate-500 font-mono mr-0.5">In</span>
+                        <button
+                          onClick={() => nudgeClipStart(clip.id, -0.5)}
+                          className="px-1 py-0.2 hover:bg-slate-800 hover:text-white rounded font-mono text-[9px] cursor-pointer"
+                          title="Start earlier (-0.5s)"
+                        >-0.5s</button>
+                        <button
+                          onClick={() => nudgeClipStart(clip.id, 0.5)}
+                          className="px-1 py-0.2 hover:bg-slate-800 hover:text-white rounded font-mono text-[9px] cursor-pointer"
+                          title="Start later (+0.5s)"
+                        >+0.5s</button>
+                      </div>
+                      <div className="flex items-center gap-0.5 bg-slate-950/80 px-1 py-0.5 rounded border border-slate-800/80">
+                        <span className="text-slate-500 font-mono mr-0.5">Out</span>
+                        <button
+                          onClick={() => nudgeClipEnd(clip.id, -0.5)}
+                          className="px-1 py-0.2 hover:bg-slate-800 hover:text-white rounded font-mono text-[9px] cursor-pointer"
+                          title="End earlier (-0.5s)"
+                        >-0.5s</button>
+                        <button
+                          onClick={() => nudgeClipEnd(clip.id, 0.5)}
+                          className="px-1 py-0.2 hover:bg-slate-800 hover:text-white rounded font-mono text-[9px] cursor-pointer"
+                          title="End later (+0.5s)"
+                        >+0.5s</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

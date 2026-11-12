@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { apostropheAlternate, createAudioProxy, isAllowedAudioUrl, isAllowedAudioHost } from '../../server/audioProxy';
-import { needsAudioProxy, toFetchableUrl } from '../audioUrl';
+import { needsAudioProxy, toFetchableUrl, toSliceableUrl, getEdgeSlicerBaseUrl } from '../audioUrl';
 
 const bytes = (n: number) => new Uint8Array(Array.from({ length: n }, (_, i) => i % 251));
 
@@ -35,9 +35,10 @@ const GH = 'https://github.com/o/r/releases/download/t/clip.mp3';
 const CDN = 'https://release-assets.githubusercontent.com/abc/clip.mp3?sig=1';
 
 describe('host allowlist', () => {
-  it('allows only github.com and githubusercontent.com over https', () => {
+  it('allows only github.com, githubusercontent.com, and r2.dev over https', () => {
     expect(isAllowedAudioHost('github.com')).toBe(true);
     expect(isAllowedAudioHost('objects.githubusercontent.com')).toBe(true);
+    expect(isAllowedAudioHost('pub-b492226ab4ed45d692e9f14794366106.r2.dev')).toBe(true);
     expect(isAllowedAudioHost('evilgithub.com')).toBe(false);
     expect(isAllowedAudioHost('github.com.evil.io')).toBe(false);
     expect(isAllowedAudioUrl(new URL('http://github.com/x'))).toBe(false);
@@ -60,6 +61,11 @@ describe('client routing', () => {
     expect(needsAudioProxy('blob:http://localhost:5000/xyz', 'http://localhost:5000')).toBe(false);
     expect(needsAudioProxy('https://example.com/a.mp3', 'http://localhost:5000')).toBe(false);
     expect(toFetchableUrl(GH, 'http://localhost:5000')).toBe('/api/montage/audio?url=' + encodeURIComponent(GH));
+    const edgeBase = getEdgeSlicerBaseUrl();
+    const expectedSliced = edgeBase
+      ? `${edgeBase}/slice?url=${encodeURIComponent(GH)}&start=10&end=25&dur=3600`
+      : `/api/montage/audio?url=${encodeURIComponent(GH)}&start=10&end=25&dur=3600`;
+    expect(toSliceableUrl(GH, 10, 25, 3600, 'http://localhost:5000')).toBe(expectedSliced);
   });
 });
 
@@ -95,6 +101,26 @@ describe('proxy', () => {
     await r.arrayBuffer();
   });
 
+  it('calculates byte range for start and end query slices and relays 206', async () => {
+    const log: any[] = [];
+    const base = await serve(
+      mkFetch(
+        {
+          [GH]: () => new Response(bytes(100), {
+            status: 206,
+            headers: { 'content-length': '100', 'content-range': 'bytes 100-199/100000', 'content-type': 'audio/mpeg' }
+          }),
+        },
+        log
+      )
+    );
+    const r = await fetch(`${base}/?url=${encodeURIComponent(GH)}&start=10&end=20&dur=100`);
+    expect(r.status).toBe(206);
+    const getCall = log.find(l => l.method === 'GET');
+    expect(getCall?.headers?.Range).toMatch(/^bytes=\d+-\d+$/);
+    await r.arrayBuffer();
+  });
+
   it('retries with the dotted name when GitHub 404s an apostrophe URL', async () => {
     const bad = 'https://github.com/o/r/releases/download/t/I_Don%27t.mp3';
     const good = 'https://github.com/o/r/releases/download/t/I_Don.t.mp3';
@@ -123,7 +149,6 @@ describe('proxy', () => {
     }
     const r = await fetch(`${base}/?url=${encodeURIComponent(GH)}`);
     expect(r.status).toBe(403);
-    await r.text();
     expect(log.map(l => l.url)).toEqual([GH]); // never contacted the redirect target
   });
 

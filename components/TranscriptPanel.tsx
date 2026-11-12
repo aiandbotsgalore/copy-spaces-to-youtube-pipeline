@@ -1357,10 +1357,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         try {
           if (rounded === 0) {
             localStorage.removeItem(`spk_seek_offset_${selectedId}`);
-            if (selectedRelease?.tag_name) localStorage.removeItem(`spk_seek_offset_${selectedRelease.tag_name}`);
+            localStorage.removeItem(`spk_seek_offset_${selectedId}_p${selectedPartNum}`);
+            if (selectedRelease?.tag_name) {
+              localStorage.removeItem(`spk_seek_offset_${selectedRelease.tag_name}`);
+              localStorage.removeItem(`spk_seek_offset_${selectedRelease.tag_name}_p${selectedPartNum}`);
+            }
           } else {
             localStorage.setItem(`spk_seek_offset_${selectedId}`, rounded.toString());
-            if (selectedRelease?.tag_name) localStorage.setItem(`spk_seek_offset_${selectedRelease.tag_name}`, rounded.toString());
+            localStorage.setItem(`spk_seek_offset_${selectedId}_p${selectedPartNum}`, rounded.toString());
+            if (selectedRelease?.tag_name) {
+              localStorage.setItem(`spk_seek_offset_${selectedRelease.tag_name}`, rounded.toString());
+              localStorage.setItem(`spk_seek_offset_${selectedRelease.tag_name}_p${selectedPartNum}`, rounded.toString());
+            }
           }
         } catch {}
       }
@@ -1408,6 +1416,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     try {
       const savedSeekOffset = localStorage.getItem(`spk_seek_offset_${release.id}_p${pNum}`)
         || localStorage.getItem(`spk_seek_offset_${release.id}`)
+        || (release.tag_name ? localStorage.getItem(`spk_seek_offset_${release.tag_name}_p${pNum}`) : null)
         || (release.tag_name ? localStorage.getItem(`spk_seek_offset_${release.tag_name}`) : null);
       if (savedSeekOffset !== null) {
         setAudioSeekOffsetSec(parseFloat(savedSeekOffset));

@@ -3,10 +3,10 @@ import { MONTAGE_EDITORIAL_CONFIG } from '../config/montageEditorial';
 import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { buildPlayablePlan } from '../utils/sequencePlan';
-import { createSequencePlayer, getSharedAudioContext } from '../utils/sequencePlayer';
+import { createSequencePlayer, getSharedAudioContext, decodeAudioUrl } from '../utils/sequencePlayer';
 import type { SequencePlayer } from '../utils/sequencePlayer';
 import { mapLimit, probeFileDuration, reconcileWindow } from '../utils/clipProbe';
-import { toFetchableUrl } from '../utils/audioUrl';
+import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
 import type { DirectorProvenance } from '../utils/directorTypes';
 
 /** localStorage key holding the last natural-language prompt given to the Director (for the manifest). */
@@ -98,6 +98,7 @@ interface MontageContextType {
   startAudition: () => void;
   stopAudition: () => void;
   skipAudition: (index: number) => void;
+  auditionSoloClip: (clip: MontageClipItem) => void;
   insertClipAt: (clipData: Omit<MontageClipItem, 'id'> & { id?: string }, index: number) => void;
   exportStitchedWav: () => Promise<void>;
   exportManifestJson: () => void;
@@ -349,6 +350,15 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return [...prev, { ...clipData, id: newId }];
     });
     setIsDrawerOpen(true);
+
+    // Speculatively pre-warm audio decode in background for instant playback
+    if (clipData.audioUrl) {
+      try {
+        const sliceUrl = toSliceableUrl(clipData.audioUrl, clipData.startSec, clipData.endSec, clipData.sourceDurationSec);
+        const ctx = getSharedAudioContext();
+        decodeAudioUrl(sliceUrl, ctx);
+      } catch {}
+    }
   }, []);
 
   const insertClipAt = useCallback((clipData: Omit<MontageClipItem, 'id'> & { id?: string }, index: number) => {
@@ -363,6 +373,15 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return next;
     });
     setIsDrawerOpen(true);
+
+    // Speculatively pre-warm audio decode in background for instant playback
+    if (clipData.audioUrl) {
+      try {
+        const sliceUrl = toSliceableUrl(clipData.audioUrl, clipData.startSec, clipData.endSec, clipData.sourceDurationSec);
+        const ctx = getSharedAudioContext();
+        decodeAudioUrl(sliceUrl, ctx);
+      } catch {}
+    }
   }, []);
 
   const removeClip = useCallback((id: string) => {
@@ -561,6 +580,60 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     startAuditionFrom(index);
   }, [startAuditionFrom]);
 
+  const auditionSoloClip = useCallback((clip: MontageClipItem) => {
+    playerRef.current?.stop();
+    playerRef.current = null;
+    const effDur = Math.max(0.2, clip.endSec - clip.startSec);
+    const soloPlan = {
+      items: [{
+        index: 0,
+        clip,
+        effStart: clip.startSec,
+        effEnd: clip.endSec,
+        effDur,
+        timelineStart: 0,
+        timelineEnd: effDur,
+        gapAfter: 0,
+      }],
+      totalSec: effDur,
+    };
+    const player: SequencePlayer = createSequencePlayer({
+      plan: soloPlan as any,
+      fadeMs: antiClickFades ? 18 : 0,
+      resolveUrl: async (u: string) => (await getCachedAudioUrl(u)) || u,
+      callbacks: {
+        onIndex: () => {
+          const idx = clips.findIndex(c => c.id === clip.id);
+          setCurrentAuditionIndex(idx >= 0 ? idx : 0);
+        },
+        onProgress: (_idx, clipProgress, elapsedSec) => {
+          const idx = clips.findIndex(c => c.id === clip.id);
+          setAuditionProgress({ timelineIndex: idx >= 0 ? idx : 0, clipProgress, elapsedSec });
+        },
+        onEnd: () => {
+          if (playerRef.current === player) {
+            playerRef.current = null;
+            setIsAuditioning(false);
+            setAuditionProgress(null);
+          }
+        },
+        onStatus: msg => setAuditionStatus(msg),
+        onError: msg => setAuditionStatus(msg),
+      },
+    });
+    playerRef.current = player;
+    setAuditionStatus('');
+    const idx = clips.findIndex(c => c.id === clip.id);
+    setCurrentAuditionIndex(idx >= 0 ? idx : 0);
+    setAuditionProgress({ timelineIndex: idx >= 0 ? idx : 0, clipProgress: 0, elapsedSec: 0 });
+    setIsAuditioning(true);
+    player.start(0).catch(err => {
+      console.warn('Solo audition failed:', err);
+      setAuditionStatus('Solo audition failed: ' + (err?.message || 'unknown error'));
+      setIsAuditioning(false);
+    });
+  }, [clips, antiClickFades]);
+
   useEffect(() => {
     return () => {
       playerRef.current?.stop();
@@ -663,28 +736,40 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       for (let i = 0; i < plan.items.length; i++) {
         const it = plan.items[i];
         const c = it.clip;
-        setExportProgress(`Fetching & decoding clip ${i + 1}/${plan.items.length}: ${c.title}…`);
+        setExportProgress(`[${i + 1}/${plan.items.length}] Slicing & fetching: ${c.title || c.speaker || 'Clip'}…`);
         const key = c.audioUrl as string;
-        let full = fileCache.get(key);
+        const cacheKey = `${key}_${c.startSec}_${c.endSec}`;
+        let full = fileCache.get(cacheKey);
         if (full) {
-          fileCache.delete(key);
+          fileCache.delete(cacheKey);
         } else {
-          const fetchUrl = (await getCachedAudioUrl(key)) || key;
-          const res = await fetch(toFetchableUrl(fetchUrl));
-          if (!res.ok) throw new Error(`Could not fetch audio for "${c.title}" (HTTP ${res.status}).`);
-          full = await audioCtx.decodeAudioData(await res.arrayBuffer());
+          try {
+            const fetchUrl = (await getCachedAudioUrl(key)) || key;
+            const finalUrl = toSliceableUrl(fetchUrl, c.startSec, c.endSec, c.sourceDurationSec);
+            const res = await fetch(finalUrl);
+            if (!res.ok) {
+              skipped.push(`"${c.title}" (HTTP ${res.status})`);
+              continue;
+            }
+            setExportProgress(`[${i + 1}/${plan.items.length}] Decoding audio: ${c.title || c.speaker}…`);
+            full = await audioCtx.decodeAudioData(await res.arrayBuffer());
+          } catch (err: any) {
+            console.warn(`Failed to process clip "${c.title}":`, err);
+            skipped.push(`"${c.title}" (${err.message || 'decode failure'})`);
+            continue;
+          }
         }
-        fileCache.set(key, full);
+        fileCache.set(cacheKey, full);
         if (fileCache.size > 3) {
           const oldest = fileCache.keys().next().value;
           if (oldest !== undefined) fileCache.delete(oldest);
         }
 
-        // Self-heal window bounds if clip window exceeds file duration (pre-cut clip with episode-relative timestamp)
+        // Self-heal window bounds if clip window exceeds file duration (pre-cut clip or sliced range)
         let sliceStart = it.effStart;
         let sliceEnd = it.effEnd;
-        if (!c.windowVerified && sliceStart >= full.duration - 0.02) {
-          const reconciled = reconcileWindow(c, full.duration);
+        if (sliceStart >= full.duration - 0.02) {
+          const reconciled = reconcileWindow({ ...c, windowVerified: false }, full.duration);
           sliceStart = reconciled.startSec;
           sliceEnd = reconciled.endSec;
         }
@@ -698,7 +783,11 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       if (parts.length === 0) {
-        throw new Error('None of the clip windows fall inside their audio files. Re-check the trims.');
+        throw new Error(
+          skipped.length > 0
+            ? `Could not export WAV. The following clips failed: ${skipped.join('; ')}`
+            : 'None of the clip windows fall inside their audio files. Re-check the trims.'
+        );
       }
 
       setExportProgress('Mastering audio (loudness normalization ~-16 LUFS & anti-click micro-fades)…');
@@ -822,6 +911,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         startAudition,
         stopAudition,
         skipAudition,
+        auditionSoloClip,
         insertClipAt,
         exportStitchedWav,
         exportManifestJson,

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Undo2,
   Play,
+  Pause,
   RotateCcw,
   Zap,
   Sliders,
@@ -48,6 +49,7 @@ import type { CopilotAction } from '../utils/copilotTypes';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { renderTranscriptWithContextFocus } from '../utils/searchWorker';
 import { CopilotMarkdown } from './CopilotMarkdown';
+import { fetchSummaryIndex, findEpisodeInSummary, EpisodeSummary } from '../utils/transcriptData';
 
 const PRESET_PILLS = [
   {
@@ -119,7 +121,23 @@ export const AICopilotPanel: React.FC = () => {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [showPinDropdown, setShowPinDropdown] = useState(false);
+  const [episodeSummaries, setEpisodeSummaries] = useState<EpisodeSummary[]>([]);
+  const [recentlyAppendedMatchKey, setRecentlyAppendedMatchKey] = useState<string | null>(null);
+  const activeTimelineCardRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    fetchSummaryIndex().then(setEpisodeSummaries).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (montage.isAuditioning && activeTimelineCardRef.current) {
+      activeTimelineCardRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }
+  }, [montage.isAuditioning, montage.currentAuditionIndex]);
 
   const activeRunningAction = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -600,6 +618,7 @@ export const AICopilotPanel: React.FC = () => {
                           category: 'Highlights',
                           severity: 8,
                           tensionScore: 7,
+                          sourceDurationSec: contextPayload.currentEpisode?.durationSec,
                         });
                       }
                     }}
@@ -695,53 +714,74 @@ export const AICopilotPanel: React.FC = () => {
                           <div className="flex items-center gap-2 flex-wrap">
                             {hasAudio && (
                               <>
-                                <button
-                                  onClick={() => {
-                                    const targetUrl = match.audio_url || contextPayload.currentEpisode?.audioUrl;
-                                    if (targetUrl) {
-                                      player.play(
-                                        {
-                                          id: match.episode_id || Date.now(),
-                                          title: match.episode_title || 'Episode Space',
-                                          audioUrl: targetUrl,
-                                        },
-                                        match.start_timestamp
-                                      );
-                                    } else {
-                                      player.seek(match.start_timestamp);
-                                    }
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded text-[11px] font-semibold border border-indigo-500/30 transition-colors cursor-pointer"
-                                  title="Seek audio player to this segment"
-                                >
-                                  <Play size={10} className="fill-current" />
-                                  ▶ Jump to Timestamp
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-                                    montage.addClip({
-                                      id: newClipId,
-                                      title: `${match.speaker}: ${match.snippet.slice(0, 30)}...`,
-                                      quote: match.snippet,
-                                      speaker: match.speaker,
-                                      sourceTitle: match.episode_title,
-                                      sourceTag: match.episode_id,
-                                      audioUrl: match.audio_url || contextPayload.currentEpisode?.audioUrl,
-                                      startSec: match.start_timestamp,
-                                      endSec: match.end_timestamp || match.start_timestamp + 25,
-                                      category: 'Highlights',
-                                      severity: 8,
-                                      tensionScore: 7,
-                                      directorNote: `Extracted from search quote in ${match.episode_title}`,
-                                    });
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 rounded text-[11px] font-semibold border border-emerald-500/30 transition-colors cursor-pointer"
-                                  title="Append this slice to the Active Montage Reel"
-                                >
-                                  <Sparkles size={10} />
-                                  + Append to Reel
-                                </button>
+                                {(() => {
+                                  const ep = findEpisodeInSummary(episodeSummaries, match.episode_id || match.episode_title);
+                                  const verifiedAudioUrl = match.audio_url || ep?.audio_url || contextPayload.currentEpisode?.audioUrl || '';
+                                  const verifiedDuration = ep?.duration_sec || contextPayload.currentEpisode?.durationSec || 3600;
+                                  const isAppended = recentlyAppendedMatchKey === matchKey;
+
+                                  return (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          if (verifiedAudioUrl) {
+                                            montage.auditionSoloClip({
+                                              id: `preview_${matchKey}`,
+                                              title: `${match.speaker} Soundbite`,
+                                              quote: match.snippet,
+                                              speaker: match.speaker,
+                                              audioUrl: verifiedAudioUrl,
+                                              startSec: match.start_timestamp,
+                                              endSec: match.end_timestamp || match.start_timestamp + 25,
+                                              sourceTitle: match.episode_title || ep?.title || 'Episode Space',
+                                              sourceDurationSec: verifiedDuration,
+                                              category: 'Highlights',
+                                            });
+                                          } else {
+                                            player.seek(match.start_timestamp);
+                                          }
+                                        }}
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded text-[11px] font-semibold border border-indigo-500/30 transition-colors cursor-pointer"
+                                        title="Instant edge preview of this soundbite"
+                                      >
+                                        <Play size={10} className="fill-current" />
+                                        ▶ Preview Soundbite
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                                          montage.addClip({
+                                            id: newClipId,
+                                            title: `${match.speaker}: ${match.snippet.slice(0, 30)}...`,
+                                            quote: match.snippet,
+                                            speaker: match.speaker,
+                                            sourceTitle: match.episode_title || ep?.title || contextPayload.currentEpisode?.title || 'Episode Space',
+                                            sourceTag: match.episode_id || ep?.release_tag || contextPayload.currentEpisode?.releaseTag || 'clip',
+                                            audioUrl: verifiedAudioUrl,
+                                            startSec: match.start_timestamp,
+                                            endSec: match.end_timestamp || match.start_timestamp + 25,
+                                            category: 'Highlights',
+                                            severity: 8,
+                                            tensionScore: 7,
+                                            sourceDurationSec: verifiedDuration,
+                                            directorNote: `Extracted from search quote in ${match.episode_title || ep?.title || 'episode'}`,
+                                          });
+                                          setRecentlyAppendedMatchKey(matchKey);
+                                          setTimeout(() => setRecentlyAppendedMatchKey(null), 2500);
+                                        }}
+                                        className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold border transition-all cursor-pointer ${
+                                          isAppended
+                                            ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                                            : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border-emerald-500/30'
+                                        }`}
+                                        title="Append this slice to the Active Montage Reel"
+                                      >
+                                        {isAppended ? <Check size={10} /> : <Sparkles size={10} />}
+                                        {isAppended ? '✓ Added to Reel' : '+ Append to Reel'}
+                                      </button>
+                                    </>
+                                  );
+                                })()}
                               </>
                             )}
 
@@ -984,50 +1024,65 @@ export const AICopilotPanel: React.FC = () => {
                 Reel is empty. Ask Copilot to hunt soundbites or assemble a debate reel!
               </div>
             ) : (
-              montage.clips.map((clip, idx) => (
-                <div
-                  key={clip.id}
-                  className="p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors flex items-start justify-between gap-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded-full bg-slate-800 text-[10px] font-bold flex items-center justify-center text-slate-400 flex-shrink-0">
-                        {idx + 1}
-                      </span>
-                      <p className="text-xs font-semibold text-white truncate">{clip.title}</p>
-                    </div>
-                    <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 italic">
-                      "{clip.quote}"
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-500">
-                      <span>{clip.speaker}</span>
-                      <span>•</span>
-                      <span>{(clip.endSec - clip.startSec).toFixed(1)}s</span>
-                      {clip.tensionScore !== undefined && (
-                        <>
-                          <span>•</span>
-                          <span className="text-indigo-400 font-semibold">Tension: {clip.tensionScore}/10</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
+              montage.clips.map((clip, idx) => {
+                const isCurrentPlaying = montage.isAuditioning && montage.currentAuditionIndex === idx;
 
-                  <button
-                    onClick={() => {
-                      if (clip.audioUrl) {
-                        player.play(
-                          { id: Date.now(), title: clip.title, audioUrl: clip.audioUrl },
-                          clip.startSec
-                        );
-                      }
-                    }}
-                    className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer flex-shrink-0"
-                    title="Play clip snippet"
+                return (
+                  <div
+                    key={clip.id}
+                    ref={isCurrentPlaying ? activeTimelineCardRef : undefined}
+                    className={`p-3 rounded-lg border transition-all flex items-start justify-between gap-2 ${
+                      isCurrentPlaying
+                        ? 'bg-slate-900 border-indigo-500 ring-2 ring-indigo-500/40 shadow-md'
+                        : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                    }`}
                   >
-                    <Play size={12} />
-                  </button>
-                </div>
-              ))
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0 ${
+                          isCurrentPlaying ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <p className="text-xs font-semibold text-white truncate">{clip.title}</p>
+                      </div>
+                      <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5 italic">
+                        "{clip.quote}"
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-500">
+                        <span className="text-slate-300 font-medium">{clip.speaker}</span>
+                        <span>•</span>
+                        <span>{(clip.endSec - clip.startSec).toFixed(1)}s</span>
+                        {clip.tensionScore !== undefined && (
+                          <>
+                            <span>•</span>
+                            <span className="text-indigo-400 font-semibold">Tension: {clip.tensionScore}/10</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isCurrentPlaying) {
+                          montage.stopAudition();
+                        } else {
+                          montage.auditionSoloClip(clip);
+                        }
+                      }}
+                      className={`p-1.5 rounded-lg transition-all cursor-pointer flex-shrink-0 border ${
+                        isCurrentPlaying
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700'
+                      }`}
+                      title={isCurrentPlaying ? 'Pause snippet' : 'Play clip snippet'}
+                    >
+                      {isCurrentPlaying ? <Pause size={12} className="fill-current" /> : <Play size={12} className="fill-current" />}
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>

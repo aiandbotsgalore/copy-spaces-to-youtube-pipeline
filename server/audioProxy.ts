@@ -10,13 +10,45 @@
  */
 import type { IncomingMessage, ServerResponse } from 'http';
 import { Readable } from 'node:stream';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const AUDIO_PROXY_PATH = '/api/montage/audio';
 const MAX_REDIRECTS = 5;
 
+// In-memory cache for Content-Length and duration lookup
+const contentLengthCache = new Map<string, number>();
+let durationIndexCache: Map<string, number> | null = null;
+
+export function getDurationForUrl(targetUrl: string): number | null {
+  if (!durationIndexCache) {
+    durationIndexCache = new Map();
+    try {
+      const p = path.resolve('public/transcripts/transcripts_summary_index.json');
+      if (fs.existsSync(p)) {
+        const raw = JSON.parse(fs.readFileSync(p, 'utf-8'));
+        if (Array.isArray(raw)) {
+          for (const item of raw) {
+            if (item.audio_url && item.duration_sec) {
+              durationIndexCache.set(item.audio_url.toLowerCase(), Number(item.duration_sec));
+            }
+          }
+        }
+      }
+    } catch {}
+  }
+  return durationIndexCache.get(targetUrl.toLowerCase()) || null;
+}
+
 export function isAllowedAudioHost(hostname: string): boolean {
   const h = hostname.toLowerCase();
-  return h === 'github.com' || h === 'githubusercontent.com' || h.endsWith('.githubusercontent.com');
+  return (
+    h === 'github.com' ||
+    h === 'githubusercontent.com' ||
+    h.endsWith('.githubusercontent.com') ||
+    h === 'r2.dev' ||
+    h.endsWith('.r2.dev')
+  );
 }
 
 export function isAllowedAudioUrl(u: URL): boolean {
@@ -93,8 +125,13 @@ export function createAudioProxy(deps: AudioProxyDeps = {}) {
       if (req.method !== 'GET' && req.method !== 'HEAD') return text(res, 405, 'GET or HEAD only.');
 
       const host = req.headers.host || 'localhost';
-      const target = new URL(req.url || '', `http://${host}`).searchParams.get('url');
+      const searchParams = new URL(req.url || '', `http://${host}`).searchParams;
+      const target = searchParams.get('url');
       if (!target) return text(res, 400, 'Missing url query parameter.');
+
+      const startStr = searchParams.get('start');
+      const endStr = searchParams.get('end');
+      const durStr = searchParams.get('dur');
 
       const headers: Record<string, string> = { 'User-Agent': 'SpacePipe-Audio-Proxy' };
       const range = req.headers.range;
@@ -102,6 +139,50 @@ export function createAudioProxy(deps: AudioProxyDeps = {}) {
 
       const ctl = new AbortController();
       res.on('close', () => ctl.abort());
+
+      // If client didn't supply its own Range, but provided start and end time slices,
+      // calculate exact byte boundaries to avoid downloading multi-gigabyte monolithic files.
+      if (!headers.Range && startStr !== null && endStr !== null) {
+        const startSec = Math.max(0, parseFloat(startStr));
+        const endSec = parseFloat(endStr);
+        if (Number.isFinite(startSec) && Number.isFinite(endSec) && endSec > startSec) {
+          // Resolve total file bytes
+          let totalBytes = contentLengthCache.get(target);
+          if (!totalBytes) {
+            const headHeaders = { ...headers };
+            delete headHeaders.Range;
+            const headAttempt = await fetchFollowing(target, headHeaders, 'HEAD', ctl.signal, f);
+            if ('res' in headAttempt) {
+              const cl = headAttempt.res.headers.get('content-length');
+              const cr = headAttempt.res.headers.get('content-range');
+              if (cr && /\/(\d+)$/.test(cr)) {
+                totalBytes = parseInt(cr.split('/').pop() as string, 10);
+              } else if (cl) {
+                totalBytes = parseInt(cl, 10);
+              }
+              if (totalBytes && totalBytes > 0) contentLengthCache.set(target, totalBytes);
+              try {
+                await headAttempt.res.body?.cancel();
+              } catch {}
+            }
+          }
+
+          if (totalBytes && totalBytes > 0) {
+            let totalDur = parseFloat(durStr || '0') || getDurationForUrl(target);
+            if (!totalDur || totalDur <= 0) {
+              totalDur = totalBytes / (128_000 / 8);
+            }
+
+            const bytesPerSec = totalBytes / totalDur;
+            const preRoll = Math.max(0, startSec - 0.8);
+            const postRoll = endSec + 0.8;
+            const startByte = Math.max(0, Math.floor(preRoll * bytesPerSec));
+            const endByte = Math.min(totalBytes - 1, Math.ceil(postRoll * bytesPerSec));
+
+            headers.Range = `bytes=${startByte}-${endByte}`;
+          }
+        }
+      }
 
       let attempt = await fetchFollowing(target, headers, req.method, ctl.signal, f);
       if ('res' in attempt && attempt.res.status === 404) {

@@ -71,3 +71,7 @@ public/motion_templates/
 # Script Studio local state (projects, runs, analyses, memory, backups)
 .spacepipe-studio/
 .spacepipe-studio-backups/
+
+# Cloudflare Wrangler
+.wrangler/
+
