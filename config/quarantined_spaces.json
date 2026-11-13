@@ -55,6 +55,13 @@
       "reason": "28_2119656420702359552: Unable to download JSON metadata: HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found",
       "quarantined_at": "2026-11-13T05:01:26.196616+00:00",
       "permanent": true
+    },
+    {
+      "space_id": "1evMRXmlKVvjPn",
+      "url": "https://x.com/i/spaces/1evMRXmlKVvjPn",
+      "reason": "28_2117405666419879936: Unable to download JSON metadata: HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found",
+      "quarantined_at": "2026-11-13T07:00:32.618322+00:00",
+      "permanent": true
     }
   ]
 }
