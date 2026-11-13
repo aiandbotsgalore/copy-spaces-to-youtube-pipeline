@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-12T23:26:45.978639+00:00",
+  "timestamp": "2026-11-13T06:06:48.939789+00:00",
   "overall_status": "CRITICAL",
   "voice_profiles": {
     "total": 15,
@@ -12,7 +12,7 @@
     "expected_releases_approx": 793,
     "gap_estimate": 19
   },
-  "recent_failures_count": 4,
+  "recent_failures_count": 3,
   "triaged_failures": [
     {
       "run_id": 43315355008,
@@ -40,17 +40,8 @@
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
-    },
-    {
-      "run_id": 43191415044,
-      "name": "Transcribe 20261111_local_1i69faszbw via AssemblyAI Cloud",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43191415044",
-      "root_cause": "Execution Error: Run 43191415044 failed in Transcribe 20261111_local_1i69faszbw via AssemblyAI Cloud",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 4
+  "quarantined_count": 3
 }
