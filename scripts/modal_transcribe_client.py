@@ -474,19 +474,50 @@ def transcribe_single(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SpacePipe Modal Cloud GPU Transcriber Client")
+    parser = argparse.ArgumentParser(description="SpacePipe Modal / ZeroGPU Cloud Transcriber Client")
     parser.add_argument("--release-tag", type=str, help="GitHub release tag to transcribe")
     parser.add_argument("--audio-file", type=str, help="Path to local audio file")
     parser.add_argument("--audio-url", type=str, help="Direct audio URL")
     parser.add_argument("--title", type=str, help="Optional title for the space")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--endpoint", type=str, default=DEFAULT_MODAL_ENDPOINT, help="Modal Webhook Endpoint URL")
+    parser.add_argument("--engine", type=str, choices=["modal", "zerogpu"], default="modal", help="Cloud engine (default: modal)")
     parser.add_argument("--language", type=str, default="en", help="Language code (default: 'en')")
     parser.add_argument("--no-upload", action="store_true", help="Do not upload assets to GitHub release")
     parser.add_argument("--no-clips", action="store_true", help="Do not auto-generate highlight clips")
     parser.add_argument("--gh-token", type=str, help="GitHub token for API and release upload")
 
     args = parser.parse_args()
+
+    if args.engine == "zerogpu":
+        import cloud_transcribe_client
+        target_url = args.audio_url
+        if not target_url and args.release_tag:
+            info = fetch_release_info(args.repo, args.release_tag, args.gh_token or os.environ.get("GH_TOKEN"))
+            for asset in info.get("assets", []):
+                if asset["name"].endswith(".mp3") or asset["name"].endswith(".m4a"):
+                    target_url = asset["browser_download_url"]
+                    break
+        if not target_url:
+            raise ValueError("No audio URL found for ZeroGPU transcription.")
+
+        print(f"[*] Dispatching to ZeroGPU Cloud Space for {args.release_tag or target_url}...")
+        res = cloud_transcribe_client.call_zerogpu_space("transcribe", target_url)
+        if res.get("error"):
+            raise RuntimeError(f"ZeroGPU failed: {res['error']}")
+
+        artifacts = cloud_transcribe_client.sync_to_local_transcripts(
+            tag=args.release_tag or "custom",
+            title=args.title or args.release_tag or "Twitter Space",
+            segments=res.get("segments", []),
+            turns=res.get("turns", []),
+            audio_url=target_url
+        )
+        if not args.no_upload and args.release_tag:
+            cloud_transcribe_client.clobber_upload_to_github_release(
+                args.repo, args.release_tag, [artifacts["json"], artifacts["srt"], artifacts["txt"]], args.gh_token
+            )
+        return
 
     transcribe_single(
         release_tag=args.release_tag,
