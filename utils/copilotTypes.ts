@@ -26,7 +26,11 @@ export type CopilotActionType =
   | 'SYNTHESIZE_VOX'
   | 'GET_TRANSCRIPT_GAPS'
   | 'DISPATCH_TRANSCRIPT_BACKFILL'
-  | 'RENDER_AVATAR';
+  | 'RENDER_AVATAR'
+  | 'APPROVE_SPEAKER'
+  | 'REJECT_SPEAKER'
+  | 'RELABEL_SPEAKER'
+  | 'LOAD_CONTRADICTION_REEL';
 
 export type ActionTier = 0 | 1 | 2;
 
@@ -168,6 +172,11 @@ export interface CopilotContextPayload {
     totalTranscriptsOnDisk: number;
     allSpeakersSample: string[];
     voiceProfilesCatalog?: any;
+  };
+  investigativeVault?: {
+    curatedPairs?: any[];
+    matchedTrajectories?: any[];
+    primaryDMs?: any[];
   };
   compactStateSummary?: string;
   githubToken?: string;

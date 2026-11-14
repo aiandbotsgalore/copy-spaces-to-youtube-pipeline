@@ -3,6 +3,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import nodePath from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type {
   CutId,
@@ -70,6 +71,133 @@ export interface DirectorMiddlewareOptions {
 const DEFAULT_BASE_URL = 'https://api.inceptionlabs.ai/v1';
 const BODY_LIMIT = 1_000_000;
 const MAX_CONCURRENT = 3;
+
+let speakerWriteQueue: Promise<void> = Promise.resolve();
+
+function enqueueSpeakerMutation<T>(fn: () => Promise<T>): Promise<T> {
+  const next = speakerWriteQueue.then(fn, fn);
+  speakerWriteQueue = next.then(() => {}, () => {});
+  return next;
+}
+
+function mutateSpeakerCandidate(params: {
+  action: 'approve' | 'undo' | 'relabel';
+  candidateId?: string;
+  episodeId: string;
+  rawSpeaker: string;
+  resolvedName?: string;
+  scope?: 'cluster' | 'segment';
+  segmentIdx?: number;
+}): { ok: boolean; candidate?: any; error?: string } {
+  const candFile = path.resolve(process.cwd(), 'public', 'transcripts', 'speaker_candidates.json');
+  const summaryFile = path.resolve(process.cwd(), 'public', 'transcripts', 'transcripts_summary_index.json');
+  const epFile = path.resolve(process.cwd(), 'public', 'transcripts', 'episodes', `${params.episodeId}.json`);
+
+  let candData: { candidates: any[] } = { candidates: [] };
+  if (fs.existsSync(candFile)) {
+    try { candData = JSON.parse(fs.readFileSync(candFile, 'utf8')); } catch { candData = { candidates: [] }; }
+  }
+  if (!Array.isArray(candData.candidates)) candData.candidates = [];
+
+  let target = candData.candidates.find(c =>
+    (params.candidateId && c.id === params.candidateId) ||
+    (c.episode_id === params.episodeId && c.raw_speaker === params.rawSpeaker && (params.scope !== 'segment' || c.segment_idx === params.segmentIdx))
+  );
+
+  if (params.action === 'approve') {
+    if (target) {
+      target.status = 'human_verified';
+      target.updated_at = new Date().toISOString();
+    } else {
+      target = {
+        id: params.candidateId || `cand_${params.episodeId}_${params.rawSpeaker}`.replace(/\s+/g, '_'),
+        scope: params.scope || 'cluster',
+        episode_id: params.episodeId,
+        raw_speaker: params.rawSpeaker,
+        resolved_name: params.resolvedName || params.rawSpeaker,
+        status: 'human_verified',
+        confidence: 1.0,
+        acoustic_conflict: false,
+        updated_at: new Date().toISOString()
+      };
+      candData.candidates.push(target);
+    }
+  } else if (params.action === 'undo') {
+    if (target) {
+      target.status = 'pending';
+      target.updated_at = new Date().toISOString();
+    }
+  } else if (params.action === 'relabel') {
+    if (target) {
+      target.resolved_name = params.resolvedName || target.resolved_name;
+      target.status = 'human_verified';
+      target.updated_at = new Date().toISOString();
+    } else {
+      target = {
+        id: params.candidateId || `cand_${params.episodeId}_${params.rawSpeaker}`.replace(/\s+/g, '_'),
+        scope: params.scope || 'cluster',
+        episode_id: params.episodeId,
+        raw_speaker: params.rawSpeaker,
+        resolved_name: params.resolvedName || params.rawSpeaker,
+        segment_idx: params.segmentIdx,
+        status: 'human_verified',
+        confidence: 1.0,
+        acoustic_conflict: false,
+        updated_at: new Date().toISOString()
+      };
+      candData.candidates.push(target);
+    }
+  }
+
+  // Cross-platform atomic write to speaker_candidates.json
+  const tmpCand = path.resolve(process.cwd(), 'public', 'transcripts', `.tmp_cand_${Date.now()}`);
+  fs.writeFileSync(tmpCand, JSON.stringify(candData, null, 2), 'utf8');
+  fs.renameSync(tmpCand, candFile);
+
+  // Sync transcripts_summary_index.json
+  if (fs.existsSync(summaryFile) && fs.existsSync(epFile)) {
+    try {
+      const summaryList: any[] = JSON.parse(fs.readFileSync(summaryFile, 'utf8'));
+      const epData: any = JSON.parse(fs.readFileSync(epFile, 'utf8'));
+      const segs: any[] = epData.segments || [];
+
+      // Recompute effective speakers using overlay
+      const activeCands = candData.candidates.filter(c =>
+        c.episode_id === params.episodeId &&
+        (c.status === 'human_verified' || (c.status === 'auto_approved' && c.confidence >= 0.85 && !c.acoustic_conflict))
+      );
+      const segMap = new Map<number, string>();
+      const clusMap = new Map<string, string>();
+      for (const c of activeCands) {
+        if (c.scope === 'segment' && typeof c.segment_idx === 'number') segMap.set(c.segment_idx, c.resolved_name);
+        else if (c.raw_speaker) clusMap.set(c.raw_speaker, c.resolved_name);
+      }
+
+      const effectiveRoster = new Set<string>();
+      for (let i = 0; i < segs.length; i++) {
+        const raw = segs[i].speaker || 'Speaker';
+        const eff = segMap.get(i) || clusMap.get(raw) || raw;
+        if (eff && !/^(?:speaker|caller|guest|host|unknown|unidentified|unassigned)(?:[\s_#-]*\d+)?$/i.test(eff.trim())) {
+          effectiveRoster.add(eff);
+        } else if (raw) {
+          effectiveRoster.add(raw);
+        }
+      }
+
+      const epEntry = summaryList.find((s: any) => s.release_tag === params.episodeId);
+      if (epEntry) {
+        epEntry.speakers = Array.from(effectiveRoster).sort();
+        const tmpSum = path.resolve(process.cwd(), 'public', 'transcripts', `.tmp_sum_${Date.now()}`);
+        fs.writeFileSync(tmpSum, JSON.stringify(summaryList, null, 2), 'utf8');
+        fs.renameSync(tmpSum, summaryFile);
+      }
+    } catch (syncErr) {
+      console.warn('[Director] Failed to sync transcripts_summary_index:', syncErr);
+    }
+  }
+
+  return { ok: true, candidate: target };
+}
 
 export function isValidModelId(id: string): boolean {
   return /^[a-z0-9][a-z0-9._:\/-]{0,99}$/i.test(id);
@@ -1235,6 +1363,44 @@ async function runCopilot(
     }
   }
 
+  // Load Layer 3 Investigative Contradiction Vault
+  try {
+    const kgFile = path.resolve(process.cwd(), 'public', 'transcripts', 'investigative_knowledge_graph.json');
+    const evoFile = path.resolve(process.cwd(), 'public', 'transcripts', 'claim_evolution_matrix.json');
+    let curatedPairs: any[] = [];
+    let matchedTrajectories: any[] = [];
+
+    if (fs.existsSync(kgFile)) {
+      const kg = JSON.parse(fs.readFileSync(kgFile, 'utf8'));
+      curatedPairs = (kg.contradiction_pairings || []).slice(0, 10);
+    }
+
+    if (fs.existsSync(evoFile)) {
+      const evo = JSON.parse(fs.readFileSync(evoFile, 'utf8'));
+      const allPairs: any[] = evo.pairs || [];
+      const userTerms = latestUserMsg.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+      if (userTerms.length > 0) {
+        matchedTrajectories = allPairs
+          .map(p => {
+            const str = `${p.title} ${p.speaker} ${p.topic_anchor} ${p.pre_fallout?.verbatim || ''} ${p.post_fallout?.verbatim || ''}`.toLowerCase();
+            const score = userTerms.filter(t => str.includes(t)).length;
+            return { pair: p, score };
+          })
+          .filter(x => x.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map(x => x.pair);
+      }
+    }
+
+    enrichedContext.investigativeVault = {
+      curatedPairs,
+      matchedTrajectories,
+    };
+  } catch (vaultErr) {
+    console.warn('[Copilot Director] Investigative vault load failed:', vaultErr);
+  }
+
   const cleanMessages: ChatMessage[] = req.messages
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(m => {
@@ -1248,6 +1414,13 @@ async function runCopilot(
     .filter(m => m.content.length > 0);
 
   const systemPrompt = buildCopilotSystemPrompt(enrichedContext);
+  const promptTokensEst = Math.ceil(systemPrompt.length / 3.8);
+  while (cleanMessages.length > 2) {
+    const totalInputEst = promptTokensEst + cleanMessages.reduce((sum, m) => sum + Math.ceil((m.content || '').length / 3.8), 0);
+    if (totalInputEst <= 58_000) break;
+    cleanMessages.splice(1, 1);
+  }
+
   const turnMessages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
     ...cleanMessages,
@@ -1621,6 +1794,77 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
         const ep = getEpisodeTranscript(tag);
         if (!ep) return fail(res, 'NOT_FOUND', `Episode transcript not found for tag ${tag}`);
         return send(res, 200, { ok: true, episode: ep });
+      }
+
+      if ((path === '/speakers/candidates' || path === '/api/speakers/candidates') && req.method === 'GET') {
+        const candFile = nodePath.resolve(process.cwd(), 'public', 'transcripts', 'speaker_candidates.json');
+        let candData = { candidates: [] };
+        if (fs.existsSync(candFile)) {
+          try { candData = JSON.parse(fs.readFileSync(candFile, 'utf8')); } catch { candData = { candidates: [] }; }
+        }
+        return send(res, 200, { ok: true, ...candData });
+      }
+
+      if ((path === '/speakers/approve' || path === '/api/speakers/approve') && req.method === 'POST') {
+        const body = await readBody(req);
+        if (body.ok === false) return fail(res, 'BAD_REQUEST', 'Could not read request body.');
+        const parsed = parseJsonLoose(body.text) as any;
+        if (!parsed || !parsed.episodeId || !parsed.rawSpeaker) {
+          return fail(res, 'BAD_REQUEST', 'episodeId and rawSpeaker are required.');
+        }
+        const outcome = await enqueueSpeakerMutation(async () =>
+          mutateSpeakerCandidate({
+            action: 'approve',
+            candidateId: parsed.candidateId,
+            episodeId: parsed.episodeId,
+            rawSpeaker: parsed.rawSpeaker,
+            resolvedName: parsed.resolvedName,
+            scope: parsed.scope,
+            segmentIdx: parsed.segmentIdx,
+          })
+        );
+        return send(res, 200, outcome);
+      }
+
+      if ((path === '/speakers/undo' || path === '/api/speakers/undo') && req.method === 'POST') {
+        const body = await readBody(req);
+        if (body.ok === false) return fail(res, 'BAD_REQUEST', 'Could not read request body.');
+        const parsed = parseJsonLoose(body.text) as any;
+        if (!parsed || !parsed.episodeId || !parsed.rawSpeaker) {
+          return fail(res, 'BAD_REQUEST', 'episodeId and rawSpeaker are required.');
+        }
+        const outcome = await enqueueSpeakerMutation(async () =>
+          mutateSpeakerCandidate({
+            action: 'undo',
+            candidateId: parsed.candidateId,
+            episodeId: parsed.episodeId,
+            rawSpeaker: parsed.rawSpeaker,
+            scope: parsed.scope,
+            segmentIdx: parsed.segmentIdx,
+          })
+        );
+        return send(res, 200, outcome);
+      }
+
+      if ((path === '/speakers/relabel' || path === '/api/speakers/relabel') && req.method === 'POST') {
+        const body = await readBody(req);
+        if (body.ok === false) return fail(res, 'BAD_REQUEST', 'Could not read request body.');
+        const parsed = parseJsonLoose(body.text) as any;
+        if (!parsed || !parsed.episodeId || !parsed.rawSpeaker || !parsed.resolvedName) {
+          return fail(res, 'BAD_REQUEST', 'episodeId, rawSpeaker, and resolvedName are required.');
+        }
+        const outcome = await enqueueSpeakerMutation(async () =>
+          mutateSpeakerCandidate({
+            action: 'relabel',
+            candidateId: parsed.candidateId,
+            episodeId: parsed.episodeId,
+            rawSpeaker: parsed.rawSpeaker,
+            resolvedName: parsed.resolvedName,
+            scope: parsed.scope,
+            segmentIdx: parsed.segmentIdx,
+          })
+        );
+        return send(res, 200, outcome);
       }
 
       if (path === '/sort' && req.method === 'POST') {

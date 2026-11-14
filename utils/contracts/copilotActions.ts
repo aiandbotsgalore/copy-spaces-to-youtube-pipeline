@@ -274,6 +274,47 @@ export const DispatchTranscriptBackfillParamsSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
+export const ApproveSpeakerParamsSchema = z.object({
+  candidateId: z.string().optional(),
+  episodeId: z.string(),
+  rawSpeaker: z.string(),
+  resolvedName: z.string().optional(),
+});
+
+export const RejectSpeakerParamsSchema = z.object({
+  candidateId: z.string().optional(),
+  episodeId: z.string(),
+  rawSpeaker: z.string(),
+});
+
+export const RelabelSpeakerParamsSchema = z.object({
+  candidateId: z.string().optional(),
+  episodeId: z.string(),
+  rawSpeaker: z.string(),
+  resolvedName: z.string(),
+  scope: z.enum(['cluster', 'segment']).optional(),
+  segmentIdx: z.number().optional(),
+});
+
+export const LoadContradictionReelParamsSchema = z.object({
+  pairingId: z.string(),
+  title: z.string().optional(),
+  preClip: z.object({
+    episodeTag: z.string(),
+    startSec: z.number(),
+    endSec: z.number(),
+    speaker: z.string().optional(),
+    label: z.string().optional(),
+  }).optional(),
+  postClip: z.object({
+    episodeTag: z.string(),
+    startSec: z.number(),
+    endSec: z.number(),
+    speaker: z.string().optional(),
+    label: z.string().optional(),
+  }).optional(),
+});
+
 /* -------------------------------------------------------------------------- */
 /* Action Schema Registry                                                     */
 /* -------------------------------------------------------------------------- */
@@ -307,6 +348,10 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   RENDER_AVATAR: RenderAvatarParamsSchema,
   GET_TRANSCRIPT_GAPS: GetTranscriptGapsParamsSchema,
   DISPATCH_TRANSCRIPT_BACKFILL: DispatchTranscriptBackfillParamsSchema,
+  APPROVE_SPEAKER: ApproveSpeakerParamsSchema,
+  REJECT_SPEAKER: RejectSpeakerParamsSchema,
+  RELABEL_SPEAKER: RelabelSpeakerParamsSchema,
+  LOAD_CONTRADICTION_REEL: LoadContradictionReelParamsSchema,
 };
 
 /**
