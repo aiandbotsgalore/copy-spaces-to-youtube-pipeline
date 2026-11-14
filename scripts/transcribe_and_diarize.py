@@ -63,9 +63,11 @@ def find_ffmpeg() -> str:
     if cand:
         return cand
     for p in [
+        "/usr/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg",
+        r"C:\ffmpeg-6.1.1-essentials_build\bin\ffmpeg.exe",
+        r"C:\Program Files\ffmpeg\bin\ffmpeg.exe",
         r"C:\Program Files\ShareX\ffmpeg.exe",
-        r"C:\Users\Logan\Downloads\ytdlp-gui-windows-64\ffmpeg.exe",
-        r"C:\Users\Logan\Documents\twitterspacedownloader\ffmpeg.exe",
     ]:
         if os.path.exists(p):
             return p
@@ -78,8 +80,11 @@ def find_ffprobe() -> str:
     if cand:
         return cand
     for p in [
+        "/usr/bin/ffprobe",
+        "/usr/local/bin/ffprobe",
+        r"C:\ffmpeg-6.1.1-essentials_build\bin\ffprobe.exe",
+        r"C:\Program Files\ffmpeg\bin\ffprobe.exe",
         r"C:\Program Files\ShareX\ffprobe.exe",
-        r"C:\Users\Logan\Downloads\ytdlp-gui-windows-64\ffprobe.exe",
     ]:
         if os.path.exists(p):
             return p
