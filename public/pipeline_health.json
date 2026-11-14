@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-11-14T05:53:21.572379+00:00",
-  "overall_status": "CRITICAL",
+  "timestamp": "2026-11-14T13:19:37.898259+00:00",
+  "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
@@ -12,7 +12,7 @@
     "expected_releases_approx": 793,
     "gap_estimate": 9
   },
-  "recent_failures_count": 4,
+  "recent_failures_count": 1,
   "triaged_failures": [
     {
       "run_id": 43543063088,
@@ -22,35 +22,8 @@
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
-    },
-    {
-      "run_id": 43498320495,
-      "name": "Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43498320495",
-      "root_cause": "Execution Error: Run 43498320495 failed in Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 43418583498,
-      "name": "Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43418583498",
-      "root_cause": "Execution Error: Run 43418583498 failed in Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 43406400298,
-      "name": "Batch Transcribe 5 episodes via whisper",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43406400298",
-      "root_cause": "Execution Error: Run 43406400298 failed in Batch Transcribe 5 episodes via whisper",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 4
+  "quarantined_count": 1
 }
