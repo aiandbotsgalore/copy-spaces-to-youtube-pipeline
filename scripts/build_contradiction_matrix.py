@@ -205,7 +205,12 @@ def call_mercury_claim_extraction(prompt_text: str, api_key: str, max_retries: i
                 content = data.get("choices", [{}])[0].get("message", {}).get("content")
                 if content:
                     parsed = json.loads(content)
-                    return parsed.get("claims", [])
+                    if isinstance(parsed, list):
+                        if parsed and isinstance(parsed[0], dict) and "claims" in parsed[0]:
+                            return parsed[0].get("claims", [])
+                        return [c for c in parsed if isinstance(c, dict)]
+                    elif isinstance(parsed, dict):
+                        return parsed.get("claims", [])
         except Exception:
             if attempt == max_retries - 1:
                 return None
@@ -393,7 +398,11 @@ def call_mercury_cross_examination(
             data = json.loads(resp.read().decode("utf-8"))
             content = data.get("choices", [{}])[0].get("message", {}).get("content")
             if content:
-                return json.loads(content)
+                parsed = json.loads(content)
+                if isinstance(parsed, list):
+                    return parsed[0] if (parsed and isinstance(parsed[0], dict)) else None
+                elif isinstance(parsed, dict):
+                    return parsed
     except Exception:
         pass
 
@@ -590,7 +599,17 @@ def build_matrix(
             "total_claims": len(all_claims),
             "total_trajectories": len(trajectories),
             "total_contradictions": len(discovered_pairs),
+            "trajectories": [
+                {
+                    "speaker": spk,
+                    "topic_anchor": top,
+                    "claim_count": len(tr_claims),
+                    "claims": tr_claims
+                }
+                for (spk, top), tr_claims in trajectories.items()
+            ],
             "pairs": discovered_pairs,
+            "claims": all_claims,
         }
         atomic_json_write(CLAIM_EVOLUTION_FILE, evolution_payload, create_backup=True)
 

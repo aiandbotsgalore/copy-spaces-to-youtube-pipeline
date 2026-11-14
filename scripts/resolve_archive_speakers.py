@@ -467,7 +467,12 @@ def call_mercury_speaker_schema(prompt_text: str, api_key: str, max_retries: int
                 data = json.loads(resp.read().decode("utf-8"))
                 content = data.get("choices", [{}])[0].get("message", {}).get("content")
                 if content:
-                    return json.loads(content)
+                    parsed = json.loads(content)
+                    if isinstance(parsed, list):
+                        return parsed[0] if (parsed and isinstance(parsed[0], dict)) else None
+                    elif isinstance(parsed, dict):
+                        return parsed
+                    return None
         except Exception as e:
             if attempt == max_retries - 1:
                 return None
@@ -634,7 +639,10 @@ def process_archive_speakers(
             if api_key:
                 llm_res = call_mercury_speaker_schema(envelope_text, api_key)
 
-            if not llm_res or not llm_res.get("resolved_name"):
+            if isinstance(llm_res, list):
+                llm_res = llm_res[0] if (llm_res and isinstance(llm_res[0], dict)) else None
+
+            if not llm_res or not isinstance(llm_res, dict) or not llm_res.get("resolved_name"):
                 continue
 
             # Check biometric veto if profile exists

@@ -48,6 +48,8 @@ social_shorts/
 
 # Generated batch run artifacts
 batches/
+*.bak
+public/transcripts/cache/
 work/
 diagnostics/
 repomix-output.xml
