@@ -1,0 +1,90 @@
+name: Batch Re-Diarize Transcripts (ZeroGPU)
+run-name: Batch Re-Diarize ${{ inputs.limit || '10' }} episodes via ZeroGPU
+
+on:
+  schedule:
+    # Daily autonomous run to chip away at backlog during off-peak hours
+    - cron: '15 4 * * *'
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Number of episodes to re-diarize'
+        required: false
+        default: '10'
+        type: string
+      filter_speaker:
+        description: 'Filter episodes by speaker name (e.g. Angela or Logan)'
+        required: false
+        default: ''
+        type: string
+      upload:
+        description: 'Upload updated transcripts, SRT, TXT to GitHub Releases'
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: 'Preview candidate episodes without calling ZeroGPU'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: batch-rediarize
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  rediarize_batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'requirements-worker.txt'
+
+      - name: Install Queue Dependencies
+        run: pip install -r requirements-worker.txt
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Execute Batch Re-Diarization
+        env:
+          PYTHONUNBUFFERED: "1"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT }}
+          SPACE_API_KEY: ${{ secrets.SPACE_API_KEY }}
+        run: |
+          LIMIT="${{ inputs.limit || '10' }}"
+          FILTER_SPK="${{ inputs.filter_speaker || '' }}"
+          UPLOAD_FLAG="${{ inputs.upload != false && '--upload' || '' }}"
+          DRY_RUN_FLAG="${{ inputs.dry_run == true && '--dry-run' || '' }}"
+
+          EXTRA_ARGS=""
+          if [ -n "$FILTER_SPK" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS --filter-speaker $FILTER_SPK"
+          fi
+
+          echo "[*] Running re-diarization (limit: $LIMIT $EXTRA_ARGS $UPLOAD_FLAG $DRY_RUN_FLAG)..."
+          python scripts/rediarize_transcripts.py --limit "$LIMIT" $EXTRA_ARGS $UPLOAD_FLAG $DRY_RUN_FLAG
+
+      - name: Commit & Push Updated Transcripts & Checkpoint
+        if: inputs.dry_run != true
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/transcripts/
+          git commit -m "chore(transcripts): update re-diarized transcripts and checkpoint [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin master || true
+          git push origin master || echo "Notice: Push skipped or up to date"

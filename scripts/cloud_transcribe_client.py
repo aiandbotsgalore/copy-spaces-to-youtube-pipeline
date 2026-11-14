@@ -301,14 +301,70 @@ def call_zerogpu_space(
     return result
 
 
-def clobber_upload_to_github_release(repo: str, tag: str, file_paths: List[str], token: Optional[str] = None):
-    """Uploads regenerated transcript files to GitHub Release assets with clobber."""
-    gh_bin = shutil.which("gh")
-    if gh_bin:
-        cmd = [gh_bin, "release", "upload", tag] + file_paths + ["--clobber", "-R", repo]
-        env = dict(os.environ)
-        if token:
-            env["GH_TOKEN"] = token
-        subprocess.run(cmd, env=env, check=True)
-    else:
-        print("[Warning] GitHub CLI 'gh' not found. Skipping remote release asset upload.")
+def fetch_release_audio_url(repo: str, tag: str, token: Optional[str] = None) -> Optional[str]:
+    """Finds the primary audio download URL for a release tag."""
+    url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
+    headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SpacePipe-ZeroGPUClient"}
+    if token:
+        headers["Authorization"] = f"token {token}"
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            for asset in data.get("assets", []):
+                name = asset.get("name", "").lower()
+                if name.endswith(".mp3") or name.endswith(".m4a") or name.endswith(".wav"):
+                    return asset.get("browser_download_url")
+    except Exception as e:
+        print(f"[Warning] Could not fetch release info for {tag}: {e}")
+    return None
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="SpacePipe ZeroGPU Cloud Transcriber Client")
+    parser.add_argument("--release-tag", type=str, help="Release tag to transcribe")
+    parser.add_argument("--audio-url", type=str, help="Direct audio URL")
+    parser.add_argument("--title", type=str, help="Episode title")
+    parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
+    parser.add_argument("--endpoint", type=str, help="ZeroGPU Space endpoint")
+    parser.add_argument("--no-upload", action="store_true", help="Do not upload assets to release")
+    parser.add_argument("--gh-token", type=str, help="GitHub token")
+
+    args = parser.parse_args()
+
+    token = args.gh_token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    audio_url = args.audio_url
+    if not audio_url and args.release_tag:
+        audio_url = fetch_release_audio_url(args.repo, args.release_tag, token)
+
+    if not audio_url:
+        print("[Error] No audio URL provided or found on release.")
+        sys.exit(1)
+
+    tag = args.release_tag or "custom_transcription"
+    title = args.title or tag
+
+    print(f"[*] Calling ZeroGPU Space endpoint for {tag} ({audio_url})...")
+    res = call_zerogpu_space(
+        action="transcribe",
+        audio_url=audio_url,
+        endpoint=args.endpoint
+    )
+
+    if res.get("error"):
+        print(f"[Error] ZeroGPU transcription failed: {res['error']}")
+        sys.exit(1)
+
+    segments = res.get("segments", [])
+    turns = res.get("turns", [])
+    artifacts = sync_to_local_transcripts(tag, title, segments, turns, audio_url)
+    print(f"[✓] Transcribed {len(segments)} segments. Synced to {artifacts['json']}")
+
+    if not args.no_upload and args.release_tag:
+        clobber_upload_to_github_release(args.repo, tag, [artifacts["json"], artifacts["srt"], artifacts["txt"]], token)
+        print(f"[✓] Uploaded assets to release {tag}")
+
+
+if __name__ == "__main__":
+    main()

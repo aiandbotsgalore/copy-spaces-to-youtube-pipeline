@@ -13,12 +13,13 @@ on:
         default: '5'
         type: string
       engine:
-        description: 'Transcription engine (whisper = free GitHub Cloud, assemblyai = paid API)'
+        description: 'Transcription engine (zerogpu = Hugging Face ZeroGPU, whisper = GitHub Cloud, assemblyai = paid API)'
         required: false
         default: 'whisper'
         type: choice
         options:
           - whisper
+          - zerogpu
           - assemblyai
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
@@ -93,6 +94,8 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT }}
+          SPACE_API_KEY: ${{ secrets.SPACE_API_KEY }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
           ENGINE="${{ inputs.engine || 'whisper' }}"
