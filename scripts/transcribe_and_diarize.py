@@ -967,23 +967,15 @@ def transcribe_audio_chunk_whisper(
             device = "cpu"
         compute_type = "float16" if device == "cuda" else "int8"
         model_size = os.environ.get("WHISPER_MODEL", "base")
-        print(f"[*] Loading faster-whisper {model_size} model on {device.upper()} ({compute_type})...")
+        beam_size = int(os.environ.get("WHISPER_BEAM_SIZE", "1" if device == "cpu" else "5"))
+        print(f"[*] Loading faster-whisper {model_size} model on {device.upper()} ({compute_type}, beam_size={beam_size})...")
         model = WhisperModel(model_size, device=device, compute_type=compute_type)
-        segments_gen, info = model.transcribe(str(audio_path), beam_size=5, word_timestamps=True)
+        segments_gen, info = model.transcribe(str(audio_path), beam_size=beam_size, word_timestamps=True)
         results: List[Dict[str, Any]] = []
 
-        current_spk_idx = 0
-        spk_letters = ["A", "B", "C", "D", "E", "F", "G", "H"]
-        last_end = 0.0
+        spk_label = "Speaker 1"
 
         for s in segments_gen:
-            # Split conversational turns on pause gaps >= 1.0s
-            if results and (s.start - last_end >= 1.0):
-                current_spk_idx = (current_spk_idx + 1) % len(spk_letters)
-
-            spk_label = f"Speaker {spk_letters[current_spk_idx]}"
-            last_end = s.end
-
             words = []
             if s.words:
                 for w in s.words:
@@ -1051,14 +1043,14 @@ def process_audio_file(
         except Exception as e:
             print(f"[!] Notice: FFmpeg compression skipped ({e}); proceeding with original audio.")
 
-    # 2. Marathon Space Chunking: If duration > 8 hours or file_size > 450 MB (AssemblyAI hard limit is 10 hours)
+    # 2. Marathon Space Chunking: If duration > 2 hours or file_size > 120 MB
     all_segments: List[Dict[str, Any]] = []
 
-    is_marathon = duration_sec > 28800.0 or file_size > 450 * (1024 ** 2)
+    is_marathon = duration_sec > 7200.0 or file_size > 120 * (1024 ** 2)
     if is_marathon:
-        chunk_seconds = 14400  # 4-hour slices
+        chunk_seconds = 7200  # 2-hour slices for safe CPU memory decoding
         print(f"\n[⚡ Marathon Space Workaround] Long Space detected (duration: {format_timestamp(duration_sec)}, size: {file_size / (1024*1024):.1f} MB).")
-        print(f"[*] Slicing audio into 4-hour segments via FFmpeg...")
+        print(f"[*] Slicing audio into 2-hour segments via FFmpeg for safe memory execution...")
 
         chunks_dir = input_audio.parent / "audio_chunks"
         chunks_dir.mkdir(parents=True, exist_ok=True)

@@ -86,6 +86,7 @@ jobs:
         id: run_batch
         if: inputs.dry_run != true && inputs.missing_clips != true
         env:
+          PYTHONUNBUFFERED: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

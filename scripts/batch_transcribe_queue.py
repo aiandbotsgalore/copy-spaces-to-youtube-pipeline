@@ -22,6 +22,12 @@ import urllib.request
 # Ensure repository root is in path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
+except Exception:
+    pass
+
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
@@ -446,36 +452,44 @@ def main():
         else:
             cmd = [sys.executable, "scripts/transcribe_and_diarize.py", "--release-tag", tag, "--repo", args.repo, "--engine", args.engine]
         start_time = time.time()
+        recent_lines: List[str] = []
         try:
-            res = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                errors="replace"
+            )
+            if proc.stdout:
+                for line in iter(proc.stdout.readline, ""):
+                    line_clean = line.rstrip()
+                    if line_clean:
+                        recent_lines.append(line_clean)
+                        if len(recent_lines) > 25:
+                            recent_lines.pop(0)
+                        print(f"    [{tag}] {line_clean}", flush=True)
+                proc.stdout.close()
+            ret_code = proc.wait()
             elapsed = time.time() - start_time
-            if res.returncode == 0:
-                print(f"[✓] Completed {tag} in {elapsed:.1f}s!")
-                if res.stdout.strip():
-                    for line in res.stdout.strip().splitlines()[-4:]:
-                        print(f"    {line}")
+            if ret_code == 0:
+                print(f"[✓] Completed {tag} in {elapsed:.1f}s!", flush=True)
                 success_count += 1
             else:
-                combined_output = (res.stdout or "") + "\n" + (res.stderr or "")
-                error_summary = f"Process exited with code {res.returncode}"
+                combined_output = "\n".join(recent_lines)
+                error_summary = f"Process exited with code {ret_code}"
                 if "Modal Transcription Error" in combined_output:
                     m = re.search(r"Modal Transcription Error:\s*(.+)", combined_output)
                     error_summary = m.group(1)[:120] if m else "Modal Transcription Error"
-                elif res.stderr.strip():
-                    non_empty = [l.strip() for l in res.stderr.strip().splitlines() if l.strip()]
-                    if non_empty:
-                        error_summary = non_empty[-1][:120]
+                elif recent_lines:
+                    error_summary = recent_lines[-1][:120]
 
-                print(f"[!] Failed transcribing {tag} ({error_summary}) after {elapsed:.1f}s.")
-                if res.stdout.strip():
-                    print(f"--- STDOUT ---\n{res.stdout.strip()}\n--------------")
-                if res.stderr.strip():
-                    print(f"--- STDERR ---\n{res.stderr.strip()}\n--------------")
-
+                print(f"[!] Failed transcribing {tag} ({error_summary}) after {elapsed:.1f}s.", flush=True)
                 failed_items.append({"tag": tag, "error": error_summary})
         except Exception as e:
             elapsed = time.time() - start_time
-            print(f"[!] Error processing {tag}: {e}. Continuing queue...")
+            print(f"[!] Error processing {tag}: {e}. Continuing queue...", flush=True)
             failed_items.append({"tag": tag, "error": str(e)})
 
     # Update failure history
