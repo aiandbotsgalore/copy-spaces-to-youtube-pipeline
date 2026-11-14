@@ -1,0 +1,9 @@
+whisperx>=3.8.5
+faster-whisper>=1.2.0
+pyannote.audio>=3.1.1
+speechbrain>=1.0.0
+soundfile>=0.12.1
+scipy>=1.11.0
+librosa>=0.10.1
+requests>=2.31.0
+huggingface_hub>=0.23.0
