@@ -1,14 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Film, Play, Pause, ChevronUp, ChevronDown, Trash2, ArrowUp, ArrowDown,
   Download, FileText, Sparkles, Layers, Clock, ShieldAlert, Check,
-  X, SkipForward, SkipBack, Loader2, Volume2, Wand2, Undo2
+  X, SkipForward, SkipBack, Loader2, Volume2, Wand2, Undo2, GitCompare, UserCheck
 } from 'lucide-react';
 import { useMontage, MontageClipItem, DIRECTOR_LAST_PROMPT_KEY } from '../contexts/MontageContext';
 import { buildSequencePlan } from '../utils/sequencePlan';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
 import { categoryDotClass } from '../utils/uiTokens';
+
+const GENERIC_SPEAKER_RE = /^(?:speaker|caller|guest|host|unknown|unidentified|unassigned)(?:[\s_#-]*\d+)?$/i;
+function isGenericSpeaker(speaker?: string): boolean {
+  if (!speaker) return true;
+  return GENERIC_SPEAKER_RE.test(speaker.trim());
+}
 
 export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden = false }) => {
   const {
@@ -43,7 +49,76 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
     exportAudacityLabels,
     isExporting,
     exportProgress,
+    updateClip,
   } = useMontage();
+
+  // Dual-deck audio player for seamless cross-episode contradiction playback
+  const audioDeckA = useRef<HTMLAudioElement | null>(null);
+  const audioDeckB = useRef<HTMLAudioElement | null>(null);
+  const [activeDeck, setActiveDeck] = useState<'A' | 'B'>('A');
+
+  const preloadNextDeck = useCallback((nextClip: MontageClipItem | undefined, targetDeck: 'A' | 'B') => {
+    if (!nextClip?.audioUrl) return;
+    const deck = targetDeck === 'A' ? audioDeckA.current : audioDeckB.current;
+    if (deck) {
+      deck.src = nextClip.audioUrl;
+      const onLoaded = () => {
+        deck.currentTime = Math.max(0, nextClip.startSec);
+        deck.removeEventListener('loadedmetadata', onLoaded);
+      };
+      deck.addEventListener('loadedmetadata', onLoaded);
+      deck.load();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuditioning && clips.length > 0) {
+      const nextIdx = currentAuditionIndex + 1;
+      if (nextIdx < clips.length) {
+        const nextDeck = activeDeck === 'A' ? 'B' : 'A';
+        preloadNextDeck(clips[nextIdx], nextDeck);
+      }
+    }
+  }, [isAuditioning, currentAuditionIndex, clips, activeDeck, preloadNextDeck]);
+
+  const loadCuratedContradictionReel = async () => {
+    try {
+      const res = await fetch('/transcripts/investigative_knowledge_graph.json');
+      if (!res.ok) return;
+      const data = await res.json();
+      const pairs = data.contradiction_pairings || [];
+      if (pairs.length === 0) return;
+      const pair = pairs[0];
+      const preClip: MontageClipItem = {
+        id: `reel_pre_${Date.now()}`,
+        title: `${pair.title} (Pre-Fallout)`,
+        quote: pair.pre_fallout?.verbatim || pair.title,
+        speaker: 'Angela',
+        sourceTitle: 'Pre-Fallout Record',
+        sourceTag: pair.pre_fallout?.episode_tag,
+        startSec: pair.pre_fallout?.start_sec || 10,
+        endSec: pair.pre_fallout?.end_sec || 25,
+        category: 'Contradiction',
+        severity: 9,
+      };
+      const postClip: MontageClipItem = {
+        id: `reel_post_${Date.now() + 1}`,
+        title: `${pair.title} (Post-Fallout)`,
+        quote: pair.post_fallout?.verbatim || pair.title,
+        speaker: 'Angela',
+        sourceTitle: 'Post-Fallout Record',
+        sourceTag: pair.post_fallout?.episode_tag,
+        startSec: pair.post_fallout?.start_sec || 45,
+        endSec: pair.post_fallout?.end_sec || 65,
+        category: 'Contradiction',
+        severity: 10,
+      };
+      replaceClips([preClip, postClip]);
+      startAudition();
+    } catch (err) {
+      console.warn('Failed to load contradiction reel:', err);
+    }
+  };
 
   // AI Sort (reorders only; never adds, removes or edits clips; locked clips stay put; undoable)
   const [isSorting, setIsSorting] = useState(false);
@@ -121,7 +196,7 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
   // Floating trigger when collapsed
   if (!isDrawerOpen) {
     return (
-      <div className="fixed bottom-20 right-6 z-40 animate-bounce-subtle">
+      <div className="fixed bottom-20 right-32 sm:right-36 z-40 animate-bounce-subtle">
         <button
           onClick={openDrawer}
           className="flex items-center gap-2.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-xl border border-indigo-400/30 text-xs font-bold transition-all hover:scale-105 active:scale-95 cursor-pointer"
@@ -189,6 +264,16 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
           >
             {isSorting ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />}
             <span>{isSorting ? 'Sorting… (cancel)' : 'AI Sort'}</span>
+          </button>
+
+          {/* Load Contradiction Reel */}
+          <button
+            onClick={loadCuratedContradictionReel}
+            className="flex items-center gap-1 px-3 py-1 bg-rose-950/40 hover:bg-rose-900/60 text-rose-200 border border-rose-500/30 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+            title="Load curated pre-fallout vs. post-fallout contradiction reel for side-by-side listening"
+          >
+            <GitCompare size={12} className="text-rose-400" />
+            <span>Contradiction Reel</span>
           </button>
 
           {/* Auto-sort by escalation */}
@@ -464,9 +549,43 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
                   {/* Footer: Speaker, Duration & In-Place Trim Nudges */}
                   <div className="pt-2 border-t border-slate-800/80 flex flex-col gap-1.5">
                     <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                      <span className="text-slate-300 font-sans font-semibold truncate max-w-[150px]">
-                        {clip.speaker}
-                      </span>
+                      <div className="flex items-center gap-1.5 truncate max-w-[170px]">
+                        <span className="text-slate-300 font-sans font-semibold truncate">
+                          {clip.speaker}
+                        </span>
+                        {isGenericSpeaker(clip.speaker) && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const newName = window.prompt(`Relabel speaker "${clip.speaker}" for this clip:`, '');
+                              if (!newName || !newName.trim()) return;
+                              const trimmed = newName.trim();
+                              updateClip(clip.id, { speaker: trimmed });
+                              if (clip.sourceTag) {
+                                try {
+                                  await fetch('/speakers/relabel', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      episodeId: clip.sourceTag,
+                                      rawSpeaker: clip.speaker,
+                                      resolvedName: trimmed,
+                                      scope: 'cluster',
+                                    }),
+                                  });
+                                } catch (err) {
+                                  console.warn('Failed to persist speaker relabel overlay:', err);
+                                }
+                              }
+                            }}
+                            className="flex items-center gap-0.5 text-[9px] text-amber-400 hover:text-amber-300 bg-amber-950/60 hover:bg-amber-900/80 px-1 py-0.2 rounded border border-amber-600/30 cursor-pointer transition-colors"
+                            title="Generic speaker label detected. Click to relabel across overlay."
+                          >
+                            <UserCheck size={9} />
+                            <span>Relabel</span>
+                          </button>
+                        )}
+                      </div>
                       <span className="text-indigo-300 font-bold">{clipDur.toFixed(1)}s</span>
                     </div>
 
@@ -506,6 +625,10 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
           </div>
         )}
       </div>
+
+      {/* Hidden Dual-Deck Audio Players for Seamless Pre-buffering */}
+      <audio ref={audioDeckA} className="hidden" preload="auto" />
+      <audio ref={audioDeckB} className="hidden" preload="auto" />
     </div>
   );
 };
