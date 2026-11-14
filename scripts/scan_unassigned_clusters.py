@@ -11,11 +11,76 @@ import os
 import re
 import json
 import argparse
+import urllib.request
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 EPISODES_DIR = Path("public/transcripts/episodes")
 CANDIDATES_OUT = Path("public/transcripts/speaker_candidates.json")
+
+def load_env_api_key() -> Optional[str]:
+    key = os.environ.get("INCEPTION_API_KEY")
+    if key:
+        return key.strip()
+    for f in [".env.local", ".env"]:
+        p = Path(f)
+        if p.exists():
+            try:
+                for line in p.read_text(encoding="utf-8").splitlines():
+                    if line.startswith("INCEPTION_API_KEY="):
+                        return line.split("=", 1)[1].strip().strip('"').strip("'")
+            except Exception:
+                pass
+    return None
+
+def resolve_speaker_with_mercury(dialogue_excerpt: str, api_key: str) -> Optional[str]:
+    """Uses Mercury-3 to semantically identify unknown speakers from dialog context."""
+    url = os.environ.get("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1") + "/chat/completions"
+    payload = {
+        "model": "mercury-3",
+        "messages": [
+            {
+                "role": "system",
+                "content": "Analyze the conversational context and determine the real name of the generic speaker (e.g. Speaker 1 or SPEAKER_00). If clearly identified by introductions, questions, or self-reference, return their name. If not identifiable, return name as null."
+            },
+            {"role": "user", "content": dialogue_excerpt}
+        ],
+        "max_tokens": 128,
+        "temperature": 0.0,
+        "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "speaker_identification",
+                "strict": True,
+                "schema": {
+                    "type": "object",
+                    "required": ["name", "confidence", "reason"],
+                    "properties": {
+                        "name": {"type": ["string", "null"]},
+                        "confidence": {"type": "number"},
+                        "reason": {"type": "string"}
+                    },
+                    "additionalProperties": False
+                }
+            }
+        }
+    }
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            content = data.get("choices", [{}])[0].get("message", {}).get("content")
+            if content:
+                parsed = json.loads(content)
+                if parsed.get("name") and parsed.get("confidence", 0) >= 0.8:
+                    return str(parsed["name"]).strip()
+    except Exception:
+        pass
+    return None
 
 GENERIC_PATTERN = re.compile(r"^(?:speaker[_\s]?\d+|speaker\b|unknown)$", re.IGNORECASE)
 
@@ -40,9 +105,13 @@ EXCLUDED_NAMES = {
 }
 
 
-def scan_clusters(limit_episodes: int = 0) -> Dict[str, Any]:
+def scan_clusters(limit_episodes: int = 0, use_mercury: bool = True) -> Dict[str, Any]:
     if not EPISODES_DIR.exists():
         return {"total_clusters": 0, "candidates": []}
+
+    api_key = load_env_api_key() if use_mercury else None
+    if api_key and use_mercury:
+        print("[*] Mercury-3 semantic speaker identification active.")
 
     ep_files = sorted(list(EPISODES_DIR.glob("*.json")))
     if limit_episodes > 0:
@@ -62,6 +131,7 @@ def scan_clusters(limit_episodes: int = 0) -> Dict[str, Any]:
         tag = ep_file.stem
         segments = data.get("segments", [])
         audio_url = data.get("audio_url") or data.get("metadata", {}).get("audio_url")
+        ep_speaker_cache: Dict[str, Optional[str]] = {}
 
         for i, seg in enumerate(segments):
             spk = seg.get("speaker", "").strip()
@@ -73,25 +143,44 @@ def scan_clusters(limit_episodes: int = 0) -> Dict[str, Any]:
             end = seg.get("end", 0)
             dur = end - start
 
-            suggested_name = None
-            for p in HANDOFF_PATTERNS:
-                m = p.search(txt)
-                if m:
-                    cand = m.group(1).strip()
-                    if cand not in EXCLUDED_NAMES and len(cand) >= 3:
-                        suggested_name = cand
-                        break
-
-            # Also check preceding segment for mic-handoff
-            if not suggested_name and i > 0:
-                prev_txt = segments[i - 1].get("text", "")
+            if spk in ep_speaker_cache:
+                suggested_name = ep_speaker_cache[spk]
+            else:
+                suggested_name = None
                 for p in HANDOFF_PATTERNS:
-                    m = p.search(prev_txt)
+                    m = p.search(txt)
                     if m:
                         cand = m.group(1).strip()
                         if cand not in EXCLUDED_NAMES and len(cand) >= 3:
                             suggested_name = cand
                             break
+
+                # Also check preceding segment for mic-handoff
+                if not suggested_name and i > 0:
+                    prev_txt = segments[i - 1].get("text", "")
+                    for p in HANDOFF_PATTERNS:
+                        m = p.search(prev_txt)
+                        if m:
+                            cand = m.group(1).strip()
+                            if cand not in EXCLUDED_NAMES and len(cand) >= 3:
+                                suggested_name = cand
+                                break
+
+                # If still not found and Mercury is enabled, query Mercury-3 for contextual resolution
+                if not suggested_name and use_mercury and api_key and dur >= 8.0:
+                    context_window = ""
+                    if i > 0:
+                        context_window += f"{segments[i - 1].get('speaker', 'Speaker')}: {segments[i - 1].get('text', '')}\n"
+                    context_window += f"{spk}: {txt}\n"
+                    if i + 1 < len(segments):
+                        context_window += f"{segments[i + 1].get('speaker', 'Speaker')}: {segments[i + 1].get('text', '')}\n"
+                    
+                    m_name = resolve_speaker_with_mercury(context_window, api_key)
+                    if m_name and m_name not in EXCLUDED_NAMES:
+                        suggested_name = m_name
+                        print(f"  [Mercury-3] Resolved {tag} {spk} -> {m_name}")
+
+                ep_speaker_cache[spk] = suggested_name
 
             cluster_key = suggested_name if suggested_name else f"{tag}_{spk}"
 
@@ -154,10 +243,11 @@ def scan_clusters(limit_episodes: int = 0) -> Dict[str, Any]:
 def main():
     parser = argparse.ArgumentParser(description="Scan historical transcripts for recurring unassigned speaker clusters")
     parser.add_argument("--limit", type=int, default=0, help="Limit number of episode files scanned (0 for all)")
+    parser.add_argument("--no-mercury", action="store_true", help="Disable Mercury-3 semantic resolution")
     args = parser.parse_args()
 
     print(f"[*] Scanning transcript files in {EPISODES_DIR}...")
-    res = scan_clusters(limit_episodes=args.limit)
+    res = scan_clusters(limit_episodes=args.limit, use_mercury=not args.no_mercury)
     print(f"[✓] Identified {res['total_candidates']} candidate clusters. Saved to {CANDIDATES_OUT}")
 
 

@@ -735,11 +735,16 @@ async function executeSearchTranscriptsTool(
     fetchImpl,
   });
 
+  const searchLabel = searchRes.queryUsed
+    ? searchRes.queryUsed
+    : searchRes.speakerFilterApplied
+      ? ("speaker: " + searchRes.speakerFilterApplied + (maxDurationSec ? " (<=" + maxDurationSec + "s)" : ""))
+      : "candidates";
   const action: CopilotAction = {
     id: `act_search_${Date.now()}`,
     action: 'SEARCH_TRANSCRIPTS',
-    params: { query: searchRes.queryUsed, scope: searchRes.scopeUsed, speaker_hint: searchRes.speakerFilterApplied, timestamp_sec: timestampSec },
-    explanation: `Searched transcripts for "${searchRes.queryUsed || 'timestamp'}"`,
+    params: { query: searchRes.queryUsed, scope: searchRes.scopeUsed, speaker_hint: searchRes.speakerFilterApplied, timestamp_sec: timestampSec, max_duration_sec: maxDurationSec },
+    explanation: `Searched transcripts for "${searchLabel}"`,
     status: searchRes.matches.length > 0 ? 'completed' : 'no_matches',
     matchCount: searchRes.matches.length,
     resultData: { total_matches: searchRes.totalMatches, matches: searchRes.matches },
@@ -1441,9 +1446,13 @@ async function runCopilot(
           }
         }
 
+        const hasRunTelemetry = observationBlocks.some(b => b.includes('GET_RUN_HISTORY') || b.includes('GET_RUN_JOBS'));
+        const round2Directive = hasRunTelemetry
+          ? '[DIRECTIVE: Use the live telemetry and failure excerpts above to formulate your final comprehensive, evidence-backed diagnosis immediately. Detail the exact failure reasons, step names, and errors for all inspected runs. Do NOT output placeholder waiting messages.]'
+          : '[DIRECTIVE: Answer the user latest message directly first. If they asked a diagnostic question (such as why a single episode appeared or why a speaker label was wrong), answer it honestly without repeating a rejected clip pitch. If they asked for a clip recommendation, evaluate the candidate turns above against their editorial goal, speaker filter, and max duration limit—rejecting meta-commentary about clips—and emit CREATE_CLIP only if a candidate clearly qualifies.]';
         turnMessages.push({
           role: 'user',
-          content: `[SYSTEM OBSERVATION & LIVE TELEMETRY RESULTS]:\n${observationBlocks.join('\n\n')}\n\n[DIRECTIVE: Use the live telemetry and failure excerpts above to formulate your final comprehensive, evidence-backed diagnosis immediately. Detail the exact failure reasons, step names, and errors for all inspected runs. Do NOT output placeholder waiting messages.]`,
+          content: `[SYSTEM OBSERVATION & LIVE TELEMETRY RESULTS]:\n${observationBlocks.join('\n\n')}\n\n${round2Directive}`,
         });
       }
 
@@ -1567,7 +1576,7 @@ export function createDirectorMiddleware(opts: DirectorMiddlewareOptions) {
           schemaName: 'ping',
           schema: { type: 'object', additionalProperties: false, required: ['ok'], properties: { ok: { type: 'boolean' } } },
           temperature: 0,
-          maxTokens: 16,
+          maxTokens: 128,
           timeoutMs: Math.min(cfg.timeoutMs, 30_000),
           clientSignal: ctl.signal,
         });
