@@ -14,6 +14,7 @@ import json
 import time
 import shutil
 import tempfile
+import subprocess
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -64,11 +65,13 @@ _DIARIZATION_PIPELINE = None
 _SPEECHBRAIN_MODEL = None
 
 
-def validate_api_key(api_key: str) -> bool:
+def validate_api_key(api_key: Optional[str]) -> bool:
     expected = os.environ.get("SPACE_API_KEY", "").strip()
     if not expected:
         return True  # Open if no key configured in Space secrets
-    return api_key.strip() == expected
+    if not api_key:
+        return False
+    return str(api_key).strip() == expected
 
 
 def validate_audio_url(url: str) -> str:
@@ -108,8 +111,14 @@ def _gpu_transcribe_chunk(chunk_path: str, model_size: str = "large-v3-turbo") -
         # Pre-cached or lazy init inside GPU context
         _WHISPER_MODEL = WhisperModel(model_size, device="cuda", compute_type="float16")
 
+    try:
+        import soundfile as sf
+        audio_input, sr = sf.read(chunk_path, dtype="float32")
+    except Exception:
+        audio_input = chunk_path
+
     segments_gen, info = _WHISPER_MODEL.transcribe(
-        chunk_path,
+        audio_input,
         beam_size=5,
         word_timestamps=True,
         vad_filter=True
@@ -163,7 +172,7 @@ def _gpu_diarize_chunk(
     if _DIARIZATION_PIPELINE is None and hf_token:
         _DIARIZATION_PIPELINE = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
-            use_auth_token=hf_token
+            token=hf_token
         ).to(torch.device("cuda"))
 
     if _SPEECHBRAIN_MODEL is None:
@@ -180,8 +189,10 @@ def _gpu_diarize_chunk(
         max_speakers=max_speakers
     )
 
+    annotation = getattr(diarization, "speaker_diarization", diarization)
+
     turns = []
-    for turn, _, speaker in diarization.itertracks(yield_label=True):
+    for turn, _, speaker in annotation.itertracks(yield_label=True):
         turns.append({
             "speaker": speaker,
             "start": float(turn.start),
@@ -411,6 +422,26 @@ def rediarize_endpoint(
         return json.dumps({"error": str(e)}, indent=2)
 
 
+@spaces.GPU(duration=60)
+def gpu_health_probe(api_key: str = "") -> str:
+    """ZeroGPU probe handler wired to Gradio for startup scanner detection."""
+    if not validate_api_key(api_key):
+        return json.dumps({"status": "unauthorized"})
+    try:
+        import torch
+        cuda_avail = torch.cuda.is_available()
+        dev_name = torch.cuda.get_device_name(0) if cuda_avail else "CPU/None"
+    except Exception as e:
+        cuda_avail = False
+        dev_name = str(e)
+
+    return json.dumps({
+        "status": "healthy",
+        "cuda_available": cuda_avail,
+        "device_name": dev_name
+    }, indent=2)
+
+
 # Gradio Interface Definition
 try:
     import gradio as gr
@@ -446,6 +477,18 @@ try:
                 inputs=[rediar_url, rediar_segs, rediar_key, rediar_profiles, min_spk, max_spk],
                 outputs=[rediar_output],
                 api_name="rediarize"
+            )
+
+        with gr.Tab("Health"):
+            health_key = gr.Textbox(label="Space API Key", type="password")
+            health_btn = gr.Button("Check GPU Status", variant="secondary")
+            health_output = gr.Code(label="Health Output", language="json")
+
+            health_btn.click(
+                fn=gpu_health_probe,
+                inputs=[health_key],
+                outputs=[health_output],
+                api_name="health"
             )
 
     if __name__ == "__main__":

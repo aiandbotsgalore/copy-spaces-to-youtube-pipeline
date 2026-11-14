@@ -6,7 +6,7 @@ colorTo: indigo
 sdk: gradio
 sdk_version: 5.20.0
 app_file: app.py
-short_description: SpacePipe faster-whisper + PyAnnote 3.1 ZeroGPU service
+short_description: Fast WhisperX and PyAnnote 3.1 ZeroGPU service
 python_version: "3.12"
 ---
 
