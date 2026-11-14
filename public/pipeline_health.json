@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-11-14T13:19:37.898259+00:00",
-  "overall_status": "DEGRADED",
+  "timestamp": "2026-11-14T22:13:12.560199+00:00",
+  "overall_status": "HEALTHY",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
@@ -12,18 +12,8 @@
     "expected_releases_approx": 793,
     "gap_estimate": 9
   },
-  "recent_failures_count": 1,
-  "triaged_failures": [
-    {
-      "run_id": 43543063088,
-      "name": "Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43543063088",
-      "root_cause": "Execution Error: Run 43543063088 failed in Batch Transcribe 5 episodes via GitHub Cloud (whisper)",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    }
-  ],
+  "recent_failures_count": 0,
+  "triaged_failures": [],
   "auto_retried_count": 0,
-  "quarantined_count": 1
+  "quarantined_count": 0
 }
