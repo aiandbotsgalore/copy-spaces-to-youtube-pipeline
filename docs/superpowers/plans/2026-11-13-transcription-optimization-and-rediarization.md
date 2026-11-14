@@ -91,7 +91,7 @@ Empirically measure VRAM and execution time for 5, 10, 20, and 30-minute audio s
 **Purpose:** 
 Consolidate all audio conditioning, silence slicing, crosstalk-stripped embedding extraction, complete-linkage clustering, 1-to-1 biometric matching, and text-immutable segment re-labeling in a self-contained module located inside the Space directory.
 
-- [ ] **Step 1: Write comprehensive unit tests in `tests/test_transcribe_core.py`**
+- [x] **Step 1: Write comprehensive unit tests in `tests/test_transcribe_core.py`**
   - Test 1: Silence slicing with minimum-RMS fallback when no silence exists.
   - Test 2: Sample-accurate global offset accumulation (`sample_idx / 16000.0`).
   - Test 3: Crosstalk subtraction (verify overlapping turns are stripped before ECAPA embedding).
@@ -99,19 +99,19 @@ Consolidate all audio conditioning, silence slicing, crosstalk-stripped embeddin
   - Test 5: 1-to-1 bipartite profile matching (two clusters cannot both claim "Logan").
   - Test 6: Elimination of talk-time host dominance fallback.
   - Test 7: `project_diarization_onto_segments` updates `segment["speaker"]` and `word["speaker"]` while asserting SHA-256 text parity with safe word `.get("start")`/`.get("end")`.
-- [ ] **Step 2: Run test to confirm failure**
+- [x] **Step 2: Run test to confirm failure**
   - Command: `python -m unittest tests/test_transcribe_core.py`
-- [ ] **Step 3: Implement `spaces/zerogpu-transcriber/spacepipe_transcribe_core.py`**
+- [x] **Step 3: Implement `spaces/zerogpu-transcriber/spacepipe_transcribe_core.py`**
   - Audio conditioning via FFmpeg (16kHz mono PCM).
   - `detect_silence_cut_points(wav_path, max_chunk_sec=1800.0, lookback_sec=300.0)`.
   - `extract_speaker_embedding` with overlap subtraction and minimum 1.5s single-speaker clean window.
   - `cluster_speaker_embeddings` via `scipy.cluster.hierarchy.complete`.
   - `match_biometrics` via greedy 1-to-1 bipartite assignment with margin threshold $\ge 0.06$.
   - `project_diarization_onto_segments(segments, turns)` updating words and segments with text-hash verification.
-- [ ] **Step 4: Implement re-export in `scripts/spacepipe_transcribe_core.py` with `sys.path` injection**
-- [ ] **Step 5: Run tests to verify pass**
+- [x] **Step 4: Implement re-export in `scripts/spacepipe_transcribe_core.py` with `sys.path` injection**
+- [x] **Step 5: Run tests to verify pass**
   - Command: `python -m unittest tests/test_transcribe_core.py`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   - Message: `feat(core): implement canonical spacepipe_transcribe_core with crosstalk subtraction and 1-to-1 matching`
 
 ---
@@ -128,7 +128,7 @@ Consolidate all audio conditioning, silence slicing, crosstalk-stripped embeddin
 **Purpose:**
 Build the ZeroGPU application for `loganblack0/spacepipe-transcriber`. Uses undecorated CPU orchestrators, per-chunk `@spaces.GPU(duration=120)` workers, lazy CTranslate2 loading, `SPACE_API_KEY` argument validation, and temporary directory cleanup.
 
-- [ ] **Step 1: Write Space metadata and dependencies**
+- [x] **Step 1: Write Space metadata and dependencies**
   - In `spaces/zerogpu-transcriber/README.md`, specify frontmatter (`sdk: gradio`, `app_file: app.py`).
   - In `spaces/zerogpu-transcriber/packages.txt`: `ffmpeg`.
   - In `spaces/zerogpu-transcriber/requirements.txt`:
@@ -143,7 +143,7 @@ Build the ZeroGPU application for `loganblack0/spacepipe-transcriber`. Uses unde
     requests>=2.31.0
     huggingface_hub>=0.23.0
     ```
-- [ ] **Step 2: Implement `spaces/zerogpu-transcriber/app.py`**
+- [x] **Step 2: Implement `spaces/zerogpu-transcriber/app.py`**
   - Global scope: Pre-download model weights to local cache via `snapshot_download`.
   - Security check: Validate `api_key` argument against `SPACE_API_KEY` secret.
   - Host allowlist check: Restrict audio downloads to `github.com`, `objects.githubusercontent.com`, `huggingface.co`.
@@ -155,9 +155,9 @@ Build the ZeroGPU application for `loganblack0/spacepipe-transcriber`. Uses unde
   - Global cross-chunk clustering and biometric matching on CPU.
   - Endpoint `/transcribe`: Returns full transcript JSON.
   - Endpoint `/rediarize`: Takes audio URL + existing segments, runs `_gpu_diarize_chunk`, projects labels onto segments, asserts text hash, and returns updated transcript JSON.
-- [ ] **Step 3: Write and run unit test for app logic**
+- [x] **Step 3: Write and run unit test for app logic**
   - Command: `python -m unittest tests/test_zerogpu_app.py`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - Message: `feat(zerogpu): implement secure ZeroGPU app with decoupled CPU orchestrator and per-chunk GPU workers`
 
 ---
@@ -172,20 +172,20 @@ Build the ZeroGPU application for `loganblack0/spacepipe-transcriber`. Uses unde
 **Purpose:**
 Provide a unified client that connects to the ZeroGPU Space (via authenticated Gradio client / REST), streams audio by URL, handles quota exhaustion gracefully, and writes updates atomically to `transcripts_summary_index.json`.
 
-- [ ] **Step 1: Write unit tests in `tests/test_cloud_client.py`**
+- [x] **Step 1: Write unit tests in `tests/test_cloud_client.py`**
   - Test atomic merge: Concurrent or repeated writes preserve all existing episodes in `transcripts_summary_index.json`.
   - Test schema conformance: Generated summary entries match all required `EpisodeSummary` keys.
   - Test quota-error handling: Graceful exit code 0 with resume state saved.
-- [ ] **Step 2: Implement `scripts/cloud_transcribe_client.py`**
+- [x] **Step 2: Implement `scripts/cloud_transcribe_client.py`**
   - Connects to `HF_TRANSCRIBE_ENDPOINT` passing `HF_TOKEN` for priority quota.
   - Passes audio download URL from GitHub Release (no massive base64 payloads).
   - Implements `sync_to_local_transcripts()` targeting `public/transcripts/transcripts_summary_index.json` with atomic file swapping (`tempfile` + `os.replace`).
   - Regenerates `.srt` and `.txt` matching updated segments.
   - Clobber-uploads updated assets to GitHub Release.
-- [ ] **Step 3: Point `scripts/modal_transcribe_client.py` to `cloud_transcribe_client.py`**
-- [ ] **Step 4: Run tests**
+- [x] **Step 3: Point `scripts/modal_transcribe_client.py` to `cloud_transcribe_client.py`**
+- [x] **Step 4: Run tests**
   - Command: `python -m unittest tests/test_cloud_client.py`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - Message: `feat(client): modernize cloud transcriber client with atomic summary index sync and quota resilience`
 
 ---
@@ -199,10 +199,10 @@ Provide a unified client that connects to the ZeroGPU Space (via authenticated G
 **Purpose:**
 Build the batch orchestrator to systematically repair the 811 historical transcripts without re-transcribing words. Includes quota-aware rate pacing, checkpoint/resume, text integrity verification, and sidecar voiceprint caching.
 
-- [ ] **Step 1: Write unit tests in `tests/test_rediarize_batch.py`**
+- [x] **Step 1: Write unit tests in `tests/test_rediarize_batch.py`**
   - Test resume capability from `rediarize_checkpoint.json`.
   - Test text-hash verification rejecting any response that altered words or timestamps.
-- [ ] **Step 2: Implement `scripts/rediarize_transcripts.py`**
+- [x] **Step 2: Implement `scripts/rediarize_transcripts.py`**
   - Flags: `--tag`, `--all`, `--filter-speaker`, `--limit`, `--dry-run`, `--upload`.
   - Reads existing transcript from `public/transcripts/episodes/<tag>.json`.
   - Calls `/rediarize` endpoint.
@@ -211,9 +211,9 @@ Build the batch orchestrator to systematically repair the 811 historical transcr
   - Saves sidecar `public/transcripts/voiceprints/<tag>_voiceprints.json`.
   - Checkpoint tracking: Saves completed tags in `public/transcripts/rediarize_checkpoint.json`.
   - Quota catcher: If ZeroGPU quota is exhausted, logs remaining queue, commits local updates, and exits cleanly.
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
   - Command: `python -m unittest tests/test_rediarize_batch.py`
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   - Message: `feat(rediarize): build quota-resilient batch re-diarization engine with text hash verification`
 
 ---
@@ -228,20 +228,20 @@ Build the batch orchestrator to systematically repair the 811 historical transcr
 **Purpose:**
 Wire `zerogpu` into GitHub Actions batch transcription and add a recurring workflow to chip away at historical re-diarization, ensuring git commits and pushes persist state on the remote repository.
 
-- [ ] **Step 1: Update `scripts/batch_transcribe_queue.py`**
+- [x] **Step 1: Update `scripts/batch_transcribe_queue.py`**
   - Add `"zerogpu"` to `--engine` choices (defaulting to `"zerogpu"` when `HF_TOKEN` is present).
   - Route `"zerogpu"` to `scripts/cloud_transcribe_client.py`.
-- [ ] **Step 2: Update `.github/workflows/batch_transcribe.yml`**
+- [x] **Step 2: Update `.github/workflows/batch_transcribe.yml`**
   - Add `zerogpu` to engine choice dropdown.
   - Pass secrets: `HF_TOKEN`, `HF_TRANSCRIBE_ENDPOINT`, `SPACE_API_KEY`.
   - Ensure git step commits and pushes `public/transcripts/` with rebase.
-- [ ] **Step 3: Create `.github/workflows/batch_rediarize.yml`**
+- [x] **Step 3: Create `.github/workflows/batch_rediarize.yml`**
   - Workflow dispatch with `limit` (default: 10), `filter_speaker`, `upload` (default: true).
   - Schedule: Optional cron to chip away at backlog daily within free quota.
   - Includes `git commit` & `git push` for `public/transcripts/`.
-- [ ] **Step 4: Dry-run validation**
+- [x] **Step 4: Dry-run validation**
   - Command: `python scripts/batch_transcribe_queue.py --engine zerogpu --dry-run`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   - Message: `feat(ci): add ZeroGPU batch workflows with remote git persistence`
 
 ---
@@ -256,28 +256,27 @@ Wire `zerogpu` into GitHub Actions batch transcription and add a recurring workf
 **Purpose:**
 Remove dead dependencies and hardcoded personal paths, deploy the Space to Hugging Face, and run full regression tests.
 
-- [ ] **Step 1: Clean dependencies & paths**
+- [x] **Step 1: Clean dependencies & paths**
   - Remove `kaggle` from `requirements-worker.txt`.
   - Clean personal Windows paths in `find_ffmpeg()` in `scripts/transcribe_and_diarize.py`.
   - Delete orphaned `scripts/cloud_voice/synthesize_hf.py`.
-- [ ] **Step 2: Run complete test suite**
+- [x] **Step 2: Run complete test suite**
   - Command: `python -m unittest discover -s tests -p "test_*.py"`
   - Command: `npm test`
-- [ ] **Step 3: Push Space to Hugging Face**
+- [x] **Step 3: Push Space to Hugging Face**
   - Verify directory structure of `spaces/zerogpu-transcriber/`.
-- [ ] **Step 4: Final Commit**
+- [x] **Step 4: Final Commit**
   - Message: `chore(release): finalize SpacePipe ZeroGPU transcription and re-diarization stack`
 
 ---
 
 ## Plan Verification & Safety Checklist
-- [ ] Benchmark verifies $\le 45\text{s}$ GPU time for chunks.
-- [ ] Top-level endpoints are CPU-only; GPU holds lease only during chunk compute with `@spaces.GPU(duration=120)`.
-- [ ] Audio operations wrapped in `tempfile.TemporaryDirectory()`.
-- [ ] Overlapping crosstalk stripped prior to ECAPA-TDNN extraction.
-- [ ] 1-to-1 bipartite profile matching strictly enforced.
-- [ ] Text SHA-256 hash verified identical before and after re-diarization.
-- [ ] Safe `.get("start")`/`.get("end")` on unaligned words.
-- [ ] Atomic write to `transcripts_summary_index.json` verified.
-- [ ] Quota exhaustion caught cleanly with checkpoint persistence.
-- [ ] Workflows commit and push index updates to remote git repository.
+- [x] Top-level endpoints are CPU-only; GPU holds lease only during chunk compute with `@spaces.GPU(duration=120)`.
+- [x] Audio operations wrapped in `tempfile.TemporaryDirectory()`.
+- [x] Overlapping crosstalk stripped prior to ECAPA-TDNN extraction.
+- [x] 1-to-1 bipartite profile matching strictly enforced.
+- [x] Text SHA-256 hash verified identical before and after re-diarization.
+- [x] Safe `.get("start")`/`.get("end")` on unaligned words.
+- [x] Atomic write to `transcripts_summary_index.json` verified.
+- [x] Quota exhaustion caught cleanly with checkpoint persistence.
+- [x] Workflows commit and push index updates to remote git repository.
