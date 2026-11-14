@@ -1,14 +1,14 @@
 {
-  "last_updated": "2026-11-12T20:41:23.933839+00:00",
-  "total_episodes_with_audio": 845,
-  "transcribed_count": 791,
-  "untranscribed_count": 54,
-  "recent_untranscribed_count": 1,
-  "focus_mode": "recent_only",
+  "last_updated": "2026-11-14T18:34:40.583659+00:00",
+  "total_episodes_with_audio": 846,
+  "transcribed_count": 846,
+  "untranscribed_count": 0,
+  "recent_untranscribed_count": 0,
+  "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 93.6,
-  "auto_chain_active": true,
-  "is_queue_complete": false,
+  "percent_complete": 100.0,
+  "auto_chain_active": false,
+  "is_queue_complete": true,
   "fatal_error": null,
   "failed_episodes": {
     "20260218_1yNxaNwbgmnKj": {
@@ -117,126 +117,5 @@
       "last_attempt": "2026-11-12T20:31:34.472021+00:00"
     }
   },
-  "next_in_queue": [
-    {
-      "tag": "20261111_local_1i69faszbw",
-      "name": "angelaDeacon2",
-      "date": "Nov 11, 2026",
-      "is_recent": true
-    },
-    {
-      "tag": "20260218_1ynJOabwAvQKR",
-      "name": "UFO: AFTER DARK \ud83d\udef8\ud83d\udc7d\ud83d\udc7e",
-      "date": "Oct 23, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1LyGBqVBnMnKN",
-      "name": "MICHAEL JACKSON \u2728\ud83d\udc40",
-      "date": "Oct 21, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynJOabzEqOKR",
-      "name": "The Doghouse",
-      "date": "Oct 20, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1djGXlaaolNGZ",
-      "name": "A calming oasis in the desert of my confusion",
-      "date": "Oct 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1jMJgLjqREgxL",
-      "name": "Navigating Disclosure \ud83d\udc7d\ud83d\udef8\u2764\ufe0f",
-      "date": "Oct 14, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1jMJgLjPnvjxL",
-      "name": "--TESTING-- Don't Enter",
-      "date": "Oct 14, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1PlKQpBqpyyxE",
-      "name": "3kdjrbrj",
-      "date": "Oct 11, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynJOavvNblKR",
-      "name": "can you hear me? can't get this app to work today",
-      "date": "Oct 10, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1eaKbrMybgoKX",
-      "name": "Salsa dancing with my confusion",
-      "date": "Oct 10, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BRJjZDzQRWJw",
-      "name": "Conscious Connections \u269c\ufe0f",
-      "date": "Oct 9, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1DXxyvkAAjbKM",
-      "name": "MIDDAY Thursday Thoughts",
-      "date": "Oct 6, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynJOagRAqyKR",
-      "name": "14 HR Intermission mark",
-      "date": "Oct 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1lPKqBaoOedGb",
-      "name": "stuff and heavy metal\ud83c\udfb8\ud83e\udd18\ud83d\udc7d",
-      "date": "Oct 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1OwxWwRWyZZxQ",
-      "name": "Semi Quiet & Curious Paranormal Researchers \ud83d\udd2e\ud83d\udef8\ud83d\udc7d\ud83c\udfb8",
-      "date": "Oct 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BdGYyBelqYGX",
-      "name": "NO DEMON HITCHHIKERS IN OUR ENERGY/SPACE!! ADDRESSING THE - ENERGY. \u2764\ufe0f\ud83d\udc7b",
-      "date": "Oct 5, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1ynJOagYErQKR",
-      "name": "MilitaryWitness2 UAP Livestream audio(watch video instead if possible)",
-      "date": "Oct 4, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1kvJpmNyjpgxE",
-      "name": "UFO/UAP Ancient Aliens and Disclosure \u2764\ufe0f\ud83c\udf0d",
-      "date": "Sep 28, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1OyKAVwwNqrGb",
-      "name": "Supporting Roswell UFO Symposium Premier @mindEscapePodcast",
-      "date": "Sep 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1djGXlBeqXXGZ",
-      "name": "\ud83d\udc7d\u26a0\ufe0fDANGER ZONE\u26a0\ufe0f\ud83d\udc7d \ud83c\udf44\ud83e\ude90\u2604\ufe0f",
-      "date": "Sep 18, 2022",
-      "is_recent": false
-    }
-  ]
+  "next_in_queue": []
 }
