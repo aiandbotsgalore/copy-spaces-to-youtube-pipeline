@@ -1,14 +1,14 @@
 {
-  "last_updated": "2026-11-14T09:25:05.647937+00:00",
-  "total_episodes_with_audio": 846,
-  "transcribed_count": 831,
-  "untranscribed_count": 15,
+  "last_updated": "2026-11-15T16:39:33.800719+00:00",
+  "total_episodes_with_audio": 847,
+  "transcribed_count": 847,
+  "untranscribed_count": 0,
   "recent_untranscribed_count": 0,
   "focus_mode": "backlog",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 98.2,
-  "auto_chain_active": true,
-  "is_queue_complete": false,
+  "percent_complete": 100.0,
+  "auto_chain_active": false,
+  "is_queue_complete": true,
   "fatal_error": null,
   "failed_episodes": {
     "20260218_1yNxaNwbgmnKj": {
@@ -117,96 +117,5 @@
       "last_attempt": "2026-11-12T20:31:34.472021+00:00"
     }
   },
-  "next_in_queue": [
-    {
-      "tag": "20260216_1jMJgeBdvrqKL",
-      "name": "Good morning UAP Space",
-      "date": "Aug 6, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260218_1yNxaNwbgmnKj",
-      "name": "Holiday Blessings \ud83d\ude4f Let us Pray & Party \ud83e\uddce\ud83c\udffb\ud83c\udf84\ud83d\udd7a\ud83c\udffb",
-      "date": "Dec 22, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mnxeRnLmloKX",
-      "name": "You are NOT the Father",
-      "date": "Dec 22, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1djxXlkWdRkxZ",
-      "name": "private",
-      "date": "Dec 22, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1vAxRARvmDYJl",
-      "name": "\ud83d\udca9\ud83d\udca9\ud83d\udca9\ud83d\udca9\ud83d\udca9",
-      "date": "Dec 21, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1MnGnpjlkwdxO",
-      "name": "Poseidon's Time Travelers Union",
-      "date": "Dec 20, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BdGYykenzQGX",
-      "name": "The Otherworldly Hour - The Cosmos & Beyond \ud83d\udc7d\ud83c\udde6\ud83c\uddfa\ud83c\uddec\ud83c\udde7\ud83c\uddfa\ud83c\uddf2\ud83e\udd85\ud83e\udd96",
-      "date": "Dec 19, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1vAxRAREEZqJl",
-      "name": "UFO 101 FAFO",
-      "date": "Dec 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1mrxmklrbokGy",
-      "name": "Lost Souls of #UFOTwitter. We're talking about you @ElonMusk",
-      "date": "Dec 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1dRJZMkLrObGB",
-      "name": "\ud83d\udc0d\ud83d\udc0a\ud83e\udd96REPTILLIANS \ud83d\udc0a\ud83d\udc0d\ud83e\udd96.  Lost souls of #UFOTwitter",
-      "date": "Dec 18, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1jMJgLDbZXmxL",
-      "name": "\ud83d\udc7dMorning UFO",
-      "date": "Nov 29, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1PlKQpqOreMxE",
-      "name": "UFO \ud83d\udef8\ud83d\udc7d ZONE OF CONFUSION",
-      "date": "Nov 28, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1rmGPkVNvNYKN",
-      "name": "\ud83d\udc7d\ud83d\udef8App glitched, cohost can\u2019t speak, Logan (host) asleep \ud83d\ude34sweet #dreams",
-      "date": "Nov 25, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260216_1BRKjZMLNBLKw",
-      "name": "after astral party \ud83c\udf8a",
-      "date": "Nov 24, 2022",
-      "is_recent": false
-    },
-    {
-      "tag": "20260217_1MYxNgQrNqNKw",
-      "name": "The physiognomy of ulterior, superior, and anterior races of humanoid.",
-      "date": "Nov 18, 2022",
-      "is_recent": false
-    }
-  ]
+  "next_in_queue": []
 }
