@@ -1,0 +1,89 @@
+# THE PAPER TRAIL — PERMANENT EDITORIAL RULE SHEET
+
+**Established:** November 14, 2026
+**Purpose:** The standing creative and editorial instructions for THE PAPER TRAIL's Angela Maggard documentary. Use this sheet BEFORE any script review, rewrite, clip selection, narration preparation, or audio generation. When Logan gives a new correction, append or revise the relevant rule here; do not rely solely on chat memory.
+
+## 1. What this documentary is
+
+1. THE PAPER TRAIL is an **audio-only, first-person investigative documentary**, not an evidence presentation, legal brief, rebuttal Space, or a relationship drama. Everything must work through spoken narration, real archival recordings, clearly identified readings of written messages, music, silence, and sound design.
+2. **Angela is the central subject.** The purpose is to reveal the pattern Logan describes: how Angela gained people's trust, particularly vulnerable people and survivors, gathered private knowledge, and used personal vulnerabilities and relationships against people after conflicts. The story must move beyond Logan and Sav to other affected people.
+3. Logan's friendship is the audience's doorway into the larger story, NOT the story's entire subject. Do not turn the documentary into Logan defending himself allegation by allegation, or into a catalog of online drama.
+4. Prioritize excellent narrative podcast storytelling: lived-in scenes, personal stakes, mystery, escalating discoveries, contradictions, emotional complexity, reversals, suspense, momentum, and meaningful endings. Avoid repetitive summaries and laundry lists of offenses. Every scene must reveal something new or alter the listener's understanding.
+5. Aim for the sophistication of strong investigative audio documentaries (the project's PRETEND-style reference is an approach to narrative technique, not a license to copy anyone's distinctive voice). Do not impose an arbitrary episode runtime.
+
+## 2. The opening is LOCKED
+
+6. **The authoritative, word-for-word locked introduction is now saved in `THE_PAPER_TRAIL_LOCKED_INTRO_USER_VERBATIM_20261114.txt` (root project folder).** Logan supplied the complete exact text on November 14, 2026. It begins with Angela saying 'See, the one thing I like to do is I'll send people...' and ends with 'I am a walking paper trail' / 'This is the paper trail.' Preserve the supplied wording, speech sequence, and speaker order exactly, even where the raw transcript sounds imperfect; verify against audio before any correction, and seek approval before changing locked narration. Do not substitute a reconstructed or streamlined intro.
+7. Preserve the original prologue's architecture: the surveillance boast; Logan introducing the Space 'Logan Black Unmasked'; escalating accusations in Angela's own voice; Logan promising to examine even material where he does not look his best; the unexpected friendship; 'I hear somebody I used to vouch for'; Angela's alleged methods and the widening victim trail; her 'believe them both' challenge; the title reveal. Script changes require Logan's explicit editorial approval.
+8. Approval of **Narration 001, Take 4** and **Narration 002** as *successful audio performances* is NOT approval to replace the wording or architecture of the original introduction. Keep audio-performance approval separate from script-text approval.
+
+## 3. Let the voices tell the story
+
+9. **NEVER have Logan say what Angela can say herself in available authentic archival audio.** If Angela explains her conduct, boasts about it, contradicts herself, changes her story, admits an action, makes a threat, or describes a relationship, prefer the genuine recording. Logan should frame, connect, interpret sparingly, or respond personally—not pre-announce and then paraphrase her.
+10. Angela's **real recorded voice** is the preferred vehicle for her statements. Do not recreate archival Angela remarks with AI voice synthesis, fabricate Angela lines, or substitute a narrator's invented dialogue.
+11. Do not narrate a clip's revelation immediately before or after playing it unless the listener genuinely needs context. Give strong clips room to land; use silence and hard cuts deliberately. Avoid redundant narration ('Angela explained...', followed by Angela explaining).
+12. Logan should sound like Logan: candid, conversational, intimate, confident, sometimes uncomfortable, never performatively outraged or robotic. He provides his firsthand memories, scene-setting, necessary explanations for unfamiliar X Spaces listeners, meaningful connections, and the questions that propel the investigation.
+13. Preserve exact words, speaker identities, recording context, and timestamps for archival clips. ASR/OCR transcripts may contain errors: verify against original audio when preparing final cuts; do not invent or silently repair quotes. A source file date or time estimate is not automatically a verified airdate or clip-in point.
+14. **Known speaker correction:** The July 15 line threatening to 'ruin every single person that he cares about' is **Angela speaking to Sav**; 'he' refers to Logan. Do not let an erroneous diarization assign that threat to Sav.
+15. Written DMs are NOT archival speech. If performed, audibly introduce them as written messages and make the performance unmistakably different from original recordings. Never imply an AI recreation is genuine recorded speech.
+
+## 4. Confident storytelling, not legal-brief narration
+
+16. **Do not add 'allegedly,' 'alleged,' 'I couldn't verify those claims,' 'I cannot independently confirm,' or repetitive lawyerly cautions before/after Logan's first-person account or verified events.** Logan has explicitly objected to this habit. Do not undermine his account with automatic caveats.
+17. Logan says that his account of Angela's conduct is corroborated and verified. Respect that as the documentary's editorial starting point; do not repeatedly challenge it in spoken narration. Factual checks happen off-mic during editing, not as defensive filler read to the audience.
+18. **No narrated uncertainty management.** Logan does not want the documentary to slow down to qualify, weigh, or defensively distinguish accusations that he believes the archive substantiates. Write assertive, specific narration from his firsthand perspective; give Angela and witnesses their own voices. Work through source conflicts privately during editing, not by inserting 'what this does or doesn't prove' speeches. Do not fabricate a quote, observation, or event, and do not knowingly describe something unsupported as directly witnessed. If a specific assertion remains materially unresolved, seek a more accurate way to tell that beat without turning it into an on-air disclaimer.
+19. Treat Angela's self-descriptions as things Angela **said**, not automatic proof that every element of her personal mythology happened. Let listeners hear her claims; do not insert Logan saying he could not verify them unless Logan explicitly wants that narrative beat.
+20. If Angela states a justification for a harmful act, listeners may need to hear it so the contradiction has weight. Do not turn her into a one-note cartoon. Avoid armchair diagnoses, unsupported motive claims, and false equivalence.
+
+## 5. Logan, Sav, and how the romance began
+
+21. **The beginning of Logan and Sav's romance is story-worthy and MUST be told, not reduced to 'Sav and I were romantically involved.'** Dramatize how their paths crossed and the connection developed, because this explains Angela's pre-existing friendship with Sav and the later change in loyalties. Use the actual conversations and chronology, not an invented meet-cute.
+22. Known origin chain: Sav and Angela first connected on TikTok and were friends; Sav moved into the X Spaces community to help Angela analyze what Angela described as psychological warfare / manipulation; Sav met Logan there and fell for him. Sav's own words included 'BECAUSE I FELL FOR LOGAN' / 'I fell for the guy dude. That's the fucking story.' Confirm exact clip/message placement before scripting the scene.
+23. **Keep the relationship itself private.** After telling the origin story, only include romantic-relationship facts indispensable to understanding Angela's actions. Do not dwell on fights, insults, perceived meanness, breakup dynamics, divorce paperwork, intimate messages, or competing accusations about who was a good or bad partner.
+24. Never make the plot about adjudicating Logan-versus-Sav accusations or reproducing Angela's framing that Logan was the sole bad actor. Logan says Sav shared information behind his back and that his responses were later portrayed out of context. Do not casually recast Logan's defensive responses as one-sided abuse. Avoid importing the phrase 'reactive abuse' as a diagnosis of either person without a compelling story reason.
+25. **Be explicit about how Angela got the messages:** Sav herself sent Angela screenshots/private conversations between Sav and Logan while treating Angela as a trusted friend/confidante. Angela later publicly presented/shared material from those private conversations. Don't hide the causal chain in vague language like 'messages ended up in Angela's hands.'
+26. Give Sav agency. She was Angela's close friend and confidante, chose to share material, at times supported conflict, and later objected to the use of what she shared. Neither erase her choices nor make her the principal villain. Her private vulnerability matters when it shows what Angela did with trust.
+27. Angela's recorded words and Sav's own written words should deliver these turning points whenever possible. The documentary should not need extended narration about the relationship.
+
+## 6. The shape of the story
+
+28. Build outward from the powerful original introduction. Act I earns the trust: the late-night community, Angela's arrival and public self-presentation, Logan helping and defending her, Sav arriving and the **real beginning** of her connection with Logan, and the first consequential rupture.
+29. Favor archival **reversals** over narrator conclusions: a warm statement against a later hostile statement; a promise of confidentiality against publication; a claim of protecting someone against that person's account of feeling betrayed. Preserve chronology and full context so the edit does not manufacture a contradiction.
+30. Angela's self-recorded statements should drive the more disturbing discoveries about monitoring, collecting names and screenshots, using private conversations, threatened retaliation, and her view of consequences. Then widen to other former associates' firsthand experiences. Avoid arbitrary source diversity quotas: use the strongest material even if several good clips come from one broadcast.
+31. Do not bog the listener down with an evidentiary citation system, source-status discussion, or narration about methodology. Source IDs/timestamps can remain in **non-spoken production notes** for locating the original audio.
+32. The story should earn its emotional reactions rather than ordering the listener what to think. Strong sound design serves the moment: dry authentic Spaces texture, purposeful silence, restrained music, natural performances, no fake cinematic bombast. The working three-note D-minor piano motif is a production concept, not permission to override future sound decisions.
+
+## 7. Revision and approval discipline
+
+33. **Do not rewrite, replace, or silently 'improve' text Logan has locked or approved.** Keep proposals clearly labeled; changes to a candidate are not implemented changes to the master. Make focused, high-value revisions rather than restarting the script repeatedly.
+34. **Review your own writing before presenting it:** check narrative momentum; exact causal steps (who sent what to whom); whether Angela could say a line herself; needless qualifiers; privacy of Logan and Sav; chronology; whether each clip earns its place; whether narration repeats it; performance naturalness; and source fidelity.
+35. Never confuse discussing an idea with approving it. Approved audio takes are not permission to create new ones or modify approved scripts. Do not spend ElevenLabs credits without clear user authorization for the specific generation.
+36. **Accepted narration performance reference:** ElevenLabs 'logan 2' clone, model 'eleven_v4', similarity 1.0 (100%), stability 0.4 (40%), natural conversational delivery, minimal helpful tags. Narration 001 Take 4 and Narration 002 were liked/approved for audio quality. Preserve those settings unless Logan requests a change.
+37. This is a personal, lean production. No needless infrastructure, legal workflow, record-management scheme, repetitive planning ritual, or prompts for coding agents without Logan explicitly asking.
+38. **Keep this sheet current.** New user criticisms/corrections supersede older inconsistent drafts. When a new direction conflicts with an earlier rule (e.g. do tell the *origin* of the Sav/Logan romance while still protecting *private disputes*), record the distinction, not a blanket ban.
+
+## 8. Confirmed factual corrections and speaker-name standards (November 14, 2026)
+
+39. **Sav fundraiser:** Logan **organized** the fundraiser and **asked Shane to help**. The fundraiser raised **around $400**, not $4,700. Do not rewrite this as co-organized without acknowledging Logan's role.
+40. **Lin photo:** Logan states that **Lin's sister** publicly posted the photograph. A later message from Sav says Lin posted it herself; that is a conflicting statement, not proof that Sav's version was accurate. The established production instruction is to use Lin's sister as the person who posted the photograph unless primary evidence establishes otherwise. Logan believes Sav's conflicting account was motivated by anger/jealousy; do not present an unspoken motive as independently proved.
+41. **Speaker spelling and identity:** “Sian” and “Sine” refer to the **same person**. Use **Sine** throughout spoken narration, speaker labels, and production references. Do not introduce a second witness on the strength of inconsistent transcription spelling.
+42. **Recording-date correction:** The *Petty Space* in which Angela announced posting Logan/Sav screenshots belongs to the **September 8, 2026** confrontation in the current source index (20260908_1wxWjlrwXokJQ). The revised Act I currently incorrectly labels that excerpt September 30. Check recording metadata and correct all duplicate cues before recording.
+43. **Source-hold consistency:** The July 15 threatening statement is already settled in Logan's correction as **Angela speaking to Sav, about Logan**. An appended nonspoken source hold in the current candidate contradicts that rule and must not silently override it. Check original media for final clip fidelity, but do not reassign the speaker based solely on bad diarization.
+44. **Accurate surveillance description:** When Angela says she sent “people in the community that I know in real life” to listen to conversations, do not reframe that as dispatching people for physical, in-person surveillance. Let her recorded words state what happened; avoid expanding the claim beyond its meaning.
+45. **Narrative chronology:** The July friendship fracture, Logan hosting Oor, August crisis, and September publication must be investigated and sequenced so cause and effect are intelligible. Do not mistake Angela's asserted justification for an objectively established motive. The details may have multiple explanations.
+46. **Dramatic reveals:** Do not preempt the later release of private screenshots in Act I. Build the romance and friendship with real scenes, establish the rupture, then allow subsequent acts to earn the publication reveal.
+47. **Ending/source caution:** If a crucial climax depends on an alt-account screenshot, do not declare authorship established merely because an account display name says “Angela.” Prefer authentic archival audio when stronger; authenticate a message before making it the decisive proof of a serious act.
+48. **Consent and privacy:** Especially for a suicidal crisis or family/children's involvement, weigh the real-life impact on Sav. Prefer Angela's **public statements about what she planned to expose** over reproducing the most intimate private crisis material without editorial necessity.
+
+## 9. Fast check before any future draft
+
+- Is Angela the subject and her **actual voice** the engine?
+- Have I preserved the locked original introduction?
+- Does this scene reveal something important and keep the listener wanting more?
+- Did I unnecessarily narrate what Angela can play in her own words?
+- Have I removed boilerplate 'allegedly' / 'couldn't verify' phrasing?
+- Have I explained how relationships and information actually connected, without exposing needless private drama?
+- Have I credited the correct speaker and preserved the real audio/text?
+- Is this clearly a **proposal**, **approved text**, **recorded performance**, or **verified final cut**?
+
+**Editorial authority:** Logan's explicit latest instructions control. This is a working rules reference, NOT permission to change any approved manuscript or generate new audio.

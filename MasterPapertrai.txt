@@ -1,0 +1,991 @@
+### SUMMARY OF KEY EDITORIAL CORRECTIONS IN THIS REVISION
+
+1. **Treating Angela’s Explanations as Claims to Be Tested, Not Established Facts:**  
+   Throughout the manuscript, the narration now separates *what Angela admits doing* from *why she claims she did it*. Whenever Angela portrays herself as a reluctant victim forced to retaliate, the script tests her explanation against contemporaneous recordings, messages, and chronology.
+2. **Dismantling the "Silenced Whistleblower" Claim (`CLIP #187`):**  
+   In Act III, Scene 8, when Angela admits handing Sav’s private messages to outside YouTuber Teejay Felony because *"nobody in the UFO community would give me a microphone,"* the script no longer lets that excuse pass unchallenged. It tests her claim against the broadcast log—establishing that between September 3 and September 18 alone, Angela hosted or spoke at length on stage across at least nine public broadcasts in the archive. She was not denied a platform; she was angry that certain hosts refused to let her control their rooms.
+3. **Investigating Status, Audience Resentment, and Control Through Angela’s Own Words:**  
+   In Act II, Scene 5 and Act III, the script incorporates Angela’s own recorded statements about platform status and control—including her resentment that other creators *"ratioed"* her or *"platformed themselves"* with her research (`AQ-0225`, `AQ-0044`), her anger that friends like Sine and Logan preferred *"to sit at all these tables than to flip it"* (`AQ-0175`), her insistence that she *"will have the motherfucking last word"* (`AQ-0022`), and her vow to *"burn Logan 14 times over before I let him drag my name"* (`AQ-0014`).
+4. **Calibrating Motive Analysis (`Requirement #5`):**  
+   In Act III, Scene 6, Angela’s *Hook Line Sinker* admission (`CLIP #113` / `AQ-0270`—*"And I got triggered. And so I sent the screenshot proving he was a liar... I hit him in his ego"*) is no longer presented as a simplistic single explanation for the entire conflict. Instead, it is contrasted with the two other explanations she gave for the same leak (*Petty Space* and *Logan Black Unmasked*), letting the listener hear how her justification shifted depending on the room.
+5. **Removing the Remaining Relationship-Argument Clip (`CLIP #054` / `AQ-0019`) & Fixing the May 12–13 DM Attribution (`Requirements #6 & #7`):**  
+   `CLIP #054` (replaying Logan’s ultimatum text to Sav) has been removed from Act III, Scene 6 so the scene remains squarely focused on Angela’s breach of Sav’s confidence. In Act I, all references to the swapped May 12–13 DM labels have been removed; Angela’s early warmth and support are established strictly through her verified recorded audio (`AQ-0146`, `AQ-0097`, `AQ-0241`, `AQ-0242`, `AQ-0269`).
+
+---
+
+# THE PAPER TRAIL
+## The Friendship, the Files, and the People in Between
+### Master Broadcast Script
+
+**NARRATOR:** Logan Black  
+**FORMAT:** Continuous, audio-only investigative documentary.  
+**SONIC FOUNDATION:** Dry, documentary-realistic X Spaces archival audio with natural room resonance (-16.0 LUFS integrated, -1.0 dBTP ceiling). No synthetic room reverb, no theatrical trailer music. A sparse signature motif—three solitary felt piano notes in D minor over a restrained low-frequency pulse—marks the opening and the final silence.  
+**WRITTEN COMMUNICATIONS DIRECTION:** Direct messages and written chat logs with verified authorship are performed by dedicated AI voice recreations of the original authors. To keep the distinction between genuine archival voice recordings and written text unmistakable for the listener, every performed text block is introduced by a clear spoken attribution, framed with a subtle tactile phone-send click, and mixed with a dry, close-mic acoustic EQ.
+
+---
+
+### PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE
+
+`[SFX: Black sonic field. An open microphone from the September 18, 2026 broadcast. No music. Raw room tone.]`
+
+`[CLIP #006 / #188 | AQ-0024 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 01:52:22]`
+
+**ANGELA**  
+"See, the one thing I like to do is I'll send people in the community that I know in real life to watch you talk shit about me so I can see both sides, and then I'll play dumb. I'll do that for months."
+
+`[SFX: Audio clip cuts out cleanly. Silence: 1.5 beats.]`
+
+**LOGAN**  
+`[close to mic, conversational, measured]`  
+That's Angela Maggard.
+
+She said that into an open microphone on X—in a live audio room she had titled *Logan Black Unmasked*.
+
+`[beat]`
+
+I'm Logan Black.
+
+When Angela hosted that broadcast in September of 2026, she was speaking to hundreds of listeners in an online audio community where she had spent the last two years building a following as a whistle-blower and a fierce advocate for trauma survivors.
+
+Over the course of that afternoon—and across weeks of broadcasts that surrounded it—she turned her microphone on me, and on the people closest to me.
+
+`[SFX: Rapid-fire montage sequence. Each clip separated by a clean, dry cut—no music, raw mic audio.]`
+
+`[CLIP #032 / #037 | AQ-0002 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 04:04]`  
+**ANGELA:** "Because, no, we have a predator problem on this app. I didn't call you a fucking pedophile. I called you a predator because that is what you are. The behavior is predatory."
+
+`[CLIP #061 / #140 | AQ-0026 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 02:09:15]`  
+**ANGELA:** "The issue is because he is abusive to women in the back channels. He triangulates them against each other. Right? He has this little harem of followers and people he builds up."
+
+`[CLIP #056 | AQ-0021 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 97:20]`  
+**ANGELA:** "A few accounts on here have already messaged me saying that you were an abuser and that you were a rapist. I want to know your perspective before I act."
+
+`[CLIP #028 | AQ-0037 | *The Social Cost of Taking a Suicide Threat Seriously* (20260930_1lJQRWLvWVzxE), Sept 30, 2026, 1301.2s]`  
+**ANGELA:** "...making AI fucking porn videos of people jacking off in fucking spaces, sharing fucking nudes of all these women on X."
+
+`[CLIP #014-A | AQ-0014 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026]`  
+**ANGELA:** "I will burn Logan 14 times over before I let him drag my name."
+
+`[CLIP #011 / #012 | AQ-0068 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:50:14]`  
+**ANGELA:** "And I am a very petty individual. I'm working on it. I think it's a work in progress. I'm a retired mean girl. But if people make me come back to character, I'm not holding any punches back."
+
+`[CLIP #013 / #014 / #015 | AQ-0070 & AQ-0071 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:52:28]`  
+**ANGELA:** "And then don't cry about it later when we take it too damn far because we warned you ahead of time... I have this line. And when it gets crossed, man, I go zero to a 100. There's no doubling back... I'll wrap you up in lawsuits. I will serve you with a cease and desist. I will wrap it up for three to four years, damn it. You're gonna be paying out of pocket. I'm not."
+
+`[SFX: Hard audio stop. Complete silence: 2 beats.]`
+
+**LOGAN**  
+If you tuned into those broadcasts as a stranger, you would think Angela was confronting an enemy she had been tracking from a distance.
+
+What you wouldn't know is that for more than two years before that broadcast, Angela and I were friends.
+
+Here is how Angela herself described our history just ten days earlier:
+
+`[CLIP #112 / #167 / #168 | AQ-0269 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 3303.2s]`
+
+**ANGELA**  
+"So Logan was the second space I've ever told my story in. He was like the third friend I made on here... So I established a friendship with him. He had helped me get information about my family and the back channels. And so I defended him relentlessly."
+
+`[SFX: Audio decays. Silence: 1.2 beats.]`
+
+**LOGAN**  
+When Angela entered our community, she presented herself as a protector of vulnerable people—someone who fought for abused women and children and stood up to bullies. People trusted her. I trusted her. My girlfriend, Sav, trusted her as a close friend and confidante.
+
+When Angela turned on us in September, I started going through the recordings from thirty-five public broadcasts and the private messages behind them. I also started talking to the people Angela had been close to before us—people whose warnings I had dismissed when Angela and I were still on good terms.
+
+And as I laid the recordings out in chronological order, two things became clear.
+
+First, what happened to Sav and me wasn't a one-off argument. Multiple former friends and associates across the community described the same experience: trusting Angela as a friend and advocate, confiding private struggles or family details to her, and later watching those confidences used to humiliate, intimidate, or retaliate against them when the relationship soured.
+
+And second: whenever Angela's conduct was challenged, she had a story ready to explain why *she* was actually the victim—why she had been silenced, cornered, or forced to act in order to protect someone else.
+
+`[CLIP #002-P | AQ-0027 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 01:59:56]`
+
+**ANGELA**  
+"I infiltrate, document, expose. So like what I said, when you hear bad things about me, believe it. I act accordingly."
+
+**LOGAN**  
+Because Angela recorded herself talking for hundreds of hours across public rooms, we don't have to take her explanations at face value. We can test what she claimed against what she actually said, what she admitted doing, and what the record shows.
+
+In fact, Angela gave the audience her own invitation to do exactly that:
+
+`[CLIP #171 | AQ-0271 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 3635.0s]`
+
+**ANGELA**  
+"When you hear good things about me, believe it. But you're going to hear bad things too. Believe them both. And use your discernment. Go through the evidence. And form your own opinion."
+
+**LOGAN**  
+`[understated]`  
+Alright. Let's go through the evidence.
+
+`[CLIP #130 | AQ-0012 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 40:46]`
+
+**ANGELA**  
+"I said I'm a walking paper trail."
+
+`[THEME 1: Three dry felt piano notes in D minor hit firmly. A low sub-bass pulse rolls underneath and decays.]`
+
+**LOGAN**  
+This is *The Paper Trail*.
+
+`[SFX: Theme music fades completely into the quiet, dry room ambiance of Act I, Scene 1.]`
+
+---
+
+### ACT I: THE ADVOCATE
+
+### ACT I — SCENE 1: A PLACE TO TELL YOUR STORY
+
+`[SFX: Subtle, dry X Space room ambiance—the faint click of a microphone unmuting, then resting beneath Logan's voice.]`
+
+**LOGAN**  
+If you've never spent time in an X Space late at night, the easiest way to picture it is an open phone line that never really hangs up. 
+
+Somebody's sitting in a parked car after a night shift. Somebody else is folding laundry in their living room or walking the dog at two in the morning. A dozen people might be listening, or a few hundred. The title on the screen might say UFO disclosure or government corruption, but within twenty minutes, people are talking about their divorces, their kids, their money troubles, or the worst thing that ever happened to them growing up.
+
+You hear the same voices night after night. And before long, you feel like you know people you've never laid eyes on.
+
+`[beat]`
+
+That was the world where I first met Angela back in late 2023.
+
+When she came up to the microphone, she spoke using her real name, from North Carolina, near Fort Bragg. And she told a story that stopped rooms cold.
+
+`[CLIP #115-A | AQ-0115 | *Blame Mellow Demon* (20260218_1YpKkgYPjkmKj), Feb 18, 2026]`
+
+**ANGELA**  
+"Okay. So I don't want a trigger warning. I was kidnapped and sold as a baby into this family. But my dad was handed a baby 10/27/1987, the day he became a Green Beret. He was unalived Father's Day 2007. His father was also a Green Beret. His name was Sanders Maggard. He was a part of Operation Jedi Warrior at Fort Bragg in the seventies, which was a psychic super soldier program... So that's my entire platform is to try and bring awareness and maybe get some justice for my birth mother because she was unalived on my birthday in 2018."
+
+`[SFX: Clip fades cleanly. Silence: 1 beat.]`
+
+**LOGAN**  
+Over time, Angela's stories about her life grew more and more elaborate. She claimed she had been illegally adopted into a CIA mind-control program (`AQ-0011`), tortured as a child at Wright-Patterson Air Force Base, and that she had personally helped law enforcement track down a kidnapped thirteen-year-old girl in New York using only a first name and an Xbox account (`AQ-0195`).
+
+Later on, some of her former friends would allege on the record that she fabricated key parts of her personal history (`AQ-0206`, `AQ-0209`). Angela insisted every word was real and dared critics to prove her wrong (`AQ-0056`).
+
+When you first met her, though, you didn't audit her childhood. When someone comes into a room saying they survived terrible abuse and that they're fighting to protect children, decent people want to support them. And when Angela talked about why she kept meticulous notes on everyone and everything in her life, she gave an explanation that made you feel sympathy for her: she said her father had taught her as a little girl to keep a hidden journal so she could survive her abusers and beat them in court.
+
+`[CLIP #048-A | AQ-0048 | *The Social Cost of Taking a Suicide Threat Seriously* (20260930_1lJQRWLvWVzxE), Sept 30, 2026, 4321.3s]`
+
+**ANGELA**  
+"My dad was a smartass, and my dad was trying to beat them in court, so my dad told me to journal in a separate journal and take notes of everything at the top of my head. And I did it daily and I never stopped. And I'm 39, so I have everything written down."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+I gave Angela a microphone in my rooms whenever she wanted one. I spent hours talking with her offline, helped her look for family records, and started building a website for her so she'd have a place to lay out her research.
+
+In return, in early 2026, Angela spoke in our rooms like a principled, self-aware advocate. She talked about forgiveness, humility, and owning your mistakes:
+
+`[CLIP #024-M | AQ-0217 | *Entry Level Improv and Music from the Beyond* (20260216_1djxXNkreeNGZ), Feb 16, 2026, 21152.8s]`
+
+**ANGELA**  
+"Forgiveness is important. Uh, you know, like, everybody makes mistakes. I make mistakes every single day. But do we own up to them? Do we admit it if we're wrong? Like, that's something that we have to do, especially if we're gonna be holding other people accountable. We have to be fully transparent with ourselves first. Then it levels the playing field."
+
+**LOGAN**  
+Listen to how another host in that room, Mellow Demon, responded to Angela that night—because his reaction shows the exact trust she inspired in people before they crossed her:
+
+`[CLIP #220-A | AQ-0220 | *Entry Level Improv and Music from the Beyond* (20260216_1djxXNkreeNGZ), Feb 16, 2026, 20628.7s]`
+
+**MELLOW DEMON**  
+"If you're gonna take someone down, Angela, you're a good ethical person. You're gonna do it using the law. You know? And so, therefore, we can just communicate freely with people."
+
+`[Silence: 1.2 beats]`
+
+**LOGAN**  
+In February 2026, Angela went out of her way on live broadcasts to praise my Spaces as open, respectful, and free of drama:
+
+`[CLIP #006-M | AQ-0146 | *John Keel Confidential Research* (20260217_1OwGWYlXpRmxQ), Feb 17, 2026, 05:52:48]`  
+**ANGELA:** "You see a lot of gatekeeping of information and a lot of, like, passive shade. I never feel that or see that in your live or Shane's live, and I just just wanted to shout you off that because I think that's, you know, that's badass as fuck. I I appreciate that. I respect you."
+
+**LOGAN**  
+When malicious rumors circulated about men on the platform—including me—Angela stepped onto a panel on February 17th to denounce people who weaponized "pedophile" and "abuser" accusations over personal grudges.
+
+Listen closely to the standard she sets here:
+
+`[CLIP #008-M | AQ-0097 | *LiVE! Cambian interviews* (20260217_1mnGeAPMdvEGX), Feb 17, 2026, 00:13:10]`
+
+**ANGELA**  
+"That's what it seems like. It's like a modern day male witch hunt. You know, how we have that with the women? It's now it's going overboard. When I was exposing and talking about these pedophiles, I was not trying to start, you know, this whole little thing to do this to innocent people. You know? Let's save that type of behavior for real abusers, real individuals that are hurting people, not egos."
+
+**LOGAN**  
+And later that same day, in a broadcast called *Space #1000*, Angela told the audience that she trusted me so much she had given me the names of two military witnesses as her "contingency" in case anything ever happened to her.
+
+`[CLIP #009-M & #010-M | AQ-0241 & AQ-0242 | *SPACE # 1000* (20260217_1mrGmBoEYMdJy), Feb 17, 2026, 31776.0s]`
+
+**ANGELA:** "I can introduce you to the people that are part of that unit. I just needed it in writing that they would be protected, the ones that would are willing to go to court for me, which Logan and well, Melodemon has all of their names, but Logan has two of them just because for contingencies."  
+**LOGAN:** "But you gotta stop telling people that I have the stuff because—"  
+**ANGELA:** "Oh, my bad. My bad."  
+**LOGAN:** "It defeats the purpose."  
+**ANGELA:** "A little bit. Yeah."  
+**SPEAKER 1:** "If you're gonna murder me, murder Logan too. No. Don't murder Logan. I have contingencies other places off the island. No. No. No. No. No. No. Double murder Logan, and don't murder me."  
+**ANGELA:** "I would never do that."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+*"I would never do that."*
+
+That was how Angela built trust. She made you feel like you were part of a small circle of good people helping a survivor get justice. And once you were inside that circle, you talked to her the way you talk to a real friend.
+
+---
+
+### ACT I — SCENE 2: THE CONFIDANTE
+
+`[CLIP #170 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 52:34]`
+
+**ANGELA**  
+"Sav was my friend from TikTok. Sav came to Twitter to help me analyze the psychological warfare tactics that were happening on spaces because she wasn't in any personal relationships with anybody on this app. So no personal connections."
+
+**LOGAN**  
+Sav and Angela were friends before Sav and I ever started dating. As Sav explained in her written account, she and Angela bonded as mothers—talking daily about their children, Angela's story, and the people Angela was trying to expose online.
+
+When Angela went through a personal tragedy on January 5th—sending Sav ultrasound photos from a doctor's office after suffering a miscarriage—Sav stayed up comforting her through the night.
+
+And as Sav and I grew close and started dating that spring, Sav continued to treat Angela as her closest girlfriend on the app. In May, when Sav was going through a difficult marital separation in Indiana and facing eviction with her children, another host named Shane and I held a marathon charity Space that raised $4,700 to help Sav keep her home. Sav messaged Angela that night about how grateful she was that I was helping and protecting her, thanking Angela the next day for bringing her into the community where she'd met me.
+
+`[beat]`
+
+Because we both viewed Angela as a trusted friend, we shared personal things with her that were never meant for a public stage.
+
+During our friendship, when someone online tried to dig into my past, I confided in Angela about a painful breakup I'd gone through two years earlier in Mississippi with an ex-girlfriend named Natalie. Angela listened like a caring friend.
+
+I didn't know that Angela had written Natalie's name down for future use.
+
+Months later, after Angela and I had a falling-out because I allowed a speaker she disliked onto my panel, Angela didn't just bring Natalie's name up on public broadcasts (`CLIP #149`)—she admitted on a live microphone that she had tracked my ex-girlfriend down behind my back.
+
+`[CLIP #092 | AQ-0202 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 37:30 / 2250.9s]`  
+**ANGELA:** "That's the whole reason I had to talk to Natalie. That's the whole reason I had to set this shit up."
+
+`[SFX: Audio cuts off cleanly right after 'set this shit up'. Complete silence: 1.5 beats.]`
+
+**LOGAN**  
+`[measured, calm studio voice]`  
+She took the name of an ex-partner I had confided to her in friendship, tracked that woman down two years after the relationship ended, and called it setting *"this shit up."*
+
+And look at how Angela described Sav once Sav and I started dating. When two friends are close and one of them enters a relationship, a normal friend might feel a little distance. Listen to how Angela talked to Sav on a live broadcast in September about the moment Sav fell in love:
+
+`[CLIP #169 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 37:27]`
+
+**ANGELA**  
+"As soon as I found out you were in a relationship with Logan, I stopped telling you about the shit that I was clipping because you were emotionally invested. Did I not? Like, I'm not trying to be mean, but like, that turns into a liability. Especially when you're documenting truth."
+
+`[SFX: Clip ends cleanly. Silence: 1.5 beats.]`
+
+**LOGAN**  
+*"That turns into a liability."*
+
+To Angela, a friend who cared about someone she couldn't control wasn't just a friend with her own life. She was a liability.
+
+And when you examine what Angela was admitting on tape across other broadcasts that winter, you see that her habit of investigating the people around her didn't start when a friendship ended. It started before the first conversation even began.
+
+---
+
+### ACT II: THE ARCHIVE
+
+### ACT II — SCENE 3: "I DO THAT FOR FUN"
+
+`[THEME 1: Subtle analog pulse enters very low underneath the narration, then fades out cleanly before the clip.]`
+
+**LOGAN**  
+Whenever Angela was criticized for keeping folders of screenshots and recordings on people in the community, her public explanation was always the same: she was a trauma survivor protecting herself and documenting abuse for law enforcement.
+
+But in unguarded moments on live broadcasts, Angela gave a very different picture of what she was collecting—and why.
+
+`[CLIP #177 | *Oor Brought a Chipper* (20260913_1lJQRWAWpvVxE), Sept 13, 2026, 12:30]`
+
+**ANGELA**  
+"And, um, I still care, but I'm still taking notes the whole fucking time cuz I want to see how far you're going to go. And that's the great thing about writing everything down every single fucking day. You have a timeline."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+On February 17, 2026, in a broadcast called *Haunted Hump Day*, Angela was chatting casually with a panel of hosts. Listen closely to how she explains pulling someone's home address and phone number. First, she gives her standard legal justification—that she only holds it for her attorney in case she needs to sue. And then, seconds later, when another speaker in the room reacts in stunned disbelief, listen to what she admits she actually does before she ever talks to someone.
+
+`[CLIP #002 / #003 / #004 / #005 | AQ-0058, AQ-0059, AQ-0060, AQ-0061 | *Haunted Hump Day* (20260217_1vAxRvZrEPaxl), Feb 17, 2026, 12:51:21]`
+
+**ANGELA:** "I hope not because I already have their address and phone number and personal information, and I'll slap them with the lawsuit so fast."  
+**SPEAKER 3:** `[stunned, hesitant]` "Did you just so—did you just say you already doxed that guy or, I mean, like, got his info?"  
+**ANGELA:** "Oh, I got it. I always do that before I talk to someone, yeah. But I don't ever expose it unless I need to. I just have it so I can get to my attorney if I needed to."  
+**SPEAKER 3:** "Oh, yeah... I mean, yeah, doxed means like to publicly do something, but it's been like you gather this information..."  
+**ANGELA:** `[laughing lightly]` "Oh, yeah. I do that for fun. I know that's probably bad, but, like, that's what I do on TikTok. Um, so, like, there's a lot of other people that are adopted or their kids are missing. So and I don't know. I don't have any, like, background in it. I just am good at finding people, so I just do it for fun."
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+`[measured]`  
+*"Oh, I got it. I always do that before I talk to someone... I just do it for fun."*
+
+Across her February broadcasts, Angela openly described the scale of her collection. On February 18th, she told a panel she had spent the last several days pulling criminal records and police reports on well-known figures in the community just to see what was in their past (`AQ-0168`). The day before, she explained that she ran the regional *Are We Dating The Same Man* and *Are We Dating The Same Woman* Facebook pages for Fayetteville, Fort Bragg, and Raleigh—groups where local women posted names, photographs, and personal relationship histories:
+
+`[CLIP #012-M & #013-M | AQ-0243 & AQ-0248 | *SPACE # 1000* (20260217_1mrGmBoEYMdJy), Feb 17, 2026, 32732.0s & 35480.0s]`
+
+**ANGELA**  
+"I know the names of the men on in this unit because I run the Are We Dating The Same Man page for Fayetteville, Fort Bragg, and Raleigh as well as the Are We Dating The Same Woman page... and exposing Harnett County police brutality and corruption page. So I've gathered a lot of data on this area and these soldiers."
+
+**LOGAN**  
+In another broadcast that night, she said she had infiltrated a private Discord chat of prominent Space hosts (`AQ-0247`) and kept a categorized list of twenty-seven people on the app she was actively investigating (`AQ-0251`):
+
+`[CLIP #016-M | AQ-0251 | *Enki, Loki, Annunaki* (20260217_1lPKqMoEQZPKb), Feb 17, 2026, 38697.0s]`  
+**ANGELA:** "I have a list. I don't wanna name them all out loud just because I'm I'm still doing recognizance, but I can send it to you in DMs. Um, I have about 27. I think That are on the list that I have. Grifter? Yeah. I have it broken into three different categories."
+
+**LOGAN**  
+And she boasted that whatever she shared in public was nothing compared to the sensitive files she kept hidden in reserve:
+
+`[CLIP #164 | AQ-0216 | *Entry Level Improv and Music from the Beyond* (20260216_1djxXNkreeNGZ), Feb 16, 2026, 21076.5s]`  
+**ANGELA:** "Keep your friend close, but your enemies closer... You don't ever show all your cards ever. I never do. I tell a lot of stuff, but I have a lot more stuff in my pockets, names, dates, documents that I shouldn't possess, um, that I do."
+
+`[CLIP #019-M | AQ-0167 | *Afterspace (highly secret)* (20260218_1ZkKzjngDnaKv), Feb 18, 2026, 03:42:45]`  
+**ANGELA:** "Thank you so much. There's way more screenshots than that. I'm just keeping them for a rainy day."
+
+**LOGAN**  
+If you were in a private group chat or on a phone call with Angela, none of the normal expectations of privacy existed. If you turned on chat settings that blocked screenshots, she used a second phone to film the screen. If you removed her from a group chat, she bragged about exploiting an Android glitch to keep reading and screenshotting the room unseen. And if you spoke with her on the phone, she recorded the conversation under North Carolina's one-party consent law.
+
+`[CLIP #174 | *Uncensored Truth* (20260906_1nGnRBnpYdXGO), Sept 6, 2026, 01:26:13]`  
+**ANGELA:** "You can put it in the group chat that you can't screenshot shit. I got a separate phone. I'm going to just record it either way cuz I don't—"
+
+`[CLIP #019 | AQ-0083 | *Monkey Island* (20260926_1OGwbnVyavLKB), Sept 26, 2026, 02:41:57]`  
+**ANGELA:** "Oh, guess what? The great thing is Android has a glitch right now even if you've removed me from a group chat. I can't respond, but I can read and screenshot everything."
+
+`[CLIP #052-A | AQ-0052 | *Uncensored Truth* (20260906_1nGnRBnpYdXGO), Sept 6, 2026]`  
+**ANGELA:** "And remember, I live in a one-party consent state, motherfuckers. Y'all gonna stop fucking with me."
+
+**LOGAN**  
+Even her constant threats of litigation had an ulterior motive that she explained on tape. Remember how Mellow Demon believed Angela would only use the law ethically? In two different rooms that same week in February, Angela explained what she actually used civil lawsuits for. First, she said she didn't sue people to win damages—she did it *"to shut them the fuck up."* And second, she admitted she intentionally provoked people online hoping they would sue *her*, because civil discovery would let her force their private records into public view without paying out of pocket.
+
+`[CLIP #063-A | AQ-0063 | *Haunted Hump Day* (20260217_1vAxRvZrEPaxl), Feb 17, 2026]`  
+**ANGELA:** "I've already been sued twice for $10,000, and I've won both. And I've done multiple other lawsuits against other individuals and won. I didn't take the money. I closed it, but I just wanted to shut them the fuck up. You know?"
+
+`[CLIP #021-M & #020-M | AQ-0142 & AQ-0250 | *Tête-à-Tête* (20260218_1yoKMwvrwkXJQ) & *Enki, Loki, Annunaki* (20260217_1lPKqMoEQZPKb), Feb 17–18, 2026]`  
+**ANGELA:** "And I say this stuff on there because I'm trying to provoke them to sue me. Because if I'm gonna be honest, it's easier for me to submit this evidence that way without having to come out of pocket... They can sue me and prove me wrong, and then I can file a motion for discovery and get access to all your shit."
+
+`[Silence: 2 beats]`
+
+---
+
+### ACT II — SCENE 4: THE PEOPLE WHO TRUSTED HER BEFORE US
+
+**LOGAN**  
+Whenever Angela went after someone in the community, she told her friends that the person she was targeting was an abuser, a stalker, or part of an organized psychological operation against her.
+
+When I finally went back and listened to the people who had been in Angela's circle before Sav and me, a completely different picture emerged.
+
+`[beat]`
+
+Start with how Angela gained access to vulnerable people.
+
+A host named Sine ran one of the first Spaces where Angela ever told her story (`AQ-0057`). Because Sine frequently hosted discussions about human trafficking and trauma, listeners who had survived real-world abuse often came into his rooms looking for someone safe to talk to. Believing Angela was a dedicated survivor advocate, Sine sent those people to her for help.
+
+On September 18th, Sine came onto a microphone to describe what he realized had happened to the people he referred to her:
+
+`[CLIP #189 | AQ-0208 Context | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 57:51 / 3470.2s]`
+
+**SINE**  
+"There's a lot of people that I'll meet that'll come in my rooms when we're discussing this. Uh, these are people that have already been through plenty. You know? And if somebody asks me if they can get help from someone and I send them in her direction and then she turns these people into a new target. And it's like, I have only realized that she was doing this only just recently, and I've sent people in her direction numerous times, and I feel incredibly fucking guilty now."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+Two weeks earlier, on September 4th, another community member spoke in a broadcast called *Breaking Olds* (`AQ-0237`) and described what happened after confiding private struggles to friends in Angela's circle:
+
+`[CLIP #237-A | AQ-0237 | *Breaking olds 2026-09-04 16:20* (20260904_1OxwbnpyBjLJB), Sept 4, 2026, 4226.5s]`
+
+**SPEAKER 10**  
+"Recently I have been at point zero, right, level zero of a fucking horrible smear campaign from people that I thought were my friends within the last two to three weeks, telling personal information about me that I didn't necessarily feel comfortable talking about publicly, and they made it everybody else's business outside of my acknowledgement in a way to humiliate me and make me feel incredibly small."
+
+**LOGAN**  
+And another host, Cambian, described how quickly Angela flipped from showering a friend with praise to branding them an enemy:
+
+`[CLIP #203-A | AQ-0203 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 2334.5s]`
+
+**CAMBIAN**  
+"She was giving me high praise for a long time until I didn't go along with some fucking blackmail, like, basically making me pick up a torch and go on this crusade with her or else I was the same as the people she was hunting down. And it was like, what are you talking about, Angela? What the fuck is this? And so I've noticed this is the pattern with pretty much everybody."
+
+**LOGAN**  
+To see what happened when an entire group of friends refused to follow Angela's demands, listen to the accounts of four people who were part of Angela's friend group in the first half of 2025: a man named Timmy, and three mothers in the community known as Peach, Glow Baby, and Skittles.
+
+According to both Timmy and Glow Baby, Angela came into their circle as a friend. Then a disagreement broke out, and Angela demanded that their mutual friend Peach cut off the rest of the group and pick a side.
+
+Listen closely to how Glow Baby describes what Angela did to Peach—and notice how Angela used "wellness checks" and calls to Peach's family while claiming she was only trying to "help" her:
+
+`[CLIP #212-A | AQ-0212 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 7311.1s]`
+
+**GLOW BABY**  
+"She was a mutual friend of ours. And, uh, the whole reason behind her even doing that was because Angela pushed her to that brink of, you know, feeling that, uh, sense of hopelessness... Angela was the one that was threatening her, that was, uh, you know, doxxing her, that was calling all her family members, um, you know, called her husband, called her mother-in-law, was calling wellness checks on her, um, just like she kinda claimed to Sav in that other space earlier. 'Oh, well, I did this to help you. I called a wellness check.' And, you know, it's obvious. It's always her as, you know, pretending to help somebody, and that's in the name of helping somebody, but it's really causing more damage, and it's much more nefarious. It has nothing to do with help... because she couldn't control Peach to stop being friends with us at the time or to pick a side."
+
+**LOGAN**  
+When Peach reached a breaking point and posted a photograph holding a gun, Timmy testified that Angela used that crisis to wage an eighteen-month campaign against everyone in their circle—contacting mothers, stepdaughters, and nannies, calling a man's parole officer thirty times in a single day, publishing family addresses, and calling Child Protective Services on mothers in the group.
+
+`[CLIP #205-A, #206-A & #208-A | AQ-0205, AQ-0206 & AQ-0208 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 3283.9s–3470.2s]`
+
+**TIMMY**  
+"Alright. So I was friends with Angela for the first half of, uh, 2025. She was kinda friends with, like, my whole group of friends, and her and our one friend, Peach, they got into some kind of shit. Peach was having a bad day. She took a picture of a gun and put it to her head as a joke. And Angela sort of like that triggered Angela so bad. She just fucking lost her mind over it. She's still talking about this a year and a half later. Uh, basically, Angela just started blowing up my DMs. Like, she would be writing me novels every single day. Threats, accusations... She's doxed Glow's baby. She orchestrated, uh, Glow's baby being doxxed. She's called CPS on Skittles... And she called CPS on you. I forgot about that. Sorry, Glow... She got a guy named Jade Helm who I fucking hate. She got him locked up. He went to jail last year for eight months. She called his parole officer, like, 30 times in one day... She's become friends with, like, people in the survivor community, really gotten close to people, gets their information, and then threatens and blackmails those same people... There's a girl named Julie Jolie. She's contacted, like, her mom. She's contacted her, like, stepdaughter... She shared Julie's, like, nanny information."
+
+`[CLIP #052-M & #053-M | AQ-0210 & AQ-0211 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 6581.8s & 6668.1s]`
+
+**GLOW BABY**  
+"She loves to talk about reactive abuse. Right? Well, what is my reaction towards, Angela? My reaction is towards you doxing my baby, threatening my children, threatening to leave my children without a mother, threatening to leave my, um, children without a father... The whole reason why my entire bloodline, you know, on my side, my husband's side of the families are all fully doxed and all their names, addresses, every single address I've lived at since I was a child has been doxxed has been because of this woman."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+When you hear accusations that severe in an online dispute, you look for independent corroboration—and you look at what Angela herself admits doing.
+
+Start with the Child Protective Services calls.
+
+On September 4, 2026, a host named Sian spoke in *Breaking Olds*. Sian wasn't part of Timmy's faction—in fact, minutes earlier (`AQ-0238`), Sian stated publicly that he respected Angela's stated goal of tracking down child predators.
+
+But Sian happened to be physically inside Skittles' home when Child Protective Services knocked on her door for the fourth time.
+
+`[CLIP #050-M | AQ-0239 | *Breaking olds 2026-09-04 16:20* (20260904_1OxwbnpyBjLJB), Sept 4, 2026, 4755.2s]`
+
+**SIAN**  
+"I think part of the problem is that the information came from Angela, and like we all know that she just kind of goes after people. So I can tell you, like, I was—I know not everybody's a fan of Skittles, but I was at her house physically when she got swatted for the fourth time with CPS. And you know, Skittles is Skittles, but she's not a bad mom, and she also lives with her parents, like there's so many adults there, the kid's well taken care of. And like, to weaponize CPS against somebody on the internet that you don't like is crazy. So it's a little bit of the boy who cried wolf, where like she's gone after so many people with bullshit, um, that it's hard to believe anything that she says."
+
+**LOGAN**  
+Two weeks later, two more women came onto a live microphone with firsthand accounts of what happened after they fell out with Angela. One woman described Angela leaking her residential real estate dwelling report and calling her house at night; another mother described five consecutive months of Child Protective Services showing up at her door, followed by calls to her ex-husband and her firstborn daughter.
+
+`[CLIP #192 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 114:05]`  
+**SPEAKER 24:** "Anywho, she decided to, um, leak my name, my legal name, my phone number, um, my MLS report—does anyone know what that is? Yeah, your legal residence, like it says your dwelling and the picture and everything. Yeah, you got it fucking wrong. And Angela even called my house. And I knew exactly what night it was, too."
+
+`[CLIP #190 & #191 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 42:50 & 49:31]`  
+**SPEAKER 13:** "Oh, dude, like I've been swatted. And when I say swatted, I mean like she's called child services. They show—they showed up once a month for 5 months in a row. And then the 6th month, she called the cops. So I had 5 months in a row child services showing up on my door... She called my ex-husband, she called my firstborn daughter. My firstborn daughter had to change her fucking phone number. She literally changed her phone number, everything about it, the area code..."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+Now listen to how Angela talks about these exact tactics in her own voice—and pay attention to the excuse she attaches to every single admission.
+
+When her own grandmother wouldn't speak publicly about her past, Angela admitted handing her grandmother's private phone number to an online host to pressure her to talk (`AQ-0144`)—explaining that she was just seeking justice.
+
+When she was feuding with a community member named Victor on September 3rd, Angela went live (`AQ-0189`) to announce that she had obtained the phone number of a woman claiming to be Victor's estranged sister, secretly recorded a 45-minute phone call with her for court (`AQ-0182`), forwarded the sister's number to two other hosts, and broadcast the sister's unverified family accusations to the room—while insisting, *"I'm not trying to slander him, I just want to ask questions."* (`AQ-0189`)
+
+Wait until you hear how she explained doxxing people's homes. In February, Angela had claimed that doxxing only meant revealing where someone's children sleep at night (`AQ-0101`). In September, she admitted sending a man a photograph of his own front door—and excused it by saying she sent it in a group chat rather than publicly:
+
+`[CLIP #040 & #041 | AQ-0005 & AQ-0006 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 16:46 & 17:15]`  
+**ANGELA:** "I've doxed people. Let's not even sit here and beat around the motherfucking bush... So, yes, I doxed the leader of that racist group chat. I did. I sent him the fucking front door, the photo of his front door of his house. I did in the group chat, not publicly, because how fucking dare you threaten my... I'm sorry. I'm not gonna apologize for my reaction."
+
+**LOGAN**  
+And later that same day, when a speaker confronted Angela directly about assisting in doxxing other community members, listen to how she answered. In the very same breath that she admits helping dox people, she claims that other people sent her the personal information to *"rage-bait"* her into doing it:
+
+`[CLIP #134 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 01:14:02]`  
+**ANGELA:** "...how many of the people on here have sent me y'all's personal information to rage bait me into doxing you? That's what they're scared of. They don't want you to know who was trying to handle me, and they think that I'm going to be too scared to admit it."  
+**INTERLOCUTOR:** "Angela, so you're admitting that you did assist them in doxing personal information?"  
+**ANGELA:** "I absolutely did, and I'm not gonna—"
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+Look at the architecture of that answer. Even when she admits helping expose people's private information, she portrays herself as the victim who was baited and handled by someone else.
+
+---
+
+### ACT II — SCENE 5: THE FIGHT FOR THE MICROPHONE (SUMMER – AUGUST 2026)
+
+**LOGAN**  
+Why did Angela turn on so many of the people who had welcomed her into their rooms and given her a platform?
+
+If you only listened to Angela's explanations, every conflict was a righteous battle against predators and abusers.
+
+But across her September recordings, Angela kept returning to a much more personal grievance: resentment over other hosts' audiences, anger that other creators were getting credit and attention she believed belonged to her, and fury when hosts refused to turn their rooms over to her feuds.
+
+Listen to Angela in her own words on September 15th:
+
+`[CLIP #033-M | AQ-0225 & AQ-0226 | *Super Spy Tea Time, Pt. 4* (20260915_1qGvvebNOARGB), Sept 15, 2026, 7104.9s & 7524.1s]`
+
+**ANGELA**  
+"And people like Ashton took the advice, and you see how he ratioed me very, very easily. I'm the one who gave him the documents about scalar frequency and all that stuff. I have a whole—my archive of documents is insane, plus my own FOIA request. I don't share anymore because of how many people like Eric Hecker, you know, those documents about the government torturing children, those are mine too. You know, they didn't care about the sources where they got the information. They told me, and I have this in DM, build your own platform off of your own back, but yet you utilize my stuff because I'm a caring person to platform yourself... A lot of these other people already have thrown me under the bus just to sit at tables with people to be able to be a space host, to be able to be a content creator and a part of UFOX. Shit, you got UFOX members stealing my fucking ideas."
+
+**LOGAN**  
+And eight days earlier, on September 7th, Angela named Sine and me directly—complaining that when she dropped her feuds into our direct messages, we wanted to keep hosting open rooms and *"sit at all these tables"* instead of flipping them for her:
+
+`[CLIP #175-A | AQ-0175 | *CRACKHEADS TAKING OVER DISCLOSURE* (20260907_1OxwbneDwBqJB), Sept 7, 2026]`
+
+**ANGELA**  
+"It's Sine, Logan, all of them. I post all this into their DMs. I ask for help from my supposed fucking friends that always come to me when they need something... and you realize that those people that count on you, you can't count on them, that they would rather be allowed to sit at all these tables, um, than to flip it."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+Back in February, when Angela was defending her own friends, she had insisted that no one should be held responsible for what other people say in a room (`AQ-0119`).
+
+By the summer of 2026, that rule was gone. If you hosted a room where people gathered, Angela expected you to flip the table on anyone she was fighting with. When I refused to ban her targets from my Spaces, she began working on Sav in private messages—telling Sav that I was part of a cult and couldn't be trusted, while encouraging Sav to vent and send screenshots whenever Sav and I had a disagreement.
+
+By mid-July, when I saw how Angela was trying to control my rooms and poison my relationship, I pulled back from her. On July 15th, Angela sent a furious message to Sav warning that if she wasn't left alone when she went into Spaces, she would *"ruin every single person that he cares about."*
+
+And then, in August 2026, came the night that gave Angela the ultimate piece of leverage over Sav's life.
+
+`[beat]`
+
+Here is what happened that day in August, documented in Sav's verified written statement.
+
+Angela shared private screenshots that Sav had explicitly asked her not to send. That leak caused a major fight between Sav and me, and we broke up and blocked each other.
+
+In the immediate aftermath, Sav was beside herself. In a group message with Angela and another friend, Sara Beth, Sav began crying hysterically and texting incoherently, expressing acute distress and thoughts of ending her life.
+
+Hoping to calm down, Sav called Sara Beth on the phone. While Sara Beth was talking Sav through the panic attack, Sara Beth also messaged me on Angela's behalf to ask for Sav's home address in case an emergency welfare check was needed. I was at work, and wanting to make sure Sav was safe, I immediately provided her address.
+
+On the phone, Sara Beth succeeded in calming Sav down from her panic attack. And as Sav recounted in her written testimony, both she and Sara Beth told Angela that Sav had calmed down and was okay.
+
+Angela called the police to Sav's house anyway.
+
+Sav had to collect herself, look at her young children, and tell them that a police officer was going to stop by the house, and to go play upstairs for a little while. She spoke with the officer with Sara Beth on the phone until the police left.
+
+Looking back on why Angela dispatched police to her home *after* being told she was calm and safe, Sav wrote: *"I also thought Angela handled it improperly and only because of the drama that was surrounding online drama and Logan and I. Not because she was genuinely worried about me or my children. After we told her I was okay, it was almost like a lesson she was teaching me."*
+
+What Sav didn't know that day in August was that while she was breaking down in tears with her children in the house, Angela was recording her.
+
+---
+
+### ACT III: THE DETONATION
+
+### ACT III — SCENE 6: THREE EXPLANATIONS FOR THE SAME LEAK (SEPTEMBER 2 – 8)
+
+`[SFX: Open X Space room ambiance fades in.]`
+
+**LOGAN**  
+At the beginning of September 2026, the private screenshots Sav had confided to Angela during our relationship arguments began appearing in the comment nests underneath other hosts' broadcasts.
+
+On September 2nd, in a room called *Bidets the Day*, I talked about asking a host named Kimball to hide the private screenshots Angela had dropped into his Space—and another participant in the room summed up in one sentence why hosts were too afraid to touch them:
+
+`[CLIP #029-M & #030-M | AQ-0278 & AQ-0279 | *Bidets the day* (20260902_1qGvvevyVvgGB), Sept 2, 2026, 385.0s]`  
+**LOGAN (ARCHIVAL AUDIO):** "Angela had posted these, like, uh, screenshots between like me and some girl... I was like, dude, just hide that, there's no reason why Angela should be, like, exposing this private—she's just being a bitch, whatever. And, uh, he's like, 'Nah, I don't want to do that, man, because if she sees it, she'll think I'm, like, complicit or whatever, and then she'll be mad at me.' And, like, uh, he's just, like, terrified of Angela. Like, everybody, even the men, are terrified of Angela."  
+**SPEAKER 3 (COMMUNITY WITNESS):** "Yeah, I don't want any problems with Angela because they told her secrets and they can never—"
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+*"Because they told her secrets, and they can never get them back."*
+
+Six days later, on September 8th, Angela opened her archive on Sav and me in a solo broadcast.
+
+And if you want to see how Angela constructs justifications for her behavior, look at the three different explanations she gave for why she published Sav's private screenshots.
+
+Here is Explanation Number One.
+
+On the morning of September 8th, I was hosting an open Space. Oor—the speaker who had a bitter feud with Angela—was on the panel. Out of nowhere, Oor made a vile remark about Angela's deceased baby.
+
+Sav was listening in the audience. As Sav wrote to Angela in a direct message that same day, the instant Oor made that remark, I stepped in on the microphone, told Oor *"you're not going to want to say that,"* and removed him from the panel. Angela herself later confirmed on Twitter: *"I already stated that logan dropped em."*
+
+Yet hours later, Angela launched a solo broadcast titled *Petty Space — Addressing the Men Who Provoked Me With My Dead Baby*. And she told the audience that because Oor had spoken in my room, she was going to publish the private relationship screenshots Sav had confided to her:
+
+`[CLIP #104 & #105 | AQ-0261 & AQ-0262 | *Petty Space* (20260908_1wxWjlrwXokJQ), Sept 8, 2026, 4.1s & 113.9s]`  
+**ANGELA:** "This is gonna be like a monologue echo chamber space. This is just for the record... I wanna show your pattern of fucking behavior on how you treat the people you say you fucking care about. Since you wanna go live and talk shit about my dead baby, I'm gonna go live and show everybody how you treat your women... Alright, here's the next four screenshots posted down below. We're gonna do it in increments of four. After I post all the screenshots, I will then discuss what was being said in them. Weaponizing fucking sleep. Who the fuck does that? Narcissists. Narcissists do that."
+
+**LOGAN**  
+In later broadcasts (`AQ-0001`), Angela offered Explanation Number Two: that she was publishing those private messages to stand up for her friend Sav and confront abuse.
+
+Think about that claim for a second. Sav had shared those screenshots with Angela in confidence during moments of heartbreak and insecurity, and was now mortified and begging Angela not to make her private life public (`AQ-0200`, `AQ-0213`). And how did Angela sound while she was supposedly standing up for her hurting friend? Listen to her on the microphone in *Petty Space* right after dropping the first batch of messages:
+
+`[CLIP #179 | *Petty Space* (20260908_1wxWjlrwXokJQ), Sept 8, 2026, 11:45]`  
+**ANGELA:** "I will hold the rest until you respond. (laughs) Cuz apparently you're already crying about it now. Fucking funny. But anyways, that's just a little taste, a little teaser of, um, what your friend Logan Black is doing behind the channels."
+
+`[CLIP #037-M | AQ-0264 & AQ-0266 | *Petty Space* (20260908_1wxWjlrwXokJQ), Sept 8, 2026, 1250.0s & 1345.0s]`  
+**ANGELA:** "Because if you haven't quite noticed it yet, you're surrounded. And eventually you're going to understand what I mean by that. But I was never the one that you should have been looking at. You dumb fucks. You're under investigation. You have been for a while now... You erasing evidence is playing into my hand. You dumb fuck."
+
+**LOGAN**  
+Now listen to Explanation Number Three—from Angela's own mouth, later that exact same night.
+
+In another Space that evening called *Hook Line Sinker*, a host asked Angela to explain how the fallout between us had actually happened. And on live audio, Angela described the moment she decided to send the first screenshot. In this telling, it wasn't because of Oor, and it wasn't to protect Sav. It was because Sav had reconciled with me and pulled away from Angela—and when I pointed out to Angela that Sav had chosen to walk away from her, Angela lost her temper:
+
+`[CLIP #113 | AQ-0270 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 3450.0s]`  
+**ANGELA:** "And then to me, he's like, 'I'm sorry she chose to throw you away. It's not my fault.' And I got triggered. And so I sent the screenshot proving he was a liar. And that's when shit hit the fan. And that's where we're standing at now. It's because I proved him wrong. I hit him in his ego."
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+*"And I got triggered. And so I sent the screenshot proving he was a liar... I hit him in his ego."*
+
+Only Angela knows every motive that was running through her head that week. Maybe she genuinely hated the way I had argued with Sav during our breakup. Maybe she was furious that I hadn't banned her enemies from my rooms. 
+
+What the recordings prove is that her explanation changed depending on the room she was in—and that the moment she felt slighted in an argument, her friend's private confidences became public property.
+
+`[CLIP #166 | *Petty Space* (20260908_1wxWjlrwXokJQ), Sept 8, 2026, 14:23]`  
+**ANGELA:** "And so if he wants to paint me as the big bad wolf, I'll share every fucking DM we've ever talked about going all the way back to 2023 in the Discord."
+
+---
+
+### ACT III — SCENE 7: HOW AN ACCUSATION IS BUILT
+
+**LOGAN**  
+When publishing Sav's relationship messages didn't make Sav join her war—and when Sav kept asking Angela to delete the screenshots—Angela escalated to accusations that carried the weight of crimes.
+
+First, she branded me a "predator."
+
+Remember how in February, Angela had condemned the "modern day male witch hunt" on the platform and pleaded with people to save those words for real abusers, not wounded egos (`AQ-0097`)?
+
+By September, that standard had vanished. And on September 7th—one day before *Petty Space*—another speaker challenged Angela on why she called her online targets "predators" when she had no physical proof of a crime. Listen to how openly Angela explained the legal calculation behind the word she used:
+
+`[CLIP #184-A | AQ-0184 | *CRACKHEADS TAKING OVER DISCLOSURE* (20260907_1OxwbneDwBqJB), Sept 7, 2026]`
+
+**ANGELA**  
+"No, that's why I called him a predator. So you'll hear me, I say a predator, predator supporter, because the predator definition is, you know, grooming... that's a very broad term, so that's why I use the term that I do specifically for legal purposes... I didn't say pedophile because I haven't seen physical proof."
+
+`[SFX: Clean cut to eleven days later, Sept 18, 2026.]`
+
+`[CLIP #032 / #037 | AQ-0002 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 04:04]`
+
+**ANGELA**  
+"I didn't call you a fucking pedophile. I called you a predator because that is what you are. The behavior is predatory."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+*"That's a very broad term, so that's why I use the term that I do specifically for legal purposes."*
+
+Next, across broadcasts on September 8th, September 15th, and September 18th, Angela told hundreds of listeners that I was circulating women's private nude photographs around the app and making AI pornography.
+
+`[CLIP #040-M | AQ-0233 | *Super Spy Tea Time, Pt. 4* (20260915_1qGvvebNOARGB), Sept 15, 2026, 9403.6s]`  
+**ANGELA:** "Logan, stop sending women's nudes around the app. There's no reason for me to get women's nudes at 9:30 in the fucking morning on a fucking Monday before I've even smoked weed."
+
+`[CLIP #144 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 08:18]`  
+**ANGELA:** "...triangulation of him sending other women's nudes to his girlfriend to piss her off."
+
+`[CLIP #043 | AQ-0008 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 18:19]`  
+**ANGELA:** "Logan's one of many people. He was not even the initial person I was talking about this. But you have men on here sharing nudes of women in in in DMs. Multiple women. Okay? ... Revenge porn is real. Okay?"
+
+`[CLIP #152 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 09:30]`  
+**ANGELA:** "And then in the back channels, you're making AI porn videos of fucking people. And then sending them to your girlfriend."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+When Angela made that claim on September 15th, the host of the room immediately reacted in disgust (`AQ-0234`), condemning any "sleazeball" who would share private intimate photos of women.
+
+Because we have the contemporaneous messages and Sav's verified testimony, we can see how Angela took a private confidence from Sav, stripped out the truth, and turned it into a false accusation of revenge porn.
+
+Months earlier, on New Year's Eve, a selfie of a community member named Lynn dressed in athletic lingerie had been posted publicly in a Space and on Lynn's main page after Lynn's sister grabbed her phone. Later, Sav heard people mention the picture, felt insecure thinking Lynn had sent me a nude photo, and asked me to send her the screenshot because she hadn't seen it. I sent Sav the public screenshot solely to reassure her that Lynn was wearing lingerie, not nude.
+
+Later, while venting to Angela about her own jealousy and insecurities, Sav forwarded that screenshot to Angela.
+
+Angela knew every detail of that context when she went on the microphone on September 15th and accused me of spreading women's nudes. And at 11:42 PM that same night, Sav confronted Angela in direct messages:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: SAV — DM TO ANGELA, SEPT 15, 2026, 11:42 PM]`  
+`[intimate, dry, slightly bandpassed close-mic EQ; steady, firm]`  
+"Angela, you know that picture of Lin sent to me was because I asked him to show me the proof of it. Not him just willingly spreading around this picture... I was also sending you because I trusted you that it wouldn't come back that I sent it to you... It wasn’t him spreading around Lin’s nude. She did that herself. It was literally to reassure me she wasn’t nude like I thought she was. Framing it as if he was going around spreading the picture just isn’t what happened... Like, at all."  
+`[SFX: Subtle phone tactile send click]`
+
+**LOGAN**  
+Later in that thread, Sav wrote again:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: SAV — DM TO ANGELA, SEPT 16, 2026]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"What friend weaponizes that when I'm coming to you TALKING about me being insecure about it?!? How are you going to now lay it out like it’s some sick pass around the nudes of people? ... Lin has stated that shit was made public by her, she willingly spread it around. And then went up and defended Logan that he WASNT spreading it. He was showing his girlfriend she wasn't nude she was in lingerie."  
+`[SFX: Subtle phone tactile send click]`
+
+**LOGAN**  
+Confronted in writing by the very friend who had confided the image to her, Angela didn't retract her broadcast statement. At 12:47 AM, she simply pivoted to an unverified rumor:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: ANGELA — DM TO SAV, SEPT 16, 2026, 12:47 AM]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"Thats old news apparently hes shared nudes a bunch with his close friends."  
+`[SFX: Subtle phone tactile send click]`
+
+**LOGAN**  
+And at 12:09 PM the next day, Angela sent Sav a screenshot from Kimball—the same host who two weeks earlier had been terrified of crossing Angela—boasting: *"3rd account sending evidence. Your boyfriend is not going to get away with this."*
+
+Except Kimball's own words inside the screenshot admitted he had no evidence:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: KIMBALL — SCREENSHOT TO ANGELA, SEPT 16, 2026]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"He sent me a nude video of a girl in the community (I don't believe I have evidence for that) and he produced a nude AI image of a woman in the community."  
+`[SFX: Subtle phone tactile send click]`
+
+`[beat]`
+
+**LOGAN**  
+As I explained on a live broadcast on September 26th (`AQ-0283`), the "AI image" Kimball tried to use to curry favor with Angela was a rudimentary prompt test from years earlier when Midjourney 1.0 first launched—not a real person and not anyone in the community.
+
+Even after Sav corrected Angela in writing on September 15th and 16th—and even after Lynn herself confirmed the lingerie selfie had been posted publicly—Angela went back on the microphone on September 18th in *Logan Black Unmasked* and repeated the "revenge porn" accusation to hundreds of listeners anyway.
+
+In that September 16th text thread, Sav asked Angela a question that cuts straight to the heart of this story:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: SAV — DM TO ANGELA, SEPT 16, 2026]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"Angela what is the goal here.....? Are we going after your voice being taken or something else entirely? What exactly is your goal here with this stuff? Where is the evidence for any of it?"  
+`[SFX: Subtle phone tactile send click]`
+
+---
+
+### ACT III — SCENE 8: THE MYTH OF THE SILENCED WHISTLEBLOWER
+
+`[SFX: Quiet room tone from the September 15 Super Spy Tea Time broadcast.]`
+
+**LOGAN**  
+There is one more justification from that week in September that deserves a close look—because it exposes how Angela rewrites reality even while she is speaking on a live microphone.
+
+In February, Angela had stated a clear rule against releasing information just to hurt someone:
+
+`[CLIP #022-M | AQ-0118 | *Blame Mellow Demon* (20260218_1YpKkgYPjkmKj), Feb 18, 2026, 22:21:33]`  
+**ANGELA:** "If your post or what you're gonna add to it adds to it in a way that prevents it from happening again, then add to it. It's not to dig in or twist the knife. If it's just for drama, if it's gonna cause more, uh, whatever, then I say leave it."
+
+**LOGAN**  
+And on September 15th, Angela described the private Discord server where she stored her collection of screenshots and recordings, explaining why she refused to share it with outsiders:
+
+`[CLIP #165 | AQ-0222 | *Super Spy Tea Time, Pt. 4* (20260915_1qGvvebNOARGB), Sept 15, 2026, 6431.8s]`
+
+**ANGELA**  
+"Because I have a private discord of evidence that I've collected from just, like, the abuse that I've witnessed. And I've never added anybody in there, even though a lot of people have wanted in there. Just because some of the evidence and stuff I've collected could be weaponized to hurt other people. And I don't feel like that is the right way to handle it. I've been tempted, not even to lie. But it's just the wrong way to go about it."
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+`[understated]`  
+*"Some of the evidence and stuff I've collected could be weaponized to hurt other people... It's just the wrong way to go about it."*
+
+Yet three days later, on September 18th, she admitted what she had done with those private files anyway—and why she always had to have the last word:
+
+`[CLIP #051 | AQ-0016 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 01:03:42]`  
+**ANGELA:** "I'm a very patient person, and I'm very calculated, and I have everything documented not to create a fucking trail of evidence against all of you... so I just documented all the abuse and put it in a private discord with nobody else in there. I didn't weaponize the information. I sat on it until I was poked and poked and poked and poked and then slapped around. Then I said, fuck it. I threw it all in the fuck it bucket."
+
+`[CLIP #057 | AQ-0022 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 01:34:03]`  
+**ANGELA:** "So I screenshotted that, and I went to my other account, and I sent it because I will have the motherfucking last word. Anyways, now we're at the legal public threat. Attorney police air it out. Process used as a club, both sides, myself included."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+Not only did she post Sav's private screenshots herself—she also handed them over to an outside troll, a YouTuber named Teejay Felony.
+
+Now listen closely to the excuse Angela gave on September 18th for why she handed her friend's private messages to an outsider:
+
+`[CLIP #187 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 58:14]`  
+**ANGELA:** "...past behavior, but it was my fault that he shared those screenshots. Um, and I I sent them to him. So, I'm not going to sit here and act like, um, he did that on his own accord. I did that because at that point in time, nobody in the UFO community would give me a microphone and let me say my piece my piece or my like voice whatsoever."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+`[measured, clear]`  
+Stop and test that explanation against the actual record.
+
+Angela claimed she had to hand Sav's private messages to an outside troll because *"nobody in the UFO community would give me a microphone and let me say my piece."*
+
+Was Angela actually shut out of X Spaces without a microphone?
+
+Look at the broadcast log in our archive from those exact two weeks in September:
+On September 3rd, Angela hosted *Let's Talk About It* (`20260903_1dKrPrbywDkJX`).
+On September 6th, she co-hosted *Uncensored Truth* (`20260906_1nGnRBnpYdXGO`).
+On September 7th, she hosted a multi-hour broadcast called *Crackheads Taking Over Disclosure* (`20260907_1OxwbneDwBqJB`).
+On September 8th, she hosted *Petty Space* (`20260908_1wxWjlrwXokJQ`) and held a microphone on stage in *Hook Line Sinker* (`20260908_1nGeLMjONkAKX`).
+On September 13th, she hosted *Oor Brought a Chipper, Survivors Brought Receipts* (`20260913_1lJQRWAWpvVxE`).
+On September 15th, she spoke uninterrupted on stage for over half an hour in *Super Spy Tea Time* (`20260915_1qGvvebNOARGB`).
+On September 16th, she spoke at length in *Space Invaders* (`20260916_1YxNrbXNjQLxw`).
+And on September 18th, she hosted *Logan Black Unmasked* (`20260918_1MJgNbdaAPlGL`) for hours before taking a microphone on stage in *Angela Maggard Fan Club* (`20260918_1AxRnZMeZNYxl`).
+
+Angela was never without a microphone. She was speaking on public broadcasts almost every single day.
+
+What she didn't have was control over the rooms where hosts had stopped letting her dictate who could sit on the panel. And because she couldn't force those rooms to do her bidding, she claimed she was being "silenced"—and handed Sav's private messages to a stranger who admitted on Twitter he didn't *"even know the people involved,"* and who began sliding into my inbox at five in the morning calling Sav *"an unfit mother"* who was about to lose her kids.
+
+And when Sav still refused to turn against me, Angela took the fight out of the app and straight to Sav's family in Indiana.
+
+---
+
+### ACT IV: REAL LIFE
+
+### ACT IV — SCENE 9: "TEACHING YOU THAT EVERY ACTION HAS A REACTION"
+
+`[THEME 1: Low sub-bass drone enters quietly beneath narration, then fades out cleanly.]`
+
+**LOGAN**  
+On September 15th, Sav tried one last time to step away from Angela without a war. 
+
+She sent Angela a long, gentle direct message, thanking Angela for her friendship and pleading: *"the thought that this will just continue on and I'll possibly or inevitably get subpoenaed... is literally sending me into a daily anxiety blinder. I love and support you always but I just can't, personally be involved in taking down Logan."*
+
+Angela's reply in DMs was five words: *"Oh girl you’re a snake ass bitch."*
+
+And as an eyewitness in the community testified three days later, Angela immediately took the exact fear Sav had just confided—being served with legal papers in front of her family—and turned it into an explicit threat:
+
+`[CLIP #045-M | AQ-0282 | *ALIEN GOSPEL RADIO* (20260918_1wGWjlMgYrAKQ), Sept 18, 2026, 3882.2s]`  
+**SPEAKER 8 (EYEWITNESS TESTIMONY):** "She just threatened Sav, like, I'm gonna subpoena you at your father's house because of my space and shit, right? She's constantly making these legal threats to people that, like, which is which is illegal by the way. You can't, like, weaponize the legal system..."
+
+**LOGAN**  
+The next day, September 16th, Angela went on a microphone and explained what happens to anyone who comes at her—or refuses to leave her alone:
+
+`[CLIP #119 | AQ-0276 | *Space Invaders - Narrative Edition Smoke Sesh* (20260916_1YxNrbXNjQLxw), Sept 16, 2026, 2410.0s — 20s Tight Cut]`  
+**ANGELA:** "I identify as Tannerite... If you're going to kill me, you're going to die too... If you're going to come at me, don't fucking miss. Because if you do, you're going to meet your maker with me."
+
+`[CLIP #178 | *Space Invaders - Narrative Edition Smoke Sesh* (20260916_1YxNrbXNjQLxw), Sept 16, 2026, 10:33]`  
+**ANGELA:** "Cry in his, 'Don't share the screenshots, Angela.' Motherfucker, you're going to keep it up, and I'm going to share everybody that you sit with right now, all of them, the screenshots of y'all talking shit about each other and just let you burn each other to the ground."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+When Sav finally stood up for herself in DMs and wrote back, *"Yeah at the end of the day you were a friend that used what I sent to you as a FRIEND against me,"* Angela turned to the recording she had made of Sav during Sav's August mental health crisis.
+
+Watch how stark the contrast is here between Angela's public victim story and her private actions.
+
+On public broadcasts on September 18th and September 30th, Angela portrayed herself as a heroic friend who was being villainized simply for calling a welfare check to save Sav's life:
+
+`[CLIP #183 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 08:02]`  
+**ANGELA:** "Sav threatened suicide over Logan. Logan's in a fucking space talking it up, no care in the fucking world. I call and get a well check done on her, now I'm the villain. Now I'm the fucking villain, bro."
+
+**LOGAN**  
+That was the version Angela performed when she wanted sympathy from an audience.
+
+Now listen to how Angela actually spoke *to* Sav about that crisis when they clashed on a live microphone—screaming Sav's breakdown and her children in her face until I stepped in over the mic and told Angela to shut up:
+
+`[CLIP #091 | AQ-0201 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 2171.2s]`  
+**ANGELA:** "I had to go through Sarah Beth to go to somebody else to get your name and your fucking address so that I could call that well check while I'm at fucking work, dude. I almost lost my job that goddamn day. Let's just be real, because I cared about you. And I knew that our friendship was over at that fucking moment. I knew as soon as I made that motherfucking phone call that they would never be the same. And I did it anyway because your life was worth that. What I fucking tell you the whole time you're being manic on a goddamn phone? You have kids, Sav. You have fucking kids. You have fucking kids."  
+**LOGAN:** "Angela, shut the fuck up, Angela. Angela, shut up."  
+**ANGELA:** "Make me, motherfucker."
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+And on September 30th, in a broadcast she titled *The Social Cost of Taking a Suicide Threat Seriously*, Angela went on the microphone and claimed that if Child Protective Services or Sav's estranged husband got hold of Sav's crisis, Angela had nothing to do with it:
+
+`[CLIP #024 | AQ-0033 | *The Social Cost of Taking a Suicide Threat Seriously* (20260930_1lJQRWLvWVzxE), Sept 30, 2026, 1106.9s]`  
+**ANGELA:** "If CPS gets involved or your husband gets a hold of these messages, that is not my fault nor my responsibility."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+*"If CPS gets involved or your husband gets a hold of these messages, that is not my fault nor my responsibility."*
+
+She said that on a public broadcast to convince listeners her hands were clean.
+
+Now compare that denial with what Angela actually wrote.
+
+First, on public Twitter, Angela replied directly to Teejay Felony about Sav's estranged husband, Bryan: *"It would be a shame if bryan saw this too... They are absolutely a danger to every woman around them. And a DANGER TO CHILDREN! NONE OF THESE PEOPLE NEED TO BE AROUND KIDS."*
+
+And then, early in the morning inside the *Women of UFOTwitter* group chat, Angela typed a series of messages directly to Sav.
+
+Remember how Sav had written that back in August, when Angela called the police *after* being told Sav had already calmed down, it felt *"almost like a lesson she was teaching me"*?
+
+Listen to what Angela wrote to Sav at 6:35 in the morning:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: ANGELA — GROUP CHAT TO SAV, 6:35 AM]`  
+`[intimate, dry, slightly bandpassed close-mic EQ; cold, measured read]`  
+"And first and foremost, I have you talking about killing yourself on recording with your kids screaming in the background and you're sitting here trying to intimidate me and trying to make me not feel bad for teaching you that every action has a reaction. If you want me to hold the fuck back, shut the fuck up, you dumb bitch."  
+`[SFX: Subtle phone tactile send click]`
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+`[quiet, measured]`  
+While her friend was in the middle of a mental health crisis with her children crying in the background, Angela had recorded her. And in her own words, she was using it for *"teaching you that every action has a reaction."*
+
+Two minutes later, at 6:37 AM, Angela confirmed in writing that she wasn't an innocent bystander to Child Protective Services getting involved—she had personally sent the recording to a mandatory reporter because she wanted Sav under stress:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: ANGELA — GROUP CHAT TO SAV, 6:37 AM & 6:39 AM]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"So go cry to Logan, go cry to the girls. I'm not canceling anything do you understand and when CPS gets hold of that video? Because of the proper mandatory reporter that I sent it to, that's not my issue. Fuck off... And I don't give a fuck if you can't afford to pay the damages, I just want you under the stress that you've caused me."  
+`[SFX: Subtle phone tactile send click]`
+
+**LOGAN**  
+And at 8:01 AM, she confirmed that she had contacted Sav's family:
+
+`[SFX: Subtle phone tactile send click]`  
+`[AI VOICE RECREATION: ANGELA — GROUP CHAT TO SAV, 8:01 AM]`  
+`[intimate, dry, slightly bandpassed close-mic EQ]`  
+"And your family was contacted because you were suicidal. With your children in the house and you were manic."  
+`[SFX: Subtle phone tactile send click]`
+
+`[Silence: 2 beats]`
+
+**LOGAN**  
+`[low, grounded studio voice]`  
+Just as Peach, Glow Baby, and Speaker 13 had described happening to their families, Angela reached across state lines into Sav's family life in Indiana.
+
+As Sav documented in her written statement, Angela contacted her estranged husband, Bryan, her father, and her uncle, as well as her cousin Amanda. Sav knew because her relatives immediately reached out to her asking who Angela Maggard was and why a stranger was contacting them with alarming claims about Sav and her children.
+
+For Sav, the damage hit the center of her real life. Her family was her primary support system while she was navigating a marital separation and custody process. Suddenly, her relatives were threatening to pull back their support if she continued any online activity, while Angela's outreach framed Sav as an unfit mother in the middle of an ongoing custody dispute. A family friend who worked for Indiana Child Protective Services had to call Sav's parents to warn them that Angela's reports had landed on their desk.
+
+`[beat]`
+
+I will never forget the phone call I got from Sav that afternoon.
+
+She was sitting in her car in the parking lot outside her father's workplace in Indiana. Her dad had just come out to confront her, terrified and furious that the state might take her children away over something happening on the internet. Sav was hyperventilating so hard into the phone she could barely breathe. Her face was so swollen from sobbing that she had to put on sunglasses just to sit in her car.
+
+She kept asking me over and over: *"Why is she calling my family? Even after I told her what those messages were—my own jealousy and my own insecurities—why wouldn't she just stop?"*
+
+`[beat]`
+
+The next morning, Sav had to walk into the Hamilton County Courthouse in Noblesville, Indiana, carrying printed screenshots of Angela's messages, to file for an emergency Order for Protection to keep Angela away from her family and her children.
+
+---
+
+### ACT IV — SCENE 10: THE SOURCE REJECTS THE STORY
+
+`[SFX: Quiet, dry room tone.]`
+
+**LOGAN**  
+Throughout her entire campaign in September, Angela's central justification was that she was fighting to protect Sav and other women in the community.
+
+On the night of September 18th—before the final wave of calls hit her relatives in Indiana—Sav stepped up to a public microphone in front of the community and dismantled that justification herself.
+
+She knew what Angela was holding over her head. She knew the threats Angela had already made. And she unmuted her microphone anyway to tell the listeners that the person Angela claimed to be saving wanted her to stop.
+
+Here is Sav, uninterrupted.
+
+`[CLIP #103 | AQ-0213 | *Angela Maggard Fan Club* (20260918_1AxRnZMeZNYxl), Sept 18, 2026, 171:04 / 10264.3s - 10413.6s]`
+
+**SAV**  
+"I think that this entire time, I have told Angela that she has, like, the wrong guys. Right? Like, these are not the feds that you were looking for. And, like, I meant that because, like, these are the people that have really helped her, and have only ever gone to bat for her and fought battles for her as well. And and that's proven in the back channels. Those are things that, like, people didn't get to see or hear. Like, there was only very small part of the story that was told today, and it's just being dragged on as, like, drama harvesting where, like, these are our real lives. Like, I can't speak for any of the other people that are being affected, but for me, like, I have been so spun out about this. And it's all because, uh, it's like a falling out with a friend. Right? Like, I genuinely—none of us think that any of this shit, but hear me out because I'm learning this since I'm a newbie. Like, this shit gets weaponized. All this showing in anything in back channels is not private. Like, it's all gonna come to light for sure. So, like, it's best to just, you know, move in good type of ways and good directions. And for me, I definitely got caught up in all of the back channels and stuff, um, and have, like, my own type of issues with, like, insecurities and, like, you know, um, just, like, not confident in a lot of things. You know? And my ugly definitely showed because it was being caught up in the back channels and trying to figure out who's who and just the talking shit game is just, like, never ending. And and I want to be the one to, you know, that was completely all my doing. For, like, Logan, all this stuff that's happening to him. None of this should be happening to him because, you know, I spun out and was crazy. Like, none of these, like, uh, screenshots should be shared. Any of these any of these personal information, like, and doxing and sending us just court stuff and any of that type of stuff is just it's just taking it way, way, way too far."
+
+`[SFX: Let Sav's voice finish completely. Do not score. Silence: 2.5 beats.]`
+
+**LOGAN**  
+`[quiet, measured]`  
+Even after Sav went on a live microphone and said those words in front of the entire community, Angela didn't stop. Twelve days later, on September 30th, Angela hosted *The Social Cost of Taking a Suicide Threat Seriously*—repeating the story that she was being persecuted simply for trying to save a friend's life, and acting as if Sav's public plea had never happened.
+
+---
+
+### EPILOGUE — THE KINDNESS AT THE BEGINNING
+
+`[SFX: Quiet, dry room tone. No music.]`
+
+**LOGAN**  
+`[close to mic, quiet, reflective]`  
+After sitting with hundreds of hours of recordings, and listening to what happened to Sav, to Sine, to Peach, to Skittles, and to the people who trusted Angela before us, I don't think the most frightening thing about this story is the anger at the end.
+
+It's the kindness at the beginning.
+
+`[beat]`
+
+It's the realization that you can be talking to someone at two in the morning—sharing your family struggles, your insecurities, your fears about your children, the moments you're most vulnerable—believing you're talking to a survivor who understands trauma and wants to protect you. While on the other end of the line, every word is being dated, screenshotted, and saved for the day you refuse to follow her script.
+
+And when that day comes—when your private confidences are posted in increments of four, or handed to outsiders, or sent to your family—she will step up to a microphone and tell the room that *she* is the one being silenced.
+
+`[beat]`
+
+In September, somebody in a Space asked Angela a question about herself, and she corrected them. She had a name for what she was.
+
+`[CLIP #130 / #047 | AQ-0012 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 40:46]`
+
+**ANGELA**  
+"No, I said I'm a walking paper trail. What do you mean by that? Like my entire online persona and stuff is evidence."
+
+`[Silence: 1.5 beats]`
+
+**LOGAN**  
+`[understated]`  
+And ten days before that, she told the audience how she wanted all of this to be judged.
+
+After everything you've heard tonight, I think it's only fair to let her have the last word.
+
+`[CLIP #171 | AQ-0271 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 60:30 / 3635.0s]`
+
+**ANGELA**  
+"And so, when you hear good things about me, believe it. But you're going to hear bad things too. Believe them both. And use your discernment. Go through the evidence. And form your own opinion. I'm human, and I'm a mom at that, and I navigated to the best of my ability."
+
+`[SFX: Room tone decays completely into black. Silence: 2 beats.]`
+
+`[THEME 1: Three solitary felt piano notes in D minor hit slow and close. The final note rings out, decaying into complete, haunting, unbroken silence.]`
+
+`[SFX: Complete black sonic silence.]`
+
+`[END OF BROADCAST]`
+
+---
+
+### REMAINING MATERIAL PRODUCTION VERIFICATIONS BEFORE RECORDING
+
+1. **July 15, 2026 Direct Message Pronoun Context:** In Act II, Scene 5, the script quotes the July 15 DM warning (*"ruin every single person that he cares about"*) in narration rather than as an AI voice performance so there is zero risk of misattributing a swapped chat bubble. Before recording, verify on the raw July 15 screenshot whether *"he"* referred to Logan or to another host Angela was feuding with that week.
+2. **Exact Calendar Date of the *Women of UFOTwitter* Group Chat (6:35 AM – 8:01 AM):** In Act IV, Scene 9, the timestamps (`6:35 AM`, `6:37 AM`, `8:01 AM`) are verified from the screenshot log; if the exact calendar date (e.g., September 19, 2026) is visible on the group chat header, it can be added to the narration intro line for additional chronological precision.
