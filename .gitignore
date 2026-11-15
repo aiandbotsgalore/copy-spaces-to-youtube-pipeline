@@ -56,6 +56,10 @@ repomix-output.xml
 *.mp3
 *.m4a
 *.wav
+*.flac
+*.reapeaks
+*.rpp-bak
+*.RPP-BAK
 *.tmp
 .cache/
 scratch/

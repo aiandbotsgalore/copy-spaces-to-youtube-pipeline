@@ -1,0 +1,111 @@
+# Repomix only. Git still tracks these files.
+# Keeps the packed file to the app source and the short project docs.
+
+# The packed file itself
+repomix-output.*
+
+# Dependencies, build output, and caches
+node_modules/
+dist/
+dist-ssr/
+.cache/
+.wrangler/
+__pycache__/
+*.pyc
+*.pyo
+
+# Episode transcripts. This folder was about 327 MB of the last pack.
+public/transcripts/
+/transcripts/
+output_transcripts/
+
+# Audio, video, pictures, and archives
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.ogg
+*.mp4
+*.mov
+*.webm
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+
+# Feeds, catalogs, and generated run data
+clips.xml
+podcast.xml
+podcast_archive.xml
+releases.json
+public/clips/
+public/output/
+public/motion_templates/
+public/speaker_samples/
+batches/
+work/
+diagnostics/
+best_saved_clips/
+speaker_samples/
+special_clips/
+scratch/
+real_avatar_output/
+papertrail_archival_audio_ordered/
+parallel_queue_state.json
+*.peaks.json
+
+# Reaper sessions and the documentary assembly folder
+*.rpp
+*.rpp-bak
+*.reapeaks
+THE_PAPER_TRAIL_REAPER_ASSEMBLY*/
+
+# One-off review dumps and chat logs
+THE_PAPER_TRAIL_ARGON_REVIEW_CONTEXT*/
+GEMINI4_ARGON_EDITORIAL_EXCHANGE_*/
+
+# Compiled quote databases and research dumps. The documentary scripts stay.
+docs/documentary/data/
+docs/documentary/research/
+
+# Repeated script drafts, experiment dumps, and design mockups
+MasterPapertrai*
+docs/experiments/
+docs/design/
+
+# Tests and saved transcript samples used by tests
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+e2e/
+tests/
+scripts/acceptance/
+
+# Local data files
+voice_profiles.json
+public/voice_profiles.json
+public/cue_sheet_audit_results.json
+public/pipeline_health.json
+
+# Copied skill docs
+.agents/skills/
+
+# Temp files and logs
+*.log
+*.tmp
+temp_check/
+temp_kaggle_error/
+temp_kaggle_error2/
+kaggle_logs/
+.spacepipe-studio/
+.spacepipe-studio-backups/
+
+# Secrets
+.env
+.env.*
+*.env

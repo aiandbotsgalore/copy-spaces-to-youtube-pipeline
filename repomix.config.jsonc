@@ -1,0 +1,19 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "input": {
+    // Skip any single file over 1.5 MB. App source here stays well under that.
+    // The folder rules in .repomixignore are what keep the transcript dumps out.
+    "maxFileSize": 1500000
+  },
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "compress": true,
+    "removeEmptyLines": true
+  },
+  "ignore": {
+    "useGitignore": true,
+    "useDotIgnore": true,
+    "useDefaultPatterns": true
+  }
+}
