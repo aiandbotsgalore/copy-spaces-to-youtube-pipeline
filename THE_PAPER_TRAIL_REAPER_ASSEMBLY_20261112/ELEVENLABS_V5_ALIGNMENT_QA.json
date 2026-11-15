@@ -1,0 +1,154 @@
+{
+  "voice": "Logan",
+  "voice_id": "GDqvTqQdsHV3ND6SiEZP",
+  "narration_segments": 233,
+  "job_count": 17,
+  "all_narration_cues_have_recording": true,
+  "source_words": 5708,
+  "mapped_words": 5756,
+  "sentence_positions_updated": 406,
+  "word_accents_synchronized": 42,
+  "warnings": [],
+  "per_batch": [
+    {
+      "job": "NARR_01",
+      "ratio": 1.0,
+      "speak_words": 313,
+      "script_words": 313,
+      "segments": 16,
+      "last_word_s": 108.24
+    },
+    {
+      "job": "NARR_02",
+      "ratio": 1.0,
+      "speak_words": 323,
+      "script_words": 323,
+      "segments": 11,
+      "last_word_s": 112.8
+    },
+    {
+      "job": "NARR_03",
+      "ratio": 1.0,
+      "speak_words": 345,
+      "script_words": 345,
+      "segments": 9,
+      "last_word_s": 132.96
+    },
+    {
+      "job": "NARR_04",
+      "ratio": 1.0,
+      "speak_words": 356,
+      "script_words": 356,
+      "segments": 16,
+      "last_word_s": 126.08
+    },
+    {
+      "job": "NARR_05",
+      "ratio": 1.0,
+      "speak_words": 319,
+      "script_words": 319,
+      "segments": 14,
+      "last_word_s": 120.16
+    },
+    {
+      "job": "NARR_06",
+      "ratio": 1.0,
+      "speak_words": 345,
+      "script_words": 345,
+      "segments": 14,
+      "last_word_s": 123.6
+    },
+    {
+      "job": "NARR_07",
+      "ratio": 1.0,
+      "speak_words": 328,
+      "script_words": 328,
+      "segments": 13,
+      "last_word_s": 118.8
+    },
+    {
+      "job": "NARR_08",
+      "ratio": 1.0,
+      "speak_words": 315,
+      "script_words": 315,
+      "segments": 16,
+      "last_word_s": 123.44
+    },
+    {
+      "job": "NARR_09",
+      "ratio": 1.0,
+      "speak_words": 337,
+      "script_words": 337,
+      "segments": 13,
+      "last_word_s": 116.08
+    },
+    {
+      "job": "NARR_10",
+      "ratio": 1.0,
+      "speak_words": 358,
+      "script_words": 358,
+      "segments": 14,
+      "last_word_s": 125.6
+    },
+    {
+      "job": "NARR_11",
+      "ratio": 1.0,
+      "speak_words": 339,
+      "script_words": 339,
+      "segments": 14,
+      "last_word_s": 127.68
+    },
+    {
+      "job": "NARR_12",
+      "ratio": 1.0,
+      "speak_words": 330,
+      "script_words": 330,
+      "segments": 14,
+      "last_word_s": 121.28
+    },
+    {
+      "job": "NARR_13",
+      "ratio": 1.0,
+      "speak_words": 354,
+      "script_words": 354,
+      "segments": 14,
+      "last_word_s": 128.4
+    },
+    {
+      "job": "NARR_14",
+      "ratio": 1.0,
+      "speak_words": 356,
+      "script_words": 356,
+      "segments": 16,
+      "last_word_s": 128.0
+    },
+    {
+      "job": "NARR_15",
+      "ratio": 1.0,
+      "speak_words": 340,
+      "script_words": 340,
+      "segments": 15,
+      "last_word_s": 127.36
+    },
+    {
+      "job": "NARR_16",
+      "ratio": 1.0,
+      "speak_words": 316,
+      "script_words": 316,
+      "segments": 10,
+      "last_word_s": 115.28
+    },
+    {
+      "job": "NARR_17",
+      "ratio": 1.0,
+      "speak_words": 334,
+      "script_words": 334,
+      "segments": 14,
+      "last_word_s": 121.28
+    }
+  ],
+  "old_duration": 4890.149,
+  "new_duration": 4436.899,
+  "prologue_end": 421.959,
+  "not_finished": "Performed written messages and missing archival audio still require attention; all real archives still need editorial listening verification."
+}

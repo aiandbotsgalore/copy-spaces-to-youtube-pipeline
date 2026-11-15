@@ -1,0 +1,97 @@
+{
+  "manuscript": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_ARGON_REVIEW_CONTEXT_20261112\\01_CURRENT_MANUSCRIPT.md",
+  "cue_count": 55,
+  "draft_minutes": 81.5,
+  "items": 341,
+  "counts": {
+    "ambience": 2,
+    "archive_angela": 55,
+    "sfx": 17,
+    "narration": 233,
+    "direction": 5,
+    "music": 1,
+    "missing_archive": 2,
+    "archive_other": 15,
+    "reading": 11
+  },
+  "missing_archives": [
+    {
+      "name": "ARCHIVE C14 AQ-0048 | 014__AQ-0048__Journaling_Daily_MISSING.txt",
+      "line": 165
+    },
+    {
+      "name": "ARCHIVE C15 AQ-0220 | 015__AQ-0220__Mellow_Demon_Ethical_Person_MISSING.txt",
+      "line": 177
+    }
+  ],
+  "sections": [
+    {
+      "name": "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE",
+      "pos": 0.0
+    },
+    {
+      "name": "ACT I: THE ADVOCATE",
+      "pos": 465.571
+    },
+    {
+      "name": "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY",
+      "pos": 466.071
+    },
+    {
+      "name": "ACT I — SCENE 2: THE CONFIDANTE",
+      "pos": 926.333
+    },
+    {
+      "name": "ACT II: THE ARCHIVE",
+      "pos": 1150.476
+    },
+    {
+      "name": "ACT II — SCENE 3: WHAT SHE KEPT",
+      "pos": 1150.976
+    },
+    {
+      "name": "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP",
+      "pos": 1565.77
+    },
+    {
+      "name": "ACT II — SCENE 5: SAV'S WORST DAY",
+      "pos": 2597.72
+    },
+    {
+      "name": "ACT III: THE DETONATION",
+      "pos": 2876.484
+    },
+    {
+      "name": "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES",
+      "pos": 2876.984
+    },
+    {
+      "name": "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE",
+      "pos": 3429.085
+    },
+    {
+      "name": "ACT III — SCENE 8: THE RULE SHE SET FOR HERSELF",
+      "pos": 3933.972
+    },
+    {
+      "name": "ACT IV: REAL LIFE",
+      "pos": 4110.16
+    },
+    {
+      "name": "ACT IV — SCENE 9: WHAT IT MEANT TO HELP",
+      "pos": 4110.66
+    },
+    {
+      "name": "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES",
+      "pos": 4435.373
+    },
+    {
+      "name": "EPILOGUE — THE PAPER TRAIL",
+      "pos": 4726.785
+    },
+    {
+      "name": "END OF DOCUMENTARY",
+      "pos": 4890.149
+    }
+  ]
+}

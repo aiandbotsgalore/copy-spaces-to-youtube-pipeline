@@ -1,0 +1,9 @@
+PROLOGUE WORD-SCORE PILOT
+Project: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_PROLOGUE_WORD_SCORE_PILOT.RPP
+Audio sources loaded: 12
+Missing audio sources: 0
+Empty narration guide items: 8
+Word-level markers: 20
+Narration Suno files are generated but not yet downloaded; track 2 guides are EMPTY.
+Music is a downloaded older Suno instrumental, NOT the new signature cue.
+No source scripts and no prior RPP projects were overwritten.

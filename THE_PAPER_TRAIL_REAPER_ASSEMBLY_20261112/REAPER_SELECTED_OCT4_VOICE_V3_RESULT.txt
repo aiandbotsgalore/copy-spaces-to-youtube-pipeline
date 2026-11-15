@@ -1,0 +1,10 @@
+REAPER V3 — SELECTED LOGAN CUSTOM VOICE (Oct 4)
+Saved: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_FULL_SCORE_WITH_SELECTED_OCT4_VOICE_v3.RPP
+Selected narrator WAV/MP3 media segments loaded: 85 of 85
+Original project items retimed: 1213
+Exact word cue hits snapped: 13
+Act/scene markers migrated: 58
+Missing voice files: 0
+Narration unrecorded: 148 segments
+Final projected duration: 5103.776 seconds
+Music timing remains editorially provisional where narration is absent.

@@ -1,0 +1,102 @@
+{
+  "job_id": "NARR_09",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "When former friends accused her of exposing private information, I had only their testimony. Here, I could hear Angela accept responsibility for helping expose it—though not proof that she was responsible for every other allegation.\n\nAnd one of the people who had trusted Angela with painful details of her own life was Sav.\n\nGo back to August, before the September broadcasts.\n\nSav was already going through a separation and trying to keep a home for her children. She had trusted Angela with the parts of her life she wasn't comfortable discussing in public—including arguments and insecurities in her relationship with me.\n\nAccording to Sav, the immediate crisis began when Angela shared screenshots Sav had specifically asked her not to send. That triggered a fight between Sav and me. We blocked each other.\n\nSav was overwhelmed. She was crying and sending incoherent messages in a group chat with Angela and their friend Sara Beth. She also made alarming statements about ending her life.\n\nSav has acknowledged that those words were serious and that she shouldn't have used them lightly.\n\nShe called Sara Beth to calm down. Sav says Sara Beth helped her through the panic, and that both of them told Angela she was okay.\n\nAngela nonetheless believed a police welfare check was necessary. While I was at work, Sara Beth asked me for Sav's address on Angela's behalf. I gave it to her because I wanted to know Sav was safe.\n\nWhen Sara Beth told Sav that a welfare check was being called, Sav says she was overwhelmed again—after the friend she'd called for help had already talked her through the initial panic.\n\nShe still had children in the house. She needed them to know what was about to happen without frightening them more.\n\nIn a written statement she provided for this documentary, Sav described what that moment felt like. These are her words, read aloud from the statement:\n\nSav says she spoke to the officer with Sara Beth still on the phone. Then the police left.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 09 of 17",
+  "segments": [
+    {
+      "cue_index": 173,
+      "text": "When former friends accused her of exposing private information, I had only their testimony. Here, I could hear Angela accept responsibility for helping expose it—though not proof that she was responsible for every other allegation.",
+      "start_char": 0,
+      "end_char": 232,
+      "orig_pos": 2573.889
+    },
+    {
+      "cue_index": 174,
+      "text": "And one of the people who had trusted Angela with painful details of her own life was Sav.",
+      "start_char": 234,
+      "end_char": 324,
+      "orig_pos": 2589.493
+    },
+    {
+      "cue_index": 175,
+      "text": "Go back to August, before the September broadcasts.",
+      "start_char": 326,
+      "end_char": 377,
+      "orig_pos": 2598.22
+    },
+    {
+      "cue_index": 176,
+      "text": "Sav was already going through a separation and trying to keep a home for her children. She had trusted Angela with the parts of her life she wasn't comfortable discussing in public—including arguments and insecurities in her relationship with me.",
+      "start_char": 379,
+      "end_char": 625,
+      "orig_pos": 2602.394
+    },
+    {
+      "cue_index": 177,
+      "text": "According to Sav, the immediate crisis began when Angela shared screenshots Sav had specifically asked her not to send. That triggered a fight between Sav and me. We blocked each other.",
+      "start_char": 627,
+      "end_char": 812,
+      "orig_pos": 2620.431
+    },
+    {
+      "cue_index": 178,
+      "text": "Sav was overwhelmed. She was crying and sending incoherent messages in a group chat with Angela and their friend Sara Beth. She also made alarming statements about ending her life.",
+      "start_char": 814,
+      "end_char": 994,
+      "orig_pos": 2634.088
+    },
+    {
+      "cue_index": 179,
+      "text": "Sav has acknowledged that those words were serious and that she shouldn't have used them lightly.",
+      "start_char": 996,
+      "end_char": 1093,
+      "orig_pos": 2647.34
+    },
+    {
+      "cue_index": 180,
+      "text": "She called Sara Beth to calm down. Sav says Sara Beth helped her through the panic, and that both of them told Angela she was okay.",
+      "start_char": 1095,
+      "end_char": 1226,
+      "orig_pos": 2655.162
+    },
+    {
+      "cue_index": 181,
+      "text": "Angela nonetheless believed a police welfare check was necessary. While I was at work, Sara Beth asked me for Sav's address on Angela's behalf. I gave it to her because I wanted to know Sav was safe.",
+      "start_char": 1228,
+      "end_char": 1427,
+      "orig_pos": 2666.713
+    },
+    {
+      "cue_index": 182,
+      "text": "When Sara Beth told Sav that a welfare check was being called, Sav says she was overwhelmed again—after the friend she'd called for help had already talked her through the initial panic.",
+      "start_char": 1429,
+      "end_char": 1615,
+      "orig_pos": 2683.614
+    },
+    {
+      "cue_index": 183,
+      "text": "She still had children in the house. She needed them to know what was about to happen without frightening them more.",
+      "start_char": 1617,
+      "end_char": 1733,
+      "orig_pos": 2698.328
+    },
+    {
+      "cue_index": 184,
+      "text": "In a written statement she provided for this documentary, Sav described what that moment felt like. These are her words, read aloud from the statement:",
+      "start_char": 1735,
+      "end_char": 1886,
+      "orig_pos": 2707.851
+    },
+    {
+      "cue_index": 186,
+      "text": "Sav says she spoke to the officer with Sara Beth still on the phone. Then the police left.",
+      "start_char": 1888,
+      "end_char": 1978,
+      "orig_pos": 2748.892
+    }
+  ],
+  "char_count": 1978,
+  "word_count": 337
+}

@@ -1,0 +1,14 @@
+PASS: Original REAPER project saved IN PLACE with voice-aware music automation.
+WORKING PROJECT: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP
+PRIVATE BACKUP: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\ProductionBackup\THE_PAPER_TRAIL_Before_Corrected_Dialogue_Music_20261113.RPP
+Narrator Logan explicitly unmuted in THIS same successful commit; 237 speaking items retained. All original audio files unchanged.
+12 distinct Suno scene compositions still loaded, plus three evolving word-level score stems.
+Archive testimony further protected, 18 explicit silence/placeholder windows respected.
+35 keyword-level clarity accents; 67 connected narrator intervals and 44 archival intervals.
+Gain checks: 25sec narrator duck=0.66488375538222, 100sec archival duck=0.53
+Music envelope: 06  |  SUNO ORIGINAL SCENE SCORE  |  12 NEW STORY COMPOSITIONS / 923 editable points
+Music envelope: 03  |  SUNO INSTRUMENTAL SCORE  |  INVESTIGATION [AUDIBLE] / 553 editable points
+Music envelope: 04  |  SUNO INSTRUMENTAL SCORE  |  TRUST / SAV [AUDIBLE] / 553 editable points
+Music envelope: 05  |  SUNO INSTRUMENTAL SCORE  |  SIGNATURE MOTIF [AUDIBLE] / 553 editable points
+No new Reaper projects, ElevenLabs narration, Suno downloads or new music generated.
+Technical balance validated; subjective creative audition and missing written readings are not finished.

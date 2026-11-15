@@ -1,0 +1,6 @@
+Project: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ASSEMBLY_v1.RPP
+Audio items: 82
+Placeholder items: 259
+Missing file paths: 0
+Load errors: 0
+REAPER Version: 7.85/x64

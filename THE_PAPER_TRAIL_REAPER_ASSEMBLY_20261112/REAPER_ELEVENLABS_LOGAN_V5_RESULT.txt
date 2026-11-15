@@ -1,0 +1,12 @@
+THE PAPER TRAIL ElevenLabs LOGAN v5
+Saved: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_FULL_ASSEMBLY_v5.RPP
+Original guide/media items retimed: 1213
+Recorded narrator items loaded: 233/233
+Narrator source files missing: 0
+Sentence music intervals exactly re-aligned: 370
+Word-level musical accents re-aligned: 42
+Original scene markers migrated: 58
+Final approximate project duration: 4436.899 seconds
+Prologue end: 421.959 seconds
+All v1-v4 REAPER files preserved.
+Do not publish without auditioning and editorial review.

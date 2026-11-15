@@ -1,0 +1,76 @@
+{
+  "status": "five listening previews prepared from actual current REAPER media and native automation",
+  "previews": [
+    {
+      "name": "01_Prologue_and_First_Archive",
+      "start_s": 20,
+      "duration_s": 90,
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\ListeningChecks\\THE_PAPER_TRAIL_BALANCED_SCORE_01_Prologue_and_First_Archive.mp3",
+      "size_bytes": 2521389,
+      "voice_rms_dBFS": -19.44,
+      "music_rms_dBFS": -36.38,
+      "voice_vs_music_dB": 16.94,
+      "total_unlimited_peak_dBFS": 0.16,
+      "media_items_mixed": 10,
+      "silent_or_missing_media_count": 0
+    },
+    {
+      "name": "02_Act_I_Before_Archives",
+      "start_s": 480,
+      "duration_s": 90,
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\ListeningChecks\\THE_PAPER_TRAIL_BALANCED_SCORE_02_Act_I_Before_Archives.mp3",
+      "size_bytes": 2521389,
+      "voice_rms_dBFS": -20.58,
+      "music_rms_dBFS": -34.69,
+      "voice_vs_music_dB": 14.11,
+      "total_unlimited_peak_dBFS": -0.34,
+      "media_items_mixed": 25,
+      "silent_or_missing_media_count": 0
+    },
+    {
+      "name": "03_Savs_Worst_Day",
+      "start_s": 2380,
+      "duration_s": 90,
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\ListeningChecks\\THE_PAPER_TRAIL_BALANCED_SCORE_03_Savs_Worst_Day.mp3",
+      "size_bytes": 2521389,
+      "voice_rms_dBFS": -25.08,
+      "music_rms_dBFS": -38.79,
+      "voice_vs_music_dB": 13.71,
+      "total_unlimited_peak_dBFS": -5.03,
+      "media_items_mixed": 18,
+      "silent_or_missing_media_count": 0
+    },
+    {
+      "name": "04_Private_Messages_Released",
+      "start_s": 2710,
+      "duration_s": 90,
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\ListeningChecks\\THE_PAPER_TRAIL_BALANCED_SCORE_04_Private_Messages_Released.mp3",
+      "size_bytes": 2521389,
+      "voice_rms_dBFS": -20.55,
+      "music_rms_dBFS": -35.38,
+      "voice_vs_music_dB": 14.83,
+      "total_unlimited_peak_dBFS": -0.09,
+      "media_items_mixed": 9,
+      "silent_or_missing_media_count": 0
+    },
+    {
+      "name": "05_Epilogue_Unanswered_Note",
+      "start_s": 4280,
+      "duration_s": 90,
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\ListeningChecks\\THE_PAPER_TRAIL_BALANCED_SCORE_05_Epilogue_Unanswered_Note.mp3",
+      "size_bytes": 2521389,
+      "voice_rms_dBFS": -25.99,
+      "music_rms_dBFS": -35.99,
+      "voice_vs_music_dB": 10.0,
+      "total_unlimited_peak_dBFS": -5.43,
+      "media_items_mixed": 18,
+      "silent_or_missing_media_count": 0
+    }
+  ],
+  "project_file": "THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP",
+  "caveats": [
+    "Audition previews are reconstructed using source media, item faders, fade length and precise REAPER envelope volumes; they do not recreate any hidden master FX/bus chain.",
+    "Missing written-message readings and two absent archival clips are not represented with synthesized voices.",
+    "Peak safety limiter is preview-only; original REAPER project remains fully editable and unmastered."
+  ]
+}

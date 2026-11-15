@@ -1,0 +1,109 @@
+{
+  "job_id": "NARR_06",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "Lists and records are tools. Their existence does not prove abuse. The questions become more troubling when somebody explains how much they keep back and when they might release it.\n\nListen to two statements from archived conversations, one about the information in her possession, the other about screenshots saved for another day.\n\nThat distinction matters to anyone who ever trusted her. You can control what you say to a stranger. You have much less control over information you've already given to someone you considered a friend.\n\nAnd private screenshots were only one part of the system she described. In other recordings from that period, Angela talked about provoking lawsuits because civil discovery could give her access to more records.\n\nListen to her reasoning.\n\nThat is Angela describing a proposed legal tactic, not proof that a court granted her access to anybody's records.\n\nBut across these conversations, the same feature keeps appearing: collecting information early, keeping some of it private, and deciding later when to use it.\n\nIn September, as friendships were already falling apart, Angela put the value of daily documentation into even simpler terms.\n\nWhat concerned me wasn't that Angela took notes. It was the possibility raised by people who knew her: that the notes did not stay a record of what had happened, but became something they feared she could use if they fell out with her.\n\nAnd several former friends were willing to describe that fear on tape.\n\nThe first person I want you to hear is Sine.\n\nIn his rooms, people talked about trafficking, trauma and abuse. Some of them were already carrying serious wounds when they arrived. Sine says he believed Angela could help those people, so he sent them to her.\n\nHe did not come on the microphone to boast that he'd figured Angela out. He sounded like somebody realizing that a referral made in good faith might have had terrible consequences.\n\nSine had sent people to Angela because he believed they would be safe with her. Now he was wondering whether his referrals had put them at risk.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 06 of 17",
+  "segments": [
+    {
+      "cue_index": 110,
+      "text": "Lists and records are tools. Their existence does not prove abuse. The questions become more troubling when somebody explains how much they keep back and when they might release it.",
+      "start_char": 0,
+      "end_char": 181,
+      "orig_pos": 1322.611
+    },
+    {
+      "cue_index": 111,
+      "text": "Listen to two statements from archived conversations, one about the information in her possession, the other about screenshots saved for another day.",
+      "start_char": 183,
+      "end_char": 332,
+      "orig_pos": 1335.863
+    },
+    {
+      "cue_index": 114,
+      "text": "That distinction matters to anyone who ever trusted her. You can control what you say to a stranger. You have much less control over information you've already given to someone you considered a friend.",
+      "start_char": 334,
+      "end_char": 535,
+      "orig_pos": 1382.072
+    },
+    {
+      "cue_index": 115,
+      "text": "And private screenshots were only one part of the system she described. In other recordings from that period, Angela talked about provoking lawsuits because civil discovery could give her access to more records.",
+      "start_char": 537,
+      "end_char": 748,
+      "orig_pos": 1397.352
+    },
+    {
+      "cue_index": 116,
+      "text": "Listen to her reasoning.",
+      "start_char": 750,
+      "end_char": 774,
+      "orig_pos": 1411.74
+    },
+    {
+      "cue_index": 119,
+      "text": "That is Angela describing a proposed legal tactic, not proof that a court granted her access to anybody's records.",
+      "start_char": 776,
+      "end_char": 890,
+      "orig_pos": 1465.752
+    },
+    {
+      "cue_index": 120,
+      "text": "But across these conversations, the same feature keeps appearing: collecting information early, keeping some of it private, and deciding later when to use it.",
+      "start_char": 892,
+      "end_char": 1050,
+      "orig_pos": 1474.79
+    },
+    {
+      "cue_index": 121,
+      "text": "In September, as friendships were already falling apart, Angela put the value of daily documentation into even simpler terms.",
+      "start_char": 1052,
+      "end_char": 1177,
+      "orig_pos": 1485.449
+    },
+    {
+      "cue_index": 125,
+      "text": "What concerned me wasn't that Angela took notes. It was the possibility raised by people who knew her: that the notes did not stay a record of what had happened, but became something they feared she could use if they fell out with her.",
+      "start_char": 1179,
+      "end_char": 1414,
+      "orig_pos": 1540.722
+    },
+    {
+      "cue_index": 126,
+      "text": "And several former friends were willing to describe that fear on tape.",
+      "start_char": 1416,
+      "end_char": 1486,
+      "orig_pos": 1559.975
+    },
+    {
+      "cue_index": 127,
+      "text": "The first person I want you to hear is Sine.",
+      "start_char": 1488,
+      "end_char": 1532,
+      "orig_pos": 1566.27
+    },
+    {
+      "cue_index": 128,
+      "text": "In his rooms, people talked about trafficking, trauma and abuse. Some of them were already carrying serious wounds when they arrived. Sine says he believed Angela could help those people, so he sent them to her.",
+      "start_char": 1534,
+      "end_char": 1745,
+      "orig_pos": 1571.254
+    },
+    {
+      "cue_index": 129,
+      "text": "He did not come on the microphone to boast that he'd figured Angela out. He sounded like somebody realizing that a referral made in good faith might have had terrible consequences.",
+      "start_char": 1747,
+      "end_char": 1927,
+      "orig_pos": 1586.939
+    },
+    {
+      "cue_index": 131,
+      "text": "Sine had sent people to Angela because he believed they would be safe with her. Now he was wondering whether his referrals had put them at risk.",
+      "start_char": 1929,
+      "end_char": 2073,
+      "orig_pos": 1635.702
+    }
+  ],
+  "char_count": 2073,
+  "word_count": 345
+}

@@ -1,0 +1,1545 @@
+{
+  "design": "PROLOGUE word-accurate score pilot; provisional narrator tracks until download approved",
+  "voice": "My Podcast Voice - Oct 4",
+  "generated_at": "2026-11-12",
+  "takes": {
+    "opening": {
+      "audio_id": "814e319c-daea-4079-a41b-5a7300229579",
+      "suno_url": "https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579",
+      "suno_duration_s": 44.8,
+      "last_speech_end_s": 43.188,
+      "timing_status": "complete",
+      "anchors": [
+        {
+          "phrase": "That's Angela Maggard",
+          "start_s": 0.1,
+          "end_s": 1.265
+        },
+        {
+          "phrase": "She said that into an open microphone",
+          "start_s": 2.596,
+          "end_s": 4.495
+        },
+        {
+          "phrase": "I'm Logan Black",
+          "start_s": 10.8,
+          "end_s": 11.639
+        },
+        {
+          "phrase": "When Angela hosted that broadcast",
+          "start_s": 13.831,
+          "end_s": 15.694
+        },
+        {
+          "phrase": "September of 2026",
+          "start_s": 15.83,
+          "end_s": 17.467
+        },
+        {
+          "phrase": "Over the course of that afternoon",
+          "start_s": 31.706,
+          "end_s": 33.225
+        },
+        {
+          "phrase": "closest to me",
+          "start_s": 42.431,
+          "end_s": 43.188
+        }
+      ],
+      "full_alignment": [
+        {
+          "word": "That",
+          "start_s": 0.1,
+          "end_s": 0.138,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "'",
+          "start_s": 0.138,
+          "end_s": 0.239,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "s",
+          "start_s": 0.239,
+          "end_s": 0.363,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Ang",
+          "start_s": 0.363,
+          "end_s": 0.64,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ela",
+          "start_s": 0.652,
+          "end_s": 0.777,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Ma",
+          "start_s": 0.777,
+          "end_s": 0.845,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "g",
+          "start_s": 0.845,
+          "end_s": 0.924,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "g",
+          "start_s": 0.924,
+          "end_s": 1.025,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ard",
+          "start_s": 1.025,
+          "end_s": 1.265,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nShe",
+          "start_s": 2.596,
+          "end_s": 2.75,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " said",
+          "start_s": 2.75,
+          "end_s": 3.008,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " that",
+          "start_s": 3.008,
+          "end_s": 3.208,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " into",
+          "start_s": 3.208,
+          "end_s": 3.417,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " an",
+          "start_s": 3.417,
+          "end_s": 3.515,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " open",
+          "start_s": 3.515,
+          "end_s": 3.802,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " micro",
+          "start_s": 3.802,
+          "end_s": 4.194,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "phone",
+          "start_s": 4.194,
+          "end_s": 4.495,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " on",
+          "start_s": 4.495,
+          "end_s": 4.614,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " X",
+          "start_s": 4.614,
+          "end_s": 4.72,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "—in",
+          "start_s": 5.676,
+          "end_s": 5.831,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 5.831,
+          "end_s": 5.897,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " live",
+          "start_s": 5.897,
+          "end_s": 6.217,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " au",
+          "start_s": 6.271,
+          "end_s": 6.343,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "dio",
+          "start_s": 6.343,
+          "end_s": 6.615,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " room",
+          "start_s": 6.615,
+          "end_s": 6.935,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " she",
+          "start_s": 7.381,
+          "end_s": 7.585,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " had",
+          "start_s": 7.585,
+          "end_s": 7.684,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " t",
+          "start_s": 7.684,
+          "end_s": 7.704,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "it",
+          "start_s": 7.704,
+          "end_s": 7.92,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "led",
+          "start_s": 7.933,
+          "end_s": 8.098,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Lo",
+          "start_s": 8.098,
+          "end_s": 8.254,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "gan",
+          "start_s": 8.254,
+          "end_s": 8.432,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Black",
+          "start_s": 8.432,
+          "end_s": 8.719,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Un",
+          "start_s": 8.719,
+          "end_s": 8.873,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "m",
+          "start_s": 8.873,
+          "end_s": 8.978,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "as",
+          "start_s": 8.978,
+          "end_s": 9.063,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "k",
+          "start_s": 9.063,
+          "end_s": 9.179,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ed",
+          "start_s": 9.179,
+          "end_s": 9.339,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nI",
+          "start_s": 10.8,
+          "end_s": 10.809,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "'",
+          "start_s": 10.809,
+          "end_s": 10.88,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "m",
+          "start_s": 10.9,
+          "end_s": 10.954,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Lo",
+          "start_s": 10.954,
+          "end_s": 11.098,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "gan",
+          "start_s": 11.098,
+          "end_s": 11.239,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Black",
+          "start_s": 11.239,
+          "end_s": 11.639,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nWhen",
+          "start_s": 13.831,
+          "end_s": 14.01,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Ang",
+          "start_s": 14.01,
+          "end_s": 14.245,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "el",
+          "start_s": 14.245,
+          "end_s": 14.333,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "a",
+          "start_s": 14.333,
+          "end_s": 14.413,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " host",
+          "start_s": 14.415,
+          "end_s": 14.643,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ed",
+          "start_s": 14.643,
+          "end_s": 14.894,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " that",
+          "start_s": 14.894,
+          "end_s": 15.038,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " bro",
+          "start_s": 15.038,
+          "end_s": 15.064,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ad",
+          "start_s": 15.064,
+          "end_s": 15.318,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "cast",
+          "start_s": 15.318,
+          "end_s": 15.694,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " in",
+          "start_s": 15.696,
+          "end_s": 15.83,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " September",
+          "start_s": 15.83,
+          "end_s": 16.388,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " of",
+          "start_s": 16.388,
+          "end_s": 16.443,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " 20",
+          "start_s": 16.443,
+          "end_s": 16.603,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "2",
+          "start_s": 16.886,
+          "end_s": 17.147,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "6",
+          "start_s": 17.147,
+          "end_s": 17.467,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ", she",
+          "start_s": 18.406,
+          "end_s": 18.547,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " was",
+          "start_s": 18.547,
+          "end_s": 18.696,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " speaking",
+          "start_s": 18.696,
+          "end_s": 19.119,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " to",
+          "start_s": 19.119,
+          "end_s": 19.26,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " hund",
+          "start_s": 19.26,
+          "end_s": 19.445,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "red",
+          "start_s": 19.445,
+          "end_s": 19.549,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "s",
+          "start_s": 19.549,
+          "end_s": 19.694,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " of",
+          "start_s": 19.695,
+          "end_s": 19.787,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " listen",
+          "start_s": 19.787,
+          "end_s": 20.061,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ers",
+          "start_s": 20.061,
+          "end_s": 20.301,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " in",
+          "start_s": 20.809,
+          "end_s": 20.949,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " an",
+          "start_s": 20.949,
+          "end_s": 21.207,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " online",
+          "start_s": 21.207,
+          "end_s": 21.46,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " au",
+          "start_s": 21.46,
+          "end_s": 21.546,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "dio",
+          "start_s": 21.546,
+          "end_s": 21.744,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " commun",
+          "start_s": 21.744,
+          "end_s": 22.067,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ity",
+          "start_s": 22.067,
+          "end_s": 22.26,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " where",
+          "start_s": 22.26,
+          "end_s": 22.452,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " she",
+          "start_s": 22.452,
+          "end_s": 22.692,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " had",
+          "start_s": 23.23,
+          "end_s": 23.444,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " spent",
+          "start_s": 23.444,
+          "end_s": 23.707,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " the last",
+          "start_s": 23.707,
+          "end_s": 24.07,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " two",
+          "start_s": 24.07,
+          "end_s": 24.31,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " years",
+          "start_s": 24.318,
+          "end_s": 24.655,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " building",
+          "start_s": 24.655,
+          "end_s": 24.973,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 24.973,
+          "end_s": 25.075,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " following",
+          "start_s": 25.075,
+          "end_s": 25.67,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " as",
+          "start_s": 25.67,
+          "end_s": 25.787,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 25.787,
+          "end_s": 25.852,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " whistle",
+          "start_s": 25.852,
+          "end_s": 26.139,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "-blow",
+          "start_s": 26.139,
+          "end_s": 26.379,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "er",
+          "start_s": 26.379,
+          "end_s": 26.586,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " and",
+          "start_s": 27.245,
+          "end_s": 27.39,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 27.39,
+          "end_s": 27.522,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " fierce",
+          "start_s": 27.522,
+          "end_s": 27.98,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " ad",
+          "start_s": 27.98,
+          "end_s": 28.14,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "vo",
+          "start_s": 28.148,
+          "end_s": 28.301,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "cate",
+          "start_s": 28.301,
+          "end_s": 28.473,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " for",
+          "start_s": 28.473,
+          "end_s": 28.71,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " trauma",
+          "start_s": 28.71,
+          "end_s": 29.234,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " survi",
+          "start_s": 29.234,
+          "end_s": 29.385,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "v",
+          "start_s": 29.385,
+          "end_s": 29.438,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ors",
+          "start_s": 29.438,
+          "end_s": 29.678,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nOver",
+          "start_s": 31.706,
+          "end_s": 31.943,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " the",
+          "start_s": 31.943,
+          "end_s": 32.048,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " course",
+          "start_s": 32.048,
+          "end_s": 32.29,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " of",
+          "start_s": 32.29,
+          "end_s": 32.402,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " that",
+          "start_s": 32.402,
+          "end_s": 32.505,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " afternoon",
+          "start_s": 32.505,
+          "end_s": 33.225,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "—and",
+          "start_s": 34.806,
+          "end_s": 34.973,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " across",
+          "start_s": 34.973,
+          "end_s": 35.347,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " weeks",
+          "start_s": 35.347,
+          "end_s": 35.633,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " of",
+          "start_s": 35.633,
+          "end_s": 35.762,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " bro",
+          "start_s": 35.762,
+          "end_s": 35.782,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ad",
+          "start_s": 35.782,
+          "end_s": 36.032,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "cast",
+          "start_s": 36.032,
+          "end_s": 36.255,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "s",
+          "start_s": 36.255,
+          "end_s": 36.413,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " that",
+          "start_s": 36.416,
+          "end_s": 36.556,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " surrounded",
+          "start_s": 36.556,
+          "end_s": 37.093,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " it",
+          "start_s": 37.093,
+          "end_s": 37.253,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "—she",
+          "start_s": 38.598,
+          "end_s": 38.799,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " turned",
+          "start_s": 38.799,
+          "end_s": 39.085,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " her",
+          "start_s": 39.085,
+          "end_s": 39.243,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " micro",
+          "start_s": 39.243,
+          "end_s": 39.553,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "phone",
+          "start_s": 39.553,
+          "end_s": 39.843,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " on",
+          "start_s": 39.843,
+          "end_s": 39.978,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " me",
+          "start_s": 39.978,
+          "end_s": 40.153,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ", and",
+          "start_s": 41.595,
+          "end_s": 41.772,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " on",
+          "start_s": 41.772,
+          "end_s": 41.931,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " the",
+          "start_s": 41.931,
+          "end_s": 42.131,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " people",
+          "start_s": 42.131,
+          "end_s": 42.431,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " clos",
+          "start_s": 42.431,
+          "end_s": 42.723,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "est",
+          "start_s": 42.723,
+          "end_s": 42.892,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " to",
+          "start_s": 42.892,
+          "end_s": 43.028,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " me.\n\n",
+          "start_s": 43.028,
+          "end_s": 43.188,
+          "success": true,
+          "p_align": 1
+        }
+      ]
+    },
+    "reveal": {
+      "audio_id": "2df688f1-eaa9-41bc-a2db-0fdaea27998c",
+      "suno_url": "https://suno.com/song/2df688f1-eaa9-41bc-a2db-0fdaea27998c",
+      "suno_duration_s": 57.28,
+      "last_speech_end_s": 27.811,
+      "timing_status": "complete",
+      "anchors": [
+        {
+          "phrase": "If you tuned into those broadcasts",
+          "start_s": 0.201,
+          "end_s": 1.84
+        },
+        {
+          "phrase": "What you wouldn't know",
+          "start_s": 10.387,
+          "end_s": 11.232
+        },
+        {
+          "phrase": "Angela and I were friends",
+          "start_s": 16.144,
+          "end_s": 18.982
+        },
+        {
+          "phrase": "Here is how Angela herself described",
+          "start_s": 22.172,
+          "end_s": 24.684
+        },
+        {
+          "phrase": "ten days earlier",
+          "start_s": 26.495,
+          "end_s": 27.811
+        }
+      ],
+      "full_alignment": [
+        {
+          "word": "If",
+          "start_s": 0.201,
+          "end_s": 0.31,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " you",
+          "start_s": 0.31,
+          "end_s": 0.487,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " tun",
+          "start_s": 0.487,
+          "end_s": 0.632,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ed",
+          "start_s": 0.632,
+          "end_s": 0.808,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " into",
+          "start_s": 0.808,
+          "end_s": 1.026,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " those",
+          "start_s": 1.026,
+          "end_s": 1.202,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " bro",
+          "start_s": 1.202,
+          "end_s": 1.214,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ad",
+          "start_s": 1.214,
+          "end_s": 1.47,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "cast",
+          "start_s": 1.47,
+          "end_s": 1.697,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "s",
+          "start_s": 1.697,
+          "end_s": 1.84,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " as",
+          "start_s": 1.859,
+          "end_s": 1.955,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 1.955,
+          "end_s": 1.997,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " stranger",
+          "start_s": 1.997,
+          "end_s": 2.637,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ", you",
+          "start_s": 3.735,
+          "end_s": 3.872,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " would",
+          "start_s": 3.872,
+          "end_s": 4.018,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " think",
+          "start_s": 4.018,
+          "end_s": 4.038,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Angel",
+          "start_s": 4.038,
+          "end_s": 4.438,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "a was",
+          "start_s": 5.263,
+          "end_s": 5.426,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " conf",
+          "start_s": 5.426,
+          "end_s": 5.534,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ron",
+          "start_s": 5.534,
+          "end_s": 5.747,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ting",
+          "start_s": 5.747,
+          "end_s": 5.904,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " an",
+          "start_s": 5.904,
+          "end_s": 6.022,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " enemy",
+          "start_s": 6.022,
+          "end_s": 6.443,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " she",
+          "start_s": 7.231,
+          "end_s": 7.35,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " had",
+          "start_s": 7.35,
+          "end_s": 7.521,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " been",
+          "start_s": 7.521,
+          "end_s": 7.646,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " track",
+          "start_s": 7.646,
+          "end_s": 7.784,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ing",
+          "start_s": 7.784,
+          "end_s": 7.97,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " from",
+          "start_s": 7.97,
+          "end_s": 8.164,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " a",
+          "start_s": 8.164,
+          "end_s": 8.244,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " distance",
+          "start_s": 8.291,
+          "end_s": 8.931,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nWhat",
+          "start_s": 10.387,
+          "end_s": 10.518,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " you",
+          "start_s": 10.518,
+          "end_s": 10.677,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " wouldn",
+          "start_s": 10.677,
+          "end_s": 10.765,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "'",
+          "start_s": 10.765,
+          "end_s": 10.871,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "t",
+          "start_s": 10.871,
+          "end_s": 10.912,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " know",
+          "start_s": 10.912,
+          "end_s": 11.232,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " is",
+          "start_s": 12.089,
+          "end_s": 12.248,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " that",
+          "start_s": 12.248,
+          "end_s": 12.376,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " for",
+          "start_s": 12.376,
+          "end_s": 12.497,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " more",
+          "start_s": 12.497,
+          "end_s": 12.744,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " than",
+          "start_s": 12.744,
+          "end_s": 12.855,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " two",
+          "start_s": 12.855,
+          "end_s": 13.095,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " years",
+          "start_s": 13.132,
+          "end_s": 13.453,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " before",
+          "start_s": 13.453,
+          "end_s": 13.514,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " th",
+          "start_s": 13.514,
+          "end_s": 13.84,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "a",
+          "start_s": 13.862,
+          "end_s": 14.009,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "t",
+          "start_s": 14.087,
+          "end_s": 14.098,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " broad",
+          "start_s": 14.098,
+          "end_s": 14.42,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "cast",
+          "start_s": 14.42,
+          "end_s": 14.781,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ", Ang",
+          "start_s": 16.144,
+          "end_s": 16.48,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ela",
+          "start_s": 16.511,
+          "end_s": 16.751,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " and",
+          "start_s": 18.001,
+          "end_s": 18.153,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " I",
+          "start_s": 18.153,
+          "end_s": 18.312,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " were",
+          "start_s": 18.312,
+          "end_s": 18.422,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " friends",
+          "start_s": 18.422,
+          "end_s": 18.982,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": ".\n\nHere",
+          "start_s": 22.172,
+          "end_s": 22.331,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " is",
+          "start_s": 22.331,
+          "end_s": 22.404,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " how",
+          "start_s": 22.404,
+          "end_s": 22.64,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " Ang",
+          "start_s": 22.64,
+          "end_s": 22.96,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ela",
+          "start_s": 22.999,
+          "end_s": 23.21,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " herself",
+          "start_s": 23.21,
+          "end_s": 23.77,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " desc",
+          "start_s": 24.215,
+          "end_s": 24.329,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "rib",
+          "start_s": 24.329,
+          "end_s": 24.569,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ed",
+          "start_s": 24.591,
+          "end_s": 24.684,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " our",
+          "start_s": 24.684,
+          "end_s": 24.828,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " history",
+          "start_s": 24.828,
+          "end_s": 25.388,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " just",
+          "start_s": 26.23,
+          "end_s": 26.495,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " ten",
+          "start_s": 26.495,
+          "end_s": 26.735,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " days",
+          "start_s": 26.843,
+          "end_s": 27.163,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": " ear",
+          "start_s": 27.231,
+          "end_s": 27.265,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "l",
+          "start_s": 27.265,
+          "end_s": 27.49,
+          "success": true,
+          "p_align": 1
+        },
+        {
+          "word": "ier:\n\n",
+          "start_s": 27.49,
+          "end_s": 27.811,
+          "success": true,
+          "p_align": 1
+        }
+      ]
+    }
+  }
+}

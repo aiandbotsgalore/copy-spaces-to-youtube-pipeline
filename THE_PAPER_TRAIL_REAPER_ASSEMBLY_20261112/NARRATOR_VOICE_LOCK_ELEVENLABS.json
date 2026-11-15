@@ -1,0 +1,20 @@
+{
+  "narrator_provider": "ElevenLabs",
+  "voice_name": "Logan",
+  "voice_id": "GDqvTqQdsHV3ND6SiEZP",
+  "account": "ElevenLabs",
+  "model_id": "eleven_v4",
+  "status": "user-specified narrator voice; verified in connected ElevenLabs voice list",
+  "music_provider": "Suno",
+  "sound_design_provider": "Suno/REAPER",
+  "note": "Replace all Suno-generated LOGAN narration in new versions. Do not overwrite earlier REAPER assemblies; use authentic archival source audio without alteration.",
+  "generated_batches": [
+    {
+      "job_id": "NARR_01",
+      "generation_id": "acmC9ZtSNv2pBufIg2Jf",
+      "duration_s": 108.16,
+      "credits": 1848.8151,
+      "filename": "ELEVENLABS_LOGAN_NARR_01.mp3"
+    }
+  ]
+}

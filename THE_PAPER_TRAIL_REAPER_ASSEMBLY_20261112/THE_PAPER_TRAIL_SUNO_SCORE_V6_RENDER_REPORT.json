@@ -1,0 +1,51 @@
+{
+  "status": "final_audio_QA_PASS",
+  "mp3": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_AUDIBLE_SUNO_SCORE_v6.mp3",
+  "duration_seconds": 4436.899021,
+  "mp3_bytes": 124234701,
+  "sampling_hz": 48000,
+  "source_audio_items": 377,
+  "music_stems": 3,
+  "new_score_compositions": [
+    "THE_PAPER_TRAIL_SUNO_INVESTIGATION_CONTINUOUS_WORD_SCORE_v6.flac",
+    "THE_PAPER_TRAIL_SUNO_HUMAN_CONTINUOUS_WORD_SCORE_v6.flac",
+    "THE_PAPER_TRAIL_SUNO_MOTIF_CONTINUOUS_WORD_SCORE_v6.flac"
+  ],
+  "dry_reference": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_V6_ORIGINAL_VOICES_AND_ARCHIVES_DRY_REFERENCE.flac",
+  "dry_mix_pre_limiter_peak": 1.0108144283294678,
+  "note": "Audible continuous Suno score corrected and verified below 0 dBFS. This remains a documentary rough cut with missing reading and archival media.",
+  "skipped_or_invalid_audio_sources": [
+    {
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\special_clips\\Cue_11_AQ-0233_Angela.wav",
+      "reason": "source starts past end"
+    },
+    {
+      "file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\special_clips\\Cue_07_AQ-0222_Angela.wav",
+      "reason": "source starts past end"
+    }
+  ],
+  "final_full_episode_mp3": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_AUDIBLE_SUNO_SCORE_v6.mp3",
+  "final_full_episode_size_bytes": 124234701,
+  "full_episode_max_decoded_peak_dBFS": -1.7,
+  "sampled_sections": {
+    "10s": {
+      "rms_dBFS": -21.3,
+      "sample_peak_dBFS": -1.94
+    },
+    "500s": {
+      "rms_dBFS": -20.6,
+      "sample_peak_dBFS": -1.96
+    },
+    "2500s": {
+      "rms_dBFS": -24.9,
+      "sample_peak_dBFS": -4.36
+    },
+    "4100s": {
+      "rms_dBFS": -26.78,
+      "sample_peak_dBFS": -4.39
+    }
+  },
+  "opening_90s_preview": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_NEW_SUNO_SCORE_OPENING_90_SECOND_PREVIEW.mp3",
+  "opening_preview_size_bytes": 2881581,
+  "publishable": false
+}

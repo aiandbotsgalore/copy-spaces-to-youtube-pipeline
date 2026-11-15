@@ -1,0 +1,11 @@
+FINAL: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP
+Four voice regions cut; five spoken AQ labels excised. NO voice generation.
+Total removed timeline duration: 13.03 sec.
+Tracks: three original SUNO SCORE stems moved directly beneath ElevenLabs Logan.
+Native item splits: 52 | Removed items 28 | shifted 1326
+Full retained project length approx 4423.869 sec
+AQ-0011 | Voice 1 | Total 7 | SUNO score 3
+AQ-0195 | Voice 1 | Total 7 | SUNO score 3
+AQ-0206 / AQ-0209 | Voice 1 | Total 7 | SUNO score 3
+AQ-0056 | Voice 1 | Total 7 | SUNO score 3
+Original v6 unmodified. Existing ElevenLabs source MP3 unmodified.

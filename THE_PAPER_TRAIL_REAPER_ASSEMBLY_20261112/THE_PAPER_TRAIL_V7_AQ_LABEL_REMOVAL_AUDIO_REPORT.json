@@ -1,0 +1,53 @@
+{
+  "status": "rendered_and_duration_verified",
+  "source": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_AUDIBLE_SUNO_SCORE_v6.mp3",
+  "corrected_mix": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_LOGAN_NO_AQ_LABELS_SUNO_SCORE_v7.mp3",
+  "sample_rate": 48000,
+  "channels": 2,
+  "duration_s": 4423.869,
+  "duration_expected_s": 4423.869,
+  "removed_audio_segments": [
+    {
+      "cue": 53,
+      "source_start": 10.78,
+      "source_end": 13.215,
+      "label": "AQ-0011",
+      "start": 531.784,
+      "end": 534.219
+    },
+    {
+      "cue": 53,
+      "source_start": 24.8,
+      "source_end": 27.56,
+      "label": "AQ-0195",
+      "start": 545.804,
+      "end": 548.564
+    },
+    {
+      "cue": 54,
+      "source_start": 34.04,
+      "source_end": 38.94,
+      "label": "AQ-0206 and AQ-0209",
+      "start": 555.373,
+      "end": 560.273
+    },
+    {
+      "cue": 54,
+      "source_start": 43.88,
+      "source_end": 46.815,
+      "label": "AQ-0056",
+      "start": 565.213,
+      "end": 568.148
+    }
+  ],
+  "removed_labels": [
+    "AQ-0011",
+    "AQ-0195",
+    "AQ-0206",
+    "AQ-0209",
+    "AQ-0056"
+  ],
+  "audio_preview": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_FIXED_AQ_IDS_ACT_I_65_SEC_PREVIEW.mp3",
+  "new_elevenlabs_generations": 0,
+  "note": "Technically accurate edit; final spoken flow at joins should still be auditioned in REAPER."
+}

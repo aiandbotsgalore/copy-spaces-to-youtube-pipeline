@@ -1,0 +1,12 @@
+THE PAPER TRAIL Full Sentence + Word Sound Design v2
+Saved project: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_FULL_SENTENCE_WORD_SCORE_v2.RPP
+Original v1 unchanged: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ASSEMBLY_v1.RPP
+Original 8 tracks preserved. Five new scoring/editor tracks added.
+Sentence editorial decisions: 438
+Music score items: 371
+Word/scene sound cues: 63
+Actual Suno music/sfx items loaded: 434
+Audio source load failures: 0
+Old scratch music items muted: 1
+Word-by-word map: FULL_EPISODE_SENTENCE_WORD_CUE_MAP.json
+Music / word timings pending final performed narration.

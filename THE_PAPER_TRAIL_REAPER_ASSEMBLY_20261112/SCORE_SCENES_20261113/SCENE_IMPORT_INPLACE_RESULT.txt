@@ -1,0 +1,20 @@
+SUCCESS: 12 original Suno scene compositions imported INTO CURRENT REAPER PROJECT (NO NEW PROJECT).
+Active project: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP
+Recovery backup: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\ProductionBackup\THE_PAPER_TRAIL_Before_12_Original_Suno_Scenes_20261113.RPP
+Total tracks: 18
+Scene score audio items: 12
+Original 3 word-synchronized scoring tracks and ElevenLabs Logan intact.
+No Suno credits, no ElevenLabs generation used.
+
+P00 The Line That Never Hangs Up @ 17 sec, duration 187.027 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_P00.wav
+S01 A Place to Tell Your Story @ 427 sec, duration 193.92497916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S01.mp3
+S02 The Confidante @ 832 sec, duration 173.51697916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S02.mp3
+S03 What She Kept @ 1025 sec, duration 204.90897916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S03.mp3
+S04 People Who Went to Her for Help @ 1412 sec, duration 187.86897916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S04.mp3
+S05 Sav's Worst Day @ 2387 sec, duration 148.40497916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S05.mp3
+S06 Private Messages, Public Audiences @ 2613 sec, duration 196.87697916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S06.mp3
+S07 The Accusations and the Confidante @ 3117 sec, duration 184.72497916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S07.mp3
+S08 The Rule She Set for Herself @ 3571 sec, duration 157.008 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S08.mp3
+S09 What It Meant to Help @ 3732 sec, duration 174.91697916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S09.mp3
+S10 The Monday Morning Messages @ 4034 sec, duration 174.91697916667 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_S10.mp3
+EPI Unanswered Fourth Note @ 4284.5 sec, duration 138.769 sec, C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\SUNO_SCENE_EPI.mp3

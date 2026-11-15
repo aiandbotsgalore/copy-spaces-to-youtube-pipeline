@@ -1,0 +1,859 @@
+<REAPER_PROJECT 0.1 "7.85/win64" 1794549849 0
+  <NOTES 0 2
+  >
+  RIPPLE 0 0
+  GROUPOVERRIDE 0 0 0 0
+  AUTOXFADE 129
+  ENVATTACH 3
+  POOLEDENVATTACH 0
+  TCPUIFLAGS 0
+  MIXERUIFLAGS 11 48 0
+  ENVFADESZ10 40
+  PEAKGAIN 1
+  FEEDBACK 0
+  PANLAW 1
+  PROJOFFS 0 0 0
+  MAXPROJLEN 0 0
+  GRID 3199 8 1 8 1 0 0 0
+  TIMEMODE 1 5 -1 30 0 0 -1 0
+  VIDEO_CONFIG 0 0 65792
+  PANMODE 3
+  PANLAWFLAGS 3
+  CURSOR 0
+  ZOOM 100 0 0
+  VZOOMEX 6 0
+  USE_REC_CFG 0
+  RECMODE 1
+  SMPTESYNC 0 30 100 40 1000 300 0 0 1 0 0
+  LOOP 0
+  LOOPGRAN 0 4
+  RECORD_PATH "Media" ""
+  <RECORD_CFG
+    ZXZhdxgAAQ==
+  >
+  <APPLYFX_CFG
+  >
+  RENDER_FILE ""
+  RENDER_PATTERN ""
+  RENDER_FMT 0 2 0
+  RENDER_1X 0 0
+  RENDER_RANGE 1 0 0 0 1000
+  RENDER_RESAMPLE 3 0 1
+  RENDER_ADDTOPROJ 0
+  RENDER_STEMS 0
+  RENDER_DITHER 0
+  RENDER_TRIM 0.000001 0.000001 0 0
+  TIMELOCKMODE 1
+  TEMPOENVLOCKMODE 1
+  ITEMMIX 1
+  DEFPITCHMODE 589824 0
+  TAKELANE 1
+  SAMPLERATE 44100 0 0
+  <RENDER_CFG
+    ZXZhdxgAAQ==
+  >
+  LOCK 1
+  <METRONOME 6 2
+    VOL 0.25 0.125
+    BEATLEN 4
+    FREQ 1760 880 1
+    SAMPLES "" "" "" ""
+    SPLIGNORE 0 0
+    SPLDEF 2 660 "" 0 ""
+    SPLDEF 3 440 "" 0 ""
+    PATTERN 0 169
+    PATTERNSTR ABBB
+    MULT 1
+  >
+  GLOBAL_AUTO -1
+  TEMPO 120 4 4 0
+  PLAYRATE 1 0 0.25 4
+  SELECTION 0 0
+  SELECTION2 0 0
+  MASTERAUTOMODE 0
+  MASTERTRACKHEIGHT 0 0
+  MASTERPEAKCOL 16576
+  MASTERMUTESOLO 0
+  MASTERTRACKVIEW 0 0.6667 0.5 0.5 0 0 0 0 0 0 0 0 0 0 1
+  MASTERHWOUT 0 0 1 0 0 0 0 -1
+  MASTER_NCH 2 2
+  MASTER_VOLUME 1 0 -1 -1 1
+  MASTER_PANMODE 3
+  MASTER_PANLAWFLAGS 3
+  MASTER_FX 1
+  MASTER_TRACKID {32519C8C-0620-4B13-8163-DFEA3E98519D}
+  MASTER_SEL 0
+  <MASTERPLAYSPEEDENV
+    EGUID {775FD188-15CE-4B97-ACD8-702DE3829F58}
+    ACT 0 -1
+    VIS 0 1 1
+    LANEHEIGHT 0 0
+    ARM 0
+    DEFSHAPE 0 -1 -1
+  >
+  <TEMPOENVEX
+    EGUID {DDCACAEA-C964-402C-B515-1081C47C9189}
+    ACT 1 -1
+    VIS 1 0 1
+    LANEHEIGHT 0 0
+    ARM 0
+    DEFSHAPE 1 -1 -1
+  >
+  RULERHEIGHT 66 86
+  RULERLANE 1 4 "" 0 -1 0
+  RULERLANE 2 8 "" 0 -1 0
+  MARKER 1 0 "THE PAPER TRAIL / PROLOGUE WORD-SCORE PILOT" 1 0 1 R {57542319-4B83-458C-AC1F-23D19913F13E} 0 1
+  MARKER 1 237.899 "" 1
+  MARKER 1 0.5 "START — real Angela archive, NO score" 0 0 1 R {19BCD233-50EB-4ADD-88D4-6F381B902653} 0 2
+  MARKER 2 7.38 "HARD CUT — 1.1 sec dry silence" 0 0 1 R {A418DD4A-652A-4B73-B41E-ACA5D0118A27} 0 2
+  MARKER 3 8.58 "LOGAN — That's Angela Maggard" 0 0 1 R {5E4C0C3B-EF8C-40E3-AE68-CD088934CD93} 0 2
+  MARKER 4 11.076 "LOGAN — She said that into an open microphone" 0 0 1 R {706D2561-A7EC-45CE-8DB5-E2369B746361} 0 2
+  MARKER 5 19.28 "LOGAN — I'm Logan Black" 0 0 1 R {BB43BFFA-E535-4D90-A789-1CBA62084284} 0 2
+  MARKER 6 22.311 "LOGAN — When Angela hosted that broadcast" 0 0 1 R {9AE18241-14CC-4826-88BA-04CC7C1CA862} 0 2
+  MARKER 7 24.31 "LOGAN — September of 2026" 0 0 1 R {C232BBF8-403B-420E-A979-C4AED5E425E7} 0 2
+  MARKER 8 40.186 "LOGAN — Over the course of that afternoon" 0 0 1 R {CE8AB2BD-B584-4F4F-B94A-4FFAD5E4C9E2} 0 2
+  MARKER 9 50.911 "LOGAN — closest to me" 0 0 1 R {D4430740-12CC-4CDD-9D92-87431811C86A} 0 2
+  MARKER 10 53.018 "RAPID RAW ARCHIVE MONTAGE — no music" 0 0 1 R {C92BCB09-2097-4047-A604-B943A8F84C92} 0 2
+  MARKER 11 160.838 "HARD STOP — 0.95 sec dry silence" 0 0 1 R {B19015EF-353B-4B18-8020-83F363B9CE0A} 0 2
+  MARKER 12 161.989 "LOGAN — If you tuned into those broadcasts" 0 0 1 R {12B50423-2057-490C-A86D-8167763CCF06} 0 2
+  MARKER 17 172.025 "SCORE IN: What you wouldn't know — proposed" 0 0 1 R {65CDE7B2-34FC-4A85-8FB6-E9785CDBA1CC} 0 2
+  MARKER 13 172.175 "LOGAN — What you wouldn't know" 0 0 1 R {DEF6B866-6914-4396-9799-A778BA502FF6} 0 2
+  MARKER 18 177.752 'SCORE OUT before "Angela and I were friends" — silence' 0 0 1 R {B0D9A7A8-8DF0-4C11-8F52-C6B9BC97C712} 0 2
+  MARKER 14 177.932 "LOGAN — Angela and I were friends" 0 0 1 R {C61081DD-D4C1-4699-8FEC-A24865AC3630} 0 2
+  MARKER 15 183.96 "LOGAN — Here is how Angela herself described" 0 0 1 R {067FB68B-919C-4F2A-88B7-0B9725ACEA64} 0 2
+  MARKER 16 188.283 "LOGAN — ten days earlier" 0 0 1 R {22133337-E9E3-4394-B59F-841A71A1ABED} 0 2
+  MARKER 19 190.499 "ARCHIVE RETURNS — no score" 0 0 1 R {4DABC4DD-C839-434B-8409-63699EF389F5} 0 2
+  MARKER 20 237.899 "END OF WORD-SCORE PILOT" 0 0 1 R {10B5BE3A-022D-4DFD-A9F2-CA62FED4287A} 0 2
+  <PROJBAY
+  >
+  <TRACK {D39FAABF-BE57-47A4-B549-34AE28D06F2A}
+    NAME "01 | AUTHENTIC ARCHIVE — DRY"
+    PEAKCOL 22315202
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {D39FAABF-BE57-47A4-B549-34AE28D06F2A}
+    PERF 0
+    MIDIOUT -1 -1
+    MAINSEND 1 0
+    <ITEM
+      POSITION 0.5
+      SNAPOFFS 0
+      LENGTH 6.88
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {F3FEB516-2A56-45E9-82B1-5FA9231FA40E}
+      IID 1
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 18
+        |[CLIP #006 / #188 | AQ-0024 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 01:52:22]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\06_Send_People_To_Watch_You.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C01 AQ-0024 | 001__AQ-0024__Send_People_To_Watch_You.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {77B2552E-5AC1-4579-BA60-AEB1109CB7C9}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\001__AQ-0024__Send_People_To_Watch_You.wav"
+      >
+    >
+    <ITEM
+      POSITION 53.018
+      SNAPOFFS 0
+      LENGTH 6.09
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {A6A1C7B4-7E07-4DA7-A3F2-4666E170337C}
+      IID 7
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 41
+        |[CLIP #032 / #037 | AQ-0002 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 04:04]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\32_Called_You_A_Predator.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C02 AQ-0002 | 002__AQ-0002__Called_You_A_Predator.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {41AD565A-A375-4810-9B56-09AEFA5DC7BF}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\002__AQ-0002__Called_You_A_Predator.wav"
+      >
+    >
+    <ITEM
+      POSITION 59.208
+      SNAPOFFS 0
+      LENGTH 30
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {D4A33722-B3FB-416A-A440-D4F0CD9C2BD4}
+      IID 8
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 44
+        |[CLIP #061 / #140 | AQ-0026 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 02:09:15]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\Quote_13_Triangulates_Them_AI_Harem.mp3
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C03 AQ-0026 | 003__AQ-0026__Triangulates_Them_AI_Harem.mp3"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {56F30ED4-0C4B-4D75-842C-251921A36539}
+      <SOURCE MP3
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\003__AQ-0026__Triangulates_Them_AI_Harem.mp3" 1
+      >
+    >
+    <ITEM
+      POSITION 89.308
+      SNAPOFFS 0
+      LENGTH 24.91
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {4AB63C30-F36D-47CD-8754-0C91F282D10C}
+      IID 9
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 47
+        |[CLIP #056 | AQ-0021 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026, 97:20]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\OneDrive\Documents\AngelaMaster\media\AQ-0021_Angela.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C04 AQ-0021 | 004__AQ-0021__Logan_Unmasked_Few_Accounts.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {26AC44B0-D98F-483E-A652-C7C7BD38B40D}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\004__AQ-0021__Logan_Unmasked_Few_Accounts.wav"
+      >
+    >
+    <ITEM
+      POSITION 114.318
+      SNAPOFFS 0
+      LENGTH 7.4
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {8961168B-B859-4F1D-A318-3D7F04CE2A2A}
+      IID 10
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 50
+        |[CLIP #028 | AQ-0037 | *The Social Cost of Taking a Suicide Threat Seriously* (20260930_1lJQRWLvWVzxE), Sept 30, 2026, 1301.2s]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\28_AI_Fucking_Porn_Claim.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C05 AQ-0037 | 005__AQ-0037__AI_Fucking_Porn_Claim.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {B120DFFB-1C55-42C3-8D19-AD6BF97150BB}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\005__AQ-0037__AI_Fucking_Porn_Claim.wav"
+      >
+    >
+    <ITEM
+      POSITION 121.818
+      SNAPOFFS 0
+      LENGTH 11.5
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {981659E5-5BCB-4EB1-92CC-708020A10377}
+      IID 11
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 53
+        |[CLIP #014-A | AQ-0014 | *Logan Black Unmasked* (20260918_1MJgNbdaAPlGL), Sept 18, 2026]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\Quote_09_Burn_Logan_14_Times.mp3
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C06 AQ-0014 | 006__AQ-0014__Burn_Logan_14_Times.mp3"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {3CCFF4B8-7F45-482A-8D67-03FDDEEDC432}
+      <SOURCE MP3
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\006__AQ-0014__Burn_Logan_14_Times.mp3" 1
+      >
+    >
+    <ITEM
+      POSITION 133.418
+      SNAPOFFS 0
+      LENGTH 6.8
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {94F403AA-9FDE-48E9-B683-03DADC3AD3C3}
+      IID 12
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 56
+        |[CLIP #011 / #012 | AQ-0068 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:50:14]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\11_Petty_Retired_Mean_Girl.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C07 AQ-0068 | 007__AQ-0068__Petty_Retired_Mean_Girl.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {62667F57-5271-428F-8E0E-137FA29A8F4B}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\007__AQ-0068__Petty_Retired_Mean_Girl.wav"
+      >
+    >
+    <ITEM
+      POSITION 140.318
+      SNAPOFFS 0
+      LENGTH 6.4
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {20574BB2-F9FD-4FB6-9475-0F85CFA14C9F}
+      IID 13
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 59
+        |[CLIP #013 / #014 / #015 | AQ-0070 & AQ-0071 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:52:28]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\13_Take_It_Too_Far.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C08 AQ-0070 | 008a__AQ-0070__Take_It_Too_Far.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {8623A68B-EE1B-4592-BF05-8DBBCC5669A8}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\008a__AQ-0070__Take_It_Too_Far.wav"
+      >
+    >
+    <ITEM
+      POSITION 146.818
+      SNAPOFFS 0
+      LENGTH 5.8
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {561D93EF-6B82-4A0C-A156-A07763A23A00}
+      IID 14
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 59
+        |[CLIP #013 / #014 / #015 | AQ-0070 & AQ-0071 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:52:28]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\14_Zero_To_100_No_Doubling_Back.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C08 AQ-0070 | 008b__AQ-0070__Zero_To_100_No_Doubling_Back.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {AAC5157D-7136-40CE-882A-CE7EAF1BE6F5}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\008b__AQ-0070__Zero_To_100_No_Doubling_Back.wav"
+      >
+    >
+    <ITEM
+      POSITION 152.718
+      SNAPOFFS 0
+      LENGTH 8.02
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {0A5D0D25-9FE8-4D31-87DF-2C24195AF990}
+      IID 15
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 59
+        |[CLIP #013 / #014 / #015 | AQ-0070 & AQ-0071 | *Cult Signups* (20260217_1lPKqbPREoeGb), Feb 17, 2026, 02:52:28]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: C:\Users\Logan\Downloads\sav\angela\15_Wrap_You_Up_In_Lawsuits.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C08 AQ-0071 | 008c__AQ-0071__Wrap_You_Up_In_Lawsuits.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {D0CDD1FE-4460-40B8-83C6-05BDB233ADC2}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\008c__AQ-0071__Wrap_You_Up_In_Lawsuits.wav"
+      >
+    >
+    <ITEM
+      POSITION 190.499
+      SNAPOFFS 0
+      LENGTH 47.4
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {3721CCE8-4910-42DF-A6B7-EA578D83452C}
+      IID 20
+      <NOTES
+        |ARCHIVAL RECORDING. Keep dry; requires final audition and speaker/cut verification.
+        |Manuscript line 71
+        |[CLIP #112 / #167 / #168 | AQ-0269 | *Hook Line Sinker* (20260908_1nGeLMjONkAKX), Sept 8, 2026, 3303.2s]
+        |Manifest status: existing
+        |Audio cut boundaries/context and speaker NOT independently verified. Audition before publication.
+        |Original source: c:\Users\Logan\copy-spaces-to-youtube-pipeline\special_clips\Cue_01_AQ-0269_Angela_Maggard.wav
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "ARCHIVE C09 AQ-0269 | 009__AQ-0269__Hook_Line_Sinker_Switched_Opinion.wav"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {29CC5CE8-FB05-4828-85A7-F79BD19CFAAF}
+      <SOURCE WAVE
+        FILE "C:\Users\Logan\copy-spaces-to-youtube-pipeline\papertrail_archival_audio_ordered\009__AQ-0269__Hook_Line_Sinker_Switched_Opinion.wav"
+      >
+    >
+  >
+  <TRACK {88B448E1-1D81-4250-A615-43BEB0735128}
+    NAME "02 | LOGAN NARRATION — SUNO WAV DOWNLOAD PENDING"
+    PEAKCOL 30708299
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {88B448E1-1D81-4250-A615-43BEB0735128}
+    PERF 0
+    MIDIOUT -1 -1
+    MAINSEND 1 0
+    <ITEM
+      POSITION 8.58
+      SNAPOFFS 0
+      LENGTH 2.446
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {A1FFA663-997B-42F1-8C98-7E3EA61AAED3}
+      IID 2
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |That's Angela Maggard.
+        |
+        |Suno pilot: https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579
+        |Suno word alignment relative to actual speech. Audio not yet downloaded. Do not treat this guide as a recorded performance.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: That's Angela Maggard."
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {E98764A7-918F-42FC-97BE-B5A326B2CDBE}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 11.076
+      SNAPOFFS 0
+      LENGTH 8.154
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {DE5A90FF-295B-4F2C-A11C-1CE79E37B234}
+      IID 3
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |She said that into an open microphone on X—in a live audio room she had titled *Logan Black Unmasked*.
+        |
+        |Suno pilot: https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579
+        |Suno word alignment relative to actual speech. Audio not yet downloaded. Do not treat this guide as a recorded performance.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: She said that into an open microphone on X—in a live audio"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {3548D23A-9932-4912-A354-03B43430B940}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 19.28
+      SNAPOFFS 0
+      LENGTH 2.981
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {10DFA516-C564-4542-97A0-627322738FA6}
+      IID 4
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |I'm Logan Black.
+        |
+        |Suno pilot: https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579
+        |Suno word alignment relative to actual speech. Audio not yet downloaded. Do not treat this guide as a recorded performance.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: I'm Logan Black."
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {42CD1122-4136-4976-A9A9-CDA21DB1C0F3}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 22.311
+      SNAPOFFS 0
+      LENGTH 17.825
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {BB443DB2-7152-4469-B8F6-1784ED3291CE}
+      IID 5
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |When Angela hosted that broadcast in September of 2026, she was speaking to hundreds of listeners in an online audio community where she had spent the last two years building a following as a whistle-blower and a fierce advocate for trauma survivors.
+        |
+        |Suno pilot: https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579
+        |Suno word alignment relative to actual speech. Audio not yet downloaded. Do not treat this guide as a recorded performance.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: When Angela hosted that broadcast in September of 2026, sh"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {94F4886D-89BF-4C87-B08C-390582FB9481}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 40.186
+      SNAPOFFS 0
+      LENGTH 12.082
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {8FA902C4-1E2C-4707-968D-7489E2586AD4}
+      IID 6
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |Over the course of that afternoon—and across weeks of broadcasts that surrounded it—she turned her microphone on me, and on the people closest to me.
+        |
+        |Suno pilot: https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579
+        |Suno word alignment relative to actual speech. Audio not yet downloaded. Do not treat this guide as a recorded performance.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: Over the course of that afternoon—and across weeks of broa"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {0084DD50-6DC0-464E-B569-29DB4DF55C47}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 161.989
+      SNAPOFFS 0
+      LENGTH 10.156
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {8F780094-6EE3-42AD-9275-4751B1BB8623}
+      IID 16
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |If you tuned into those broadcasts as a stranger, you would think Angela was confronting an enemy she had been tracking from a distance.
+        |
+        |Suno pilot: https://suno.com/song/2df688f1-eaa9-41bc-a2db-0fdaea27998c
+        |Audio not downloaded. Marker positions are based on Suno word alignment.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: If you tuned into those broadcasts as a stranger, you woul"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {0DF84C34-FE24-4804-96D3-A5C2EABA53E9}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 172.175
+      SNAPOFFS 0
+      LENGTH 11.755
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {52600959-114B-47A8-956A-A70B59B529E5}
+      IID 17
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |What you wouldn't know is that for more than two years before that broadcast, Angela and I were friends.
+        |
+        |Suno pilot: https://suno.com/song/2df688f1-eaa9-41bc-a2db-0fdaea27998c
+        |Audio not downloaded. Marker positions are based on Suno word alignment.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: What you wouldn't know is that for more than two years bef"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {CC677E96-C680-4832-89E2-FAD2850850B1}
+      <SOURCE EMPTY
+      >
+    >
+    <ITEM
+      POSITION 183.96
+      SNAPOFFS 0
+      LENGTH 6.309
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 0 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {A36BF209-C4F0-44AA-988E-9527F5B71D6D}
+      IID 18
+      <NOTES
+        |EXACT NARRATION TEXT:
+        |Here is how Angela herself described our history just ten days earlier:
+        |
+        |Suno pilot: https://suno.com/song/2df688f1-eaa9-41bc-a2db-0fdaea27998c
+        |Audio not downloaded. Marker positions are based on Suno word alignment.
+      >
+      IMGRESOURCEFLAGS 8
+      NAME "LOGAN VOICE GUIDE: Here is how Angela herself described our history just ten"
+      VOLPAN 1 0 1 -1
+      SOFFS 0
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {786FDD15-BC3C-4E72-B763-47BFA3978519}
+      <SOURCE EMPTY
+      >
+    >
+  >
+  <TRACK {CCBBBB46-E1A2-4EB0-BA0D-3D6DEEF05F27}
+    NAME "03 | PROVISIONAL WORD-SYNC MUSIC (ALT TEST)"
+    PEAKCOL 28275840
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {CCBBBB46-E1A2-4EB0-BA0D-3D6DEEF05F27}
+    PERF 0
+    MIDIOUT -1 -1
+    MAINSEND 1 0
+    <ITEM
+      POSITION 172.025
+      SNAPOFFS 0
+      LENGTH 5.727
+      LOOP 0
+      ALLTAKES 0
+      FADEIN 1 1.1 0 1 0 0 0 1 0 0 1 0 0
+      FADEOUT 1 0.15 0 1 0 0 0 1 0 0 1 0 0
+      MUTE 0 0
+      SEL 0
+      IGUID {4FA0A849-8272-4AA1-ADAC-FB655F9692D3}
+      IID 19
+      <NOTES
+        |TEMPORARY AVAILABLE SUNO INSTRUMENTAL (2026-10-05), NOT THE NEW APPROVED SIGNATURE CUE. Word-synchronized editorial experiment. Quietly introduce bed at "What you would not know"; CUT before "Angela and I were friends". Remove if it tells the listener what to feel. Before approval, listen against actual spoken recording.
+        |Source: https://suno.com/song/46194da4-b5cf-4832-a7ae-e0394a0584d0
+      >
+      IMGRESOURCEFLAGS 8
+      NAME `EXPERIMENT: distant piano begins on "What you wouldn't know"; dies before "friends"`
+      VOLPAN 1 0 0.13 -1
+      SOFFS 15
+      PLAYRATE 1 1 0 -1 0 0.0025
+      CHANMODE 0
+      GUID {FB806023-C7F8-46B7-A6ED-0D0C43D579A0}
+      <SOURCE WAVE
+        FILE "Walking_Paper_Trail_Instrumental_Suno.wav"
+      >
+    >
+  >
+  <TRACK {AB88F735-BE11-4C4F-878F-FBB466EA0586}
+    NAME "04 | SOUND DESIGN — RESERVED"
+    PEAKCOL 25729906
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {AB88F735-BE11-4C4F-878F-FBB466EA0586}
+    PERF 0
+    MIDIOUT -1 -1
+    MAINSEND 1 0
+  >
+  <TRACK {D27100D8-2BC1-4757-AC1E-8836A2CC2616}
+    NAME "05 | DIRECTOR NOTES — MARKERS"
+    PEAKCOL 25857679
+    BEAT -1
+    AUTOMODE 0
+    PANLAWFLAGS 3
+    VOLPAN 1 0 -1 -1 1
+    MUTESOLO 0 0 0
+    IPHASE 0
+    PLAYOFFS 0 1
+    ISBUS 0 0
+    BUSCOMP 0 0 0 0 0
+    SHOWINMIX 1 0.6667 0.5 1 0.5 0 0 0 0
+    FIXEDLANES 9 0 0 0 0
+    SEL 0
+    REC 0 0 1 0 0 0 0 0
+    VU 64
+    TRACKHEIGHT 0 0 0 0 0 0 0
+    INQ 0 0 0 0.5 100 0 0 100
+    NCHAN 2
+    FX 1
+    TRACKID {D27100D8-2BC1-4757-AC1E-8836A2CC2616}
+    PERF 0
+    MIDIOUT -1 -1
+    MAINSEND 1 0
+  >
+>

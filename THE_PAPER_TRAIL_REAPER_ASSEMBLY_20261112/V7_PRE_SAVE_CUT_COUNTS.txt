@@ -1,0 +1,7 @@
+Ripple off toggle state: 1
+Total source duration excised: 13.03
+Voice items cut 4
+AQ-0011 voice 1 music 3 total 7
+AQ-0195 voice 1 music 3 total 7
+AQ-0206 / AQ-0209 voice 1 music 3 total 7
+AQ-0056 voice 1 music 3 total 7

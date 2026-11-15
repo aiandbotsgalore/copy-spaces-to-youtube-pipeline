@@ -1,0 +1,89 @@
+{
+  "previews": [
+    {
+      "scene": "PROLOGUE",
+      "range_s": [
+        17,
+        142
+      ],
+      "base_rms_peak_db": [
+        -18.42,
+        -1.97
+      ],
+      "with_new_cue_rms_peak_db": [
+        -18.39,
+        -1.8
+      ],
+      "new_score_items": [
+        "P00#1"
+      ],
+      "peak_attenuation_db": 0.0,
+      "preview_file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\LISTEN_PROLOGUE_SCORE_REFINEMENT.mp3",
+      "size": 3001581
+    },
+    {
+      "scene": "SAV_SCENE",
+      "range_s": [
+        2383,
+        2518
+      ],
+      "base_rms_peak_db": [
+        -25.2,
+        -4.23
+      ],
+      "with_new_cue_rms_peak_db": [
+        -25.11,
+        -4.41
+      ],
+      "new_score_items": [
+        "S05#1"
+      ],
+      "peak_attenuation_db": 0.0,
+      "preview_file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\LISTEN_SAV_SCENE_SCORE_REFINEMENT.mp3",
+      "size": 3241197
+    },
+    {
+      "scene": "PUBLIC_MESSAGES",
+      "range_s": [
+        2611,
+        2746
+      ],
+      "base_rms_peak_db": [
+        -22.18,
+        -2.14
+      ],
+      "with_new_cue_rms_peak_db": [
+        -22.03,
+        -1.94
+      ],
+      "new_score_items": [
+        "S06#1"
+      ],
+      "peak_attenuation_db": 0.0,
+      "preview_file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\LISTEN_PUBLIC_MESSAGES_SCORE_REFINEMENT.mp3",
+      "size": 3241197
+    },
+    {
+      "scene": "EPILOGUE",
+      "range_s": [
+        4283,
+        4418
+      ],
+      "base_rms_peak_db": [
+        -21.78,
+        -2.04
+      ],
+      "with_new_cue_rms_peak_db": [
+        -21.71,
+        -1.98
+      ],
+      "new_score_items": [
+        "EPI#1"
+      ],
+      "peak_attenuation_db": 0.0,
+      "preview_file": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_SCENES_20261113\\LISTEN_EPILOGUE_SCORE_REFINEMENT.mp3",
+      "size": 3241197
+    }
+  ],
+  "caution": "Reference renders from previous three-bed MP3 plus current RPP scene music envelope. They do not include native REAPER plugin processing. Final audition recommended."
+}

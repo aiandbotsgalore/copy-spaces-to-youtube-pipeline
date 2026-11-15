@@ -1,0 +1,74 @@
+[
+  {
+    "id": "P00",
+    "source_rms_db": -15.27,
+    "source_peak_db": 2.29,
+    "current_gain_db": -14.0
+  },
+  {
+    "id": "S01",
+    "source_rms_db": -15.33,
+    "source_peak_db": 0.62,
+    "current_gain_db": -14.0
+  },
+  {
+    "id": "S02",
+    "source_rms_db": -15.07,
+    "source_peak_db": 1.32,
+    "current_gain_db": -14.9
+  },
+  {
+    "id": "S03",
+    "source_rms_db": -15.77,
+    "source_peak_db": -0.04,
+    "current_gain_db": -13.2
+  },
+  {
+    "id": "S04",
+    "source_rms_db": -14.16,
+    "source_peak_db": 0.98,
+    "current_gain_db": -16.5
+  },
+  {
+    "id": "S05",
+    "source_rms_db": -15.44,
+    "source_peak_db": 1.37,
+    "current_gain_db": -19.6
+  },
+  {
+    "id": "S06",
+    "source_rms_db": -14.48,
+    "source_peak_db": 1.94,
+    "current_gain_db": -14.0
+  },
+  {
+    "id": "S07",
+    "source_rms_db": -15.61,
+    "source_peak_db": -0.55,
+    "current_gain_db": -14.9
+  },
+  {
+    "id": "S08",
+    "source_rms_db": -15.41,
+    "source_peak_db": 0.59,
+    "current_gain_db": -14.9
+  },
+  {
+    "id": "S09",
+    "source_rms_db": -16.33,
+    "source_peak_db": 0.91,
+    "current_gain_db": -15.7
+  },
+  {
+    "id": "S10",
+    "source_rms_db": -15.7,
+    "source_peak_db": 1.82,
+    "current_gain_db": -14.9
+  },
+  {
+    "id": "EPI",
+    "source_rms_db": -17.01,
+    "source_peak_db": 0.2,
+    "current_gain_db": -13.2
+  }
+]

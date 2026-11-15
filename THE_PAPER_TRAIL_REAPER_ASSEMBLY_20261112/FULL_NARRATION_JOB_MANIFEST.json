@@ -1,0 +1,160 @@
+{
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "jobs": [
+    {
+      "job_id": "NARR_01",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 01 of 17",
+      "char_count": 1849,
+      "word_count": 313
+    },
+    {
+      "job_id": "NARR_02",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 02 of 17",
+      "char_count": 1885,
+      "word_count": 323
+    },
+    {
+      "job_id": "NARR_03",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 03 of 17",
+      "char_count": 2064,
+      "word_count": 345
+    },
+    {
+      "job_id": "NARR_04",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 04 of 17",
+      "char_count": 2112,
+      "word_count": 356
+    },
+    {
+      "job_id": "NARR_05",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 05 of 17",
+      "char_count": 2037,
+      "word_count": 319
+    },
+    {
+      "job_id": "NARR_06",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 06 of 17",
+      "char_count": 2073,
+      "word_count": 345
+    },
+    {
+      "job_id": "NARR_07",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 07 of 17",
+      "char_count": 2022,
+      "word_count": 328
+    },
+    {
+      "job_id": "NARR_08",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 08 of 17",
+      "char_count": 2086,
+      "word_count": 315
+    },
+    {
+      "job_id": "NARR_09",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 09 of 17",
+      "char_count": 1978,
+      "word_count": 337
+    },
+    {
+      "job_id": "NARR_10",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 10 of 17",
+      "char_count": 2123,
+      "word_count": 358
+    },
+    {
+      "job_id": "NARR_11",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 11 of 17",
+      "char_count": 2054,
+      "word_count": 339
+    },
+    {
+      "job_id": "NARR_12",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 12 of 17",
+      "char_count": 2005,
+      "word_count": 330
+    },
+    {
+      "job_id": "NARR_13",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 13 of 17",
+      "char_count": 2097,
+      "word_count": 354
+    },
+    {
+      "job_id": "NARR_14",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 14 of 17",
+      "char_count": 2128,
+      "word_count": 356
+    },
+    {
+      "job_id": "NARR_15",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 15 of 17",
+      "char_count": 2099,
+      "word_count": 340
+    },
+    {
+      "job_id": "NARR_16",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 16 of 17",
+      "char_count": 1957,
+      "word_count": 316
+    },
+    {
+      "job_id": "NARR_17",
+      "kind": "narration",
+      "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+      "title": "THE PAPER TRAIL - Logan Narration Part 17 of 17",
+      "char_count": 2041,
+      "word_count": 334
+    },
+    {
+      "job_id": "READ_01",
+      "kind": "reading",
+      "title": "THE PAPER TRAIL - Performed Written Messages 01",
+      "char_count": 1500,
+      "word_count": 284
+    },
+    {
+      "job_id": "READ_02",
+      "kind": "reading",
+      "title": "THE PAPER TRAIL - Performed Written Messages 02",
+      "char_count": 1018,
+      "word_count": 191
+    }
+  ],
+  "job_count": 19,
+  "narration_count": 17,
+  "reading_count": 2,
+  "total_words": 6183,
+  "total_chars": 37128
+}

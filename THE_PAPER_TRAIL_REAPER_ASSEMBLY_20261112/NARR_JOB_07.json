@@ -1,0 +1,102 @@
+{
+  "job_id": "NARR_07",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "As I listened to former friends describing these conflicts, I had to keep one thing clear: for most of the calls to relatives, child-protection visits and alleged legal consequences, I don't have the original agency files or phone records. These are personal accounts, many from people who were already angry with Angela. They're not all independent proof of what she did.\n\nBut they do tell us what the people who trusted her say they experienced—and how those friendships broke apart.\n\nCambian describes one of those turning points: the moment he says Angela's praise became a demand for loyalty.\n\nWhat Cambian describes is a shift in the rules of friendship. Agree with Angela and you're an ally. Refuse to join a campaign and, in his account, you're suddenly part of the enemy.\n\nOther former friends described the consequences extending well beyond a microphone.\n\nPeach was a mother in a group that included Angela, Timmy and Glow Baby. They say she was struggling when the friendships fractured. They also say Angela demanded that Peach choose sides, and that calls to her family and welfare checks followed.\n\nGlow Baby believed those calls were a way to exert pressure. Angela's stated concern for a person's safety is a competing explanation we have to take seriously.\n\nHere is how Glow Baby described what happened.\n\nIn Glow Baby's telling, the calls weren't the end of the friendship. They were one of the ways the falling-out reached Peach's family.\n\nTimmy was part of that circle too. He alleged more serious things: private information being exposed, family contact, and calls to authorities.\n\nBut the thread that connects his account to the others is what he says Angela learned about survivors while they still trusted her—and what he believes happened after the friendships broke down.\n\nThat is Timmy's central allegation: getting close to survivors, learning their personal vulnerabilities, and later using what had been confided.\n\nGlow Baby described what she says happened to her own family's information.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 07 of 17",
+  "segments": [
+    {
+      "cue_index": 132,
+      "text": "As I listened to former friends describing these conflicts, I had to keep one thing clear: for most of the calls to relatives, child-protection visits and alleged legal consequences, I don't have the original agency files or phone records. These are personal accounts, many from people who were already angry with Angela. They're not all independent proof of what she did.",
+      "start_char": 0,
+      "end_char": 372,
+      "orig_pos": 1647.658
+    },
+    {
+      "cue_index": 133,
+      "text": "But they do tell us what the people who trusted her say they experienced—and how those friendships broke apart.",
+      "start_char": 374,
+      "end_char": 485,
+      "orig_pos": 1674.288
+    },
+    {
+      "cue_index": 134,
+      "text": "Cambian describes one of those turning points: the moment he says Angela's praise became a demand for loyalty.",
+      "start_char": 487,
+      "end_char": 597,
+      "orig_pos": 1683.326
+    },
+    {
+      "cue_index": 136,
+      "text": "What Cambian describes is a shift in the rules of friendship. Agree with Angela and you're an ally. Refuse to join a campaign and, in his account, you're suddenly part of the enemy.",
+      "start_char": 599,
+      "end_char": 780,
+      "orig_pos": 1788.679
+    },
+    {
+      "cue_index": 137,
+      "text": "Other former friends described the consequences extending well beyond a microphone.",
+      "start_char": 782,
+      "end_char": 865,
+      "orig_pos": 1803.958
+    },
+    {
+      "cue_index": 138,
+      "text": "Peach was a mother in a group that included Angela, Timmy and Glow Baby. They say she was struggling when the friendships fractured. They also say Angela demanded that Peach choose sides, and that calls to her family and welfare checks followed.",
+      "start_char": 867,
+      "end_char": 1112,
+      "orig_pos": 1809.348
+    },
+    {
+      "cue_index": 139,
+      "text": "Glow Baby believed those calls were a way to exert pressure. Angela's stated concern for a person's safety is a competing explanation we have to take seriously.",
+      "start_char": 1114,
+      "end_char": 1274,
+      "orig_pos": 1827.465
+    },
+    {
+      "cue_index": 140,
+      "text": "Here is how Glow Baby described what happened.",
+      "start_char": 1276,
+      "end_char": 1322,
+      "orig_pos": 1840.232
+    },
+    {
+      "cue_index": 142,
+      "text": "In Glow Baby's telling, the calls weren't the end of the friendship. They were one of the ways the falling-out reached Peach's family.",
+      "start_char": 1324,
+      "end_char": 1458,
+      "orig_pos": 1999.495
+    },
+    {
+      "cue_index": 143,
+      "text": "Timmy was part of that circle too. He alleged more serious things: private information being exposed, family contact, and calls to authorities.",
+      "start_char": 1460,
+      "end_char": 1603,
+      "orig_pos": 2011.045
+    },
+    {
+      "cue_index": 144,
+      "text": "But the thread that connects his account to the others is what he says Angela learned about survivors while they still trusted her—and what he believes happened after the friendships broke down.",
+      "start_char": 1605,
+      "end_char": 1799,
+      "orig_pos": 2020.974
+    },
+    {
+      "cue_index": 148,
+      "text": "That is Timmy's central allegation: getting close to survivors, learning their personal vulnerabilities, and later using what had been confided.",
+      "start_char": 1801,
+      "end_char": 1945,
+      "orig_pos": 2208.793
+    },
+    {
+      "cue_index": 149,
+      "text": "Glow Baby described what she says happened to her own family's information.",
+      "start_char": 1947,
+      "end_char": 2022,
+      "orig_pos": 2218.236
+    }
+  ],
+  "char_count": 2022,
+  "word_count": 328
+}

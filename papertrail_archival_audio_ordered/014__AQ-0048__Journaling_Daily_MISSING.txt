@@ -1,0 +1,8 @@
+MISSING ARCHIVAL CLIP
+Sequence: 014
+Cue Index: 14
+Cue ID: AQ-0048
+Source Title: The Social Cost of Taking a Suicide Threat Seriously
+Source Tag: 20260930_1lJQRWLvWVzxE
+Timecode: 4321.3s
+Reason: Master broadcast audio is not present on local machine. Offline constraint strictly observed.

@@ -1,0 +1,229 @@
+{
+  "status": "DRY_RUN_VERIFIED",
+  "same_project": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP",
+  "original_sha256": "1872528bea98e6af88cc1d5c8b555b9b19c2fc6eb0caff4f3a482e9de0ded550",
+  "original_audio_items": 12,
+  "refined_audio_items": 21,
+  "new_tracks": 0,
+  "new_songs": 0,
+  "new_download_credits": 0,
+  "narration_items_unchanged": 237,
+  "archive_items_unchanged": 70,
+  "score_envelope_points_old": 923,
+  "score_envelope_points_new": 1340,
+  "sensitive_word_dips": 9,
+  "placements": [
+    {
+      "id": "P00",
+      "name": "The Line That Never Hangs Up",
+      "pass": 1,
+      "position": 17,
+      "end": 191,
+      "duration": 174,
+      "source_offset": 0,
+      "take_gain": 0.24
+    },
+    {
+      "id": "P00",
+      "name": "The Line That Never Hangs Up",
+      "pass": 2,
+      "position": 245,
+      "end": 413,
+      "duration": 168,
+      "source_offset": 15,
+      "take_gain": 0.2112
+    },
+    {
+      "id": "S01",
+      "name": "A Place to Tell Your Story",
+      "pass": 1,
+      "position": 427,
+      "end": 612,
+      "duration": 185,
+      "source_offset": 10,
+      "take_gain": 0.245
+    },
+    {
+      "id": "S01",
+      "name": "A Place to Tell Your Story",
+      "pass": 2,
+      "position": 639,
+      "end": 823,
+      "duration": 184,
+      "source_offset": 18,
+      "take_gain": 0.2156
+    },
+    {
+      "id": "S02",
+      "name": "The Confidante",
+      "pass": 1,
+      "position": 833,
+      "end": 1005,
+      "duration": 172,
+      "source_offset": 18,
+      "take_gain": 0.235
+    },
+    {
+      "id": "S03",
+      "name": "What She Kept",
+      "pass": 1,
+      "position": 1026,
+      "end": 1216,
+      "duration": 190,
+      "source_offset": 0,
+      "take_gain": 0.242
+    },
+    {
+      "id": "S03",
+      "name": "What She Kept",
+      "pass": 2,
+      "position": 1242,
+      "end": 1401,
+      "duration": 159,
+      "source_offset": 39,
+      "take_gain": 0.213
+    },
+    {
+      "id": "S04",
+      "name": "People Who Went to Her for Help",
+      "pass": 1,
+      "position": 1412,
+      "end": 1585,
+      "duration": 173,
+      "source_offset": 11,
+      "take_gain": 0.207
+    },
+    {
+      "id": "S04",
+      "name": "People Who Went to Her for Help",
+      "pass": 2,
+      "position": 1745,
+      "end": 1911,
+      "duration": 166,
+      "source_offset": 17,
+      "take_gain": 0.1822
+    },
+    {
+      "id": "S04",
+      "name": "People Who Went to Her for Help",
+      "pass": 3,
+      "position": 2194,
+      "end": 2367,
+      "duration": 173,
+      "source_offset": 11,
+      "take_gain": 0.1822
+    },
+    {
+      "id": "S05",
+      "name": "Sav's Worst Day",
+      "pass": 1,
+      "position": 2387,
+      "end": 2508,
+      "duration": 121,
+      "source_offset": 15,
+      "take_gain": 0.135
+    },
+    {
+      "id": "S06",
+      "name": "Private Messages, Public Audiences",
+      "pass": 1,
+      "position": 2613,
+      "end": 2799,
+      "duration": 186,
+      "source_offset": 10,
+      "take_gain": 0.238
+    },
+    {
+      "id": "S06",
+      "name": "Private Messages, Public Audiences",
+      "pass": 2,
+      "position": 2907,
+      "end": 3105,
+      "duration": 198,
+      "source_offset": 2,
+      "take_gain": 0.2094
+    },
+    {
+      "id": "S07",
+      "name": "The Accusations and the Confidante",
+      "pass": 1,
+      "position": 3117,
+      "end": 3292,
+      "duration": 175,
+      "source_offset": 8,
+      "take_gain": 0.22
+    },
+    {
+      "id": "S07",
+      "name": "The Accusations and the Confidante",
+      "pass": 2,
+      "position": 3390,
+      "end": 3560,
+      "duration": 170,
+      "source_offset": 12,
+      "take_gain": 0.1936
+    },
+    {
+      "id": "S08",
+      "name": "The Rule She Set for Herself",
+      "pass": 1,
+      "position": 3571,
+      "end": 3723,
+      "duration": 152,
+      "source_offset": 15,
+      "take_gain": 0.218
+    },
+    {
+      "id": "S09",
+      "name": "What It Meant to Help",
+      "pass": 1,
+      "position": 3732,
+      "end": 3892,
+      "duration": 160,
+      "source_offset": 13,
+      "take_gain": 0.232
+    },
+    {
+      "id": "S09",
+      "name": "What It Meant to Help",
+      "pass": 2,
+      "position": 3920,
+      "end": 4026,
+      "duration": 106,
+      "source_offset": 42,
+      "take_gain": 0.2042
+    },
+    {
+      "id": "S10",
+      "name": "The Monday Morning Messages",
+      "pass": 1,
+      "position": 4034,
+      "end": 4190,
+      "duration": 156,
+      "source_offset": 17,
+      "take_gain": 0.229
+    },
+    {
+      "id": "S10",
+      "name": "The Monday Morning Messages",
+      "pass": 2,
+      "position": 4220,
+      "end": 4280,
+      "duration": 60,
+      "source_offset": 72,
+      "take_gain": 0.2015
+    },
+    {
+      "id": "EPI",
+      "name": "Unanswered Fourth Note",
+      "pass": 1,
+      "position": 4284.5,
+      "end": 4421.4,
+      "duration": 136.89999999999964,
+      "source_offset": 2,
+      "take_gain": 0.247
+    }
+  ],
+  "new_project_bytes": 1658599,
+  "new_project_sha256": "13639aa951f44e4e200d5acce732ca068400feea31601598f13399050ae322d4"
+}

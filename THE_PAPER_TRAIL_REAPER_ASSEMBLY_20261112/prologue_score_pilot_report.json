@@ -1,0 +1,315 @@
+{
+  "metadata": {
+    "opening_suno_id": "814e319c-daea-4079-a41b-5a7300229579",
+    "reveal_suno_id": "2df688f1-eaa9-41bc-a2db-0fdaea27998c",
+    "original_score_source": "Walking_Paper_Trail_Instrumental_Suno.wav",
+    "reveal_music_in": 172.025,
+    "reveal_music_out": 177.752,
+    "montage_clips": 9,
+    "total_duration_s": 237.899
+  },
+  "events": [
+    {
+      "track": "archive",
+      "pos": 0.5,
+      "dur": 6.88,
+      "name": "ARCHIVE C01 AQ-0024 | 001__AQ-0024__Send_People_To_Watch_You.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\001__AQ-0024__Send_People_To_Watch_You.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 8.58,
+      "dur": 2.446,
+      "name": "LOGAN VOICE GUIDE: That's Angela Maggard.",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 11.076,
+      "dur": 8.154,
+      "name": "LOGAN VOICE GUIDE: She said that into an open microphone on X—in a live audio",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 19.28,
+      "dur": 2.981,
+      "name": "LOGAN VOICE GUIDE: I'm Logan Black.",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 22.311,
+      "dur": 17.825,
+      "name": "LOGAN VOICE GUIDE: When Angela hosted that broadcast in September of 2026, sh",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 40.186,
+      "dur": 12.082,
+      "name": "LOGAN VOICE GUIDE: Over the course of that afternoon—and across weeks of broa",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 53.018,
+      "dur": 6.09,
+      "name": "ARCHIVE C02 AQ-0002 | 002__AQ-0002__Called_You_A_Predator.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\002__AQ-0002__Called_You_A_Predator.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 59.208,
+      "dur": 30.0,
+      "name": "ARCHIVE C03 AQ-0026 | 003__AQ-0026__Triangulates_Them_AI_Harem.mp3",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\003__AQ-0026__Triangulates_Them_AI_Harem.mp3",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 89.308,
+      "dur": 24.91,
+      "name": "ARCHIVE C04 AQ-0021 | 004__AQ-0021__Logan_Unmasked_Few_Accounts.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\004__AQ-0021__Logan_Unmasked_Few_Accounts.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 114.318,
+      "dur": 7.4,
+      "name": "ARCHIVE C05 AQ-0037 | 005__AQ-0037__AI_Fucking_Porn_Claim.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\005__AQ-0037__AI_Fucking_Porn_Claim.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 121.818,
+      "dur": 11.5,
+      "name": "ARCHIVE C06 AQ-0014 | 006__AQ-0014__Burn_Logan_14_Times.mp3",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\006__AQ-0014__Burn_Logan_14_Times.mp3",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 133.418,
+      "dur": 6.8,
+      "name": "ARCHIVE C07 AQ-0068 | 007__AQ-0068__Petty_Retired_Mean_Girl.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\007__AQ-0068__Petty_Retired_Mean_Girl.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 140.318,
+      "dur": 6.4,
+      "name": "ARCHIVE C08 AQ-0070 | 008a__AQ-0070__Take_It_Too_Far.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\008a__AQ-0070__Take_It_Too_Far.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 146.818,
+      "dur": 5.8,
+      "name": "ARCHIVE C08 AQ-0070 | 008b__AQ-0070__Zero_To_100_No_Doubling_Back.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\008b__AQ-0070__Zero_To_100_No_Doubling_Back.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "archive",
+      "pos": 152.718,
+      "dur": 8.02,
+      "name": "ARCHIVE C08 AQ-0071 | 008c__AQ-0071__Wrap_You_Up_In_Lawsuits.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\008c__AQ-0071__Wrap_You_Up_In_Lawsuits.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 161.989,
+      "dur": 10.156,
+      "name": "LOGAN VOICE GUIDE: If you tuned into those broadcasts as a stranger, you woul",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 172.175,
+      "dur": 11.755,
+      "name": "LOGAN VOICE GUIDE: What you wouldn't know is that for more than two years bef",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "narration",
+      "pos": 183.96,
+      "dur": 6.309,
+      "name": "LOGAN VOICE GUIDE: Here is how Angela herself described our history just ten",
+      "path": "",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    },
+    {
+      "track": "music",
+      "pos": 172.025,
+      "dur": 5.727,
+      "name": "EXPERIMENT: distant piano begins on \"What you wouldn't know\"; dies before \"friends\"",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\Walking_Paper_Trail_Instrumental_Suno.wav",
+      "offset": 15.0,
+      "volume": 0.13,
+      "fadein": 1.1,
+      "fadeout": 0.15
+    },
+    {
+      "track": "archive",
+      "pos": 190.499,
+      "dur": 47.4,
+      "name": "ARCHIVE C09 AQ-0269 | 009__AQ-0269__Hook_Line_Sinker_Switched_Opinion.wav",
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\009__AQ-0269__Hook_Line_Sinker_Switched_Opinion.wav",
+      "offset": 0.0,
+      "volume": 1.0,
+      "fadein": 0.0,
+      "fadeout": 0.0
+    }
+  ],
+  "markers": [
+    {
+      "pos": 0.5,
+      "name": "START — real Angela archive, NO score"
+    },
+    {
+      "pos": 7.38,
+      "name": "HARD CUT — 1.1 sec dry silence"
+    },
+    {
+      "pos": 8.58,
+      "name": "LOGAN — That's Angela Maggard"
+    },
+    {
+      "pos": 11.076,
+      "name": "LOGAN — She said that into an open microphone"
+    },
+    {
+      "pos": 19.28,
+      "name": "LOGAN — I'm Logan Black"
+    },
+    {
+      "pos": 22.311,
+      "name": "LOGAN — When Angela hosted that broadcast"
+    },
+    {
+      "pos": 24.31,
+      "name": "LOGAN — September of 2026"
+    },
+    {
+      "pos": 40.186,
+      "name": "LOGAN — Over the course of that afternoon"
+    },
+    {
+      "pos": 50.911,
+      "name": "LOGAN — closest to me"
+    },
+    {
+      "pos": 53.018,
+      "name": "RAPID RAW ARCHIVE MONTAGE — no music"
+    },
+    {
+      "pos": 160.838,
+      "name": "HARD STOP — 0.95 sec dry silence"
+    },
+    {
+      "pos": 161.989,
+      "name": "LOGAN — If you tuned into those broadcasts"
+    },
+    {
+      "pos": 172.175,
+      "name": "LOGAN — What you wouldn't know"
+    },
+    {
+      "pos": 177.932,
+      "name": "LOGAN — Angela and I were friends"
+    },
+    {
+      "pos": 183.96,
+      "name": "LOGAN — Here is how Angela herself described"
+    },
+    {
+      "pos": 188.283,
+      "name": "LOGAN — ten days earlier"
+    },
+    {
+      "pos": 172.025,
+      "name": "SCORE IN: What you wouldn't know — proposed"
+    },
+    {
+      "pos": 177.752,
+      "name": "SCORE OUT before \"Angela and I were friends\" — silence"
+    },
+    {
+      "pos": 190.499,
+      "name": "ARCHIVE RETURNS — no score"
+    },
+    {
+      "pos": 237.899,
+      "name": "END OF WORD-SCORE PILOT"
+    }
+  ]
+}

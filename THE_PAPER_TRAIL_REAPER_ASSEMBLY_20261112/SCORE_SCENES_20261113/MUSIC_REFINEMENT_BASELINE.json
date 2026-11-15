@@ -1,0 +1,417 @@
+{
+  "scene_placement": {
+    "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE": {
+      "start": 0.0,
+      "end": 422.0,
+      "duration_s": 422.0,
+      "narrator_seconds": 166.5,
+      "archive_seconds": 243.0,
+      "narrator_pct": 39.4,
+      "archive_pct": 57.6,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE P00 | The Line That Never Hangs Up",
+          "start": 17.0,
+          "length": 187.0,
+          "scene_coverage_pct": 44.3,
+          "eff_gain_db": -14.0
+        }
+      ]
+    },
+    "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY": {
+      "start": 422.5,
+      "end": 829.9,
+      "duration_s": 407.5,
+      "narrator_seconds": 207.0,
+      "archive_seconds": 172.0,
+      "narrator_pct": 50.8,
+      "archive_pct": 42.2,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S01 | A Place to Tell Your Story",
+          "start": 427.0,
+          "length": 193.9,
+          "scene_coverage_pct": 47.6,
+          "eff_gain_db": -14.0
+        }
+      ]
+    },
+    "ACT I — SCENE 2: THE CONFIDANTE": {
+      "start": 829.9,
+      "end": 1022.2,
+      "duration_s": 192.3,
+      "narrator_seconds": 141.3,
+      "archive_seconds": 44.5,
+      "narrator_pct": 73.5,
+      "archive_pct": 23.2,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S02 | The Confidante",
+          "start": 832.0,
+          "length": 173.5,
+          "scene_coverage_pct": 90.2,
+          "eff_gain_db": -14.9
+        }
+      ]
+    },
+    "ACT II — SCENE 3: WHAT SHE KEPT": {
+      "start": 1022.7,
+      "end": 1409.4,
+      "duration_s": 386.7,
+      "narrator_seconds": 162.3,
+      "archive_seconds": 214.8,
+      "narrator_pct": 42.0,
+      "archive_pct": 55.6,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S03 | What She Kept",
+          "start": 1025.0,
+          "length": 204.9,
+          "scene_coverage_pct": 53.0,
+          "eff_gain_db": -13.2
+        }
+      ]
+    },
+    "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP": {
+      "start": 1409.4,
+      "end": 2377.6,
+      "duration_s": 968.2,
+      "narrator_seconds": 296.8,
+      "archive_seconds": 656.8,
+      "narrator_pct": 30.7,
+      "archive_pct": 67.8,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S04 | People Who Went to Her for Help",
+          "start": 1412.0,
+          "length": 187.9,
+          "scene_coverage_pct": 19.4,
+          "eff_gain_db": -16.5
+        }
+      ]
+    },
+    "ACT II — SCENE 5: SAV'S WORST DAY": {
+      "start": 2377.6,
+      "end": 2609.8,
+      "duration_s": 232.2,
+      "narrator_seconds": 159.5,
+      "archive_seconds": 36.5,
+      "narrator_pct": 68.7,
+      "archive_pct": 15.7,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S05 | Sav's Worst Day",
+          "start": 2387.0,
+          "length": 148.4,
+          "scene_coverage_pct": 63.9,
+          "eff_gain_db": -19.6
+        }
+      ]
+    },
+    "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES": {
+      "start": 2610.3,
+      "end": 3114.8,
+      "duration_s": 504.5,
+      "narrator_seconds": 226.9,
+      "archive_seconds": 267.1,
+      "narrator_pct": 45.0,
+      "archive_pct": 52.9,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S06 | Private Messages, Public Audiences",
+          "start": 2613.0,
+          "length": 196.9,
+          "scene_coverage_pct": 39.0,
+          "eff_gain_db": -14.0
+        }
+      ]
+    },
+    "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE": {
+      "start": 3114.8,
+      "end": 3568.2,
+      "duration_s": 453.3,
+      "narrator_seconds": 238.0,
+      "archive_seconds": 94.3,
+      "narrator_pct": 52.5,
+      "archive_pct": 20.8,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S07 | The Accusations and the Confidante",
+          "start": 3117.0,
+          "length": 184.7,
+          "scene_coverage_pct": 40.7,
+          "eff_gain_db": -14.9
+        }
+      ]
+    },
+    "ACT III — SCENE 8: THE RULE SHE SET FOR HERSELF": {
+      "start": 3568.2,
+      "end": 3728.6,
+      "duration_s": 160.4,
+      "narrator_seconds": 68.2,
+      "archive_seconds": 88.3,
+      "narrator_pct": 42.5,
+      "archive_pct": 55.1,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S08 | The Rule She Set for Herself",
+          "start": 3571.0,
+          "length": 157.0,
+          "scene_coverage_pct": 97.9,
+          "eff_gain_db": -14.9
+        }
+      ]
+    },
+    "ACT IV — SCENE 9: WHAT IT MEANT TO HELP": {
+      "start": 3729.1,
+      "end": 4031.7,
+      "duration_s": 302.6,
+      "narrator_seconds": 126.5,
+      "archive_seconds": 170.3,
+      "narrator_pct": 41.8,
+      "archive_pct": 56.3,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S09 | What It Meant to Help",
+          "start": 3732.0,
+          "length": 174.9,
+          "scene_coverage_pct": 57.8,
+          "eff_gain_db": -15.7
+        }
+      ]
+    },
+    "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES": {
+      "start": 4031.7,
+      "end": 4283.5,
+      "duration_s": 251.8,
+      "narrator_seconds": 176.6,
+      "archive_seconds": 0,
+      "narrator_pct": 70.1,
+      "archive_pct": 0.0,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE S10 | The Monday Morning Messages",
+          "start": 4034.0,
+          "length": 174.9,
+          "scene_coverage_pct": 69.5,
+          "eff_gain_db": -14.9
+        }
+      ]
+    },
+    "EPILOGUE — THE PAPER TRAIL": {
+      "start": 4283.5,
+      "end": 4423.9,
+      "duration_s": 140.4,
+      "narrator_seconds": 95.7,
+      "archive_seconds": 40.3,
+      "narrator_pct": 68.2,
+      "archive_pct": 28.7,
+      "distinct_scene_cues": [
+        {
+          "name": "ORIGINAL SUNO SCENE EPI | Unanswered Fourth Note",
+          "start": 4284.5,
+          "length": 138.8,
+          "scene_coverage_pct": 98.9,
+          "eff_gain_db": -13.2
+        }
+      ]
+    }
+  },
+  "scene_music_rms": [
+    {
+      "name": "ORIGINAL SUNO SCENE P00 | The Line That Never Hangs Up",
+      "start": 17.0,
+      "length": 187.0,
+      "dry_rms": -15.18,
+      "effective_rms": -29.2,
+      "dry_peak": 2.68,
+      "effective_peak": -11.3,
+      "gain_db": -14.0
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S01 | A Place to Tell Your Story",
+      "start": 427.0,
+      "length": 193.9,
+      "dry_rms": -15.06,
+      "effective_rms": -29.0,
+      "dry_peak": 1.9,
+      "effective_peak": -12.1,
+      "gain_db": -14.0
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S02 | The Confidante",
+      "start": 832.0,
+      "length": 173.5,
+      "dry_rms": -15.11,
+      "effective_rms": -30.0,
+      "dry_peak": 2.09,
+      "effective_peak": -12.8,
+      "gain_db": -14.9
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S03 | What She Kept",
+      "start": 1025.0,
+      "length": 204.9,
+      "dry_rms": -15.99,
+      "effective_rms": -29.1,
+      "dry_peak": 1.83,
+      "effective_peak": -11.3,
+      "gain_db": -13.2
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S04 | People Who Went to Her for Help",
+      "start": 1412.0,
+      "length": 187.9,
+      "dry_rms": -14.23,
+      "effective_rms": -30.7,
+      "dry_peak": 0.98,
+      "effective_peak": -15.5,
+      "gain_db": -16.5
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S05 | Sav's Worst Day",
+      "start": 2387.0,
+      "length": 148.4,
+      "dry_rms": -15.06,
+      "effective_rms": -34.6,
+      "dry_peak": 2.02,
+      "effective_peak": -17.6,
+      "gain_db": -19.6
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S06 | Private Messages, Public Audiences",
+      "start": 2613.0,
+      "length": 196.9,
+      "dry_rms": -14.45,
+      "effective_rms": -28.4,
+      "dry_peak": 1.94,
+      "effective_peak": -12.0,
+      "gain_db": -14.0
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S07 | The Accusations and the Confidante",
+      "start": 3117.0,
+      "length": 184.7,
+      "dry_rms": -14.73,
+      "effective_rms": -29.6,
+      "dry_peak": 2.01,
+      "effective_peak": -12.9,
+      "gain_db": -14.9
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S08 | The Rule She Set for Herself",
+      "start": 3571.0,
+      "length": 157.0,
+      "dry_rms": -15.03,
+      "effective_rms": -29.9,
+      "dry_peak": 0.75,
+      "effective_peak": -14.1,
+      "gain_db": -14.9
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S09 | What It Meant to Help",
+      "start": 3732.0,
+      "length": 174.9,
+      "dry_rms": -16.28,
+      "effective_rms": -31.9,
+      "dry_peak": 2.39,
+      "effective_peak": -13.3,
+      "gain_db": -15.7
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE S10 | The Monday Morning Messages",
+      "start": 4034.0,
+      "length": 174.9,
+      "dry_rms": -15.14,
+      "effective_rms": -30.0,
+      "dry_peak": 2.0,
+      "effective_peak": -12.9,
+      "gain_db": -14.9
+    },
+    {
+      "name": "ORIGINAL SUNO SCENE EPI | Unanswered Fourth Note",
+      "start": 4284.5,
+      "length": 138.8,
+      "dry_rms": -16.98,
+      "effective_rms": -30.1,
+      "dry_peak": 0.21,
+      "effective_peak": -12.9,
+      "gain_db": -13.2
+    }
+  ],
+  "voice_examples": [
+    {
+      "name": "LOGAN ELEVENLABS | CUE 3 | That's Angela Maggard.",
+      "start": 7.7,
+      "rms": -19.9,
+      "peak": -3.1,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 4 | She said that into an open microphone on X—in a ",
+      "start": 9.8,
+      "rms": -20.2,
+      "peak": -2.6,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 6 | I'm Logan Black.",
+      "start": 17.6,
+      "rms": -18.1,
+      "peak": -2.6,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 7 | When Angela hosted that broadcast in September o",
+      "start": 19.2,
+      "rms": -21.7,
+      "peak": -3.6,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 8 | Over the course of that afternoon—and across wee",
+      "start": 33.6,
+      "rms": -21.7,
+      "peak": -3.6,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 20 | If you tuned into those broadcasts as a strange",
+      "start": 150.3,
+      "rms": -20.9,
+      "peak": -4.0,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 21 | What you wouldn't know is that for more than tw",
+      "start": 157.8,
+      "rms": -20.8,
+      "peak": -3.6,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 22 | Here is how Angela herself described our histor",
+      "start": 164.4,
+      "rms": -21.1,
+      "peak": -4.1,
+      "gain": -1.2
+    },
+    {
+      "name": "LOGAN ELEVENLABS | CUE 25 | When Angela entered our community, she presente",
+      "start": 216.9,
+      "rms": -20.9,
+      "peak": -3.4,
+      "gain": -1.2
+    }
+  ],
+  "count": {
+    "source_audio_items": 1485,
+    "voice_items": 307,
+    "under_score_items": 15,
+    "new_score_items": 12
+  },
+  "notes": [
+    "Audio RMS dBFS are objective sample measurements, not integrated LUFS or subjective listening checks.",
+    "Scene cues shorter than long chapters; continuous original score stems handle intervals."
+  ]
+}

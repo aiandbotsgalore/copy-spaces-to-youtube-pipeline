@@ -1,0 +1,52 @@
+THE PAPER TRAIL — ELEVENLABS LOGAN AUDIO PRODUCTION HANDOFF
+November 13, 2026
+
+CURRENT EDITABLE PROJECT:
+C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_FULL_ASSEMBLY_v5.RPP
+
+LISTEN TO COMPLETE EPISODE DRAFT:
+C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_ROUGH_MIX.mp3
+
+HIGH-RESOLUTION ROUGH MIX:
+C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_ROUGH_MIX_48KHZ.wav
+
+DRAFT: 73.95 minutes.
+MP3: 48 kHz stereo, 192 kbps
+WAV: 48 kHz stereo, 24-bit PCM
+
+VOICES:
+The entire Logan narration is now ElevenLabs' existing custom cloned "Logan" voice,
+ID GDqvTqQdsHV3ND6SiEZP. No Suno-synthesized Logan narration is active in this project.
+
+NARRATION:
+17 ElevenLabs source batches.
+233 of 233 manuscript narration cues placed.
+5,708 transcribed spoken words matched exactly to the supplied narration text.
+406 scored sentences aligned to spoken timing.
+42 accent/transition cues snapped to spoken words.
+Raw voice performances still need subjective listening checks for prosody and pronunciation.
+
+MUSIC AND SOUND:
+3 selected original Suno compositions (signature, investigative, human).
+Existing dry real broadcast/witness archive clips retained.
+Full editor's rough mix created as MP3 and WAV, including the music, archive and SFX tracks.
+This is NOT the final published/mastered episode.
+
+KNOWN GAPS TO ADDRESS FOR FINAL RELEASE:
+- 11 scripted written-message performances were not recorded; placeholder regions remain silent.
+- 2 archive cues have no located source clips: AQ-0048, AQ-0220.
+- 2 supplied candidate archival files decode to zero seconds: AQ-0233 and AQ-0222.
+- The exact original source clip boundaries and speaker labels still require a final audition.
+- Performance quality, dynamics, mixing and human subjective timing still require a listening pass.
+
+SOURCE SAFETY:
+Original REAPER versions v1-v4 were not overwritten.
+Original archival media and the source manuscript were not edited.
+New ElevenLabs audio and score sources are separate files in this folder.
+The edit is fully revisable, with all sentence and word timing decisions preserved
+in FULL_EPISODE_WORD_CUE_MAP_ELEVENLABS_v5.json.
+
+STATUS:
+A genuine, complete AUDIO-READY NARRATION AND SCORE ROUGH CUT exists.
+It is not accurate to call the documentary finally finished for publication yet,
+because the written-message passages and missing/corrupt archival clips are not complete.

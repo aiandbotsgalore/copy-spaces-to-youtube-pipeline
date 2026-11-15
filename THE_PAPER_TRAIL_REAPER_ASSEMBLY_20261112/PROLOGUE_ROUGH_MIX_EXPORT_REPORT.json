@@ -1,0 +1,13 @@
+{
+  "status": "rough_mix_exported",
+  "audio_items": 48,
+  "unique_source_files": 18,
+  "wav": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_PROLOGUE_ROUGH_MIX_48KHZ.wav",
+  "mp3": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_PROLOGUE_ROUGH_MIX.mp3",
+  "duration_s": 523.982,
+  "pre_master_peak": 1.2438673973083496,
+  "replay_wav_bytes": 603627366,
+  "replay_mp3_bytes": 16769325,
+  "source_duration_issues": [],
+  "limitations": "This is a provisional editorial mix, not the final master. Uses source/offset, fader and fades, but not complete REAPER effects or bus automation. Suno performance errors remain. Finale not included."
+}

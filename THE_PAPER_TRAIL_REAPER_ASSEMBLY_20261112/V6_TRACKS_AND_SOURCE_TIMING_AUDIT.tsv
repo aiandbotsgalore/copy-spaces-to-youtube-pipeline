@@ -1,0 +1,33 @@
+TYPE	TRACK	NAME	T_POS	DUR	OFFSET	VOLUME	MUTED	SOURCE
+TRACK	0	01  LOGAN | ORIGINAL NARRATION TEXT GUIDE (MUTED)	0	0	0	1.0	1.0	
+TRACK	1	02  LOGAN | ELEVENLABS CLONE - ALL 233 SPOKEN CUES	0	0	0	1.0	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 6 | I'm Logan Black.	17.62	1.27	8.76	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 50 | When she came up to the microphone, she spoke using her real name, fro	469.326	9.097	103.813	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 53 | In other recordings, Angela described further experiences that I canno	521.004	27.63	0.0	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 54 | Later on, some of her former friends would allege on the record that s	548.933	19.31	27.6	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 55 | When I first got to know her, I was not investigating her childhood. S	568.543	27.963	46.84	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 58 | I gave Angela a microphone in my rooms whenever she wanted one. I spen	606.837	12.523	74.747	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 59 | In those rooms, other hosts heard things they valued in Angela. Here i	619.66	9.03	87.2	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 61 | Later in that same room, Angela talked about forgiveness, making mista	638.27	6.803	96.16	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 63 | At the time, those did not sound like empty words to me.	684.353	3.723	102.907	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 64 | In February 2026, Angela went out of her way on live broadcasts to pra	688.376	9.67	106.56	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 66 | In a different February-tagged room, two women were angry that Angela 	723.826	16.91	116.16	0.87	0.0	
+ITEM	1	LOGAN ELEVENLABS | CUE 68 | In another archived recording titled Space #1000, Angela told the audi	766.916	13.87	0.0	0.87	0.0	
+TRACK	2	02  ARCHIVE  |  ANGELA	0	0	0	1.0	0.0	
+TRACK	3	03  ARCHIVE  |  OTHER WITNESSES	0	0	0	1.0	0.0	
+TRACK	4	04  WRITTEN MESSAGES  |  PERFORMED READINGS	0	0	0	1.0	0.0	
+TRACK	5	05  MUSIC  |  SIGNATURE AND SCORE	0	0	0	1.0	0.0	
+TRACK	6	06  SFX  |  TRANSITIONS AND PHONE CLICKS	0	0	0	1.0	0.0	
+TRACK	7	07  AMBIENCE  |  SPACES AND ROOM TONE	0	0	0	1.0	0.0	
+TRACK	8	08  EDITORIAL CUES  |  SILENCE / HOLDS	0	0	0	1.0	0.0	
+TRACK	9	09   SUNO SCORE A  |  SIGNATURE MOTIF [MUTED SUPERSEDED]	0	0	0	1.0	1.0	
+TRACK	10	10   SUNO SCORE B  |  INVESTIGATIVE TENSION [MUTED SUPERSEDED]	0	0	0	1.0	1.0	
+TRACK	11	11   SUNO SCORE C  |  TRUST / HUMAN STORY [MUTED SUPERSEDED]	0	0	0	1.0	1.0	
+TRACK	12	12   WORD-LEVEL  |  MOTIF HITS + MICRO-FX	0	0	0	1.0	0.0	
+TRACK	13	13   EVERY SENTENCE  |  EDITOR NOTES / VOICE TIMING	0	0	0	1.0	1.0	
+TRACK	14	15  SUNO SCORE  |  INVESTIGATION (AUDIBLE WORD-SYNC V6)	0	0	0	1.0	0.0	
+ITEM	14	CONTINUOUS SUNO investigation - aligned to all spoken words and scored sentences	0.0	4436.899	0.0	1.0	0.0	
+TRACK	15	16  SUNO SCORE  |  TRUST AND HUMAN STORY (V6)	0	0	0	1.0	0.0	
+ITEM	15	CONTINUOUS SUNO human - aligned to all spoken words and scored sentences	0.0	4436.899	0.0	1.0	0.0	
+TRACK	16	17  SUNO SCORE  |  SIGNATURE WORD MOTIF (V6)	0	0	0	1.0	0.0	
+ITEM	16	CONTINUOUS SUNO motif - aligned to all spoken words and scored sentences	0.0	4436.899	0.0	1.0	0.0	

@@ -1,0 +1,10 @@
+PROLOGUE FULL AUDIO DRAFT V4
+Saved: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_PROLOGUE_COMPLETE_DRAFT_v4.RPP
+Additional narrator passages loaded: 6
+Additional voice media missing: 0
+Total Oct 4 voice narration passages: 91/233
+Prologue last timestamp: 523.982 seconds
+Episode estimated duration: 5098.846 seconds
+Existing audio/music/score items retimed: 1298
+Existing markers migrated: 64
+This is a listenable DRAFT, not final publication mix; final lines may contain repetitions or voice artifacts.

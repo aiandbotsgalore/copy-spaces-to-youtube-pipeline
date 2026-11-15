@@ -1,0 +1,4 @@
+ABORTED AND REVERTED (working project not saved). Errors:
+Old envelope points could not be cleared for 12 UNIQUE NEW SCENE COMPOSITIONS
+Unexpected dialogue/music balance at 25s or 100s: 0.94,0.53
+Backup available: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\SCORE_SCENES_20261113\ProductionBackup\THE_PAPER_TRAIL_Before_Unmute_Logan_And_MixFix_20261113.RPP

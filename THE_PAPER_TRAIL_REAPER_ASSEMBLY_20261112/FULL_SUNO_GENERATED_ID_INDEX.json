@@ -1,0 +1,192 @@
+[
+  {
+    "job_id": "NARR_01",
+    "take": "A",
+    "id": "9c754e10-353d-4251-9125-50b619522d79"
+  },
+  {
+    "job_id": "NARR_01",
+    "take": "B",
+    "id": "b9101a13-0ec2-466b-a3db-47e7070007b1"
+  },
+  {
+    "job_id": "NARR_02",
+    "take": "A",
+    "id": "d120747e-7dd2-4af6-9e65-208f1e293e90"
+  },
+  {
+    "job_id": "NARR_02",
+    "take": "B",
+    "id": "f69f9c7e-20c7-4570-9c84-5e4b29e9038f"
+  },
+  {
+    "job_id": "NARR_03",
+    "take": "A",
+    "id": "aacb9c2a-a7e2-45eb-8ba1-2d2168f98264"
+  },
+  {
+    "job_id": "NARR_03",
+    "take": "B",
+    "id": "3632df72-1e85-4a6a-83ac-e0c8442111b8"
+  },
+  {
+    "job_id": "NARR_04",
+    "take": "A",
+    "id": "0bfd9e34-0dbc-48c4-8177-5f007cf14e1b"
+  },
+  {
+    "job_id": "NARR_04",
+    "take": "B",
+    "id": "7ab0b783-03bc-45a5-9598-89190a1c6623"
+  },
+  {
+    "job_id": "NARR_05",
+    "take": "A",
+    "id": "eb0470db-9eb0-4a6f-ace5-751a2e9bdc21"
+  },
+  {
+    "job_id": "NARR_05",
+    "take": "B",
+    "id": "7030ec08-4dbd-4af6-9ea3-ffdce7d45cd1"
+  },
+  {
+    "job_id": "NARR_06",
+    "take": "A",
+    "id": "bcc78b7e-afda-4339-b4eb-a6603809ab53"
+  },
+  {
+    "job_id": "NARR_06",
+    "take": "B",
+    "id": "2263bbc2-a5d5-4ab8-8246-bbca370c435c"
+  },
+  {
+    "job_id": "NARR_07",
+    "take": "A",
+    "id": "23019e82-e50b-402f-bae6-8f13c63e7ad1"
+  },
+  {
+    "job_id": "NARR_07",
+    "take": "B",
+    "id": "11b0a181-6649-4254-9d4e-3649aa2c9d63"
+  },
+  {
+    "job_id": "NARR_08",
+    "take": "A",
+    "id": "4bd5ff70-cbf8-48ad-b82f-d222fc467770"
+  },
+  {
+    "job_id": "NARR_08",
+    "take": "B",
+    "id": "b6740f60-06b2-4215-b94b-4c3c972f6b0b"
+  },
+  {
+    "job_id": "NARR_09",
+    "take": "A",
+    "id": "2fb52850-2c7d-4f54-ab63-e0af08804032"
+  },
+  {
+    "job_id": "NARR_09",
+    "take": "B",
+    "id": "d70534a4-f68f-44f3-a4b8-a3d6129cf166"
+  },
+  {
+    "job_id": "NARR_10",
+    "take": "A",
+    "id": "f05438d0-6c13-476c-bbb5-cac46231d8e1"
+  },
+  {
+    "job_id": "NARR_10",
+    "take": "B",
+    "id": "e2030ed3-f2f6-4fc3-8435-9e33fa1aef6a"
+  },
+  {
+    "job_id": "NARR_11",
+    "take": "A",
+    "id": "54306020-7f3e-4429-991f-f789cf8315ff"
+  },
+  {
+    "job_id": "NARR_11",
+    "take": "B",
+    "id": "a5228d30-f4c4-4933-97b6-65ff04791f07"
+  },
+  {
+    "job_id": "NARR_12",
+    "take": "A",
+    "id": "947eed6f-109e-41f2-b679-554febbdabd7"
+  },
+  {
+    "job_id": "NARR_12",
+    "take": "B",
+    "id": "a21fcaf5-1f38-40cd-82c0-302c87e90888"
+  },
+  {
+    "job_id": "NARR_13",
+    "take": "A",
+    "id": "57d4e311-c4b8-4631-bb23-b5398ba951ab"
+  },
+  {
+    "job_id": "NARR_13",
+    "take": "B",
+    "id": "a0b66502-7414-4e41-9121-1a11da864b9a"
+  },
+  {
+    "job_id": "NARR_14",
+    "take": "A",
+    "id": "c9ccb2b7-7832-4dbe-97bd-d19a2072cac8"
+  },
+  {
+    "job_id": "NARR_14",
+    "take": "B",
+    "id": "43e60fd5-6e1b-4ec4-8717-fabeb8a678f7"
+  },
+  {
+    "job_id": "NARR_15",
+    "take": "A",
+    "id": "b66fca45-e114-47d2-b68a-bfd4912800e9"
+  },
+  {
+    "job_id": "NARR_15",
+    "take": "B",
+    "id": "1125e9e2-6952-41a7-a355-a2673b2fc12a"
+  },
+  {
+    "job_id": "NARR_16",
+    "take": "A",
+    "id": "15fe917c-53df-415c-bac8-5184959af6f4"
+  },
+  {
+    "job_id": "NARR_16",
+    "take": "B",
+    "id": "e415922c-b93f-4f4a-ad32-f10347dcc814"
+  },
+  {
+    "job_id": "NARR_17",
+    "take": "A",
+    "id": "5bdb5e01-2386-42b7-b4f3-3fe98802de54"
+  },
+  {
+    "job_id": "NARR_17",
+    "take": "B",
+    "id": "58f9de1b-fec8-4348-bcb3-c5e2616398f0"
+  },
+  {
+    "job_id": "READ_01",
+    "take": "A",
+    "id": "979d4983-8db6-4bf0-9afe-6e9abe0db094"
+  },
+  {
+    "job_id": "READ_01",
+    "take": "B",
+    "id": "3a1f617a-30ee-4e8f-af52-9db83d272adc"
+  },
+  {
+    "job_id": "READ_02",
+    "take": "A",
+    "id": "75cc5000-ca87-49fc-b8dd-06c6315f32b4"
+  },
+  {
+    "job_id": "READ_02",
+    "take": "B",
+    "id": "994af5e1-459e-4ab9-9077-5eb556fc3264"
+  }
+]

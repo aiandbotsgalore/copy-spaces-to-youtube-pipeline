@@ -1,0 +1,81 @@
+{
+  "job_id": "NARR_16",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "There are two different things happening in those messages. The discussion of a video and Child Protective Services appears in one exchange. The line about wanting someone under stress appears in a separate discussion of civil damages.\n\nWe cannot fairly take that line about damages as proof that anybody planned to misuse CPS. And the messages, however disturbing, do not themselves establish that a report was made.\n\nBut the earlier words raise a serious question. A private crisis involving Sav and her children was being discussed as material that could reach outside authorities.\n\nAt 6:50, Sav's side of the chat accused Angela of threatening to send information to her parents. The reply from the account labelled Angela's Spaces Alt reads like a warning.\n\nThose screenshots don't prove who authored the account's reply or whether anyone contacted Sav's parents that morning.\n\nBut Sav provided a separate written account of what she says happened outside the app. She named her ex, her father and her uncle as people Angela contacted. Sav says those relatives came to her asking why Angela was telling them alarming things about her and her family.\n\nAnd then Sav described the practical cost. These were some of the people she depended on most. According to her account, they threatened to withdraw their support if she continued participating online.\n\nShe was already navigating a separation and questions of custody. Sav says the contacts also raised accusations that she wasn't fit to care for her children.\n\nI haven't independently confirmed each call or the messages passed along. These are Sav's descriptions of what she experienced. But the consequences she's describing are painfully specific: the possible loss of family support, and fear over how the accusations might affect her children.\n\nI remember how shaken Sav sounded when we spoke on the phone around that period. That's my recollection, not another recorded call I can play for you.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 16 of 17",
+  "segments": [
+    {
+      "cue_index": 312,
+      "text": "There are two different things happening in those messages. The discussion of a video and Child Protective Services appears in one exchange. The line about wanting someone under stress appears in a separate discussion of civil damages.",
+      "start_char": 0,
+      "end_char": 235,
+      "orig_pos": 4535.411
+    },
+    {
+      "cue_index": 313,
+      "text": "We cannot fairly take that line about damages as proof that anybody planned to misuse CPS. And the messages, however disturbing, do not themselves establish that a report was made.",
+      "start_char": 237,
+      "end_char": 417,
+      "orig_pos": 4551.501
+    },
+    {
+      "cue_index": 314,
+      "text": "But the earlier words raise a serious question. A private crisis involving Sav and her children was being discussed as material that could reach outside authorities.",
+      "start_char": 419,
+      "end_char": 584,
+      "orig_pos": 4564.673
+    },
+    {
+      "cue_index": 315,
+      "text": "At 6:50, Sav's side of the chat accused Angela of threatening to send information to her parents. The reply from the account labelled Angela's Spaces Alt reads like a warning.",
+      "start_char": 586,
+      "end_char": 761,
+      "orig_pos": 4576.224
+    },
+    {
+      "cue_index": 318,
+      "text": "Those screenshots don't prove who authored the account's reply or whether anyone contacted Sav's parents that morning.",
+      "start_char": 763,
+      "end_char": 881,
+      "orig_pos": 4607.449
+    },
+    {
+      "cue_index": 319,
+      "text": "But Sav provided a separate written account of what she says happened outside the app. She named her ex, her father and her uncle as people Angela contacted. Sav says those relatives came to her asking why Angela was telling them alarming things about her and her family.",
+      "start_char": 883,
+      "end_char": 1154,
+      "orig_pos": 4616.487
+    },
+    {
+      "cue_index": 320,
+      "text": "And then Sav described the practical cost. These were some of the people she depended on most. According to her account, they threatened to withdraw their support if she continued participating online.",
+      "start_char": 1156,
+      "end_char": 1357,
+      "orig_pos": 4637.037
+    },
+    {
+      "cue_index": 321,
+      "text": "She was already navigating a separation and questions of custody. Sav says the contacts also raised accusations that she wasn't fit to care for her children.",
+      "start_char": 1359,
+      "end_char": 1516,
+      "orig_pos": 4651.099
+    },
+    {
+      "cue_index": 322,
+      "text": "I haven't independently confirmed each call or the messages passed along. These are Sav's descriptions of what she experienced. But the consequences she's describing are painfully specific: the possible loss of family support, and fear over how the accusations might affect her children.",
+      "start_char": 1518,
+      "end_char": 1805,
+      "orig_pos": 4663.055
+    },
+    {
+      "cue_index": 323,
+      "text": "I remember how shaken Sav sounded when we spoke on the phone around that period. That's my recollection, not another recorded call I can play for you.",
+      "start_char": 1807,
+      "end_char": 1957,
+      "orig_pos": 4682.794
+    }
+  ],
+  "char_count": 1957,
+  "word_count": 316
+}

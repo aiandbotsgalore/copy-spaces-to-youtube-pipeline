@@ -1,0 +1,12 @@
+{
+  "job_id": "NARR_11",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "source_characters": 2054,
+  "clip_ids": [
+    "54306020-7f3e-4429-991f-f789cf8315ff",
+    "a5228d30-f4c4-4933-97b6-65ff04791f07"
+  ],
+  "created_at": "2026-11-13T08:55:22Z",
+  "id": "54306020-7f3e-4429-991f-f789cf8315ff",
+  "status": "submitted"
+}

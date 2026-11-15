@@ -1,0 +1,39 @@
+{
+  "old_mix": {
+    "rms_dBFS_10s_to_55s": -17.01,
+    "peak_dBFS_10s_to_55s": 2.8,
+    "bytes": 106486893
+  },
+  "new_v6_mix": {
+    "rms_dBFS_10s_to_55s": -18.06,
+    "peak_dBFS_10s_to_55s": 2.95,
+    "bytes": 124234701
+  },
+  "dry_reference": {
+    "rms_dBFS_10s_to_55s": -19.03,
+    "peak_dBFS_10s_to_55s": 2.21,
+    "bytes": 241757414
+  },
+  "new_investigation_stem": {
+    "rms_dBFS_10s_to_55s": -29.84,
+    "peak_dBFS_10s_to_55s": -14.21,
+    "bytes": 204596316
+  },
+  "new_human_stem": {
+    "rms_dBFS_10s_to_55s": -48.98,
+    "peak_dBFS_10s_to_55s": -34.01,
+    "bytes": 165879747
+  },
+  "new_motif_stem": {
+    "rms_dBFS_10s_to_55s": -53.65,
+    "peak_dBFS_10s_to_55s": -38.37,
+    "bytes": 119064320
+  },
+  "final_audio": {
+    "duration_s": 4436.899021,
+    "sample_rate": 48000,
+    "channels": 2,
+    "mp3_preview": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_NEW_SUNO_SCORE_OPENING_90_SECOND_PREVIEW.mp3",
+    "preview_bytes": 2881581
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "job_id": "NARR_01",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "That's Angela Maggard.\n\nShe said that into an open microphone on X—in a live audio room she had titled Logan Black Unmasked.\n\nI'm Logan Black.\n\nWhen Angela hosted that broadcast in September of 2026, she was speaking to hundreds of listeners in an online audio community where she had spent the last two years building a following as a whistle-blower and a fierce advocate for trauma survivors.\n\nOver the course of that afternoon—and across weeks of broadcasts that surrounded it—she turned her microphone on me, and on the people closest to me.\n\nIf you tuned into those broadcasts as a stranger, you would think Angela was confronting an enemy she had been tracking from a distance.\n\nWhat you wouldn't know is that for more than two years before that broadcast, Angela and I were friends.\n\nHere is how Angela herself described our history just ten days earlier:\n\nWhen Angela entered our community, she presented herself as a protector of vulnerable people—someone who fought for abused women and children and stood up to bullies.\n\nPeople trusted her. I trusted her.\n\nAnd so did a woman named Sav.\n\nSav was a mother who had become one of Angela's closest friends in our online community. They talked regularly about their children, their personal struggles, and the things going on in their lives.\n\nSav believed she had found someone she could confide in. Someone who understood her.\n\nAnd like me, she had no idea how much that trust would eventually cost her.\n\nWhen Angela turned on us in September, I started going through the recordings from thirty-five public broadcasts and the private messages behind them. I also started talking to the people Angela had been close to before us—people whose warnings I had dismissed when Angela and I were still on good terms.\n\nAnd as I laid the recordings out in chronological order, two things became clear.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 01 of 17",
+  "segments": [
+    {
+      "cue_index": 3,
+      "text": "That's Angela Maggard.",
+      "start_char": 0,
+      "end_char": 22,
+      "orig_pos": 7.66
+    },
+    {
+      "cue_index": 4,
+      "text": "She said that into an open microphone on X—in a live audio room she had titled Logan Black Unmasked.",
+      "start_char": 24,
+      "end_char": 124,
+      "orig_pos": 10.212
+    },
+    {
+      "cue_index": 6,
+      "text": "I'm Logan Black.",
+      "start_char": 126,
+      "end_char": 142,
+      "orig_pos": 19.75
+    },
+    {
+      "cue_index": 7,
+      "text": "When Angela hosted that broadcast in September of 2026, she was speaking to hundreds of listeners in an online audio community where she had spent the last two years building a following as a whistle-blower and a fierce advocate for trauma survivors.",
+      "start_char": 144,
+      "end_char": 394,
+      "orig_pos": 22.301
+    },
+    {
+      "cue_index": 8,
+      "text": "Over the course of that afternoon—and across weeks of broadcasts that surrounded it—she turned her microphone on me, and on the people closest to me.",
+      "start_char": 396,
+      "end_char": 545,
+      "orig_pos": 40.258
+    },
+    {
+      "cue_index": 20,
+      "text": "If you tuned into those broadcasts as a stranger, you would think Angela was confronting an enemy she had been tracking from a distance.",
+      "start_char": 547,
+      "end_char": 683,
+      "orig_pos": 159.954
+    },
+    {
+      "cue_index": 21,
+      "text": "What you wouldn't know is that for more than two years before that broadcast, Angela and I were friends.",
+      "start_char": 685,
+      "end_char": 789,
+      "orig_pos": 170.614
+    },
+    {
+      "cue_index": 22,
+      "text": "Here is how Angela herself described our history just ten days earlier:",
+      "start_char": 791,
+      "end_char": 862,
+      "orig_pos": 179.652
+    },
+    {
+      "cue_index": 25,
+      "text": "When Angela entered our community, she presented herself as a protector of vulnerable people—someone who fought for abused women and children and stood up to bullies.",
+      "start_char": 864,
+      "end_char": 1030,
+      "orig_pos": 233.047
+    },
+    {
+      "cue_index": 26,
+      "text": "People trusted her. I trusted her.",
+      "start_char": 1032,
+      "end_char": 1066,
+      "orig_pos": 244.923
+    },
+    {
+      "cue_index": 27,
+      "text": "And so did a woman named Sav.",
+      "start_char": 1068,
+      "end_char": 1097,
+      "orig_pos": 248.365
+    },
+    {
+      "cue_index": 28,
+      "text": "Sav was a mother who had become one of Angela's closest friends in our online community. They talked regularly about their children, their personal struggles, and the things going on in their lives.",
+      "start_char": 1099,
+      "end_char": 1297,
+      "orig_pos": 252.133
+    },
+    {
+      "cue_index": 29,
+      "text": "Sav believed she had found someone she could confide in. Someone who understood her.",
+      "start_char": 1299,
+      "end_char": 1383,
+      "orig_pos": 266.927
+    },
+    {
+      "cue_index": 30,
+      "text": "And like me, she had no idea how much that trust would eventually cost her.",
+      "start_char": 1385,
+      "end_char": 1460,
+      "orig_pos": 273.613
+    },
+    {
+      "cue_index": 31,
+      "text": "When Angela turned on us in September, I started going through the recordings from thirty-five public broadcasts and the private messages behind them. I also started talking to the people Angela had been close to before us—people whose warnings I had dismissed when Angela and I were still on good terms.",
+      "start_char": 1462,
+      "end_char": 1766,
+      "orig_pos": 280.624
+    },
+    {
+      "cue_index": 32,
+      "text": "And as I laid the recordings out in chronological order, two things became clear.",
+      "start_char": 1768,
+      "end_char": 1849,
+      "orig_pos": 302.715
+    }
+  ],
+  "char_count": 1849,
+  "word_count": 313
+}

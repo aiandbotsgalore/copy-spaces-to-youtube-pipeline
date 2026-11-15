@@ -1,0 +1,8 @@
+THE PAPER TRAIL AUDIBLE SUNO INSTRUMENTAL SCORE v6
+Saved: C:\Users\Logan\copy-spaces-to-youtube-pipeline\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_AUDIBLE_SUNO_SCORE_v6.RPP
+Continuous Suno FLAC stems inserted: 3/3
+Old weakly mixed Suno score tracks muted: 3/3
+Missing new stem sources: 0
+Voice unchanged: ElevenLabs Logan (GDqvTqQdsHV3ND6SiEZP)
+Full project duration: 4436.899 seconds
+Prior v1-v5 unaffected.

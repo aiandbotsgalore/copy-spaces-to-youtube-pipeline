@@ -1,0 +1,104 @@
+{
+  "status": "generated_pending_review",
+  "date": "2026-11-13",
+  "description": "Original Suno scene-specific instrumental score for THE PAPER TRAIL, twelve sections. No ElevenLabs generation. All source video/voice preserved.",
+  "reference_song_id": "2b0ac2dd-d1de-43c0-8c7a-85aac7e5a4ec",
+  "cues": [
+    {
+      "id": "P00",
+      "section": "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE",
+      "candidate_ids": [
+        "ff3f2610-9220-4ef7-9ea3-f00643241dfd",
+        "1bebe0b2-4fb3-4084-b23e-f81aba74fc2e"
+      ]
+    },
+    {
+      "id": "S01",
+      "section": "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY",
+      "candidate_ids": [
+        "249b48de-1bb7-4d5b-90fa-e6dbbf654c9c",
+        "ac52783e-1411-46e0-9042-c7fbb03f7a71"
+      ]
+    },
+    {
+      "id": "S02",
+      "section": "ACT I — SCENE 2: THE CONFIDANTE",
+      "candidate_ids": [
+        "2e3af99c-6521-4389-8695-40d40a99d73c",
+        "31e05243-67f6-4d66-8b9c-90d31a8261c0"
+      ]
+    },
+    {
+      "id": "S03",
+      "section": "ACT II — SCENE 3: WHAT SHE KEPT",
+      "candidate_ids": [
+        "ef45d48c-435a-40aa-99ca-5b154b73018b",
+        "492e8ce8-7076-4569-b8b8-f08d3c47708f"
+      ]
+    },
+    {
+      "id": "S04",
+      "section": "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP",
+      "candidate_ids": [
+        "5f333c56-444f-4769-ad6c-327fb77faa67",
+        "d9bea2b4-999f-45e8-87fc-46615884f8b4"
+      ]
+    },
+    {
+      "id": "S05",
+      "section": "ACT II — SCENE 5: SAV'S WORST DAY",
+      "candidate_ids": [
+        "77e955dc-1985-4049-8c5a-0c6b0d2aea78",
+        "ed02aa3f-5511-437b-a254-b89fd1268296"
+      ]
+    },
+    {
+      "id": "S06",
+      "section": "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES",
+      "candidate_ids": [
+        "af7c5f39-87ab-4c8d-8011-2675f8dcf956",
+        "337c7384-2050-44ca-a87f-6a0490f13ba3"
+      ]
+    },
+    {
+      "id": "S07",
+      "section": "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE",
+      "candidate_ids": [
+        "41c90794-9141-4da9-8cff-5e7c17b4a228",
+        "914f973e-b918-45f0-abbb-b51fe6ab68f5"
+      ]
+    },
+    {
+      "id": "S08",
+      "section": "ACT III — SCENE 8: THE RULE SHE SET FOR HERSELF",
+      "candidate_ids": [
+        "87b1a5cb-1403-4838-be52-e595f2f0e0f2",
+        "c3841227-10f4-4ba6-8c32-918d3370513e"
+      ]
+    },
+    {
+      "id": "S09",
+      "section": "ACT IV — SCENE 9: WHAT IT MEANT TO HELP",
+      "candidate_ids": [
+        "ba2c330b-ceb6-4804-8919-9bf954df0de6",
+        "2748537b-f6a5-430e-86c6-5630106bcc2f"
+      ]
+    },
+    {
+      "id": "S10",
+      "section": "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES",
+      "candidate_ids": [
+        "d6467347-a40e-427c-82ce-ecc8f0db7ccc",
+        "2cdda60e-b17a-40fb-8328-3bf866594beb"
+      ]
+    },
+    {
+      "id": "EPI",
+      "section": "EPILOGUE — THE PAPER TRAIL",
+      "candidate_ids": [
+        "bae09f20-f67a-4598-883a-fbd52b391d5c",
+        "aafac468-488a-46f9-956a-0a3e8f2cad5c"
+      ]
+    }
+  ]
+}

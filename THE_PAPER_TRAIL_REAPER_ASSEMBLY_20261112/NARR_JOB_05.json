@@ -1,0 +1,109 @@
+{
+  "job_id": "NARR_05",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "A little later, Angela said this about sharing her recordings with Sav:\n\nA liability.\n\nThis was a woman Angela had called her friend. Someone who had trusted her with deeply personal information.\n\nAnd here was Angela, describing that friend's emotional involvement as a liability to her investigation.\n\nMaybe Angela saw that as a necessary boundary. But listen to how differently she spoke about their friendship once loyalties began to change.\n\nBecause soon, some of the things Sav had told her in private would become everybody else's business.\n\nAnd when you examine what Angela was admitting on tape across other broadcasts that winter, you see that her habit of investigating the people around her didn't start when a friendship ended. It started before the first conversation even began.\n\nAngela often said that writing things down had helped her survive. It's not hard to understand why a record could matter to somebody whose account of abuse might be doubted.\n\nBut she also described gathering information about people before confronting them.\n\nIn an archived room called Haunted Hump Day, a conversation about a possible lawsuit takes an unexpected turn. Another speaker hears what Angela has already collected, and stops to ask her about it.\n\nHear the shift in that exchange. Angela talks about protecting her legal options; then she talks about finding missing or adopted people. Helping somebody find a relative isn't the same thing as collecting an opponent's address for a potential lawsuit.\n\nBut both explanations come after her admission that she'd obtained this particular person's address, phone number and other personal information before their confrontation.\n\nSo who else was she collecting information about? In other rooms she described running regional social-media groups where people traded relationship histories and identifying details. She said those groups gave her access to a great deal of information.\n\nShe also described a categorized list of people in the X Spaces community she was actively examining.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 05 of 17",
+  "segments": [
+    {
+      "cue_index": 88,
+      "text": "A little later, Angela said this about sharing her recordings with Sav:",
+      "start_char": 0,
+      "end_char": 71,
+      "orig_pos": 1066.845
+    },
+    {
+      "cue_index": 90,
+      "text": "A liability.",
+      "start_char": 73,
+      "end_char": 85,
+      "orig_pos": 1096.359
+    },
+    {
+      "cue_index": 91,
+      "text": "This was a woman Angela had called her friend. Someone who had trusted her with deeply personal information.",
+      "start_char": 87,
+      "end_char": 195,
+      "orig_pos": 1098.559
+    },
+    {
+      "cue_index": 92,
+      "text": "And here was Angela, describing that friend's emotional involvement as a liability to her investigation.",
+      "start_char": 197,
+      "end_char": 301,
+      "orig_pos": 1106.867
+    },
+    {
+      "cue_index": 93,
+      "text": "Maybe Angela saw that as a necessary boundary. But listen to how differently she spoke about their friendship once loyalties began to change.",
+      "start_char": 303,
+      "end_char": 444,
+      "orig_pos": 1114.283
+    },
+    {
+      "cue_index": 94,
+      "text": "Because soon, some of the things Sav had told her in private would become everybody else's business.",
+      "start_char": 446,
+      "end_char": 546,
+      "orig_pos": 1124.618
+    },
+    {
+      "cue_index": 95,
+      "text": "And when you examine what Angela was admitting on tape across other broadcasts that winter, you see that her habit of investigating the people around her didn't start when a friendship ended. It started before the first conversation even began.",
+      "start_char": 548,
+      "end_char": 792,
+      "orig_pos": 1132.845
+    },
+    {
+      "cue_index": 96,
+      "text": "Angela often said that writing things down had helped her survive. It's not hard to understand why a record could matter to somebody whose account of abuse might be doubted.",
+      "start_char": 794,
+      "end_char": 967,
+      "orig_pos": 1151.476
+    },
+    {
+      "cue_index": 97,
+      "text": "But she also described gathering information about people before confronting them.",
+      "start_char": 969,
+      "end_char": 1051,
+      "orig_pos": 1165.054
+    },
+    {
+      "cue_index": 98,
+      "text": "In an archived room called Haunted Hump Day, a conversation about a possible lawsuit takes an unexpected turn. Another speaker hears what Angela has already collected, and stops to ask her about it.",
+      "start_char": 1053,
+      "end_char": 1251,
+      "orig_pos": 1170.443
+    },
+    {
+      "cue_index": 103,
+      "text": "Hear the shift in that exchange. Angela talks about protecting her legal options; then she talks about finding missing or adopted people. Helping somebody find a relative isn't the same thing as collecting an opponent's address for a potential lawsuit.",
+      "start_char": 1253,
+      "end_char": 1505,
+      "orig_pos": 1206.472
+    },
+    {
+      "cue_index": 104,
+      "text": "But both explanations come after her admission that she'd obtained this particular person's address, phone number and other personal information before their confrontation.",
+      "start_char": 1507,
+      "end_char": 1679,
+      "orig_pos": 1224.589
+    },
+    {
+      "cue_index": 105,
+      "text": "So who else was she collecting information about? In other rooms she described running regional social-media groups where people traded relationship histories and identifying details. She said those groups gave her access to a great deal of information.",
+      "start_char": 1681,
+      "end_char": 1934,
+      "orig_pos": 1235.654
+    },
+    {
+      "cue_index": 108,
+      "text": "She also described a categorized list of people in the X Spaces community she was actively examining.",
+      "start_char": 1936,
+      "end_char": 2037,
+      "orig_pos": 1298.909
+    }
+  ],
+  "char_count": 2037,
+  "word_count": 319
+}

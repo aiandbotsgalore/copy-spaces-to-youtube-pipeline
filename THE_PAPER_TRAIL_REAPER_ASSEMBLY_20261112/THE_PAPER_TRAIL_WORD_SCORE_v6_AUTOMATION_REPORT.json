@@ -1,0 +1,6128 @@
+{
+  "status": "complete",
+  "method": "Continuous original Suno score stems, with per-sentence palette, word-aware ducking and exact-word signature accents",
+  "source_compositions": {
+    "investigation": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_Archive_Breathes.wav",
+    "human": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_What_Trust_Cost.wav",
+    "motif": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCORE_Unsent_Fourth_Note.wav"
+  },
+  "stems": {
+    "investigation": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_SUNO_INVESTIGATION_CONTINUOUS_WORD_SCORE_v6.flac",
+    "human": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_SUNO_HUMAN_CONTINUOUS_WORD_SCORE_v6.flac",
+    "motif": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_SUNO_MOTIF_CONTINUOUS_WORD_SCORE_v6.flac"
+  },
+  "voice_source": "ElevenLabs Logan, same as v5",
+  "timing_source": "Actual ElevenLabs Scribe word alignment",
+  "scored_sentences": 406,
+  "words_with_mix_response": 5756,
+  "expressive_word_accents": 71,
+  "sensitive_word_music_retreats": 9,
+  "archive_media_intervals_ducked": 70,
+  "coverage": {
+    "investigation": {
+      "avg_gain": 0.1177,
+      "peak_gain": 0.245,
+      "first_60s_avg": 0.1766,
+      "first_420s_avg": 0.1531
+    },
+    "human": {
+      "avg_gain": 0.1028,
+      "peak_gain": 0.291,
+      "first_60s_avg": 0.0203,
+      "first_420s_avg": 0.0623
+    },
+    "motif": {
+      "avg_gain": 0.0186,
+      "peak_gain": 0.2431,
+      "first_60s_avg": 0.0121,
+      "first_420s_avg": 0.0158
+    },
+    "timeline": {
+      "first_min_with_music_s": 1.5,
+      "fraction_with_audible_underbed": 0.9323,
+      "estimated_total_s": 4436.899
+    }
+  },
+  "sentences": [
+    {
+      "cue": 3,
+      "sentence": 1,
+      "start": 7.66,
+      "end": 9.34,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 3,
+      "spoken_text": "That's Angela Maggard."
+    },
+    {
+      "cue": 4,
+      "sentence": 1,
+      "start": 9.75,
+      "end": 16.71,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 20,
+      "spoken_text": "She said that into an open microphone on X—in a live audio room she had titled Logan Black Unmasked."
+    },
+    {
+      "cue": 6,
+      "sentence": 1,
+      "start": 17.62,
+      "end": 18.78,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 3,
+      "spoken_text": "I'm Logan Black."
+    },
+    {
+      "cue": 7,
+      "sentence": 1,
+      "start": 19.189,
+      "end": 33.189,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 43,
+      "spoken_text": "When Angela hosted that broadcast in September of 2026, she was speaking to hundreds of listeners in an online audio community where she had spent the last two years building a following as a whistle-blower and a fierce advocate for trauma survivors."
+    },
+    {
+      "cue": 8,
+      "sentence": 1,
+      "start": 33.599,
+      "end": 42.039,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 27,
+      "spoken_text": "Over the course of that afternoon—and across weeks of broadcasts that surrounded it—she turned her microphone on me, and on the people closest to me."
+    },
+    {
+      "cue": 20,
+      "sentence": 1,
+      "start": 150.269,
+      "end": 157.389,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 24,
+      "spoken_text": "If you tuned into those broadcasts as a stranger, you would think Angela was confronting an enemy she had been tracking from a distance."
+    },
+    {
+      "cue": 21,
+      "sentence": 1,
+      "start": 157.799,
+      "end": 163.959,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "What you wouldn't know is that for more than two years before that broadcast, Angela and I were friends."
+    },
+    {
+      "cue": 22,
+      "sentence": 1,
+      "start": 164.369,
+      "end": 168.769,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "Here is how Angela herself described our history just ten days earlier:"
+    },
+    {
+      "cue": 25,
+      "sentence": 1,
+      "start": 216.859,
+      "end": 226.379,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 27,
+      "spoken_text": "When Angela entered our community, she presented herself as a protector of vulnerable people—someone who fought for abused women and children and stood up to bullies."
+    },
+    {
+      "cue": 26,
+      "sentence": 1,
+      "start": 226.789,
+      "end": 228.069,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "People trusted her."
+    },
+    {
+      "cue": 26,
+      "sentence": 2,
+      "start": 228.189,
+      "end": 229.429,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "I trusted her."
+    },
+    {
+      "cue": 27,
+      "sentence": 1,
+      "start": 229.839,
+      "end": 232.079,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "And so did a woman named Sav."
+    },
+    {
+      "cue": 28,
+      "sentence": 1,
+      "start": 232.489,
+      "end": 237.369,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Sav was a mother who had become one of Angela's closest friends in our online community."
+    },
+    {
+      "cue": 28,
+      "sentence": 2,
+      "start": 237.449,
+      "end": 243.209,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "They talked regularly about their children, their personal struggles, and the things going on in their lives."
+    },
+    {
+      "cue": 29,
+      "sentence": 1,
+      "start": 243.619,
+      "end": 246.579,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "Sav believed she had found someone she could confide in."
+    },
+    {
+      "cue": 29,
+      "sentence": 2,
+      "start": 246.819,
+      "end": 248.579,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "Someone who understood her."
+    },
+    {
+      "cue": 30,
+      "sentence": 1,
+      "start": 248.989,
+      "end": 253.829,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "And like me, she had no idea how much that trust would eventually cost her."
+    },
+    {
+      "cue": 31,
+      "sentence": 1,
+      "start": 254.239,
+      "end": 262.319,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 24,
+      "spoken_text": "When Angela turned on us in September, I started going through the recordings from thirty-five public broadcasts and the private messages behind them."
+    },
+    {
+      "cue": 31,
+      "sentence": 2,
+      "start": 262.399,
+      "end": 270.799,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 29,
+      "spoken_text": "I also started talking to the people Angela had been close to before us—people whose warnings I had dismissed when Angela and I were still on good terms."
+    },
+    {
+      "cue": 32,
+      "sentence": 1,
+      "start": 271.209,
+      "end": 276.009,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 14,
+      "spoken_text": "And as I laid the recordings out in chronological order, two things became clear."
+    },
+    {
+      "cue": 33,
+      "sentence": 1,
+      "start": 276.419,
+      "end": 280.579,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "First, what happened to Sav and me wasn't a one-off argument."
+    },
+    {
+      "cue": 33,
+      "sentence": 2,
+      "start": 280.659,
+      "end": 299.059,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 44,
+      "spoken_text": "Multiple former friends and associates across the community described the same experience: trusting Angela as a friend and advocate, confiding private struggles or family details to her, and later watching those confidences used to humiliate, intimidate, or retaliate against them when the relationship soured."
+    },
+    {
+      "cue": 34,
+      "sentence": 1,
+      "start": 299.468,
+      "end": 311.748,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 36,
+      "spoken_text": "And second: whenever Angela's conduct was challenged, she had a story ready to explain why she was actually the victim—why she had been silenced, cornered, or forced to act in order to protect someone else."
+    },
+    {
+      "cue": 36,
+      "sentence": 1,
+      "start": 322.438,
+      "end": 329.558,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 22,
+      "spoken_text": "Because Angela recorded herself talking for hundreds of hours across public rooms, we don't have to take her explanations at face value."
+    },
+    {
+      "cue": 36,
+      "sentence": 2,
+      "start": 330.038,
+      "end": 336.238,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 20,
+      "spoken_text": "We can test what she claimed against what she actually said, what she admitted doing, and what the record shows."
+    },
+    {
+      "cue": 37,
+      "sentence": 1,
+      "start": 336.649,
+      "end": 341.689,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "In fact, Angela gave the audience her own invitation to do exactly that:"
+    },
+    {
+      "cue": 39,
+      "sentence": 1,
+      "start": 382.679,
+      "end": 383.279,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 1,
+      "spoken_text": "Alright."
+    },
+    {
+      "cue": 39,
+      "sentence": 2,
+      "start": 383.479,
+      "end": 384.879,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "Let's go through the evidence."
+    },
+    {
+      "cue": 42,
+      "sentence": 1,
+      "start": 419.669,
+      "end": 421.549,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "This is The Paper Trail."
+    },
+    {
+      "cue": 45,
+      "sentence": 1,
+      "start": 422.959,
+      "end": 430.559,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 28,
+      "spoken_text": "If you've never spent time in an X Space late at night, the easiest way to picture it is an open phone line that never really hangs up."
+    },
+    {
+      "cue": 46,
+      "sentence": 1,
+      "start": 430.969,
+      "end": 433.849,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "Somebody's sitting in a parked car after a night shift."
+    },
+    {
+      "cue": 46,
+      "sentence": 2,
+      "start": 433.929,
+      "end": 438.649,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 18,
+      "spoken_text": "Somebody else is folding laundry in their living room or walking the dog at two in the morning."
+    },
+    {
+      "cue": 46,
+      "sentence": 3,
+      "start": 438.769,
+      "end": 442.089,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "A dozen people might be listening, or a few hundred."
+    },
+    {
+      "cue": 46,
+      "sentence": 4,
+      "start": 442.129,
+      "end": 456.009,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 38,
+      "spoken_text": "The title on the screen might say UFO disclosure or government corruption, but within twenty minutes, people are talking about their divorces, their kids, their money troubles, or the worst thing that ever happened to them growing up."
+    },
+    {
+      "cue": 47,
+      "sentence": 1,
+      "start": 456.419,
+      "end": 459.219,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "You hear the same voices night after night."
+    },
+    {
+      "cue": 47,
+      "sentence": 2,
+      "start": 459.299,
+      "end": 463.859,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "And before long, you feel like you know people you've never laid eyes on."
+    },
+    {
+      "cue": 49,
+      "sentence": 1,
+      "start": 464.769,
+      "end": 468.916,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "That was the world where I first met Angela back in late 2023."
+    },
+    {
+      "cue": 50,
+      "sentence": 1,
+      "start": 469.326,
+      "end": 475.406,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "When she came up to the microphone, she spoke using her real name, from North Carolina, near Fort Bragg."
+    },
+    {
+      "cue": 50,
+      "sentence": 2,
+      "start": 475.46,
+      "end": 478.313,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "And she told a story that stopped rooms cold."
+    },
+    {
+      "cue": 53,
+      "sentence": 1,
+      "start": 521.004,
+      "end": 527.004,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 12,
+      "spoken_text": "In other recordings, Angela described further experiences that I cannot independently verify."
+    },
+    {
+      "cue": 53,
+      "sentence": 2,
+      "start": 527.084,
+      "end": 548.524,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 55,
+      "spoken_text": "She claimed she had been illegally adopted into a CIA mind-control program (`AQ-0011`), tortured as a child at Wright-Patterson Air Force Base, and that she had personally helped law enforcement track down a kidnapped thirteen-year-old girl in New York using only a first name and an Xbox account (`AQ-0195`)."
+    },
+    {
+      "cue": 54,
+      "sentence": 1,
+      "start": 548.933,
+      "end": 560.213,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 25,
+      "spoken_text": "Later on, some of her former friends would allege on the record that she fabricated key parts of her personal history (`AQ-0206`, `AQ-0209`)."
+    },
+    {
+      "cue": 54,
+      "sentence": 2,
+      "start": 560.333,
+      "end": 568.133,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "Angela insisted every word was real and dared critics to prove her wrong (`AQ-0056`)."
+    },
+    {
+      "cue": 55,
+      "sentence": 1,
+      "start": 568.543,
+      "end": 572.583,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "When I first got to know her, I was not investigating her childhood."
+    },
+    {
+      "cue": 55,
+      "sentence": 2,
+      "start": 572.663,
+      "end": 580.023,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 22,
+      "spoken_text": "Someone says they survived something awful and want to protect children, and your instinct in a late-night conversation is to listen."
+    },
+    {
+      "cue": 55,
+      "sentence": 3,
+      "start": 580.063,
+      "end": 596.396,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 55,
+      "spoken_text": "And when Angela talked about why she kept meticulous notes on everyone and everything in her life, she gave an explanation that made you feel sympathy for her: she said her father had taught her as a little girl to keep a hidden journal so she could survive her abusers and beat them in court."
+    },
+    {
+      "cue": 58,
+      "sentence": 1,
+      "start": 606.837,
+      "end": 610.41,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "I gave Angela a microphone in my rooms whenever she wanted one."
+    },
+    {
+      "cue": 58,
+      "sentence": 2,
+      "start": 610.49,
+      "end": 619.25,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 30,
+      "spoken_text": "I spent hours talking with her offline, helped her look for family records, and started building a website for her so she'd have a place to lay out her research."
+    },
+    {
+      "cue": 59,
+      "sentence": 1,
+      "start": 619.66,
+      "end": 623.793,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "In those rooms, other hosts heard things they valued in Angela."
+    },
+    {
+      "cue": 59,
+      "sentence": 2,
+      "start": 623.847,
+      "end": 628.58,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "Here is Mellow Demon describing how he saw her during one long conversation."
+    },
+    {
+      "cue": 61,
+      "sentence": 1,
+      "start": 638.27,
+      "end": 644.963,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "Later in that same room, Angela talked about forgiveness, making mistakes, and holding yourself accountable."
+    },
+    {
+      "cue": 63,
+      "sentence": 1,
+      "start": 684.353,
+      "end": 687.966,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "At the time, those did not sound like empty words to me."
+    },
+    {
+      "cue": 64,
+      "sentence": 1,
+      "start": 688.376,
+      "end": 697.936,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 23,
+      "spoken_text": "In February 2026, Angela went out of her way on live broadcasts to praise my Spaces as open, respectful, and free of drama:"
+    },
+    {
+      "cue": 66,
+      "sentence": 1,
+      "start": 723.826,
+      "end": 733.946,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 27,
+      "spoken_text": "In a different February-tagged room, two women were angry that Angela would not label Mellow Demon a pedophile over an AI-generated image involving baby Jesus."
+    },
+    {
+      "cue": 66,
+      "sentence": 2,
+      "start": 733.986,
+      "end": 738.586,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "Angela described the danger of labeling innocent people without enough evidence."
+    },
+    {
+      "cue": 66,
+      "sentence": 3,
+      "start": 738.626,
+      "end": 740.626,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "The dispute was not about me."
+    },
+    {
+      "cue": 68,
+      "sentence": 1,
+      "start": 766.916,
+      "end": 780.676,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 37,
+      "spoken_text": "In another archived recording titled Space #1000, Angela told the audience that she trusted me so much she had given me the names of two military witnesses as her \"contingency\" in case anything ever happened to her."
+    },
+    {
+      "cue": 71,
+      "sentence": 1,
+      "start": 822.146,
+      "end": 825.426,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "\"But you gotta stop telling people that I have the stuff because—\""
+    },
+    {
+      "cue": 72,
+      "sentence": 1,
+      "start": 825.836,
+      "end": 827.276,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 4,
+      "spoken_text": "\"It defeats the purpose.\""
+    },
+    {
+      "cue": 74,
+      "sentence": 1,
+      "start": 828.435,
+      "end": 829.995,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "\"I would never do that.\""
+    },
+    {
+      "cue": 75,
+      "sentence": 1,
+      "start": 830.406,
+      "end": 835.766,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "What I remember is that Angela was comfortable saying I held sensitive information for her."
+    },
+    {
+      "cue": 75,
+      "sentence": 2,
+      "start": 835.846,
+      "end": 842.566,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "We trusted each other enough to talk privately, in ways I did not expect would become material for public arguments."
+    },
+    {
+      "cue": 77,
+      "sentence": 1,
+      "start": 864.78,
+      "end": 870.42,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "By the spring of 2026, Sav had become part of the same circle of friends I was in."
+    },
+    {
+      "cue": 78,
+      "sentence": 1,
+      "start": 870.83,
+      "end": 876.03,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "In May, she was going through a difficult separation and facing eviction with her children."
+    },
+    {
+      "cue": 79,
+      "sentence": 1,
+      "start": 876.44,
+      "end": 880.64,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Another host named Shane and I organized a marathon charity Space."
+    },
+    {
+      "cue": 79,
+      "sentence": 2,
+      "start": 880.96,
+      "end": 884.76,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "Together, we raised $400 to help Sav keep her home."
+    },
+    {
+      "cue": 80,
+      "sentence": 1,
+      "start": 885.17,
+      "end": 887.33,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "She was incredibly grateful."
+    },
+    {
+      "cue": 80,
+      "sentence": 2,
+      "start": 887.45,
+      "end": 891.063,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "That night, she messaged Angela about the help she'd received."
+    },
+    {
+      "cue": 80,
+      "sentence": 3,
+      "start": 891.117,
+      "end": 895.85,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "The following day, she thanked Angela for bringing her into the community where she'd met me."
+    },
+    {
+      "cue": 81,
+      "sentence": 1,
+      "start": 896.26,
+      "end": 899.7,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "At that point, Angela was someone both of us trusted."
+    },
+    {
+      "cue": 82,
+      "sentence": 1,
+      "start": 900.11,
+      "end": 902.07,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 6,
+      "spoken_text": "We shared personal things with her."
+    },
+    {
+      "cue": 82,
+      "sentence": 2,
+      "start": 902.11,
+      "end": 905.71,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Things we never expected to become part of a public argument."
+    },
+    {
+      "cue": 83,
+      "sentence": 1,
+      "start": 906.12,
+      "end": 917.68,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 34,
+      "spoken_text": "During our friendship, when someone online tried to dig into my past, I confided in Angela about a painful breakup I'd gone through two years earlier in Mississippi with an ex-girlfriend named Natalie."
+    },
+    {
+      "cue": 83,
+      "sentence": 2,
+      "start": 917.72,
+      "end": 920.28,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 6,
+      "spoken_text": "Angela listened like a caring friend."
+    },
+    {
+      "cue": 84,
+      "sentence": 1,
+      "start": 920.69,
+      "end": 927.25,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "After the friendship broke down, Angela said in a confrontation that she had spoken with Natalie, my former partner."
+    },
+    {
+      "cue": 84,
+      "sentence": 2,
+      "start": 927.33,
+      "end": 932.49,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "I cannot establish from that sentence what Natalie told her, or how contact was made."
+    },
+    {
+      "cue": 85,
+      "sentence": 1,
+      "start": 932.9,
+      "end": 938.14,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 16,
+      "spoken_text": "The recording replayed in the Fan Club Space cuts an important part of the original sentence."
+    },
+    {
+      "cue": 85,
+      "sentence": 2,
+      "start": 938.18,
+      "end": 943.26,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "Here is the first-generation Deacon conversation, with the missing context restored."
+    },
+    {
+      "cue": 86,
+      "sentence": 1,
+      "start": 943.669,
+      "end": 948.349,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "She said she had talked with Natalie and connected that to what she was setting up for court."
+    },
+    {
+      "cue": 86,
+      "sentence": 2,
+      "start": 948.389,
+      "end": 953.616,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "That is not proof she secretly tracked anybody down or proof of what Natalie said."
+    },
+    {
+      "cue": 87,
+      "sentence": 1,
+      "start": 954.027,
+      "end": 959.494,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "There is another conversation with Sav in which two of Angela’s statements are worth hearing together."
+    },
+    {
+      "cue": 87,
+      "sentence": 2,
+      "start": 959.574,
+      "end": 961.254,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "First, this promise:"
+    },
+    {
+      "cue": 88,
+      "sentence": 1,
+      "start": 961.664,
+      "end": 966.144,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 12,
+      "spoken_text": "A little later, Angela said this about sharing her recordings with Sav:"
+    },
+    {
+      "cue": 90,
+      "sentence": 1,
+      "start": 990.353,
+      "end": 991.913,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 2,
+      "spoken_text": "A liability."
+    },
+    {
+      "cue": 91,
+      "sentence": 1,
+      "start": 992.323,
+      "end": 995.123,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "This was a woman Angela had called her friend."
+    },
+    {
+      "cue": 91,
+      "sentence": 2,
+      "start": 995.283,
+      "end": 998.803,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "Someone who had trusted her with deeply personal information."
+    },
+    {
+      "cue": 92,
+      "sentence": 1,
+      "start": 999.214,
+      "end": 1005.614,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "And here was Angela, describing that friend's emotional involvement as a liability to her investigation."
+    },
+    {
+      "cue": 93,
+      "sentence": 1,
+      "start": 1006.024,
+      "end": 1009.144,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "Maybe Angela saw that as a necessary boundary."
+    },
+    {
+      "cue": 93,
+      "sentence": 2,
+      "start": 1009.224,
+      "end": 1014.184,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "But listen to how differently she spoke about their friendship once loyalties began to change."
+    },
+    {
+      "cue": 94,
+      "sentence": 1,
+      "start": 1014.595,
+      "end": 1020.595,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "Because soon, some of the things Sav had told her in private would become everybody else's business."
+    },
+    {
+      "cue": 95,
+      "sentence": 1,
+      "start": 1021.005,
+      "end": 1031.085,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 32,
+      "spoken_text": "And when you examine what Angela was admitting on tape across other broadcasts that winter, you see that her habit of investigating the people around her didn't start when a friendship ended."
+    },
+    {
+      "cue": 95,
+      "sentence": 2,
+      "start": 1031.165,
+      "end": 1034.845,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "It started before the first conversation even began."
+    },
+    {
+      "cue": 96,
+      "sentence": 1,
+      "start": 1036.254,
+      "end": 1040.134,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "Angela often said that writing things down had helped her survive."
+    },
+    {
+      "cue": 96,
+      "sentence": 2,
+      "start": 1040.174,
+      "end": 1045.574,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "It's not hard to understand why a record could matter to somebody whose account of abuse might be doubted."
+    },
+    {
+      "cue": 97,
+      "sentence": 1,
+      "start": 1045.984,
+      "end": 1050.584,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "But she also described gathering information about people before confronting them."
+    },
+    {
+      "cue": 98,
+      "sentence": 1,
+      "start": 1050.994,
+      "end": 1058.301,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 18,
+      "spoken_text": "In an archived room called Haunted Hump Day, a conversation about a possible lawsuit takes an unexpected turn."
+    },
+    {
+      "cue": 98,
+      "sentence": 2,
+      "start": 1058.407,
+      "end": 1063.354,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "Another speaker hears what Angela has already collected, and stops to ask her about it."
+    },
+    {
+      "cue": 103,
+      "sentence": 1,
+      "start": 1085.405,
+      "end": 1087.525,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "Hear the shift in that exchange."
+    },
+    {
+      "cue": 103,
+      "sentence": 2,
+      "start": 1087.565,
+      "end": 1094.325,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 16,
+      "spoken_text": "Angela talks about protecting her legal options; then she talks about finding missing or adopted people."
+    },
+    {
+      "cue": 103,
+      "sentence": 3,
+      "start": 1094.365,
+      "end": 1100.605,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 18,
+      "spoken_text": "Helping somebody find a relative isn't the same thing as collecting an opponent's address for a potential lawsuit."
+    },
+    {
+      "cue": 104,
+      "sentence": 1,
+      "start": 1101.015,
+      "end": 1111.135,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 23,
+      "spoken_text": "But both explanations come after her admission that she'd obtained this particular person's address, phone number and other personal information before their confrontation."
+    },
+    {
+      "cue": 105,
+      "sentence": 1,
+      "start": 1111.545,
+      "end": 1114.785,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "So who else was she collecting information about?"
+    },
+    {
+      "cue": 105,
+      "sentence": 2,
+      "start": 1114.825,
+      "end": 1122.465,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 18,
+      "spoken_text": "In other rooms she described running regional social-media groups where people traded relationship histories and identifying details."
+    },
+    {
+      "cue": 105,
+      "sentence": 3,
+      "start": 1122.505,
+      "end": 1126.585,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "She said those groups gave her access to a great deal of information."
+    },
+    {
+      "cue": 108,
+      "sentence": 1,
+      "start": 1173.755,
+      "end": 1179.515,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 17,
+      "spoken_text": "She also described a categorized list of people in the X Spaces community she was actively examining."
+    },
+    {
+      "cue": 110,
+      "sentence": 1,
+      "start": 1195.805,
+      "end": 1198.205,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "Lists and records are tools."
+    },
+    {
+      "cue": 110,
+      "sentence": 2,
+      "start": 1198.285,
+      "end": 1201.005,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "Their existence does not prove abuse."
+    },
+    {
+      "cue": 110,
+      "sentence": 3,
+      "start": 1201.085,
+      "end": 1207.485,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "The questions become more troubling when somebody explains how much they keep back and when they might release it."
+    },
+    {
+      "cue": 111,
+      "sentence": 1,
+      "start": 1207.895,
+      "end": 1216.735,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 22,
+      "spoken_text": "Listen to two statements from archived conversations, one about the information in her possession, the other about screenshots saved for another day."
+    },
+    {
+      "cue": 114,
+      "sentence": 1,
+      "start": 1253.505,
+      "end": 1257.065,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "That distinction matters to anyone who ever trusted her."
+    },
+    {
+      "cue": 114,
+      "sentence": 2,
+      "start": 1257.145,
+      "end": 1259.705,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "You can control what you say to a stranger."
+    },
+    {
+      "cue": 114,
+      "sentence": 3,
+      "start": 1259.785,
+      "end": 1265.145,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "You have much less control over information you've already given to someone you considered a friend."
+    },
+    {
+      "cue": 115,
+      "sentence": 1,
+      "start": 1265.556,
+      "end": 1269.636,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 12,
+      "spoken_text": "And private screenshots were only one part of the system she described."
+    },
+    {
+      "cue": 115,
+      "sentence": 2,
+      "start": 1269.716,
+      "end": 1277.556,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 21,
+      "spoken_text": "In other recordings from that period, Angela talked about provoking lawsuits because civil discovery could give her access to more records."
+    },
+    {
+      "cue": 116,
+      "sentence": 1,
+      "start": 1277.966,
+      "end": 1279.406,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 4,
+      "spoken_text": "Listen to her reasoning."
+    },
+    {
+      "cue": 119,
+      "sentence": 1,
+      "start": 1331.276,
+      "end": 1338.636,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "That is Angela describing a proposed legal tactic, not proof that a court granted her access to anybody's records."
+    },
+    {
+      "cue": 120,
+      "sentence": 1,
+      "start": 1339.046,
+      "end": 1348.966,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 24,
+      "spoken_text": "But across these conversations, the same feature keeps appearing: collecting information early, keeping some of it private, and deciding later when to use it."
+    },
+    {
+      "cue": 121,
+      "sentence": 1,
+      "start": 1349.375,
+      "end": 1357.455,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "In September, as friendships were already falling apart, Angela put the value of daily documentation into even simpler terms."
+    },
+    {
+      "cue": 125,
+      "sentence": 1,
+      "start": 1404.505,
+      "end": 1407.425,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "What concerned me wasn't that Angela took notes."
+    },
+    {
+      "cue": 125,
+      "sentence": 2,
+      "start": 1407.465,
+      "end": 1417.545,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 36,
+      "spoken_text": "It was the possibility raised by people who knew her: that the notes did not stay a record of what had happened, but became something they feared she could use if they fell out with her."
+    },
+    {
+      "cue": 126,
+      "sentence": 1,
+      "start": 1417.955,
+      "end": 1421.995,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "And several former friends were willing to describe that fear on tape."
+    },
+    {
+      "cue": 127,
+      "sentence": 1,
+      "start": 1422.905,
+      "end": 1425.652,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "The first person I want you to hear is Sine."
+    },
+    {
+      "cue": 128,
+      "sentence": 1,
+      "start": 1426.062,
+      "end": 1430.649,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "In his rooms, people talked about trafficking, trauma and abuse."
+    },
+    {
+      "cue": 128,
+      "sentence": 2,
+      "start": 1430.729,
+      "end": 1434.569,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Some of them were already carrying serious wounds when they arrived."
+    },
+    {
+      "cue": 128,
+      "sentence": 3,
+      "start": 1434.649,
+      "end": 1439.316,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "Sine says he believed Angela could help those people, so he sent them to her."
+    },
+    {
+      "cue": 129,
+      "sentence": 1,
+      "start": 1439.726,
+      "end": 1443.753,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "He did not come on the microphone to boast that he'd figured Angela out."
+    },
+    {
+      "cue": 129,
+      "sentence": 2,
+      "start": 1443.833,
+      "end": 1450.113,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "He sounded like somebody realizing that a referral made in good faith might have had terrible consequences."
+    },
+    {
+      "cue": 131,
+      "sentence": 1,
+      "start": 1485.303,
+      "end": 1489.623,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "Sine had sent people to Angela because he believed they would be safe with her."
+    },
+    {
+      "cue": 131,
+      "sentence": 2,
+      "start": 1489.903,
+      "end": 1493.223,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "Now he was wondering whether his referrals had put them at risk."
+    },
+    {
+      "cue": 132,
+      "sentence": 1,
+      "start": 1493.633,
+      "end": 1507.873,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 40,
+      "spoken_text": "As I listened to former friends describing these conflicts, I had to keep one thing clear: for most of the calls to relatives, child-protection visits and alleged legal consequences, I don't have the original agency files or phone records."
+    },
+    {
+      "cue": 132,
+      "sentence": 2,
+      "start": 1508.113,
+      "end": 1512.513,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 13,
+      "spoken_text": "These are personal accounts, many from people who were already angry with Angela."
+    },
+    {
+      "cue": 132,
+      "sentence": 3,
+      "start": 1512.913,
+      "end": 1515.313,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "They're not all independent proof of what she did."
+    },
+    {
+      "cue": 133,
+      "sentence": 1,
+      "start": 1515.722,
+      "end": 1521.922,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "But they do tell us what the people who trusted her say they experienced—and how those friendships broke apart."
+    },
+    {
+      "cue": 134,
+      "sentence": 1,
+      "start": 1522.332,
+      "end": 1529.092,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Cambian describes one of those turning points: the moment he says Angela's praise became a demand for loyalty."
+    },
+    {
+      "cue": 136,
+      "sentence": 1,
+      "start": 1626.222,
+      "end": 1629.902,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "What Cambian describes is a shift in the rules of friendship."
+    },
+    {
+      "cue": 136,
+      "sentence": 2,
+      "start": 1629.982,
+      "end": 1632.302,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "Agree with Angela and you're an ally."
+    },
+    {
+      "cue": 136,
+      "sentence": 3,
+      "start": 1632.462,
+      "end": 1637.662,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "Refuse to join a campaign and, in his account, you're suddenly part of the enemy."
+    },
+    {
+      "cue": 137,
+      "sentence": 1,
+      "start": 1638.072,
+      "end": 1642.792,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Other former friends described the consequences extending well beyond a microphone."
+    },
+    {
+      "cue": 138,
+      "sentence": 1,
+      "start": 1643.203,
+      "end": 1647.563,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 14,
+      "spoken_text": "Peach was a mother in a group that included Angela, Timmy and Glow Baby."
+    },
+    {
+      "cue": 138,
+      "sentence": 2,
+      "start": 1647.643,
+      "end": 1650.443,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "They say she was struggling when the friendships fractured."
+    },
+    {
+      "cue": 138,
+      "sentence": 3,
+      "start": 1650.523,
+      "end": 1657.243,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 19,
+      "spoken_text": "They also say Angela demanded that Peach choose sides, and that calls to her family and welfare checks followed."
+    },
+    {
+      "cue": 139,
+      "sentence": 1,
+      "start": 1657.653,
+      "end": 1661.293,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 11,
+      "spoken_text": "Glow Baby believed those calls were a way to exert pressure."
+    },
+    {
+      "cue": 139,
+      "sentence": 2,
+      "start": 1661.413,
+      "end": 1667.373,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Angela's stated concern for a person's safety is a competing explanation we have to take seriously."
+    },
+    {
+      "cue": 140,
+      "sentence": 1,
+      "start": 1667.783,
+      "end": 1670.143,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 8,
+      "spoken_text": "Here is how Glow Baby described what happened."
+    },
+    {
+      "cue": 142,
+      "sentence": 1,
+      "start": 1825.643,
+      "end": 1829.163,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 12,
+      "spoken_text": "In Glow Baby's telling, the calls weren't the end of the friendship."
+    },
+    {
+      "cue": 142,
+      "sentence": 2,
+      "start": 1829.403,
+      "end": 1832.683,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "They were one of the ways the falling-out reached Peach's family."
+    },
+    {
+      "cue": 143,
+      "sentence": 1,
+      "start": 1833.092,
+      "end": 1834.932,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "Timmy was part of that circle too."
+    },
+    {
+      "cue": 143,
+      "sentence": 2,
+      "start": 1835.172,
+      "end": 1842.452,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "He alleged more serious things: private information being exposed, family contact, and calls to authorities."
+    },
+    {
+      "cue": 144,
+      "sentence": 1,
+      "start": 1842.862,
+      "end": 1853.182,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 33,
+      "spoken_text": "But the thread that connects his account to the others is what he says Angela learned about survivors while they still trusted her—and what he believes happened after the friendships broke down."
+    },
+    {
+      "cue": 148,
+      "sentence": 1,
+      "start": 2027.103,
+      "end": 2036.063,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "That is Timmy's central allegation: getting close to survivors, learning their personal vulnerabilities, and later using what had been confided."
+    },
+    {
+      "cue": 149,
+      "sentence": 1,
+      "start": 2036.472,
+      "end": 2040.592,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 12,
+      "spoken_text": "Glow Baby described what she says happened to her own family's information."
+    },
+    {
+      "cue": 152,
+      "sentence": 1,
+      "start": 2109.422,
+      "end": 2112.302,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "Another speaker offered a different vantage point."
+    },
+    {
+      "cue": 152,
+      "sentence": 2,
+      "start": 2112.382,
+      "end": 2117.742,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 15,
+      "spoken_text": "Sian said he'd been physically present in Skittles' home during a Child Protective Services visit."
+    },
+    {
+      "cue": 153,
+      "sentence": 1,
+      "start": 2118.153,
+      "end": 2121.393,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "He had once spoken respectfully about Angela's mission."
+    },
+    {
+      "cue": 153,
+      "sentence": 2,
+      "start": 2121.633,
+      "end": 2125.953,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Now he was watching an official visit unfold inside somebody's home."
+    },
+    {
+      "cue": 154,
+      "sentence": 1,
+      "start": 2126.362,
+      "end": 2129.322,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "He couldn't identify the caller from the visit itself."
+    },
+    {
+      "cue": 154,
+      "sentence": 2,
+      "start": 2129.402,
+      "end": 2131.802,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "But he could describe what he witnessed."
+    },
+    {
+      "cue": 156,
+      "sentence": 1,
+      "start": 2178.512,
+      "end": 2185.552,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 22,
+      "spoken_text": "In the same September 18 broadcast, two women spoke about what they said had happened to them after falling out with Angela."
+    },
+    {
+      "cue": 157,
+      "sentence": 1,
+      "start": 2185.962,
+      "end": 2194.082,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 21,
+      "spoken_text": "One described her legal name, phone number and residential property information being disclosed, and alleged that Angela had called her house."
+    },
+    {
+      "cue": 159,
+      "sentence": 1,
+      "start": 2216.772,
+      "end": 2224.492,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 21,
+      "spoken_text": "Another mother said she'd faced repeated visits from child-protection workers and police, followed by calls to relatives, including her daughter."
+    },
+    {
+      "cue": 162,
+      "sentence": 1,
+      "start": 2255.961,
+      "end": 2262.961,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Hear what those women describe: the phone ringing at home, visits from authorities, a daughter changing her number."
+    },
+    {
+      "cue": 162,
+      "sentence": 2,
+      "start": 2263.241,
+      "end": 2267.401,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "Their accounts put the online dispute inside real households."
+    },
+    {
+      "cue": 163,
+      "sentence": 1,
+      "start": 2267.811,
+      "end": 2275.784,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 21,
+      "spoken_text": "Of course, an outside accusation doesn't prove who made any particular call, and a welfare check can arise from genuine concern."
+    },
+    {
+      "cue": 164,
+      "sentence": 1,
+      "start": 2276.194,
+      "end": 2281.447,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "So I went looking for the way Angela herself talked about intervening in other people's lives."
+    },
+    {
+      "cue": 165,
+      "sentence": 1,
+      "start": 2281.857,
+      "end": 2290.084,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 20,
+      "spoken_text": "In another archived broadcast called Monkey Island, Angela described consequences she says followed phone calls she'd made about other people."
+    },
+    {
+      "cue": 165,
+      "sentence": 2,
+      "start": 2290.11,
+      "end": 2293.337,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "You'll hear me encouraging her just before she speaks."
+    },
+    {
+      "cue": 166,
+      "sentence": 1,
+      "start": 2293.746,
+      "end": 2297.226,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "Listen to the way Angela characterizes those consequences."
+    },
+    {
+      "cue": 167,
+      "sentence": 1,
+      "start": 2297.637,
+      "end": 2301.157,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "“A long line of destruction behind me for accountability.”"
+    },
+    {
+      "cue": 168,
+      "sentence": 1,
+      "start": 2301.566,
+      "end": 2306.073,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 13,
+      "spoken_text": "I can't confirm the jail time or the confiscated firearms from this recording."
+    },
+    {
+      "cue": 168,
+      "sentence": 2,
+      "start": 2306.099,
+      "end": 2310.726,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "But I don't have to guess how Angela wanted the audience to understand her actions."
+    },
+    {
+      "cue": 168,
+      "sentence": 3,
+      "start": 2310.766,
+      "end": 2315.993,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "She used the word destruction herself—and placed it under accountability."
+    },
+    {
+      "cue": 169,
+      "sentence": 1,
+      "start": 2316.403,
+      "end": 2320.83,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "In another confrontation, she went beyond describing claimed consequences."
+    },
+    {
+      "cue": 169,
+      "sentence": 2,
+      "start": 2320.91,
+      "end": 2325.897,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 13,
+      "spoken_text": "Somebody asked her directly whether she had helped disclose other people's private information."
+    },
+    {
+      "cue": 171,
+      "sentence": 1,
+      "start": 2358.587,
+      "end": 2360.454,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "“I absolutely did.”"
+    },
+    {
+      "cue": 172,
+      "sentence": 1,
+      "start": 2360.864,
+      "end": 2364.544,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Angela said people had sent her the information to provoke her."
+    },
+    {
+      "cue": 172,
+      "sentence": 2,
+      "start": 2364.664,
+      "end": 2366.264,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "That was her explanation."
+    },
+    {
+      "cue": 172,
+      "sentence": 3,
+      "start": 2366.304,
+      "end": 2369.344,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "But she'd just acknowledged her own participation."
+    },
+    {
+      "cue": 173,
+      "sentence": 1,
+      "start": 2369.755,
+      "end": 2375.355,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "When former friends accused her of exposing private information, I had only their testimony."
+    },
+    {
+      "cue": 173,
+      "sentence": 2,
+      "start": 2375.675,
+      "end": 2384.155,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 22,
+      "spoken_text": "Here, I could hear Angela accept responsibility for helping expose it—though not proof that she was responsible for every other allegation."
+    },
+    {
+      "cue": 174,
+      "sentence": 1,
+      "start": 2384.564,
+      "end": 2390.204,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "And one of the people who had trusted Angela with painful details of her own life was Sav."
+    },
+    {
+      "cue": 175,
+      "sentence": 1,
+      "start": 2391.114,
+      "end": 2394.474,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "Go back to August, before the September broadcasts."
+    },
+    {
+      "cue": 176,
+      "sentence": 1,
+      "start": 2394.885,
+      "end": 2399.525,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Sav was already going through a separation and trying to keep a home for her children."
+    },
+    {
+      "cue": 176,
+      "sentence": 2,
+      "start": 2399.565,
+      "end": 2408.085,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 25,
+      "spoken_text": "She had trusted Angela with the parts of her life she wasn't comfortable discussing in public—including arguments and insecurities in her relationship with me."
+    },
+    {
+      "cue": 177,
+      "sentence": 1,
+      "start": 2408.495,
+      "end": 2416.135,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "According to Sav, the immediate crisis began when Angela shared screenshots Sav had specifically asked her not to send."
+    },
+    {
+      "cue": 177,
+      "sentence": 2,
+      "start": 2416.215,
+      "end": 2418.695,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "That triggered a fight between Sav and me."
+    },
+    {
+      "cue": 177,
+      "sentence": 3,
+      "start": 2418.775,
+      "end": 2420.135,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "We blocked each other."
+    },
+    {
+      "cue": 178,
+      "sentence": 1,
+      "start": 2420.544,
+      "end": 2422.544,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "Sav was overwhelmed."
+    },
+    {
+      "cue": 178,
+      "sentence": 2,
+      "start": 2422.624,
+      "end": 2428.384,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "She was crying and sending incoherent messages in a group chat with Angela and their friend Sara Beth."
+    },
+    {
+      "cue": 178,
+      "sentence": 3,
+      "start": 2428.464,
+      "end": 2431.904,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "She also made alarming statements about ending her life."
+    },
+    {
+      "cue": 179,
+      "sentence": 1,
+      "start": 2432.314,
+      "end": 2437.354,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Sav has acknowledged that those words were serious and that she shouldn't have used them lightly."
+    },
+    {
+      "cue": 180,
+      "sentence": 1,
+      "start": 2437.764,
+      "end": 2440.004,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "She called Sara Beth to calm down."
+    },
+    {
+      "cue": 180,
+      "sentence": 2,
+      "start": 2440.084,
+      "end": 2445.524,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "Sav says Sara Beth helped her through the panic, and that both of them told Angela she was okay."
+    },
+    {
+      "cue": 181,
+      "sentence": 1,
+      "start": 2445.934,
+      "end": 2449.894,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 9,
+      "spoken_text": "Angela nonetheless believed a police welfare check was necessary."
+    },
+    {
+      "cue": 181,
+      "sentence": 2,
+      "start": 2449.934,
+      "end": 2454.814,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "While I was at work, Sara Beth asked me for Sav's address on Angela's behalf."
+    },
+    {
+      "cue": 181,
+      "sentence": 3,
+      "start": 2454.894,
+      "end": 2458.094,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 13,
+      "spoken_text": "I gave it to her because I wanted to know Sav was safe."
+    },
+    {
+      "cue": 182,
+      "sentence": 1,
+      "start": 2458.504,
+      "end": 2468.664,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 33,
+      "spoken_text": "When Sara Beth told Sav that a welfare check was being called, Sav says she was overwhelmed again—after the friend she'd called for help had already talked her through the initial panic."
+    },
+    {
+      "cue": 183,
+      "sentence": 1,
+      "start": 2469.074,
+      "end": 2471.034,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "She still had children in the house."
+    },
+    {
+      "cue": 183,
+      "sentence": 2,
+      "start": 2471.074,
+      "end": 2475.274,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "She needed them to know what was about to happen without frightening them more."
+    },
+    {
+      "cue": 184,
+      "sentence": 1,
+      "start": 2475.683,
+      "end": 2481.083,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "In a written statement she provided for this documentary, Sav described what that moment felt like."
+    },
+    {
+      "cue": 184,
+      "sentence": 2,
+      "start": 2481.123,
+      "end": 2484.163,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "These are her words, read aloud from the statement:"
+    },
+    {
+      "cue": 186,
+      "sentence": 1,
+      "start": 2514.549,
+      "end": 2518.549,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "Sav says she spoke to the officer with Sara Beth still on the phone."
+    },
+    {
+      "cue": 186,
+      "sentence": 2,
+      "start": 2518.789,
+      "end": 2520.149,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "Then the police left."
+    },
+    {
+      "cue": 187,
+      "sentence": 1,
+      "start": 2520.559,
+      "end": 2522.959,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "We have to keep two questions separate."
+    },
+    {
+      "cue": 187,
+      "sentence": 2,
+      "start": 2523.279,
+      "end": 2527.599,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "Was a check reasonable after a message suggesting someone might end their life?"
+    },
+    {
+      "cue": 187,
+      "sentence": 3,
+      "start": 2527.919,
+      "end": 2528.919,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "It could have been."
+    },
+    {
+      "cue": 187,
+      "sentence": 4,
+      "start": 2529.199,
+      "end": 2534.079,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "Angela has said she was afraid for Sav and knew calling might cost their friendship."
+    },
+    {
+      "cue": 188,
+      "sentence": 1,
+      "start": 2534.489,
+      "end": 2540.329,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "But Sav says the call went ahead after both she and Sara Beth told Angela she had calmed down."
+    },
+    {
+      "cue": 188,
+      "sentence": 2,
+      "start": 2540.409,
+      "end": 2546.329,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 21,
+      "spoken_text": "Sav believed the way it was handled was connected to the online dispute, and that she was being taught a lesson."
+    },
+    {
+      "cue": 189,
+      "sentence": 1,
+      "start": 2546.739,
+      "end": 2548.899,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 4,
+      "spoken_text": "That is Sav's interpretation."
+    },
+    {
+      "cue": 189,
+      "sentence": 2,
+      "start": 2548.979,
+      "end": 2552.819,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "I cannot know Angela's private motive from the accounts we have."
+    },
+    {
+      "cue": 190,
+      "sentence": 1,
+      "start": 2553.229,
+      "end": 2557.269,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 13,
+      "spoken_text": "What I can do is follow what happened to information from that night."
+    },
+    {
+      "cue": 190,
+      "sentence": 2,
+      "start": 2557.349,
+      "end": 2560.389,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "Because the story didn't end when the officer left."
+    },
+    {
+      "cue": 191,
+      "sentence": 1,
+      "start": 2560.799,
+      "end": 2565.679,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Within weeks, Angela was describing disappointment with people she considered friends."
+    },
+    {
+      "cue": 191,
+      "sentence": 2,
+      "start": 2565.759,
+      "end": 2571.519,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "On September 7, she named Sine and me while explaining why she believed others had failed her."
+    },
+    {
+      "cue": 193,
+      "sentence": 1,
+      "start": 2608.74,
+      "end": 2616.46,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 23,
+      "spoken_text": "The next day, on September 8, Angela began a broadcast in which she announced that she was going to post private relationship messages."
+    },
+    {
+      "cue": 194,
+      "sentence": 1,
+      "start": 2616.87,
+      "end": 2622.43,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "And that is where the personal crisis Sav had described became part of something much bigger."
+    },
+    {
+      "cue": 195,
+      "sentence": 1,
+      "start": 2623.84,
+      "end": 2629.573,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "By the beginning of September, private conversations were already making their way into public Spaces."
+    },
+    {
+      "cue": 195,
+      "sentence": 2,
+      "start": 2629.627,
+      "end": 2632.24,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "And people were nervous about getting involved."
+    },
+    {
+      "cue": 196,
+      "sentence": 1,
+      "start": 2632.65,
+      "end": 2635.09,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "The Space was what the audience heard."
+    },
+    {
+      "cue": 196,
+      "sentence": 2,
+      "start": 2635.13,
+      "end": 2643.583,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 22,
+      "spoken_text": "The back channels—private messages, group chats, and Discord rooms—were where people said things they never expected that audience to hear."
+    },
+    {
+      "cue": 197,
+      "sentence": 1,
+      "start": 2643.993,
+      "end": 2648.526,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 12,
+      "spoken_text": "On September 2, I talked about screenshots I believed Angela had posted."
+    },
+    {
+      "cue": 197,
+      "sentence": 2,
+      "start": 2648.606,
+      "end": 2650.566,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "I asked another host to hide them."
+    },
+    {
+      "cue": 197,
+      "sentence": 3,
+      "start": 2650.606,
+      "end": 2656.326,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 16,
+      "spoken_text": "He wouldn't—and the reason he gave says something about how powerful her reputation had become."
+    },
+    {
+      "cue": 198,
+      "sentence": 1,
+      "start": 2656.736,
+      "end": 2664.603,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 25,
+      "spoken_text": "You'll hear his refusal described in my own words, followed by another speaker who starts to explain why he wanted no part of the conflict."
+    },
+    {
+      "cue": 201,
+      "sentence": 1,
+      "start": 2701.872,
+      "end": 2704.939,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "“Because they told her secrets and they can never—”"
+    },
+    {
+      "cue": 202,
+      "sentence": 1,
+      "start": 2705.349,
+      "end": 2706.549,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 3,
+      "spoken_text": "He stops there."
+    },
+    {
+      "cue": 202,
+      "sentence": 2,
+      "start": 2706.589,
+      "end": 2708.869,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "The rest of that thought isn't recorded."
+    },
+    {
+      "cue": 202,
+      "sentence": 3,
+      "start": 2708.909,
+      "end": 2712.069,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "But the fear in the conversation is hard to miss."
+    },
+    {
+      "cue": 203,
+      "sentence": 1,
+      "start": 2712.478,
+      "end": 2717.358,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "By then, even other hosts were afraid of what might happen if they crossed Angela."
+    },
+    {
+      "cue": 203,
+      "sentence": 2,
+      "start": 2717.478,
+      "end": 2725.278,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 23,
+      "spoken_text": "Six days later, something happened in my own room that Angela would use to explain why she was releasing even more private messages."
+    },
+    {
+      "cue": 204,
+      "sentence": 1,
+      "start": 2725.689,
+      "end": 2734.969,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 27,
+      "spoken_text": "On September 8, Oor—a man involved in a bitter feud with Angela—made a cruel remark about her deceased baby in a Space I was hosting."
+    },
+    {
+      "cue": 204,
+      "sentence": 2,
+      "start": 2735.129,
+      "end": 2736.729,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "Sav was listening."
+    },
+    {
+      "cue": 204,
+      "sentence": 3,
+      "start": 2736.929,
+      "end": 2742.729,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 18,
+      "spoken_text": "According to her message to Angela, I immediately warned Oor to stop and removed him from the panel."
+    },
+    {
+      "cue": 204,
+      "sentence": 4,
+      "start": 2742.809,
+      "end": 2745.449,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "Angela later acknowledged that I'd done so."
+    },
+    {
+      "cue": 205,
+      "sentence": 1,
+      "start": 2745.858,
+      "end": 2748.338,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "Nothing excuses what Oor said."
+    },
+    {
+      "cue": 205,
+      "sentence": 2,
+      "start": 2748.418,
+      "end": 2757.138,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 26,
+      "spoken_text": "Yet Angela went on to cite what happened in my room when she announced a broadcast devoted to exposing private messages from Sav's and my relationship."
+    },
+    {
+      "cue": 206,
+      "sentence": 1,
+      "start": 2757.548,
+      "end": 2759.948,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "It was called Petty Space."
+    },
+    {
+      "cue": 206,
+      "sentence": 2,
+      "start": 2760.028,
+      "end": 2763.068,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 8,
+      "spoken_text": "She was about to publish screenshots in batches."
+    },
+    {
+      "cue": 209,
+      "sentence": 1,
+      "start": 2861.639,
+      "end": 2873.759,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 35,
+      "spoken_text": "Picture what that means for the person whose messages are being read: something said in a moment of insecurity or anger, which was never meant for strangers, now becoming the subject of a live broadcast."
+    },
+    {
+      "cue": 210,
+      "sentence": 1,
+      "start": 2874.169,
+      "end": 2877.409,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "Angela said she was exposing abusive behavior."
+    },
+    {
+      "cue": 210,
+      "sentence": 2,
+      "start": 2877.449,
+      "end": 2879.689,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "That was her public explanation."
+    },
+    {
+      "cue": 210,
+      "sentence": 3,
+      "start": 2879.729,
+      "end": 2884.409,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "Sav said she had confided those messages to a friend and didn't want them released."
+    },
+    {
+      "cue": 211,
+      "sentence": 1,
+      "start": 2884.819,
+      "end": 2890.152,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "Angela also described how she would keep more information in reserve until people responded."
+    },
+    {
+      "cue": 212,
+      "sentence": 1,
+      "start": 2890.562,
+      "end": 2893.055,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "This is what she said after one of the batches."
+    },
+    {
+      "cue": 212,
+      "sentence": 2,
+      "start": 2893.095,
+      "end": 2895.535,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "The laughter is directed at me."
+    },
+    {
+      "cue": 212,
+      "sentence": 3,
+      "start": 2895.575,
+      "end": 2899.935,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "But the private information making that moment possible came from Sav."
+    },
+    {
+      "cue": 214,
+      "sentence": 1,
+      "start": 2917.125,
+      "end": 2923.005,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "And as the broadcast continued, Angela warned the people listening that they were under investigation."
+    },
+    {
+      "cue": 217,
+      "sentence": 1,
+      "start": 2980.375,
+      "end": 2983.895,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "Angela gave more than one explanation for the disclosures."
+    },
+    {
+      "cue": 217,
+      "sentence": 2,
+      "start": 2983.975,
+      "end": 2986.375,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "One involved the insult in my room."
+    },
+    {
+      "cue": 217,
+      "sentence": 3,
+      "start": 2986.575,
+      "end": 2989.935,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "Another involved her claim that she was confronting abuse."
+    },
+    {
+      "cue": 218,
+      "sentence": 1,
+      "start": 2990.345,
+      "end": 2998.145,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 26,
+      "spoken_text": "In a separate September 8 conversation, she said something I'd told her had triggered her, and that she had sent a screenshot to prove me wrong."
+    },
+    {
+      "cue": 219,
+      "sentence": 1,
+      "start": 2998.555,
+      "end": 3000.995,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "Listen to her describe that decision."
+    },
+    {
+      "cue": 221,
+      "sentence": 1,
+      "start": 3043.985,
+      "end": 3047.665,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "Taken together, those accounts describe an escalation."
+    },
+    {
+      "cue": 222,
+      "sentence": 1,
+      "start": 3048.075,
+      "end": 3053.075,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "First, Sav says private screenshots were shared against her wishes in August."
+    },
+    {
+      "cue": 222,
+      "sentence": 2,
+      "start": 3053.115,
+      "end": 3061.955,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 21,
+      "spoken_text": "By September 2, I was already saying publicly that Angela had posted screenshots, though that recording doesn't identify precisely which ones."
+    },
+    {
+      "cue": 223,
+      "sentence": 1,
+      "start": 3062.365,
+      "end": 3067.845,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "Then, on September 8, Angela made the release itself the subject of a broadcast."
+    },
+    {
+      "cue": 223,
+      "sentence": 2,
+      "start": 3067.885,
+      "end": 3072.365,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "She announced batches of four and said she'd keep more messages in reserve."
+    },
+    {
+      "cue": 224,
+      "sentence": 1,
+      "start": 3072.775,
+      "end": 3077.255,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "We still can't reconstruct a single first disclosure from those accounts."
+    },
+    {
+      "cue": 224,
+      "sentence": 2,
+      "start": 3077.295,
+      "end": 3084.935,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 24,
+      "spoken_text": "But we can hear the progression from a private breach of trust to a public campaign, and the explanations Angela gave along the way."
+    },
+    {
+      "cue": 225,
+      "sentence": 1,
+      "start": 3085.345,
+      "end": 3090.225,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 17,
+      "spoken_text": "There was one more warning in Petty Space about just how far she was prepared to go."
+    },
+    {
+      "cue": 227,
+      "sentence": 1,
+      "start": 3108.939,
+      "end": 3118.139,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 26,
+      "spoken_text": "That is an extraordinary amount of leverage for someone to hold over former friends: years of direct messages, waiting to be published if the argument escalates."
+    },
+    {
+      "cue": 228,
+      "sentence": 1,
+      "start": 3118.548,
+      "end": 3122.708,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 13,
+      "spoken_text": "And the screenshots were not the only way the private relationship became public."
+    },
+    {
+      "cue": 228,
+      "sentence": 2,
+      "start": 3122.948,
+      "end": 3127.468,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "Angela was also beginning to describe me in terms that could ruin a reputation."
+    },
+    {
+      "cue": 229,
+      "sentence": 1,
+      "start": 3128.378,
+      "end": 3131.978,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "Angela accused me of abusing women and called me a predator."
+    },
+    {
+      "cue": 229,
+      "sentence": 2,
+      "start": 3132.458,
+      "end": 3137.978,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "She also accused me of passing around women's nude photographs and creating sexual AI material."
+    },
+    {
+      "cue": 230,
+      "sentence": 1,
+      "start": 3138.388,
+      "end": 3142.428,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "I want to examine those claims because the consequences reached beyond me."
+    },
+    {
+      "cue": 230,
+      "sentence": 2,
+      "start": 3142.708,
+      "end": 3151.188,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 23,
+      "spoken_text": "Sav had shared private concerns with Angela about our relationship; now those conversations were being used in the public case Angela was making."
+    },
+    {
+      "cue": 231,
+      "sentence": 1,
+      "start": 3151.599,
+      "end": 3159.919,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 22,
+      "spoken_text": "Earlier, in an unrelated February dispute about Mellow Demon and an AI image, you heard Angela warn against a male witch hunt."
+    },
+    {
+      "cue": 231,
+      "sentence": 2,
+      "start": 3160.039,
+      "end": 3165.839,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "She said serious labels should be reserved for real abusers, not used to settle scores."
+    },
+    {
+      "cue": 232,
+      "sentence": 1,
+      "start": 3166.249,
+      "end": 3172.889,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 17,
+      "spoken_text": "Months later, on September 7, she explained why she sometimes chose the word predator instead of pedophile."
+    },
+    {
+      "cue": 232,
+      "sentence": 2,
+      "start": 3172.929,
+      "end": 3175.529,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "The distinction she drew was deliberate."
+    },
+    {
+      "cue": 234,
+      "sentence": 1,
+      "start": 3258.449,
+      "end": 3263.502,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "Eleven days later, in Logan Black Unmasked, the language was directed at me."
+    },
+    {
+      "cue": 236,
+      "sentence": 1,
+      "start": 3270.282,
+      "end": 3275.855,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "An accusation that serious has consequences even before anyone knows whether it's supported."
+    },
+    {
+      "cue": 236,
+      "sentence": 2,
+      "start": 3275.935,
+      "end": 3284.655,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 25,
+      "spoken_text": "Angela's description of choosing the word for legal purposes tells us how she approached the language; it does not establish that the label was accurate."
+    },
+    {
+      "cue": 237,
+      "sentence": 1,
+      "start": 3285.065,
+      "end": 3288.185,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "Then came the allegations about intimate photographs."
+    },
+    {
+      "cue": 238,
+      "sentence": 1,
+      "start": 3288.595,
+      "end": 3293.875,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "In a September 15 broadcast Angela said I was sending women's nudes around the app."
+    },
+    {
+      "cue": 240,
+      "sentence": 1,
+      "start": 3294.566,
+      "end": 3298.006,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "She separately accused me of making sexual AI material."
+    },
+    {
+      "cue": 242,
+      "sentence": 1,
+      "start": 3304.635,
+      "end": 3309.675,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "But there was a woman who knew the context behind at least one of the photographs Angela was discussing."
+    },
+    {
+      "cue": 242,
+      "sentence": 2,
+      "start": 3310.155,
+      "end": 3311.195,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 3,
+      "spoken_text": "It was Sav."
+    },
+    {
+      "cue": 243,
+      "sentence": 1,
+      "start": 3311.605,
+      "end": 3318.565,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Sav says a lingerie selfie of Lin had circulated publicly after Lin's sister posted it from Lin's phone."
+    },
+    {
+      "cue": 243,
+      "sentence": 2,
+      "start": 3318.645,
+      "end": 3322.965,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "Months later, Sav heard about it and felt jealous and insecure."
+    },
+    {
+      "cue": 243,
+      "sentence": 3,
+      "start": 3323.045,
+      "end": 3326.805,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 16,
+      "spoken_text": "She asked me to show her the image because she feared it might be a nude."
+    },
+    {
+      "cue": 243,
+      "sentence": 4,
+      "start": 3326.965,
+      "end": 3328.245,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 5,
+      "spoken_text": "I sent it to her."
+    },
+    {
+      "cue": 244,
+      "sentence": 1,
+      "start": 3328.655,
+      "end": 3333.135,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "She told Angela about the exchange during a private conversation between friends."
+    },
+    {
+      "cue": 244,
+      "sentence": 2,
+      "start": 3333.215,
+      "end": 3336.175,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "She says Angela understood why it upset her."
+    },
+    {
+      "cue": 245,
+      "sentence": 1,
+      "start": 3336.585,
+      "end": 3343.385,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Now, hearing the image discussed as evidence that I was spreading nudes, Sav tried to correct Angela directly."
+    },
+    {
+      "cue": 246,
+      "sentence": 1,
+      "start": 3343.796,
+      "end": 3347.396,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 10,
+      "spoken_text": "Here is the message attributed to Sav from September 15."
+    },
+    {
+      "cue": 250,
+      "sentence": 1,
+      "start": 3388.672,
+      "end": 3392.872,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "Sav didn't pretend that she'd been calm or confident about the photograph."
+    },
+    {
+      "cue": 250,
+      "sentence": 2,
+      "start": 3392.912,
+      "end": 3400.032,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "She was telling Angela something more specific: she had asked to see it, and she had trusted Angela with why."
+    },
+    {
+      "cue": 251,
+      "sentence": 1,
+      "start": 3400.442,
+      "end": 3403.202,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "A few hours later, she sent another message."
+    },
+    {
+      "cue": 251,
+      "sentence": 2,
+      "start": 3403.242,
+      "end": 3406.402,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "This one asks the question at the heart of the story."
+    },
+    {
+      "cue": 255,
+      "sentence": 1,
+      "start": 3439.91,
+      "end": 3444.11,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "Angela's response didn't resolve Sav's explanation of the photograph."
+    },
+    {
+      "cue": 255,
+      "sentence": 2,
+      "start": 3444.15,
+      "end": 3449.15,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "She introduced another allegation—one she framed as something she'd heard elsewhere."
+    },
+    {
+      "cue": 259,
+      "sentence": 1,
+      "start": 3455.87,
+      "end": 3461.11,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "The next day, Angela forwarded Sav a screenshot of another person's claims about me."
+    },
+    {
+      "cue": 259,
+      "sentence": 2,
+      "start": 3461.15,
+      "end": 3463.19,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 4,
+      "spoken_text": "That person was Kimball."
+    },
+    {
+      "cue": 260,
+      "sentence": 1,
+      "start": 3463.599,
+      "end": 3466.919,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "Listen closely to a qualification in Kimball's message."
+    },
+    {
+      "cue": 260,
+      "sentence": 2,
+      "start": 3466.959,
+      "end": 3469.012,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 4,
+      "spoken_text": "He makes two allegations."
+    },
+    {
+      "cue": 260,
+      "sentence": 3,
+      "start": 3469.066,
+      "end": 3473.479,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "For the claimed nude video, he admits he doesn't believe he has evidence."
+    },
+    {
+      "cue": 260,
+      "sentence": 4,
+      "start": 3473.519,
+      "end": 3476.319,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "The claim about an AI image is separate."
+    },
+    {
+      "cue": 264,
+      "sentence": 1,
+      "start": 3491.728,
+      "end": 3494.168,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "I need to be clear about something I did."
+    },
+    {
+      "cue": 264,
+      "sentence": 2,
+      "start": 3494.208,
+      "end": 3501.008,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 19,
+      "spoken_text": "In another archived recording, I acknowledged trying to generate a nude-like AI image and giving it to Kimball."
+    },
+    {
+      "cue": 264,
+      "sentence": 3,
+      "start": 3501.088,
+      "end": 3504.528,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "I said it did not depict anyone from this community."
+    },
+    {
+      "cue": 265,
+      "sentence": 1,
+      "start": 3504.938,
+      "end": 3509.218,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "I haven't independently examined that underlying image for this documentary."
+    },
+    {
+      "cue": 265,
+      "sentence": 2,
+      "start": 3509.258,
+      "end": 3514.818,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 16,
+      "spoken_text": "So while my admission is on tape, the description of whom it depicted remains my account."
+    },
+    {
+      "cue": 266,
+      "sentence": 1,
+      "start": 3515.228,
+      "end": 3520.068,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "But this was a separate incident from the lingerie photograph Sav asked me to show her."
+    },
+    {
+      "cue": 266,
+      "sentence": 2,
+      "start": 3520.108,
+      "end": 3525.548,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "It doesn't establish that Sav's photograph was a nude, or that she'd never asked to see it."
+    },
+    {
+      "cue": 267,
+      "sentence": 1,
+      "start": 3525.958,
+      "end": 3534.918,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 22,
+      "spoken_text": "Sav's point to Angela was specific: a private insecurity she'd discussed with a trusted friend was being presented publicly as something else."
+    },
+    {
+      "cue": 268,
+      "sentence": 1,
+      "start": 3535.328,
+      "end": 3539.808,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Sav tried to get a direct answer from Angela about what she was trying to accomplish."
+    },
+    {
+      "cue": 272,
+      "sentence": 1,
+      "start": 3556.271,
+      "end": 3564.031,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 21,
+      "spoken_text": "The person whose insecurities had been discussed privately was now asking for the evidence and the purpose of the whole campaign."
+    },
+    {
+      "cue": 273,
+      "sentence": 1,
+      "start": 3564.44,
+      "end": 3568.68,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "That is what made these broadcasts more than a fight between Angela and me."
+    },
+    {
+      "cue": 273,
+      "sentence": 2,
+      "start": 3568.76,
+      "end": 3572.893,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 13,
+      "spoken_text": "Sav was trying to correct the public account of her own private life."
+    },
+    {
+      "cue": 274,
+      "sentence": 1,
+      "start": 3573.303,
+      "end": 3580.796,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 19,
+      "spoken_text": "And Angela had already explained, long before this, what she believed was an acceptable reason to release damaging information."
+    },
+    {
+      "cue": 275,
+      "sentence": 1,
+      "start": 3581.706,
+      "end": 3588.786,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Before those September confrontations, Angela had already explained her own standard for sharing information that could hurt someone."
+    },
+    {
+      "cue": 276,
+      "sentence": 1,
+      "start": 3589.196,
+      "end": 3595.556,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 23,
+      "spoken_text": "She said you should speak up if it helps prevent harm—but not simply to keep a fight alive or twist the knife."
+    },
+    {
+      "cue": 278,
+      "sentence": 1,
+      "start": 3653.247,
+      "end": 3658.26,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "On September 15, she applied a similar principle to her own private archive."
+    },
+    {
+      "cue": 278,
+      "sentence": 2,
+      "start": 3658.314,
+      "end": 3663.447,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "She described why she kept some of it inaccessible to others, even when people asked."
+    },
+    {
+      "cue": 280,
+      "sentence": 1,
+      "start": 3664.137,
+      "end": 3670.177,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "That's a clear standard: knowing something could hurt a person, and choosing not to publish it."
+    },
+    {
+      "cue": 281,
+      "sentence": 1,
+      "start": 3670.587,
+      "end": 3674.707,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "Three days later, she explained what changed when she felt attacked."
+    },
+    {
+      "cue": 283,
+      "sentence": 1,
+      "start": 3706.637,
+      "end": 3713.277,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 20,
+      "spoken_text": "Those words are revealing not because they prove a crime, but because they show the decision Angela says she made."
+    },
+    {
+      "cue": 284,
+      "sentence": 1,
+      "start": 3713.688,
+      "end": 3716.448,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 7,
+      "spoken_text": "She knew private material could be weaponized."
+    },
+    {
+      "cue": 284,
+      "sentence": 2,
+      "start": 3716.488,
+      "end": 3718.808,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "She said she had resisted sharing it."
+    },
+    {
+      "cue": 284,
+      "sentence": 3,
+      "start": 3719.048,
+      "end": 3723.168,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "Then she described a moment when she was angry enough to release it anyway."
+    },
+    {
+      "cue": 285,
+      "sentence": 1,
+      "start": 3723.578,
+      "end": 3726.351,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 6,
+      "spoken_text": "She saw that decision as justified."
+    },
+    {
+      "cue": 285,
+      "sentence": 2,
+      "start": 3726.405,
+      "end": 3730.498,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "But to Sav, the material in question wasn't an abstract file."
+    },
+    {
+      "cue": 285,
+      "sentence": 3,
+      "start": 3730.538,
+      "end": 3734.298,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "It was part of a life she was trying to keep from falling apart."
+    },
+    {
+      "cue": 286,
+      "sentence": 1,
+      "start": 3734.708,
+      "end": 3741.228,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "And one category of information was especially sensitive: what people knew about her August crisis."
+    },
+    {
+      "cue": 287,
+      "sentence": 1,
+      "start": 3742.638,
+      "end": 3744.598,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 5,
+      "spoken_text": "Remember that day in August."
+    },
+    {
+      "cue": 287,
+      "sentence": 2,
+      "start": 3744.638,
+      "end": 3747.198,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 6,
+      "spoken_text": "Sav had been in acute distress."
+    },
+    {
+      "cue": 287,
+      "sentence": 3,
+      "start": 3747.278,
+      "end": 3750.078,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 7,
+      "spoken_text": "Angela believed a welfare check was necessary."
+    },
+    {
+      "cue": 287,
+      "sentence": 4,
+      "start": 3750.158,
+      "end": 3754.838,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "Sav says she had already calmed down, and that she wasn't listened to when she said so."
+    },
+    {
+      "cue": 288,
+      "sentence": 1,
+      "start": 3755.248,
+      "end": 3759.675,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "Both the concern and the disagreement were real parts of the relationship."
+    },
+    {
+      "cue": 288,
+      "sentence": 2,
+      "start": 3759.701,
+      "end": 3764.248,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 13,
+      "spoken_text": "A welfare check may be an appropriate response to a possible suicide risk."
+    },
+    {
+      "cue": 288,
+      "sentence": 3,
+      "start": 3764.288,
+      "end": 3768.328,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 12,
+      "spoken_text": "We cannot know precisely what Angela believed when she made that call."
+    },
+    {
+      "cue": 289,
+      "sentence": 1,
+      "start": 3768.738,
+      "end": 3772.938,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "But by September, the relationship was disintegrating in public."
+    },
+    {
+      "cue": 290,
+      "sentence": 1,
+      "start": 3773.347,
+      "end": 3779.907,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 19,
+      "spoken_text": "On September 16, Angela described what she could do with private screenshots belonging to people who sided with me."
+    },
+    {
+      "cue": 292,
+      "sentence": 1,
+      "start": 3795.297,
+      "end": 3801.537,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 17,
+      "spoken_text": "In another recorded confrontation, Angela defended her decision to request the police welfare check at Sav's home."
+    },
+    {
+      "cue": 293,
+      "sentence": 1,
+      "start": 3801.947,
+      "end": 3803.787,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "Her explanation matters."
+    },
+    {
+      "cue": 293,
+      "sentence": 2,
+      "start": 3804.107,
+      "end": 3810.187,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 19,
+      "spoken_text": "She said she feared for Sav's safety, understood that the call might end their friendship, and made it anyway."
+    },
+    {
+      "cue": 294,
+      "sentence": 1,
+      "start": 3810.597,
+      "end": 3812.837,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 6,
+      "spoken_text": "\"Angela, shut the fuck up, Angela."
+    },
+    {
+      "cue": 294,
+      "sentence": 2,
+      "start": 3813.237,
+      "end": 3814.997,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 3,
+      "spoken_text": "Angela, shut up.\""
+    },
+    {
+      "cue": 295,
+      "sentence": 1,
+      "start": 3815.407,
+      "end": 3818.927,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 9,
+      "spoken_text": "Angela may well have been genuinely frightened for Sav."
+    },
+    {
+      "cue": 295,
+      "sentence": 2,
+      "start": 3819.007,
+      "end": 3822.127,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "Her explanation deserves to be heard in full."
+    },
+    {
+      "cue": 296,
+      "sentence": 1,
+      "start": 3822.537,
+      "end": 3828.137,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "But the welfare call and what happened to information from that day are two different questions."
+    },
+    {
+      "cue": 296,
+      "sentence": 2,
+      "start": 3828.217,
+      "end": 3835.337,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 21,
+      "spoken_text": "What did it mean to protect somebody when the most intimate details of their crisis could later enter an escalating argument?"
+    },
+    {
+      "cue": 297,
+      "sentence": 1,
+      "start": 3835.747,
+      "end": 3839.027,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 6,
+      "spoken_text": "On September 18, Sav spoke publicly."
+    },
+    {
+      "cue": 297,
+      "sentence": 2,
+      "start": 3839.107,
+      "end": 3848.387,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 27,
+      "spoken_text": "She acknowledged her own insecurity and involvement in private gossip, but she also asked listeners to understand what it felt like to have her personal life exposed."
+    },
+    {
+      "cue": 298,
+      "sentence": 1,
+      "start": 3848.797,
+      "end": 3853.997,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "After so many people had talked about her, it matters to hear her uninterrupted."
+    },
+    {
+      "cue": 300,
+      "sentence": 1,
+      "start": 4004.287,
+      "end": 4011.38,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "That is Sav describing how people caught up in an online conflict ended up carrying consequences in their real lives."
+    },
+    {
+      "cue": 301,
+      "sentence": 1,
+      "start": 4011.79,
+      "end": 4018.603,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 18,
+      "spoken_text": "Then on September 30, Angela hosted a Space about the social cost of taking a suicide threat seriously."
+    },
+    {
+      "cue": 301,
+      "sentence": 2,
+      "start": 4018.643,
+      "end": 4024.056,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 14,
+      "spoken_text": "She spoke about the possibility that authorities or family members might encounter the messages."
+    },
+    {
+      "cue": 303,
+      "sentence": 1,
+      "start": 4030.746,
+      "end": 4032.692,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 5,
+      "spoken_text": "That is her public position."
+    },
+    {
+      "cue": 304,
+      "sentence": 1,
+      "start": 4033.102,
+      "end": 4044.328,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 32,
+      "spoken_text": "What appeared in a later private group chat needs to be considered separately, because those messages went further—and the identity of the person operating the account has not been independently confirmed."
+    },
+    {
+      "cue": 305,
+      "sentence": 1,
+      "start": 4045.238,
+      "end": 4050.544,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 15,
+      "spoken_text": "The screenshots show a conversation in a women's group chat, with a Monday-morning timestamp."
+    },
+    {
+      "cue": 306,
+      "sentence": 1,
+      "start": 4050.954,
+      "end": 4060.634,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 26,
+      "spoken_text": "The account on the screen is labelled “Angela's Spaces Alt.” That is what the screenshots show; the account label alone does not prove who was typing."
+    },
+    {
+      "cue": 306,
+      "sentence": 2,
+      "start": 4060.66,
+      "end": 4065.247,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "The exact calendar date is also not printed in the visible morning exchange."
+    },
+    {
+      "cue": 307,
+      "sentence": 1,
+      "start": 4065.657,
+      "end": 4069.337,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "I want you to understand the distinction before you hear the words."
+    },
+    {
+      "cue": 307,
+      "sentence": 2,
+      "start": 4069.457,
+      "end": 4075.057,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 14,
+      "spoken_text": "This is a reading of written messages, not an authenticated recording of Angela speaking."
+    },
+    {
+      "cue": 308,
+      "sentence": 1,
+      "start": 4075.467,
+      "end": 4082.747,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 25,
+      "spoken_text": "At 6:35 in the morning, the labelled account discussed a recording of Sav while she was in distress, with her children in the background."
+    },
+    {
+      "cue": 312,
+      "sentence": 1,
+      "start": 4135.762,
+      "end": 4138.562,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 9,
+      "spoken_text": "There are two different things happening in those messages."
+    },
+    {
+      "cue": 312,
+      "sentence": 2,
+      "start": 4138.802,
+      "end": 4143.522,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 13,
+      "spoken_text": "The discussion of a video and Child Protective Services appears in one exchange."
+    },
+    {
+      "cue": 312,
+      "sentence": 3,
+      "start": 4143.602,
+      "end": 4148.802,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 15,
+      "spoken_text": "The line about wanting someone under stress appears in a separate discussion of civil damages."
+    },
+    {
+      "cue": 313,
+      "sentence": 1,
+      "start": 4149.212,
+      "end": 4155.372,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 16,
+      "spoken_text": "We cannot fairly take that line about damages as proof that anybody planned to misuse CPS."
+    },
+    {
+      "cue": 313,
+      "sentence": 2,
+      "start": 4155.412,
+      "end": 4160.892,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 14,
+      "spoken_text": "And the messages, however disturbing, do not themselves establish that a report was made."
+    },
+    {
+      "cue": 314,
+      "sentence": 1,
+      "start": 4161.302,
+      "end": 4164.142,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "But the earlier words raise a serious question."
+    },
+    {
+      "cue": 314,
+      "sentence": 2,
+      "start": 4164.222,
+      "end": 4170.862,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "A private crisis involving Sav and her children was being discussed as material that could reach outside authorities."
+    },
+    {
+      "cue": 315,
+      "sentence": 1,
+      "start": 4171.272,
+      "end": 4177.352,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "At 6:50, Sav's side of the chat accused Angela of threatening to send information to her parents."
+    },
+    {
+      "cue": 315,
+      "sentence": 2,
+      "start": 4177.392,
+      "end": 4181.912,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "The reply from the account labelled Angela's Spaces Alt reads like a warning."
+    },
+    {
+      "cue": 318,
+      "sentence": 1,
+      "start": 4199.159,
+      "end": 4205.319,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 17,
+      "spoken_text": "Those screenshots don't prove who authored the account's reply or whether anyone contacted Sav's parents that morning."
+    },
+    {
+      "cue": 319,
+      "sentence": 1,
+      "start": 4205.729,
+      "end": 4210.289,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "But Sav provided a separate written account of what she says happened outside the app."
+    },
+    {
+      "cue": 319,
+      "sentence": 2,
+      "start": 4210.529,
+      "end": 4215.329,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 13,
+      "spoken_text": "She named her ex, her father and her uncle as people Angela contacted."
+    },
+    {
+      "cue": 319,
+      "sentence": 3,
+      "start": 4215.409,
+      "end": 4221.969,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 20,
+      "spoken_text": "Sav says those relatives came to her asking why Angela was telling them alarming things about her and her family."
+    },
+    {
+      "cue": 320,
+      "sentence": 1,
+      "start": 4222.38,
+      "end": 4225.42,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 7,
+      "spoken_text": "And then Sav described the practical cost."
+    },
+    {
+      "cue": 320,
+      "sentence": 2,
+      "start": 4225.66,
+      "end": 4228.54,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "These were some of the people she depended on most."
+    },
+    {
+      "cue": 320,
+      "sentence": 3,
+      "start": 4228.74,
+      "end": 4234.14,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 15,
+      "spoken_text": "According to her account, they threatened to withdraw their support if she continued participating online."
+    },
+    {
+      "cue": 321,
+      "sentence": 1,
+      "start": 4234.549,
+      "end": 4238.576,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 10,
+      "spoken_text": "She was already navigating a separation and questions of custody."
+    },
+    {
+      "cue": 321,
+      "sentence": 2,
+      "start": 4238.602,
+      "end": 4243.829,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 16,
+      "spoken_text": "Sav says the contacts also raised accusations that she wasn't fit to care for her children."
+    },
+    {
+      "cue": 322,
+      "sentence": 1,
+      "start": 4244.239,
+      "end": 4248.719,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 11,
+      "spoken_text": "I haven't independently confirmed each call or the messages passed along."
+    },
+    {
+      "cue": 322,
+      "sentence": 2,
+      "start": 4248.799,
+      "end": 4251.759,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 8,
+      "spoken_text": "These are Sav's descriptions of what she experienced."
+    },
+    {
+      "cue": 322,
+      "sentence": 3,
+      "start": 4251.839,
+      "end": 4261.359,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 24,
+      "spoken_text": "But the consequences she's describing are painfully specific: the possible loss of family support, and fear over how the accusations might affect her children."
+    },
+    {
+      "cue": 323,
+      "sentence": 1,
+      "start": 4261.769,
+      "end": 4266.129,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 15,
+      "spoken_text": "I remember how shaken Sav sounded when we spoke on the phone around that period."
+    },
+    {
+      "cue": 323,
+      "sentence": 2,
+      "start": 4266.209,
+      "end": 4269.969,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "That's my recollection, not another recorded call I can play for you."
+    },
+    {
+      "cue": 325,
+      "sentence": 1,
+      "start": 4270.879,
+      "end": 4278.879,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 25,
+      "spoken_text": "If Sav's account is accurate, the stakes of confiding in Angela were no longer just whether a screenshot would be posted in a public room."
+    },
+    {
+      "cue": 325,
+      "sentence": 2,
+      "start": 4278.959,
+      "end": 4282.719,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 11,
+      "spoken_text": "They extended to the people Sav relied on outside the internet."
+    },
+    {
+      "cue": 326,
+      "sentence": 1,
+      "start": 4283.129,
+      "end": 4296.129,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 35,
+      "spoken_text": "And that is the part of this story I find hardest to dismiss: the very circumstances that made people seek somebody's help could, after a falling-out, become the details they most feared being exposed."
+    },
+    {
+      "cue": 328,
+      "sentence": 1,
+      "start": 4297.04,
+      "end": 4299.6,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 8,
+      "spoken_text": "Think about the people who entered this story."
+    },
+    {
+      "cue": 329,
+      "sentence": 1,
+      "start": 4300.01,
+      "end": 4303.33,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 9,
+      "spoken_text": "Sine believed he was sending survivors to an advocate."
+    },
+    {
+      "cue": 329,
+      "sentence": 2,
+      "start": 4303.49,
+      "end": 4308.05,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 16,
+      "spoken_text": "Later, he said he feared he had been directing them toward someone who would target them."
+    },
+    {
+      "cue": 330,
+      "sentence": 1,
+      "start": 4308.46,
+      "end": 4316.26,
+      "style": "SENSITIVE/RESTRAINT",
+      "score_gain": {
+        "investigation": 0.102,
+        "human": 0.025,
+        "motif": 0.005
+      },
+      "words": 21,
+      "spoken_text": "Glow Baby and Timmy described friendships that, in their telling, led to threats and private family information being used in disputes."
+    },
+    {
+      "cue": 330,
+      "sentence": 2,
+      "start": 4316.58,
+      "end": 4319.54,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "Some of those claims still lack independent corroboration."
+    },
+    {
+      "cue": 331,
+      "sentence": 1,
+      "start": 4319.95,
+      "end": 4326.43,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 21,
+      "spoken_text": "Sav believed she had a friend she could be honest with about motherhood, insecurity and a life that was coming apart."
+    },
+    {
+      "cue": 331,
+      "sentence": 2,
+      "start": 4326.99,
+      "end": 4332.95,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "Then she heard private details from that life recast in public, and said the conflict reached her family."
+    },
+    {
+      "cue": 332,
+      "sentence": 1,
+      "start": 4333.36,
+      "end": 4334.28,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 2,
+      "spoken_text": "And Angela?"
+    },
+    {
+      "cue": 333,
+      "sentence": 1,
+      "start": 4334.69,
+      "end": 4347.09,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 29,
+      "spoken_text": "In her own recordings, she described gathering information before approaching people, saving screenshots, keeping names and documents in reserve, and helping expose information when she believed she was justified."
+    },
+    {
+      "cue": 334,
+      "sentence": 1,
+      "start": 4347.499,
+      "end": 4349.539,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 6,
+      "spoken_text": "She also said there were limits."
+    },
+    {
+      "cue": 334,
+      "sentence": 2,
+      "start": 4349.619,
+      "end": 4353.059,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 11,
+      "spoken_text": "She said you shouldn't release something just to twist the knife."
+    },
+    {
+      "cue": 334,
+      "sentence": 3,
+      "start": 4353.139,
+      "end": 4355.779,
+      "style": "TENSION/REVELATION",
+      "score_gain": {
+        "investigation": 0.245,
+        "human": 0.017,
+        "motif": 0.018
+      },
+      "words": 7,
+      "spoken_text": "She said some evidence could be weaponized."
+    },
+    {
+      "cue": 335,
+      "sentence": 1,
+      "start": 4356.189,
+      "end": 4359.749,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 12,
+      "spoken_text": "Then she described the point where she decided to release it anyway."
+    },
+    {
+      "cue": 336,
+      "sentence": 1,
+      "start": 4360.159,
+      "end": 4362.879,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 7,
+      "spoken_text": "I can't tell you everything Angela believed."
+    },
+    {
+      "cue": 336,
+      "sentence": 2,
+      "start": 4362.959,
+      "end": 4367.279,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 12,
+      "spoken_text": "I can't turn every accusation made about her into an established fact."
+    },
+    {
+      "cue": 336,
+      "sentence": 3,
+      "start": 4367.319,
+      "end": 4372.959,
+      "style": "HUMAN/TENDER",
+      "score_gain": {
+        "investigation": 0.055,
+        "human": 0.24,
+        "motif": 0.013
+      },
+      "words": 18,
+      "spoken_text": "But I can put the explanations she gave beside what the people who trusted her say they experienced."
+    },
+    {
+      "cue": 337,
+      "sentence": 1,
+      "start": 4373.369,
+      "end": 4376.009,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 7,
+      "spoken_text": "That was the promise of this investigation."
+    },
+    {
+      "cue": 337,
+      "sentence": 2,
+      "start": 4376.129,
+      "end": 4378.809,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 8,
+      "spoken_text": "Not that a microphone can read somebody's mind."
+    },
+    {
+      "cue": 337,
+      "sentence": 3,
+      "start": 4378.849,
+      "end": 4384.569,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 14,
+      "spoken_text": "That the words people choose—and the consequences others describe—can be heard together."
+    },
+    {
+      "cue": 338,
+      "sentence": 1,
+      "start": 4384.979,
+      "end": 4388.099,
+      "style": "INVESTIGATIVE",
+      "score_gain": {
+        "investigation": 0.215,
+        "human": 0.025,
+        "motif": 0.015
+      },
+      "words": 8,
+      "spoken_text": "Angela once invited listeners to do exactly that."
+    },
+    {
+      "cue": 338,
+      "sentence": 2,
+      "start": 4388.379,
+      "end": 4393.739,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 18,
+      "spoken_text": "To believe the good things they heard about her, and the bad, and make up their own minds."
+    },
+    {
+      "cue": 339,
+      "sentence": 1,
+      "start": 4394.149,
+      "end": 4395.909,
+      "style": "SIGNATURE/REFLECTION",
+      "score_gain": {
+        "investigation": 0.05,
+        "human": 0.065,
+        "motif": 0.225
+      },
+      "words": 6,
+      "spoken_text": "I'll leave you with her invitation."
+    }
+  ],
+  "accents": [
+    {
+      "time": 163.159,
+      "word": "friends",
+      "cue_index": 21
+    },
+    {
+      "time": 220.699,
+      "word": "vulnerable",
+      "cue_index": 25
+    },
+    {
+      "time": 231.119,
+      "word": "Sav",
+      "cue_index": 27
+    },
+    {
+      "time": 243.619,
+      "word": "Sav",
+      "cue_index": 29
+    },
+    {
+      "time": 277.899,
+      "word": "Sav",
+      "cue_index": 33
+    },
+    {
+      "time": 287.139,
+      "word": "friend",
+      "cue_index": 33
+    },
+    {
+      "time": 420.549,
+      "word": "Paper",
+      "cue_index": 42
+    },
+    {
+      "time": 550.613,
+      "word": "friends",
+      "cue_index": 54
+    },
+    {
+      "time": 772.676,
+      "word": "trusted",
+      "cue_index": 68
+    },
+    {
+      "time": 836.126,
+      "word": "trusted",
+      "cue_index": 75
+    },
+    {
+      "time": 866.86,
+      "word": "Sav",
+      "cue_index": 77
+    },
+    {
+      "time": 883.24,
+      "word": "Sav",
+      "cue_index": 79
+    },
+    {
+      "time": 899.14,
+      "word": "trusted",
+      "cue_index": 81
+    },
+    {
+      "time": 919.76,
+      "word": "friend",
+      "cue_index": 83
+    },
+    {
+      "time": 955.494,
+      "word": "Sav",
+      "cue_index": 87
+    },
+    {
+      "time": 965.184,
+      "word": "Sav",
+      "cue_index": 88
+    },
+    {
+      "time": 994.163,
+      "word": "friend",
+      "cue_index": 91
+    },
+    {
+      "time": 1016.435,
+      "word": "Sav",
+      "cue_index": 94
+    },
+    {
+      "time": 1256.065,
+      "word": "trusted",
+      "cue_index": 114
+    },
+    {
+      "time": 1419.035,
+      "word": "friends",
+      "cue_index": 126
+    },
+    {
+      "time": 1494.833,
+      "word": "friends",
+      "cue_index": 132
+    },
+    {
+      "time": 1517.642,
+      "word": "trusted",
+      "cue_index": 133
+    },
+    {
+      "time": 1638.712,
+      "word": "friends",
+      "cue_index": 137
+    },
+    {
+      "time": 1848.542,
+      "word": "trusted",
+      "cue_index": 144
+    },
+    {
+      "time": 2370.395,
+      "word": "friends",
+      "cue_index": 173
+    },
+    {
+      "time": 2385.844,
+      "word": "trusted",
+      "cue_index": 174
+    },
+    {
+      "time": 2394.885,
+      "word": "Sav",
+      "cue_index": 176
+    },
+    {
+      "time": 2408.935,
+      "word": "Sav",
+      "cue_index": 177
+    },
+    {
+      "time": 2420.544,
+      "word": "Sav",
+      "cue_index": 178
+    },
+    {
+      "time": 2432.314,
+      "word": "Sav",
+      "cue_index": 179
+    },
+    {
+      "time": 2456.654,
+      "word": "Sav",
+      "cue_index": 181
+    },
+    {
+      "time": 2478.483,
+      "word": "Sav",
+      "cue_index": 184
+    },
+    {
+      "time": 2514.549,
+      "word": "Sav",
+      "cue_index": 186
+    },
+    {
+      "time": 2530.959,
+      "word": "Sav",
+      "cue_index": 187
+    },
+    {
+      "time": 2540.409,
+      "word": "Sav",
+      "cue_index": 188
+    },
+    {
+      "time": 2564.959,
+      "word": "friends",
+      "cue_index": 191
+    },
+    {
+      "time": 2618.91,
+      "word": "Sav",
+      "cue_index": 194
+    },
+    {
+      "time": 2735.129,
+      "word": "Sav",
+      "cue_index": 204
+    },
+    {
+      "time": 2879.729,
+      "word": "Sav",
+      "cue_index": 210
+    },
+    {
+      "time": 2898.935,
+      "word": "Sav",
+      "cue_index": 212
+    },
+    {
+      "time": 2995.998,
+      "word": "screenshot",
+      "cue_index": 218
+    },
+    {
+      "time": 3048.795,
+      "word": "Sav",
+      "cue_index": 222
+    },
+    {
+      "time": 3080.215,
+      "word": "trust",
+      "cue_index": 224
+    },
+    {
+      "time": 3112.619,
+      "word": "friends",
+      "cue_index": 227
+    },
+    {
+      "time": 3142.708,
+      "word": "Sav",
+      "cue_index": 230
+    },
+    {
+      "time": 3310.475,
+      "word": "Sav",
+      "cue_index": 242
+    },
+    {
+      "time": 3319.605,
+      "word": "Sav",
+      "cue_index": 243
+    },
+    {
+      "time": 3332.175,
+      "word": "friends",
+      "cue_index": 244
+    },
+    {
+      "time": 3345.316,
+      "word": "Sav",
+      "cue_index": 246
+    },
+    {
+      "time": 3388.672,
+      "word": "Sav",
+      "cue_index": 250
+    },
+    {
+      "time": 3397.832,
+      "word": "trusted",
+      "cue_index": 250
+    },
+    {
+      "time": 3457.71,
+      "word": "Sav",
+      "cue_index": 259
+    },
+    {
+      "time": 3518.348,
+      "word": "Sav",
+      "cue_index": 266
+    },
+    {
+      "time": 3531.078,
+      "word": "trusted",
+      "cue_index": 267
+    },
+    {
+      "time": 3568.76,
+      "word": "Sav",
+      "cue_index": 273
+    },
+    {
+      "time": 3715.368,
+      "word": "weaponized",
+      "cue_index": 284
+    },
+    {
+      "time": 3726.698,
+      "word": "Sav",
+      "cue_index": 285
+    },
+    {
+      "time": 3744.638,
+      "word": "Sav",
+      "cue_index": 287
+    },
+    {
+      "time": 3818.047,
+      "word": "Sav",
+      "cue_index": 295
+    },
+    {
+      "time": 3837.267,
+      "word": "Sav",
+      "cue_index": 297
+    },
+    {
+      "time": 4004.687,
+      "word": "Sav",
+      "cue_index": 300
+    },
+    {
+      "time": 4079.307,
+      "word": "Sav",
+      "cue_index": 308
+    },
+    {
+      "time": 4165.822,
+      "word": "Sav",
+      "cue_index": 314
+    },
+    {
+      "time": 4205.889,
+      "word": "Sav",
+      "cue_index": 319
+    },
+    {
+      "time": 4215.409,
+      "word": "Sav",
+      "cue_index": 319
+    },
+    {
+      "time": 4238.602,
+      "word": "Sav",
+      "cue_index": 321
+    },
+    {
+      "time": 4263.009,
+      "word": "Sav",
+      "cue_index": 323
+    },
+    {
+      "time": 4276.199,
+      "word": "screenshot",
+      "cue_index": 325
+    },
+    {
+      "time": 4319.95,
+      "word": "Sav",
+      "cue_index": 331
+    },
+    {
+      "time": 4354.579,
+      "word": "weaponized",
+      "cue_index": 334
+    },
+    {
+      "time": 4370.719,
+      "word": "trusted",
+      "cue_index": 336
+    }
+  ],
+  "quiet_marks": [
+    {
+      "time": 732.706,
+      "word": "baby"
+    },
+    {
+      "time": 1646.763,
+      "word": "Baby"
+    },
+    {
+      "time": 1658.013,
+      "word": "Baby"
+    },
+    {
+      "time": 1668.543,
+      "word": "Baby"
+    },
+    {
+      "time": 2036.792,
+      "word": "Baby"
+    },
+    {
+      "time": 2732.849,
+      "word": "baby"
+    },
+    {
+      "time": 3762.928,
+      "word": "suicide"
+    },
+    {
+      "time": 4016.563,
+      "word": "suicide"
+    },
+    {
+      "time": 4308.74,
+      "word": "Baby"
+    }
+  ],
+  "note": "New score uses original 3 x 2-minute Suno compositions as evolving looped beds; further unique cues can be composed later. These are editorial stems, not a publication master."
+}

@@ -1,0 +1,8 @@
+1 02  |  ELEVENLABS LOGAN  |  NARRATION (NO SPOKEN AQ LABELS) volume_env=false track_vol=1.0
+2 03  |  SUNO INSTRUMENTAL SCORE  |  INVESTIGATION [AUDIBLE] volume_env=true track_vol=1.0
+3 04  |  SUNO INSTRUMENTAL SCORE  |  TRUST / SAV [AUDIBLE] volume_env=true track_vol=1.0
+4 05  |  SUNO INSTRUMENTAL SCORE  |  SIGNATURE MOTIF [AUDIBLE] volume_env=true track_vol=1.0
+5 06  |  SUNO ORIGINAL SCENE SCORE  |  12 NEW STORY COMPOSITIONS volume_env=true track_vol=1.0
+13 09   SUNO SCORE A  |  SIGNATURE MOTIF [MUTED SUPERSEDED] volume_env=false track_vol=1.0
+14 10   SUNO SCORE B  |  INVESTIGATIVE TENSION [MUTED SUPERSEDED] volume_env=false track_vol=1.0
+15 11   SUNO SCORE C  |  TRUST / HUMAN STORY [MUTED SUPERSEDED] volume_env=false track_vol=1.0

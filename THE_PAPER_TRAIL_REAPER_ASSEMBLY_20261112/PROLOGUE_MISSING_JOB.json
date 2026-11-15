@@ -1,0 +1,51 @@
+{
+  "job_id": "PROLOGUE_MISSING",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "First, what happened to Sav and me wasn't a one-off argument. Multiple former friends and associates across the community described the same experience: trusting Angela as a friend and advocate, confiding private struggles or family details to her, and later watching those confidences used to humiliate, intimidate, or retaliate against them when the relationship soured.\n\nAnd second: whenever Angela's conduct was challenged, she had a story ready to explain why she was actually the victim—why she had been silenced, cornered, or forced to act in order to protect someone else.\n\nBecause Angela recorded herself talking for hundreds of hours across public rooms, we don't have to take her explanations at face value. We can test what she claimed against what she actually said, what she admitted doing, and what the record shows.\n\nIn fact, Angela gave the audience her own invitation to do exactly that:\n\nAlright. Let's go through the evidence.\n\nThis is The Paper Trail.",
+  "title": "THE PAPER TRAIL - Complete Prologue Remaining Lines",
+  "segments": [
+    {
+      "cue_index": 33,
+      "text": "First, what happened to Sav and me wasn't a one-off argument. Multiple former friends and associates across the community described the same experience: trusting Angela as a friend and advocate, confiding private struggles or family details to her, and later watching those confidences used to humiliate, intimidate, or retaliate against them when the relationship soured.",
+      "start_char": 0,
+      "end_char": 372,
+      "orig_pos": 309.321
+    },
+    {
+      "cue_index": 34,
+      "text": "And second: whenever Angela's conduct was challenged, she had a story ready to explain why she was actually the victim—why she had been silenced, cornered, or forced to act in order to protect someone else.",
+      "start_char": 374,
+      "end_char": 580,
+      "orig_pos": 333.033
+    },
+    {
+      "cue_index": 36,
+      "text": "Because Angela recorded herself talking for hundreds of hours across public rooms, we don't have to take her explanations at face value. We can test what she claimed against what she actually said, what she admitted doing, and what the record shows.",
+      "start_char": 582,
+      "end_char": 831,
+      "orig_pos": 359.243
+    },
+    {
+      "cue_index": 37,
+      "text": "In fact, Angela gave the audience her own invitation to do exactly that:",
+      "start_char": 833,
+      "end_char": 905,
+      "orig_pos": 377.686
+    },
+    {
+      "cue_index": 39,
+      "text": "Alright. Let's go through the evidence.",
+      "start_char": 907,
+      "end_char": 946,
+      "orig_pos": 424.386
+    },
+    {
+      "cue_index": 42,
+      "text": "This is The Paper Trail.",
+      "start_char": 948,
+      "end_char": 972,
+      "orig_pos": 462.614
+    }
+  ]
+}

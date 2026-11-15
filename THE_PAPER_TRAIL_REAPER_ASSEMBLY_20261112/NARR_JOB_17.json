@@ -1,0 +1,109 @@
+{
+  "job_id": "NARR_17",
+  "kind": "narration",
+  "voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "script": "If Sav's account is accurate, the stakes of confiding in Angela were no longer just whether a screenshot would be posted in a public room. They extended to the people Sav relied on outside the internet.\n\nAnd that is the part of this story I find hardest to dismiss: the very circumstances that made people seek somebody's help could, after a falling-out, become the details they most feared being exposed.\n\nThink about the people who entered this story.\n\nSine believed he was sending survivors to an advocate. Later, he said he feared he had been directing them toward someone who would target them.\n\nGlow Baby and Timmy described friendships that, in their telling, led to threats and private family information being used in disputes. Some of those claims still lack independent corroboration.\n\nSav believed she had a friend she could be honest with about motherhood, insecurity and a life that was coming apart. Then she heard private details from that life recast in public, and said the conflict reached her family.\n\nAnd Angela?\n\nIn her own recordings, she described gathering information before approaching people, saving screenshots, keeping names and documents in reserve, and helping expose information when she believed she was justified.\n\nShe also said there were limits. She said you shouldn't release something just to twist the knife. She said some evidence could be weaponized.\n\nThen she described the point where she decided to release it anyway.\n\nI can't tell you everything Angela believed. I can't turn every accusation made about her into an established fact. But I can put the explanations she gave beside what the people who trusted her say they experienced.\n\nThat was the promise of this investigation. Not that a microphone can read somebody's mind. That the words people choose—and the consequences others describe—can be heard together.\n\nAngela once invited listeners to do exactly that. To believe the good things they heard about her, and the bad, and make up their own minds.\n\nI'll leave you with her invitation.",
+  "title": "THE PAPER TRAIL - Logan Narration Part 17 of 17",
+  "segments": [
+    {
+      "cue_index": 325,
+      "text": "If Sav's account is accurate, the stakes of confiding in Angela were no longer just whether a screenshot would be posted in a public room. They extended to the people Sav relied on outside the internet.",
+      "start_char": 0,
+      "end_char": 202,
+      "orig_pos": 4695.655
+    },
+    {
+      "cue_index": 326,
+      "text": "And that is the part of this story I find hardest to dismiss: the very circumstances that made people seek somebody's help could, after a falling-out, become the details they most feared being exposed.",
+      "start_char": 204,
+      "end_char": 405,
+      "orig_pos": 4711.665
+    },
+    {
+      "cue_index": 328,
+      "text": "Think about the people who entered this story.",
+      "start_char": 407,
+      "end_char": 453,
+      "orig_pos": 4727.285
+    },
+    {
+      "cue_index": 329,
+      "text": "Sine believed he was sending survivors to an advocate. Later, he said he feared he had been directing them toward someone who would target them.",
+      "start_char": 455,
+      "end_char": 599,
+      "orig_pos": 4731.458
+    },
+    {
+      "cue_index": 330,
+      "text": "Glow Baby and Timmy described friendships that, in their telling, led to threats and private family information being used in disputes. Some of those claims still lack independent corroboration.",
+      "start_char": 601,
+      "end_char": 795,
+      "orig_pos": 4742.603
+    },
+    {
+      "cue_index": 331,
+      "text": "Sav believed she had a friend she could be honest with about motherhood, insecurity and a life that was coming apart. Then she heard private details from that life recast in public, and said the conflict reached her family.",
+      "start_char": 797,
+      "end_char": 1020,
+      "orig_pos": 4755.37
+    },
+    {
+      "cue_index": 332,
+      "text": "And Angela?",
+      "start_char": 1022,
+      "end_char": 1033,
+      "orig_pos": 4772.191
+    },
+    {
+      "cue_index": 333,
+      "text": "In her own recordings, she described gathering information before approaching people, saving screenshots, keeping names and documents in reserve, and helping expose information when she believed she was justified.",
+      "start_char": 1035,
+      "end_char": 1248,
+      "orig_pos": 4774.391
+    },
+    {
+      "cue_index": 334,
+      "text": "She also said there were limits. She said you shouldn't release something just to twist the knife. She said some evidence could be weaponized.",
+      "start_char": 1250,
+      "end_char": 1392,
+      "orig_pos": 4787.077
+    },
+    {
+      "cue_index": 335,
+      "text": "Then she described the point where she decided to release it anyway.",
+      "start_char": 1394,
+      "end_char": 1462,
+      "orig_pos": 4798.302
+    },
+    {
+      "cue_index": 336,
+      "text": "I can't tell you everything Angela believed. I can't turn every accusation made about her into an established fact. But I can put the explanations she gave beside what the people who trusted her say they experienced.",
+      "start_char": 1464,
+      "end_char": 1680,
+      "orig_pos": 4804.097
+    },
+    {
+      "cue_index": 337,
+      "text": "That was the promise of this investigation. Not that a microphone can read somebody's mind. That the words people choose—and the consequences others describe—can be heard together.",
+      "start_char": 1682,
+      "end_char": 1862,
+      "orig_pos": 4820.998
+    },
+    {
+      "cue_index": 338,
+      "text": "Angela once invited listeners to do exactly that. To believe the good things they heard about her, and the bad, and make up their own minds.",
+      "start_char": 1864,
+      "end_char": 2004,
+      "orig_pos": 4834.25
+    },
+    {
+      "cue_index": 339,
+      "text": "I'll leave you with her invitation.",
+      "start_char": 2006,
+      "end_char": 2041,
+      "orig_pos": 4845.801
+    }
+  ],
+  "char_count": 2041,
+  "word_count": 334
+}

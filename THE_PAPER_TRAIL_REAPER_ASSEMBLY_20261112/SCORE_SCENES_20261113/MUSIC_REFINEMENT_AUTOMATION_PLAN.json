@@ -1,0 +1,305 @@
+{
+  "source": "Actual REAPER media-items audit, ElevenLabs word times, scene-marker geometry",
+  "one_canonical_project": "THE_PAPER_TRAIL_LOGAN_LABELS_REMOVED_SUNO_VISIBLE_v7.RPP",
+  "source_suno_recordings_unchanged": true,
+  "narration_source_unchanged": true,
+  "scene_items_still_12": true,
+  "autogain_curve_point_counts": {
+    "SUNO ORIGINAL SCENE SCORE": 923,
+    "SUNO INSTRUMENTAL SCORE  |  INVESTIGATION": 553,
+    "SUNO INSTRUMENTAL SCORE  |  TRUST": 553,
+    "SUNO INSTRUMENTAL SCORE  |  SIGNATURE": 553
+  },
+  "narrator_intervals": 67,
+  "archive_intervals": 44,
+  "scene_scope": "Prologue plus 10 named scenes and epilogue",
+  "words_selected_for_clarity": [
+    {
+      "t": 163.159,
+      "word": "friends",
+      "section": "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE"
+    },
+    {
+      "t": 220.699,
+      "word": "vulnerable",
+      "section": "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE"
+    },
+    {
+      "t": 251.949,
+      "word": "trust",
+      "section": "PROLOGUE — THE PERSON ON THE OTHER END OF THE LINE"
+    },
+    {
+      "t": 521.404,
+      "word": "recordings",
+      "section": "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY"
+    },
+    {
+      "t": 719.676,
+      "word": "baby",
+      "section": "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY"
+    },
+    {
+      "t": 759.646,
+      "word": "trusted",
+      "section": "ACT I — SCENE 1: A PLACE TO TELL YOUR STORY"
+    },
+    {
+      "t": 853.83,
+      "word": "Sav",
+      "section": "ACT I — SCENE 2: THE CONFIDANTE"
+    },
+    {
+      "t": 886.11,
+      "word": "trusted",
+      "section": "ACT I — SCENE 2: THE CONFIDANTE"
+    },
+    {
+      "t": 942.464,
+      "word": "Sav",
+      "section": "ACT I — SCENE 2: THE CONFIDANTE"
+    },
+    {
+      "t": 1201.225,
+      "word": "screenshots",
+      "section": "ACT II — SCENE 3: WHAT SHE KEPT"
+    },
+    {
+      "t": 1243.035,
+      "word": "trusted",
+      "section": "ACT II — SCENE 3: WHAT SHE KEPT"
+    },
+    {
+      "t": 1332.776,
+      "word": "private",
+      "section": "ACT II — SCENE 3: WHAT SHE KEPT"
+    },
+    {
+      "t": 1481.803,
+      "word": "friends",
+      "section": "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP"
+    },
+    {
+      "t": 1625.682,
+      "word": "friends",
+      "section": "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP"
+    },
+    {
+      "t": 1655.513,
+      "word": "Baby",
+      "section": "ACT II — SCENE 4: THE PEOPLE WHO WENT TO HER FOR HELP"
+    },
+    {
+      "t": 2381.855,
+      "word": "Sav",
+      "section": "ACT II — SCENE 5: SAV'S WORST DAY"
+    },
+    {
+      "t": 2413.954,
+      "word": "friend",
+      "section": "ACT II — SCENE 5: SAV'S WORST DAY"
+    },
+    {
+      "t": 2443.624,
+      "word": "Sav",
+      "section": "ACT II — SCENE 5: SAV'S WORST DAY"
+    },
+    {
+      "t": 2612.53,
+      "word": "private",
+      "section": "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES"
+    },
+    {
+      "t": 2710.968,
+      "word": "private",
+      "section": "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES"
+    },
+    {
+      "t": 2741.108,
+      "word": "private",
+      "section": "ACT III — SCENE 6: PRIVATE MESSAGES, PUBLIC AUDIENCES"
+    },
+    {
+      "t": 3129.678,
+      "word": "Sav",
+      "section": "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE"
+    },
+    {
+      "t": 3297.445,
+      "word": "Sav",
+      "section": "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE"
+    },
+    {
+      "t": 3327.795,
+      "word": "Sav",
+      "section": "ACT III — SCENE 7: THE ACCUSATIONS AND THE CONFIDANTE"
+    },
+    {
+      "t": 3643.977,
+      "word": "private",
+      "section": "ACT III — SCENE 8: THE RULE SHE SET FOR HERSELF"
+    },
+    {
+      "t": 3701.138,
+      "word": "private",
+      "section": "ACT III — SCENE 8: THE RULE SHE SET FOR HERSELF"
+    },
+    {
+      "t": 3731.608,
+      "word": "Sav",
+      "section": "ACT IV — SCENE 9: WHAT IT MEANT TO HELP"
+    },
+    {
+      "t": 3763.877,
+      "word": "private",
+      "section": "ACT IV — SCENE 9: WHAT IT MEANT TO HELP"
+    },
+    {
+      "t": 3805.017,
+      "word": "Sav",
+      "section": "ACT IV — SCENE 9: WHAT IT MEANT TO HELP"
+    },
+    {
+      "t": 4032.461,
+      "word": "screenshots",
+      "section": "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES"
+    },
+    {
+      "t": 4066.277,
+      "word": "Sav",
+      "section": "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES"
+    },
+    {
+      "t": 4151.352,
+      "word": "private",
+      "section": "ACT IV — SCENE 10: THE MONDAY MORNING MESSAGES"
+    },
+    {
+      "t": 4295.71,
+      "word": "Baby",
+      "section": "EPILOGUE — THE PAPER TRAIL"
+    },
+    {
+      "t": 4326.7,
+      "word": "screenshots",
+      "section": "EPILOGUE — THE PAPER TRAIL"
+    },
+    {
+      "t": 4357.689,
+      "word": "trusted",
+      "section": "EPILOGUE — THE PAPER TRAIL"
+    }
+  ],
+  "editorial_hold_windows": [
+    {
+      "start": 2471.543,
+      "end": 2501.219,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 001 | \"I basically had the biggest panic attack after she told m"
+    },
+    {
+      "start": 3334.776,
+      "end": 3375.343,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 002 | \"Angela, you know that picture of Lin sent to me was becau"
+    },
+    {
+      "start": 3393.782,
+      "end": 3426.58,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 003 | \"What friend weaponizes that when I'm coming to you TALKIN"
+    },
+    {
+      "start": 3436.53,
+      "end": 3442.539,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 004 | \"Thats old news apparently hes shared nudes a bunch with h"
+    },
+    {
+      "start": 3463.699,
+      "end": 3478.398,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 005 | \"He sent me a nude video of a girl in the community (I don"
+    },
+    {
+      "start": 3527.188,
+      "end": 3542.941,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 006 | \"Angela what is the goal here.....? Are we going after you"
+    },
+    {
+      "start": 4070.127,
+      "end": 4096.078,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 007 | \"And first and foremost, I have you talking about killing "
+    },
+    {
+      "start": 4096.379,
+      "end": 4111.158,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 008 | \"I’m not canceling anything do you understand and when c p"
+    },
+    {
+      "start": 4111.457,
+      "end": 4122.432,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 009 | \"And I don’t give a fuck if you can’t afford to pay the da"
+    },
+    {
+      "start": 4169.292,
+      "end": 4174.394,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 010 | \"Send it to my parents Angela like you threatened ya loser"
+    },
+    {
+      "start": 4174.694,
+      "end": 4185.829,
+      "type": "UNRECORDED_PERFORMED_READING",
+      "name": "WRITTEN READING 011 | \"Maybe I should. Maybe I should stop talking about it. And"
+    },
+    {
+      "start": 17.12,
+      "end": 17.62,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "PAUSE | [beat]"
+    },
+    {
+      "start": 464.269,
+      "end": 464.769,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "PAUSE | [beat]"
+    },
+    {
+      "start": 583.777,
+      "end": 592.777,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "ARCHIVE C14 AQ-0048 | 014__AQ-0048__Journaling_Daily_MISSING.txt"
+    },
+    {
+      "start": 593.057,
+      "end": 593.807,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "PAUSE | [Silence: 1.5 beats]"
+    },
+    {
+      "start": 615.96,
+      "end": 624.96,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "ARCHIVE C15 AQ-0220 | 015__AQ-0220__Mellow_Demon_Ethical_Person_MISSING.txt"
+    },
+    {
+      "start": 814.655,
+      "end": 815.405,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "PAUSE | [Silence: 1.5 beats]"
+    },
+    {
+      "start": 4257.349,
+      "end": 4257.849,
+      "type": "DIRECTED_SILENCE_OR_MISSING_ARCHIVE",
+      "name": "PAUSE | [beat]"
+    }
+  ],
+  "music_behavior": "Under narrative approx -7dB new scene score, -4dB underlying score; under archive approx -10.5dB new score, -5.5dB under-score; up in longer speech-free transitions, quiet at unrecorded readings and directed silences.",
+  "performance_caveat": "Automation driven by actual recorded timeline and word alignment, not a full subjective soundboard audition. To fine-tune listening priorities remains essential."
+}

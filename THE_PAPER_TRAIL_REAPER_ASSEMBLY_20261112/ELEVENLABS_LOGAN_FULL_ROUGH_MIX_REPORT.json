@@ -1,0 +1,277 @@
+{
+  "status": "rough_mix_complete",
+  "project": "THE_PAPER_TRAIL_ELEVENLABS_LOGAN_FULL_ASSEMBLY_v5.RPP",
+  "narrator": "ElevenLabs cloned Logan, 233/233 scripted narration cues",
+  "score": "Three original Suno compositions, 370 sentence cues, 42 snapped word accents",
+  "authentic_archival_clips": "Existing audio in original REAPER source",
+  "audio_items": 748,
+  "unique_sources": 92,
+  "duration_seconds": 4436.899,
+  "mix_pre_limiter_peak": 1.0108144283294678,
+  "wav": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_ROUGH_MIX_48KHZ.wav",
+  "mp3": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\THE_PAPER_TRAIL_ELEVENLABS_LOGAN_ROUGH_MIX.mp3",
+  "wav_bytes": 1277827020,
+  "mp3_bytes": 106486893,
+  "missing_or_short_source_fragments": [
+    {
+      "index": 16,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_01.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 27,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_02.mp3",
+      "shortfall_s": 0.11
+    },
+    {
+      "index": 36,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_03.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 52,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_04.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 66,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_05.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 80,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_06.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 93,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_07.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 109,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_08.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 122,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_09.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 136,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_10.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 150,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_11.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 164,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_12.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 178,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_13.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 194,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_14.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 209,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_15.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 219,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_16.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 233,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\ELEVENLABS_LOGAN_NARR_17.mp3",
+      "shortfall_s": 0.19
+    },
+    {
+      "index": 254,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\020__CLIP-170__Sav_Friend_From_TikTok.mp3",
+      "shortfall_s": 0.011
+    },
+    {
+      "index": 255,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\023__AQ-0169__Turns_Into_A_Liability.mp3",
+      "shortfall_s": 0.011
+    },
+    {
+      "index": 278,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\papertrail_archival_audio_ordered\\047__AQ-0166__Share_Every_DM_Back_To_2023.mp3",
+      "shortfall_s": 0.011
+    },
+    {
+      "index": 281,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\special_clips\\Cue_11_AQ-0233_Angela.wav",
+      "error": "SOURCE_OFFSET_AFTER_AUDIO_END"
+    },
+    {
+      "index": 284,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\special_clips\\Cue_07_AQ-0222_Angela.wav",
+      "error": "SOURCE_OFFSET_AFTER_AUDIO_END"
+    },
+    {
+      "index": 692,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 697,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 702,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 705,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 712,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 717,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 719,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 724,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 726,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 728,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 729,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 731,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 734,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 736,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 738,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 739,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_mic_unmute_click.wav",
+      "shortfall_s": 0.07
+    },
+    {
+      "index": 741,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 742,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 743,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 744,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    },
+    {
+      "index": 745,
+      "path": "C:\\Users\\Logan\\copy-spaces-to-youtube-pipeline\\THE_PAPER_TRAIL_REAPER_ASSEMBLY_20261112\\SCRATCH_phone_send_click.wav",
+      "shortfall_s": 0.13
+    }
+  ],
+  "remaining_issues": [
+    "11 performed written-message readings still placeholders",
+    "2 missing genuine archival source clips AQ-0048 and AQ-0220",
+    "Archive attribution and cut-context not independently audited",
+    "Narrator performance/pronunciation must receive human listening edit",
+    "Technical mix uses a source+fader/fades reconstruction, not the complete native REAPER bus/fx chain"
+  ],
+  "publishable": false,
+  "wav_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "pcm_s24le",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "4436.899021"
+    }
+  },
+  "mp3_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "4436.899021"
+    }
+  },
+  "render_verified": true,
+  "narration_files_verified": 17,
+  "exact_voice_id": "GDqvTqQdsHV3ND6SiEZP",
+  "audio_source_gaps": [
+    "AQ-0048",
+    "AQ-0220",
+    "AQ-0233 candidate (zero-length WAV)",
+    "AQ-0222 candidate (zero-length WAV)"
+  ]
+}

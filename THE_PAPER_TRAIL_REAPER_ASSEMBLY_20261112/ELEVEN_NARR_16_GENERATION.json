@@ -1,0 +1,15 @@
+{
+  "job_id": "NARR_16",
+  "flow_id": "I4Ie623yKeI7RbLkkmrc",
+  "session_ids": [
+    "nVaQqBjGcKsMGgTxCSA4"
+  ],
+  "started": {
+    "nodes_run": 1,
+    "generations_started": 1,
+    "failed": 0,
+    "generations_by_node": {
+      "z6fu0fZCreQeJpDjc98q": 1
+    }
+  }
+}

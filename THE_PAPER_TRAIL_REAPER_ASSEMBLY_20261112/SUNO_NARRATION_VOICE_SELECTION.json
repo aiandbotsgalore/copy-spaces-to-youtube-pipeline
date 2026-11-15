@@ -1,0 +1,26 @@
+{
+  "title": "THE PAPER TRAIL — Suno Narrator Voice Selection",
+  "status": "USER-CORRECTED — FINAL VOICE SELECTION",
+  "narrator": "Logan Black",
+  "selected_voice_name": "My Podcast Voice - Oct 4",
+  "selected_voice_id": "ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "selected_voice_url": "https://suno.com/voice/ae6cd7ee-670a-4757-905b-08c31640cd29",
+  "not_selected_voice_name": "Podcast  Voice - Jul 25",
+  "not_selected_voice_id": "454276e6-ccc1-4af9-b808-ba2856c9bf9b",
+  "instructions": "Use ONLY selected_voice_id for new Logan narration. The user explicitly corrected the earlier July voice choice. No additional narration needs generating to return to the original Oct 4 takes.",
+  "current_correct_voice_pilots": {
+    "opening": {
+      "id": "814e319c-daea-4079-a41b-5a7300229579",
+      "url": "https://suno.com/song/814e319c-daea-4079-a41b-5a7300229579",
+      "status": "voice correct, generated earlier, not yet downloaded or approved as final"
+    },
+    "friendship": {
+      "id": "2df688f1-eaa9-41bc-a2db-0fdaea27998c",
+      "url": "https://suno.com/song/2df688f1-eaa9-41bc-a2db-0fdaea27998c",
+      "status": "voice correct, generated earlier, not yet downloaded or approved as final"
+    }
+  },
+  "mistaken_July_25_takes": "The four Jul 25 generation candidates produced afterward are NOT narrator voice references and must not replace the correct Oct 4 pilot recordings.",
+  "reaper_status": "Existing word-synced Prologue pilot was aligned to the selected Oct 4 takes. It is not necessary to redo its timing due to the voice correction.",
+  "download_status": "No paid Suno downloads authorized or performed for generated narration; WAVs not yet present in REAPER project. No credits spent for this correction."
+}

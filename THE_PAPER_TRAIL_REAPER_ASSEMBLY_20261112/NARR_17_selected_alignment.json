@@ -1,0 +1,3172 @@
+{
+  "audio_id": "58f9de1b-fec8-4348-bcb3-c5e2616398f0",
+  "status": "complete",
+  "words": [
+    {
+      "word": "If",
+      "start_s": 0.206,
+      "end_s": 0.287,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Sa",
+      "start_s": 0.287,
+      "end_s": 0.454,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "v",
+      "start_s": 0.454,
+      "end_s": 0.55,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'",
+      "start_s": 0.55,
+      "end_s": 0.631,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s",
+      "start_s": 0.631,
+      "end_s": 0.661,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " accou",
+      "start_s": 0.661,
+      "end_s": 0.72,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "nt",
+      "start_s": 0.72,
+      "end_s": 0.96,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " is",
+      "start_s": 0.962,
+      "end_s": 1.085,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " acc",
+      "start_s": 1.085,
+      "end_s": 1.262,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ur",
+      "start_s": 1.262,
+      "end_s": 1.43,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ate",
+      "start_s": 1.43,
+      "end_s": 1.67,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", the",
+      "start_s": 2.078,
+      "end_s": 2.156,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " st",
+      "start_s": 2.156,
+      "end_s": 2.252,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ake",
+      "start_s": 2.252,
+      "end_s": 2.492,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s",
+      "start_s": 2.514,
+      "end_s": 2.56,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " of",
+      "start_s": 2.56,
+      "end_s": 2.664,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " conf",
+      "start_s": 2.664,
+      "end_s": 3.026,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "iding",
+      "start_s": 3.026,
+      "end_s": 3.181,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " in",
+      "start_s": 3.181,
+      "end_s": 3.307,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Ang",
+      "start_s": 3.307,
+      "end_s": 3.6,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ela",
+      "start_s": 3.613,
+      "end_s": 3.853,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " were",
+      "start_s": 4.536,
+      "end_s": 4.646,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " no",
+      "start_s": 4.646,
+      "end_s": 4.776,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " long",
+      "start_s": 4.776,
+      "end_s": 4.812,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "er",
+      "start_s": 4.812,
+      "end_s": 5.12,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " just",
+      "start_s": 5.12,
+      "end_s": 5.27,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " whether",
+      "start_s": 5.27,
+      "end_s": 5.602,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 5.602,
+      "end_s": 5.667,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " screens",
+      "start_s": 5.667,
+      "end_s": 6.032,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "h",
+      "start_s": 6.032,
+      "end_s": 6.158,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ot",
+      "start_s": 6.158,
+      "end_s": 6.32,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " would",
+      "start_s": 6.377,
+      "end_s": 6.498,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " be",
+      "start_s": 6.498,
+      "end_s": 6.634,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " post",
+      "start_s": 6.634,
+      "end_s": 6.779,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 6.779,
+      "end_s": 6.96,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " in",
+      "start_s": 6.98,
+      "end_s": 7.103,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 7.103,
+      "end_s": 7.159,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " public",
+      "start_s": 7.159,
+      "end_s": 7.408,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " room",
+      "start_s": 7.408,
+      "end_s": 7.728,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". They",
+      "start_s": 8.548,
+      "end_s": 8.713,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " ext",
+      "start_s": 8.713,
+      "end_s": 8.805,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "end",
+      "start_s": 8.805,
+      "end_s": 9.015,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 9.015,
+      "end_s": 9.2,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 9.205,
+      "end_s": 9.278,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 9.278,
+      "end_s": 9.394,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 9.394,
+      "end_s": 9.874,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Sa",
+      "start_s": 10.608,
+      "end_s": 10.791,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "v",
+      "start_s": 10.791,
+      "end_s": 10.914,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " re",
+      "start_s": 10.914,
+      "end_s": 10.992,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "li",
+      "start_s": 10.992,
+      "end_s": 11.147,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 11.147,
+      "end_s": 11.224,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " on",
+      "start_s": 11.224,
+      "end_s": 11.452,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " outside",
+      "start_s": 11.452,
+      "end_s": 11.641,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 11.641,
+      "end_s": 11.691,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " internet",
+      "start_s": 11.691,
+      "end_s": 12.331,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nAnd",
+      "start_s": 13.678,
+      "end_s": 13.805,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 13.805,
+      "end_s": 13.967,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " is",
+      "start_s": 13.967,
+      "end_s": 14.094,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 14.094,
+      "end_s": 14.173,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " part",
+      "start_s": 14.173,
+      "end_s": 14.351,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " of",
+      "start_s": 14.351,
+      "end_s": 14.456,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " this",
+      "start_s": 14.456,
+      "end_s": 14.586,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " story",
+      "start_s": 14.586,
+      "end_s": 14.987,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " I",
+      "start_s": 16.154,
+      "end_s": 16.283,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " find",
+      "start_s": 16.283,
+      "end_s": 16.455,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " hardest",
+      "start_s": 16.455,
+      "end_s": 16.868,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 16.868,
+      "end_s": 16.965,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " d",
+      "start_s": 16.965,
+      "end_s": 17.05,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "is",
+      "start_s": 17.05,
+      "end_s": 17.124,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "m",
+      "start_s": 17.124,
+      "end_s": 17.246,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "iss",
+      "start_s": 17.246,
+      "end_s": 17.486,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ": the",
+      "start_s": 18.479,
+      "end_s": 18.578,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " very",
+      "start_s": 18.578,
+      "end_s": 18.788,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " circ",
+      "start_s": 18.788,
+      "end_s": 19.016,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "um",
+      "start_s": 19.016,
+      "end_s": 19.105,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "st",
+      "start_s": 19.105,
+      "end_s": 19.18,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "an",
+      "start_s": 19.18,
+      "end_s": 19.44,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ces",
+      "start_s": 19.448,
+      "end_s": 19.668,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 19.668,
+      "end_s": 19.713,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " made",
+      "start_s": 19.713,
+      "end_s": 19.964,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 19.964,
+      "end_s": 20.187,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " seek",
+      "start_s": 20.187,
+      "end_s": 20.496,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " some",
+      "start_s": 20.496,
+      "end_s": 20.754,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "body",
+      "start_s": 20.754,
+      "end_s": 20.821,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'",
+      "start_s": 20.821,
+      "end_s": 20.96,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s",
+      "start_s": 20.963,
+      "end_s": 21.018,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " help",
+      "start_s": 21.018,
+      "end_s": 21.293,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " could",
+      "start_s": 21.293,
+      "end_s": 21.693,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", after",
+      "start_s": 21.945,
+      "end_s": 22.284,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 22.284,
+      "end_s": 22.334,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " falling",
+      "start_s": 22.334,
+      "end_s": 22.713,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "-out",
+      "start_s": 22.713,
+      "end_s": 22.953,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", become",
+      "start_s": 23.7,
+      "end_s": 23.917,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 23.917,
+      "end_s": 24.077,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " deta",
+      "start_s": 24.077,
+      "end_s": 24.218,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ils",
+      "start_s": 24.218,
+      "end_s": 24.447,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " they",
+      "start_s": 24.447,
+      "end_s": 24.563,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " most",
+      "start_s": 24.563,
+      "end_s": 24.883,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " feared",
+      "start_s": 24.9,
+      "end_s": 25.287,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " being",
+      "start_s": 25.287,
+      "end_s": 25.396,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " exp",
+      "start_s": 25.396,
+      "end_s": 25.55,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "osed",
+      "start_s": 25.55,
+      "end_s": 25.948,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nThink",
+      "start_s": 27.601,
+      "end_s": 27.824,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " about",
+      "start_s": 27.824,
+      "end_s": 27.929,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 27.929,
+      "end_s": 28.051,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 28.051,
+      "end_s": 28.288,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " who",
+      "start_s": 28.288,
+      "end_s": 28.316,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " en",
+      "start_s": 28.316,
+      "end_s": 28.438,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "t",
+      "start_s": 28.438,
+      "end_s": 28.501,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "er",
+      "start_s": 28.501,
+      "end_s": 28.635,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 28.635,
+      "end_s": 28.755,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " this",
+      "start_s": 28.755,
+      "end_s": 28.86,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " story",
+      "start_s": 28.86,
+      "end_s": 28.901,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nS",
+      "start_s": 28.901,
+      "end_s": 29.227,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "i",
+      "start_s": 31.262,
+      "end_s": 31.454,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ne",
+      "start_s": 31.455,
+      "end_s": 31.674,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " believed",
+      "start_s": 31.674,
+      "end_s": 32.314,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " he",
+      "start_s": 32.805,
+      "end_s": 32.902,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " was",
+      "start_s": 32.902,
+      "end_s": 32.985,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " sending",
+      "start_s": 32.985,
+      "end_s": 33.382,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " survi",
+      "start_s": 33.382,
+      "end_s": 33.546,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "v",
+      "start_s": 33.546,
+      "end_s": 33.602,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ors",
+      "start_s": 33.602,
+      "end_s": 33.764,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 33.764,
+      "end_s": 33.933,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " an",
+      "start_s": 33.943,
+      "end_s": 34.094,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " ad",
+      "start_s": 34.094,
+      "end_s": 34.202,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "vo",
+      "start_s": 34.202,
+      "end_s": 34.294,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "cate",
+      "start_s": 34.294,
+      "end_s": 34.441,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". Later",
+      "start_s": 34.441,
+      "end_s": 34.841,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", he",
+      "start_s": 35.622,
+      "end_s": 35.728,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " said",
+      "start_s": 35.728,
+      "end_s": 35.921,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " he",
+      "start_s": 35.921,
+      "end_s": 36.081,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " feared",
+      "start_s": 36.086,
+      "end_s": 36.566,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " he",
+      "start_s": 37.053,
+      "end_s": 37.097,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " ha",
+      "start_s": 37.097,
+      "end_s": 37.173,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "d",
+      "start_s": 37.173,
+      "end_s": 37.253,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " been",
+      "start_s": 37.297,
+      "end_s": 37.362,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " dire",
+      "start_s": 37.362,
+      "end_s": 37.652,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "cting",
+      "start_s": 37.652,
+      "end_s": 37.831,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " them",
+      "start_s": 37.831,
+      "end_s": 38.036,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " toward",
+      "start_s": 38.036,
+      "end_s": 38.33,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " someone",
+      "start_s": 38.33,
+      "end_s": 38.722,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " who",
+      "start_s": 38.722,
+      "end_s": 38.899,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " would",
+      "start_s": 38.899,
+      "end_s": 39.042,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " target",
+      "start_s": 39.042,
+      "end_s": 39.428,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " them",
+      "start_s": 39.428,
+      "end_s": 39.748,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nGlow",
+      "start_s": 41.409,
+      "end_s": 41.641,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Baby",
+      "start_s": 41.641,
+      "end_s": 41.961,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " and",
+      "start_s": 42.741,
+      "end_s": 42.9,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Tim",
+      "start_s": 42.9,
+      "end_s": 43.039,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "my",
+      "start_s": 43.039,
+      "end_s": 43.21,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " desc",
+      "start_s": 44.074,
+      "end_s": 44.105,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "rib",
+      "start_s": 44.105,
+      "end_s": 44.323,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 44.323,
+      "end_s": 44.437,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " friendship",
+      "start_s": 44.437,
+      "end_s": 44.798,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s",
+      "start_s": 44.798,
+      "end_s": 44.973,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 44.999,
+      "end_s": 45.319,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", in",
+      "start_s": 46.161,
+      "end_s": 46.254,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " their",
+      "start_s": 46.254,
+      "end_s": 46.48,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " telling",
+      "start_s": 46.48,
+      "end_s": 47.04,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", led",
+      "start_s": 47.654,
+      "end_s": 47.934,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 47.94,
+      "end_s": 48.067,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " thre",
+      "start_s": 48.067,
+      "end_s": 48.231,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ats",
+      "start_s": 48.231,
+      "end_s": 48.471,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " and",
+      "start_s": 49.134,
+      "end_s": 49.287,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " private",
+      "start_s": 49.287,
+      "end_s": 49.643,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " family",
+      "start_s": 49.643,
+      "end_s": 49.942,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " inf",
+      "start_s": 49.942,
+      "end_s": 50.012,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "or",
+      "start_s": 50.012,
+      "end_s": 50.187,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "m",
+      "start_s": 50.187,
+      "end_s": 50.271,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ation",
+      "start_s": 50.271,
+      "end_s": 50.479,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " being",
+      "start_s": 50.479,
+      "end_s": 50.659,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " used",
+      "start_s": 50.659,
+      "end_s": 50.979,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " in",
+      "start_s": 50.996,
+      "end_s": 51.15,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " disp",
+      "start_s": 51.15,
+      "end_s": 51.255,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ut",
+      "start_s": 51.255,
+      "end_s": 51.338,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "es",
+      "start_s": 51.338,
+      "end_s": 51.423,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". S",
+      "start_s": 51.423,
+      "end_s": 51.628,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ome",
+      "start_s": 52.855,
+      "end_s": 52.97,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " of",
+      "start_s": 52.97,
+      "end_s": 53.106,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " those",
+      "start_s": 53.106,
+      "end_s": 53.293,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " claim",
+      "start_s": 53.293,
+      "end_s": 53.45,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s",
+      "start_s": 53.45,
+      "end_s": 53.533,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " s",
+      "start_s": 53.572,
+      "end_s": 53.616,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "t",
+      "start_s": 53.616,
+      "end_s": 53.652,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ill",
+      "start_s": 53.652,
+      "end_s": 53.884,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " lack",
+      "start_s": 53.884,
+      "end_s": 54.127,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " independ",
+      "start_s": 54.127,
+      "end_s": 54.581,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ent",
+      "start_s": 54.581,
+      "end_s": 54.821,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " corro",
+      "start_s": 56.464,
+      "end_s": 56.464,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "boration",
+      "start_s": 56.464,
+      "end_s": 56.564,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nSav",
+      "start_s": 56.564,
+      "end_s": 56.899,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " believed",
+      "start_s": 56.899,
+      "end_s": 57.539,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 58.041,
+      "end_s": 58.183,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " had",
+      "start_s": 58.183,
+      "end_s": 58.331,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 58.331,
+      "end_s": 58.367,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " friend",
+      "start_s": 58.367,
+      "end_s": 58.847,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 59.73,
+      "end_s": 59.863,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " could",
+      "start_s": 59.863,
+      "end_s": 60.03,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " be",
+      "start_s": 60.03,
+      "end_s": 60.086,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " honest",
+      "start_s": 60.086,
+      "end_s": 60.098,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " with",
+      "start_s": 60.098,
+      "end_s": 60.439,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " about",
+      "start_s": 60.529,
+      "end_s": 60.654,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " mother",
+      "start_s": 60.654,
+      "end_s": 60.678,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "hood",
+      "start_s": 60.678,
+      "end_s": 60.998,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", inse",
+      "start_s": 62.176,
+      "end_s": 62.361,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "cur",
+      "start_s": 62.361,
+      "end_s": 62.709,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ity",
+      "start_s": 62.709,
+      "end_s": 62.949,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " and",
+      "start_s": 63.624,
+      "end_s": 63.768,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 63.768,
+      "end_s": 63.825,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " life",
+      "start_s": 63.825,
+      "end_s": 64.076,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 64.076,
+      "end_s": 64.184,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " was",
+      "start_s": 64.184,
+      "end_s": 64.209,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " coming",
+      "start_s": 64.209,
+      "end_s": 64.457,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " apart",
+      "start_s": 64.457,
+      "end_s": 64.857,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". Then",
+      "start_s": 67.23,
+      "end_s": 67.313,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 67.313,
+      "end_s": 67.526,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " heard",
+      "start_s": 67.526,
+      "end_s": 67.716,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " private",
+      "start_s": 67.716,
+      "end_s": 68.085,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " deta",
+      "start_s": 68.085,
+      "end_s": 68.217,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ils",
+      "start_s": 68.217,
+      "end_s": 68.438,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " from",
+      "start_s": 68.438,
+      "end_s": 68.575,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 68.575,
+      "end_s": 68.689,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " life",
+      "start_s": 68.689,
+      "end_s": 69.009,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " rec",
+      "start_s": 69.041,
+      "end_s": 69.224,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ast",
+      "start_s": 69.224,
+      "end_s": 69.533,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " in",
+      "start_s": 69.565,
+      "end_s": 69.725,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " public",
+      "start_s": 69.738,
+      "end_s": 70.218,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", and",
+      "start_s": 71.288,
+      "end_s": 71.407,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " said",
+      "start_s": 71.407,
+      "end_s": 71.407,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 71.407,
+      "end_s": 71.647,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " conf",
+      "start_s": 72.619,
+      "end_s": 72.758,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "l",
+      "start_s": 72.758,
+      "end_s": 72.892,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ict",
+      "start_s": 72.892,
+      "end_s": 73.061,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " reached",
+      "start_s": 73.061,
+      "end_s": 73.316,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 73.316,
+      "end_s": 73.399,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " family",
+      "start_s": 73.399,
+      "end_s": 73.879,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nAnd",
+      "start_s": 74.817,
+      "end_s": 74.953,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Angel",
+      "start_s": 74.953,
+      "end_s": 75.353,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "a?\n\nIn",
+      "start_s": 77.769,
+      "end_s": 77.911,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 77.911,
+      "end_s": 78.023,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " own",
+      "start_s": 78.023,
+      "end_s": 78.242,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " record",
+      "start_s": 78.242,
+      "end_s": 78.48,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ings",
+      "start_s": 78.48,
+      "end_s": 78.8,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", she",
+      "start_s": 79.353,
+      "end_s": 79.476,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " desc",
+      "start_s": 79.476,
+      "end_s": 79.535,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "rib",
+      "start_s": 79.535,
+      "end_s": 79.775,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 79.78,
+      "end_s": 79.908,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " gather",
+      "start_s": 79.908,
+      "end_s": 80.142,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ing",
+      "start_s": 80.142,
+      "end_s": 80.199,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " in",
+      "start_s": 80.199,
+      "end_s": 80.322,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "form",
+      "start_s": 80.322,
+      "end_s": 80.599,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ation",
+      "start_s": 80.599,
+      "end_s": 80.807,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " before",
+      "start_s": 80.807,
+      "end_s": 80.82,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " appro",
+      "start_s": 80.82,
+      "end_s": 80.941,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ach",
+      "start_s": 80.941,
+      "end_s": 81.18,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ing",
+      "start_s": 81.18,
+      "end_s": 81.304,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 81.304,
+      "end_s": 81.784,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", saving",
+      "start_s": 82.38,
+      "end_s": 82.722,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " screens",
+      "start_s": 82.722,
+      "end_s": 82.993,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "h",
+      "start_s": 82.993,
+      "end_s": 83.11,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ots",
+      "start_s": 83.11,
+      "end_s": 83.365,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", keeping",
+      "start_s": 84.238,
+      "end_s": 84.579,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " names",
+      "start_s": 84.579,
+      "end_s": 84.928,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " and",
+      "start_s": 84.928,
+      "end_s": 84.994,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " doc",
+      "start_s": 84.994,
+      "end_s": 85.14,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ument",
+      "start_s": 85.14,
+      "end_s": 85.234,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "s in",
+      "start_s": 85.234,
+      "end_s": 85.273,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " reser",
+      "start_s": 85.273,
+      "end_s": 85.518,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ve",
+      "start_s": 85.518,
+      "end_s": 85.724,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", and",
+      "start_s": 87.374,
+      "end_s": 87.498,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " helping",
+      "start_s": 87.498,
+      "end_s": 87.781,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " exp",
+      "start_s": 87.781,
+      "end_s": 87.99,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ose",
+      "start_s": 87.99,
+      "end_s": 88.324,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " inform",
+      "start_s": 88.324,
+      "end_s": 88.646,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ation",
+      "start_s": 88.646,
+      "end_s": 89.046,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " when",
+      "start_s": 89.725,
+      "end_s": 89.837,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 89.837,
+      "end_s": 90.076,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " believed",
+      "start_s": 90.076,
+      "end_s": 90.716,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 91.607,
+      "end_s": 91.761,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " was",
+      "start_s": 91.761,
+      "end_s": 91.923,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " just",
+      "start_s": 91.923,
+      "end_s": 92.102,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ified",
+      "start_s": 92.102,
+      "end_s": 92.502,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nShe",
+      "start_s": 94.096,
+      "end_s": 94.253,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " also",
+      "start_s": 94.253,
+      "end_s": 94.58,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " said",
+      "start_s": 94.58,
+      "end_s": 94.9,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " there",
+      "start_s": 96.413,
+      "end_s": 96.514,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " were",
+      "start_s": 96.514,
+      "end_s": 96.607,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " limits",
+      "start_s": 96.607,
+      "end_s": 97.087,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". She",
+      "start_s": 98.007,
+      "end_s": 98.051,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " said",
+      "start_s": 98.051,
+      "end_s": 98.186,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " you",
+      "start_s": 98.186,
+      "end_s": 98.291,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " should",
+      "start_s": 98.291,
+      "end_s": 98.468,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "n'",
+      "start_s": 98.468,
+      "end_s": 98.55,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "t",
+      "start_s": 98.55,
+      "end_s": 98.581,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " release",
+      "start_s": 98.581,
+      "end_s": 98.866,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " something",
+      "start_s": 98.866,
+      "end_s": 99.35,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " just",
+      "start_s": 99.35,
+      "end_s": 99.54,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 99.54,
+      "end_s": 99.613,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " twist",
+      "start_s": 99.613,
+      "end_s": 99.857,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 99.857,
+      "end_s": 99.975,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " knife",
+      "start_s": 99.975,
+      "end_s": 100.375,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". She",
+      "start_s": 102.803,
+      "end_s": 102.865,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " said",
+      "start_s": 102.865,
+      "end_s": 103.093,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " some",
+      "start_s": 103.093,
+      "end_s": 103.219,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " evidence",
+      "start_s": 103.219,
+      "end_s": 103.859,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " could",
+      "start_s": 105.624,
+      "end_s": 105.785,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " be",
+      "start_s": 105.785,
+      "end_s": 105.914,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " weapon",
+      "start_s": 105.914,
+      "end_s": 106.117,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ized",
+      "start_s": 106.117,
+      "end_s": 106.368,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nThen",
+      "start_s": 106.368,
+      "end_s": 106.44,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 106.44,
+      "end_s": 106.472,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " d",
+      "start_s": 106.472,
+      "end_s": 106.573,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "es",
+      "start_s": 106.595,
+      "end_s": 106.598,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "c",
+      "start_s": 106.598,
+      "end_s": 106.652,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "rib",
+      "start_s": 106.652,
+      "end_s": 106.817,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 106.817,
+      "end_s": 106.93,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 106.93,
+      "end_s": 107.05,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " point",
+      "start_s": 107.05,
+      "end_s": 107.267,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " where",
+      "start_s": 107.267,
+      "end_s": 107.409,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 107.409,
+      "end_s": 107.519,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " decided",
+      "start_s": 107.519,
+      "end_s": 108.079,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 109.196,
+      "end_s": 109.224,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " release",
+      "start_s": 109.224,
+      "end_s": 109.544,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " it",
+      "start_s": 109.544,
+      "end_s": 109.704,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " any",
+      "start_s": 109.76,
+      "end_s": 110.047,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "way",
+      "start_s": 111.366,
+      "end_s": 111.624,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nI",
+      "start_s": 113.609,
+      "end_s": 113.689,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " can",
+      "start_s": 113.771,
+      "end_s": 113.819,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'",
+      "start_s": 113.819,
+      "end_s": 113.933,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "t",
+      "start_s": 113.94,
+      "end_s": 114.02,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " tell",
+      "start_s": 114.035,
+      "end_s": 114.355,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " you",
+      "start_s": 116.163,
+      "end_s": 116.195,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " everything",
+      "start_s": 116.195,
+      "end_s": 116.578,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " Ang",
+      "start_s": 116.578,
+      "end_s": 116.818,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ela",
+      "start_s": 116.833,
+      "end_s": 116.958,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " believed",
+      "start_s": 116.958,
+      "end_s": 117.598,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". I",
+      "start_s": 118.489,
+      "end_s": 118.569,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " can",
+      "start_s": 118.663,
+      "end_s": 118.698,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'",
+      "start_s": 118.698,
+      "end_s": 118.814,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "t",
+      "start_s": 118.842,
+      "end_s": 118.909,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " turn",
+      "start_s": 118.909,
+      "end_s": 119.146,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " every",
+      "start_s": 119.146,
+      "end_s": 119.467,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " acc",
+      "start_s": 119.467,
+      "end_s": 119.578,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "us",
+      "start_s": 119.578,
+      "end_s": 119.864,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ation",
+      "start_s": 119.864,
+      "end_s": 120.042,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " made",
+      "start_s": 120.042,
+      "end_s": 120.246,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " about",
+      "start_s": 120.246,
+      "end_s": 120.508,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 120.508,
+      "end_s": 120.748,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " into",
+      "start_s": 121.332,
+      "end_s": 121.439,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " an",
+      "start_s": 121.439,
+      "end_s": 121.521,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " esta",
+      "start_s": 121.521,
+      "end_s": 121.758,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "bl",
+      "start_s": 121.758,
+      "end_s": 121.842,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ished",
+      "start_s": 121.842,
+      "end_s": 122.009,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " fact",
+      "start_s": 122.009,
+      "end_s": 122.329,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". But",
+      "start_s": 124.413,
+      "end_s": 124.493,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " I",
+      "start_s": 124.493,
+      "end_s": 124.529,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " c",
+      "start_s": 124.529,
+      "end_s": 124.609,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "an",
+      "start_s": 124.635,
+      "end_s": 124.787,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " put",
+      "start_s": 124.787,
+      "end_s": 124.887,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 124.887,
+      "end_s": 125.045,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " explan",
+      "start_s": 125.045,
+      "end_s": 125.386,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ations",
+      "start_s": 125.386,
+      "end_s": 125.866,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " she",
+      "start_s": 126.896,
+      "end_s": 127.009,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " gave",
+      "start_s": 127.009,
+      "end_s": 127.286,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " beside",
+      "start_s": 127.286,
+      "end_s": 127.766,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " what",
+      "start_s": 128.412,
+      "end_s": 128.559,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 128.559,
+      "end_s": 128.628,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 128.628,
+      "end_s": 128.722,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " who",
+      "start_s": 128.722,
+      "end_s": 128.825,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " trust",
+      "start_s": 128.825,
+      "end_s": 129.027,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ed",
+      "start_s": 129.027,
+      "end_s": 129.092,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 129.092,
+      "end_s": 129.332,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " say",
+      "start_s": 130.87,
+      "end_s": 130.98,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " they",
+      "start_s": 130.98,
+      "end_s": 131.132,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " exper",
+      "start_s": 131.132,
+      "end_s": 131.275,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ien",
+      "start_s": 131.275,
+      "end_s": 131.441,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ced",
+      "start_s": 131.441,
+      "end_s": 131.681,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nThat",
+      "start_s": 133.621,
+      "end_s": 133.796,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " was",
+      "start_s": 133.796,
+      "end_s": 133.974,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 133.974,
+      "end_s": 134.067,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " promise",
+      "start_s": 134.067,
+      "end_s": 134.385,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " of",
+      "start_s": 134.385,
+      "end_s": 134.437,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " this",
+      "start_s": 134.437,
+      "end_s": 134.525,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " invest",
+      "start_s": 134.525,
+      "end_s": 134.913,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ig",
+      "start_s": 134.913,
+      "end_s": 134.973,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ation",
+      "start_s": 134.973,
+      "end_s": 135.373,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". Not",
+      "start_s": 137.214,
+      "end_s": 137.262,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 137.262,
+      "end_s": 137.394,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " a",
+      "start_s": 137.394,
+      "end_s": 137.474,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " micro",
+      "start_s": 137.474,
+      "end_s": 137.704,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "phone",
+      "start_s": 137.704,
+      "end_s": 138.104,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " can",
+      "start_s": 139.309,
+      "end_s": 139.497,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " read",
+      "start_s": 139.497,
+      "end_s": 139.817,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " somebody",
+      "start_s": 142.254,
+      "end_s": 142.333,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'s mind",
+      "start_s": 142.333,
+      "end_s": 142.412,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". That",
+      "start_s": 142.412,
+      "end_s": 142.466,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 142.466,
+      "end_s": 142.542,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " words",
+      "start_s": 142.542,
+      "end_s": 142.845,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " people",
+      "start_s": 142.845,
+      "end_s": 143.1,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " choose",
+      "start_s": 143.1,
+      "end_s": 143.58,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "—and",
+      "start_s": 145.121,
+      "end_s": 145.171,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 145.171,
+      "end_s": 145.228,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " con",
+      "start_s": 145.228,
+      "end_s": 145.398,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "se",
+      "start_s": 145.398,
+      "end_s": 145.509,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "quen",
+      "start_s": 145.509,
+      "end_s": 145.628,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ces",
+      "start_s": 145.628,
+      "end_s": 145.686,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " others",
+      "start_s": 145.686,
+      "end_s": 145.755,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " descri",
+      "start_s": 145.755,
+      "end_s": 146.235,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "be",
+      "start_s": 148.43,
+      "end_s": 148.545,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "—can",
+      "start_s": 148.545,
+      "end_s": 148.593,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " be",
+      "start_s": 148.593,
+      "end_s": 148.655,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " heard",
+      "start_s": 148.655,
+      "end_s": 148.867,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " together",
+      "start_s": 148.867,
+      "end_s": 149.507,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nAng",
+      "start_s": 152.228,
+      "end_s": 152.573,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ela",
+      "start_s": 152.601,
+      "end_s": 152.65,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " once",
+      "start_s": 152.65,
+      "end_s": 152.815,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " inv",
+      "start_s": 152.815,
+      "end_s": 153.069,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ited",
+      "start_s": 153.069,
+      "end_s": 153.228,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " listen",
+      "start_s": 153.228,
+      "end_s": 153.514,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ers",
+      "start_s": 153.514,
+      "end_s": 153.725,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " to",
+      "start_s": 153.725,
+      "end_s": 153.776,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " do",
+      "start_s": 153.776,
+      "end_s": 154.014,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " exactly",
+      "start_s": 154.014,
+      "end_s": 154.483,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " that",
+      "start_s": 154.483,
+      "end_s": 154.803,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ". To",
+      "start_s": 155.955,
+      "end_s": 156.115,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " believe",
+      "start_s": 156.129,
+      "end_s": 156.264,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 156.264,
+      "end_s": 156.331,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " good",
+      "start_s": 156.331,
+      "end_s": 156.45,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " things",
+      "start_s": 156.45,
+      "end_s": 156.633,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " they",
+      "start_s": 156.633,
+      "end_s": 156.649,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " heard",
+      "start_s": 156.649,
+      "end_s": 156.821,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " about",
+      "start_s": 156.821,
+      "end_s": 157.069,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 157.069,
+      "end_s": 157.309,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", and",
+      "start_s": 158.23,
+      "end_s": 158.359,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " the",
+      "start_s": 158.359,
+      "end_s": 158.502,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " bad",
+      "start_s": 158.502,
+      "end_s": 158.742,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ", and",
+      "start_s": 159.228,
+      "end_s": 159.371,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " make",
+      "start_s": 159.371,
+      "end_s": 159.569,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " up",
+      "start_s": 159.569,
+      "end_s": 159.65,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " their",
+      "start_s": 159.65,
+      "end_s": 159.794,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " own",
+      "start_s": 159.794,
+      "end_s": 159.859,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " minds",
+      "start_s": 159.859,
+      "end_s": 160.259,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": ".\n\nI",
+      "start_s": 163.655,
+      "end_s": 163.694,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "'",
+      "start_s": 163.694,
+      "end_s": 163.774,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "ll",
+      "start_s": 163.8,
+      "end_s": 163.85,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " leave",
+      "start_s": 163.85,
+      "end_s": 164.043,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " you",
+      "start_s": 164.043,
+      "end_s": 164.247,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " with",
+      "start_s": 164.247,
+      "end_s": 164.386,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " her",
+      "start_s": 164.386,
+      "end_s": 164.626,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": " inv",
+      "start_s": 166.188,
+      "end_s": 166.562,
+      "success": true,
+      "p_align": 1
+    },
+    {
+      "word": "itation.\n\n",
+      "start_s": 166.562,
+      "end_s": 167.122,
+      "success": true,
+      "p_align": 1
+    }
+  ],
+  "job_id": "NARR_17",
+  "clip_id": "58f9de1b-fec8-4348-bcb3-c5e2616398f0"
+}
