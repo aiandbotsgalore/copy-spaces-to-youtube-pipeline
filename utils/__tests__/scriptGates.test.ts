@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  applyPatch, attributionFailure, checkNarrationTapeOverlapAdvisory, codeGates,
+  applyPatch, attributionFailure, blockSeconds, checkNarrationTapeOverlapAdvisory, codeGates,
   detectConsecutiveWordOverlap, diffVersions, estimateRuntime, hasRawDiarizationLabel,
   judgeConsensus, localTextChecks, locksIntact, mostConsequential, runtimeWithin,
   sameSpeakerRuns, verifyVerbatim, type TranscriptSeg,
@@ -176,6 +176,23 @@ describe('code gates', () => {
       expect(g.failures).toEqual([]);
       expect(g.ok).toBe(true);
     });
+
+    it('does not flag raw diarization labels inside [CLIP ...] tags', () => {
+      expect(hasRawDiarizationLabel('[CLIP #006 | Space, Speaker 1 02:15 - "Tape"]')).toBe(false);
+      expect(hasRawDiarizationLabel('Logan: Let us listen to what was said.\n[CLIP #014 | *Title*, 2026-02-04, 12:30: Speaker 2 - "Quote"]')).toBe(false);
+    });
+
+    it('exempts QUOTE_READ or readEvidence blocks from raw diarization label failures', () => {
+      const v = base();
+      v.segments[0].scenes[0].blocks.push({
+        id: 'b-quote-read', kind: 'narration', type: 'QUOTE_READ', text: 'Speaker 1 then posted: "I have the logs."', mode: 'live', claims: [],
+      } as any);
+      v.segments[0].scenes[0].blocks.push({
+        id: 'b-evidence-read', kind: 'narration', readEvidence: true, text: 'Speaker 2 wrote in the group chat.', mode: 'live', claims: [],
+      } as any);
+      const g = codeGates(v.segments, ctx);
+      expect(g.failures.filter(f => f.includes('raw diarization label'))).toEqual([]);
+    });
   });
 
   describe('overlap advisory detector (>= 4 consecutive normalized words)', () => {
@@ -253,6 +270,34 @@ describe('runtime', () => {
     expect(r.sec).toBeCloseTo(12.16 + (6 / 155) * 60, 2);
     expect(runtimeWithin(100, 109)).toBe(true);
     expect(runtimeWithin(100, 112)).toBe(false);
+  });
+
+  it('computes blockSeconds using cleanSpokenText so delivery brackets and speaker prefixes do not inflate duration', () => {
+    const blockWithCues: any = {
+      id: 'b-cue',
+      kind: 'narration',
+      text: '**LOGAN (MEASURED):** [close to mic, measured] This is four words.',
+      mode: 'live',
+      claims: [],
+    };
+    const blockPlain: any = {
+      id: 'b-plain',
+      kind: 'narration',
+      text: 'This is four words.',
+      mode: 'live',
+      claims: [],
+    };
+    const rCue = blockSeconds(blockWithCues, 150);
+    const rPlain = blockSeconds(blockPlain, 150);
+    expect(rCue.sec).toBeCloseTo(rPlain.sec, 3);
+    expect(rCue.sec).toBeCloseTo((4 / 150) * 60, 3);
+  });
+
+  it('treats HEADING and CUE blocks as 0s runtime (excluded from Vox and runtime)', () => {
+    const headingBlock: any = { id: 'h1', kind: 'heading', type: 'HEADING', text: '### ACT I — SCENE 1' };
+    const cueBlock: any = { id: 'c1', kind: 'cue', type: 'CUE', text: '[SFX: room tone]' };
+    expect(blockSeconds(headingBlock).sec).toBe(0);
+    expect(blockSeconds(cueBlock).sec).toBe(0);
   });
 });
 

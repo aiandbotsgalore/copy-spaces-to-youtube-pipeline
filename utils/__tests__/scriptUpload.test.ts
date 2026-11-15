@@ -460,4 +460,153 @@ And then the calls started coming in.`;
     expect(allNarrationTexts.some(t => t.includes('She called me her brother'))).toBe(true);
     expect(allNarrationTexts.some(t => t.includes('And then the calls started coming in'))).toBe(true);
   });
+
+  describe('Bug Fix Verifications (Manuscript Ingestion & Parsing)', () => {
+    it('1. Unescapes Markdown rich-text exports on import including \\&, \\#, \\##, \\###, \\**, \\*, \\[, \\], \\-', () => {
+      const rawWithEscapes = `\\#\\#\\# ACT I — SCENE 1: The Investigation \\& Discovery
+\\*\\*LOGAN:\\*\\* \\[close to mic, measured\\] We reviewed the transcripts \\& ledger.
+\\- Item 1: Evidence found.
+\\[SFX: Tape clicks on\\]`;
+
+      const segs = parseUploadedScript(rawWithEscapes);
+      expect(segs[0].scenes[0].title).toBe('ACT I — SCENE 1: The Investigation & Discovery');
+      const b = segs[0].scenes[0].blocks;
+      const sfx = b.find(x => x.kind === 'cue');
+      expect(sfx).toBeDefined();
+      expect((sfx as any)?.text).toBe('Tape clicks on');
+
+      const narr = b.find(x => x.kind === 'narration');
+      expect(narr).toBeDefined();
+      expect((narr as any)?.text).toContain('LOGAN:** [close to mic, measured] We reviewed the transcripts & ledger.');
+      expect((narr as any)?.text).not.toContain('\\');
+    });
+
+    it('2. Reliably splits ### scene headings and classifies non-scene headings as non-spoken HEADING blocks', () => {
+      const script = `### ACT I — SCENE 1: The Hook
+First scene narration.
+### Section Details: Timeline
+More detail in scene 1.
+
+### ACT I: SCENE 2 — The Confirmation
+Second scene narration.
+
+### ACT II — SCENE 1: The Fallout
+Third scene narration in Act 2.
+
+### EPILOGUE — One Year Later
+Final epilogue narration.`;
+
+      const segs = parseUploadedScript(script);
+      expect(segs).toHaveLength(2); // Act I and Act II
+      expect(segs[0].title).toMatch(/act 1|act i/i);
+      expect(segs[0].scenes).toHaveLength(2);
+      expect(segs[0].scenes[0].title).toBe('ACT I — SCENE 1: The Hook');
+      expect(segs[0].scenes[1].title).toBe('ACT I: SCENE 2 — The Confirmation');
+
+      // The Section Details heading should be an in-line HEADING block with sec: 0
+      const headingBlock = segs[0].scenes[0].blocks.find(b => b.type === 'HEADING');
+      expect(headingBlock).toBeDefined();
+      expect((headingBlock as any).text).toBe('Section Details: Timeline');
+      expect((headingBlock as any).sec).toBe(0);
+
+      // Act II and Epilogue
+      expect(segs[1].scenes).toHaveLength(2);
+      expect(segs[1].scenes[0].title).toBe('ACT II — SCENE 1: The Fallout');
+      expect(segs[1].scenes[1].title).toBe('EPILOGUE — One Year Later');
+    });
+
+    it('3. Separates standalone production cues, SFX, Theme, and quarantine multi-line revision notes', () => {
+      const script = `### Scene 1: The Lab
+[THEME 1: Low atmospheric synth bed]
+[SFX: Ambient mechanical hum]
+Narration opens here.
+[beat]
+[Silence: 2s]
+[END OF BROADCAST]
+
+*[Sensory Grounding at the Emotional Climax:
+Logan describes the physical isolation of his desk at 3am.
+The air smells of stale coffee and printer ink.
+Keep pacing deliberate.]*
+
+Narration continues after note.`;
+
+      const segs = parseUploadedScript(script);
+      const blocks = segs[0].scenes[0].blocks;
+
+      // Theme 1
+      const theme = blocks.find(b => b.kind === 'cue' && (b as any).cueType === 'theme');
+      expect(theme).toBeDefined();
+      expect((theme as any).text).toContain('Low atmospheric synth bed');
+      expect((theme as any).sec).toBe(0);
+
+      // SFX
+      const sfx = blocks.find(b => b.kind === 'cue' && (b as any).cueType === 'sfx');
+      expect(sfx).toBeDefined();
+      expect((sfx as any).text).toBe('Ambient mechanical hum');
+
+      // beat
+      const beat = blocks.find(b => b.kind === 'cue' && (b as any).cueType === 'beat');
+      expect(beat).toBeDefined();
+      expect((beat as any).sec).toBe(0.5);
+
+      // Silence: 2s
+      const silence = blocks.find(b => b.kind === 'cue' && (b as any).cueType === 'silence');
+      expect(silence).toBeDefined();
+      expect((silence as any).sec).toBe(2);
+
+      // END OF BROADCAST
+      const endCue = blocks.find(b => b.kind === 'cue' && (b as any).text.includes('END OF BROADCAST'));
+      expect(endCue).toBeDefined();
+      expect((endCue as any).sec).toBe(0);
+
+      // Multi-line revision note should NOT be in narration!
+      const narrations = blocks.filter(b => b.kind === 'narration').map(b => (b as any).text);
+      expect(narrations.some(t => t.includes('Sensory Grounding'))).toBe(false);
+      expect(narrations.some(t => t.includes('stale coffee and printer ink'))).toBe(false);
+      expect(narrations.some(t => t.includes('Narration continues after note.'))).toBe(true);
+    });
+
+    it('4. Parses both multi-line and single-line clip blocks as ARCHIVAL_CLIP without falling into narration', () => {
+      const script = `### Scene 1: The Recordings
+[CLIP #006 / #188 | *Night Shift Space*, 2023-11-04, 02:15]
+Speaker 1: "Nobody will ever trace this back to us."
+
+[CLIP #014 | *Night Shift Space*, 2023-11-04, 05:45: Alice - "We have all the files in cold storage."]
+
+Narration after clips.`;
+
+      const segs = parseUploadedScript(script);
+      const blocks = segs[0].scenes[0].blocks;
+
+      const clipBlocks = blocks.filter(b => b.kind === 'clip');
+      expect(clipBlocks).toHaveLength(2);
+
+      // First clip (multi-line)
+      expect((clipBlocks[0] as any).clipNumber).toBe('006 / 188');
+      expect((clipBlocks[0] as any).speaker).toBe('Speaker 1');
+      expect((clipBlocks[0] as any).keptText).toBe('Nobody will ever trace this back to us.');
+      expect((clipBlocks[0] as any).spaceTitle).toBe('Night Shift Space');
+      expect((clipBlocks[0] as any).date).toBe('2023-11-04');
+      expect((clipBlocks[0] as any).time).toBe('02:15');
+
+      // Second clip (single-line)
+      expect((clipBlocks[1] as any).clipNumber).toBe('014');
+      expect((clipBlocks[1] as any).speaker).toBe('Alice');
+      expect((clipBlocks[1] as any).keptText).toBe('We have all the files in cold storage.');
+
+      // Narration block should NOT contain Speaker 1
+      const narrations = blocks.filter(b => b.kind === 'narration').map(b => (b as any).text);
+      expect(narrations.some(t => t.includes('Speaker 1:'))).toBe(false);
+      expect(narrations.some(t => t.includes('Nobody will ever trace this back'))).toBe(false);
+
+      // Verify extractClipsFromText also extracts both
+      const extracted = extractClipsFromText(script);
+      expect(extracted).toHaveLength(2);
+      expect(extracted[0].speaker).toBe('Speaker 1');
+      expect(extracted[0].clipNumber).toBe('006 / 188');
+      expect(extracted[1].speaker).toBe('Alice');
+      expect(extracted[1].clipNumber).toBe('014');
+    });
+  });
 });

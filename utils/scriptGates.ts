@@ -10,7 +10,7 @@
  *  - applyPatch: replaces one scene's blocks; refuses to drop or edit a locked block, or to name an
  *    unknown block or clip. Locked blocks are never silently re-inserted.
  */
-import { hasValidTake } from './scriptAudio';
+import { hasValidTake, cleanSpokenText } from './scriptAudio';
 import { findExcerpt, normalizeText } from './directorValidate';
 import type {
   Block, Critique, EpisodeFormat, EvidenceRef, GateResult, JudgeConsensus, JudgeWinner, NarrativeFunction,
@@ -89,7 +89,7 @@ export function blockSeconds(b: Block, wpm = DEFAULT_NARRATION_WPM): { sec: numb
   switch (b.kind) {
     case 'narration':
       if (hasValidTake(b)) return { sec: b.takeSec, estimated: false };
-      return { sec: (wordCount(b.text) / wpm) * 60, estimated: true };
+      return { sec: (wordCount(cleanSpokenText(b.text)) / wpm) * 60, estimated: true };
     case 'clip': return { sec: Math.max(0, b.outSec - b.inSec), estimated: false };
     case 'pause': return { sec: Math.max(0, b.sec), estimated: false };
     case 'music': return { sec: 0, estimated: false };
@@ -137,9 +137,11 @@ export function hasRawDiarizationLabel(
   confirmedSpeakers?: Record<string, string> | Set<string>
 ): boolean {
   if (!text) return false;
+  // Mask out bracketed clip tags: [CLIP #... | ...] so labels inside clip metadata never flag narration
+  const strippedClips = text.replace(/\[CLIP\b[^\]]*\]/gi, ' ');
   // Mask out paired double quotes or curly quotes representing original tape/quotes.
   // Note: Avoid masking single quotes/apostrophes so words like didn't or it's do not swallow labels.
-  const strippedQuotes = text.replace(/["“][^"”]*["”]/g, ' ');
+  const strippedQuotes = strippedClips.replace(/["“][^"”]*["”]/g, ' ');
   const matches = strippedQuotes.match(new RegExp(RAW_SPEAKER_LABEL_RE.source, 'gi'));
   if (!matches) return false;
 
@@ -432,7 +434,7 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
       }
     }
     if (b.kind === 'narration' && isChanged) {
-      if (hasRawDiarizationLabel(b.text)) {
+      if (b.type !== 'QUOTE_READ' && !b.readEvidence && hasRawDiarizationLabel(b.text)) {
         faithful = false;
         failures.push(`Narration contains raw diarization label: "${b.text.slice(0, 60)}..."`);
       }

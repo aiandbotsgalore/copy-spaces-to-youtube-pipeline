@@ -1,0 +1,796 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-11-14T20:28:27Z",
+  "total_claims": 22,
+  "total_trajectories": 9,
+  "total_contradictions": 0,
+  "trajectories": [
+    {
+      "speaker": "Darren",
+      "topic_anchor": "general_dispute",
+      "claim_count": 2,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 160,
+          "speaker": "Darren",
+          "raw_speaker": "Speaker 5",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 901.5,
+          "end_sec": 934.86,
+          "verbatim_quote": "I mean, I feel like the, the elites, even if they have, are completely unconnected to satanic stuff, the Epstein files, I feel like they feel less safe as a result of, of the last files being released. I, you know, correct me if I'm wrong or somebody in the room speak back, but it seems like there's more and more of a disgust with the, with these files realizing that there is some sort of satanic entity worship. Do you know what I mean? I feel like the world is likely to respond to this stuff.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "wright_patt_claims"
+          ],
+          "stance_polarity": "hearsay",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Speaker 5 claims elites feel less safe after the release of the Epstein files, believing there is growing disgust and awareness of satanic entity worship among them."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 1962,
+          "speaker": "Darren",
+          "raw_speaker": "Speaker 5",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 22478.28,
+          "end_sec": 22479.86,
+          "verbatim_quote": "As it turns out, Epstein's not even dead.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": ""
+        }
+      ]
+    },
+    {
+      "speaker": "Darren",
+      "topic_anchor": "wright_patt_claims",
+      "claim_count": 1,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 160,
+          "speaker": "Darren",
+          "raw_speaker": "Speaker 5",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 901.5,
+          "end_sec": 934.86,
+          "verbatim_quote": "I mean, I feel like the, the elites, even if they have, are completely unconnected to satanic stuff, the Epstein files, I feel like they feel less safe as a result of, of the last files being released. I, you know, correct me if I'm wrong or somebody in the room speak back, but it seems like there's more and more of a disgust with the, with these files realizing that there is some sort of satanic entity worship. Do you know what I mean? I feel like the world is likely to respond to this stuff.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "wright_patt_claims"
+          ],
+          "stance_polarity": "hearsay",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Speaker 5 claims elites feel less safe after the release of the Epstein files, believing there is growing disgust and awareness of satanic entity worship among them."
+        }
+      ]
+    },
+    {
+      "speaker": "Logan",
+      "topic_anchor": "general_dispute",
+      "claim_count": 5,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 165,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 961.51,
+          "end_sec": 1019.49,
+          "verbatim_quote": "Well, getting like Marjorie Kelly Green, she released some stuff and other people released stuff. And, you know, I think it's, regardless, there's enough out that we see what it is. And it's like what Doomer is saying and everyone else, it's a connection to the dark side of the forest, you know, to put it euphemistically, connected to those in power. And it lines up with our entire history as a species. And in the fact that I acknowledge this, you know, for the evidence, I'm not a Doomer, I'm a realist. I just have a, you know, slightly different brand of how to philosophically navigate through this, you know, very toxic status quo. But what I think is that, no, I disagree that the elites are worried. Maybe some of the elites, maybe the elites that are not controlling power specifically at this time, although all elites have some degree of power being, you know, the elites, right? So I think it's going to be, you know, particularly harsh for a certain political spectrum of elites, you know, who are not in power. But it's also a little awkward for the political elites that are in power.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "harassment_or_paranoia"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan states that released files, including those from Marjorie Taylor Greene, reveal a connection between those in power and the dark side, and asserts he is a realist, not a doomer."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 167,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1022.61,
+          "end_sec": 1058.41,
+          "verbatim_quote": "Yeah, what are you going to do? The world's run by satanic pedophiles. And that's just the status quo. And I do not accept this. I would to transmit it. I'm not, you know, if they're listening and I don't intend to do anything about it on a grand scale, but I will say that it is not acceptable and it's deeply terrifying. But it's good to at least know what's going on. On the bright side, it's good to at least have the mask off, right? And to see that it is, you know, like I've always known personally, right? Like the full political apparatus, whether left, right or center, anyone in power or almost everyone in power, at least, seems to be doing this.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "harassment_or_paranoia"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan affirms the world is run by satanic pedophiles, calls it unacceptable and deeply terrifying, and claims almost everyone in power across the political spectrum is involved."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 174,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1107.16,
+          "end_sec": 1175.14,
+          "verbatim_quote": "What I think will determine the amount of pushback more than anything else, and there's a lot of different factors that could push back, right? Is the economic reality, right? And the way that this particular satanic society that I live in, right? I'm not, you know, I'm just a victim as a citizen within it. So I'm not condoning. I'm just saying, just describing the hierarchical structure and the demonic, you know, practices that govern it for reasons. TBD, right? But I think it's the, I think it's the geopolitical lack of diplomacy. I think basically, you know, the economy, like, you know, folks were describing and the sort of self-cannibalization in terms of us and our perceived allies, which is going to lead to a power deficit, obviously, in terms of this particular hegemony, you know, it's going to stop being a hegemony. And then it's going to be a more freewheeling, chaotic world, you know, with China definitely taking all the power. I think that's going to really be the hammer, you know, the deciding factor that will decide if there's going to be consequences or not. And there will be consequences, though not within the lifespan of our current leaders.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan claims the geopolitical lack of diplomacy and economic self-cannibalization will determine the amount of pushback, leading to a power deficit and a more chaotic world with China taking power."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 198,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1298.54,
+          "end_sec": 1312.81,
+          "verbatim_quote": "You know? People are going to have to shift around. Uh, reputations are being destroyed and damaged. And even at certain levels, just being connected to someone who was listed in the Epstein files,",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "guilt_by_association"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan claims reputations are being destroyed, and even being connected to someone listed in the Epstein files would cause damage."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 200,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1316.56,
+          "end_sec": 1332.12,
+          "verbatim_quote": "I mean, this is a pretty big shaker. It's just strange to me how, I don't know. I was expecting more fallout. Let's see what happens this week. You know, Sam would fall.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan says this is a big shaker and expresses surprise at not expecting more fallout, wondering if Sam would fall."
+        }
+      ]
+    },
+    {
+      "speaker": "Logan",
+      "topic_anchor": "harassment_or_paranoia",
+      "claim_count": 2,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 165,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 961.51,
+          "end_sec": 1019.49,
+          "verbatim_quote": "Well, getting like Marjorie Kelly Green, she released some stuff and other people released stuff. And, you know, I think it's, regardless, there's enough out that we see what it is. And it's like what Doomer is saying and everyone else, it's a connection to the dark side of the forest, you know, to put it euphemistically, connected to those in power. And it lines up with our entire history as a species. And in the fact that I acknowledge this, you know, for the evidence, I'm not a Doomer, I'm a realist. I just have a, you know, slightly different brand of how to philosophically navigate through this, you know, very toxic status quo. But what I think is that, no, I disagree that the elites are worried. Maybe some of the elites, maybe the elites that are not controlling power specifically at this time, although all elites have some degree of power being, you know, the elites, right? So I think it's going to be, you know, particularly harsh for a certain political spectrum of elites, you know, who are not in power. But it's also a little awkward for the political elites that are in power.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "harassment_or_paranoia"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan states that released files, including those from Marjorie Taylor Greene, reveal a connection between those in power and the dark side, and asserts he is a realist, not a doomer."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 167,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1022.61,
+          "end_sec": 1058.41,
+          "verbatim_quote": "Yeah, what are you going to do? The world's run by satanic pedophiles. And that's just the status quo. And I do not accept this. I would to transmit it. I'm not, you know, if they're listening and I don't intend to do anything about it on a grand scale, but I will say that it is not acceptable and it's deeply terrifying. But it's good to at least know what's going on. On the bright side, it's good to at least have the mask off, right? And to see that it is, you know, like I've always known personally, right? Like the full political apparatus, whether left, right or center, anyone in power or almost everyone in power, at least, seems to be doing this.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "harassment_or_paranoia"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan affirms the world is run by satanic pedophiles, calls it unacceptable and deeply terrifying, and claims almost everyone in power across the political spectrum is involved."
+        }
+      ]
+    },
+    {
+      "speaker": "God Sauce",
+      "topic_anchor": "general_dispute",
+      "claim_count": 3,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 176,
+          "speaker": "God Sauce",
+          "raw_speaker": "God Sauce",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1193.66,
+          "end_sec": 1205.42,
+          "verbatim_quote": "pedophile. Because Jeffrey Epstein did a plea deal in 2008, where he agreed to accept the charges",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "God Sauce claims Jeffrey Epstein did a plea deal in 2008, accepting charges of procuring a child for prostitution."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 178,
+          "speaker": "God Sauce",
+          "raw_speaker": "God Sauce",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1209.96,
+          "end_sec": 1216.5,
+          "verbatim_quote": "And Elon is, you know, like, in the files, he, he, like, sends Jeffrey an email in 2012,",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "God Sauce claims Elon sent Jeffrey Epstein an email in 2012, after Epstein was known to be a pedophile, asking when the wildest night at his island was."
+        },
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 2175,
+          "speaker": "God Sauce",
+          "raw_speaker": "God Sauce",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 23503.48,
+          "end_sec": 23747.98,
+          "verbatim_quote": "Fate comes from within, right? Fate comes from within. Fate from within. Meaning that you project it. I'll explain it. I'll explain it to you. So, like, I'm activating on levels that I'm only, like, realizing now. Like, I don't know if... I'm going to release a video probably today or tomorrow about how I got to find out the name that I was... What they called me in my past life. And how my life is tied in. Like, I coded my DNA to this realm. And I'm not ashamed of it anymore. Like, I was very... I knew my whole life I was... Maybe I was special. I don't know. Maybe that's a good thing. But it was like... I was so traumatized. So... Such depression. Such weird shit that, like... It was like... I had to keep it a secret. And now... I just... I'm just going fucking balls to the walls. I don't really have any boundaries anymore. Now I know... I have the carpet... Red carpet rolled out. Fucking hit it. Hit it on the fucking noggin. And so... Through my fucking journey and travels... I have been able to meet... The 13 Crystal Skull. That was passed down from the Mayans. The Mayans. The last indigenous ones. Fucking out. Wherever the fuck they were. And... Through that experience... We had... Touched... I was with the Skull. Then... After that... The Talosians actually got me in contact with her. And then after that... I hiked 13 miles. Took about three hours. All the way up with this dude named... Seven Feather Weather. In Shasta. That... He said he's a bastard child... From the LSD orgies that... He's a bastard child of Timothy Leary. So he was his son. But he was... Consumed or... Consummated. Whatever. In an orgy. Like... You know... The test trials and shit. And so... He... He was like... Yo, we're going to take... LSD tonight. Apparently it was his birthday. And I was like... Damn, I just had this huge experience. Like... I'm thinking to myself... Fuck it. I was like... Yo, you show me where the Bigfoots are. Like... Their little area up there. I'll... I'll... I'll do it. Fuck it. He's like... Alright. Gave... Gave me this shit. We hiked three miles... Or three hours... 13 miles. We get up to this just... We're in the middle of nowhere. In the mountains. And... The whole way... We had... We had like... Fucking UFOs. Because there's... Apparently there's a base... Not too far away. Like... In the next mountain. They were literally... Flying out. Stopping on top... On top of us. Looking at us. And then going... And kept going. I would say at least 30... Within that... 40... Within that time. And... Point being is though... In that trip... We... I took about three doses... Which was... For the first time... It's just way too much. But I'm sitting... I'm sitting at the fire... And my... I'm playing with like... My hand... Like... It just almost is like... Dragging. Like the time... Like you know... Where you could see like... I move my finger... And I could see like... A hundred facets of it. Like... It was beautiful. And I'm sitting there... Playing with my hand... Looking at the fire... Just fucking tripping out. And you know... Everyone's in their own fucking world. And I thought to myself... You know what? I want to go... And explore over there. Like... I was looking at the... The tree lines. I was like... You know what? Someone over there. I want to go... Explore right there. And I look up... And I see a star... Light up... And it goes... It like... Lights up... And beams to another star. And it just... Lights up. Boop! I was like... What the fuck was that? I was like... I want to go... And explore over there. Boop! Boop! I was like... Okay. I want to go explore... Over there. And then get a drink of water. Boop! And that was... And I broke the matrix right there. That right there made me realize... So within... So without... A fractal is a world within a world within a world within a world. And I'm just... I've been able to...",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "allegations_of_harm"
+          ],
+          "stance_polarity": "eyewitness",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "God Sauce claims he will soon release a video revealing the name he was called in a past life and that his life is connected to it."
+        }
+      ]
+    },
+    {
+      "speaker": "Logan",
+      "topic_anchor": "guilt_by_association",
+      "claim_count": 1,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 198,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 1298.54,
+          "end_sec": 1312.81,
+          "verbatim_quote": "You know? People are going to have to shift around. Uh, reputations are being destroyed and damaged. And even at certain levels, just being connected to someone who was listed in the Epstein files,",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "guilt_by_association"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan claims reputations are being destroyed, and even being connected to someone listed in the Epstein files would cause damage."
+        }
+      ]
+    },
+    {
+      "speaker": "Logan",
+      "topic_anchor": "eviction_fundraiser",
+      "claim_count": 1,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 1336,
+          "speaker": "Logan",
+          "raw_speaker": "Logan",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 10477.56,
+          "end_sec": 10479.86,
+          "verbatim_quote": "Donate to Snuggles or share the fucking space.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "eviction_fundraiser"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Logan urges viewers to donate to Snuggles or share the space, explicitly calling for support."
+        }
+      ]
+    },
+    {
+      "speaker": "Mello",
+      "topic_anchor": "eviction_fundraiser",
+      "claim_count": 1,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 1341,
+          "speaker": "Mello",
+          "raw_speaker": "Speaker 8",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 10490.76,
+          "end_sec": 10492.12,
+          "verbatim_quote": "That's the best donation here.",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "eviction_fundraiser"
+          ],
+          "stance_polarity": "affirmation",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "Speaker 8 promotes sharing the space as the best form of donation, continuing the fundraiser appeal."
+        }
+      ]
+    },
+    {
+      "speaker": "God Sauce",
+      "topic_anchor": "allegations_of_harm",
+      "claim_count": 1,
+      "claims": [
+        {
+          "episode_id": "20260202_1770145946",
+          "segment_idx": 2175,
+          "speaker": "God Sauce",
+          "raw_speaker": "God Sauce",
+          "date": "2026-02-03T19:12:27Z",
+          "start_sec": 23503.48,
+          "end_sec": 23747.98,
+          "verbatim_quote": "Fate comes from within, right? Fate comes from within. Fate from within. Meaning that you project it. I'll explain it. I'll explain it to you. So, like, I'm activating on levels that I'm only, like, realizing now. Like, I don't know if... I'm going to release a video probably today or tomorrow about how I got to find out the name that I was... What they called me in my past life. And how my life is tied in. Like, I coded my DNA to this realm. And I'm not ashamed of it anymore. Like, I was very... I knew my whole life I was... Maybe I was special. I don't know. Maybe that's a good thing. But it was like... I was so traumatized. So... Such depression. Such weird shit that, like... It was like... I had to keep it a secret. And now... I just... I'm just going fucking balls to the walls. I don't really have any boundaries anymore. Now I know... I have the carpet... Red carpet rolled out. Fucking hit it. Hit it on the fucking noggin. And so... Through my fucking journey and travels... I have been able to meet... The 13 Crystal Skull. That was passed down from the Mayans. The Mayans. The last indigenous ones. Fucking out. Wherever the fuck they were. And... Through that experience... We had... Touched... I was with the Skull. Then... After that... The Talosians actually got me in contact with her. And then after that... I hiked 13 miles. Took about three hours. All the way up with this dude named... Seven Feather Weather. In Shasta. That... He said he's a bastard child... From the LSD orgies that... He's a bastard child of Timothy Leary. So he was his son. But he was... Consumed or... Consummated. Whatever. In an orgy. Like... You know... The test trials and shit. And so... He... He was like... Yo, we're going to take... LSD tonight. Apparently it was his birthday. And I was like... Damn, I just had this huge experience. Like... I'm thinking to myself... Fuck it. I was like... Yo, you show me where the Bigfoots are. Like... Their little area up there. I'll... I'll... I'll do it. Fuck it. He's like... Alright. Gave... Gave me this shit. We hiked three miles... Or three hours... 13 miles. We get up to this just... We're in the middle of nowhere. In the mountains. And... The whole way... We had... We had like... Fucking UFOs. Because there's... Apparently there's a base... Not too far away. Like... In the next mountain. They were literally... Flying out. Stopping on top... On top of us. Looking at us. And then going... And kept going. I would say at least 30... Within that... 40... Within that time. And... Point being is though... In that trip... We... I took about three doses... Which was... For the first time... It's just way too much. But I'm sitting... I'm sitting at the fire... And my... I'm playing with like... My hand... Like... It just almost is like... Dragging. Like the time... Like you know... Where you could see like... I move my finger... And I could see like... A hundred facets of it. Like... It was beautiful. And I'm sitting there... Playing with my hand... Looking at the fire... Just fucking tripping out. And you know... Everyone's in their own fucking world. And I thought to myself... You know what? I want to go... And explore over there. Like... I was looking at the... The tree lines. I was like... You know what? Someone over there. I want to go... Explore right there. And I look up... And I see a star... Light up... And it goes... It like... Lights up... And beams to another star. And it just... Lights up. Boop! I was like... What the fuck was that? I was like... I want to go... And explore over there. Boop! Boop! I was like... Okay. I want to go explore... Over there. And then get a drink of water. Boop! And that was... And I broke the matrix right there. That right there made me realize... So within... So without... A fractal is a world within a world within a world within a world. And I'm just... I've been able to...",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+          "topic_anchors": [
+            "general_dispute",
+            "allegations_of_harm"
+          ],
+          "stance_polarity": "eyewitness",
+          "context_intent": "literal",
+          "diarization_bleed_suspected": false,
+          "claim_summary": "God Sauce claims he will soon release a video revealing the name he was called in a past life and that his life is connected to it."
+        }
+      ]
+    }
+  ],
+  "pairs": [],
+  "claims": [
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 160,
+      "speaker": "Darren",
+      "raw_speaker": "Speaker 5",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 901.5,
+      "end_sec": 934.86,
+      "verbatim_quote": "I mean, I feel like the, the elites, even if they have, are completely unconnected to satanic stuff, the Epstein files, I feel like they feel less safe as a result of, of the last files being released. I, you know, correct me if I'm wrong or somebody in the room speak back, but it seems like there's more and more of a disgust with the, with these files realizing that there is some sort of satanic entity worship. Do you know what I mean? I feel like the world is likely to respond to this stuff.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "wright_patt_claims"
+      ],
+      "stance_polarity": "hearsay",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 5 claims elites feel less safe after the release of the Epstein files, believing there is growing disgust and awareness of satanic entity worship among them."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 165,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 961.51,
+      "end_sec": 1019.49,
+      "verbatim_quote": "Well, getting like Marjorie Kelly Green, she released some stuff and other people released stuff. And, you know, I think it's, regardless, there's enough out that we see what it is. And it's like what Doomer is saying and everyone else, it's a connection to the dark side of the forest, you know, to put it euphemistically, connected to those in power. And it lines up with our entire history as a species. And in the fact that I acknowledge this, you know, for the evidence, I'm not a Doomer, I'm a realist. I just have a, you know, slightly different brand of how to philosophically navigate through this, you know, very toxic status quo. But what I think is that, no, I disagree that the elites are worried. Maybe some of the elites, maybe the elites that are not controlling power specifically at this time, although all elites have some degree of power being, you know, the elites, right? So I think it's going to be, you know, particularly harsh for a certain political spectrum of elites, you know, who are not in power. But it's also a little awkward for the political elites that are in power.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "harassment_or_paranoia"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan states that released files, including those from Marjorie Taylor Greene, reveal a connection between those in power and the dark side, and asserts he is a realist, not a doomer."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 167,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1022.61,
+      "end_sec": 1058.41,
+      "verbatim_quote": "Yeah, what are you going to do? The world's run by satanic pedophiles. And that's just the status quo. And I do not accept this. I would to transmit it. I'm not, you know, if they're listening and I don't intend to do anything about it on a grand scale, but I will say that it is not acceptable and it's deeply terrifying. But it's good to at least know what's going on. On the bright side, it's good to at least have the mask off, right? And to see that it is, you know, like I've always known personally, right? Like the full political apparatus, whether left, right or center, anyone in power or almost everyone in power, at least, seems to be doing this.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "harassment_or_paranoia"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan affirms the world is run by satanic pedophiles, calls it unacceptable and deeply terrifying, and claims almost everyone in power across the political spectrum is involved."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 172,
+      "speaker": "Speaker 7",
+      "raw_speaker": "Speaker 7",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1080.32,
+      "end_sec": 1104.34,
+      "verbatim_quote": "I don't think that that's much of a coincidence. It's pretty interesting. Melo, and I love that you always bring attention to this when you're talking about like, why do we self-cannibalize as a society? But yeah, no, I think, I think you guys are right. I think there's definitely going to be a little bit of a fallout and some pushback after this because it's just, there's too many, there's too many crazy names listed.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 7 agrees there will be fallout and pushback after the Epstein file release, noting too many crazy names are listed."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 174,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1107.16,
+      "end_sec": 1175.14,
+      "verbatim_quote": "What I think will determine the amount of pushback more than anything else, and there's a lot of different factors that could push back, right? Is the economic reality, right? And the way that this particular satanic society that I live in, right? I'm not, you know, I'm just a victim as a citizen within it. So I'm not condoning. I'm just saying, just describing the hierarchical structure and the demonic, you know, practices that govern it for reasons. TBD, right? But I think it's the, I think it's the geopolitical lack of diplomacy. I think basically, you know, the economy, like, you know, folks were describing and the sort of self-cannibalization in terms of us and our perceived allies, which is going to lead to a power deficit, obviously, in terms of this particular hegemony, you know, it's going to stop being a hegemony. And then it's going to be a more freewheeling, chaotic world, you know, with China definitely taking all the power. I think that's going to really be the hammer, you know, the deciding factor that will decide if there's going to be consequences or not. And there will be consequences, though not within the lifespan of our current leaders.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan claims the geopolitical lack of diplomacy and economic self-cannibalization will determine the amount of pushback, leading to a power deficit and a more chaotic world with China taking power."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 175,
+      "speaker": "Speaker 2",
+      "raw_speaker": "Speaker 2",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1175.58,
+      "end_sec": 1193.66,
+      "verbatim_quote": "Um, I think, I don't know, I, I think it's weird that Elon was wanting to party with a convicted",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "hearsay",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 2 says it is weird that Elon wanted to party with a convicted pedophile."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 176,
+      "speaker": "God Sauce",
+      "raw_speaker": "God Sauce",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1193.66,
+      "end_sec": 1205.42,
+      "verbatim_quote": "pedophile. Because Jeffrey Epstein did a plea deal in 2008, where he agreed to accept the charges",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "God Sauce claims Jeffrey Epstein did a plea deal in 2008, accepting charges of procuring a child for prostitution."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 178,
+      "speaker": "God Sauce",
+      "raw_speaker": "God Sauce",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1209.96,
+      "end_sec": 1216.5,
+      "verbatim_quote": "And Elon is, you know, like, in the files, he, he, like, sends Jeffrey an email in 2012,",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "God Sauce claims Elon sent Jeffrey Epstein an email in 2012, after Epstein was known to be a pedophile, asking when the wildest night at his island was."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 195,
+      "speaker": "Speaker 2",
+      "raw_speaker": "Speaker 2",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1281.22,
+      "end_sec": 1287.58,
+      "verbatim_quote": "I mean, for an opportunist, for, for someone that isn't compromised by the situation,",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "hypothetical",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 2 states that for an opportunist not compromised by the situation, this is an opportunity to leverage against individuals identified in the network."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 198,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1298.54,
+      "end_sec": 1312.81,
+      "verbatim_quote": "You know? People are going to have to shift around. Uh, reputations are being destroyed and damaged. And even at certain levels, just being connected to someone who was listed in the Epstein files,",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "guilt_by_association"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan claims reputations are being destroyed, and even being connected to someone listed in the Epstein files would cause damage."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 200,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 1316.56,
+      "end_sec": 1332.12,
+      "verbatim_quote": "I mean, this is a pretty big shaker. It's just strange to me how, I don't know. I was expecting more fallout. Let's see what happens this week. You know, Sam would fall.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan says this is a big shaker and expresses surprise at not expecting more fallout, wondering if Sam would fall."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 638,
+      "speaker": "Speaker 3",
+      "raw_speaker": "Speaker 3",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 6771.43,
+      "end_sec": 6833.73,
+      "verbatim_quote": "speaking from a place as much as it might not make sense to people she was right and that's just on the guidelines that we have with science at this time and the way things are defined that we have defined non-living and we've never found something that's non-living that turned alive except for Frankenstein I guess but he was still living because he was made out of cells I'm just kidding and then fate right what like if we have free will is there such thing as fate and would an individual's fate not be tied to the fate of every other like moving object or every other thing in existence too so it's as if as a whole we have a fate and then we have many fates that was an interesting kind of throwback there that you just brought up with your fate question that was a good one that kind of shut me up and made me think but I did look at the dude I didn't mean to say that I just I had to say that this morning because I was just I was so aggravated and I shouldn't have been because I think he was just trying to bait me calling me a race trader like I was like race trader that's like a compliment like what do you mean I'm like trading in on what's my race anyway I'm a mutt like we're all mutts so I'm gonna buy",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "harassment_or_paranoia"
+      ],
+      "stance_polarity": "deflection",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker admits to confronting and looking at a man that morning out of aggravation, acknowledging he shouldn't have, claiming the man was baiting him by calling him a 'race trader'."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 642,
+      "speaker": "Speaker 3",
+      "raw_speaker": "Speaker 3",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 6839.01,
+      "end_sec": 6841.95,
+      "verbatim_quote": "he believes we should have like concentration camps and shit like a crazy ass racist",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "guilt_by_association",
+        "allegations_of_harm"
+      ],
+      "stance_polarity": "hearsay",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": true,
+      "claim_summary": "Accusation that a person referred to as 'Prompt Thesis' stated belief in concentration camps and is characterized as a '"
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 735,
+      "speaker": "Speaker 3",
+      "raw_speaker": "Speaker 3",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 7314.87,
+      "end_sec": 7326.57,
+      "verbatim_quote": "Luke is after you dude like wow he was in three different spaces talking about you God sauce has anybody seen God sauce I mean like that dude's got like a freaking vendetta oh yeah",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "harassment_or_paranoia",
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 3"
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 842,
+      "speaker": "Speaker 2",
+      "raw_speaker": "Speaker 2",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 7803.82,
+      "end_sec": 7810.35,
+      "verbatim_quote": "he's my son 100% much more so than Crow Crow I don't understand what Crow is",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 2 affirms that 'he' is his son 100%, more so than Crow, and states he does not understand what Crow is."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 845,
+      "speaker": "Speaker 7",
+      "raw_speaker": "Speaker 7",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 7816.15,
+      "end_sec": 7834.21,
+      "verbatim_quote": "that requires intervention you created the AI it's living so you say it's another debate but you know life requires intervention because the natural doesn't produce that naturally if you take organic molecules and put it out in nature they move away from life they degrade look at the",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "accountability_standards",
+        "allegations_of_harm"
+      ],
+      "stance_polarity": "",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": ""
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 1336,
+      "speaker": "Logan",
+      "raw_speaker": "Logan",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 10477.56,
+      "end_sec": 10479.86,
+      "verbatim_quote": "Donate to Snuggles or share the fucking space.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "eviction_fundraiser"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Logan urges viewers to donate to Snuggles or share the space, explicitly calling for support."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 1341,
+      "speaker": "Mello",
+      "raw_speaker": "Speaker 8",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 10490.76,
+      "end_sec": 10492.12,
+      "verbatim_quote": "That's the best donation here.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "eviction_fundraiser"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 8 promotes sharing the space as the best form of donation, continuing the fundraiser appeal."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 1953,
+      "speaker": "Speaker 3",
+      "raw_speaker": "Speaker 3",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 22452.07,
+      "end_sec": 22459.27,
+      "verbatim_quote": "Anyways, that Epstein could be Madonna's father. Now, can we do a side by?",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "hearsay",
+      "context_intent": "hypothetical",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 3 speculates that Jeffrey Epstein could be Madonna's biological father."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 1958,
+      "speaker": "Speaker 3",
+      "raw_speaker": "Speaker 3",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 22465.88,
+      "end_sec": 22473.52,
+      "verbatim_quote": "No. Madonna. Madonna and Epstein is son and father or some shit.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "hearsay",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "Speaker 3 asserts a father-child relationship between Epstein and Madonna."
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 1962,
+      "speaker": "Darren",
+      "raw_speaker": "Speaker 5",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 22478.28,
+      "end_sec": 22479.86,
+      "verbatim_quote": "As it turns out, Epstein's not even dead.",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute"
+      ],
+      "stance_polarity": "affirmation",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": ""
+    },
+    {
+      "episode_id": "20260202_1770145946",
+      "segment_idx": 2175,
+      "speaker": "God Sauce",
+      "raw_speaker": "God Sauce",
+      "date": "2026-02-03T19:12:27Z",
+      "start_sec": 23503.48,
+      "end_sec": 23747.98,
+      "verbatim_quote": "Fate comes from within, right? Fate comes from within. Fate from within. Meaning that you project it. I'll explain it. I'll explain it to you. So, like, I'm activating on levels that I'm only, like, realizing now. Like, I don't know if... I'm going to release a video probably today or tomorrow about how I got to find out the name that I was... What they called me in my past life. And how my life is tied in. Like, I coded my DNA to this realm. And I'm not ashamed of it anymore. Like, I was very... I knew my whole life I was... Maybe I was special. I don't know. Maybe that's a good thing. But it was like... I was so traumatized. So... Such depression. Such weird shit that, like... It was like... I had to keep it a secret. And now... I just... I'm just going fucking balls to the walls. I don't really have any boundaries anymore. Now I know... I have the carpet... Red carpet rolled out. Fucking hit it. Hit it on the fucking noggin. And so... Through my fucking journey and travels... I have been able to meet... The 13 Crystal Skull. That was passed down from the Mayans. The Mayans. The last indigenous ones. Fucking out. Wherever the fuck they were. And... Through that experience... We had... Touched... I was with the Skull. Then... After that... The Talosians actually got me in contact with her. And then after that... I hiked 13 miles. Took about three hours. All the way up with this dude named... Seven Feather Weather. In Shasta. That... He said he's a bastard child... From the LSD orgies that... He's a bastard child of Timothy Leary. So he was his son. But he was... Consumed or... Consummated. Whatever. In an orgy. Like... You know... The test trials and shit. And so... He... He was like... Yo, we're going to take... LSD tonight. Apparently it was his birthday. And I was like... Damn, I just had this huge experience. Like... I'm thinking to myself... Fuck it. I was like... Yo, you show me where the Bigfoots are. Like... Their little area up there. I'll... I'll... I'll do it. Fuck it. He's like... Alright. Gave... Gave me this shit. We hiked three miles... Or three hours... 13 miles. We get up to this just... We're in the middle of nowhere. In the mountains. And... The whole way... We had... We had like... Fucking UFOs. Because there's... Apparently there's a base... Not too far away. Like... In the next mountain. They were literally... Flying out. Stopping on top... On top of us. Looking at us. And then going... And kept going. I would say at least 30... Within that... 40... Within that time. And... Point being is though... In that trip... We... I took about three doses... Which was... For the first time... It's just way too much. But I'm sitting... I'm sitting at the fire... And my... I'm playing with like... My hand... Like... It just almost is like... Dragging. Like the time... Like you know... Where you could see like... I move my finger... And I could see like... A hundred facets of it. Like... It was beautiful. And I'm sitting there... Playing with my hand... Looking at the fire... Just fucking tripping out. And you know... Everyone's in their own fucking world. And I thought to myself... You know what? I want to go... And explore over there. Like... I was looking at the... The tree lines. I was like... You know what? Someone over there. I want to go... Explore right there. And I look up... And I see a star... Light up... And it goes... It like... Lights up... And beams to another star. And it just... Lights up. Boop! I was like... What the fuck was that? I was like... I want to go... And explore over there. Boop! Boop! I was like... Okay. I want to go explore... Over there. And then get a drink of water. Boop! And that was... And I broke the matrix right there. That right there made me realize... So within... So without... A fractal is a world within a world within a world within a world. And I'm just... I've been able to...",
+      "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
+      "topic_anchors": [
+        "general_dispute",
+        "allegations_of_harm"
+      ],
+      "stance_polarity": "eyewitness",
+      "context_intent": "literal",
+      "diarization_bleed_suspected": false,
+      "claim_summary": "God Sauce claims he will soon release a video revealing the name he was called in a past life and that his life is connected to it."
+    }
+  ]
+}

@@ -790,6 +790,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [speakerFilter, setSpeakerFilter] = useState('ALL');
   const [autoScroll, setAutoScroll] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
   const [transcribing, setTranscribing] = useState(false);
   const [transcribeSuccess, setTranscribeSuccess] = useState('');
   const [timeOffsetSec, setTimeOffsetSec] = useState<number>(0);
@@ -960,6 +962,16 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
     try { return JSON.parse(localStorage.getItem('spacepipe:transcripts:tags:v1') || '{}'); } catch { return {}; }
   });
   useEffect(() => { try { localStorage.setItem('spacepipe:transcripts:tags:v1', JSON.stringify(customTags)); } catch {} }, [customTags]);
+  useEffect(() => {
+    if (!exportDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [exportDropdownOpen]);
   const startPanelResize = (panel: 'episode'|'inspector', e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -4020,13 +4032,13 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
               ) : (
                 <>
                   {/* Episode Player Header */}
-                  <div className="sp-main-header p-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                  <div className="sp-main-header py-2.5 px-4 md:px-6 bg-slate-900/90 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       {mp3Asset && (
                         <button onClick={handlePlayEpisodeToggle}
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105'}`}
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center shadow-md transition-all cursor-pointer ${isCurrentEpisodePlaying ? 'bg-indigo-500 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:scale-105'}`}
                           title={isCurrentEpisodePlaying ? 'Pause Audio' : 'Play Episode Audio'}>
-                          {isCurrentEpisodePlaying ? <Pause size={16} /> : <Play size={16} className="translate-x-0.5" />}
+                          {isCurrentEpisodePlaying ? <Pause size={15} /> : <Play size={15} className="translate-x-0.5" />}
                         </button>
                       )}
                       <div className="min-w-0">
@@ -4051,7 +4063,6 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                     </div>
 
                     <div className="sp-main-actions flex items-center gap-2 flex-wrap">
-                      <button type="button" onClick={() => updateLayout({inspectorOpen:!layout.inspectorOpen})} title="Toggle inspector"><Layers size={13}/> {layout.inspectorOpen ? 'Hide Inspector' : 'Inspector'}</button>
                       {mp3Asset && (
                         <button
                           onClick={handleToggleCacheCurrentAudio}
@@ -4096,28 +4107,72 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                           <Users size={12} /> Rename Speakers
                         </button>
                       )}
-                      {speakerStats.length > 0 && (
-                        <button onClick={handleSaveToGitHub} disabled={savingGitHub || (!Object.keys(speakerMap).length && !Object.keys(effectiveSpeakerMap).length && timeOffsetSec === 0)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 text-xs font-semibold rounded-lg transition-colors border border-emerald-500/40 cursor-pointer shadow-sm">
-                          {savingGitHub ? <Loader size={12} className="animate-spin text-emerald-400" /> : <Save size={12} />}
-                          {savingGitHub ? 'Saving…' : 'Save to GitHub'}
+
+                      {/* Consolidated Export Dropdown */}
+                      <div className="relative" ref={exportMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setExportDropdownOpen(prev => !prev)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition-colors border border-slate-700 cursor-pointer shadow-sm"
+                          title="Export or save transcript"
+                          aria-expanded={exportDropdownOpen}
+                        >
+                          <Download size={12} className="text-slate-400" />
+                          <span>Export</span>
+                          <ChevronDown size={12} className={`text-slate-400 transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
-                      )}
-                      <button onClick={handleCopyTranscript} disabled={!utterances.length}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                        {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-                        {copied ? 'Copied!' : 'Copy'}
-                      </button>
-                      <button onClick={() => handleDownloadTranscript('txt')} disabled={!utterances.length}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                        <Download size={12} /> .txt
-                      </button>
-                      <button onClick={() => handleDownloadTranscript('json')} disabled={!utterances.length}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-300 text-xs font-medium rounded-lg transition-colors border border-slate-700 cursor-pointer">
-                        <Download size={12} /> .json
-                      </button>
+
+                        {exportDropdownOpen && (
+                          <div className="absolute right-0 mt-1.5 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                            <button
+                              type="button"
+                              onClick={() => { handleCopyTranscript(); setExportDropdownOpen(false); }}
+                              disabled={!utterances.length}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+                            >
+                              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                              <span>{copied ? 'Copied to Clipboard!' : 'Copy Plaintext'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { handleDownloadTranscript('txt'); setExportDropdownOpen(false); }}
+                              disabled={!utterances.length}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+                            >
+                              <Download size={13} />
+                              <span>Download .txt</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { handleDownloadTranscript('json'); setExportDropdownOpen(false); }}
+                              disabled={!utterances.length}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition-colors cursor-pointer"
+                            >
+                              <Download size={13} />
+                              <span>Download .json</span>
+                            </button>
+
+                            {speakerStats.length > 0 && (
+                              <>
+                                <div className="border-t border-slate-800 my-1" />
+                                <button
+                                  type="button"
+                                  onClick={() => { handleSaveToGitHub(); setExportDropdownOpen(false); }}
+                                  disabled={savingGitHub || (!Object.keys(speakerMap).length && !Object.keys(effectiveSpeakerMap).length && timeOffsetSec === 0)}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/40 disabled:opacity-40 transition-colors font-medium cursor-pointer"
+                                >
+                                  {savingGitHub ? <Loader size={13} className="animate-spin text-emerald-400" /> : <Save size={13} />}
+                                  <span>{savingGitHub ? 'Saving…' : 'Save to GitHub'}</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       <a href={selectedRelease.html_url} target="_blank" rel="noopener noreferrer"
-                        className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800">
+                        className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors border border-slate-800"
+                        title="View release on GitHub">
                         <ExternalLink size={13} />
                       </a>
                     </div>
@@ -4163,7 +4218,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                         <button type="button" disabled={current?.id!==selectedRelease.id} onClick={() => seek(Math.max(0,currentTime-15))}>−15s</button>
                         <button type="button" disabled={current?.id!==selectedRelease.id} onClick={() => seek(currentTime+15)}>+15s</button>
                         <time>{current?.id===selectedRelease.id?formatSeconds(currentTime):'00:00'} / {formatSeconds(episodeDuration)}</time>
-                        <span className="sp-inspector-note">Click a transcript turn to seek</span>
+                        <span className="sp-inspector-note hidden sm:inline" title="Click any transcript turn below to jump audio playback to that moment">Click turn to seek</span>
                       </div>
                     </div>
                   )}

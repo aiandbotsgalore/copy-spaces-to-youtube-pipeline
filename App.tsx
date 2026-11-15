@@ -196,7 +196,7 @@ interface NavItemProps {
 const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, badgeColor, collapsed }) => (
   <button
     onClick={onClick}
-    title={collapsed ? label : undefined}
+    title={label}
     className={`w-full flex items-center ${collapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2'} group text-sm font-medium rounded-lg transition-all ${
       active
         ? 'bg-indigo-500/15 text-indigo-300'
@@ -393,7 +393,7 @@ function AppContent() {
         />
       )}
       {/* ── Sidebar ── */}
-      <aside className={`fixed inset-y-0 left-0 z-40 w-[min(86vw,20rem)] flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen transition-transform duration-200 md:relative md:sticky md:top-0 md:translate-x-0 ${isSidebarRail ? 'md:w-14' : 'md:w-64'} ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-40 w-[min(86vw,20rem)] flex-shrink-0 border-r border-slate-800/80 bg-slate-950 flex flex-col h-screen transition-transform duration-200 md:relative md:sticky md:top-0 md:translate-x-0 ${isSidebarRail ? 'md:w-14' : 'md:w-[268px]'} ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo & Collapse button */}
         <div className={`border-b border-slate-800/80 ${isSidebarRail ? 'p-2.5 flex flex-col items-center gap-2' : 'p-5'}`}>
           <div className="flex items-center justify-between w-full">
@@ -443,7 +443,7 @@ function AppContent() {
               <NavItem
                 icon={<PlusCircle size={15} />}
                 label="Ingest"
-                active={activePanel === 'submit-space' || activePanel === 'live-queue'}
+                active={activePanel === 'submit-space' || activePanel === 'batch' || activePanel === 'live-queue'}
                 onClick={() => setActivePanel('submit-space')}
                 collapsed={isSidebarRail}
               />
@@ -630,7 +630,7 @@ function AppContent() {
               />
             </div>
 
-            <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-500 text-center">
+            <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-400 text-center">
               Generated files comply with DevOps strict mode
             </div>
           </>
@@ -691,10 +691,6 @@ function AppContent() {
           <FeaturePanel config={config} onChange={updateConfig} />
         )}
 
-        {activePanel === 'batch' && (
-          <BatchUrlEditor config={config} onChange={updateConfig} />
-        )}
-
         {activePanel.startsWith('file:') && activeFile && (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             <header className="px-6 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
@@ -717,11 +713,12 @@ function AppContent() {
           <RunHistory config={config} />
         )}
 
-        {(activePanel === 'submit-space' || activePanel === 'live-queue') && (
+        {(activePanel === 'submit-space' || activePanel === 'batch' || activePanel === 'live-queue') && (
           <div className="flex-1 min-h-0 flex flex-col">
             <div role="tablist" aria-label="Ingest" className="flex-shrink-0 flex items-center gap-1 px-6 md:px-12 pt-4 border-b border-slate-800/80">
               {([
                 ['submit-space', 'Submit a Space'],
+                ['batch', 'Batch Submit'],
                 ['live-queue', 'Queue'],
               ] as const).map(([id, label]) => (
                 <button
@@ -744,7 +741,17 @@ function AppContent() {
                 <SubmitSpacePanel
                   config={config}
                   onViewRunHistory={() => setActivePanel('run-history')}
+                  onNavigateBatch={() => setActivePanel('batch')}
                 />
+              ) : activePanel === 'batch' ? (
+                <React.Suspense fallback={<div className="p-8 text-slate-400 text-sm">Loading Batch Submit…</div>}>
+                  <BatchUrlEditor
+                    config={config}
+                    onChange={updateConfig}
+                    onViewRunHistory={() => setActivePanel('run-history')}
+                    onViewQueue={() => setActivePanel('live-queue')}
+                  />
+                </React.Suspense>
               ) : (
                 <LiveQueuePanel config={config} />
               )}

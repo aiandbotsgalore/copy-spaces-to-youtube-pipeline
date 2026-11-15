@@ -513,6 +513,52 @@ export async function searchTranscriptLexical(
   }
 
   prioritizedTags.sort((a, b) => b.boost - a.boost);
+  if (!qClean && !targetTag && prioritizedTags.length > 1) {
+    for (let i = prioritizedTags.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = prioritizedTags[i];
+      prioritizedTags[i] = prioritizedTags[j];
+      prioritizedTags[j] = tmp;
+    }
+  }
+
+  if (!qClean && !targetTag && options.excludeMetaCommentary) {
+    try {
+      const catalogPath = resolvePath('public', 'clips', 'clips_catalog.json');
+      if (fs.existsSync(catalogPath)) {
+        const rawCat = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+        const catClips = Array.isArray(rawCat) ? rawCat : Array.isArray(rawCat?.clips) ? rawCat.clips : [];
+        const matchingCat = catClips.filter((c: any) => {
+          const spk = String(c?.speaker || (Array.isArray(c?.speakers) ? c.speakers.join(", ") : ""));
+          if (targetSpeaker && !isNormalizedSpeakerMatch(spk, targetSpeaker)) return false;
+          const st = Number(c?.start_seconds ?? c?.startSec ?? 0);
+          const en = Number(c?.end_seconds ?? c?.endSec ?? 0);
+          const dur = Number(c?.duration) > 0 ? Number(c.duration) : (en > st ? en - st : 0);
+          if (options.maxDurationSec && dur > options.maxDurationSec) return false;
+          const txt = String(c?.quote || c?.transcript_quote || c?.title || "");
+          if (!txt || META_CLIP_COMMENTARY_REGEX.test(txt)) return false;
+          return true;
+        });
+        for (const c of matchingCat.slice(0, 3)) {
+          const st = Number(c?.start_seconds ?? c?.startSec ?? 0);
+          const en = Number(c?.end_seconds ?? c?.endSec ?? (st + 8));
+          results.push({
+            episodeTitle: String(c?.original_space || c?.sourceTitle || c?.episode_tag || "Curated Clip"),
+            releaseTag: String(c?.episode_tag || c?.sourceTag || "curated_clip"),
+            audioUrl: c?.audio_url || c?.audioUrl,
+            speaker: targetSpeaker || String(c?.speaker || "Unknown Speaker"),
+            startSec: st,
+            endSec: en,
+            text: String(c?.quote || c?.transcript_quote || c?.title).trim(),
+            relevanceScore: 150,
+            matchType: 'rerank',
+          });
+        }
+      }
+    } catch {
+      // ignore catalog read errors
+    }
+  }
 
   const tagsToSearch = prioritizedTags.length > 0
     ? prioritizedTags
@@ -527,8 +573,11 @@ export async function searchTranscriptLexical(
         };
       });
 
+  const isArchiveBrowse = !qClean && !targetTag;
+  const targetCandidatePool = isArchiveBrowse ? max * 4 : max * 3;
+
   for (const ep of tagsToSearch) {
-    if (results.length >= max * 3) break;
+    if (results.length >= targetCandidatePool) break;
 
     const sum = summaries.find(s => s.release_tag === ep.tag);
     if (options.sourceType && sum?.source_type && sum.source_type !== options.sourceType) {
@@ -558,6 +607,9 @@ export async function searchTranscriptLexical(
         : Array.isArray(data)
         ? data
         : [];
+
+      let perEpisodeAdded = 0;
+      const maxPerEpisodeWhenBrowsing = isArchiveBrowse ? 2 : max * 3;
 
       for (let sIdx = 0; sIdx < segments.length; sIdx++) {
         const seg = segments[sIdx];
@@ -624,7 +676,8 @@ export async function searchTranscriptLexical(
           documentLocation: seg.documentLocation || data.documentLocation,
         });
 
-        if (results.length >= max * 3) break;
+        perEpisodeAdded++;
+        if (perEpisodeAdded >= maxPerEpisodeWhenBrowsing || results.length >= targetCandidatePool) break;
       }
     } catch {
       // ignore

@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, ArrowDown, BookOpen, BookmarkPlus, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
-  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Star, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle,
+  Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Star, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle, MoreVertical,
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -32,7 +32,7 @@ import ScriptBoard from './ScriptBoard';
 import ScriptChecksPanel, { type EvidenceCheckResult } from './ScriptChecksPanel';
 import type { ListenOption, ViewEntry } from '../utils/quoteView';
 import {
-  extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, type ParsedManuscriptClip,
+  extractClipsFromText, parseTimeToSeconds, clipsFromBlock, clipDedupeKey, CANONICAL_CLIP_REGEX, INLINE_QUOTE_REGEX, scanScriptForSources, type ParsedManuscriptClip,
 } from '../utils/scriptUpload';
 import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
@@ -87,17 +87,20 @@ function UploadScriptModal({
   onOpenProject,
   initialTags = [],
   episodes = [],
+  onAutoSelectTags,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onOpenProject: (id: string) => void;
   initialTags?: string[];
   episodes?: { releaseTag: string; title: string }[];
+  onAutoSelectTags?: (tags: string[]) => void;
 }) {
   const [title, setTitle] = useState('');
   const [format, setFormat] = useState<EpisodeFormat | ''>('narrative_doc');
   const [minutes, setMinutes] = useState(15);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTags);
+  const [autoMatchedSources, setAutoMatchedSources] = useState<string[]>([]);
   const [scriptText, setScriptText] = useState('');
   const [scriptFilename, setScriptFilename] = useState('');
   const [evidenceFiles, setEvidenceFiles] = useState<{ name: string; content: string; type: string }[]>([]);
@@ -122,6 +125,15 @@ function UploadScriptModal({
 
   if (!isOpen) return null;
 
+  const scanSourcesFromCurrentText = (textToScan: string) => {
+    const matched = scanScriptForSources(textToScan, episodes);
+    if (matched.length) {
+      setSelectedTags(matched);
+      setAutoMatchedSources(matched);
+      onAutoSelectTags?.(matched);
+    }
+  };
+
   const handleScriptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -132,6 +144,7 @@ function UploadScriptModal({
       if (!title) {
         setTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
       }
+      scanSourcesFromCurrentText(text);
     } catch (err: any) {
       setError(err?.message || 'Could not read script file.');
     }
@@ -337,6 +350,100 @@ function UploadScriptModal({
             </div>
           </div>
 
+          {/* Source Recordings (Auto-match & selection) */}
+          <div className="border-t border-slate-800 pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-200 flex items-center gap-1.5">
+                  <Film size={13} className="text-indigo-400" /> Source Recordings
+                  <span className="text-[10px] text-slate-400 font-normal">({selectedTags.length} / 12 selected)</span>
+                </label>
+                <div className="text-[10px] text-slate-400">
+                  {autoMatchedSources.length > 0 ? (
+                    <span className="text-emerald-400 font-medium">✓ Auto-matched {autoMatchedSources.length} recording{autoMatchedSources.length === 1 ? '' : 's'} from script references</span>
+                  ) : selectedTags.length > 0 ? (
+                    <span>Linked to project workspace for audio alignment and fact-checking.</span>
+                  ) : (
+                    <span className="text-slate-400">0 pre-selected. Direct upload supported: script references will be auto-scanned upon upload.</span>
+                  )}
+                </div>
+              </div>
+              {scriptText.trim().length > 0 && (
+                <button
+                  type="button"
+                  className={btnGhost}
+                  onClick={() => scanSourcesFromCurrentText(scriptText)}
+                  title="Scan current script text for episode or clip references"
+                >
+                  <Sparkles size={11} className="text-indigo-400" /> Scan text for sources
+                </button>
+              )}
+            </div>
+
+            {selectedTags.length > 0 && (
+              <div className="flex max-h-24 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950 p-2">
+                {selectedTags.map(tag => {
+                  const ep = episodes.find(e => e.releaseTag === tag);
+                  return (
+                    <span key={tag} className="inline-flex max-w-full items-center gap-1 rounded border border-indigo-900/60 bg-indigo-950/40 px-2 py-0.5 text-[11px] text-indigo-200">
+                      <span className="max-w-[220px] truncate">{(ep?.title || tag).replace(/_/g, ' ')}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${tag}`}
+                        onClick={() => {
+                          const next = selectedTags.filter(t => t !== tag);
+                          setSelectedTags(next);
+                          setAutoMatchedSources(prev => prev.filter(t => t !== tag));
+                          onAutoSelectTags?.(next);
+                        }}
+                        className="hover:text-white text-indigo-400 rounded p-0.5"
+                      >
+                        <X size={11} />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedTags.length < 12 && episodes.length > 0 && (
+              <div className="flex items-center gap-2">
+                <select
+                  className={cx(input, 'text-[11px] py-1 h-7 flex-1')}
+                  value=""
+                  onChange={e => {
+                    const tag = e.target.value;
+                    if (tag && !selectedTags.includes(tag) && selectedTags.length < 12) {
+                      const next = [...selectedTags, tag];
+                      setSelectedTags(next);
+                      onAutoSelectTags?.(next);
+                    }
+                  }}
+                >
+                  <option value="">+ Add recording manually from library…</option>
+                  {episodes.filter(e => !selectedTags.includes(e.releaseTag)).map(e => (
+                    <option key={e.releaseTag} value={e.releaseTag}>
+                      {e.title.replace(/_/g, ' ')} ({e.releaseTag})
+                    </option>
+                  ))}
+                </select>
+                {selectedTags.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTags([]);
+                      setAutoMatchedSources([]);
+                      onAutoSelectTags?.([]);
+                    }}
+                    className="text-[11px] text-slate-500 hover:text-slate-300"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="border-t border-slate-800 pt-3 space-y-2">
             <div className="flex items-center justify-between">
               <div>
@@ -540,8 +647,52 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const [visibleCount, setVisibleCount] = useState(60);
   const [loadingEpisodes, setLoadingEpisodes] = useState(true);
   const [limitNotice, setLimitNotice] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [projectFilter, setProjectFilter] = useState('');
+  const [scanNotice, setScanNotice] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const scriptScanRef = useRef<HTMLInputElement>(null);
   const statusTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const handleDeleteProject = async (id: string) => {
+    setDeletingId(id);
+    setError(null);
+    try {
+      await scriptApi.deleteProject(id);
+      setProjects(prev => prev.filter(proj => proj.id !== id));
+      setConfirmDeleteId(null);
+      try {
+        if (localStorage.getItem(PROJECT_STORAGE_KEY) === id) {
+          localStorage.removeItem(PROJECT_STORAGE_KEY);
+        }
+      } catch { /* ignore */ }
+    } catch (e) {
+      setError(e);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleScanScriptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const matched = scanScriptForSources(text, episodes);
+      if (matched.length) {
+        setPicked(matched);
+        setScanNotice(`Auto-matched ${matched.length} recording(s) from "${file.name}"`);
+      } else {
+        setScanNotice(`No direct recording matches found in "${file.name}"`);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Could not scan script file.');
+    } finally {
+      if (scriptScanRef.current) scriptScanRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     scriptApi.episodes().then(r => setEpisodes(r.episodes)).catch(setError).finally(() => setLoadingEpisodes(false));
@@ -576,7 +727,27 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   const ready = subscriptionReady || fallbackReady;
   const providerCount = status ? Object.values(status.providers).filter(h => h.ok).length : 0;
   const providerTotal = status ? Object.keys(status.providers).length : 0;
-  const recentProjects = [...projects].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 4);
+
+  const sortedProjects = useMemo(() => {
+    return [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
+  }, [projects]);
+
+  const filteredProjects = useMemo(() => {
+    const q = projectFilter.trim().toLowerCase();
+    if (!q) return sortedProjects;
+    return sortedProjects.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.sourceTags.some(t => t.toLowerCase().includes(q))
+    );
+  }, [sortedProjects, projectFilter]);
+
+  const displayedProjects = useMemo(() => {
+    if (showAllProjects || projectFilter.trim()) {
+      return filteredProjects;
+    }
+    return filteredProjects.slice(0, 4);
+  }, [filteredProjects, showAllProjects, projectFilter]);
+
   const panel = 'rounded-xl border border-[#313A4C] bg-[#12161F]';
   const field = 'w-full rounded-lg border border-[#394256] bg-[#0B0D11] px-3 py-2.5 text-sm text-[#F4F6FA] outline-none transition-colors placeholder:text-[#8994A8] focus:border-[#A496FF] focus:ring-2 focus:ring-[#7357E9]/25';
   const secondaryButton = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#394256] bg-[#1A2030] px-3 text-sm font-medium text-[#E6EBF4] transition-colors hover:bg-[#273044] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A496FF]';
@@ -641,8 +812,8 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   };
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-[#0B0D11] font-sans text-[#F4F6FA]">
-      <div className="mx-auto w-full max-w-[1540px] px-4 pb-20 pt-5 sm:px-6 lg:px-8">
+    <div id="script-studio" className="h-full w-full overflow-y-auto bg-[#0B0D11] font-sans text-[#F4F6FA] pb-28 sm:pb-32">
+      <div className="mx-auto w-full max-w-[1540px] px-4 pb-28 pt-5 sm:px-6 lg:px-8">
         <header className="mb-7 flex flex-wrap items-center justify-between gap-4 border-b border-[#252C3A] pb-5">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-400/20 bg-[#211D40]">
@@ -708,8 +879,8 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
               </span>
             </button>
 
-            <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_392px] xl:gap-6">
-              <section aria-labelledby="recording-library-heading" className={cx(panel, 'min-w-0 overflow-hidden')}>
+            <div className="grid min-w-0 items-start gap-5 lg:grid-cols-12 lg:gap-6">
+              <section aria-labelledby="recording-library-heading" className={cx(panel, 'min-w-0 overflow-hidden lg:col-span-7')}>
                 <div className="border-b border-[#313A4C] px-4 pb-4 pt-5 sm:px-5">
                   <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -738,9 +909,33 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
 
                 <div className="flex items-center justify-between border-b border-[#252C3A] bg-[#10141C] px-4 py-2.5 sm:px-5">
                   <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[#8994A8]">Source recordings</span>
-                  {picked.length > 0 && <button type="button" onClick={() => { setPicked([]); setLimitNotice(false); }}
-                    className="text-xs font-medium text-[#B8ACFF] hover:text-white">Clear selection</button>}
+                  <div className="flex items-center gap-3">
+                    <input
+                      ref={scriptScanRef}
+                      type="file"
+                      accept=".md,.txt,.json,.markdown"
+                      className="hidden"
+                      onChange={handleScanScriptFile}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => scriptScanRef.current?.click()}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-[#B8ACFF] hover:text-white transition-colors"
+                      title="Scan a script file (.md) to auto-select matching recordings"
+                    >
+                      <Sparkles size={12} /> Auto-match from script
+                    </button>
+                    {picked.length > 0 && <button type="button" onClick={() => { setPicked([]); setLimitNotice(false); setScanNotice(null); }}
+                      className="text-xs font-medium text-[#ABB5C7] hover:text-white transition-colors">Clear selection</button>}
+                  </div>
                 </div>
+
+                {scanNotice && (
+                  <div className="flex items-center justify-between border-b border-indigo-900/40 bg-indigo-950/30 px-4 py-1.5 text-xs text-indigo-300 sm:px-5">
+                    <span>{scanNotice}</span>
+                    <button type="button" onClick={() => setScanNotice(null)} className="text-indigo-400 hover:text-white"><X size={12} /></button>
+                  </div>
+                )}
 
                 <div className="max-h-[520px] min-h-[260px] overflow-y-auto overscroll-contain" role="group" aria-label="Available recordings">
                   {loadingEpisodes ? (
@@ -779,7 +974,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
                 </div>
               </section>
 
-              <aside className="min-w-0 space-y-4 xl:sticky xl:top-5" aria-label="Project setup">
+              <aside className="min-w-0 space-y-4 lg:col-span-5 lg:sticky lg:top-5" aria-label="Project setup">
                 <section className={cx(panel, 'p-5 sm:p-6')}>
                   <div className="mb-5 flex items-start justify-between gap-3">
                     <div>
@@ -857,19 +1052,105 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
 
                 <section className={cx(panel, 'p-5')} aria-labelledby="studio-recent-heading">
                   <div className="mb-3 flex items-center justify-between">
-                    <h2 id="studio-recent-heading" className="text-sm font-semibold text-[#F4F6FA]">Recent projects</h2>
-                    <span className="text-xs tabular-nums text-[#8994A8]">{projects.length} total</span>
+                    <div className="flex items-center gap-2">
+                      <h2 id="studio-recent-heading" className="text-sm font-semibold text-[#F4F6FA]">Recent projects</h2>
+                      <span className="rounded-full bg-[#1A2030] px-2 py-0.5 text-[11px] font-medium tabular-nums text-[#8994A8] border border-[#313A4C]">
+                        {projects.length} total
+                      </span>
+                    </div>
+                    {projects.length > 4 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllProjects(prev => !prev)}
+                        className="text-xs font-medium text-[#B8ACFF] hover:text-white transition-colors"
+                      >
+                        {showAllProjects ? 'Show recent (4)' : `Show all (${projects.length})`}
+                      </button>
+                    )}
                   </div>
-                  {recentProjects.length ? <div className="divide-y divide-[#313A4C]">
-                    {recentProjects.map(p => <div key={p.id} className="flex items-center gap-3 py-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-[#E6EBF4]" title={p.title}>{p.title}</div>
-                        <div className="mt-1 text-[11px] text-[#8994A8]">{new Date(p.updatedAt).toLocaleDateString()} · {p.sourceTags.length} source{p.sourceTags.length === 1 ? '' : 's'}</div>
-                      </div>
-                      <button type="button" onClick={() => onOpen(p.id)}
-                        className="rounded-lg border border-[#394256] px-3 py-2 text-xs font-medium text-[#E6EBF4] hover:bg-[#273044] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]">Open</button>
-                    </div>)}
-                  </div> : <div className="py-4 text-xs text-[#8994A8]">No projects yet. Your projects will appear here.</div>}
+
+                  {projects.length > 4 && (showAllProjects || projects.length > 6) && (
+                    <div className="relative mb-3">
+                      <Search size={13} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8994A8]" />
+                      <input
+                        aria-label="Filter recent projects"
+                        className={cx(field, 'h-8 pl-8 pr-7 text-xs')}
+                        placeholder="Filter projects…"
+                        value={projectFilter}
+                        onChange={e => setProjectFilter(e.target.value)}
+                      />
+                      {projectFilter && (
+                        <button
+                          type="button"
+                          aria-label="Clear filter"
+                          onClick={() => setProjectFilter('')}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8994A8] hover:text-white"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {displayedProjects.length ? (
+                    <div className="divide-y divide-[#313A4C] max-h-[360px] overflow-y-auto pr-1">
+                      {displayedProjects.map(p => (
+                        <div key={p.id} className="flex items-center gap-3 py-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium text-[#E6EBF4]" title={p.title}>{p.title}</div>
+                            <div className="mt-1 text-[11px] text-[#8994A8]">
+                              {new Date(p.updatedAt).toLocaleDateString()} · {p.sourceTags.length} {p.sourceTags.length === 1 ? 'source' : 'sources'}
+                            </div>
+                          </div>
+                          {confirmDeleteId === p.id ? (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                disabled={deletingId === p.id}
+                                onClick={() => void handleDeleteProject(p.id)}
+                                className="rounded-lg border border-rose-600/70 bg-rose-950/60 px-2.5 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-500 flex items-center gap-1"
+                                title="Confirm deletion"
+                              >
+                                {deletingId === p.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                <span>Confirm</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={deletingId === p.id}
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="rounded-lg border border-[#394256] px-2 py-1.5 text-xs text-[#8994A8] hover:bg-[#273044] hover:text-[#E6EBF4]"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => onOpen(p.id)}
+                                className="rounded-lg border border-[#394256] px-3 py-2 text-xs font-medium text-[#E6EBF4] hover:bg-[#273044] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]"
+                              >
+                                Open
+                              </button>
+                              <button
+                                type="button"
+                                aria-label={`Delete project ${p.title}`}
+                                title={`Delete project ${p.title}`}
+                                onClick={() => setConfirmDeleteId(p.id)}
+                                className="rounded-lg border border-[#394256] p-2 text-xs font-medium text-[#8994A8] hover:border-rose-700/60 hover:bg-rose-950/30 hover:text-rose-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-500"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-4 text-xs text-[#8994A8]">
+                      {projectFilter ? 'No projects match your filter.' : 'No projects yet. Your projects will appear here.'}
+                    </div>
+                  )}
                 </section>
                 <button type="button" onClick={() => fileRef.current?.click()}
                   className="flex min-h-10 w-full items-center justify-center gap-2 rounded-lg text-xs font-medium text-[#ABB5C7] transition-colors hover:bg-[#1A2030] hover:text-white">
@@ -881,7 +1162,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
         )}
         <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
           onChange={e => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ''; }} />
-        <UploadScriptModal isOpen={uploadModalOpen} onClose={() => setUploadModalOpen(false)} onOpenProject={onOpen} initialTags={picked} episodes={episodes} />
+        <UploadScriptModal isOpen={uploadModalOpen} onClose={() => setUploadModalOpen(false)} onOpenProject={onOpen} initialTags={picked} episodes={episodes} onAutoSelectTags={setPicked} />
       </div>
 
       {statusOpen && <div className="fixed inset-0 z-40">
@@ -1503,6 +1784,71 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     }
   };
 
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showProjectMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setShowProjectMenu(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowProjectMenu(false);
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showProjectMenu]);
+
+  const handleDeleteActiveProject = async () => {
+    if (!project) return;
+    if (!window.confirm(`Are you sure you want to permanently delete project "${project.title}"? This will remove it from disk and cannot be undone.`)) return;
+    setBusy('Deleting project');
+    setError(null);
+    try {
+      await scriptApi.deleteProject(project.id);
+      try {
+        if (localStorage.getItem(PROJECT_STORAGE_KEY) === project.id) {
+          localStorage.removeItem(PROJECT_STORAGE_KEY);
+        }
+      } catch { /* ignore */ }
+      setProjectId(null);
+      setData(null);
+      setSegments(null);
+      setRunId(null);
+      setDirty(false);
+      dirtyRef.current = false;
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleResetScript = async () => {
+    if (!project) return;
+    if (!window.confirm(`Wipe and reset the current script in "${project.title}"? All imported scenes and blocks will be cleared.`)) return;
+    setBusy('Resetting script');
+    setError(null);
+    try {
+      await scriptApi.resetScript(project.id);
+      setSegments(null);
+      setDirty(false);
+      dirtyRef.current = false;
+      await load(project.id);
+      setNotice('Script reset. All scenes and blocks have been cleared.');
+    } catch (e: any) {
+      setError(e);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const playTake = (b: Extract<Block, { kind: 'narration' }>) => {
     if (!hasValidTake(b)) return;
     const id = `script:${b.id}`;
@@ -1926,6 +2272,55 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         <button className={btnPrimary} disabled={!dirty || !!busy} onClick={() => void save()}>
           <Save size={12} /> Save
         </button>
+
+        {/* Project Options Overflow Menu */}
+        <div className="relative" ref={projectMenuRef}>
+          <button
+            type="button"
+            className={cx(btnGhost, showProjectMenu && 'bg-slate-800 text-white')}
+            onClick={() => setShowProjectMenu(s => !s)}
+            title="More project actions"
+            aria-label="More project actions"
+          >
+            <MoreVertical size={13} />
+          </button>
+          {showProjectMenu && (
+            <div className="absolute right-0 top-full mt-1.5 w-52 rounded-lg border border-slate-800 bg-slate-900 shadow-xl z-50 py-1 text-xs">
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-300 hover:bg-slate-800 hover:text-white"
+                onClick={() => {
+                  setShowProjectMenu(false);
+                  void handleResetScript();
+                }}
+              >
+                <RotateCcw size={13} className="text-amber-400" />
+                <span>Reset / Clear Script</span>
+              </button>
+              <div className="my-1 border-t border-slate-800" />
+              <button
+                type="button"
+                className="w-full flex items-center gap-2 px-3 py-2 text-left text-rose-400 hover:bg-rose-950/40 hover:text-rose-300"
+                onClick={() => {
+                  setShowProjectMenu(false);
+                  void handleDeleteActiveProject();
+                }}
+              >
+                <Trash2 size={13} className="text-rose-400" />
+                <span>Delete Project</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={cx(btnGhost, 'text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 border-rose-800/30')}
+          onClick={() => void handleDeleteActiveProject()}
+          title="Delete this project and return to hub"
+        >
+          <Trash2 size={12} /> Delete Project
+        </button>
       </div>
 
       {showRoles && (
@@ -2164,17 +2559,34 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               {dirty && <span className="text-xs text-amber-300 font-medium px-2 py-0.5 rounded bg-amber-950/30 border border-amber-800/40">Unsaved edits</span>}
               <button
                 className={btnGhost}
-                disabled={!dirty}
+                disabled={!dirty && (!segments || segments.length === 0)}
                 onClick={() => {
-                  if (window.confirm('Discard all unsaved edits and revert to the saved version?')) {
-                    setSegments(data?.head?.segments || null);
-                    setDirty(false);
-                    dirtyRef.current = false;
+                  if (dirty) {
+                    if (window.confirm('Discard all unsaved edits and revert to the saved version?')) {
+                      setSegments(data?.head?.segments || null);
+                      setDirty(false);
+                      dirtyRef.current = false;
+                    }
+                  } else if (segments && segments.length > 0) {
+                    if (window.confirm('Clear and wipe all imported scenes and blocks in the current project?')) {
+                      void handleResetScript();
+                    }
                   }
                 }}
+                title={dirty ? 'Discard unsaved edits and revert' : 'Clear / Reset script'}
               >
                 <RotateCcw size={12} /> Discard
               </button>
+              {(!!(segments && segments.length > 0) || !!headVersion) && (
+                <button
+                  type="button"
+                  className={cx(btnGhost, 'text-amber-400 hover:text-amber-300 hover:bg-amber-950/30 border-amber-800/30')}
+                  onClick={() => void handleResetScript()}
+                  title="Wipe all imported scenes and blocks from this project"
+                >
+                  <RotateCcw size={12} /> Clear Script
+                </button>
+              )}
             </div>
 
             {data?.gates && (
@@ -2211,7 +2623,12 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               onJump={sceneId => document.getElementById(`scene-${sceneId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
             />
 
-            {!segments && <div className="text-sm text-slate-500 py-12 text-center">Run the analysis and outline stages from the left panel to generate your documentary script.</div>}
+            {(!segments || segments.length === 0) && (
+              <div className="text-sm text-slate-500 py-12 text-center space-y-2">
+                <div>No script loaded yet.</div>
+                <div className="text-xs text-slate-600">Import a manuscript with <strong>Upload</strong> in the top toolbar or draft an outline from the left panel.</div>
+              </div>
+            )}
 
             {/* Segments & Scenes */}
             {segments?.map((seg, segI) => (

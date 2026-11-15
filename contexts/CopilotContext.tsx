@@ -69,6 +69,7 @@ export interface CopilotContextType {
   loadEpisodeHandler?: (tag: string) => void;
   setLoadEpisodeHandler: (fn: (tag: string) => void) => void;
   widgetSessionId: string;
+  updateSessionData?: (sessionId: string, updater: (prev: CopilotSession) => CopilotSession) => void;
 }
 
 const CopilotContext = createContext<CopilotContextType | null>(null);
@@ -586,6 +587,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loadEpisodeHandler,
         setLoadEpisodeHandler,
         widgetSessionId: WIDGET_SESSION_ID,
+        updateSessionData,
       }}
     >
       {children}

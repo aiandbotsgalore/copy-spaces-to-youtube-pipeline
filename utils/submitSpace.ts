@@ -30,6 +30,23 @@ export function validateSubmission(url: string, config: EnhancedConfig): string 
   return null;
 }
 
+export function validateBatchSubmission(urls: string[], config: EnhancedConfig): string | null {
+  const validUrls = urls.map(u => u.trim()).filter(u => u.startsWith('http'));
+  if (validUrls.length === 0) return 'Add at least one valid Space or audio URL to submit.';
+  if (!config.githubToken) return 'Connect GitHub before submitting episodes.';
+  if (!config.ownerName || !config.repoName) {
+    return 'Add the GitHub owner and repository name in Configuration before submitting.';
+  }
+  return null;
+}
+
+export function parseBatchUrlsInput(rawText: string): string[] {
+  return rawText
+    .split(/[\r\n,]+/)
+    .map(line => line.trim())
+    .filter(line => line.length > 0 && !line.startsWith('#'));
+}
+
 export function validateLocalUpload(
   file: File | null,
   meta: LocalAudioMetadata,
@@ -177,12 +194,12 @@ export function friendlyGitHubError(error: unknown, action: SubmitAction): strin
     if (error.status === 401) return 'GitHub rejected the connection. Reconnect with a valid token and try again.';
     if (error.status === 403) return 'GitHub denied this action. Check that the token has repository and workflow permissions.';
     if (error.status === 404) {
-      return action === 'run' || action === 'upload'
+      return action === 'run' || action === 'upload' || action === 'batch_dispatch' || action === 'dispatch'
         ? 'The repository or ingest workflow was not found. Check the owner/repo and confirm that .github/workflows/ingest.yml exists.'
         : 'The repository or its default branch was not found. Check the owner and repository settings.';
     }
     if (error.status === 422) {
-      return action === 'run' || action === 'upload'
+      return action === 'run' || action === 'upload' || action === 'batch_dispatch' || action === 'dispatch'
         ? 'GitHub could not start the workflow. Check its workflow_dispatch input and default branch.'
         : 'GitHub could not update the queue on the configured branch. Reload and try again.';
     }

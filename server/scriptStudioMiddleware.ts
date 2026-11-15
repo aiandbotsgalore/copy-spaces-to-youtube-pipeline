@@ -61,7 +61,7 @@ import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, RoleMap, ScriptProj
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
 import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
-import { changedBlockIds, codeGates, diffVersions } from '../utils/scriptGates';
+import { changedBlockIds, codeGates, diffVersions, estimateRuntime } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
@@ -83,7 +83,7 @@ import {
 } from './scriptHandoff';
 import { factcheckPrompt, PROMPT_VERSIONS } from './scriptPrompts';
 import { attachTakes } from '../utils/scriptAudio';
-import { parseUploadedScript, parseTimeToSeconds, extractScriptMetadata } from '../utils/scriptUpload';
+import { parseUploadedScript, parseTimeToSeconds, extractScriptMetadata, scanScriptForSources } from '../utils/scriptUpload';
 import { fetchGoogleDriveEvidence } from './googleDriveService';
 import { createAudioService, type AudioService, type FfmpegRunner } from './scriptAudioService';
 import type { AsyncSynth } from './voxSynthesize';
@@ -382,6 +382,34 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     if (route === '/episodes' && method === 'GET') return send(res, 200, { ok: true, episodes: listEpisodes(opts.root) });
     if (route === '/projects' && method === 'GET') return send(res, 200, { ok: true, projects: store.listProjects() });
 
+    if ((route === '/project' && method === 'DELETE') || (route === '/project/delete' && (method === 'POST' || method === 'DELETE'))) {
+      let id = q('id');
+      if (!id && method === 'POST') {
+        const body = await readBody(req);
+        id = body?.id || body?.projectId;
+      }
+      if (!id || typeof id !== 'string' || !isSafeId(id)) {
+        throw new StepError('BAD_REQUEST', 'Missing or invalid project id.');
+      }
+      const runs = store.listRuns(id);
+      for (const r of runs) {
+        if (engine.isActive(r.id)) {
+          try { engine.cancel(id, r.id); } catch { /* ignore */ }
+        }
+      }
+      const deleted = store.deleteProject(id);
+      return send(res, 200, { ok: true, deleted, id });
+    }
+
+    if ((route === '/project/reset-script' || route === '/project/clear-script') && method === 'POST') {
+      const body = await readBody(req);
+      const id = body?.projectId || body?.id || q('id');
+      const p = getProject(id);
+      p.headVersionId = null;
+      touch(p);
+      return send(res, 200, { ok: true, project: p });
+    }
+
     if (route === '/project' && method === 'POST') {
       const body = await readBody(req);
       const tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length ? body.releaseTags : [body?.releaseTag];
@@ -514,9 +542,17 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       } else {
         isNew = true;
         const availableEpisodes = listEpisodes(opts.root);
-        const tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length
+        let tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length
           ? body.releaseTags
-          : (body?.releaseTag ? [body.releaseTag] : (availableEpisodes[0]?.releaseTag ? [availableEpisodes[0].releaseTag] : []));
+          : (body?.releaseTag ? [body.releaseTag] : []);
+        if (!tags.length) {
+          const autoMatched = scanScriptForSources(scriptText, availableEpisodes);
+          if (autoMatched.length) {
+            tags = autoMatched;
+          } else if (availableEpisodes[0]?.releaseTag) {
+            tags = [availableEpisodes[0].releaseTag];
+          }
+        }
         if (tags.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
         if (!tags.length) throw new StepError('BAD_REQUEST', 'No available episode recordings found to associate with project.');
         const t = loadSource(tags[0]);
@@ -572,6 +608,13 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       }
 
       const parsed = parseUploadedScript(scriptText, { idGenerator: newId, defaultTitle: p.title });
+
+      // Auto-adjust targetRuntimeSec if not explicitly specified and estimated runtime exceeds default by >100% (>1800s / 30m)
+      const estSec = estimateRuntime(parsed).sec;
+      const explicitTarget = Number(body?.targetRuntimeSec);
+      if (!explicitTarget && estSec > (p.targetRuntimeSec || 900) * 2) {
+        p.targetRuntimeSec = Math.round(estSec / 60) * 60;
+      }
 
       // Automatically register any archival clips found in the parsed script into the project's Clip Bin (p.clips)
       const existingClips = new Map(p.clips.map(c => [c.clipId, c]));

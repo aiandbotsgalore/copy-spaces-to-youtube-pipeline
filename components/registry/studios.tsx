@@ -172,6 +172,7 @@ export function getActivePanelFromHash(): string {
   const hash = window.location.hash.replace(/^#\/?/, '').trim();
   if (!hash) return 'dashboard';
   if (hash.startsWith('file:')) return hash;
+  if (hash === 'batch' || hash === 'live-queue') return hash;
   const match = STUDIO_REGISTRY.find(s => s.id === hash);
   return match ? match.id : 'dashboard';
 }

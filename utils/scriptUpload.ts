@@ -12,9 +12,12 @@ export interface ParseScriptOptions {
 
 export function unescapeMarkdownLine(raw: string): string {
   if (!raw) return '';
-  return raw
-    .replace(/^(\s*)\\([#*_\-\[\]])/, '$1$2')
-    .replace(/\\([#*_\-\[\]])/g, '$1');
+  return raw.replace(/\\([#*_\[\]\-&])/g, '$1');
+}
+
+export function unescapeMarkdownContent(content: string): string {
+  if (!content) return '';
+  return content.replace(/\\([#*_\[\]\-&])/g, '$1');
 }
 
 export function extractScriptMetadata(scriptText: string): {
@@ -99,7 +102,44 @@ export const INLINE_QUOTE_REGEX =
  * [CLIP #42 | *Night Shift Space*, 2023-11-04, 02:15: Alice - "Quote"]
  */
 export const LEGACY_CLIP_REGEX =
-  /\[CLIP\s*#?(?<id>\d+)\s*\|\s*(?:\*(?<space>[^*]+)\*|(?<space2>[^,]+)),\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/gi;
+  /\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?:\*(?<space>[^*]+)\*|(?<space2>[^,]+)),\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/gi;
+
+/**
+ * Single-line inline clip block:
+ * [CLIP #014 | *Title*, Date, Timestamp: Speaker - "Quote"] or [CLIP #006 / #188 | Title, 12:34: Speaker - "Quote"]
+ */
+export const INLINE_CLIP_TAG_REGEX =
+  /\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?<spaceMeta>[^:]+):\s*(?<speaker>[^0-9-–—:][^-–—:]*)\s*[-–—:]\s*[“"](?<quote>[^”"]+)[”"]\]/gi;
+
+/**
+ * Multi-line clip tag:
+ * [CLIP #006 / #188 | *Night Shift*, 2023-11-04, 02:15]
+ * Speaker 1: "Nobody will ever trace this back to us."
+ */
+export const MULTILINE_CLIP_REGEX =
+  /\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?<meta>[^\]\r\n]+)\]\s*\r?\n\s*(?<speaker>[^:\r\n]+):\s*[“"](?<quote>[^”"\r\n]+)[”"]/gi;
+
+export function parseClipMeta(meta: string, defaultTitle = 'Archival Tape'): { spaceTitle: string; date?: string; time?: string } {
+  const cleaned = (meta || '').trim();
+  const timeMatch = /\b(?:\d{1,2}:)?\d{1,2}:\d{2}(?:\s*[ap]m)?\b/i.exec(cleaned);
+  const time = timeMatch ? timeMatch[0].trim() : undefined;
+
+  const dateMatch = /\b(?:\d{4}-\d{2}-\d{2}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4})\b/i.exec(cleaned);
+  const date = dateMatch ? dateMatch[0].trim() : undefined;
+
+  let spaceTitle = defaultTitle;
+  const starMatch = /\*([^*]+)\*/.exec(cleaned);
+  if (starMatch) {
+    spaceTitle = starMatch[1].trim();
+  } else {
+    let withoutTimeAndDate = cleaned;
+    if (time) withoutTimeAndDate = withoutTimeAndDate.replace(time, '');
+    if (date) withoutTimeAndDate = withoutTimeAndDate.replace(date, '');
+    const parts = withoutTimeAndDate.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length > 0) spaceTitle = parts[0];
+  }
+  return { spaceTitle, date, time };
+}
 
 export function parseTimeToSeconds(timeStr?: string): number {
   if (!timeStr) return 0;
@@ -113,18 +153,53 @@ export function parseTimeToSeconds(timeStr?: string): number {
 }
 
 /**
- * Scans text and extracts all canonical and inline speaker quote tags.
+ * Scans text and extracts all canonical, multi-line, and inline speaker quote tags.
  */
 export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape'): ParsedManuscriptClip[] {
   if (!text || typeof text !== 'string') return [];
   const results: ParsedManuscriptClip[] = [];
   const matchedSpans: [number, number][] = [];
 
-  // 1. Match canonical tags
-  const canonicalRe = new RegExp(CANONICAL_CLIP_REGEX.source, 'gi');
+  // 1. Match multi-line clip blocks first:
+  // [CLIP #006 / #188 | *Night Shift Space*, 2023-11-04, 02:15]
+  // Speaker 1: "Nobody will ever trace this back to us."
+  const multilineRe = new RegExp(MULTILINE_CLIP_REGEX.source, 'gi');
   let match: RegExpExecArray | null;
-  while ((match = canonicalRe.exec(text)) !== null) {
+  while ((match = multilineRe.exec(text)) !== null) {
     matchedSpans.push([match.index, match.index + match[0].length]);
+    const g = match.groups || {};
+    const rawId = g.id || '1';
+    const clipNumber = rawId.trim().replace(/#/g, '').replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ').trim();
+    const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
+    const { spaceTitle, date, time } = parseClipMeta(g.meta || '', defaultTitle);
+    const speaker = (g.speaker || 'Unknown').trim();
+    const quote = (g.quote || '').trim();
+    const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+    const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+    results.push({
+      clipId: `clip_${cleanSlug}`,
+      clipNumber,
+      id: `clip_${cleanSlug}`,
+      title: `${spaceTitle} (#${clipNumber})`,
+      spaceTitle,
+      date,
+      speaker,
+      time,
+      timestamp: time,
+      quote,
+      episodeStartSec: parseTimeToSeconds(time),
+      durationSec,
+      isInline: false,
+    });
+  }
+
+  // 2. Match canonical tags
+  const canonicalRe = new RegExp(CANONICAL_CLIP_REGEX.source, 'gi');
+  while ((match = canonicalRe.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (matchedSpans.some(([s, e]) => !(end <= s || start >= e))) continue;
+    matchedSpans.push([start, end]);
     const g = match.groups || {};
     const id = g.id || '1';
     const title = (g.title || defaultTitle).trim();
@@ -147,7 +222,41 @@ export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape
     });
   }
 
-  // 2. Match legacy tags (with date and asterisks)
+  // 3. Match single-line inline clip blocks:
+  // [CLIP #014 | *Night Shift*, 2023-11-04, 02:15: Alice - "Quote"]
+  const singleLineRe = new RegExp(INLINE_CLIP_TAG_REGEX.source, 'gi');
+  while ((match = singleLineRe.exec(text)) !== null) {
+    const start = match.index;
+    const end = match.index + match[0].length;
+    if (matchedSpans.some(([s, e]) => !(end <= s || start >= e))) continue;
+    matchedSpans.push([start, end]);
+    const g = match.groups || {};
+    const rawId = g.id || '1';
+    const clipNumber = rawId.trim().replace(/#/g, '').replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ').trim();
+    const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
+    const { spaceTitle, date, time } = parseClipMeta(g.spaceMeta || '', defaultTitle);
+    const speaker = (g.speaker || 'Unknown').trim();
+    const quote = (g.quote || '').trim();
+    const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+    const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+    results.push({
+      clipId: `clip_${cleanSlug}`,
+      clipNumber,
+      id: `clip_${cleanSlug}`,
+      title: `${spaceTitle} (#${clipNumber})`,
+      spaceTitle,
+      date,
+      speaker,
+      time,
+      timestamp: time,
+      quote,
+      episodeStartSec: parseTimeToSeconds(time),
+      durationSec,
+      isInline: false,
+    });
+  }
+
+  // 4. Match legacy tags (with date and asterisks)
   const legacyRe = new RegExp(LEGACY_CLIP_REGEX.source, 'gi');
   while ((match = legacyRe.exec(text)) !== null) {
     const start = match.index;
@@ -155,7 +264,9 @@ export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape
     if (matchedSpans.some(([s, e]) => !(end <= s || start >= e))) continue;
     matchedSpans.push([start, end]);
     const g = match.groups || {};
-    const id = g.id || '1';
+    const rawId = g.id || '1';
+    const clipNumber = rawId.trim().replace(/#/g, '').replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ').trim();
+    const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
     const space = (g.space || g.space2 || defaultTitle).replace(/^\*|\*$/g, '').trim();
     const date = (g.date || '').trim();
     const time = (g.time || '').trim();
@@ -164,9 +275,9 @@ export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape
     const wordsCount = quote.split(/\s+/).filter(Boolean).length;
     const durationSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
     results.push({
-      clipId: `clip_${id}`,
-      clipNumber: id,
-      title: `${space} (#${id})`,
+      clipId: `clip_${cleanSlug}`,
+      clipNumber,
+      title: `${space} (#${clipNumber})`,
       spaceTitle: space,
       date,
       speaker,
@@ -210,6 +321,107 @@ export function extractClipsFromText(text: string, defaultTitle = 'Archival Tape
   }
 
   return results;
+}
+
+/**
+ * Scans uploaded script content (Markdown, text) for references to episodes, release tags,
+ * episode numbers (e.g. #006, Episode 6, Space #6), dates (e.g. 20261018, 2026-10-18),
+ * or distinctive titles to auto-match source recordings from the library.
+ */
+export function scanScriptForSources(
+  scriptText: string,
+  episodes: { releaseTag: string; title: string }[]
+): string[] {
+  if (!scriptText || !episodes.length) return [];
+  const text = scriptText;
+  const matched = new Set<string>();
+
+  // 1. Direct release tag exact/boundary matches
+  for (const ep of episodes) {
+    if (!ep.releaseTag) continue;
+    const regex = new RegExp(`\\b${ep.releaseTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (regex.test(text)) {
+      matched.add(ep.releaseTag);
+    }
+  }
+
+  // 2. Extracted clips analysis (spaceTitle, date, clipNumber)
+  const clips = extractClipsFromText(text);
+  for (const clip of clips) {
+    const space = (clip.spaceTitle || clip.title || '').trim().toLowerCase();
+    if (space && space !== 'archival tape') {
+      for (const ep of episodes) {
+        const epTitle = (ep.title || '').toLowerCase().replace(/_/g, ' ');
+        if (epTitle && (epTitle.includes(space) || space.includes(epTitle))) {
+          matched.add(ep.releaseTag);
+        }
+      }
+    }
+    if (clip.date) {
+      const cleanDate = clip.date.replace(/[^0-9]/g, '');
+      if (cleanDate.length >= 8) {
+        for (const ep of episodes) {
+          if (ep.releaseTag.startsWith(cleanDate)) {
+            matched.add(ep.releaseTag);
+          }
+        }
+      }
+    }
+  }
+
+  // 3. Scan for date patterns like 20261018 or 2026-10-18
+  const dateMatches = text.match(/\b(202\d)[-_]?([01]\d)[-_]?([0-3]\d)\b/g);
+  if (dateMatches) {
+    for (const rawDate of dateMatches) {
+      const compactDate = rawDate.replace(/[-_]/g, '');
+      for (const ep of episodes) {
+        if (ep.releaseTag.startsWith(compactDate)) {
+          matched.add(ep.releaseTag);
+        }
+      }
+    }
+  }
+
+  // 4. Scan for episode / recording numbers like #006, #6, Episode 006, Space #6
+  const epNumMatches = text.matchAll(/(?:#|Episode\s*#?|Ep\.?\s*#?|Space\s*#?)\s*(\d{1,4})\b/gi);
+  for (const m of epNumMatches) {
+    const rawNum = m[1];
+    const num = parseInt(rawNum, 10);
+    const padded3 = String(num).padStart(3, '0');
+    const padded2 = String(num).padStart(2, '0');
+    for (const ep of episodes) {
+      const epTag = ep.releaseTag.toLowerCase();
+      const epTitle = ep.title.toLowerCase().replace(/_/g, ' ');
+      if (
+        epTag.includes(`_${padded3}`) ||
+        epTag.includes(`_${padded2}`) ||
+        epTag.includes(`_${num}_`) ||
+        epTag.endsWith(`_${num}`) ||
+        epTitle.includes(`#${num}`) ||
+        epTitle.includes(`#${padded3}`) ||
+        epTitle.includes(`episode ${num}`) ||
+        epTitle.includes(`space ${num}`) ||
+        epTitle.includes(` ${num} `) ||
+        epTitle.endsWith(` ${num}`)
+      ) {
+        matched.add(ep.releaseTag);
+      }
+    }
+  }
+
+  // 5. Episode title keywords/phrases (if distinctive >= 6 chars)
+  for (const ep of episodes) {
+    const cleanTitle = (ep.title || '').replace(/_/g, ' ').trim();
+    if (cleanTitle.length >= 6 && !cleanTitle.startsWith('Twitter Space')) {
+      const titleRegex = new RegExp(`\\b${cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (titleRegex.test(text)) {
+        matched.add(ep.releaseTag);
+      }
+    }
+  }
+
+  // Clamp to max 12 sources
+  return Array.from(matched).slice(0, 12);
 }
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -499,7 +711,10 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
   }
 
   // 2. Parse as Markdown or plain text
-  const rawLines = scriptText.split(/\r?\n/);
+  // Pre-parser sanitization pass:
+  // Unescape markdown syntax escapes (\# -> #, \## -> ##, \** -> **, \* -> *, \[ -> [, \] -> ], \- -> -, \& -> &)
+  const cleanText = unescapeMarkdownContent(scriptText);
+  const rawLines = cleanText.split(/\r?\n/);
   const lines = rawLines.map(unescapeMarkdownLine);
   const segments: Segment[] = [];
   let curSeg: { id: string; title: string; scenes: Scene[] } | null = null;
@@ -507,6 +722,7 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
   let paragraphBuffer: string[] = [];
   let inFrontmatter = true;
   let inConventions = false;
+  let inRevisionNote = false;
 
   const flushParagraph = () => {
     if (paragraphBuffer.length === 0) return;
@@ -578,7 +794,8 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
     if (!curScene) curScene = { id: newId('sc'), title: `Scene ${curSeg.scenes.length + 1}`, purpose: 'Narrative scene', blocks: [] };
   };
 
-  for (const rawLine of lines) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const rawLine = lines[lineIndex];
     const line = rawLine.trim();
 
     // Empty line separates paragraphs
@@ -632,6 +849,19 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       }
     }
 
+    // If inside a multi-line revision / editor note
+    if (inRevisionNote) {
+      if (/\]\*|\*\/|\]$/.test(line) || /\*$/.test(line)) {
+        inRevisionNote = false;
+        continue;
+      }
+      if (/^#{1,3}\s+|^[-*_]{3,}\s*$/.test(line)) {
+        inRevisionNote = false;
+      } else {
+        continue;
+      }
+    }
+
     // Filter Director Notes, Writing Prompts, and Editorial Guidance (Issue 2)
     const isDirectorNote =
       /^\*\[\s*(?:Sensory Grounding|Director|Editorial|Writing Prompt|Production Note|Note|Instruction|Pacing|Climax)/i.test(line) ||
@@ -641,6 +871,10 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
 
     if (isDirectorNote) {
       flushParagraph();
+      // If note starts on this line and does not close on this line, enter multi-line revision mode
+      if ((line.startsWith('*[') || line.startsWith('[')) && !line.endsWith(']*') && !line.endsWith(']') && !line.endsWith('*')) {
+        inRevisionNote = true;
+      }
       continue; // Filtered out! Never treated as live spoken narration!
     }
 
@@ -652,14 +886,17 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
     }
 
     // 1. Act / Segment Heading (e.g., "# Act 1: The Hook", "ACT I: THE HOOK", "ACT 1: ...", "PART 1: ...")
-    const actMatch =
+    // When a line has both Act and Scene (e.g. "### ACT I — SCENE 1: ..."), handle in scene splitting below
+    const standaloneActMatch =
       /^#\s+(.+)$/.exec(line) ||
       /^##\s+((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)$/i.exec(line) ||
       /^((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)$/i.exec(line) ||
       /^\*\*((?:ACT|PART|SEGMENT)\s+(?:[IVXLCDM]+|\d+)(?:[:\s—–.-].*)?)\*\*$/i.exec(line);
-    if (actMatch) {
+    const hasSceneInAct = /\bSCENE\b/i.test(line);
+
+    if (standaloneActMatch && !hasSceneInAct) {
       flushSegment();
-      const rawTitle = (actMatch[1] || actMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
+      const rawTitle = (standaloneActMatch[1] || standaloneActMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
       curSeg = {
         id: newId('seg'),
         title: rawTitle,
@@ -668,25 +905,87 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
-    // 2. Scene Container Headings (e.g., "## Scene 1: The Revelation", "SCENE 1", "PROLOGUE", "EPILOGUE", or "### SCENE...")
+    // 2. Scene Container Headings (e.g., "### ACT I — SCENE 1: ...", "## Scene 1: ...", "### PROLOGUE ...", "### EPILOGUE ...")
     const prologueMatch = /^(?:##\s+|###\s+|\*\*)?PROLOGUE(?:\s*[:\s—–.-]\s*(.*?))?\**$/i.exec(line);
     const epilogueMatch = /^(?:##\s+|###\s+|\*\*)?EPILOGUE(?:\s*[:\s—–.-]\s*(.*?))?\**$/i.exec(line);
-    const h3SceneMatch = /^###\s+(?:SCENE|ACT|PROLOGUE|EPILOGUE)\b\s*(.*)$/i.exec(line);
-    const sceneMatch =
-      prologueMatch ? ['PROLOGUE', prologueMatch[1]?.trim() ? `Prologue: ${prologueMatch[1].trim()}` : 'Prologue'] :
-      epilogueMatch ? ['EPILOGUE', epilogueMatch[1]?.trim() ? `Epilogue: ${epilogueMatch[1].trim()}` : 'Epilogue'] :
-      h3SceneMatch ? ['H3SCENE', line.replace(/^###\s*/, '').trim()] :
+
+    // Explicit Act + Scene heading: e.g. "### ACT I — SCENE 1: The Hook" or "### ACT 2: SCENE 3" or "ACT I: SCENE 1"
+    const actAndSceneMatch = /^(?:###|##|\*\*)?\s*(?:ACT|PART|SEGMENT)\s+([IVXLCDM]+|\d+)\s*[:—–,-]\s*(SCENE\s+(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)(?:[:\s—–.-].*)?)\**$/i.exec(line);
+
+    // Any heading starting with ### SCENE / ### ACT / ### PROLOGUE / ### EPILOGUE
+    const h3SceneMatch = /^###\s+(?:(?:ACT\s+[IVXLCDM\d]+\s*[:—–,-]\s*)?SCENE\b|ACT\b|PROLOGUE\b|EPILOGUE\b)\s*(.*)$/i.exec(line);
+
+    // Standard ## Scene / SCENE 1 headings
+    const standardSceneMatch =
       /^##\s+(.+)$/.exec(line) ||
       /^((?:SCENE)\s+(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)(?:[:\s—–.-].*)?)$/i.exec(line) ||
       /^\*\*((?:SCENE\s+)?(?:[IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)(?:[:\s—–.-].*?))\*\*$/i.exec(line) ||
       /^\[(?:Scene:?\s*|Scene\s+(?:\d+|[IVXLCDM]+)[:\s—–.-]\s*)(.*)\]$/i.exec(line);
 
-    if (sceneMatch) {
-      flushScene();
-      if (!curSeg) {
-        curSeg = { id: newId('seg'), title: opts.defaultTitle || 'Act 1', scenes: [] };
+    if (actAndSceneMatch) {
+      const actNum = actAndSceneMatch[1];
+      const fullTitle = line.replace(/^###\s*|^##\s*/, '').replace(/^\*+|\*+$/g, '').trim();
+      if (!curSeg || (!curSeg.title.toLowerCase().includes(`act ${actNum.toLowerCase()}`) && !curSeg.title.toLowerCase().includes(`act ${actNum.toUpperCase()}`))) {
+        flushSegment();
+        curSeg = { id: newId('seg'), title: `Act ${actNum}`, scenes: [] };
       }
-      const rawTitle = (sceneMatch[1] || sceneMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
+      flushScene();
+      curScene = {
+        id: newId('sc'),
+        title: fullTitle,
+        purpose: 'Narrative scene',
+        blocks: [],
+      };
+      continue;
+    }
+
+    if (prologueMatch) {
+      flushScene();
+      ensureContext();
+      const rawTitle = line.startsWith('###') || line.startsWith('##')
+        ? line.replace(/^#{2,3}\s*/, '').replace(/^\*+|\*+$/g, '').trim()
+        : (prologueMatch[1]?.trim() ? `Prologue: ${prologueMatch[1].trim()}` : 'Prologue');
+      curScene = {
+        id: newId('sc'),
+        title: rawTitle,
+        purpose: 'Narrative scene',
+        blocks: [],
+      };
+      continue;
+    }
+
+    if (epilogueMatch) {
+      flushScene();
+      ensureContext();
+      const rawTitle = line.startsWith('###') || line.startsWith('##')
+        ? line.replace(/^#{2,3}\s*/, '').replace(/^\*+|\*+$/g, '').trim()
+        : (epilogueMatch[1]?.trim() ? `Epilogue: ${epilogueMatch[1].trim()}` : 'Epilogue');
+      curScene = {
+        id: newId('sc'),
+        title: rawTitle,
+        purpose: 'Narrative scene',
+        blocks: [],
+      };
+      continue;
+    }
+
+    if (h3SceneMatch) {
+      flushScene();
+      ensureContext();
+      const rawTitle = line.replace(/^###\s*/, '').replace(/^\*+|\*+$/g, '').trim();
+      curScene = {
+        id: newId('sc'),
+        title: rawTitle,
+        purpose: 'Narrative scene',
+        blocks: [],
+      };
+      continue;
+    }
+
+    if (standardSceneMatch) {
+      flushScene();
+      ensureContext();
+      const rawTitle = (standardSceneMatch[1] || standardSceneMatch[0]).replace(/^\*+|\*+$|^#+\s*/g, '').trim();
       curScene = {
         id: newId('sc'),
         title: rawTitle,
@@ -700,12 +999,8 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
     const h3Match = /^###\s+(.+)$/.exec(line);
     if (h3Match) {
       flushParagraph();
-      // If curScene has no blocks yet, name the scene after this heading; otherwise add as HEADING block
-      if (!curSeg) curSeg = { id: newId('seg'), title: opts.defaultTitle || 'Act 1', scenes: [] };
-      if (!curScene) {
-        curScene = { id: newId('sc'), title: h3Match[1].trim(), purpose: 'Narrative scene', blocks: [] };
-      }
-      curScene.blocks.push({
+      ensureContext();
+      curScene!.blocks.push({
         id: newId('b'),
         kind: 'heading',
         type: 'HEADING',
@@ -715,23 +1010,71 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
+    const h12Match = /^#{1,2}\s+(.+)$/.exec(line);
+    if (h12Match) {
+      flushParagraph();
+      ensureContext();
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'heading',
+        type: 'HEADING',
+        text: h12Match[1].trim(),
+        sec: 0,
+      });
+      continue;
+    }
+
     // 3. Archival Tape / Broadcast Clips (`type: "ARCHIVAL_CLIP"`)
-    // Match Canonical: [CLIP #(?<id>\d+)\s*\|\s*(?<title>[^,]+),\s*(?<speaker>[^0-9]+)\s+(?<time>\d+:\d+(?::\d+)?)\s*-\s*[“"](?<quote>[^”"]+)[”"]\]
-    // Match Legacy: [CLIP #42 | *Night Shift Space*, 2023-11-04, 02:15: Alice - "Quote"]
-    // Match Inline quote: [(?<speaker>[A-Za-z0-9_ ]+)\s+(?<time>\d+:\d+(?::\d+)?)\s+[“"](?<quote>[^”"]+)[”"]\]
+    // A. Multi-line clip tag:
+    // [CLIP #006 / #188 | *Night Shift Space*, 2023-11-04, 02:15]
+    // Speaker 1: "Nobody will ever trace this back to us."
+    const multilineHeaderMatch = /^\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?<meta>[^\]]+)\]$/i.exec(line);
+    if (multilineHeaderMatch) {
+      let nextIdx = lineIndex + 1;
+      while (nextIdx < lines.length && !lines[nextIdx].trim()) {
+        nextIdx++;
+      }
+      if (nextIdx < lines.length) {
+        const nextLine = lines[nextIdx].trim();
+        const nextQuoteMatch = /^(?<speaker>[^:\r\n]+):\s*[“"](?<quote>[^”"\r\n]+)[”"]$/i.exec(nextLine);
+        if (nextQuoteMatch) {
+          flushParagraph();
+          ensureContext();
+          const rawId = multilineHeaderMatch.groups?.id || '1';
+          const clipNumber = rawId.trim().replace(/#/g, '').replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ').trim();
+          const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
+          const { spaceTitle, date, time } = parseClipMeta(multilineHeaderMatch.groups?.meta || '', opts.defaultTitle || 'Archival Tape');
+          const speaker = nextQuoteMatch.groups?.speaker?.trim() || 'Unknown';
+          const quote = nextQuoteMatch.groups?.quote?.trim() || '';
+          const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+          const durSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+          curScene!.blocks.push({
+            id: newId('b'),
+            kind: 'clip',
+            type: 'ARCHIVAL_CLIP',
+            clipId: `clip_${cleanSlug}`,
+            clipNumber,
+            spaceTitle,
+            date,
+            time,
+            speaker,
+            keptText: quote,
+            inSec: 0,
+            outSec: durSec,
+            trimBasis: 'full',
+            fn: 'evidence',
+            rationale: `Archival tape clip from ${spaceTitle}`,
+            locked: false,
+          });
+          lineIndex = nextIdx;
+          continue;
+        }
+      }
+    }
+
+    // B. Canonical clip: [CLIP #42 | Space Title, Alice 12:34 - "Quote"]
     const canonicalClipRe = new RegExp(`^${CANONICAL_CLIP_REGEX.source}$`, 'i');
-    const legacyClipRe = new RegExp(`^${LEGACY_CLIP_REGEX.source}$`, 'i');
-    const inlineQuoteRe = new RegExp(`^${INLINE_QUOTE_REGEX.source}$`, 'i');
-
     const canonicalMatch = canonicalClipRe.exec(line);
-    const legacyMatch = !canonicalMatch ? (
-      legacyClipRe.exec(line) ||
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?)\s*:\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
-      /^\[CLIP\s*#?(?<id>\d+)\s*\|\s*(?<space>[^,]+),\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line)
-    ) : null;
-    const inlineQuoteMatch = (!canonicalMatch && !legacyMatch) ? inlineQuoteRe.exec(line) : null;
-
     if (canonicalMatch) {
       flushParagraph();
       ensureContext();
@@ -763,11 +1106,59 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
+    // C. Single-line inline clip block:
+    // [CLIP #014 | *Title*, Date, Timestamp: Speaker - "Quote"]
+    const singleLineMatch =
+      /^\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?<spaceMeta>[^:]+):\s*(?<speaker>[^0-9-–—:][^-–—:]*)\s*[-–—:]\s*[“"](?<quote>[^”"]+)[”"]\]$/i.exec(line);
+    if (singleLineMatch) {
+      flushParagraph();
+      ensureContext();
+      const rawId = singleLineMatch.groups?.id || '1';
+      const clipNumber = rawId.trim().replace(/#/g, '').replace(/\s+/g, ' ').replace(/\s*\/\s*/g, ' / ').trim();
+      const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
+      const { spaceTitle, date, time } = parseClipMeta(singleLineMatch.groups?.spaceMeta || '', opts.defaultTitle || 'Archival Tape');
+      const speaker = singleLineMatch.groups?.speaker?.trim() || 'Unknown';
+      const quote = singleLineMatch.groups?.quote?.trim() || '';
+      const wordsCount = quote.split(/\s+/).filter(Boolean).length;
+      const durSec = Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10);
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'clip',
+        type: 'ARCHIVAL_CLIP',
+        clipId: `clip_${cleanSlug}`,
+        clipNumber,
+        spaceTitle,
+        date,
+        time,
+        speaker,
+        keptText: quote,
+        inSec: 0,
+        outSec: durSec,
+        trimBasis: 'full',
+        fn: 'evidence',
+        rationale: `Archival tape clip from ${spaceTitle}`,
+        locked: false,
+      });
+      continue;
+    }
+
+    // D. Legacy Single-line clips & inline quotes
+    const legacyClipRe = new RegExp(`^${LEGACY_CLIP_REGEX.source}$`, 'i');
+    const inlineQuoteRe = new RegExp(`^${INLINE_QUOTE_REGEX.source}$`, 'i');
+
+    const legacyMatch = legacyClipRe.exec(line) ||
+      /^\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[\d:]+(?:\s*[ap]m)?)\s*:\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
+      /^\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*\*(?<space>[^*]+)\*,\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line) ||
+      /^\[CLIP\s*#?(?<id>[0-9/ #]+)\s*\|\s*(?<space>[^,]+),\s*(?<date>[^,]+),\s*(?<time>[^:]+):\s*(?<speaker>[^-]+)-\s*[“"](?<quote>[^”"]+)[”"]\]/i.exec(line);
+    const inlineQuoteMatch = !legacyMatch ? inlineQuoteRe.exec(line) : null;
+
     if (legacyMatch) {
       flushParagraph();
       ensureContext();
       const g = legacyMatch.groups || {};
-      const id = g.id || '1';
+      const rawId = g.id || '1';
+      const clipNumber = rawId.trim().replace(/^#+/, '');
+      const cleanSlug = rawId.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
       const space = (g.space || g.space2 || opts.defaultTitle || 'Archival Tape').replace(/^\*|\*$/g, '').trim();
       const date = (g.date || '').trim();
       const time = (g.time || '').trim();
@@ -779,8 +1170,8 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
         id: newId('b'),
         kind: 'clip',
         type: 'ARCHIVAL_CLIP',
-        clipId: `clip_${id}`,
-        clipNumber: id,
+        clipId: `clip_${cleanSlug}`,
+        clipNumber,
         spaceTitle: space,
         date,
         time,
@@ -846,7 +1237,7 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
-    const themeMatch = /^\[THEME:?\s*(.*)\]$/i.exec(line);
+    const themeMatch = /^\[THEME(?:\s*\d+)?:?\s*(.*)\]$/i.exec(line);
     if (themeMatch) {
       flushParagraph();
       ensureContext();
@@ -857,6 +1248,38 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
         cueType: 'theme',
         text: themeMatch[1].trim(),
         note: themeMatch[1].trim(),
+        sec: 0,
+      });
+      continue;
+    }
+
+    const broadcastEndMatch = /^\[(?:END\s+OF\s+BROADCAST|FADE\s+OUT|FADE\s+TO\s+BLACK)\]$/i.exec(line);
+    if (broadcastEndMatch) {
+      flushParagraph();
+      ensureContext();
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'cue',
+        type: 'CUE',
+        cueType: 'production_note',
+        text: line,
+        note: line,
+        sec: 0,
+      });
+      continue;
+    }
+
+    const stageDirectionMatch = /^\[(?:STAGE\s+DIRECTION|DIRECTOR(?:'S)?\s+NOTE|PRODUCTION\s+NOTE|MUSIC\s+CUE)\b\s*:?\s*(.*)\]$/i.exec(line);
+    if (stageDirectionMatch) {
+      flushParagraph();
+      ensureContext();
+      curScene!.blocks.push({
+        id: newId('b'),
+        kind: 'cue',
+        type: 'CUE',
+        cueType: 'production_note',
+        text: line,
+        note: stageDirectionMatch[1].trim(),
         sec: 0,
       });
       continue;

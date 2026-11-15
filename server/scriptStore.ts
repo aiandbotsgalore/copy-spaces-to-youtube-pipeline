@@ -68,6 +68,27 @@ export function createScriptStore(root: string) {
     },
     getProject: (id: string) => readJson<ScriptProject>(p('projects', must(id), 'project.json')),
     saveProject: (proj: ScriptProject) => writeJson(p('projects', must(proj.id), 'project.json'), proj),
+    deleteProject(id: string): boolean {
+      const dir = p('projects', must(id));
+      if (fs.existsSync(dir)) {
+        try {
+          const runsDir = p('projects', id, 'runs');
+          if (fs.existsSync(runsDir)) {
+            const runFiles = fs.readdirSync(runsDir).filter(f => f.endsWith('.json'));
+            for (const rf of runFiles) {
+              const runId = rf.slice(0, -5);
+              const logFile = p('logs', `${runId}.jsonl`);
+              if (fs.existsSync(logFile)) {
+                try { fs.rmSync(logFile, { force: true }); } catch { /* ignore */ }
+              }
+            }
+          }
+        } catch { /* ignore */ }
+        fs.rmSync(dir, { recursive: true, force: true });
+        return true;
+      }
+      return false;
+    },
 
     getVersion: (projectId: string, versionId: string) => readJson<ScriptVersion>(p('projects', must(projectId), 'versions', `${must(versionId)}.json`)),
     saveVersion: (v: ScriptVersion) => writeJson(p('projects', must(v.projectId), 'versions', `${must(v.id)}.json`), v),

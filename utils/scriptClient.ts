@@ -92,6 +92,8 @@ export const scriptApi = {
   createProject: (releaseTags: string[], targetRuntimeSec: number, extra: { format?: EpisodeFormat | null; thesis?: string } = {}) => call<{ project: ScriptProject }>('POST', '/project', { releaseTags, targetRuntimeSec, ...extra }),
   project: (id: string) => call<ProjectResponse>('GET', `/project?id=${encodeURIComponent(id)}`),
   updateProject: (id: string, patch: Record<string, unknown>) => call<{ project: ScriptProject }>('POST', '/project/update', { id, ...patch }),
+  deleteProject: (id: string) => call<{ ok: boolean; deleted: boolean }>('POST', '/project/delete', { id }),
+  resetScript: (id: string) => call<{ ok: boolean; project: ScriptProject }>('POST', '/project/reset-script', { id }),
   addClip: (id: string, fromId: string, toId: string, releaseTag?: string) => call<{ project: ScriptProject }>('POST', '/project/add-clip', { id, fromId, toId, releaseTag }),
   analyze: (projectId: string, roles: RoleChoice, force = false) => call<{ analyses: Record<string, EpisodeAnalysis>; tagging: Tagging }>('POST', '/analyze', { projectId, force, ...roles }),
   tagClips: (projectId: string, roles: RoleChoice, force = false) => call<{ project: ScriptProject; tagged: number; cached: boolean }>('POST', '/tag-clips', { projectId, force, ...roles }),

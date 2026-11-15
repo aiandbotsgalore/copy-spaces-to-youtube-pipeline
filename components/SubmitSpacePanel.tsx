@@ -39,6 +39,7 @@ interface Props {
   config: EnhancedConfig;
   onViewRunHistory: () => void;
   onDispatched?: (url: string) => void;
+  onNavigateBatch?: () => void;
 }
 
 type Action = SubmitAction;
@@ -69,7 +70,12 @@ function cleanTitleFromFilename(filename: string): string {
     .trim();
 }
 
-const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatched }) => {
+const SubmitSpacePanel: React.FC<Props> = ({
+  config,
+  onViewRunHistory,
+  onDispatched,
+  onNavigateBatch,
+}) => {
   const [mode, setMode] = useState<IngestMode>('url');
 
   // URL mode state
@@ -298,7 +304,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
       </div>
 
       {/* Mode Switcher Tabs */}
-      <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl mb-6">
+      <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl mb-6">
         <button
           type="button"
           onClick={() => {
@@ -306,14 +312,27 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
             if (notice) setNotice(null);
           }}
           disabled={isLoading}
-          className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             mode === 'url'
               ? 'bg-indigo-600 text-white shadow-lg'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
           }`}
         >
           <Link2 size={15} />
-          Space or Audio URL
+          Single URL
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (onNavigateBatch) {
+              onNavigateBatch();
+            }
+          }}
+          disabled={isLoading}
+          className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all cursor-pointer"
+        >
+          <ListPlus size={15} />
+          Batch Submit
         </button>
         <button
           type="button"
@@ -322,14 +341,14 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
             if (notice) setNotice(null);
           }}
           disabled={isLoading}
-          className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
             mode === 'file'
               ? 'bg-indigo-600 text-white shadow-lg'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
           }`}
         >
           <UploadCloud size={15} />
-          Upload Local Audio File
+          Upload Local File
         </button>
       </div>
 
@@ -338,9 +357,21 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
           <>
             <section className="p-5 md:p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
               <div>
-                <label htmlFor="space-url" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                  Space or audio URL
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="space-url" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    Space or audio URL
+                  </label>
+                  {onNavigateBatch && (
+                    <button
+                      type="button"
+                      onClick={onNavigateBatch}
+                      className="text-xs text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 cursor-pointer font-medium"
+                    >
+                      <ListPlus size={12} />
+                      Batch submit multiple URLs →
+                    </button>
+                  )}
+                </div>
                 <input
                   id="space-url"
                   type="url"
@@ -348,6 +379,16 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   onChange={event => {
                     setUrl(event.target.value);
                     if (notice) setNotice(null);
+                  }}
+                  onPaste={event => {
+                    const text = event.clipboardData.getData('text');
+                    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                    if (lines.length > 1 && onNavigateBatch) {
+                      event.preventDefault();
+                      const existing = config.batchUrls || [];
+                      config.batchUrls = [...existing, ...lines];
+                      onNavigateBatch();
+                    }
                   }}
                   onKeyDown={event => {
                     if (event.key === 'Enter' && !isLoading) void submitUrl('run');
@@ -358,7 +399,7 @@ const SubmitSpacePanel: React.FC<Props> = ({ config, onViewRunHistory, onDispatc
                   className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white font-mono placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60 transition-colors"
                 />
                 <p className="mt-2 text-[11px] text-slate-400">
-                  Supports X Spaces and other audio URLs handled by your ingest workflow.
+                  Supports X Spaces and other audio URLs handled by your ingest workflow. Pasting multiple lines will automatically open Batch Submit.
                 </p>
               </div>
 

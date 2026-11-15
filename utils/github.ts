@@ -328,6 +328,43 @@ export async function appendLineToRepositoryTextFile(
   }
 }
 
+export async function appendLinesToRepositoryTextFile(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  lines: string[],
+  message: string,
+  maxAttempts = 3
+): Promise<{ addedCount: number; totalCount: number }> {
+  const cleanLines = lines.map(l => l.trim()).filter(Boolean);
+  if (cleanLines.length === 0) {
+    return { addedCount: 0, totalCount: 0 };
+  }
+  const branch = await getRepositoryDefaultBranch(token, owner, repo);
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const current = await readRepositoryTextFile(token, owner, repo, path, branch);
+    const existing = current?.content.replace(/(?:\r?\n)+$/, '') || '';
+    const existingList = existing ? existing.split(/\r?\n/).map(l => l.trim()).filter(Boolean) : [];
+    const updated = existing ? `${existing}\n${cleanLines.join('\n')}\n` : `${cleanLines.join('\n')}\n`;
+
+    try {
+      await writeRepositoryTextFile(token, owner, repo, path, updated, message, branch, current?.sha);
+      return { addedCount: cleanLines.length, totalCount: existingList.length + cleanLines.length };
+    } catch (error) {
+      const isConflict = error instanceof GitHubApiError && (error.status === 409 || error.status === 422);
+      if (!isConflict || attempt === maxAttempts) {
+        if (isConflict) {
+          throw new Error(`Queue update conflict after ${maxAttempts} attempts. Reload and try again.`);
+        }
+        throw error;
+      }
+    }
+  }
+  return { addedCount: cleanLines.length, totalCount: cleanLines.length };
+}
+
 export async function createRepo(token: string, name: string, description: string): Promise<void> {
   const res = await ghFetch(token, '/user/repos', {
     method: 'POST',

@@ -12,6 +12,27 @@ export const TAKE_VOICE = 'Logan';
 
 const normalizeText = (s: string) => (s || '').replace(/\s+/g, ' ').trim();
 
+/**
+ * Strips speaker prefixes and inline delivery directions from narration text
+ * before sending to Vox synthesis or computing word counts/runtimes.
+ * Keeps visual script formatting intact while ensuring Vox never speaks
+ * "[close to mic, measured]" or "LOGAN:".
+ */
+export function cleanSpokenText(raw: string): string {
+  if (!raw) return '';
+  let s = raw;
+  // Exclude leading speaker headers like **LOGAN**, LOGAN:, **LOGAN (READING DM ...)**:
+  s = s.replace(/^(?:\*\*|\*|\[)?\s*(?:LOGAN|NARRATOR|HOST)(?:\s*\([^)]*\))?\s*:?\s*(?:\*\*|\*|\])?\s*:?\s*/i, '');
+  // Strip inline delivery directions / stage notes in brackets, e.g. [close to mic, measured], [plain read]
+  s = s.replace(/\[(?!(?:CLIP|#\d+|http))[^\]]*\]/gi, (m) => {
+    if (/^(?:\[CLIP\b|\[#\d+|\[https?:)/i.test(m)) return m;
+    return ' ';
+  });
+  // Strip editor / revision guidance if present
+  s = s.replace(/\*\[[^\]]*\]\*/g, ' ');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
 function fnv1a(s: string, seed: number): number {
   let h = seed >>> 0;
   for (let i = 0; i < s.length; i++) {
@@ -23,7 +44,7 @@ function fnv1a(s: string, seed: number): number {
 
 /** 64-bit hex hash of the voice and normalized text; stable across server and browser. */
 export function takeTextHash(text: string, voice = TAKE_VOICE): string {
-  const s = `${voice}\u0000${normalizeText(text)}`;
+  const s = `${voice}\u0000${normalizeText(cleanSpokenText(text))}`;
   return fnv1a(s, 0x811c9dc5).toString(16).padStart(8, '0') + fnv1a(s, 0x050c5d1f).toString(16).padStart(8, '0');
 }
 
@@ -60,7 +81,7 @@ export function narrationInScope(segments: Segment[], sceneId?: string): Narrati
   for (const seg of segments) for (const sc of seg.scenes) {
     if (sceneId && sc.id !== sceneId) continue;
     for (const b of sc.blocks) {
-      if (b.kind === 'narration' && normalizeText(b.text)) {
+      if (b.kind === 'narration' && normalizeText(cleanSpokenText(b.text))) {
         if (b.type === 'HEADING') continue;
         out.push(b);
       }
@@ -106,7 +127,8 @@ export function spokenSceneView(scene: Scene, clips: Record<string, { speaker: s
     blocks: scene.blocks.filter(b => !b.locked).map((b): SpokenBlockView => {
       switch (b.kind) {
         case 'narration': {
-          const n = words(b.text).length;
+          const spoken = cleanSpokenText(b.text);
+          const n = words(spoken).length;
           if (hasValidTake(b)) return { id: b.id, kind: 'narration', text: b.text, seconds: r1(b.takeSec), durationSource: 'vox', wordsPerSec: r1(n / b.takeSec) };
           return { id: b.id, kind: 'narration', text: b.text, seconds: r1((n / wpm) * 60), durationSource: 'estimated' };
         }

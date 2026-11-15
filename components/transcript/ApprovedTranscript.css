@@ -30,21 +30,22 @@
 .sp-approved .sp-resizer::after {content:"";position:absolute;top:43%;left:1px;height:30px;width:3px;background:#556586;border-radius:4px;}
 .sp-approved .sp-reopen {width:26px;flex:0 0 26px;background:#121b30;border:0;border-right:1px solid #303958;color:#b2b5fa;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .sp-approved .sp-reopen:hover {background:#30285e;}
-.sp-approved .sp-workspace-toolbar {flex-shrink:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#0d1729;border-bottom:1px solid #2b3b58;padding:7px 12px;}
-.sp-approved .sp-workspace-toolbar button,.sp-approved .sp-workspace-toolbar select {font-size:11px;padding:6px 8px;border-radius:6px;border:1px solid #34425c;color:#c9d5f0;background:#152039;cursor:pointer;}
+.sp-approved .sp-workspace-toolbar {flex-shrink:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#0d1729;border-bottom:1px solid #2b3b58;padding:5px 12px;}
+.sp-approved .sp-workspace-toolbar button,.sp-approved .sp-workspace-toolbar select {font-size:11px;padding:5px 8px;border-radius:6px;border:1px solid #34425c;color:#c9d5f0;background:#152039;cursor:pointer;}
 .sp-approved .sp-workspace-toolbar .sp-active {background:#5741dd;border-color:#775fff;color:white;}
 .sp-approved .sp-workspace-toolbar .sp-layout-label {font-size:10px;color:#899bb8;font-weight:750;letter-spacing:.09em;}
-.sp-approved .sp-wave {background:#0c162b;border:1px solid #2b3c5d;border-radius:9px;padding:10px 12px 8px;margin:9px 12px 8px;flex-shrink:0;}
-.sp-approved .sp-wave-caption {display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#acb9db;margin-bottom:7px;}
-.sp-approved .sp-wave-bars {height:54px;display:flex;align-items:center;gap:2px;overflow:hidden;}
+.sp-approved .sp-wave {background:#0c162b;border:1px solid #2b3c5d;border-radius:9px;padding:6px 12px 6px;margin:5px 12px 6px;flex-shrink:0;}
+.sp-approved .sp-wave-caption {display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#acb9db;margin-bottom:4px;}
+.sp-approved .sp-wave-bars {height:36px;display:flex;align-items:center;gap:2px;overflow:hidden;}
 .sp-approved .sp-wave-bars button {flex:1;min-width:2px;border-radius:3px;background:linear-gradient(180deg,#229bfa,#6a3bd9);opacity:.85;cursor:pointer;}
 .sp-approved .sp-wave-bars button.hot {background:linear-gradient(180deg,#ff557f,#af3176);}
 .sp-approved .sp-wave-bars button:hover {background:#d1c8ff;opacity:1;}
-.sp-approved .sp-transport {display:flex;align-items:center;gap:10px;min-height:36px;border-top:1px solid #273753;margin-top:7px;padding-top:8px;}
-.sp-approved .sp-transport button {background:#263251;color:#dde8ff;border-radius:7px;padding:6px 9px;font-size:11px;cursor:pointer;}
+.sp-approved .sp-transport {display:flex;align-items:center;gap:8px;min-height:30px;border-top:1px solid #273753;margin-top:5px;padding-top:5px;flex-wrap:nowrap;}
+.sp-approved .sp-transport button {background:#263251;color:#dde8ff;border-radius:7px;padding:5px 8px;font-size:11px;cursor:pointer;}
 .sp-approved .sp-transport button:disabled {opacity:.35;cursor:not-allowed;}
 .sp-approved .sp-transport button.primary {background:#6547f6;color:white;}
 .sp-approved .sp-transport time {font:11px Consolas,monospace;color:#c8d9ff;}
+.sp-approved .sp-transport .sp-inspector-note {white-space:nowrap;margin-left:auto;font-size:11px;color:#8ea2c2;opacity:0.85;}
 .sp-approved .sp-feed {min-height:0;flex:1;overflow-y:auto;padding:12px 13px;background:#080e1d;scrollbar-width:thin;}
 .sp-approved .sp-turn-list {max-width:100%;width:100%;margin:0 auto;}
 .sp-approved .sp-turn {background:#0d192b;border:1px solid #1c2c45;border-radius:7px;padding:10px 12px;gap:10px;box-shadow:none;}
@@ -56,7 +57,7 @@
 .sp-approved .sp-inspector-tabs {display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:9px 7px 0;border-bottom:1px solid #263753;}
 .sp-approved .sp-inspector-tabs button {padding:8px 2px;font-size:11px;cursor:pointer;color:#9dafcd;border-bottom:2px solid transparent;}
 .sp-approved .sp-inspector-tabs button.active {border-color:#8068ff;color:white;background:#24234e;}
-.sp-approved .sp-inspector-body {min-height:0;overflow-y:auto;flex:1;padding:9px;scrollbar-width:thin;}
+.sp-approved .sp-inspector-body {min-height:0;overflow-y:auto;flex:1;padding:9px 9px 96px 9px;scrollbar-width:thin;}
 .sp-approved .sp-module {margin-bottom:8px;border:1px solid #233551;background:#101b2e;border-radius:9px;overflow:hidden;}
 .sp-approved .sp-module-h {display:flex;align-items:center;justify-content:space-between;width:100%;font-size:12px;font-weight:700;text-align:left;color:#ecedff;padding:11px;cursor:pointer;}
 .sp-approved .sp-module-content {padding:8px 11px 12px;}

@@ -19,7 +19,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import child_process from 'node:child_process';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { ScriptProject, ScriptVersion } from '../utils/scriptTypes';
-import { narrationInScope, takeTextHash, TAKE_VOICE, type TakeRecord } from '../utils/scriptAudio';
+import { cleanSpokenText, narrationInScope, takeTextHash, TAKE_VOICE, type TakeRecord } from '../utils/scriptAudio';
 import type { RenderManifest } from '../utils/scriptCompile';
 import { StepError } from './scriptEngine';
 import { serveFile } from './serveFile';
@@ -95,8 +95,9 @@ export function createAudioService(deps: AudioServiceDeps) {
     const finalName = `take_${hash}.mp3`;
     const tmpFull = path.join(voxDir, `take_${hash}_${randomUUID().slice(0, 8)}.tmp.mp3`);
     const env = deps.getEnv();
+    const spoken = cleanSpokenText(text);
     try {
-      await synth({ text, speaker: TAKE_VOICE, outFullPath: tmpFull, env: { VOXCPM_SPACE: env.VOXCPM_SPACE || 'loganblack0/voxcpm-voice-clone', HF_TOKEN: env.HF_TOKEN } });
+      await synth({ text: spoken, speaker: TAKE_VOICE, outFullPath: tmpFull, env: { VOXCPM_SPACE: env.VOXCPM_SPACE || 'loganblack0/voxcpm-voice-clone', HF_TOKEN: env.HF_TOKEN } });
     } catch (e: any) {
       fs.rmSync(tmpFull, { force: true });
       throw new StepError('VOX_UNAVAILABLE', synthFailureMessage(e));
@@ -123,9 +124,11 @@ export function createAudioService(deps: AudioServiceDeps) {
     if (sceneId && !version.segments.some(s => s.scenes.some(sc => sc.id === sceneId))) throw new StepError('NOT_FOUND', `Scene ${sceneId} is not in this version.`);
     const byHash = new Map<string, { text: string; blockIds: string[] }>();
     for (const b of blocks) {
+      const spoken = cleanSpokenText(b.text);
+      if (!spoken) continue;
       const h = takeTextHash(b.text);
       const e = byHash.get(h);
-      if (e) e.blockIds.push(b.id); else byHash.set(h, { text: b.text, blockIds: [b.id] });
+      if (e) e.blockIds.push(b.id); else byHash.set(h, { text: spoken, blockIds: [b.id] });
     }
     const job: PreviewJob = {
       id: `pv_${now().toString(36)}${randomUUID().slice(0, 6)}`, projectId: project.id, versionId: version.id, sceneId,
