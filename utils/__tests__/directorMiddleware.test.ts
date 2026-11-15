@@ -326,7 +326,7 @@ describe('models, test and refine', () => {
     const f = mkFetch([() => chat('{"ok":true}')]);
     const r = await call(h(f), { method: 'POST', url: '/test', body: {} });
     expect(r.json).toMatchObject({ ok: true, model: 'mercury-3' });
-    expect(f.calls[0].body.max_tokens).toBe(16);
+    expect(f.calls[0].body.max_tokens).toBe(128);
   });
 
   it('refine returns validated ops and rejects locked targets via repair', async () => {

@@ -27,6 +27,8 @@ import {
   inspectRunFailure,
 } from './github';
 import { scriptApi, RoleChoice } from './scriptClient';
+import { resolveEpisodeAudioSync, sanitizeMontageClip, extractEpisodeTag, findPreCutClipMatch } from './audioResolver';
+import { isPlaceholderAudioUrl } from './audioUrl';
 
 export interface CopilotExecutionContext {
   config: EnhancedConfig;
@@ -54,6 +56,7 @@ export interface CopilotExecutionContext {
       releaseTag?: string;
       title?: string;
       audioUrl?: string;
+      durationSec?: number;
     };
   };
   navHandler?: (panel: string) => void;
@@ -109,21 +112,62 @@ export async function executeCopilotAction(
         };
 
         const newClipId = `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        const start = params.startSec;
-        const end = params.endSec;
+        let start = params.startSec;
+        let end = params.endSec;
         const score = params.viralScore ?? 75;
+
+        // Resolve audio URL — check if quote/timestamp matches a pre-cut master clip first
+        const episodeTag = params.episodeTag || ctx.contextPayload?.currentEpisode?.releaseTag;
+        const rawAudioUrl = params.audioUrl || ctx.contextPayload?.currentEpisode?.audioUrl;
+        let resolvedAudioUrl = rawAudioUrl;
+        let sourceDurationSec = ctx.contextPayload?.currentEpisode?.durationSec;
+        let windowVerified = false;
+
+        const preCut = findPreCutClipMatch({
+          quote: params.quote || params.title,
+          title: params.title,
+          tag: episodeTag,
+          startSec: start,
+          endSec: end,
+          url: rawAudioUrl,
+        });
+
+        if (preCut) {
+          resolvedAudioUrl = preCut.url.startsWith('http') ? preCut.url : `/${preCut.url.replace(/^\/+/, '')}`;
+          start = 0;
+          end = preCut.duration;
+          sourceDurationSec = preCut.duration;
+          windowVerified = true;
+        } else if (isPlaceholderAudioUrl(rawAudioUrl)) {
+          const resolved = resolveEpisodeAudioSync({
+            tag: episodeTag,
+            title: params.sourceTitle || ctx.contextPayload?.currentEpisode?.title,
+            textContext: `${params.title || ''} ${params.quote || ''} ${episodeTag || ''}`,
+          });
+          if (resolved) {
+            resolvedAudioUrl = resolved.audioUrl;
+            if (resolved.isPreCut) {
+              start = 0;
+              end = resolved.durationSec || 5;
+              sourceDurationSec = resolved.durationSec;
+              windowVerified = true;
+            }
+          }
+        }
 
         ctx.montage.addClip({
           id: newClipId,
-          title: params.title || 'Extracted Soundbite',
+          title: params.title || preCut?.title || 'Extracted Soundbite',
           quote: params.quote || params.title || '',
-          speaker: params.speaker || 'Unknown',
-          sourceTitle: params.sourceTitle || ctx.contextPayload?.currentEpisode?.title || 'Episode Space',
-          sourceTag: params.episodeTag || ctx.contextPayload?.currentEpisode?.releaseTag,
-          audioUrl: params.audioUrl || ctx.contextPayload?.currentEpisode?.audioUrl,
+          speaker: params.speaker || preCut?.speaker || 'Unknown',
+          sourceTitle: params.sourceTitle || preCut?.space_title || ctx.contextPayload?.currentEpisode?.title || 'Episode Space',
+          sourceTag: episodeTag || preCut?.space_tag,
+          audioUrl: resolvedAudioUrl,
           startSec: start,
           endSec: end,
-          category: params.category || 'Highlights',
+          sourceDurationSec,
+          windowVerified,
+          category: params.category || preCut?.category || 'Highlights',
           severity: Math.min(10, Math.max(1, Math.round(score / 10))),
           tensionScore: Math.min(10, Math.max(1, Math.round(score / 10))),
           directorNote: params.reason || action.explanation,
@@ -214,15 +258,44 @@ export async function executeCopilotAction(
       }
 
       case 'PLAY_AUDIO': {
-        const targetUrl = params.audioUrl || ctx.contextPayload?.currentEpisode?.audioUrl;
-        if (targetUrl) {
+        const rawPlayUrl = params.audioUrl || ctx.contextPayload?.currentEpisode?.audioUrl;
+        let targetUrl = rawPlayUrl;
+        let playOffsetSec = params.timestampSec || 0;
+        const epTag = params.episodeTag || extractEpisodeTag(params.title) || ctx.contextPayload?.currentEpisode?.releaseTag;
+
+        // Check if matching a pre-cut clip first!
+        const preCut = findPreCutClipMatch({
+          quote: params.title,
+          title: params.title,
+          tag: epTag,
+          startSec: params.timestampSec,
+          url: rawPlayUrl,
+        });
+
+        if (preCut) {
+          targetUrl = preCut.url.startsWith('http') ? preCut.url : `/${preCut.url.replace(/^\/+/, '')}`;
+          playOffsetSec = 0;
+        } else if (isPlaceholderAudioUrl(rawPlayUrl)) {
+          const resolved = resolveEpisodeAudioSync({
+            tag: epTag,
+            title: params.title || ctx.contextPayload?.currentEpisode?.title,
+          });
+          if (resolved) {
+            targetUrl = resolved.audioUrl;
+            if (resolved.isPreCut) {
+              playOffsetSec = 0;
+            }
+          }
+        }
+
+        if (targetUrl && !isPlaceholderAudioUrl(targetUrl)) {
           ctx.player.play(
             {
               id: ctx.contextPayload?.currentEpisode?.releaseId || Date.now(),
               title: params.title || ctx.contextPayload?.currentEpisode?.title || 'Episode Audio',
               audioUrl: targetUrl,
             },
-            params.timestampSec || 0
+            playOffsetSec
           );
         } else if (params.timestampSec !== undefined) {
           ctx.player.seek(params.timestampSec);
@@ -242,6 +315,81 @@ export async function executeCopilotAction(
       case 'SEEK_AUDIO': {
         ctx.player.seek(params.timestampSec);
         return { ok: true, status: 'completed' };
+      }
+
+      case 'LOAD_CONTRADICTION_REEL': {
+        if (params.preClip && params.postClip) {
+          const preClipItem = {
+            id: `contra_pre_${Date.now()}`,
+            title: params.preClip.label || `${params.preClip.speaker || 'Speaker'} (Initial Claim)`,
+            quote: params.preClip.label || 'Initial claim',
+            speaker: params.preClip.speaker || 'Speaker',
+            sourceTitle: params.title || 'Contradiction Reel',
+            sourceTag: params.preClip.episodeTag,
+            startSec: params.preClip.startSec,
+            endSec: params.preClip.endSec,
+            category: 'Contradiction',
+            severity: 9,
+          };
+          const postClipItem = {
+            id: `contra_post_${Date.now() + 1}`,
+            title: params.postClip.label || `${params.postClip.speaker || 'Speaker'} (Later Reversal)`,
+            quote: params.postClip.label || 'Later reversal',
+            speaker: params.postClip.speaker || 'Speaker',
+            sourceTitle: params.title || 'Contradiction Reel',
+            sourceTag: params.postClip.episodeTag,
+            startSec: params.postClip.startSec,
+            endSec: params.postClip.endSec,
+            category: 'Contradiction',
+            severity: 10,
+          };
+          ctx.montage.replaceClips([preClipItem, postClipItem]);
+          ctx.montage.startAudition(0);
+          return { ok: true, status: 'completed', resultData: { loadedPair: params.pairingId } };
+        }
+        return { ok: false, status: 'failed', errorMessage: 'preClip and postClip parameters are required.' };
+      }
+
+      case 'APPROVE_SPEAKER': {
+        try {
+          const res = await fetch('/api/speakers/approve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params),
+          });
+          const data = await res.json();
+          return { ok: data.ok, status: data.ok ? 'completed' : 'failed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e.message };
+        }
+      }
+
+      case 'REJECT_SPEAKER': {
+        try {
+          const res = await fetch('/api/speakers/undo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params),
+          });
+          const data = await res.json();
+          return { ok: data.ok, status: data.ok ? 'completed' : 'failed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e.message };
+        }
+      }
+
+      case 'RELABEL_SPEAKER': {
+        try {
+          const res = await fetch('/api/speakers/relabel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params),
+          });
+          const data = await res.json();
+          return { ok: data.ok, status: data.ok ? 'completed' : 'failed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e.message };
+        }
       }
 
       /* ─── NAVIGATION & VIEW (Tier 0) ─── */

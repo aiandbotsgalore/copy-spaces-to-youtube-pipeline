@@ -50,6 +50,8 @@ import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { renderTranscriptWithContextFocus } from '../utils/searchWorker';
 import { CopilotMarkdown } from './CopilotMarkdown';
 import { fetchSummaryIndex, findEpisodeInSummary, EpisodeSummary } from '../utils/transcriptData';
+import { resolveEpisodeAudioSync, extractEpisodeTag, setCachedSummaryIndex, findPreCutClipMatch } from '../utils/audioResolver';
+import { isPlaceholderAudioUrl } from '../utils/audioUrl';
 
 const PRESET_PILLS = [
   {
@@ -127,7 +129,10 @@ export const AICopilotPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    fetchSummaryIndex().then(setEpisodeSummaries).catch(() => {});
+    fetchSummaryIndex().then(list => {
+      setEpisodeSummaries(list);
+      setCachedSummaryIndex(list); // prime audioResolver in-memory index for instant sync lookups
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -585,18 +590,52 @@ export const AICopilotPanel: React.FC = () => {
                         meta?.audioUrl && match.audio_url === meta.audioUrl
                       ) || m.matches?.[0];
 
-                      const audioUrl = meta?.audioUrl || matched?.audio_url || contextPayload.currentEpisode?.audioUrl;
-                      const title = meta?.episodeTitle || matched?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio';
-                      const id = meta?.episodeId || matched?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now();
+                      let audioUrl = meta?.audioUrl || matched?.audio_url || contextPayload.currentEpisode?.audioUrl;
+                      let title = meta?.episodeTitle || matched?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio';
+                      let id: string | number = meta?.episodeId || matched?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now();
+                      let playOffsetSec = sec;
 
-                      if (audioUrl) {
+                      const msgTag = extractEpisodeTag(m.content);
+                      const metaEpId = meta?.episodeId;
+                      const tagStr = typeof metaEpId === 'string' ? metaEpId : typeof metaEpId === 'number' ? String(metaEpId) : undefined;
+                      const candidateTag = tagStr || msgTag || undefined;
+
+                      // Check if there is an exact pre-cut soundbite matching this quote or timestamp
+                      const preCutMatch = findPreCutClipMatch({
+                        quote: m.content,
+                        title: meta?.episodeTitle || matched?.episode_title || undefined,
+                        tag: candidateTag,
+                        startSec: sec,
+                      });
+
+                      if (preCutMatch) {
+                        audioUrl = preCutMatch.url.startsWith('http') ? preCutMatch.url : `/${preCutMatch.url.replace(/^\/+/, '')}`;
+                        title = preCutMatch.title || title;
+                        playOffsetSec = 0;
+                      } else if (isPlaceholderAudioUrl(audioUrl)) {
+                        const resolved = resolveEpisodeAudioSync({
+                          tag: candidateTag,
+                          title: meta?.episodeTitle || matched?.episode_title || undefined,
+                          textContext: m.content,
+                        }, episodeSummaries.length > 0 ? episodeSummaries : undefined);
+                        if (resolved) {
+                          audioUrl = resolved.audioUrl;
+                          title = title || resolved.title;
+                          id = resolved.releaseId || id;
+                          if (resolved.isPreCut) {
+                            playOffsetSec = 0;
+                          }
+                        }
+                      }
+
+                      if (audioUrl && !isPlaceholderAudioUrl(audioUrl)) {
                         player.play(
                           {
                             id,
                             title,
                             audioUrl,
                           },
-                          sec
+                          playOffsetSec
                         );
                       } else {
                         player.seek(sec);
@@ -1129,6 +1168,14 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAn
         return { label: 'Dispatch Workflow', bg: 'bg-violet-500/15 text-violet-300 border-violet-500/30' };
       case 'AUDITION_MONTAGE':
         return { label: 'Audition Reel', bg: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30' };
+      case 'LOAD_CONTRADICTION_REEL':
+        return { label: 'Contradiction Reel', bg: 'bg-rose-500/20 text-rose-300 border-rose-500/40' };
+      case 'APPROVE_SPEAKER':
+        return { label: 'Approve Speaker', bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'REJECT_SPEAKER':
+        return { label: 'Reject Speaker', bg: 'bg-slate-500/20 text-slate-300 border-slate-500/40' };
+      case 'RELABEL_SPEAKER':
+        return { label: 'Relabel Speaker', bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40' };
       case 'CREATE_PROJECT':
       case 'ANALYZE_PROJECT':
       case 'OUTLINE_PROJECT':

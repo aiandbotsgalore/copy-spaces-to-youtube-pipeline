@@ -5,8 +5,26 @@
  */
 export const AUDIO_PROXY_PATH = '/api/montage/audio';
 
+/**
+ * Checks if a given audio URL is a placeholder, dummy, or invalid URL
+ * (e.g., example.com, undefined, or missing protocol).
+ */
+export function isPlaceholderAudioUrl(url?: string | null): boolean {
+  if (!url) return true;
+  const s = String(url).trim().toLowerCase();
+  return (
+    s.includes('example.com') ||
+    s.includes('placeholder') ||
+    s.includes('dummy') ||
+    s.includes('undefined') ||
+    s.includes('null') ||
+    !/^https?:\/\//i.test(s)
+  );
+}
+
 export function needsAudioProxy(url: string, pageOrigin?: string): boolean {
   if (!url || !/^https:\/\//i.test(url)) return false;
+  if (isPlaceholderAudioUrl(url)) return false;
   try {
     const u = new URL(url);
     const h = u.hostname.toLowerCase();
@@ -21,6 +39,7 @@ export function needsAudioProxy(url: string, pageOrigin?: string): boolean {
 
 /** The URL to use when the browser must read the bytes (fetch / decodeAudioData / metadata probe). */
 export function toFetchableUrl(url: string, pageOrigin?: string): string {
+  if (!url || isPlaceholderAudioUrl(url)) return url || '';
   if (!needsAudioProxy(url, pageOrigin)) return url;
   const edgeBase = getEdgeSlicerBaseUrl();
   if (edgeBase) {
@@ -32,7 +51,11 @@ export function toFetchableUrl(url: string, pageOrigin?: string): string {
 export function getEdgeSlicerBaseUrl(): string {
   try {
     if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_EDGE_SLICER_URL) {
-      return String(import.meta.env.VITE_EDGE_SLICER_URL).trim().replace(/\/+$/, '');
+      const edge = String(import.meta.env.VITE_EDGE_SLICER_URL).trim().replace(/\/+$/, '');
+      // Guard against non-functioning or unconfigured Cloudflare worker domains that lack CORS
+      if (edge && !edge.includes('spacepipe-edge-slicer.edge-slicer.workers.dev')) {
+        return edge;
+      }
     }
   } catch {}
   return '';
@@ -50,7 +73,7 @@ export function toSliceableUrl(
   durationSec?: number,
   pageOrigin?: string
 ): string {
-  if (!url) return '';
+  if (!url || isPlaceholderAudioUrl(url)) return url || '';
   if (
     startSec !== undefined &&
     endSec !== undefined &&

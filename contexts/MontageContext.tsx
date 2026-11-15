@@ -7,6 +7,7 @@ import { createSequencePlayer, getSharedAudioContext, decodeAudioUrl } from '../
 import type { SequencePlayer } from '../utils/sequencePlayer';
 import { mapLimit, probeFileDuration, reconcileWindow } from '../utils/clipProbe';
 import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
+import { sanitizeMontageClip, getOrFetchSummaryIndex, getOrFetchPreCutClips } from '../utils/audioResolver';
 import type { DirectorProvenance } from '../utils/directorTypes';
 
 /** localStorage key holding the last natural-language prompt given to the Director (for the manifest). */
@@ -231,6 +232,33 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const lastPushAtRef = useRef(0);
   const [, setHistoryTick] = useState(0);
 
+  // Sanitize clips loaded from localStorage: hydrate placeholders and upgrade quotes to pre-cut master clips
+  useEffect(() => {
+    if (clips.length === 0) return;
+
+    // Immediately run synchronous sanitization (covers master cuts seed table)
+    setClips(prev => {
+      const patched = prev.map(clip => sanitizeMontageClip(clip));
+      const changed = patched.some(
+        (c, i) => c.audioUrl !== prev[i].audioUrl || c.startSec !== prev[i].startSec || c.endSec !== prev[i].endSec
+      );
+      return changed ? patched : prev;
+    });
+
+    // Also fetch full indexes asynchronously to catch any wider catalog entries
+    Promise.all([getOrFetchSummaryIndex(), getOrFetchPreCutClips()]).then(([summaries, preCuts]) => {
+      setClips(prev => {
+        const patched = prev.map(clip => sanitizeMontageClip(clip, summaries, preCuts));
+        const changed = patched.some(
+          (c, i) => c.audioUrl !== prev[i].audioUrl || c.startSec !== prev[i].startSec || c.endSec !== prev[i].endSec
+        );
+        return changed ? patched : prev;
+      });
+    }).catch(() => {});
+    // Run only once on mount (dependency: clips.length is 0 check handles the empty case)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Save to localStorage
   useEffect(() => {
     try {
@@ -346,19 +374,21 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addClip = useCallback((clipData: Omit<MontageClipItem, 'id'> & { id?: string }) => {
     const newId = clipData.id || `montage_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    // Sanitize placeholder audio URLs synchronously from in-memory cache
+    const sanitized = sanitizeMontageClip({ ...clipData, id: newId });
     setClips(prev => {
       // Check if duplicate ID or matching identical quote
       if (prev.some(c => c.id === newId || (clipData.quote && c.quote === clipData.quote))) {
         return prev;
       }
-      return [...prev, { ...clipData, id: newId }];
+      return [...prev, sanitized];
     });
     setIsDrawerOpen(true);
 
     // Speculatively pre-warm audio decode in background for instant playback
-    if (clipData.audioUrl) {
+    if (sanitized.audioUrl) {
       try {
-        const sliceUrl = toSliceableUrl(clipData.audioUrl, clipData.startSec, clipData.endSec, clipData.sourceDurationSec);
+        const sliceUrl = toSliceableUrl(sanitized.audioUrl, sanitized.startSec, sanitized.endSec, sanitized.sourceDurationSec);
         const ctx = getSharedAudioContext();
         decodeAudioUrl(sliceUrl, ctx);
       } catch {}
@@ -529,7 +559,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const startAuditionFrom = useCallback((timelineIndex: number) => {
     playerRef.current?.stop();
     playerRef.current = null;
-    const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
+    const sanitizedClips = clips.map(c => sanitizeMontageClip(c));
+    const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(sanitizedClips, gapSeconds);
     if (plan.items.length === 0) {
       setIsAuditioning(false);
       setAuditionProgress(null);
@@ -587,13 +618,14 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const auditionSoloClip = useCallback((clip: MontageClipItem) => {
     playerRef.current?.stop();
     playerRef.current = null;
-    const effDur = Math.max(0.2, clip.endSec - clip.startSec);
+    const sanitized = sanitizeMontageClip(clip);
+    const effDur = Math.max(0.2, sanitized.endSec - sanitized.startSec);
     const soloPlan = {
       items: [{
         index: 0,
-        clip,
-        effStart: clip.startSec,
-        effEnd: clip.endSec,
+        clip: sanitized,
+        effStart: sanitized.startSec,
+        effEnd: sanitized.endSec,
         effDur,
         timelineStart: 0,
         timelineEnd: effDur,
