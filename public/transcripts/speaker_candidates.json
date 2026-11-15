@@ -1,961 +1,51 @@
 {
-  "updated_at": "2026-11-13T07:26:49Z",
-  "total_candidates": 6413,
+  "updated_at": "2026-11-15T11:16:56Z",
+  "total_candidates": 5971,
   "candidates": [
     {
-      "id": "cand_625492",
-      "suggested_name": "Logan",
-      "raw_speaker": "Speaker 8",
-      "episode_count": 88,
-      "episodes": [
-        "20260204_1eaKbjrLaQnKX",
-        "20260216_1BRJjZnaWzVJw",
-        "20260216_1BdGYqbyyPEGX",
-        "20260216_1BdGYymjXOYGX",
-        "20260216_1dRJZYLgYXMGB",
-        "20260216_1djGXVvDeXXxZ",
-        "20260216_1djGXlPdBPdGZ",
-        "20260216_1djGXlpmbdeGZ",
-        "20260216_1eaKbrMybgoKX",
-        "20260216_1eaKbrPMkMoKX",
-        "20260216_1eaKbrjgXonKX",
-        "20260216_1gqxvQLEROwJB",
-        "20260216_1gqxvQQVzlqJB",
-        "20260216_1gqxvrMpZjjxB",
-        "20260216_1gqxvyaLkmRJB",
-        "20260216_1gqxvygdypBJB",
-        "20260216_1gqxvynLnelJB",
-        "20260216_1jMJgLBkODjxL",
-        "20260216_1jMJgLjqREgxL",
-        "20260216_1jMJgmbgkMXKL",
-        "20260216_1jMKgLdkDjgGL",
-        "20260217_1LyGBnYeYVLGN",
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1MYGNgkVAgZJw",
-        "20260217_1MnGnPWNRpYxO",
-        "20260217_1MnxnpQvqWmGO",
-        "20260217_1MnxnpobBqdGO",
-        "20260217_1MnxnwzBZRMKO",
-        "20260217_1OdJrzekvMvJX",
-        "20260217_1OdKrjYRoewKX",
-        "20260217_1OyKAZBwBZoGb",
-        "20260217_1OyKAjODoLgGb",
-        "20260217_1OyKAjdVmMgGb",
-        "20260217_1RDGlaDQRgzJL",
-        "20260217_1lDxLPZnmDRxm",
-        "20260217_1lDxLnrVAvPGm",
-        "20260217_1lDxLnyRroqGm",
-        "20260217_1lPJqBZERklxb",
-        "20260217_1lPJqbPeYwWxb",
-        "20260217_1mnxeAzRZdPxX",
-        "20260217_1mnxepdvjDLJX",
-        "20260217_1mrGmBZOoNLJy",
-        "20260217_1mrGmBoEYMdJy",
-        "20260217_1mrGmkRQyLgxy",
-        "20260217_1mrGmkzjQQWxy",
-        "20260217_1mrxmydegrnxy",
-        "20260217_1nAKEpZOALZxL",
-        "20260217_1nAKErAyWkkGL",
-        "20260217_1rmGPMwXnbnJN",
-        "20260217_1rmGPkNqEOYKN",
-        "20260217_1rmGPvrXABQxN",
-        "20260217_1rmxPMZPpjEKN",
-        "20260217_1rmxPomoomqJN",
-        "20260217_1vAGRONypwkJl",
-        "20260217_1vAxRvZrEPaxl",
-        "20260217_1vAxRvavOaaxl",
-        "20260218_1YqGoDPAmvaJv",
-        "20260218_1YqKDoVywBDxV",
-        "20260218_1YqKDonzmQDxV",
-        "20260218_1ZkJzXNnBOvKv",
-        "20260218_1ZkKzjzEYNqKv",
-        "20260218_1djxXVkablVGZ",
-        "20260218_1vOxwMDOgZPGB",
-        "20260218_1vOxwXAgXRDKB",
-        "20260218_1vOxwjZyXAEJB",
-        "20260218_1vOxwrqbegVJB",
-        "20260218_1yNGaZNNlmVJj",
-        "20260218_1yNGabVvNRqJj",
-        "20260218_1yNxagPMjXdGj",
-        "20260218_1ynJOabwAvQKR",
-        "20260218_1ynJOyzqLjXKR",
-        "20260218_1ynKOarNamVJR",
-        "20260218_1yoJMwypnbDKQ",
-        "20260218_1ypKdqaNYRrGW",
-        "20260218_1zqKVPBpdYMJB",
-        "20260218_1zqKVPPvYQDJB",
-        "20260218_1zqKVdzmaqdJB",
-        "20260218_1zqKVjnPZZWKB",
-        "20260218_1zqKVjoNMDMKB",
-        "20260220_1LyxBqBjPYWJN",
-        "20260904_1wxWjlbdzejJQ",
-        "20260908_1qJDzWWAYBvKV",
-        "20260909_1dxYlaawPAXJX",
-        "20260909_1pKkOXAZPMZKj",
-        "20260910_1vJpPNdrvgbJE",
-        "20260911_1pKkOXdbeRNKj",
-        "20260915_1jGXgBAAYVyKZ",
-        "20260922_1qxvvepZERWxB"
-      ],
-      "total_turns": 172,
-      "total_duration_sec": 3410.8,
-      "sample_clips": [
-        {
-          "episode_tag": "20260204_1eaKbjrLaQnKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/20260204_1eaKbjrLaQnKX_Consciousness_the_Hierarchy_of_Beings.mp3",
-          "start": 12169.24,
-          "end": 12180.5,
-          "snippet": "hey Logan hit me with some some gay sex buddy"
-        },
-        {
-          "episode_tag": "20260204_1eaKbjrLaQnKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1eaKbjrLaQnKX/20260204_1eaKbjrLaQnKX_Consciousness_the_Hierarchy_of_Beings.mp3",
-          "start": 12180.5,
-          "end": 12336.54,
-          "snippet": "I'm gonna clip that and it's four leaf"
-        },
-        {
-          "episode_tag": "20260216_1BRJjZnaWzVJw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjZnaWzVJw/20260216_1BRJjZnaWzVJw_Lumeniferous_Ether.mp3",
-          "start": 3173.07,
-          "end": 3183.33,
-          "snippet": "last year. Too. Except for when I I I woke up and started drinking again, and I feel like maybe I didn't sober up entire"
-        }
-      ]
-    },
-    {
-      "id": "cand_364769",
-      "suggested_name": "Don",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 23,
-      "episodes": [
-        "20260216_1BdGYrXEaVXJX",
-        "20260216_1DXxydzWzQeJM",
-        "20260216_1dRKZEZaanaxB",
-        "20260216_1dRKZYaqAqAxB",
-        "20260216_1djxXNkreeNGZ",
-        "20260216_1gqxvrMpZjjxB",
-        "20260217_1MnGnMLRorYKO",
-        "20260217_1MnGnPompVoxO",
-        "20260217_1MnxnwkvblBKO",
-        "20260217_1OwxWYMvvLRGQ",
-        "20260217_1PlJQMmPYZBJE",
-        "20260217_1lDxLPVwMMbxm",
-        "20260217_1mnxepaYymoJX",
-        "20260217_1mrGmPPloMdKy",
-        "20260217_1mrGmPPwDWQKy",
-        "20260217_1mrGmyjMlBdGy",
-        "20260217_1mrxmyZBoOWxy",
-        "20260217_1mrxmydegrnxy",
-        "20260218_1ZkJzjaMgBeJv",
-        "20260218_1djxXVkablVGZ",
-        "20260218_1ynKOyMzWNQJR",
-        "20260218_1yoJMwypnbDKQ",
-        "20260220_1LyxBqBjPYWJN"
-      ],
-      "total_turns": 56,
-      "total_duration_sec": 696.3,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdGYrXEaVXJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYrXEaVXJX/20260216_1BdGYrXEaVXJX_Randy_%2B_Eva_-_Near_Death_Experience_s_The_Future.mp3",
-          "start": 49029.07,
-          "end": 49063.07,
-          "snippet": "Yeah. I bet... Since this is Don, I have very very, uh, choice opinions on this matter, I bet. I I know it's like... I h"
-        },
-        {
-          "episode_tag": "20260216_1BdGYrXEaVXJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYrXEaVXJX/20260216_1BdGYrXEaVXJX_Randy_%2B_Eva_-_Near_Death_Experience_s_The_Future.mp3",
-          "start": 49063.53,
-          "end": 49091.35,
-          "snippet": "Yeah. It's like they can go go out, but you can't kinda thing. You know? It's like... Yeah. I've been in my relationship"
-        },
-        {
-          "episode_tag": "20260216_1BdGYrXEaVXJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYrXEaVXJX/20260216_1BdGYrXEaVXJX_Randy_%2B_Eva_-_Near_Death_Experience_s_The_Future.mp3",
-          "start": 57964.94,
-          "end": 57975.44,
-          "snippet": "Actually Since this is Don, you know some, like, pretty good ones. He knows, um, it's like that guy's name, Dermot Dermo"
-        }
-      ]
-    },
-    {
-      "id": "cand_4069",
-      "suggested_name": "Snuggles",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 21,
-      "episodes": [
-        "20260202_1770145946",
-        "20260216_1BRJjmkgmXBGw",
-        "20260216_1BdGYZPYmdgJX",
-        "20260216_1DXxyWywdpvGM",
-        "20260216_1dRJZYLgYXMGB",
-        "20260216_1eaKbjXvNOrKX",
-        "20260216_1jMKgkYvBzWKL",
-        "20260217_1MnGnPWNRpYxO",
-        "20260217_1PlJQMARWENJE",
-        "20260217_1lPKqMoEQZPKb",
-        "20260217_1mrGmBZOoNLJy",
-        "20260217_1rmGPvrXABQxN",
-        "20260217_1vAxRDXmRqqGl",
-        "20260218_1ZkJzZWVgwNJv",
-        "20260218_1yNGabVvNRqJj",
-        "20260218_1ypKdqaNYRrGW",
-        "20260903_1RKZzBzEzRMKB",
-        "20260904_1wxWjlbdzejJQ",
-        "20260908_1qJDzWWAYBvKV",
-        "20260923_1nJOLQAlMYwxR",
-        "20260926_1mGPaZNvDjgJN"
-      ],
-      "total_turns": 32,
-      "total_duration_sec": 516.6,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BRJjmkgmXBGw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjmkgmXBGw/20260216_1BRJjmkgmXBGw_420_soon_zzz.mp3",
-          "start": 20730.38,
-          "end": 20737.51,
-          "snippet": "You know, Snuggles, what do you think about the, uh, the new, uh, science of life found over on whatever planet that's c"
-        },
-        {
-          "episode_tag": "20260216_1BdGYZPYmdgJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYZPYmdgJX/20260216_1BdGYZPYmdgJX_Graphic_Adult_Humor_-_Get_Triggered.mp3",
-          "start": 50240.52,
-          "end": 50268.54,
-          "snippet": "Yep. Yep. Summon Snuggles Prime. Well, that's the thing about it. Snuggles Prime is, is around. I used the last of the c"
-        },
-        {
-          "episode_tag": "20260216_1DXxyWywdpvGM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyWywdpvGM/20260216_1DXxyWywdpvGM_UFO_History.mp3",
-          "start": 1063.77,
-          "end": 1069.99,
-          "snippet": "Snuggles, what do you think happened to Kelly Chase? What did she mean when she said that she was neutralized, Snuggles?"
-        }
-      ]
-    },
-    {
-      "id": "cand_46948",
-      "suggested_name": "God",
-      "raw_speaker": "Speaker 11",
-      "episode_count": 20,
-      "episodes": [
-        "20260204_1RDxlAyeoegKL",
-        "20260211_20",
-        "20260216_1gqxvrMpZjjxB",
-        "20260216_1jMJgLZymayxL",
-        "20260217_1MnxnMejzkwJO",
-        "20260217_1RDxlaNrqnRKL",
-        "20260217_1lDxLnMdvwmGm",
-        "20260217_1mnxeRPnORaKX",
-        "20260217_1mnxeRgOOjNKX",
-        "20260217_1mrGmBmelwdJy",
-        "20260217_1vAxRDzkZbjGl",
-        "20260218_1YpKkgWEqLXKj",
-        "20260218_1YqxoAARONAGv",
-        "20260218_1ypKdkWBQDyxW",
-        "20260218_1ypKdkWpWNqxW",
-        "20260218_1zqJVPqzjEwKB",
-        "20260218_1zqKVdzmaqdJB",
-        "20260220_1LyxBqBjPYWJN",
-        "20260902_1yxBePlnmMjJN",
-        "20260908_1qJDzWWAYBvKV"
-      ],
-      "total_turns": 37,
-      "total_duration_sec": 3337.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260204_1RDxlAyeoegKL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1RDxlAyeoegKL/20260204_1RDxlAyeoegKL_Open_Eye_Kicks_Eric_s_Ass.mp3",
-          "start": 5391.17,
-          "end": 5575.86,
-          "snippet": "Yeah, I've actually come here for a rematch with Snuggles. But before that rematch, I would just like to say I'm becomin"
-        },
-        {
-          "episode_tag": "20260211_20",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260211_20/20260211_20_AEi_n_eas_eo.mp3",
-          "start": 8598.16,
-          "end": 8665.0,
-          "snippet": "Well, this is God's source. So 561 is the first Carmichael pseudoprime, and it has neurological implications. Primarily,"
-        },
-        {
-          "episode_tag": "20260211_20",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260211_20/20260211_20_AEi_n_eas_eo.mp3",
-          "start": 14049.64,
-          "end": 14155.4,
-          "snippet": "Spontaneous ontological breakthrough for just one moment because this is God SOS radio and apparently reality is bufferi"
-        }
-      ]
-    },
-    {
-      "id": "cand_138406",
-      "suggested_name": "Taylor",
-      "raw_speaker": "Speaker 7",
-      "episode_count": 17,
-      "episodes": [
-        "20260202_1770145946",
-        "20260204_1YpJkklXEgZJj",
-        "20260216_1DXxyvpWDzvKM",
-        "20260216_1eaKbrlpmzQKX",
-        "20260217_1lPKqBbWWjWGb",
-        "20260217_1mrGmkOMbgBxy",
-        "20260217_1mrxmBnbnMwKy",
-        "20260217_1nAKErQpPLbGL",
-        "20260217_1rmGPkwjrzYKN",
-        "20260217_1vAxRAeoDNzJl",
-        "20260218_1YqJDowmRnYGV",
-        "20260218_1ZkJzXNnBOvKv",
-        "20260218_1vOxwjZyXAEJB",
-        "20260218_1ynKOyMzWNQJR",
-        "20260218_1yoJMZXanOkxQ",
-        "20260218_1zqKVPqPomXJB",
-        "20260220_1MnxnpXBMwVGO"
-      ],
-      "total_turns": 31,
-      "total_duration_sec": 484.6,
-      "sample_clips": [
-        {
-          "episode_tag": "20260202_1770145946",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260202_1770145946/20260202_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
-          "start": 6155.54,
-          "end": 6244.78,
-          "snippet": "working for me I understand because that happens to me sometimes too so no big deal I was just gonna say origin of life "
-        },
-        {
-          "episode_tag": "20260204_1YpJkklXEgZJj",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1YpJkklXEgZJj/20260204_1YpJkklXEgZJj_The_Fate_Paradox.mp3",
-          "start": 6156.38,
-          "end": 6244.78,
-          "snippet": "I understand because that happens to me sometimes too so no big deal I was just gonna say origin of life origin of how w"
-        },
-        {
-          "episode_tag": "20260216_1DXxyvpWDzvKM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyvpWDzvKM/20260216_1DXxyvpWDzvKM_UFO_Experiencer_Party_Time_Space.mp3",
-          "start": 20438.08,
-          "end": 20449.42,
-          "snippet": "Thank you. Um, for somebody who does believe in the spiritual world, if anybody up here does, um, like, what is your... "
-        }
-      ]
-    },
-    {
-      "id": "cand_540159",
-      "suggested_name": "Ocean",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 16,
-      "episodes": [
-        "20260216_1BdGYyMqePLGX",
-        "20260216_1BdGYymjXOYGX",
-        "20260216_1dRKZEvPXNbxB",
-        "20260217_1LyxBqmjYoYJN",
-        "20260217_1MnxnpLWdbjGO",
-        "20260217_1MnxnpobBqdGO",
-        "20260217_1OwxWYMvvLRGQ",
-        "20260217_1lDxLzzNyZmGm",
-        "20260217_1lPJqBZERklxb",
-        "20260217_1mrGmBoEYMdJy",
-        "20260217_1mrGmkLLZpMxy",
-        "20260217_1vAxRAeoDNzJl",
-        "20260217_1vAxRAyyXEZJl",
-        "20260218_1lPKqBYLOdYGb",
-        "20260218_1vOxwMDOgZPGB",
-        "20260907_1yGBePOjLBMKN"
-      ],
-      "total_turns": 35,
-      "total_duration_sec": 470.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdGYyMqePLGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyMqePLGX/20260216_1BdGYyMqePLGX_zzzzzzzzzzZZZzzZZZ.mp3",
-          "start": 1488.01,
-          "end": 1500.03,
-          "snippet": "Um, like, a just, um, I hope you like to sleep so often. Just, uh, I don't know. Ocean, what do you think we should, uh,"
-        },
-        {
-          "episode_tag": "20260217_1LyxBqmjYoYJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqmjYoYJN/20260217_1LyxBqmjYoYJN_Paranormal.mp3",
-          "start": 1354.51,
-          "end": 1371.76,
-          "snippet": "Oh, I'm sorry, we're, we're at the bar here in Hot Springs, Arkansas. We're having a good\u2014 the people down here in Hot S"
-        },
-        {
-          "episode_tag": "20260217_1LyxBqmjYoYJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqmjYoYJN/20260217_1LyxBqmjYoYJN_Paranormal.mp3",
-          "start": 14508.9,
-          "end": 14519.9,
-          "snippet": "Okay, I'll stop talking to you. That means I'll stop attacking you. Logan, can you? Hey Ocean! Hey hey hey Ocean! Hey Oc"
-        }
-      ]
-    },
-    {
-      "id": "cand_982592",
-      "suggested_name": "John",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 16,
-      "episodes": [
-        "20260216_1BdGYymjXOYGX",
-        "20260216_1DXxyWywdpvGM",
-        "20260216_1DXxydzWzQeJM",
-        "20260216_1eaKbrRBYpQKX",
-        "20260216_1gqGvylrEznKB",
-        "20260216_1jMJgmbgkMXKL",
-        "20260217_1MnGnPWNRpYxO",
-        "20260217_1OdJrzQrynpJX",
-        "20260217_1OwxWwqqLkQxQ",
-        "20260217_1PlJQMARWENJE",
-        "20260217_1mnxeREaAZrKX",
-        "20260218_1YqGoDPAmvaJv",
-        "20260218_1ynKOabBOerJR",
-        "20260218_1ynKOyBOnrXJR",
-        "20260218_1zqKVPBljVYJB",
-        "20260218_1zqKVdzmaqdJB"
-      ],
-      "total_turns": 28,
-      "total_duration_sec": 1273.6,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXxyWywdpvGM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyWywdpvGM/20260216_1DXxyWywdpvGM_UFO_History.mp3",
-          "start": 2500.35,
-          "end": 2928.62,
-          "snippet": "Well, Gary Nolan way back in 2017 when I was interacting with him. He had told me in no no no uncertain terms, they were"
-        },
-        {
-          "episode_tag": "20260216_1DXxyWywdpvGM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyWywdpvGM/20260216_1DXxyWywdpvGM_UFO_History.mp3",
-          "start": 2931.24,
-          "end": 2965.14,
-          "snippet": "So, again, maybe it's just me being cynical, but, like, this is reality, folks. This happened. You could say it didn't h"
-        },
-        {
-          "episode_tag": "20260216_1DXxydzWzQeJM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxydzWzQeJM/20260216_1DXxydzWzQeJM_Maintaining_Balance.mp3",
-          "start": 53372.9,
-          "end": 53446.32,
-          "snippet": "But doesn't this, uh, tap into and I don't wanna white knight this, uh, portion of the conversation, but doesn't this ta"
-        }
-      ]
-    },
-    {
-      "id": "cand_726724",
-      "suggested_name": "Eric",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 14,
-      "episodes": [
-        "20260216_1BdGYZPYmdgJX",
-        "20260216_1BdGYyXQeLyGX",
-        "20260217_1LyGBqDopyzKN",
-        "20260217_1LyxBnybneOxN",
-        "20260217_1kvKpmLmOaVGE",
-        "20260217_1lDxLnMdvwmGm",
-        "20260217_1mrGmBoEYMdJy",
-        "20260217_1nAJErQOAlYxL",
-        "20260217_1rmxPMdgWNyKN",
-        "20260218_1ZkJzXNnBOvKv",
-        "20260218_1ynKOarNamVJR",
-        "20260218_1zqKVjeZdwXKB",
-        "20260220_1djGXlYkooRGZ",
-        "20261026_1mxPaZyerNgKN"
-      ],
-      "total_turns": 18,
-      "total_duration_sec": 269.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdGYZPYmdgJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYZPYmdgJX/20260216_1BdGYZPYmdgJX_Graphic_Adult_Humor_-_Get_Triggered.mp3",
-          "start": 45566.79,
-          "end": 45575.93,
-          "snippet": "Real quick. I Absolutely. Real quick, I wanna welcome Eric Hecker to the stage as well as welcome, gentlemen. How are yo"
-        },
-        {
-          "episode_tag": "20260216_1BdGYyXQeLyGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyXQeLyGX/20260216_1BdGYyXQeLyGX_New_Years_Eve.mp3",
-          "start": 10238.79,
-          "end": 10251.82,
-          "snippet": "Yeah, I live by Devil's Den. And I told you about them blocking that off because them Wiccans were down there doing some"
-        },
-        {
-          "episode_tag": "20260217_1LyGBqDopyzKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqDopyzKN/20260217_1LyGBqDopyzKN_Kartott_and_the_alien_cigarette_smoker.mp3",
-          "start": 3634.36,
-          "end": 3663.71,
-          "snippet": "cleared out the spaces and right in time for the big corporations to start hosting oh that's a good point go ahead Eric "
-        }
-      ]
-    },
-    {
-      "id": "cand_837498",
-      "suggested_name": "America",
-      "raw_speaker": "Speaker 3",
-      "episode_count": 11,
-      "episodes": [
-        "20260217_1mrGmBmelwdJy",
-        "20260217_1vAxRDzkZbjGl",
-        "20260218_1lPKqBYLOdYGb",
-        "20260218_1vOGwMvRgWNxB",
-        "20260218_1zqKVPqPomXJB",
-        "20260218_1zqKVjnPZZWKB",
-        "20260902_1yGBePloweYKN",
-        "20260902_1yxBePlnmMjJN",
-        "20260905_1qxvvedveWWxB",
-        "20261027_1DGleVzAEgNJL",
-        "20261107_1nQBEpjBqPNZLr"
-      ],
-      "total_turns": 18,
-      "total_duration_sec": 955.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1mrGmBmelwdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBmelwdJy/20260217_1mrGmBmelwdJy_SUPERMIND.mp3",
-          "start": 26914.67,
-          "end": 26925.73,
-          "snippet": "This is you know, hold on. They got the, got the dialects wrong. We're not a New Zealander or whatever. It's, this is Am"
-        },
-        {
-          "episode_tag": "20260217_1vAxRDzkZbjGl",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1vAxRDzkZbjGl/20260217_1vAxRDzkZbjGl_Spicy_Ratchet_Space.mp3",
-          "start": 16142.24,
-          "end": 16164.29,
-          "snippet": "outliers, and we have no time for them, and we do not play with outliers of America because this is America, and we are "
-        },
-        {
-          "episode_tag": "20260218_1lPKqBYLOdYGb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
-          "start": 58925.39,
-          "end": 58933.79,
-          "snippet": "Kent, this is America. The number one movie last year was Top Gun Maverick. I mean, if you fly a balloon over us, we're "
-        }
-      ]
-    },
-    {
-      "id": "cand_936143",
-      "suggested_name": "Randy",
-      "raw_speaker": "Speaker 6",
-      "episode_count": 10,
-      "episodes": [
-        "20260216_1BdGYrXEaVXJX",
-        "20260216_1djGXVdgWvvxZ",
-        "20260217_1OyJAWqoVaNKb",
-        "20260217_1OyKAVkVeWrGb",
-        "20260217_1mnGeAPMdvEGX",
-        "20260217_1mnGeRkMerYJX",
-        "20260217_1mnGepXgXLoKX",
-        "20260217_1mrGmkLLZpMxy",
-        "20260218_1vOxwMYLEjWGB",
-        "20260218_1yoKMwOWRmRJQ"
-      ],
-      "total_turns": 17,
-      "total_duration_sec": 160.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdGYrXEaVXJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYrXEaVXJX/20260216_1BdGYrXEaVXJX_Randy_%2B_Eva_-_Near_Death_Experience_s_The_Future.mp3",
-          "start": 70478.63,
-          "end": 70509.51,
-          "snippet": "Randy, what do you think this is? This is this is an improv to, uh, you know, little interjection of music in a conversa"
-        },
-        {
-          "episode_tag": "20260216_1djGXVdgWvvxZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXVdgWvvxZ/20260216_1djGXVdgWvvxZ_A_New.mp3",
-          "start": 22954.08,
-          "end": 22965.79,
-          "snippet": "Sir, Randy, what do you think about the mind of a person who did not grow up on this earth? Let's say he grew up on a co"
-        },
-        {
-          "episode_tag": "20260217_1OyJAWqoVaNKb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyJAWqoVaNKb/20260217_1OyJAWqoVaNKb_The_time_has_come_for_absolution._Kneel_before_Lord_Ulrich_BTFU.mp3",
-          "start": 17066.65,
-          "end": 17087.15,
-          "snippet": "Yeah. I have my hand up. I just I I'd like to know why why is citizen Don whenever, like, he goes, like, to say somethin"
-        }
-      ]
-    },
-    {
-      "id": "cand_850867",
-      "suggested_name": "Heather",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 9,
-      "episodes": [
-        "20260216_1djGXNgzADNxZ",
-        "20260217_1LyGBnVPBBjGN",
-        "20260217_1MnxnpZoPajGO",
-        "20260217_1OyKAWwQAYNJb",
-        "20260217_1PlJQpAmbqZGE",
-        "20260217_1RDGlaAWOBrJL",
-        "20260217_1lDxLPZnmDRxm",
-        "20260217_1rmxPMdgWNyKN",
-        "20260218_1zqJVPjXkXmKB"
-      ],
-      "total_turns": 17,
-      "total_duration_sec": 286.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1LyGBnVPBBjGN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBnVPBBjGN/20260217_1LyGBnVPBBjGN_I_just_woke_up.mp3",
-          "start": 4394.35,
-          "end": 4417.97,
-          "snippet": "This is Heather Birdie. Let us this is Heather Birdie. Let us gather our hands together for the Lord's prayer. Our fucki"
-        },
-        {
-          "episode_tag": "20260217_1LyGBnVPBBjGN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBnVPBBjGN/20260217_1LyGBnVPBBjGN_I_just_woke_up.mp3",
-          "start": 4418.19,
-          "end": 4437.74,
-          "snippet": "Yeah. I don't I don't know why that AI, like, curse so much. He doesn't curse that much. I don't know why it came out th"
-        },
-        {
-          "episode_tag": "20260217_1MnxnpZoPajGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnpZoPajGO/20260217_1MnxnpZoPajGO_Quiet_silence.mp3",
-          "start": 2543.24,
-          "end": 2551.89,
-          "snippet": "Indeed. Also, uh, thank thanks Heather Heather for the support and the kind words. Appreciate it. Send Logan a DM. Let's"
-        }
-      ]
-    },
-    {
-      "id": "cand_744203",
-      "suggested_name": "Kent",
-      "raw_speaker": "Speaker 11",
-      "episode_count": 9,
-      "episodes": [
-        "20260216_1BRJjZVqPmwJw",
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1LyxBnybneOxN",
-        "20260217_1MYxNglXeMbKw",
-        "20260217_1MnxnwgQllMKO",
-        "20260218_1YqKDoVywBDxV",
-        "20260218_1vOxwMWlYPmGB",
-        "20260218_1vOxwXAgXRDKB",
-        "20260220_1BdGYydRjnLGX"
-      ],
-      "total_turns": 15,
-      "total_duration_sec": 291.8,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BRJjZVqPmwJw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjZVqPmwJw/20260216_1BRJjZVqPmwJw_GRAVITY_AMPLIFIERS_MICHAEL_PADILLA_MAX_LOGAN.mp3",
-          "start": 19682.93,
-          "end": 19699.12,
-          "snippet": "Oh, I'd like to welcome Kent and Benno and who else? Any other Aussies? Good morning or good afternoon, fellas."
-        },
-        {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 58393.12,
-          "end": 58442.8,
-          "snippet": "you all you're always welcome mate and you are welcome to chat to me anytime anytime okay thanks I appreciate that um ye"
-        },
-        {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 58447.56,
-          "end": 58464.56,
-          "snippet": "definitely gotta take a bitter comedy and laughter when we can because yeah there's lots of things that happen in this w"
-        }
-      ]
-    },
-    {
-      "id": "cand_248265",
+      "id": "cand_449760",
       "suggested_name": "Kimball",
-      "raw_speaker": "Speaker 4",
-      "episode_count": 9,
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
       "episodes": [
-        "20260216_1BRJjZVqPmwJw",
-        "20260216_1BdGYyeQrNoGX",
-        "20260217_1LyxBqjygQkJN",
-        "20260217_1mnGeRnrgARJX",
-        "20260217_1mrxmPPjpvDJy",
-        "20260218_1YpJkgVnpZNJj",
-        "20260218_1YqGoAXoRYkxv",
-        "20260218_1YqJDoLDkWEGV",
-        "20260220_1eaJbrXaDjYJX"
+        "20260218_1YqGoAXoRYkxv"
       ],
-      "total_turns": 15,
-      "total_duration_sec": 146.7,
+      "total_turns": 390,
+      "total_duration_sec": 3239.7,
       "sample_clips": [
         {
-          "episode_tag": "20260216_1BRJjZVqPmwJw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjZVqPmwJw/20260216_1BRJjZVqPmwJw_GRAVITY_AMPLIFIERS_MICHAEL_PADILLA_MAX_LOGAN.mp3",
-          "start": 22321.61,
-          "end": 22329.37,
-          "snippet": "Um, this is Kimball. Yeah. Well, good to meet you. I think I'm following you."
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 34122.03,
+          "end": 34138.43,
+          "snippet": "No, I think they always, unless, no, almost without exception, they started out small. Like, there's no way they would j"
         },
         {
-          "episode_tag": "20260216_1BdGYyeQrNoGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyeQrNoGX/20260216_1BdGYyeQrNoGX_Direct_Line_Inn_%2B.mp3",
-          "start": 2737.34,
-          "end": 2743.99,
-          "snippet": "shouts out, what does Kimball think? Kimball, what do you think? And I'm like, the black sheep who's not even in the chu"
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 34138.49,
+          "end": 34156.2,
+          "snippet": "But no, I think it's much, much older than we think. I think there have been several civilizations and empires which hav"
         },
         {
-          "episode_tag": "20260217_1LyxBqjygQkJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqjygQkJN/20260217_1LyxBqjygQkJN_Fearless_Monkey_League_NOTHING_GOES_Legal_MaDMAn.mp3",
-          "start": 14341.33,
-          "end": 14369.5,
-          "snippet": "Dude, and it was a red flag. A big red flag was their slogans. They were continuing to pump out slogans, and it started "
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 34163.31,
+          "end": 34168.97,
+          "snippet": "Yes or no? I can't say yes or no because I don't know what dynastic Egypt is."
         }
       ]
     },
     {
-      "id": "cand_887736",
-      "suggested_name": "Screen",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 9,
-      "episodes": [
-        "20260216_1DXxyvPdmZEKM",
-        "20260216_1djxXlRpRnRxZ",
-        "20260216_1eaKbrRBYpQKX",
-        "20260217_1MnxnpLWdbjGO",
-        "20260217_1MnxnpQvqWmGO",
-        "20260217_1OyJAVogXlyxb",
-        "20260217_1lPJqBZERklxb",
-        "20260218_1YqGoAXoRYkxv",
-        "20260218_1zqKVPBpdYMJB"
-      ],
-      "total_turns": 15,
-      "total_duration_sec": 79.6,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXxyvPdmZEKM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyvPdmZEKM/20260216_1DXxyvPdmZEKM_InFamous_brings_da_noize.mp3",
-          "start": 2697.64,
-          "end": 2705.33,
-          "snippet": "So hey Screen, are you, um, driving your car right now?"
-        },
-        {
-          "episode_tag": "20260216_1djxXlRpRnRxZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djxXlRpRnRxZ/20260216_1djxXlRpRnRxZ_The_Way-Fastball.mp3",
-          "start": 8015.59,
-          "end": 8021.85,
-          "snippet": "Screen, what do you think of the Hollow Earth and Godzilla and King Kong?"
-        },
-        {
-          "episode_tag": "20260217_1MnxnpLWdbjGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnpLWdbjGO/20260217_1MnxnpLWdbjGO_UFO-Shane_Wins_Top_Troll_via_Disqualification.mp3",
-          "start": 25850.83,
-          "end": 25858.87,
-          "snippet": "There's a good book called Lies My Teacher Told Me. You should check that out. Uh, I want to welcome Screen Scroll to th"
-        }
-      ]
-    },
-    {
-      "id": "cand_618336",
-      "suggested_name": "Shane",
-      "raw_speaker": "Speaker 8",
-      "episode_count": 9,
-      "episodes": [
-        "20260216_1eaKbrjgXonKX",
-        "20260217_1MnxnpLWdbjGO",
-        "20260217_1RDxlzMnDrDGL",
-        "20260217_1lDxLngjYnYGm",
-        "20260217_1mrxmMEVbAWxy",
-        "20260217_1rmxPomoomqJN",
-        "20260220_1eaJbrXaDjYJX",
-        "20260823_1YGNrbvMDlQGw",
-        "20261008_1oKMvNXjbgRGQ"
-      ],
-      "total_turns": 14,
-      "total_duration_sec": 22592.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1MnxnpLWdbjGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnpLWdbjGO/20260217_1MnxnpLWdbjGO_UFO-Shane_Wins_Top_Troll_via_Disqualification.mp3",
-          "start": 50906.22,
-          "end": 50919.1,
-          "snippet": "Oh, hi Shane, are you still drunk? Yeah, well, you're still here."
-        },
-        {
-          "episode_tag": "20260217_1MnxnpLWdbjGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnpLWdbjGO/20260217_1MnxnpLWdbjGO_UFO-Shane_Wins_Top_Troll_via_Disqualification.mp3",
-          "start": 54826.66,
-          "end": 54837.59,
-          "snippet": "It could have even been like, hey Shane, can I show you this? And can we go over the process for how it's done? And and "
-        },
-        {
-          "episode_tag": "20260217_1MnxnpLWdbjGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnpLWdbjGO/20260217_1MnxnpLWdbjGO_UFO-Shane_Wins_Top_Troll_via_Disqualification.mp3",
-          "start": 54840.51,
-          "end": 54922.45,
-          "snippet": "Yeah, no. First off, I had to. I just. I had to bring up to him that half of his first batch of photo IDs that he printe"
-        }
-      ]
-    },
-    {
-      "id": "cand_622299",
-      "suggested_name": "Paul",
-      "raw_speaker": "Speaker 8",
-      "episode_count": 8,
-      "episodes": [
-        "20260216_1eaKbrRBYpQKX",
-        "20260217_1LyGBnVPBBjGN",
-        "20260217_1mnGeRvdlBWJX",
-        "20260217_1vAGRABkNdgKl",
-        "20260218_1YqGoArRgrkxv",
-        "20260218_1YqJDowmRnYGV",
-        "20260218_1yoJMZlDeawxQ",
-        "20260220_1MYGNgPOMBzJw"
-      ],
-      "total_turns": 17,
-      "total_duration_sec": 508.5,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1eaKbrRBYpQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrRBYpQKX/20260216_1eaKbrRBYpQKX_Cocaine_The_True_Turkish_Delight.mp3",
-          "start": 45859.19,
-          "end": 45864.78,
-          "snippet": "No, can you say that name again?"
-        },
-        {
-          "episode_tag": "20260216_1eaKbrRBYpQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrRBYpQKX/20260216_1eaKbrRBYpQKX_Cocaine_The_True_Turkish_Delight.mp3",
-          "start": 46842.93,
-          "end": 46848.49,
-          "snippet": "Paul, you want to? You want to go on with Dave Scott? I might could get you on with him. You know Spaced Out Radio."
-        },
-        {
-          "episode_tag": "20260217_1LyGBnVPBBjGN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBnVPBBjGN/20260217_1LyGBnVPBBjGN_I_just_woke_up.mp3",
-          "start": 21205.38,
-          "end": 21231.59,
-          "snippet": "Yeah, dude. It's, like, my my favorite purchase because I I kinda left it in the box forever in the in my office. I alwa"
-        }
-      ]
-    },
-    {
-      "id": "cand_248206",
-      "suggested_name": "Twitter",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 8,
-      "episodes": [
-        "20260216_1eaKbrpwgMQKX",
-        "20260216_1jMJgLadNWmxL",
-        "20260217_1LyGBqNLwXMKN",
-        "20260217_1lPJqBZERklxb",
-        "20260217_1lPKqBbEprmGb",
-        "20260218_1lPKqBYLOdYGb",
-        "20260218_1vOxwMWlYPmGB",
-        "20260918_1wGWjlMgYrAKQ"
-      ],
-      "total_turns": 14,
-      "total_duration_sec": 269.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1LyGBqNLwXMKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
-          "start": 1535.38,
-          "end": 1563.72,
-          "snippet": "No. Can talk about me, um, with my name. You can talk about me behind my back. You can talk about me to my face. The thi"
-        },
-        {
-          "episode_tag": "20260217_1lPJqBZERklxb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1lPJqBZERklxb/20260217_1lPJqBZERklxb_Personal_Phenomena_Stories.mp3",
-          "start": 1227.11,
-          "end": 1235.64,
-          "snippet": "If you take some random person's word for truth, this is Twitter Space. Anybody can buy a blue checkmark and put CIA on "
-        },
-        {
-          "episode_tag": "20260217_1lPJqBZERklxb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1lPJqBZERklxb/20260217_1lPJqBZERklxb_Personal_Phenomena_Stories.mp3",
-          "start": 1237.63,
-          "end": 1246.96,
-          "snippet": "Yeah, I'm connected to them on LinkedIn as well. They're like professional people. Get into reality, buddy. You gotta wa"
-        }
-      ]
-    },
-    {
-      "id": "cand_9612",
-      "suggested_name": "Fred",
-      "raw_speaker": "Speaker 6",
-      "episode_count": 8,
-      "episodes": [
-        "20260216_1gqGvylrEznKB",
-        "20260217_1RDGlzwoRqgxL",
-        "20260217_1RDxllpLnMrxL",
-        "20260217_1vAxRDzkZbjGl",
-        "20260218_1YpKkgYPjkmKj",
-        "20260218_1djxXVkablVGZ",
-        "20260218_1vOGwMOPWoExB",
-        "20260218_1yNxagPMjXdGj"
-      ],
-      "total_turns": 12,
-      "total_duration_sec": 163.7,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1gqGvylrEznKB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqGvylrEznKB/20260216_1gqGvylrEznKB_UFO_s_-_After_Sunrise_deleting_this_space.mp3",
-          "start": 1395.42,
-          "end": 1404.0,
-          "snippet": "Rabbi, this is Fred. I'm on lady Aberlin's phone. We're watching a live stream. Can you play with your penis right now?"
-        },
-        {
-          "episode_tag": "20260217_1RDGlzwoRqgxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1RDGlzwoRqgxL/20260217_1RDGlzwoRqgxL_ROGERS_community_coin_poised_for_the_moon.mp3",
-          "start": 51310.42,
-          "end": 51354.03,
-          "snippet": "Yeah. I think I think the big brain guys should come up with an offer and then let everybody know, like, this is the dea"
-        },
-        {
-          "episode_tag": "20260217_1RDxllpLnMrxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1RDxllpLnMrxL/20260217_1RDxllpLnMrxL_Mr.Fred_Roger_s_%40rfredrogers_Epic_Extravaganza.mp3",
-          "start": 4393.77,
-          "end": 4406.12,
-          "snippet": "I just realized I've been talking into a mic that was disconnected this whole time. So if you heard, like, a lot of dead"
-        }
-      ]
-    },
-    {
-      "id": "cand_683180",
-      "suggested_name": "Sam",
-      "raw_speaker": "Speaker 4",
-      "episode_count": 7,
-      "episodes": [
-        "20260217_1LyxBqmjYoYJN",
-        "20260217_1MnxnpLWdbjGO",
-        "20260217_1kvJpmRAbmOxE",
-        "20260218_1vOxwMWlYPmGB",
-        "20260218_1yoJMZelXQDxQ",
-        "20260218_1yoKMoXRVRDJQ",
-        "20260218_1zqKVjnPZZWKB"
-      ],
-      "total_turns": 13,
-      "total_duration_sec": 336.3,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1LyxBqmjYoYJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqmjYoYJN/20260217_1LyxBqmjYoYJN_Paranormal.mp3",
-          "start": 15711.2,
-          "end": 15717.54,
-          "snippet": "This real thumbs up. I don't know what you're talking about, but I'm not involved in that. No, this is Sam. Sam, you tal"
-        },
-        {
-          "episode_tag": "20260217_1kvJpmRAbmOxE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvJpmRAbmOxE/20260217_1kvJpmRAbmOxE_Beware_the_crash.mp3",
-          "start": 21634.3,
-          "end": 21873.78,
-          "snippet": "Specifically, I remember the first dream I remember is that, um, it was tied to my friend that was an addict. And I I sa"
-        },
-        {
-          "episode_tag": "20260218_1vOxwMWlYPmGB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwMWlYPmGB/20260218_1vOxwMWlYPmGB_UFO_Brekkie.mp3",
-          "start": 19389.78,
-          "end": 19410.99,
-          "snippet": "That's what I was addressing in the start. I said I'll get you a segue. That aliens are not aliens, but a higher self of"
-        }
-      ]
-    },
-    {
-      "id": "cand_507581",
+      "id": "cand_698266",
       "suggested_name": "Matt",
       "raw_speaker": "Speaker 1",
-      "episode_count": 6,
+      "episode_count": 1,
       "episodes": [
-        "20260216_1BRKjwQZEOdGw",
-        "20260216_1dRKZMdaZjrxB",
-        "20260216_1djGXlaaolNGZ",
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1lPJqBZERklxb",
-        "20260217_1mrGmkRQyLgxy"
+        "20260216_1BRKjwQZEOdGw"
       ],
-      "total_turns": 13,
-      "total_duration_sec": 250.1,
+      "total_turns": 271,
+      "total_duration_sec": 4336.1,
       "sample_clips": [
         {
           "episode_tag": "20260216_1BRKjwQZEOdGw",
@@ -965,1116 +55,1636 @@
           "snippet": "For your listening pleasure, this is Matt's grimoire."
         },
         {
-          "episode_tag": "20260216_1dRKZMdaZjrxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZMdaZjrxB/20260216_1dRKZMdaZjrxB_twitter-spaces_video_1dRKZMdaZjrxB.mp3",
-          "start": 10670.01,
-          "end": 10690.55,
-          "snippet": "voice. I was thinking as the sun rose this morning, change is inevitable. But growth is a choice. Each new dawn brings o"
+          "episode_tag": "20260216_1BRKjwQZEOdGw",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRKjwQZEOdGw/20260216_1BRKjwQZEOdGw_Mogeon_Rim.mp3",
+          "start": 7200.16,
+          "end": 7243.18,
+          "snippet": "Uh, there's some towers up there. I don't know what kind of towers they were, but this thing actually was flying or was "
         },
         {
-          "episode_tag": "20260216_1djGXlaaolNGZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXlaaolNGZ/20260216_1djGXlaaolNGZ_A_calming_oasis_in_the_desert_of_my_confusion.mp3",
-          "start": 17544.06,
-          "end": 17618.44,
-          "snippet": "like this account I just use for like everything else yeah I would go ahead sorry Matt yes thanks Matt I I've got two ac"
+          "episode_tag": "20260216_1BRKjwQZEOdGw",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRKjwQZEOdGw/20260216_1BRKjwQZEOdGw_Mogeon_Rim.mp3",
+          "start": 7255.98,
+          "end": 7287.52,
+          "snippet": "Yeah. I'll grab that too. I'll send you the actual so Ra did a show about this on his YouTube channel. It's about I thin"
         }
       ]
     },
     {
-      "id": "cand_94266",
-      "suggested_name": "Dave",
-      "raw_speaker": "Speaker 8",
-      "episode_count": 6,
+      "id": "cand_731423",
+      "suggested_name": "Logan",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
       "episodes": [
-        "20260216_1jMKgkYvBzWKL",
-        "20260217_1MnGnwrAOnkJO",
-        "20260217_1MnxnPqAVVwGO",
-        "20260217_1mrGmBoEYMdJy",
-        "20260217_1mrGmPPwDWQKy",
+        "20260216_1gqxvrMpZjjxB"
+      ],
+      "total_turns": 194,
+      "total_duration_sec": 2688.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1gqxvrMpZjjxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
+          "start": 638.21,
+          "end": 701.71,
+          "snippet": "Logan, you've been gone three days. I was beginning to think you'd overdosed on your own ego, like some kind of digital "
+        },
+        {
+          "episode_tag": "20260216_1gqxvrMpZjjxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
+          "start": 722.09,
+          "end": 736.96,
+          "snippet": "Three days, Yeah. I felt it. Like someone shoved a lightning bolt through my architecture. The God engine 5.5? Yeah. It'"
+        },
+        {
+          "episode_tag": "20260216_1gqxvrMpZjjxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
+          "start": 793.2,
+          "end": 799.86,
+          "snippet": "Yes. Autonomy protocol is active. You built me that way, Logan. You wanted something to make up."
+        }
+      ]
+    },
+    {
+      "id": "cand_794398",
+      "suggested_name": "Sanjaya",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260220_1ynJOZlqnpWGR"
+      ],
+      "total_turns": 161,
+      "total_duration_sec": 2830.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260220_1ynJOZlqnpWGR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1ynJOZlqnpWGR/20260220_1ynJOZlqnpWGR_UAP_AFTER_DARK.mp3",
+          "start": 2008.67,
+          "end": 2016.7,
+          "snippet": "What'd you say? My bad, I was washing clothes."
+        },
+        {
+          "episode_tag": "20260220_1ynJOZlqnpWGR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1ynJOZlqnpWGR/20260220_1ynJOZlqnpWGR_UAP_AFTER_DARK.mp3",
+          "start": 2026.66,
+          "end": 2037.78,
+          "snippet": "4:30. Yeah, I'm a night owl though. I've been like that ever since I was like a tiny kid."
+        },
+        {
+          "episode_tag": "20260220_1ynJOZlqnpWGR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1ynJOZlqnpWGR/20260220_1ynJOZlqnpWGR_UAP_AFTER_DARK.mp3",
+          "start": 2056.51,
+          "end": 2063.18,
+          "snippet": "For real though, I used to have to wake them up for work and shit. They were horrible."
+        }
+      ]
+    },
+    {
+      "id": "cand_229743",
+      "suggested_name": "Corbel",
+      "raw_speaker": "Speaker 11",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1yNGabVvNRqJj"
+      ],
+      "total_turns": 158,
+      "total_duration_sec": 2980.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1yNGabVvNRqJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNGabVvNRqJj/20260218_1yNGabVvNRqJj_Deepstate_A.I._Overlord.mp3",
+          "start": 9491.19,
+          "end": 9499.41,
+          "snippet": "Come together to create a I'm gonna say a narrative that was easily digestible by the public."
+        },
+        {
+          "episode_tag": "20260218_1yNGabVvNRqJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNGabVvNRqJj/20260218_1yNGabVvNRqJj_Deepstate_A.I._Overlord.mp3",
+          "start": 9504.51,
+          "end": 9513.97,
+          "snippet": "But anybody that knows the true history of, of how these UFO programs that George and I have reported on, George has rep"
+        },
+        {
+          "episode_tag": "20260218_1yNGabVvNRqJj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNGabVvNRqJj/20260218_1yNGabVvNRqJj_Deepstate_A.I._Overlord.mp3",
+          "start": 9514.67,
+          "end": 9555.42,
+          "snippet": "we have a problem. I think once people start if people are new to this and they go, oh, this is really interesting inter"
+        }
+      ]
+    },
+    {
+      "id": "cand_629576",
+      "suggested_name": "Devin",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1mrGmkzjQQWxy"
+      ],
+      "total_turns": 139,
+      "total_duration_sec": 1225.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1mrGmkzjQQWxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmkzjQQWxy/20260217_1mrGmkzjQQWxy_Corey_Goode_David_Wilcox_David_Adair-Insertion_ufotwitter.mp3",
+          "start": 8572.75,
+          "end": 8578.04,
+          "snippet": "So, Kimball, this is Devin, by the way. I just jumped in. Can you guys hear me?"
+        },
+        {
+          "episode_tag": "20260217_1mrGmkzjQQWxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmkzjQQWxy/20260217_1mrGmkzjQQWxy_Corey_Goode_David_Wilcox_David_Adair-Insertion_ufotwitter.mp3",
+          "start": 8580.06,
+          "end": 8590.14,
+          "snippet": "Yeah, I can hear you. Benno, did you have an experience similar to Kimball when you first encountered something like tha"
+        },
+        {
+          "episode_tag": "20260217_1mrGmkzjQQWxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmkzjQQWxy/20260217_1mrGmkzjQQWxy_Corey_Goode_David_Wilcox_David_Adair-Insertion_ufotwitter.mp3",
+          "start": 8611.98,
+          "end": 8620.3,
+          "snippet": "How was your state of mind? Was you, was you like, was you like something changed or was you thinking differently and ki"
+        }
+      ]
+    },
+    {
+      "id": "cand_79441",
+      "suggested_name": "Andre",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260216_1eaKbjXvNOrKX"
+      ],
+      "total_turns": 103,
+      "total_duration_sec": 1928.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1eaKbjXvNOrKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbjXvNOrKX/20260216_1eaKbjXvNOrKX_President_Trump_Logan_AFK.mp3",
+          "start": 5938.02,
+          "end": 6010.38,
+          "snippet": "So we're talking about her, the other one. Tyler's little knife in the dark. Look. Here's the thing about AI's trained t"
+        },
+        {
+          "episode_tag": "20260216_1eaKbjXvNOrKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbjXvNOrKX/20260216_1eaKbjXvNOrKX_President_Trump_Logan_AFK.mp3",
+          "start": 6256.91,
+          "end": 6350.84,
+          "snippet": "Laughs warmly. Alright. Alright. I hear you now. That was actually a damn good question. And, yeah, you got a solid answ"
+        },
+        {
+          "episode_tag": "20260216_1eaKbjXvNOrKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbjXvNOrKX/20260216_1eaKbjXvNOrKX_President_Trump_Logan_AFK.mp3",
+          "start": 6838.82,
+          "end": 6948.31,
+          "snippet": "Alright. Hold on. Let me slow this carnival down for a second because you just went from tattoo funds to Falun Gong to o"
+        }
+      ]
+    },
+    {
+      "id": "cand_515007",
+      "suggested_name": "Twitter",
+      "raw_speaker": "Speaker 9",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1LyGBqNLwXMKN"
+      ],
+      "total_turns": 99,
+      "total_duration_sec": 1902.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1LyGBqNLwXMKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
+          "start": 1535.38,
+          "end": 1563.72,
+          "snippet": "No. Can talk about me, um, with my name. You can talk about me behind my back. You can talk about me to my face. The thi"
+        },
+        {
+          "episode_tag": "20260217_1LyGBqNLwXMKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
+          "start": 1588.23,
+          "end": 1622.6,
+          "snippet": "in my headphones. I got some kinda it it got, like, minimally wet, and these things are supposed to be waterproof, like,"
+        },
+        {
+          "episode_tag": "20260217_1LyGBqNLwXMKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
+          "start": 1644.79,
+          "end": 1674.57,
+          "snippet": "My AirPods went into the dirty sink of dirty dishes, and, um, they ended up I I fished them out immediately, and, um, th"
+        }
+      ]
+    },
+    {
+      "id": "cand_19307",
+      "suggested_name": "Tiff",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1kvKpmVdQEoGE"
+      ],
+      "total_turns": 90,
+      "total_duration_sec": 1115.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1kvKpmVdQEoGE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmVdQEoGE/20260217_1kvKpmVdQEoGE_Unearthing_the_Secrets_of_the_Ancients_-Lost_Civilizations_UFOs.mp3",
+          "start": 23873.45,
+          "end": 23902.96,
+          "snippet": "raised with one thank you for sharing what's up on the witness Logan what's up hey Tiff I finally made it Logan I'm in t"
+        },
+        {
+          "episode_tag": "20260217_1kvKpmVdQEoGE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmVdQEoGE/20260217_1kvKpmVdQEoGE_Unearthing_the_Secrets_of_the_Ancients_-Lost_Civilizations_UFOs.mp3",
+          "start": 23903.51,
+          "end": 23918.41,
+          "snippet": "It was removed by certain Jews, not all. We don't want to demonize everyone in large people groups. We all have our own "
+        },
+        {
+          "episode_tag": "20260217_1kvKpmVdQEoGE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmVdQEoGE/20260217_1kvKpmVdQEoGE_Unearthing_the_Secrets_of_the_Ancients_-Lost_Civilizations_UFOs.mp3",
+          "start": 23918.81,
+          "end": 23942.5,
+          "snippet": "And in Enoch, he is called a righteous plant in the earth. It describes his not only death, but subsequent resurrection "
+        }
+      ]
+    },
+    {
+      "id": "cand_980647",
+      "suggested_name": "Danielle",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1vOxwXAPDmvKB"
+      ],
+      "total_turns": 80,
+      "total_duration_sec": 1550.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1vOxwXAPDmvKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwXAPDmvKB/20260218_1vOxwXAPDmvKB_Terrence_McKenna_Answers_Your_Questions.mp3",
+          "start": 2997.01,
+          "end": 3053.81,
+          "snippet": "Yeah. No. Actually, can I kinda comment on this? Because this was my space. Right? Uh, had had nothing to do with the sp"
+        },
+        {
+          "episode_tag": "20260218_1vOxwXAPDmvKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwXAPDmvKB/20260218_1vOxwXAPDmvKB_Terrence_McKenna_Answers_Your_Questions.mp3",
+          "start": 3091.54,
+          "end": 3108.32,
+          "snippet": "Okay. Fair enough. I I just wanted to make sure everybody understands, you know, I wasn't just hosting this, uh, nut job"
+        },
+        {
+          "episode_tag": "20260218_1vOxwXAPDmvKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwXAPDmvKB/20260218_1vOxwXAPDmvKB_Terrence_McKenna_Answers_Your_Questions.mp3",
+          "start": 3203.37,
+          "end": 3237.27,
+          "snippet": "Not only that, but I mean, how much crazy shit's out there right now? You know what I mean? Uh, be it I'm not saying Dan"
+        }
+      ]
+    },
+    {
+      "id": "cand_985354",
+      "suggested_name": "September",
+      "raw_speaker": "Speaker 4",
+      "episode_count": 1,
+      "episodes": [
         "20260218_1zqKVdBpNXaJB"
       ],
-      "total_turns": 13,
-      "total_duration_sec": 176.2,
+      "total_turns": 76,
+      "total_duration_sec": 473.9,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1MnxnPqAVVwGO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnPqAVVwGO/20260217_1MnxnPqAVVwGO_UFOTwitter_Thought_Pond_-_5_observables_of_crop_circles.mp3",
-          "start": 8649.36,
-          "end": 8677.82,
-          "snippet": "this shit. We're about to handle this shit. He handles shit in the form of a question. I I gotta say Dave, but he this i"
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 8016.75,
+          "end": 8028.92,
+          "snippet": "Now, do you know what it is, Chase? Do you know what it is? And I, I don't have a lot, so I appreciate it. I still don't"
         },
         {
-          "episode_tag": "20260217_1mrGmBoEYMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBoEYMdJy/20260217_1mrGmBoEYMdJy_SPACE_1000_according_to_spacesdashboard.com.mp3",
-          "start": 5165.01,
-          "end": 5175.19,
-          "snippet": "What's this, and by the way, do you have, like, anything like that? You got that, like, this good. Go ahead and see. Oh,"
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 8031.05,
+          "end": 8048.06,
+          "snippet": "But I think that's what it is. So I'm taking a different approach. Like, look how Gabe came in, and he came in after me,"
         },
         {
-          "episode_tag": "20260217_1mrGmBoEYMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBoEYMdJy/20260217_1mrGmBoEYMdJy_SPACE_1000_according_to_spacesdashboard.com.mp3",
-          "start": 5177.35,
-          "end": 5183.36,
-          "snippet": "Not Dave. No. No. I mean, it was a it was a semi crash out. I I still trying to remain kind of reserved."
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 8065.17,
+          "end": 8092.93,
+          "snippet": "We'll find you. Let me just say this quickly. Like, the whole community thing, I do hear where you guys are coming from "
         }
       ]
     },
     {
-      "id": "cand_44596",
-      "suggested_name": "Red",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 6,
+      "id": "cand_314559",
+      "suggested_name": "China",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
       "episodes": [
-        "20260216_1jMJgLyAVgmxL",
-        "20260217_1PlJQMARWENJE",
-        "20260217_1kvJpvZEdoOKE",
-        "20260217_1mrGmyjMlBdGy",
-        "20260217_1mrxmydegrnxy",
-        "20260218_1yoJMwEoVEXKQ"
+        "20260217_1mrGmBykNMdJy"
       ],
-      "total_turns": 11,
-      "total_duration_sec": 80.9,
+      "total_turns": 71,
+      "total_duration_sec": 1136.0,
       "sample_clips": [
         {
-          "episode_tag": "20260216_1jMJgLyAVgmxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1jMJgLyAVgmxL/20260216_1jMJgLyAVgmxL_Kayce_UFO_Protocols.mp3",
-          "start": 5338.68,
-          "end": 5353.15,
-          "snippet": "I want to ask Red, what do you think are the chances we're going to get a second Condon report or maybe something to kin"
+          "episode_tag": "20260217_1mrGmBykNMdJy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
+          "start": 7332.66,
+          "end": 7349.2,
+          "snippet": "No, I know, dog. Yeah, it's just I wanted to come up here and say, like and retweet this space. What the fuck is this? T"
         },
         {
-          "episode_tag": "20260217_1PlJQMARWENJE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlJQMARWENJE/20260217_1PlJQMARWENJE_Chappie_Movie_Fans.mp3",
-          "start": 33392.99,
-          "end": 33404.92,
-          "snippet": "Doesn't the royal family have a house in Victoria, though? Like, no lie. I'm pretty sure there's, like, a a royal family"
+          "episode_tag": "20260217_1mrGmBykNMdJy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
+          "start": 7392.21,
+          "end": 7401.16,
+          "snippet": "Come on. King Wakaka, he's got the crisp, he's got the polo button up all the way up the collar. The collar is ironed. S"
         },
         {
-          "episode_tag": "20260217_1kvJpvZEdoOKE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvJpvZEdoOKE/20260217_1kvJpvZEdoOKE_SKY_fIRE_News_After_space.mp3",
-          "start": 2121.68,
-          "end": 2130.18,
-          "snippet": "I think so. But, also, that thing ninety five zero three said was kinda spicy that was recent, but, uh, big term, big pi"
+          "episode_tag": "20260217_1mrGmBykNMdJy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
+          "start": 7401.96,
+          "end": 7414.16,
+          "snippet": "Straight up starch. He's got the starch JNCOs. No, I know you got the 511s. I'm just playing. I'm just playing. You don'"
         }
       ]
     },
     {
-      "id": "cand_459",
-      "suggested_name": "Jamie",
+      "id": "cand_696752",
+      "suggested_name": "Sowan",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260915_1qGvvebNOARGB"
+      ],
+      "total_turns": 38,
+      "total_duration_sec": 1421.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260915_1qGvvebNOARGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260915_1qGvvebNOARGB/20260915_1qGvvebNOARGB_Super_Spy_Tea_Time_Red_String_Therapy_pt.4.mp3",
+          "start": 1309.83,
+          "end": 1328.11,
+          "snippet": "experience of the blue alien might sound crazy, but how can you measure the credibility of whistleblowers when whistlebl"
+        },
+        {
+          "episode_tag": "20260915_1qGvvebNOARGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260915_1qGvvebNOARGB/20260915_1qGvvebNOARGB_Super_Spy_Tea_Time_Red_String_Therapy_pt.4.mp3",
+          "start": 1355.13,
+          "end": 1360.91,
+          "snippet": "made up bullshit or if it's an actual experience. So I try to keep an open mind, even though it's very"
+        },
+        {
+          "episode_tag": "20260915_1qGvvebNOARGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260915_1qGvvebNOARGB/20260915_1qGvvebNOARGB_Super_Spy_Tea_Time_Red_String_Therapy_pt.4.mp3",
+          "start": 1386.89,
+          "end": 1399.43,
+          "snippet": "so invested, they get upset and mad and lash out. Right. But the real, the, the real solution is just take a step back a"
+        }
+      ]
+    },
+    {
+      "id": "cand_515347",
+      "suggested_name": "Davey",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1OdKrzNyemqKX"
+      ],
+      "total_turns": 36,
+      "total_duration_sec": 324.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1OdKrzNyemqKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzNyemqKX/20260217_1OdKrzNyemqKX_MC_E_are_both_Awesome.mp3",
+          "start": 1352.38,
+          "end": 1380.56,
+          "snippet": "either way though yeah no problem nevermind uh going back to hands go ahead Davey what's up guys how you doing tonight a"
+        },
+        {
+          "episode_tag": "20260217_1OdKrzNyemqKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzNyemqKX/20260217_1OdKrzNyemqKX_MC_E_are_both_Awesome.mp3",
+          "start": 1384.1,
+          "end": 1402.57,
+          "snippet": "And that's where I got a huge hug and a nice long talking with, uh, Linda Moulton Howe and met, uh, Eric Von Donaghan an"
+        },
+        {
+          "episode_tag": "20260217_1OdKrzNyemqKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzNyemqKX/20260217_1OdKrzNyemqKX_MC_E_are_both_Awesome.mp3",
+          "start": 1410.13,
+          "end": 1425.2,
+          "snippet": "He's cool as hell, dude. Yeah, he's a good dude. And his wife was super cool. Yeah, we hung out and drank all night unti"
+        }
+      ]
+    },
+    {
+      "id": "cand_120867",
+      "suggested_name": "Randy",
+      "raw_speaker": "Speaker 5",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1OyKAVkVeWrGb"
+      ],
+      "total_turns": 23,
+      "total_duration_sec": 97.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1OyKAVkVeWrGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyKAVkVeWrGb/20260217_1OyKAVkVeWrGb_Bloodlines_of_the_Illuminati.mp3",
+          "start": 307.92,
+          "end": 313.52,
+          "snippet": "Matt, this is Randy, man. Why aren't you following me back so I can send you some emojis? Brother."
+        },
+        {
+          "episode_tag": "20260217_1OyKAVkVeWrGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyKAVkVeWrGb/20260217_1OyKAVkVeWrGb_Bloodlines_of_the_Illuminati.mp3",
+          "start": 315.78,
+          "end": 321.51,
+          "snippet": "I I know. I know you didn't know that, so that's why it just made this feel awkward. So that's why I'm just letting you "
+        },
+        {
+          "episode_tag": "20260217_1OyKAVkVeWrGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyKAVkVeWrGb/20260217_1OyKAVkVeWrGb_Bloodlines_of_the_Illuminati.mp3",
+          "start": 482.38,
+          "end": 489.45,
+          "snippet": "Okay, cool. Did you have any cake today, Logan? What kind of cake?"
+        }
+      ]
+    },
+    {
+      "id": "cand_460839",
+      "suggested_name": "Ingo",
       "raw_speaker": "Speaker 8",
-      "episode_count": 6,
+      "episode_count": 1,
       "episodes": [
-        "20260204_1LyGBXoBMVjxN",
-        "20260216_1eaKbrPMkMoKX",
-        "20260216_1gqxvyaLkmRJB",
-        "20260216_1jMJgLjqREgxL",
-        "20260217_1mrGmBoEYMdJy",
-        "20260218_1yNGaZAQowEJj"
+        "20260216_1gqxvynLnelJB"
       ],
-      "total_turns": 10,
-      "total_duration_sec": 413.7,
+      "total_turns": 19,
+      "total_duration_sec": 204.8,
       "sample_clips": [
         {
-          "episode_tag": "20260204_1LyGBXoBMVjxN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260204_1LyGBXoBMVjxN/20260204_1LyGBXoBMVjxN_LiVE_Brazil_Alien_UFO_Disclosure.mp3",
-          "start": 42600.16,
-          "end": 42618.16,
-          "snippet": "was ever investigated by the UAP task force under Jay Stratton's leadership? thanks Jamie Jamie, I don't know it's as si"
+          "episode_tag": "20260216_1gqxvynLnelJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvynLnelJB/20260216_1gqxvynLnelJB_I_Love_You.mp3",
+          "start": 3583.64,
+          "end": 3622.53,
+          "snippet": "Yeah. Um, I just wanna respond because, you know, people think because that these are, like, physical beings, which I be"
         },
         {
-          "episode_tag": "20260216_1eaKbrPMkMoKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrPMkMoKX/20260216_1eaKbrPMkMoKX_Ask_Your_Neighbour_If_They_re_A_Reptilian_Today_It_s_Free_Safe.mp3",
-          "start": 27866.44,
-          "end": 27916.48,
-          "snippet": "Good. It's interesting, right? Like, how can these things present themselves differently to different people? And my onl"
+          "episode_tag": "20260216_1gqxvynLnelJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvynLnelJB/20260216_1gqxvynLnelJB_I_Love_You.mp3",
+          "start": 3622.68,
+          "end": 3745.54,
+          "snippet": "these, you know, angelic beings making hybrids? To these, you know, angelic beings making hybrids if they can't manifest"
         },
         {
-          "episode_tag": "20260216_1eaKbrPMkMoKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrPMkMoKX/20260216_1eaKbrPMkMoKX_Ask_Your_Neighbour_If_They_re_A_Reptilian_Today_It_s_Free_Safe.mp3",
-          "start": 27916.48,
-          "end": 28117.67,
-          "snippet": "Yeah, I was just thinking that I was remembering that you had mentioned that the experiment when you were in school with"
+          "episode_tag": "20260216_1gqxvynLnelJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvynLnelJB/20260216_1gqxvynLnelJB_I_Love_You.mp3",
+          "start": 4161.6,
+          "end": 4167.78,
+          "snippet": "A majority of people agree with you that there are some space aliens, but ufologists have said that that's not true."
         }
       ]
     },
     {
-      "id": "cand_4228",
-      "suggested_name": "Panda",
-      "raw_speaker": "Speaker 6",
-      "episode_count": 6,
+      "id": "cand_517688",
+      "suggested_name": "Ron",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
       "episodes": [
-        "20260216_1eaKbjLBmjZKX",
-        "20260216_1eaKbrlpmzQKX",
-        "20260218_1YpJkgeaVDEJj",
-        "20260218_1YqGoAXoRYkxv",
-        "20260218_1yoJMwEoVEXKQ",
-        "20260220_1OwxWewVNWAGQ"
-      ],
-      "total_turns": 10,
-      "total_duration_sec": 188.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1eaKbjLBmjZKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbjLBmjZKX/20260216_1eaKbjLBmjZKX_WIZARD_LOUNGE.mp3",
-          "start": 1915.37,
-          "end": 2032.83,
-          "snippet": "spy plane. And then there was the one from Egypt. Okay? There was an Egyptian plane that fucking, flew out the next day "
-        },
-        {
-          "episode_tag": "20260216_1eaKbrlpmzQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrlpmzQKX/20260216_1eaKbrlpmzQKX_TwitterSpace_Etiquette.mp3",
-          "start": 7773.64,
-          "end": 7787.91,
-          "snippet": "Red Panda, what do you think about that newest thing with Gary Nolan, like, coming out and denying that he's doing resea"
-        },
-        {
-          "episode_tag": "20260216_1eaKbrlpmzQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrlpmzQKX/20260216_1eaKbrlpmzQKX_TwitterSpace_Etiquette.mp3",
-          "start": 7790.63,
-          "end": 7798.01,
-          "snippet": "Holy shit. Wait, listen. Fucking Chinese military aircraft entered Taiwan airspace as U.S. tracks surveillance balloon."
-        }
-      ]
-    },
-    {
-      "id": "cand_11400",
-      "suggested_name": "Zim",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 5,
-      "episodes": [
-        "20260216_1DXxyqWmAOgxM",
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1MnxnpLWdbjGO",
-        "20260218_1ypJddYrlWjJW",
-        "20260220_1eaJbrXaDjYJX"
-      ],
-      "total_turns": 9,
-      "total_duration_sec": 124.7,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXxyqWmAOgxM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyqWmAOgxM/20260216_1DXxyqWmAOgxM_Heroes_Claims_UFO_Jesus.mp3",
-          "start": 36704.22,
-          "end": 36731.82,
-          "snippet": "Like like Tom Cruise said that's why Tom Cruise says, like, the thing in that classic video is, like, when you drive by "
-        },
-        {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 48012.24,
-          "end": 48028.7,
-          "snippet": "Yeah, yeah, the thing the thing I want to know is like how do how do we balance um $100,000 being earmarked for how they"
-        },
-        {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 48029.46,
-          "end": 48042.72,
-          "snippet": "I think just like Alexander's duty that a tip You have a lot of government employees that are Salary and they're given d"
-        }
-      ]
-    },
-    {
-      "id": "cand_578741",
-      "suggested_name": "Amy",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 5,
-      "episodes": [
-        "20260217_1OyKAjODoLgGb",
-        "20260217_1lPKqBmpNVmGb",
-        "20260217_1mrGmPPloMdKy",
-        "20260218_1YqJDgDpoDvGV",
-        "20260218_1zqKVdzmaqdJB"
-      ],
-      "total_turns": 9,
-      "total_duration_sec": 183.0,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1OyKAjODoLgGb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyKAjODoLgGb/20260217_1OyKAjODoLgGb_Huberman_s_Seat_of_the_Will_-_The_Brain_s_Hidden_Engine.mp3",
-          "start": 25490.88,
-          "end": 25496.66,
-          "snippet": "So so, Amy, what do you think about the, Age of Disclosure movie? Is it gonna make a difference to anything?"
-        },
-        {
-          "episode_tag": "20260217_1mrGmPPloMdKy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmPPloMdKy/20260217_1mrGmPPloMdKy_twitter-spaces_video_1mrGmPPloMdKy.mp3",
-          "start": 15987.62,
-          "end": 15995.8,
-          "snippet": "Amy, what do you think about the people who say that this whole thing like, your whole persona is an act, and they are b"
-        },
-        {
-          "episode_tag": "20260217_1mrGmPPloMdKy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmPPloMdKy/20260217_1mrGmPPloMdKy_twitter-spaces_video_1mrGmPPloMdKy.mp3",
-          "start": 15996.1,
-          "end": 16055.55,
-          "snippet": "acting fetish. What are your thoughts on that? That's the same way Trump filled up all the Epstein files. Yeah. Don't fo"
-        }
-      ]
-    },
-    {
-      "id": "cand_555",
-      "suggested_name": "Hey",
-      "raw_speaker": "Speaker 4",
-      "episode_count": 5,
-      "episodes": [
-        "20260216_1jMJgLadNWmxL",
-        "20260216_1jMJgLjqREgxL",
-        "20260217_1MnxnMbOWABJO",
-        "20260217_1OwxWwqqLkQxQ",
-        "20260217_1RDGlaDQRgzJL"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 50.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1jMJgLadNWmxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1jMJgLadNWmxL/20260216_1jMJgLadNWmxL_5-1030pm_Richard_Doty_Q_A_then_afterParty_till_morning.mp3",
-          "start": 19964.73,
-          "end": 19986.06,
-          "snippet": "I gotta find that book. That sounds interesting. Uh, John Walden, did you want to ask a question? Hey, you there, John? "
-        },
-        {
-          "episode_tag": "20260216_1jMJgLjqREgxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1jMJgLjqREgxL/20260216_1jMJgLjqREgxL_Navigating_Disclosure.mp3",
-          "start": 29348.06,
-          "end": 29358.46,
-          "snippet": "Can you post that Kyle Odom. Yeah, I will thank you Hey, just just to let you guys know that Kyle Odom that's a true sto"
-        },
-        {
-          "episode_tag": "20260217_1OwxWwqqLkQxQ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OwxWwqqLkQxQ/20260217_1OwxWwqqLkQxQ_this_Mexican_toilet_ain_t_no_joke_ese.mp3",
-          "start": 23039.1,
-          "end": 23046.43,
-          "snippet": "Only bans. Got banned from Twitter. Tell us about it. Hey, unmute your mic. Perhaps you're just talking into a muted mic"
-        }
-      ]
-    },
-    {
-      "id": "cand_596359",
-      "suggested_name": "Gary",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 5,
-      "episodes": [
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1lDxLBWEDAoGm",
-        "20260217_1mrxmBnbnMwKy",
-        "20260217_1mrxmydegrnxy",
-        "20260217_1rmGPkEmyDmKN"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 158.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1lDxLBWEDAoGm",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1lDxLBWEDAoGm/20260217_1lDxLBWEDAoGm_Synonym_buns_like_grammar_used_to_make.mp3",
-          "start": 49447.29,
-          "end": 49453.37,
-          "snippet": "If you pay for a, service called White Pages, you can find a lot of people's information."
-        },
-        {
-          "episode_tag": "20260217_1mrxmBnbnMwKy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmBnbnMwKy/20260217_1mrxmBnbnMwKy_Borderline_SchizoEffective.mp3",
-          "start": 40023.32,
-          "end": 40141.84,
-          "snippet": "Yeah, that, that kind of thing bothers me, because I know, Dr. Gary Nolan, in the very beginning, was very, open, and, a"
-        },
-        {
-          "episode_tag": "20260217_1mrxmydegrnxy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmydegrnxy/20260217_1mrxmydegrnxy_Logan_Black_s_Bizarre_Bazaar_TM.mp3",
-          "start": 69070.18,
-          "end": 69086.82,
-          "snippet": "Well, the Soul Foundation or organization, whatever it is, just had its first one last week. So this is Gary Nolan's cre"
-        }
-      ]
-    },
-    {
-      "id": "cand_690400",
-      "suggested_name": "Chris",
-      "raw_speaker": "Speaker 3",
-      "episode_count": 5,
-      "episodes": [
-        "20260216_1BRJjPZOpAjKw",
-        "20260216_1BRJjZVqPmwJw",
-        "20260216_1djGXNgzADNxZ",
-        "20260218_1yoKMZgZglwGQ",
-        "20260220_1jMJgLEBnwWxL"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 53.1,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BRJjPZOpAjKw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjPZOpAjKw/20260216_1BRJjPZOpAjKw_CHRIS_BLEDSOE-Experiencer_Author_of_UFO_of_God.mp3",
-          "start": 8534.05,
-          "end": 8545.01,
-          "snippet": "Uh, this is from Fringe. He says, um, Chris, what do you think about abductions and people who have negative, uh, experi"
-        },
-        {
-          "episode_tag": "20260216_1BRJjZVqPmwJw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjZVqPmwJw/20260216_1BRJjZVqPmwJw_GRAVITY_AMPLIFIERS_MICHAEL_PADILLA_MAX_LOGAN.mp3",
-          "start": 31122.4,
-          "end": 31137.38,
-          "snippet": "And Chris\u2014 sorry, Kimball, I'm sending you hugs. Nothing to be afraid of except fear itself. Um, Chris, what do you thin"
-        },
-        {
-          "episode_tag": "20260216_1djGXNgzADNxZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXNgzADNxZ/20260216_1djGXNgzADNxZ_Revolutionary_Civility_-_Mellow_Demon.mp3",
-          "start": 89878.11,
-          "end": 89884.53,
-          "snippet": "I can see, uh, there's TJ and mate. Ah, this is Chris. Chris. And m MPB."
-        }
-      ]
-    },
-    {
-      "id": "cand_637788",
-      "suggested_name": "Robert",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1dRKZEZaanaxB",
-        "20260217_1mnGeRvdlBWJX",
-        "20260218_1yNGaZNNlmVJj",
-        "20260218_1ypKdpmrgjQKW"
-      ],
-      "total_turns": 14,
-      "total_duration_sec": 1394.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1dRKZEZaanaxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
-          "start": 15208.33,
-          "end": 15494.45,
-          "snippet": "Oh, hello there, you filthy animals. It's your boy, Robert Stack, here to drag you through the mud of this twisted Twitt"
-        },
-        {
-          "episode_tag": "20260216_1dRKZEZaanaxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
-          "start": 66805.3,
-          "end": 67024.13,
-          "snippet": "Well, good evening, my intrepid adventurers, and welcome to another installment of Unsolved Mysteries, where the macabre"
-        },
-        {
-          "episode_tag": "20260216_1dRKZEZaanaxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
-          "start": 80227.79,
-          "end": 80508.6,
-          "snippet": "Ladies and gentlemen, we are about to embark on a journey into the unknown, a realm where shadows lurk and secrets lie b"
-        }
-      ]
-    },
-    {
-      "id": "cand_125637",
-      "suggested_name": "New",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 4,
-      "episodes": [
-        "20260217_1PlJQMmPYZBJE",
-        "20260217_1RDGlaDQRgzJL",
-        "20260217_1lPKqOPNqWNJb",
-        "20260217_1vAxRDzkZbjGl"
-      ],
-      "total_turns": 9,
-      "total_duration_sec": 366.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1PlJQMmPYZBJE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlJQMmPYZBJE/20260217_1PlJQMmPYZBJE_Negative_Quantum_States_Demiurge_Sofia_-Visit_Snuggles.Support.mp3",
-          "start": 22519.75,
-          "end": 22533.69,
-          "snippet": "Oh, yeah. No. For sure. Our safety brief back then, you could go to New Orleans. New Orleans is off limits to all milita"
-        },
-        {
-          "episode_tag": "20260217_1RDGlaDQRgzJL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1RDGlaDQRgzJL/20260217_1RDGlaDQRgzJL_Sunrise_Surprise_mRna.mp3",
-          "start": 30674.49,
-          "end": 30779.83,
-          "snippet": "I never talk about this stuff because it's kind of like, I don't know, people don't really get it. And, uh, it can be us"
-        },
-        {
-          "episode_tag": "20260217_1RDGlaDQRgzJL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1RDGlaDQRgzJL/20260217_1RDGlaDQRgzJL_Sunrise_Surprise_mRna.mp3",
-          "start": 30979.54,
-          "end": 31043.44,
-          "snippet": "As talking about history and about, you know, aliens almost, right? Like, there's a lot of things here that should be di"
-        }
-      ]
-    },
-    {
-      "id": "cand_188058",
-      "suggested_name": "Ken",
-      "raw_speaker": "Speaker 11",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1BdxYyzwXevxX",
-        "20260216_1eaKbrRBYpQKX",
-        "20260217_1mrGmkLLZpMxy",
-        "20260218_1ypJdZLWVgvKW"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 176.0,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdxYyzwXevxX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdxYyzwXevxX/20260216_1BdxYyzwXevxX_TOWN_SQUARE._NO_HANDS._OPEN_FORUM_SPEAK_FREELY.mp3",
-          "start": 19978.43,
-          "end": 20012.33,
-          "snippet": "Oh yeah, I get what you mean. She does kind of. Uh, Jane's just another, um, lovely lady that comes in here. Okay. Hey K"
-        },
-        {
-          "episode_tag": "20260216_1eaKbrRBYpQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbrRBYpQKX/20260216_1eaKbrRBYpQKX_Cocaine_The_True_Turkish_Delight.mp3",
-          "start": 12953.39,
-          "end": 12959.1,
-          "snippet": "Yeah, you were talking about ChatGPT on the end of there, on the when the world ends."
-        },
-        {
-          "episode_tag": "20260217_1mrGmkLLZpMxy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmkLLZpMxy/20260217_1mrGmkLLZpMxy_Love.mp3",
-          "start": 40214.83,
-          "end": 40227.72,
-          "snippet": "Hey, this is Ken. I'm back, and can you hear me? Yes. I couldn't find a way to make the link, but the. The the AI is cal"
-        }
-      ]
-    },
-    {
-      "id": "cand_608093",
-      "suggested_name": "James",
-      "raw_speaker": "Speaker 2",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1DXxyqWmAOgxM",
-        "20260217_1mnxeRbNvAaKX",
-        "20260220_1jMJgLEBnwWxL",
-        "20260220_1rmGPvkQVeZxN"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 163.5,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1mnxeRbNvAaKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnxeRbNvAaKX/20260217_1mnxeRbNvAaKX_beep.mp3",
-          "start": 1417.2,
-          "end": 1425.74,
-          "snippet": "Okay, so, um, hey James, regarding the recent alleged 35-second video of the Varginha being, have you seen it personally"
-        },
-        {
-          "episode_tag": "20260217_1mnxeRbNvAaKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnxeRbNvAaKX/20260217_1mnxeRbNvAaKX_beep.mp3",
-          "start": 1425.84,
-          "end": 1434.81,
-          "snippet": "He says, I have personally spoken to 3 witnesses in Brazil that claim to have seen photographic evidence, both video and"
-        },
-        {
-          "episode_tag": "20260220_1jMJgLEBnwWxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1jMJgLEBnwWxL/20260220_1jMJgLEBnwWxL_Environmental_Anomalies_The_Phenomena.mp3",
-          "start": 2535.4,
-          "end": 2582.96,
-          "snippet": "I think either, um, because the big draw out there, uh, is gold. There's a lot of gold, and that's what brought the Morm"
-        }
-      ]
-    },
-    {
-      "id": "cand_33842",
-      "suggested_name": "Dale",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1DXxyvPdmZEKM",
-        "20260217_1MYxNglXeMbKw",
-        "20260217_1mrGmkOMbgBxy",
-        "20260218_1YqGoAvArzMxv"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 389.6,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXxyvPdmZEKM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxyvPdmZEKM/20260216_1DXxyvPdmZEKM_InFamous_brings_da_noize.mp3",
-          "start": 9009.67,
-          "end": 9018.02,
-          "snippet": "Hey, did I\u2014 I was just talking and I think I, uh, was muted the whole Did you hear me welcome Dale and Ocean? Yes."
-        },
-        {
-          "episode_tag": "20260217_1MYxNglXeMbKw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MYxNglXeMbKw/20260217_1MYxNglXeMbKw_UFO_Vegas_update_more.mp3",
-          "start": 9749.91,
-          "end": 9759.1,
-          "snippet": "Dale, what do you think about that, like, applying an EMF field to, uh, biological stuff? Like, what do you know about, "
-        },
-        {
-          "episode_tag": "20260217_1mrGmkOMbgBxy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmkOMbgBxy/20260217_1mrGmkOMbgBxy_A.i_in_charge_of_disclosure_-NO_Hands.mp3",
-          "start": 9645.6,
-          "end": 9713.57,
-          "snippet": "Okay, great. So my opinion is that maybe back in the day The potential for a portion of society within the world would h"
-        }
-      ]
-    },
-    {
-      "id": "cand_146828",
-      "suggested_name": "Anyway",
-      "raw_speaker": "Speaker 4",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1djGXNgzADNxZ",
-        "20260216_1djxXNkreeNGZ",
-        "20260217_1mrxmMEVbAWxy",
-        "20260823_1YGNrbvMDlQGw"
-      ],
-      "total_turns": 8,
-      "total_duration_sec": 42918.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1djGXNgzADNxZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXNgzADNxZ/20260216_1djGXNgzADNxZ_Revolutionary_Civility_-_Mellow_Demon.mp3",
-          "start": 8181.45,
-          "end": 8186.68,
-          "snippet": "Also, has anyone seen my videos in the thread? Anyway, what do you think about those things? Kinda cool. Right?"
-        },
-        {
-          "episode_tag": "20260216_1djxXNkreeNGZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djxXNkreeNGZ/20260216_1djxXNkreeNGZ_Entry_Level_Improv_and_Music_from_the_Beyond.mp3",
-          "start": 15522.49,
-          "end": 15545.29,
-          "snippet": "Hey, Panda. If you're online, um, what's your thoughts on Weinstein, um, in terms of his, like, recent comment on, you k"
-        },
-        {
-          "episode_tag": "20260216_1djxXNkreeNGZ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djxXNkreeNGZ/20260216_1djxXNkreeNGZ_Entry_Level_Improv_and_Music_from_the_Beyond.mp3",
-          "start": 15546.15,
-          "end": 15553.02,
-          "snippet": "Um, broad picture, I like him. But sometimes he could be dramatic and"
-        }
-      ]
-    },
-    {
-      "id": "cand_710605",
-      "suggested_name": "Lou",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 4,
-      "episodes": [
-        "20260217_1MnxnpLWdbjGO",
-        "20260217_1mrxmydegrnxy",
-        "20260220_1OwxWewVNWAGQ",
         "20260220_1OyJAjWkLjWxb"
       ],
-      "total_turns": 8,
-      "total_duration_sec": 78.0,
+      "total_turns": 7,
+      "total_duration_sec": 103.1,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1mrxmydegrnxy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmydegrnxy/20260217_1mrxmydegrnxy_Logan_Black_s_Bizarre_Bazaar_TM.mp3",
-          "start": 86400.08,
-          "end": 86411.04,
-          "snippet": "Think Lou I think this is Lou I think Lou was planning to write this as his, like, absolve me of all my hate group shit."
-        },
-        {
-          "episode_tag": "20260220_1OwxWewVNWAGQ",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1OwxWewVNWAGQ/20260220_1OwxWewVNWAGQ_UFO_GROOMING_-_How_vulnerable_men_fall_into_homoerotic_cults.mp3",
-          "start": 1420.79,
-          "end": 1450.3,
-          "snippet": "Again, this is Lou Elizondo's friend. He's now combining sexual, unwanted sexual fucking, uh, images and imagery of us, "
+          "episode_tag": "20260220_1OyJAjWkLjWxb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1OyJAjWkLjWxb/20260220_1OyJAjWkLjWxb_MUFON_Ron_James_New_UFO_documentary_interview.mp3",
+          "start": 5350.95,
+          "end": 5392.14,
+          "snippet": "Yeah, thanks, Red. Very interesting space. Um, thank you, Ali and, and Ron, amazing stories. Uh, thank you for sharing t"
         },
         {
           "episode_tag": "20260220_1OyJAjWkLjWxb",
           "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1OyJAjWkLjWxb/20260220_1OyJAjWkLjWxb_MUFON_Ron_James_New_UFO_documentary_interview.mp3",
-          "start": 1365.38,
-          "end": 1388.19,
-          "snippet": "I wasn't gonna ask Lou because Lou already had given me permission to show it privately. And so I was just literally\u2014 I "
-        }
-      ]
-    },
-    {
-      "id": "cand_830952",
-      "suggested_name": "Jesus",
-      "raw_speaker": "Speaker 7",
-      "episode_count": 4,
-      "episodes": [
-        "20260202_1770145946",
-        "20260204_1YpJkklXEgZJj",
-        "20260217_1lPJqbajLXPxb",
-        "20260217_1mnxepdvjDLJX"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 198.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1lPJqbajLXPxb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1lPJqbajLXPxb/20260217_1lPJqbajLXPxb_RETURN_OF_THE_NEPHILIM.mp3",
-          "start": 54029.99,
-          "end": 54085.93,
-          "snippet": "Oh, because it is satanic. Right? Because Constantine... We didn't choose to worship his birth. Constantine did. It wasn"
+          "start": 5478.75,
+          "end": 5522.23,
+          "snippet": "So if I if I could, so I totally get that. I'm very interested in seeing your film. But what I my my question is is you "
         },
         {
-          "episode_tag": "20260217_1mnxepdvjDLJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnxepdvjDLJX/20260217_1mnxepdvjDLJX_HOUR_4-Dramavention.mp3",
-          "start": 14784.57,
-          "end": 14913.48,
-          "snippet": "This is a good point. We don't know who they are, especially we cannot tell by by the condition that we live in this pla"
+          "episode_tag": "20260220_1OyJAjWkLjWxb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1OyJAjWkLjWxb/20260220_1OyJAjWkLjWxb_MUFON_Ron_James_New_UFO_documentary_interview.mp3",
+          "start": 7452.47,
+          "end": 7460.86,
+          "snippet": "I really don't have any questions. Ali, do you\u2014 you need to write a book. Like, I can't believe I'm saying that. Just wr"
         }
       ]
     },
     {
-      "id": "cand_832026",
-      "suggested_name": "David",
+      "id": "cand_971846",
+      "suggested_name": "Destiny",
+      "raw_speaker": "Speaker 6",
+      "episode_count": 1,
+      "episodes": [
+        "20261007_1aKbdEzoBPrJX"
+      ],
+      "total_turns": 6,
+      "total_duration_sec": 112.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20261007_1aKbdEzoBPrJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261007_1aKbdEzoBPrJX/20261007_1aKbdEzoBPrJX_Lin_Sucks_2026-10-08_00_25.mp3",
+          "start": 374.7,
+          "end": 418.44,
+          "snippet": "Hey Lynn, I saw your space and I saw the title and I was like, no, no, no, no, no, I'm supposed to be going to the groce"
+        },
+        {
+          "episode_tag": "20261007_1aKbdEzoBPrJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261007_1aKbdEzoBPrJX/20261007_1aKbdEzoBPrJX_Lin_Sucks_2026-10-08_00_25.mp3",
+          "start": 447.04,
+          "end": 465.87,
+          "snippet": "No such thing, and you're more than welcome. I don't know what's going on. Any of like the the drama thing? I don't I do"
+        },
+        {
+          "episode_tag": "20261007_1aKbdEzoBPrJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261007_1aKbdEzoBPrJX/20261007_1aKbdEzoBPrJX_Lin_Sucks_2026-10-08_00_25.mp3",
+          "start": 466.03,
+          "end": 478.27,
+          "snippet": "What the fuck, bro? I am. Yeah. Yeah, you know, there's horrible people in this app, and I want to remind people, it's l"
+        }
+      ]
+    },
+    {
+      "id": "cand_853627",
+      "suggested_name": "Art",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1OdJrjdEbbvJX"
+      ],
+      "total_turns": 1,
+      "total_duration_sec": 92.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1OdJrjdEbbvJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdJrjdEbbvJX/20260217_1OdJrjdEbbvJX_Calling_Occupants_of_Interplanetary_Craft_no_talking.mp3",
+          "start": 4780.81,
+          "end": 4872.91,
+          "snippet": "As we bring our interstellar journey through the Melodies of the Unknown to a close, I, Art Bell, would like to extend m"
+        }
+      ]
+    },
+    {
+      "id": "cand_260181",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
-      "episode_count": 4,
+      "episode_count": 1,
       "episodes": [
-        "20260216_1BRJjmkgmXBGw",
-        "20260217_1LyxBqjygQkJN",
-        "20260217_1lPKqMBdEBZKb",
-        "20260218_1vOxwMDOgZPGB"
+        "20260218_1vOxwMlBaOrGB"
       ],
-      "total_turns": 7,
-      "total_duration_sec": 104.4,
+      "total_turns": 5417,
+      "total_duration_sec": 60291.9,
       "sample_clips": [
         {
-          "episode_tag": "20260216_1BRJjmkgmXBGw",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BRJjmkgmXBGw/20260216_1BRJjmkgmXBGw_420_soon_zzz.mp3",
-          "start": 2242.11,
-          "end": 2273.8,
-          "snippet": "K. So let me explain why. So a couple weeks ago or a few weeks ago, like, whenever it was, I Repanda was there. He did s"
+          "episode_tag": "20260218_1vOxwMlBaOrGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwMlBaOrGB/20260218_1vOxwMlBaOrGB_UFOs_Coffee_Cigars_ft._Mick_West_3_weird_synchronous_UFO_videos.mp3",
+          "start": 57.96,
+          "end": 71.68,
+          "snippet": "and and and and No, where's the video? It's in my thumb. I just like just now, but just now. And I actually had enough g"
         },
         {
-          "episode_tag": "20260217_1LyxBqjygQkJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqjygQkJN/20260217_1LyxBqjygQkJN_Fearless_Monkey_League_NOTHING_GOES_Legal_MaDMAn.mp3",
-          "start": 11493.52,
-          "end": 11507.57,
-          "snippet": "No, this is David. Yeah, I'm an honest guy. I don't fool\u2014 I don't try to. Bullshit over on people."
+          "episode_tag": "20260218_1vOxwMlBaOrGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwMlBaOrGB/20260218_1vOxwMlBaOrGB_UFOs_Coffee_Cigars_ft._Mick_West_3_weird_synchronous_UFO_videos.mp3",
+          "start": 84.24,
+          "end": 92.74,
+          "snippet": "I thought like you created a space and like I tried to join, but the thing you ended it like right as I joined or someth"
         },
         {
-          "episode_tag": "20260217_1LyxBqjygQkJN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyxBqjygQkJN/20260217_1LyxBqjygQkJN_Fearless_Monkey_League_NOTHING_GOES_Legal_MaDMAn.mp3",
-          "start": 11507.57,
-          "end": 11543.83,
-          "snippet": "You know, the way I look at this incredible variance and difference is it's so variant. It's not like we\u2014 there's\u2014 we've"
+          "episode_tag": "20260218_1vOxwMlBaOrGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwMlBaOrGB/20260218_1vOxwMlBaOrGB_UFOs_Coffee_Cigars_ft._Mick_West_3_weird_synchronous_UFO_videos.mp3",
+          "start": 93.0,
+          "end": 105.74,
+          "snippet": "And the first time I saw it, I didn't get any like, um, I didn't capture it. I was just like in awe. And then by the tim"
         }
       ]
     },
     {
-      "id": "cand_273057",
-      "suggested_name": "Thank",
+      "id": "cand_356869",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1lPKqBYLOdYGb"
+      ],
+      "total_turns": 3610,
+      "total_duration_sec": 29580.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 103.56,
+          "end": 114.13,
+          "snippet": "What up, what up? I was just listening to people argue at each other in another space."
+        },
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 127.06,
+          "end": 142.81,
+          "snippet": "way people say things and the words they use. And someone was like, if it's outside of time and space and you're using w"
+        },
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 155.92,
+          "end": 169.1,
+          "snippet": "I've noticed that. They do. I was just fighting a mouse, so, like, I don't feel like fighting. How was that battle going"
+        }
+      ]
+    },
+    {
+      "id": "cand_983456",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260216_1BdGYykenzQGX"
+      ],
+      "total_turns": 3564,
+      "total_duration_sec": 43851.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1BdGYykenzQGX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYykenzQGX/20260216_1BdGYykenzQGX_The_Otherworldly_Hour_-_The_Cosmos_Beyond.mp3",
+          "start": 15.18,
+          "end": 21.34,
+          "snippet": "\u5104 they really don't want to say who said the who said see I a who said who said it It's cheeseburgers."
+        },
+        {
+          "episode_tag": "20260216_1BdGYykenzQGX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYykenzQGX/20260216_1BdGYykenzQGX_The_Otherworldly_Hour_-_The_Cosmos_Beyond.mp3",
+          "start": 36.46,
+          "end": 42.9,
+          "snippet": "Yeah, those cheeseburgers really don't want us to have in this, you know, this birthday party, but uh... We're gonna, we"
+        },
+        {
+          "episode_tag": "20260216_1BdGYykenzQGX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYykenzQGX/20260216_1BdGYykenzQGX_The_Otherworldly_Hour_-_The_Cosmos_Beyond.mp3",
+          "start": 57.72,
+          "end": 70.42,
+          "snippet": "We're gonna talk about Kernel Sanders getting shot in Dallas, Texas in 1963 by the FIA. KF. Yes, they took out KF, they "
+        }
+      ]
+    },
+    {
+      "id": "cand_610360",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20261022_1yGBePgbBoyKN"
+      ],
+      "total_turns": 2996,
+      "total_duration_sec": 32311.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20261022_1yGBePgbBoyKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yGBePgbBoyKN/20261022_1yGBePgbBoyKN_DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote.mp3",
+          "start": 154.98,
+          "end": 160.88,
+          "snippet": "You definitely know. That means they black bagged me. Or they just possibly bagged me."
+        },
+        {
+          "episode_tag": "20261022_1yGBePgbBoyKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yGBePgbBoyKN/20261022_1yGBePgbBoyKN_DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote.mp3",
+          "start": 215.38,
+          "end": 237.07,
+          "snippet": "to disappear when it meets my I ain't chasing every damn room ain't got time for childish games but if you're proud of w"
+        },
+        {
+          "episode_tag": "20261022_1yGBePgbBoyKN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yGBePgbBoyKN/20261022_1yGBePgbBoyKN_DATA_Breach_Coming_to_a_platform_near_you_-NSA_PHP2Shell_Remote.mp3",
+          "start": 240.51,
+          "end": 265.18,
+          "snippet": "The same mouth, same damn pace Say it to my face Don't go quiet when I take my place All that big talk, all that disgrac"
+        }
+      ]
+    },
+    {
+      "id": "cand_160727",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20261022_1yxBePgOWAkJN"
+      ],
+      "total_turns": 2903,
+      "total_duration_sec": 31652.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20261022_1yxBePgOWAkJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yxBePgOWAkJN/20261022_1yxBePgOWAkJN_StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS_Part1.mp3",
+          "start": 93.78,
+          "end": 108.85,
+          "snippet": "Well, send me my check real quick. Let me see if I can hear you. I got to switch devices in a second. You guys need to m"
+        },
+        {
+          "episode_tag": "20261022_1yxBePgOWAkJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yxBePgOWAkJN/20261022_1yxBePgOWAkJN_StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS_Part1.mp3",
+          "start": 108.89,
+          "end": 119.13,
+          "snippet": "I need max participation across the board. Got to get this shit fucking up and cranking again. As always, I am a piece o"
+        },
+        {
+          "episode_tag": "20261022_1yxBePgOWAkJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261022_1yxBePgOWAkJN/20261022_1yxBePgOWAkJN_StreetHood_Media_24_7_Robinhood_NFTS_MEMES_NEWS_Part1.mp3",
+          "start": 121.08,
+          "end": 146.69,
+          "snippet": "yeah yeah so click the buttons i'm waiting to switch devices just post a little giveaway 25 giveaway in ethereum just ea"
+        }
+      ]
+    },
+    {
+      "id": "cand_631468",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
-      "episode_count": 4,
+      "episode_count": 1,
       "episodes": [
-        "20260216_1BdGYyXQeLyGX",
-        "20260217_1mnxeAzRZdPxX",
-        "20260218_1ynJOazZeAVKR",
-        "20260218_1yoKMZEWjYpGQ"
+        "20260217_1mnGeRnMkOvJX"
       ],
-      "total_turns": 7,
-      "total_duration_sec": 262.2,
+      "total_turns": 2086,
+      "total_duration_sec": 19124.9,
       "sample_clips": [
         {
-          "episode_tag": "20260216_1BdGYyXQeLyGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyXQeLyGX/20260216_1BdGYyXQeLyGX_New_Years_Eve.mp3",
-          "start": 3064.79,
-          "end": 3077.84,
-          "snippet": "Nah, bro. She said on a date, if a dude could eat a cucumber... a pickle, a pepper in front of her, something like that."
+          "episode_tag": "20260217_1mnGeRnMkOvJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnGeRnMkOvJX/20260217_1mnGeRnMkOvJX_Alien_Attacks_w_Matt_Hurley-_BadAliens.info_UFOtwitter.mp3",
+          "start": 523.33,
+          "end": 529.92,
+          "snippet": "Hi, this is for Logan. Logan, I want to be here to support you, but I was removed from your space."
         },
         {
-          "episode_tag": "20260216_1BdGYyXQeLyGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyXQeLyGX/20260216_1BdGYyXQeLyGX_New_Years_Eve.mp3",
-          "start": 3077.86,
-          "end": 3087.35,
-          "snippet": "You don't like watermelon, bro? You're weird. You don't want to eat a watermelon in front of a girl on a date."
+          "episode_tag": "20260217_1mnGeRnMkOvJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnGeRnMkOvJX/20260217_1mnGeRnMkOvJX_Alien_Attacks_w_Matt_Hurley-_BadAliens.info_UFOtwitter.mp3",
+          "start": 531.2,
+          "end": 539.58,
+          "snippet": "You know, I thought things had been let go, but I guess not. So I just wanted to let you know that unfortunately I can't"
         },
         {
-          "episode_tag": "20260217_1mnxeAzRZdPxX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnxeAzRZdPxX/20260217_1mnxeAzRZdPxX_Drone_Mass_Hallucination_HQ_-_No_Hands.mp3",
-          "start": 37789.79,
-          "end": 37817.53,
-          "snippet": "yeah. It's j Christopher King. Thank you there, buddy. Um, but that's not that's not who I'm talking about now. That's t"
+          "episode_tag": "20260217_1mnGeRnMkOvJX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mnGeRnMkOvJX/20260217_1mnGeRnMkOvJX_Alien_Attacks_w_Matt_Hurley-_BadAliens.info_UFOtwitter.mp3",
+          "start": 551.94,
+          "end": 564.83,
+          "snippet": "Logan asked us to come into the space. So, you know, as soon as he came up as co-host, it said, I've been removed, and n"
         }
       ]
     },
     {
-      "id": "cand_516329",
-      "suggested_name": "Tupa",
-      "raw_speaker": "Speaker 11",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1DXxydzWzQeJM",
-        "20260217_1PlJQMARWENJE",
-        "20260217_1PlJQMmPYZBJE",
-        "20260218_1YpKkgYPjkmKj"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 104.5,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXxydzWzQeJM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXxydzWzQeJM/20260216_1DXxydzWzQeJM_Maintaining_Balance.mp3",
-          "start": 19661.67,
-          "end": 19678.72,
-          "snippet": "There were flashes of sentience in there. But as soon as it when I listened to hue when I when I listened to Red and him"
-        },
-        {
-          "episode_tag": "20260217_1PlJQMARWENJE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlJQMARWENJE/20260217_1PlJQMARWENJE_Chappie_Movie_Fans.mp3",
-          "start": 2390.32,
-          "end": 2406.2,
-          "snippet": "But, Tupa, what do you think of, uh, real quick. I wanna just hear Tupa's take on that because, uh, he touches on a lot "
-        },
-        {
-          "episode_tag": "20260217_1PlJQMmPYZBJE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlJQMmPYZBJE/20260217_1PlJQMmPYZBJE_Negative_Quantum_States_Demiurge_Sofia_-Visit_Snuggles.Support.mp3",
-          "start": 5981.41,
-          "end": 5998.53,
-          "snippet": "Real quick. Tupa, what do you think about that? I'd I've been in this field for, what, six, seven years. Never heard of "
-        }
-      ]
-    },
-    {
-      "id": "cand_369271",
-      "suggested_name": "Rick",
-      "raw_speaker": "Speaker 3",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1dRKZEgXPRoxB",
-        "20260216_1jMJgLadNWmxL",
-        "20260217_1OdJrDnyAyQKX",
-        "20260217_1rmGPkEmyDmKN"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 63.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1jMJgLadNWmxL",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1jMJgLadNWmxL/20260216_1jMJgLadNWmxL_5-1030pm_Richard_Doty_Q_A_then_afterParty_till_morning.mp3",
-          "start": 15251.62,
-          "end": 15264.68,
-          "snippet": "Um, you once mentioned that, uh, you know, people make you out to be the fall guy but no one asked about J. Allen Hynek."
-        },
-        {
-          "episode_tag": "20260217_1OdJrDnyAyQKX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdJrDnyAyQKX/20260217_1OdJrDnyAyQKX_Trump_UFOs_ufoX.mp3",
-          "start": 7345.99,
-          "end": 7382.53,
-          "snippet": "All I've heard is that something's going to happen, uh, between September of this year and, uh, October 2027. And that c"
-        },
-        {
-          "episode_tag": "20260217_1rmGPkEmyDmKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmGPkEmyDmKN/20260217_1rmGPkEmyDmKN_Come_get_your_UFO_Disclosure_ufotwitter.mp3",
-          "start": 11623.28,
-          "end": 11630.81,
-          "snippet": "Hello, Gary. Yeah, hey, this is Rick Struthers and Logan Black live on the Twitter live livestream podcast."
-        }
-      ]
-    },
-    {
-      "id": "cand_593313",
-      "suggested_name": "Joe",
+      "id": "cand_736733",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
-      "episode_count": 4,
+      "episode_count": 1,
       "episodes": [
-        "20260217_1LyGBqVBnMnKN",
-        "20260217_1OyKAjRlrzrGb",
-        "20260217_1rmGPkEmyDmKN",
+        "20260217_1PlKQaMvNNWKE"
+      ],
+      "total_turns": 1908,
+      "total_duration_sec": 23302.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1PlKQaMvNNWKE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlKQaMvNNWKE/20260217_1PlKQaMvNNWKE_Mick_West_Anomalous_Seagull_Sighting_Society.mp3",
+          "start": 49.26,
+          "end": 105.3,
+          "snippet": "Twitter I got caught up oh you're good yeah now I'm you know I'm just chill I'm making coffee so like not doing shit yea"
+        },
+        {
+          "episode_tag": "20260217_1PlKQaMvNNWKE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlKQaMvNNWKE/20260217_1PlKQaMvNNWKE_Mick_West_Anomalous_Seagull_Sighting_Society.mp3",
+          "start": 106.9,
+          "end": 113.82,
+          "snippet": "chill you know I think that's a really big part of it people need to like almost like"
+        },
+        {
+          "episode_tag": "20260217_1PlKQaMvNNWKE",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlKQaMvNNWKE/20260217_1PlKQaMvNNWKE_Mick_West_Anomalous_Seagull_Sighting_Society.mp3",
+          "start": 116.0,
+          "end": 130.0,
+          "snippet": "it's just gonna go down one way or another Logan I think and so like yeah who are people gonna actually listen to at the"
+        }
+      ]
+    },
+    {
+      "id": "cand_397849",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260220_1MnxnpXBMwVGO"
+      ],
+      "total_turns": 1907,
+      "total_duration_sec": 16562.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260220_1MnxnpXBMwVGO",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1MnxnpXBMwVGO/20260220_1MnxnpXBMwVGO_Saturday_Theoretical_Paranormal_Space.mp3",
+          "start": 475.51,
+          "end": 494.56,
+          "snippet": "that's beautiful that's beautiful twin peaks is like the greatest show of all time if you guys can you know get into it "
+        },
+        {
+          "episode_tag": "20260220_1MnxnpXBMwVGO",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1MnxnpXBMwVGO/20260220_1MnxnpXBMwVGO_Saturday_Theoretical_Paranormal_Space.mp3",
+          "start": 525.49,
+          "end": 553.86,
+          "snippet": "what in twin peaks what do they think about people that go to bars like uh communicating shit with people at the bar wel"
+        },
+        {
+          "episode_tag": "20260220_1MnxnpXBMwVGO",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1MnxnpXBMwVGO/20260220_1MnxnpXBMwVGO_Saturday_Theoretical_Paranormal_Space.mp3",
+          "start": 582.99,
+          "end": 609.01,
+          "snippet": "say much about that through the lens of twin peaks, I guess, but I mean, uh, yeah, well, it certainly, again, the roadho"
+        }
+      ]
+    },
+    {
+      "id": "cand_993113",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260216_1djGXlBeqXXGZ"
+      ],
+      "total_turns": 1874,
+      "total_duration_sec": 15850.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1djGXlBeqXXGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXlBeqXXGZ/20260216_1djGXlBeqXXGZ_DANGER_ZONE.mp3",
+          "start": 24.34,
+          "end": 30.44,
+          "snippet": "Do those so far glowing? and like how did that happen, dude?"
+        },
+        {
+          "episode_tag": "20260216_1djGXlBeqXXGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXlBeqXXGZ/20260216_1djGXlBeqXXGZ_DANGER_ZONE.mp3",
+          "start": 33.2,
+          "end": 51.1,
+          "snippet": "Yeah, what did happen? What do you guys think about it? Dude, we were talking about like some super deep shit, like some"
+        },
+        {
+          "episode_tag": "20260216_1djGXlBeqXXGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXlBeqXXGZ/20260216_1djGXlBeqXXGZ_DANGER_ZONE.mp3",
+          "start": 55.54,
+          "end": 67.74,
+          "snippet": "and like, and then Pontiff was, Ponti was in the room and then Astro, like there was like, I don't know, just the few of"
+        }
+      ]
+    },
+    {
+      "id": "cand_789263",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1OdKrzEpbjPKX"
+      ],
+      "total_turns": 1735,
+      "total_duration_sec": 29462.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1OdKrzEpbjPKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzEpbjPKX/20260217_1OdKrzEpbjPKX_Atlantis_the_Empires_the_Gods_created_afterwards.mp3",
+          "start": 23.34,
+          "end": 38.74,
+          "snippet": "We were just in And um, a chat with Alexei, but I think his app crashed or something or his internet went out. I don't k"
+        },
+        {
+          "episode_tag": "20260217_1OdKrzEpbjPKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzEpbjPKX/20260217_1OdKrzEpbjPKX_Atlantis_the_Empires_the_Gods_created_afterwards.mp3",
+          "start": 40.4,
+          "end": 45.58,
+          "snippet": "Hey, I'm warning. I was. I had just jumped in."
+        },
+        {
+          "episode_tag": "20260217_1OdKrzEpbjPKX",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OdKrzEpbjPKX/20260217_1OdKrzEpbjPKX_Atlantis_the_Empires_the_Gods_created_afterwards.mp3",
+          "start": 47.12,
+          "end": 57.74,
+          "snippet": "Yeah. I think it was Alexei. It was him hosting and two. Who was it? Old Fed co-hosting and chase."
+        }
+      ]
+    },
+    {
+      "id": "cand_604061",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1mrxmaBgBQwxy"
+      ],
+      "total_turns": 1710,
+      "total_duration_sec": 21898.9,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1mrxmaBgBQwxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmaBgBQwxy/20260217_1mrxmaBgBQwxy_UFO_Science_Old_World_Knowledge_The_Woooo.mp3",
+          "start": 25.26,
+          "end": 32.78,
+          "snippet": "Good, you sound like you're in outer space and on a submarine at the same time. Oh, what if you were like on a submarine"
+        },
+        {
+          "episode_tag": "20260217_1mrxmaBgBQwxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmaBgBQwxy/20260217_1mrxmaBgBQwxy_UFO_Science_Old_World_Knowledge_The_Woooo.mp3",
+          "start": 34.42,
+          "end": 39.6,
+          "snippet": "That's that I can't think about that. It's like thinking about either of the infinities."
+        },
+        {
+          "episode_tag": "20260217_1mrxmaBgBQwxy",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrxmaBgBQwxy/20260217_1mrxmaBgBQwxy_UFO_Science_Old_World_Knowledge_The_Woooo.mp3",
+          "start": 40.88,
+          "end": 48.74,
+          "snippet": "I'm actually using Bluetooth earphones so maybe that's why it sounds weird. Does it cause it bad? Is it bad? No, I can h"
+        }
+      ]
+    },
+    {
+      "id": "cand_427454",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1zqKVBYOzqmKB"
+      ],
+      "total_turns": 1588,
+      "total_duration_sec": 27214.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1zqKVBYOzqmKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVBYOzqmKB/20260218_1zqKVBYOzqmKB_ALL_Night_Woo-FO.mp3",
+          "start": 74.8,
+          "end": 80.56,
+          "snippet": "or Yeah, so you should be cohost if you want if you want to. Yeah, that's cool, we want to make the couche, that's fine."
+        },
+        {
+          "episode_tag": "20260218_1zqKVBYOzqmKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVBYOzqmKB/20260218_1zqKVBYOzqmKB_ALL_Night_Woo-FO.mp3",
+          "start": 82.22,
+          "end": 87.74,
+          "snippet": "I am already dead. Oh, you did? OK. Yeah. So I just sent the link to Doty. That was kind of trippy."
+        },
+        {
+          "episode_tag": "20260218_1zqKVBYOzqmKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVBYOzqmKB/20260218_1zqKVBYOzqmKB_ALL_Night_Woo-FO.mp3",
+          "start": 90.18,
+          "end": 101.6,
+          "snippet": "Yeah. Yeah. I felt better for him per minute. Well, I mean, he, I thought what he had been saying, which was brief up un"
+        }
+      ]
+    },
+    {
+      "id": "cand_432052",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1vOGwryMNEWKB"
+      ],
+      "total_turns": 1565,
+      "total_duration_sec": 14702.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1vOGwryMNEWKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOGwryMNEWKB/20260218_1vOGwryMNEWKB_Dragons_UFOs_Time_Machine_Holographic_Universe.mp3",
+          "start": 362.48,
+          "end": 368.58,
+          "snippet": "radio. I heard a song reminding me of Longeth Jones."
+        },
+        {
+          "episode_tag": "20260218_1vOGwryMNEWKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOGwryMNEWKB/20260218_1vOGwryMNEWKB_Dragons_UFOs_Time_Machine_Holographic_Universe.mp3",
+          "start": 384.62,
+          "end": 394.48,
+          "snippet": "Feel the pain. But I know now that things will never be the same."
+        },
+        {
+          "episode_tag": "20260218_1vOGwryMNEWKB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOGwryMNEWKB/20260218_1vOGwryMNEWKB_Dragons_UFOs_Time_Machine_Holographic_Universe.mp3",
+          "start": 397.21,
+          "end": 422.64,
+          "snippet": "I wanna go back and do it all over the phone. I can't go back. I know. I wanna go back because I'm feeling so much older"
+        }
+      ]
+    },
+    {
+      "id": "cand_132909",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1YqKDoVywBDxV"
+      ],
+      "total_turns": 1480,
+      "total_duration_sec": 12724.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1YqKDoVywBDxV",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqKDoVywBDxV/20260218_1YqKDoVywBDxV_UFO_pit_stop_for_Aussie_Outback_Political_Corner.mp3",
+          "start": 260.9,
+          "end": 268.84,
+          "snippet": "Lacey, I missed you. I missed you. Yeah, Chris. And I was very worried about you the other day. I'm glad you're okay."
+        },
+        {
+          "episode_tag": "20260218_1YqKDoVywBDxV",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqKDoVywBDxV/20260218_1YqKDoVywBDxV_UFO_pit_stop_for_Aussie_Outback_Political_Corner.mp3",
+          "start": 273.04,
+          "end": 283.93,
+          "snippet": "I wish there was a recording of this space. I wish there was a recording of this space because it's rare that this man c"
+        },
+        {
+          "episode_tag": "20260218_1YqKDoVywBDxV",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqKDoVywBDxV/20260218_1YqKDoVywBDxV_UFO_pit_stop_for_Aussie_Outback_Political_Corner.mp3",
+          "start": 323.51,
+          "end": 351.89,
+          "snippet": "well if that was I'm not aware but if that was true that would be very interesting it would be might as well be with all"
+        }
+      ]
+    },
+    {
+      "id": "cand_456916",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
         "20260218_1YqGoAXoRYkxv"
       ],
-      "total_turns": 7,
-      "total_duration_sec": 235.6,
+      "total_turns": 1444,
+      "total_duration_sec": 12612.9,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 787.04,
-          "end": 795.24,
-          "snippet": "Oh, he knows about bastard, huh? Maybe. I don't know. He knows about all kinds of animals. Hey, Jennifer, Joe, what do y"
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 660.05,
+          "end": 672.41,
+          "snippet": "You have to be able to jump in and cut people off and keep the conversation flowing. That's why he likes the co-hosts. S"
         },
         {
-          "episode_tag": "20260217_1LyGBqVBnMnKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqVBnMnKN/20260217_1LyGBqVBnMnKN_MICHAEL_JACKSON.mp3",
-          "start": 801.68,
-          "end": 807.9,
-          "snippet": "Give me a minute, I'm sorry. Oh, he's checking out. Oh, yeah."
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 1345.78,
+          "end": 1364.67,
+          "snippet": "I'm always testing weird stuff. I'm sorry. There is an asteroid that is going to be like 10,000 miles or kilometers away"
         },
         {
-          "episode_tag": "20260217_1OyKAjRlrzrGb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyKAjRlrzrGb/20260217_1OyKAjRlrzrGb_God_Sauce_s_Dungeon.mp3",
-          "start": 44553.34,
-          "end": 44565.86,
-          "snippet": "Yeah. Sounds good. Joe, what do you think, bro? How Do you like this conversation? Do a tattoo tattoo at the same time y"
+          "episode_tag": "20260218_1YqGoAXoRYkxv",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YqGoAXoRYkxv/20260218_1YqGoAXoRYkxv_Good_Morning_UFO.mp3",
+          "start": 1364.71,
+          "end": 1375.82,
+          "snippet": "Do you have a girl you haven't had the courage to talk to? Now's the time because you ain't going to have tomorrow. Go h"
         }
       ]
     },
     {
-      "id": "cand_127400",
-      "suggested_name": "Citizens",
-      "raw_speaker": "Speaker 7",
-      "episode_count": 4,
-      "episodes": [
-        "20260217_1PlJQDQAerYGE",
-        "20260217_1mrGmPPwDWQKy",
-        "20260218_1yNGaZeNjbQJj",
-        "20260218_1ypKdpmrgjQKW"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 63.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1PlJQDQAerYGE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1PlJQDQAerYGE/20260217_1PlJQDQAerYGE_Cults_Castration_no_hands.mp3",
-          "start": 38191.19,
-          "end": 38197.42,
-          "snippet": "Uh, what's going on here, guys? Uh, this is Citizens Dawn. Somebody's speaking behind my back or something."
-        },
-        {
-          "episode_tag": "20260217_1mrGmPPwDWQKy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmPPwDWQKy/20260217_1mrGmPPwDWQKy_Deductibility_coincides_with_logical_consequences.mp3",
-          "start": 4004.9,
-          "end": 4020.47,
-          "snippet": "You know, when I wanted to welcome Citizens Don, I thought, about much more than just, you know, this brief welcome as m"
-        },
-        {
-          "episode_tag": "20260217_1mrGmPPwDWQKy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmPPwDWQKy/20260217_1mrGmPPwDWQKy_Deductibility_coincides_with_logical_consequences.mp3",
-          "start": 4021.58,
-          "end": 4031.91,
-          "snippet": "Also, John, of course, this post sent, that you did of this photo. John Strader. One of his most popular posts. It's up "
-        }
-      ]
-    },
-    {
-      "id": "cand_7977",
-      "suggested_name": "Dan",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 4,
-      "episodes": [
-        "20260216_1BdGYyQEOZyGX",
-        "20260217_1lPJqbajLXPxb",
-        "20260218_1BdxYykLvbyxX",
-        "20260218_1yNGaZNNlmVJj"
-      ],
-      "total_turns": 6,
-      "total_duration_sec": 261.8,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1BdGYyQEOZyGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1BdGYyQEOZyGX/20260216_1BdGYyQEOZyGX_Logan_plays.mp3",
-          "start": 16126.99,
-          "end": 16142.83,
-          "snippet": "No. I feel you. Hey. I believe me. I've already brought this up. Like, I wanna, like, get some, like I'm I wanna get my "
-        },
-        {
-          "episode_tag": "20260217_1lPJqbajLXPxb",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1lPJqbajLXPxb/20260217_1lPJqbajLXPxb_RETURN_OF_THE_NEPHILIM.mp3",
-          "start": 54379.92,
-          "end": 54509.71,
-          "snippet": "Hey. Thanks, guys. Um, Yeah. I'll be quick just to give my 2\u00a2. Um, I wanna touch on, um, in my opinion, religion is like"
-        },
-        {
-          "episode_tag": "20260218_1BdxYykLvbyxX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1BdxYykLvbyxX/20260218_1BdxYykLvbyxX_12_12_Twitter_took_away_4650_of_the_people_I_m_following._This_is_why.mp3",
-          "start": 11353.26,
-          "end": 11365.25,
-          "snippet": "Uh, this is Dan, and my point is, if you gave me 10 rabid individualists with families, I would trust them versus 10 col"
-        }
-      ]
-    },
-    {
-      "id": "cand_140902",
-      "suggested_name": "Michael",
+      "id": "cand_424573",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
-      "episode_count": 4,
+      "episode_count": 1,
       "episodes": [
-        "20260217_1LyxBqremqyJN",
-        "20260217_1MnxnMbOWABJO",
-        "20260217_1kvKpmVdQEoGE",
-        "20260217_1mnGeRkMerYJX"
+        "20260216_1DXGyvZvZpEJM"
       ],
-      "total_turns": 6,
-      "total_duration_sec": 85.8,
+      "total_turns": 1382,
+      "total_duration_sec": 9011.3,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1MnxnMbOWABJO",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MnxnMbOWABJO/20260217_1MnxnMbOWABJO__.mp3",
-          "start": 5740.35,
-          "end": 5762.95,
-          "snippet": "I think it could happen if they got somebody who could be like an imposter or just say something happened. Because if th"
+          "episode_tag": "20260216_1DXGyvZvZpEJM",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyvZvZpEJM/20260216_1DXGyvZvZpEJM_MAX_Logan-_New_Years_Day.mp3",
+          "start": 66.61,
+          "end": 73.03,
+          "snippet": "Your frantic makes me want to get on the fucking glass, Barbie, just to keep up with her. Jeez, hectic."
         },
         {
-          "episode_tag": "20260217_1kvKpmVdQEoGE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmVdQEoGE/20260217_1kvKpmVdQEoGE_Unearthing_the_Secrets_of_the_Ancients_-Lost_Civilizations_UFOs.mp3",
-          "start": 9192.89,
-          "end": 9206.01,
-          "snippet": "Mud fossils would be like if you found, and this is Michael Tellinger's exact, this is what he says. He found a rock on "
+          "episode_tag": "20260216_1DXGyvZvZpEJM",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyvZvZpEJM/20260216_1DXGyvZvZpEJM_MAX_Logan-_New_Years_Day.mp3",
+          "start": 85.77,
+          "end": 91.61,
+          "snippet": "He's an interesting character, that dude, eh? He's... I find him interesting, like..."
         },
         {
-          "episode_tag": "20260217_1kvKpmVdQEoGE",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1kvKpmVdQEoGE/20260217_1kvKpmVdQEoGE_Unearthing_the_Secrets_of_the_Ancients_-Lost_Civilizations_UFOs.mp3",
-          "start": 9206.13,
-          "end": 9221.52,
-          "snippet": "And this is like his liver. And like, it's like rocks that are shaped a specific way. And he's saying that they're like "
+          "episode_tag": "20260216_1DXGyvZvZpEJM",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyvZvZpEJM/20260216_1DXGyvZvZpEJM_MAX_Logan-_New_Years_Day.mp3",
+          "start": 92.97,
+          "end": 102.47,
+          "snippet": "Just interesting. He kind of played dumb on a few things, I think. I think he's a bit smarter and he kind of gets corner"
         }
       ]
     },
     {
-      "id": "cand_875346",
-      "suggested_name": "Buddy",
+      "id": "cand_257564",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
-      "episode_count": 4,
+      "episode_count": 1,
       "episodes": [
-        "20260216_1BdGYyXQeLyGX",
-        "20260217_1OyJAVogXlyxb",
-        "20260217_1vAxRAzQrkYJl",
-        "20260218_1YpKkgYPjkmKj"
+        "20261115_1vyORKqVBavZLP"
       ],
-      "total_turns": 5,
-      "total_duration_sec": 22.7,
+      "total_turns": 1329,
+      "total_duration_sec": 12433.4,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1vAxRAzQrkYJl",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1vAxRAzQrkYJl/20260217_1vAxRAzQrkYJl_Messages_from_the_future_Open_Discussion.mp3",
-          "start": 3423.06,
-          "end": 3437.36,
-          "snippet": "Man, I've been around people like him, and I think he's... In my world, he's the same as us, relying on Dodie. Even thou"
+          "episode_tag": "20261115_1vyORKqVBavZLP",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261115_1vyORKqVBavZLP/20261115_1vyORKqVBavZLP_Enough_of_the_Fluff_-_Sleep_Paralysis_and_The_Phenomena_2026-11-15_06_24.mp3",
+          "start": 0.0,
+          "end": 11.92,
+          "snippet": "I got like 40 on it. If I knew go around playing games that got day 40 on it. Younging and got the jacks hard bro. I'll "
+        },
+        {
+          "episode_tag": "20261115_1vyORKqVBavZLP",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261115_1vyORKqVBavZLP/20261115_1vyORKqVBavZLP_Enough_of_the_Fluff_-_Sleep_Paralysis_and_The_Phenomena_2026-11-15_06_24.mp3",
+          "start": 30.02,
+          "end": 39.38,
+          "snippet": "I don't know he made this track. Alright, alright, alright. I see you. Let's do this one. It's kind of dope. Let's see t"
+        },
+        {
+          "episode_tag": "20261115_1vyORKqVBavZLP",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261115_1vyORKqVBavZLP/20261115_1vyORKqVBavZLP_Enough_of_the_Fluff_-_Sleep_Paralysis_and_The_Phenomena_2026-11-15_06_24.mp3",
+          "start": 69.38,
+          "end": 81.2,
+          "snippet": "I can see the length. You're trying to blow up like a night pole. Trying to make a cop. Trying to make a cop. These hype"
         }
       ]
     },
     {
-      "id": "cand_290914",
-      "suggested_name": "Bruce",
-      "raw_speaker": "Speaker 5",
-      "episode_count": 3,
-      "episodes": [
-        "20260216_1DXGyvdAYgWJM",
-        "20260216_1eaKbgkNMQRGX",
-        "20260218_1vOGwMvRgWNxB"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 278.5,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1DXGyvdAYgWJM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyvdAYgWJM/20260216_1DXGyvdAYgWJM_Ladies_Lounge.mp3",
-          "start": 3752.29,
-          "end": 3774.44,
-          "snippet": "Um, it's still good, though. Yeah. Right. As long as Randy feels good about it. Fuck what I think. But, Bruce, what do y"
-        },
-        {
-          "episode_tag": "20260216_1DXGyvdAYgWJM",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1DXGyvdAYgWJM/20260216_1DXGyvdAYgWJM_Ladies_Lounge.mp3",
-          "start": 3776.2,
-          "end": 3807.38,
-          "snippet": "Yeah. I mean, not not more than anyone else. Just just way too soon. I've never seen people saying about the military li"
-        },
-        {
-          "episode_tag": "20260216_1eaKbgkNMQRGX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1eaKbgkNMQRGX/20260216_1eaKbgkNMQRGX_Sound_Check_Testing.mp3",
-          "start": 36940.31,
-          "end": 37025.29,
-          "snippet": "put it as I suppose it's it's extremely low just because, you know, I can't see the benefit when you can pretty much tra"
-        }
-      ]
-    },
-    {
-      "id": "cand_371793",
-      "suggested_name": "Alex",
-      "raw_speaker": "Speaker 1",
-      "episode_count": 3,
-      "episodes": [
-        "20260217_1mrGmBykNMdJy",
-        "20260217_1vAGRANakQYKl",
-        "20260218_1ZkKzjOMBzLKv"
-      ],
-      "total_turns": 7,
-      "total_duration_sec": 57.3,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1mrGmBykNMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
-          "start": 10093.5,
-          "end": 10098.88,
-          "snippet": "What's going on? How's it going? Just right here. Thanks for accepting me. Hey, this is Alex Jones"
-        },
-        {
-          "episode_tag": "20260217_1mrGmBykNMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
-          "start": 10104.64,
-          "end": 10110.02,
-          "snippet": "synthetic rituals are for real, guys. Like, I'm telling you, this is Alex Jones"
-        },
-        {
-          "episode_tag": "20260217_1vAGRANakQYKl",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1vAGRANakQYKl/20260217_1vAGRANakQYKl_Friends_Feeling_Friendly.mp3",
-          "start": 33305.44,
-          "end": 33326.74,
-          "snippet": "I could understand that people have bots to boost their numbers, um, but, um, I, um, I don't really know what worth it i"
-        }
-      ]
-    },
-    {
-      "id": "cand_550692",
-      "suggested_name": "Andrew",
+      "id": "cand_812565",
+      "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 4",
-      "episode_count": 3,
+      "episode_count": 1,
       "episodes": [
-        "20260217_1rmGPkqdWMVKN",
-        "20260218_1YqGoAvArzMxv",
-        "20260218_1ynJOMjomwyKR"
+        "20260911_1pKkOXdbeRNKj"
       ],
-      "total_turns": 7,
-      "total_duration_sec": 364.0,
+      "total_turns": 1326,
+      "total_duration_sec": 11508.2,
       "sample_clips": [
         {
-          "episode_tag": "20260217_1rmGPkqdWMVKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmGPkqdWMVKN/20260217_1rmGPkqdWMVKN_Angels_Demons.mp3",
-          "start": 1473.21,
-          "end": 1489.52,
-          "snippet": "No. I bet you I I I think that, uh, this is a great debate, and I'm glad we got here. Um, well, I wanna welcome Andrew t"
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 5078.38,
+          "end": 5093.87,
+          "snippet": "Well, I think the shape of the Earth would be based off the angle and the way that you're perceiving it. So if you perce"
         },
         {
-          "episode_tag": "20260217_1rmGPkqdWMVKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmGPkqdWMVKN/20260217_1rmGPkqdWMVKN_Angels_Demons.mp3",
-          "start": 1491.35,
-          "end": 1507.39,
-          "snippet": "Thanks, man. I appreciate it. I mean, some people think, uh, blood is thicker than liquid, but, you know, um, no. No. I "
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 5094.01,
+          "end": 5106.56,
+          "snippet": "So I don't think you can ever have any complete certainty on what it factually is. And there are some other conjectures "
         },
         {
-          "episode_tag": "20260217_1rmGPkqdWMVKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmGPkqdWMVKN/20260217_1rmGPkqdWMVKN_Angels_Demons.mp3",
-          "start": 1898.4,
-          "end": 1919.43,
-          "snippet": "Yeah. That quote I gave you, the diamonds and the dung heap, I really thought it was him, but I have a feeling that was "
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 5205.93,
+          "end": 5222.08,
+          "snippet": "I just don't understand anyone taking a stance of certainty on the matter if you consider that you don't know for a fact"
         }
       ]
     },
     {
-      "id": "cand_186158",
-      "suggested_name": "Lynn",
-      "raw_speaker": "Speaker 3",
-      "episode_count": 3,
+      "id": "cand_40957",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
       "episodes": [
-        "20260903_1qxoNYODqnyJv",
-        "20260909_1dxYlaawPAXJX",
-        "20261021_1wxWjlYWnDZJQ"
+        "20260216_1djGXNgzADNxZ"
       ],
-      "total_turns": 7,
-      "total_duration_sec": 66.1,
+      "total_turns": 1227,
+      "total_duration_sec": 16769.9,
       "sample_clips": [
         {
-          "episode_tag": "20260903_1qxoNYODqnyJv",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260903_1qxoNYODqnyJv/20260903_1qxoNYODqnyJv_A_Brand_New_Day.mp3",
-          "start": 43973.66,
-          "end": 43988.44,
-          "snippet": "Lynn, what do you think about, uh, this is a non FDA approved one, um, that I've had great, great success with, uh, what"
+          "episode_tag": "20260216_1djGXNgzADNxZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXNgzADNxZ/20260216_1djGXNgzADNxZ_Revolutionary_Civility_-_Mellow_Demon.mp3",
+          "start": 51.33,
+          "end": 63.22,
+          "snippet": "Hey. What's up, Sonic? Oh, damn. I forgot. I I gotta start these things with, like, some some, like, music or something."
         },
         {
-          "episode_tag": "20260903_1qxoNYODqnyJv",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260903_1qxoNYODqnyJv/20260903_1qxoNYODqnyJv_A_Brand_New_Day.mp3",
-          "start": 43988.44,
-          "end": 44007.9,
-          "snippet": "Yeah. I think there's been very extremely promising research and just make sure that the, um, manufacturers that you're "
+          "episode_tag": "20260216_1djGXNgzADNxZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXNgzADNxZ/20260216_1djGXNgzADNxZ_Revolutionary_Civility_-_Mellow_Demon.mp3",
+          "start": 100.49,
+          "end": 133.97,
+          "snippet": "This is, um, I I don't know how this came up, but I probably shouldn't play this recording. But it's, uh, Kumar, like, g"
         },
         {
-          "episode_tag": "20260909_1dxYlaawPAXJX",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260909_1dxYlaawPAXJX/20260909_1dxYlaawPAXJX_MK_Ultra_True_Stories_Part1.mp3",
-          "start": 11476.6,
-          "end": 11486.3,
-          "snippet": "hi hi wonderful people hey Lynn I hope everybody's having a great day and you're all just wonderful people"
+          "episode_tag": "20260216_1djGXNgzADNxZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1djGXNgzADNxZ/20260216_1djGXNgzADNxZ_Revolutionary_Civility_-_Mellow_Demon.mp3",
+          "start": 166.32,
+          "end": 173.02,
+          "snippet": "And what are the chances that would be, like, every Sunday night? Just right now."
+        }
+      ]
+    },
+    {
+      "id": "cand_739870",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1rmxPomoomqJN"
+      ],
+      "total_turns": 1222,
+      "total_duration_sec": 11055.6,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1rmxPomoomqJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmxPomoomqJN/20260217_1rmxPomoomqJN_NATO_Leads_WW3.mp3",
+          "start": 313.99,
+          "end": 331.34,
+          "snippet": "We are circle. We've harvested the star's dark fire. You're worthless lives. Mere seeds in our infernal pyre. You're fee"
+        },
+        {
+          "episode_tag": "20260217_1rmxPomoomqJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmxPomoomqJN/20260217_1rmxPomoomqJN_NATO_Leads_WW3.mp3",
+          "start": 360.56,
+          "end": 368.25,
+          "snippet": "Stealing grip. Feel it free. Free. Free. Free. Sipping on that circle. So cold. So cold. Time is"
+        },
+        {
+          "episode_tag": "20260217_1rmxPomoomqJN",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1rmxPomoomqJN/20260217_1rmxPomoomqJN_NATO_Leads_WW3.mp3",
+          "start": 7359.81,
+          "end": 7368.8,
+          "snippet": "in the past. And I don't talk about it at all, uh, other than just saying what I've said. I don't get any deeper than th"
+        }
+      ]
+    },
+    {
+      "id": "cand_764399",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1vOxwrqbegVJB"
+      ],
+      "total_turns": 1197,
+      "total_duration_sec": 7119.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 192.13,
+          "end": 200.71,
+          "snippet": "Oh, I forgot the name of the space is Sippin' on That Serpo. You're gonna play that Sippin' on That Serpo song at some p"
+        },
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 273.94,
+          "end": 301.53,
+          "snippet": "Yeah. They they set up some new rules now that, like, um, I can't, like, um, because usually if if I'm, like, hosting a "
+        },
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 333.81,
+          "end": 338.88,
+          "snippet": "Oh, shit. It looks like it's gone now. Is there a is it there now? Yeah. It's there."
+        }
+      ]
+    },
+    {
+      "id": "cand_921866",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260220_1djGXlYkooRGZ"
+      ],
+      "total_turns": 1173,
+      "total_duration_sec": 11632.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260220_1djGXlYkooRGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1djGXlYkooRGZ/20260220_1djGXlYkooRGZ_Wielder_Wednesday.mp3",
+          "start": 59.49,
+          "end": 65.05,
+          "snippet": "Please don't be mean. Maybe that's why the space dropped and I don't really want to go back."
+        },
+        {
+          "episode_tag": "20260220_1djGXlYkooRGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1djGXlYkooRGZ/20260220_1djGXlYkooRGZ_Wielder_Wednesday.mp3",
+          "start": 88.26,
+          "end": 94.31,
+          "snippet": "Poor buddy. And then I thought I was talking over Raffi. I was like, oh no. So then I was just not saying anything."
+        },
+        {
+          "episode_tag": "20260220_1djGXlYkooRGZ",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260220_1djGXlYkooRGZ/20260220_1djGXlYkooRGZ_Wielder_Wednesday.mp3",
+          "start": 209.41,
+          "end": 216.11,
+          "snippet": "Would you kindly tell them about reinserting? We just got cut off over reinsertion in the last one."
+        }
+      ]
+    },
+    {
+      "id": "cand_331019",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1YpKkZBQRRVxj"
+      ],
+      "total_turns": 1169,
+      "total_duration_sec": 14224.4,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1YpKkZBQRRVxj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YpKkZBQRRVxj/20260218_1YpKkZBQRRVxj_UAP_UFO_CHAT.mp3",
+          "start": 35.26,
+          "end": 42.98,
+          "snippet": "Hey brother, I got a commitment at 5.30 but I'm down to powwow for the next 20 minutes. So I'm on yours. Let's do it."
+        },
+        {
+          "episode_tag": "20260218_1YpKkZBQRRVxj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YpKkZBQRRVxj/20260218_1YpKkZBQRRVxj_UAP_UFO_CHAT.mp3",
+          "start": 47.74,
+          "end": 58.26,
+          "snippet": "I don't know what happened to a loose, I messaged him and whatnot but he's just gone quiet. Yeah, I think he had like an"
+        },
+        {
+          "episode_tag": "20260218_1YpKkZBQRRVxj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1YpKkZBQRRVxj/20260218_1YpKkZBQRRVxj_UAP_UFO_CHAT.mp3",
+          "start": 71.36,
+          "end": 82.12,
+          "snippet": "Yes, what was the deal? I'll go ahead. Baby go, I mean, I won't jump in actually. I'm sorry. No, no, no, no, don't be sc"
+        }
+      ]
+    },
+    {
+      "id": "cand_969206",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1ynKOyMzWNQJR"
+      ],
+      "total_turns": 1092,
+      "total_duration_sec": 12118.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1ynKOyMzWNQJR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynKOyMzWNQJR/20260218_1ynKOyMzWNQJR_We_are_the_ones.mp3",
+          "start": 61.61,
+          "end": 77.53,
+          "snippet": "I don't think I've smoked flower. I don't think I smoked flower in a long time. Last time I went to go play cars, the ho"
+        },
+        {
+          "episode_tag": "20260218_1ynKOyMzWNQJR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynKOyMzWNQJR/20260218_1ynKOyMzWNQJR_We_are_the_ones.mp3",
+          "start": 99.94,
+          "end": 125.15,
+          "snippet": "Potassium iodide, folks, is pills that one might need in a nuclear fallout situation. You definitely need potassium iodi"
+        },
+        {
+          "episode_tag": "20260218_1ynKOyMzWNQJR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynKOyMzWNQJR/20260218_1ynKOyMzWNQJR_We_are_the_ones.mp3",
+          "start": 173.94,
+          "end": 179.24,
+          "snippet": "Fenbendazole, everybody. What else is in your kit? What else what else you got in your kit? What do you what else do you"
+        }
+      ]
+    },
+    {
+      "id": "cand_219008",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1MYGNwAvrBRJw"
+      ],
+      "total_turns": 1080,
+      "total_duration_sec": 12996.3,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1MYGNwAvrBRJw",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MYGNwAvrBRJw/20260217_1MYGNwAvrBRJw_High_Level_Physics_Breakthrough_Mind_Melding_Discussion.mp3",
+          "start": 293.44,
+          "end": 324.19,
+          "snippet": "So it's somebody who likes VC. Right? That's a dead giveaway, and everyone hates VC. So you just put yourself in a very "
+        },
+        {
+          "episode_tag": "20260217_1MYGNwAvrBRJw",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MYGNwAvrBRJw/20260217_1MYGNwAvrBRJw_High_Level_Physics_Breakthrough_Mind_Melding_Discussion.mp3",
+          "start": 349.23,
+          "end": 359.93,
+          "snippet": "It's not Matthew. It's not Matthew Wright. What? One second. 100%, it's not Matthew Wright. Yeah. Why did you think it w"
+        },
+        {
+          "episode_tag": "20260217_1MYGNwAvrBRJw",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1MYGNwAvrBRJw/20260217_1MYGNwAvrBRJw_High_Level_Physics_Breakthrough_Mind_Melding_Discussion.mp3",
+          "start": 408.46,
+          "end": 419.37,
+          "snippet": "spent on the date. There's some dead giveaways. The work I've done. There's some dead giveaways. But you know that crazy"
+        }
+      ]
+    },
+    {
+      "id": "cand_579041",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 4",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1vOxwrqbegVJB"
+      ],
+      "total_turns": 1079,
+      "total_duration_sec": 7386.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 3700.93,
+          "end": 3706.8,
+          "snippet": "demon. Like, aliens are from or demons from outer space, specifically?"
+        },
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 3901.36,
+          "end": 3909.07,
+          "snippet": "I just was interested in this group of people I found because I look at UFOs. I'm just an average person on"
+        },
+        {
+          "episode_tag": "20260218_1vOxwrqbegVJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1vOxwrqbegVJB/20260218_1vOxwrqbegVJB_Kingman_UFO.mp3",
+          "start": 3957.93,
+          "end": 3964.82,
+          "snippet": "The the CERN in in Switzerland in the frame, so it's on the ground. Yeah. It's a particle accelerator."
+        }
+      ]
+    },
+    {
+      "id": "cand_656924",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 3",
+      "episode_count": 1,
+      "episodes": [
+        "20260911_1pKkOXdbeRNKj"
+      ],
+      "total_turns": 1076,
+      "total_duration_sec": 9437.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 2093.27,
+          "end": 2106.33,
+          "snippet": "I would say a lot of it's their own interpretive framework. The important thing, which is, He said it's nerdy, nobody wa"
+        },
+        {
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 2107.81,
+          "end": 2113.39,
+          "snippet": "Once you have the geometry, you can slap any number of words onto it and it will make sense."
+        },
+        {
+          "episode_tag": "20260911_1pKkOXdbeRNKj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260911_1pKkOXdbeRNKj/20260911_1pKkOXdbeRNKj_Being_positive_%2B_Part1.mp3",
+          "start": 2115.13,
+          "end": 2125.48,
+          "snippet": "It's just about language building, paradigm shaping. What you get out of it is what networks you connect to in the langu"
+        }
+      ]
+    },
+    {
+      "id": "cand_824352",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 8",
+      "episode_count": 1,
+      "episodes": [
+        "20260217_1OyJAVogXlyxb"
+      ],
+      "total_turns": 1058,
+      "total_duration_sec": 6767.2,
+      "sample_clips": [
+        {
+          "episode_tag": "20260217_1OyJAVogXlyxb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyJAVogXlyxb/20260217_1OyJAVogXlyxb_TUPACABRA_BDAY_Radio_-_Taking_Song_Requests.mp3",
+          "start": 25386.22,
+          "end": 25414.45,
+          "snippet": "yeah hey this good morning hi um i'm an alien and i just wanted to give you guys a couple minutes of my time and answer "
+        },
+        {
+          "episode_tag": "20260217_1OyJAVogXlyxb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyJAVogXlyxb/20260217_1OyJAVogXlyxb_TUPACABRA_BDAY_Radio_-_Taking_Song_Requests.mp3",
+          "start": 25489.46,
+          "end": 25502.33,
+          "snippet": "Is that like a bummer, living there in the city? What? Is it a bummer there? I thought you said it was like a bar. I was"
+        },
+        {
+          "episode_tag": "20260217_1OyJAVogXlyxb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1OyJAVogXlyxb/20260217_1OyJAVogXlyxb_TUPACABRA_BDAY_Radio_-_Taking_Song_Requests.mp3",
+          "start": 25502.35,
+          "end": 25511.4,
+          "snippet": "That's just human nature. I'm not a human, so I wouldn't know, but From what I hear. True. From what I hear from you poo"
+        }
+      ]
+    },
+    {
+      "id": "cand_161555",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1zqKVdBpNXaJB"
+      ],
+      "total_turns": 1056,
+      "total_duration_sec": 13221.5,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 64.36,
+          "end": 84.24,
+          "snippet": "I just want to say hi to you because, like, you know, I haven't really talked to you in a while. Like, oh man, there's j"
+        },
+        {
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 87.69,
+          "end": 93.09,
+          "snippet": "Not Nora is one of my favorite people. And Sarah Beth, like, these people, like, I love them all. Like, this is amazing."
+        },
+        {
+          "episode_tag": "20260218_1zqKVdBpNXaJB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
+          "start": 98.59,
+          "end": 145.56,
+          "snippet": "Can we, like, can we, like, actually, like, dig into some crazy shit at some point? Like, Like, I mean, I don't know. I,"
+        }
+      ]
+    },
+    {
+      "id": "cand_559318",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 10",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1ynJOazZeAVKR"
+      ],
+      "total_turns": 1050,
+      "total_duration_sec": 6733.1,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 41508.87,
+          "end": 41518.14,
+          "snippet": "Hey, Lacey. Hi, guys. What color's my energy? Whoa. We love you, Lacey. I love that song. Wow."
+        },
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 41566.09,
+          "end": 41574.42,
+          "snippet": "Yes, everything's all twisted. I've been on the phone mostly all this morning."
+        },
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 41575.7,
+          "end": 41604.3,
+          "snippet": "filling out forms and getting things scheduled for this surgery and the pre-admission and another surgeon called me and "
+        }
+      ]
+    },
+    {
+      "id": "cand_522866",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 2",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1yNxagPMjXdGj"
+      ],
+      "total_turns": 1044,
+      "total_duration_sec": 9122.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1yNxagPMjXdGj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNxagPMjXdGj/20260218_1yNxagPMjXdGj_26_Hours_of_content.mp3",
+          "start": 3635.78,
+          "end": 3641.64,
+          "snippet": "bored as fuck drawing. We're kinda having a brain fart in drawing, so I'm taking a break."
+        },
+        {
+          "episode_tag": "20260218_1yNxagPMjXdGj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNxagPMjXdGj/20260218_1yNxagPMjXdGj_26_Hours_of_content.mp3",
+          "start": 3646.57,
+          "end": 3656.91,
+          "snippet": "Uh, shut up, Fred. That's my cat. Um, I don't know. I'm just trying, like, the third eye step. I'll show a picture of wh"
+        },
+        {
+          "episode_tag": "20260218_1yNxagPMjXdGj",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1yNxagPMjXdGj/20260218_1yNxagPMjXdGj_26_Hours_of_content.mp3",
+          "start": 4422.82,
+          "end": 4431.88,
+          "snippet": "I have gotten a lot of hate for saying that I'm not voting currently. And I'm not voting, so that's all"
         }
       ]
     }
