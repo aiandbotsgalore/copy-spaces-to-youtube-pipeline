@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-15T11:16:56Z",
+  "updated_at": "2026-11-16T22:57:06Z",
   "total_candidates": 5971,
   "candidates": [
     {
-      "id": "cand_449760",
+      "id": "cand_465017",
       "suggested_name": "Kimball",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "id": "cand_698266",
+      "id": "cand_558437",
       "suggested_name": "Matt",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -71,7 +71,7 @@
       ]
     },
     {
-      "id": "cand_731423",
+      "id": "cand_502758",
       "suggested_name": "Logan",
       "raw_speaker": "Speaker 3",
       "episode_count": 1,
@@ -105,7 +105,7 @@
       ]
     },
     {
-      "id": "cand_794398",
+      "id": "cand_279014",
       "suggested_name": "Sanjaya",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "id": "cand_229743",
+      "id": "cand_203407",
       "suggested_name": "Corbel",
       "raw_speaker": "Speaker 11",
       "episode_count": 1,
@@ -173,7 +173,7 @@
       ]
     },
     {
-      "id": "cand_629576",
+      "id": "cand_763538",
       "suggested_name": "Devin",
       "raw_speaker": "Speaker 6",
       "episode_count": 1,
@@ -207,7 +207,7 @@
       ]
     },
     {
-      "id": "cand_79441",
+      "id": "cand_29344",
       "suggested_name": "Andre",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -241,7 +241,7 @@
       ]
     },
     {
-      "id": "cand_515007",
+      "id": "cand_221306",
       "suggested_name": "Twitter",
       "raw_speaker": "Speaker 9",
       "episode_count": 1,
@@ -275,7 +275,7 @@
       ]
     },
     {
-      "id": "cand_19307",
+      "id": "cand_345491",
       "suggested_name": "Tiff",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -309,7 +309,7 @@
       ]
     },
     {
-      "id": "cand_980647",
+      "id": "cand_249185",
       "suggested_name": "Danielle",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -343,7 +343,7 @@
       ]
     },
     {
-      "id": "cand_985354",
+      "id": "cand_538325",
       "suggested_name": "September",
       "raw_speaker": "Speaker 4",
       "episode_count": 1,
@@ -377,7 +377,7 @@
       ]
     },
     {
-      "id": "cand_314559",
+      "id": "cand_409035",
       "suggested_name": "China",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -411,7 +411,7 @@
       ]
     },
     {
-      "id": "cand_696752",
+      "id": "cand_167387",
       "suggested_name": "Sowan",
       "raw_speaker": "Speaker 5",
       "episode_count": 1,
@@ -445,7 +445,7 @@
       ]
     },
     {
-      "id": "cand_515347",
+      "id": "cand_416947",
       "suggested_name": "Davey",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -479,7 +479,7 @@
       ]
     },
     {
-      "id": "cand_120867",
+      "id": "cand_678930",
       "suggested_name": "Randy",
       "raw_speaker": "Speaker 5",
       "episode_count": 1,
@@ -513,7 +513,7 @@
       ]
     },
     {
-      "id": "cand_460839",
+      "id": "cand_23707",
       "suggested_name": "Ingo",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -547,7 +547,7 @@
       ]
     },
     {
-      "id": "cand_517688",
+      "id": "cand_945330",
       "suggested_name": "Ron",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -581,7 +581,7 @@
       ]
     },
     {
-      "id": "cand_971846",
+      "id": "cand_413728",
       "suggested_name": "Destiny",
       "raw_speaker": "Speaker 6",
       "episode_count": 1,
@@ -615,7 +615,7 @@
       ]
     },
     {
-      "id": "cand_853627",
+      "id": "cand_370890",
       "suggested_name": "Art",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -635,7 +635,7 @@
       ]
     },
     {
-      "id": "cand_260181",
+      "id": "cand_576677",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -669,7 +669,7 @@
       ]
     },
     {
-      "id": "cand_356869",
+      "id": "cand_692941",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -703,7 +703,7 @@
       ]
     },
     {
-      "id": "cand_983456",
+      "id": "cand_471340",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -737,7 +737,7 @@
       ]
     },
     {
-      "id": "cand_610360",
+      "id": "cand_161289",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -771,7 +771,7 @@
       ]
     },
     {
-      "id": "cand_160727",
+      "id": "cand_735163",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -805,7 +805,7 @@
       ]
     },
     {
-      "id": "cand_631468",
+      "id": "cand_626362",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -839,7 +839,7 @@
       ]
     },
     {
-      "id": "cand_736733",
+      "id": "cand_356800",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -873,7 +873,7 @@
       ]
     },
     {
-      "id": "cand_397849",
+      "id": "cand_183953",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 3",
       "episode_count": 1,
@@ -907,7 +907,7 @@
       ]
     },
     {
-      "id": "cand_993113",
+      "id": "cand_3426",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -941,7 +941,7 @@
       ]
     },
     {
-      "id": "cand_789263",
+      "id": "cand_8639",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -975,7 +975,7 @@
       ]
     },
     {
-      "id": "cand_604061",
+      "id": "cand_313360",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1009,7 +1009,7 @@
       ]
     },
     {
-      "id": "cand_427454",
+      "id": "cand_677221",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1043,7 +1043,7 @@
       ]
     },
     {
-      "id": "cand_432052",
+      "id": "cand_862871",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1077,7 +1077,7 @@
       ]
     },
     {
-      "id": "cand_132909",
+      "id": "cand_30447",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1111,7 +1111,7 @@
       ]
     },
     {
-      "id": "cand_456916",
+      "id": "cand_693708",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -1145,7 +1145,7 @@
       ]
     },
     {
-      "id": "cand_424573",
+      "id": "cand_195993",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1179,7 +1179,7 @@
       ]
     },
     {
-      "id": "cand_257564",
+      "id": "cand_685834",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1213,7 +1213,7 @@
       ]
     },
     {
-      "id": "cand_812565",
+      "id": "cand_558393",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 4",
       "episode_count": 1,
@@ -1247,7 +1247,7 @@
       ]
     },
     {
-      "id": "cand_40957",
+      "id": "cand_909083",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1281,7 +1281,7 @@
       ]
     },
     {
-      "id": "cand_739870",
+      "id": "cand_279413",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1315,7 +1315,7 @@
       ]
     },
     {
-      "id": "cand_764399",
+      "id": "cand_354596",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1349,7 +1349,7 @@
       ]
     },
     {
-      "id": "cand_921866",
+      "id": "cand_852673",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1383,7 +1383,7 @@
       ]
     },
     {
-      "id": "cand_331019",
+      "id": "cand_251049",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1417,7 +1417,7 @@
       ]
     },
     {
-      "id": "cand_969206",
+      "id": "cand_999090",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1451,7 +1451,7 @@
       ]
     },
     {
-      "id": "cand_219008",
+      "id": "cand_492256",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -1485,7 +1485,7 @@
       ]
     },
     {
-      "id": "cand_579041",
+      "id": "cand_300850",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 4",
       "episode_count": 1,
@@ -1519,7 +1519,7 @@
       ]
     },
     {
-      "id": "cand_656924",
+      "id": "cand_185068",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 3",
       "episode_count": 1,
@@ -1553,7 +1553,7 @@
       ]
     },
     {
-      "id": "cand_824352",
+      "id": "cand_414799",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -1587,7 +1587,7 @@
       ]
     },
     {
-      "id": "cand_161555",
+      "id": "cand_527369",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1621,7 +1621,7 @@
       ]
     },
     {
-      "id": "cand_559318",
+      "id": "cand_66606",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -1655,7 +1655,7 @@
       ]
     },
     {
-      "id": "cand_522866",
+      "id": "cand_444976",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
