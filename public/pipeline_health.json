@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-16T15:27:29.666669+00:00",
+  "timestamp": "2026-11-17T01:48:36.732393+00:00",
   "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
@@ -7,13 +7,22 @@
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 829,
-    "indexed_transcripts": 829,
+    "on_disk_transcripts": 830,
+    "indexed_transcripts": 830,
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 1,
+  "recent_failures_count": 2,
   "triaged_failures": [
+    {
+      "run_id": 43971439141,
+      "name": "Ingest https://x.com/i/spaces/1AMLarKymdEPkX?s=20",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43971439141",
+      "root_cause": "Execution Error: Run 43971439141 failed in Ingest https://x.com/i/spaces/1AMLarKymdEPkX?s=20",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
     {
       "run_id": 43765383345,
       "name": "Sync Investigative Knowledge Graph & Qdrant Cloud",
@@ -25,5 +34,5 @@
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 1
+  "quarantined_count": 2
 }
