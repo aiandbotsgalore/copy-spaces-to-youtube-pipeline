@@ -665,6 +665,19 @@ def resolve_speakers_intelligently(
     if not segments:
         return segments, {}
 
+    # faster-whisper performs speech recognition, NOT speaker diarization. It
+    # gives every turn the same synthetic Speaker 1 label. Renaming that whole
+    # bucket from a self-introduction, an LLM guess, or a few voice samples
+    # attributes unrelated people's words to one person across the recording.
+    # Preserve the generic label instead; real identity resolution requires
+    # actual per-speaker clusters (or human-verified segment-level labels).
+    raw_speakers = {str(s.get("speaker", "")).strip() for s in segments}
+    if (len(segments) > 15 and len(raw_speakers) == 1
+            and next(iter(raw_speakers)).lower().startswith("speaker")):
+        print("[!] Speaker identification withheld: long recording has only one generic "
+              "speaker cluster. Whisper transcription is not diarization.")
+        return segments, {}
+
     known_speakers = load_known_speakers()
 
     # Tier 0: Neural Acoustic Voiceprint Matching (192-dim ECAPA-TDNN)
