@@ -82,6 +82,7 @@ console.log(`   Scanning last ${TWEET_LIMIT} tweets per handle...`);
 
 function fetchTweetsForHandle(handle) {
   let tweets = [];
+  let timelineFailed = false;
   try {
     const rawOutput = execSync(
       `npx -y xactions tweets ${handle} --limit ${TWEET_LIMIT} --json`,
@@ -97,6 +98,7 @@ function fetchTweetsForHandle(handle) {
       console.log(`   @${handle}: fetched ${tweets.length} tweets from user timeline`);
     }
   } catch (err) {
+    timelineFailed = true;
     console.warn(`⚠️  @${handle}: xactions tweets timeline fetch failed — ${err.message}`);
   }
 
@@ -127,6 +129,11 @@ function fetchTweetsForHandle(handle) {
     } catch (sErr) {
       console.warn(`⚠️  @${handle}: xactions search fallback failed — ${sErr.message}`);
     }
+  }
+
+  if (timelineFailed) {
+    console.error(`❌ @${handle}: no usable timeline or authenticated search response; marking scan as failed`);
+    return null;
   }
 
   return tweets;
@@ -241,7 +248,7 @@ async function run() {
 
   if (allDiscovered.size === 0) {
     console.log('No active or recent Space links found in latest tweets.');
-    recordStepSummary(HANDLES, [], [], [], fetchFailures);
+    recordStepSummary(HANDLES, [], [], [], [], fetchFailures);
     process.exit(0);
   }
 
@@ -271,6 +278,7 @@ async function run() {
 
   // Dispatch ingestion for each new, available Space
   const dispatched = [];
+  const dispatchFailures = [];
   const unavailableSpaces = [];
   const liveDeferredSpaces = [];
 
@@ -375,16 +383,18 @@ async function run() {
         dispatched.push(space);
         console.log(`✅ Dispatched: ${space.spaceId}`);
       } catch (dispatchErr) {
+        dispatchFailures.push(space);
         console.error(`❌ Failed to dispatch ${space.spaceId}: ${dispatchErr.message}`);
       }
     }
   }
 
-  recordStepSummary(HANDLES, newSpaces, alreadyArchivedSpaces, dispatched, unavailableSpaces, fetchFailures, liveDeferredSpaces);
-  console.log(`\n✨ Done. Dispatched ${dispatched.length} new Space(s), ${liveDeferredSpaces.length} live broadcast(s) deferred.`);
+  recordStepSummary(HANDLES, newSpaces, alreadyArchivedSpaces, dispatched, unavailableSpaces, fetchFailures, liveDeferredSpaces, dispatchFailures);
+  console.log(`\n✨ Done. Dispatched ${dispatched.length} new Space(s), ${liveDeferredSpaces.length} live broadcast(s) deferred, ${dispatchFailures.length} dispatch failure(s).`);
+  if (dispatchFailures.length > 0) process.exitCode = 1;
 }
 
-function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], unavailableSpaces = [], fetchFailures = [], liveDeferredSpaces = []) {
+function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], unavailableSpaces = [], fetchFailures = [], liveDeferredSpaces = [], dispatchFailures = []) {
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryFile) return;
 
@@ -394,6 +404,7 @@ function recordStepSummary(handles, newSpaces, archivedSpaces, dispatched = [], 
     `- **Handles monitored:** ${handles.map(h => `@${h}`).join(', ')}`,
     `- **Timestamp:** ${new Date().toISOString()}`,
     `- **New Spaces Dispatched:** ${dispatched.length}`,
+    `- **Dispatch Failures:** ${dispatchFailures.length}`,
     `- **Live Deferred (Awaiting Replay):** ${liveDeferredSpaces.length}`,
     `- **Already Archived:** ${archivedSpaces.length}`,
     `- **Expired / Unavailable:** ${unavailableSpaces.length}`,

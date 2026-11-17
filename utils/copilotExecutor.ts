@@ -485,13 +485,20 @@ export async function executeCopilotAction(
           };
         }
 
+        // Resolve guessed main/master refs against the repository default;
+        // keep explicitly requested feature branches unchanged.
+        const defaultBranch = await getRepositoryDefaultBranch(githubToken, ownerName.trim(), repoName.trim());
+        const requestedRef = params.ref?.trim();
+        const dispatchRef = !requestedRef || requestedRef === "main" || requestedRef === "master"
+          ? defaultBranch
+          : requestedRef;
         await dispatchWorkflow(
           githubToken,
           ownerName.trim(),
           repoName.trim(),
           params.workflowFile,
           params.inputs || {},
-          params.ref
+          dispatchRef
         );
 
         // Honest status: 'accepted' (dispatched to runner, not completed execution)
