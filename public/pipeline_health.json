@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-17T01:48:36.732393+00:00",
+  "timestamp": "2026-11-17T15:48:38.270689+00:00",
   "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
@@ -12,7 +12,7 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 2,
+  "recent_failures_count": 1,
   "triaged_failures": [
     {
       "run_id": 43971439141,
@@ -22,17 +22,8 @@
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
-    },
-    {
-      "run_id": 43765383345,
-      "name": "Sync Investigative Knowledge Graph & Qdrant Cloud",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/43765383345",
-      "root_cause": "Execution Error: Run 43765383345 failed in Sync Investigative Knowledge Graph & Qdrant Cloud",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 2
+  "quarantined_count": 1
 }
