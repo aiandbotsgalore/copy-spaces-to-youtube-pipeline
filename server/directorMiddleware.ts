@@ -101,7 +101,7 @@ function mutateSpeakerCandidate(params: {
 
   let target = candData.candidates.find(c =>
     (params.candidateId && c.id === params.candidateId) ||
-    (c.episode_id === params.episodeId && c.raw_speaker === params.rawSpeaker && (params.scope !== 'segment' || c.segment_idx === params.segmentIdx))
+    (c.episode_id === params.episodeId && c.raw_speaker === params.rawSpeaker && (c.scope || 'cluster') === (params.scope || 'cluster') && (params.scope !== 'segment' || c.segment_idx === params.segmentIdx))
   );
 
   if (params.action === 'approve') {
@@ -115,6 +115,7 @@ function mutateSpeakerCandidate(params: {
         episode_id: params.episodeId,
         raw_speaker: params.rawSpeaker,
         resolved_name: params.resolvedName || params.rawSpeaker,
+        segment_idx: params.segmentIdx,
         status: 'human_verified',
         confidence: 1.0,
         acoustic_conflict: false,
@@ -164,7 +165,7 @@ function mutateSpeakerCandidate(params: {
       // Recompute effective speakers using overlay
       const activeCands = candData.candidates.filter(c =>
         c.episode_id === params.episodeId &&
-        (c.status === 'human_verified' || (c.status === 'auto_approved' && c.confidence >= 0.85 && !c.acoustic_conflict))
+        (c.status === 'human_verified' || (c.status === 'auto_approved' && c.confidence >= 0.85 && !c.acoustic_conflict && c.attribution_method === 'acoustic' && c.acoustic_verified === true))
       );
       const segMap = new Map<number, string>();
       const clusMap = new Map<string, string>();

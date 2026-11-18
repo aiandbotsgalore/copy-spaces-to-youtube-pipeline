@@ -47,6 +47,7 @@ from spacepipe_transcribe_core import (
     match_biometrics_1to1,
     project_diarization_onto_segments,
     compute_transcript_text_hash,
+    reconcile_chunk_speakers,
 )
 
 ALLOWED_HOSTS = {
@@ -103,9 +104,8 @@ def _gpu_transcribe_chunk(chunk_path: str, model_size: str = "large-v3-turbo") -
     global _WHISPER_MODEL
     try:
         from faster_whisper import WhisperModel
-    except ImportError:
-        # Fallback for environments without faster-whisper installed
-        return [{"start": 0.0, "end": 10.0, "text": "Mock transcription chunk.", "words": []}]
+    except ImportError as exc:
+        raise RuntimeError("faster-whisper is unavailable; transcription was not performed") from exc
 
     if _WHISPER_MODEL is None:
         # Pre-cached or lazy init inside GPU context
@@ -162,29 +162,34 @@ def _gpu_diarize_chunk(
         import torch
         from pyannote.audio import Pipeline
         from speechbrain.inference.speaker import EncoderClassifier
-    except ImportError:
-        # Return synthetic structure for tests
-        return {
-            "turns": [{"speaker": "SPEAKER_00", "start": 0.0, "end": 10.0}],
-            "embeddings": {"SPEAKER_00": [0.1] * 192}
-        }
+    except ImportError as exc:
+        raise RuntimeError("Diarization dependencies unavailable; no speaker evidence generated") from exc
+
+    if not hf_token:
+        raise RuntimeError("HF_TOKEN is required for the gated diarization model")
+    device = os.environ.get("SPACEPIPE_DIARIZATION_DEVICE", "cuda")
+    if device not in ("cpu", "cuda"):
+        raise ValueError("SPACEPIPE_DIARIZATION_DEVICE must be cpu or cuda")
 
     if _DIARIZATION_PIPELINE is None and hf_token:
         _DIARIZATION_PIPELINE = Pipeline.from_pretrained(
             "pyannote/speaker-diarization-3.1",
             token=hf_token
-        ).to(torch.device("cuda"))
+        ).to(torch.device(device))
 
     if _SPEECHBRAIN_MODEL is None:
         _SPEECHBRAIN_MODEL = EncoderClassifier.from_hparams(
             source="speechbrain/spkrec-ecapa-voxceleb",
-            savedir="tmp_speechbrain",
-            run_opts={"device": "cuda"}
+            savedir=os.environ.get("SPACEPIPE_ECAPA_CACHE", "tmp_speechbrain"),
+            run_opts={"device": device}
         )
 
-    # Run PyAnnote diarization
+    # In-memory input also works on Windows without FFmpeg shared DLLs.
+    import soundfile as sf
+    audio_data, sr = sf.read(chunk_path, dtype="float32")
+    diarization_input = {"waveform": torch.from_numpy(audio_data).unsqueeze(0), "sample_rate": sr}
     diarization = _DIARIZATION_PIPELINE(
-        chunk_path,
+        diarization_input,
         min_speakers=min_speakers,
         max_speakers=max_speakers
     )
@@ -202,9 +207,7 @@ def _gpu_diarize_chunk(
     # Subtract crosstalk before embedding extraction
     clean_intervals = subtract_crosstalk_intervals(turns, min_duration_sec=1.5)
 
-    # Extract 192-dim ECAPA embeddings for clean turns
-    import soundfile as sf
-    audio_data, sr = sf.read(chunk_path)
+    # Extract 192-dim ECAPA embeddings from the same conditioned waveform.
 
     speaker_embs: Dict[str, List[List[float]]] = {}
     for item in clean_intervals:
@@ -215,7 +218,7 @@ def _gpu_diarize_chunk(
         if len(wav_slice) < int(1.5 * sr):
             continue
 
-        wav_t = torch.tensor(wav_slice, dtype=torch.float32).unsqueeze(0).to("cuda")
+        wav_t = torch.tensor(wav_slice, dtype=torch.float32).unsqueeze(0).to(device)
         emb = _SPEECHBRAIN_MODEL.encode_batch(wav_t)
         
         # Convert CUDA tensor to CPU list[float]
@@ -288,7 +291,7 @@ def transcribe_endpoint(
                     "-c", "copy",
                     chunk_wav
                 ]
-                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
                 # Run GPU transcribe chunk
                 chunk_segs = _gpu_transcribe_chunk(chunk_wav)
@@ -303,6 +306,7 @@ def transcribe_endpoint(
                 # Run GPU diarize chunk
                 diar_res = _gpu_diarize_chunk(chunk_wav, min_speakers, max_speakers)
                 for t in diar_res.get("turns", []):
+                    t["speaker"] = f"chunk{i}_{t['speaker']}"
                     t["start"] += curr_offset
                     t["end"] += curr_offset
                     all_turns.append(t)
@@ -312,6 +316,10 @@ def transcribe_endpoint(
                     cluster_embs[scoped_spk] = emb
 
                 curr_offset = cut_time
+
+            if not all_turns:
+                raise RuntimeError("Diarization returned no speaker turns")
+            all_turns, centroids = reconcile_chunk_speakers(all_turns, cluster_embs)
 
             # Final speaker projection
             if all_turns:
@@ -334,7 +342,8 @@ def rediarize_endpoint(
     api_key: str = "",
     enrolled_profiles_json: str = "{}",
     min_speakers: int = 1,
-    max_speakers: int = 15
+    max_speakers: int = 15,
+    preview_seconds: float = 0
 ) -> str:
     """
     Top-level CPU orchestrator for /rediarize.
@@ -358,6 +367,13 @@ def rediarize_endpoint(
 
             cut_points = detect_silence_cut_points(conditioned_wav, max_chunk_sec=1800.0)
 
+            if preview_seconds:
+                if not 0 < preview_seconds <= 300:
+                    raise ValueError("Preview must be between 0 and 300 seconds")
+                if any(float(seg.get("end", 0)) > preview_seconds for seg in segments):
+                    raise ValueError("Preview transcript extends beyond requested audio window")
+                cut_points = [min(float(preview_seconds), cut_points[-1])]
+
             all_turns: List[Dict[str, Any]] = []
             speaker_embs: Dict[str, List[float]] = {}
 
@@ -377,10 +393,11 @@ def rediarize_endpoint(
                     "-c", "copy",
                     chunk_wav
                 ]
-                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
 
                 diar_res = _gpu_diarize_chunk(chunk_wav, min_speakers, max_speakers)
                 for t in diar_res.get("turns", []):
+                    t["speaker"] = f"chunk{i}_{t['speaker']}"
                     t["start"] += curr_offset
                     t["end"] += curr_offset
                     all_turns.append(t)
@@ -390,36 +407,80 @@ def rediarize_endpoint(
 
                 curr_offset = cut_time
 
+            if not all_turns:
+                raise RuntimeError("Diarization returned no speaker turns")
+            all_turns, centroids = reconcile_chunk_speakers(all_turns, speaker_embs)
+
             # 1-to-1 Bipartite Profile Matching
             matched_speakers = match_biometrics_1to1(
-                speaker_embs,
+                centroids,
                 profiles,
                 min_similarity=0.54,
                 min_margin=0.06
             )
 
-            for t in all_turns:
-                old_spk = t.get("speaker")
-                for cid, resolved_name in matched_speakers.items():
-                    if cid.endswith(f"_{old_spk}"):
-                        t["speaker"] = resolved_name
-                        break
-
-            # Project onto segments asserting SHA-256 text immutability
+            # Project generic clusters first so raw identity survives naming.
             updated_segments = project_diarization_onto_segments(segments, all_turns)
+            for seg in updated_segments:
+                if seg.get("speaker_verified") or seg.get("attribution", {}).get("method") == "human_verified":
+                    continue
+                if seg["speaker"] in matched_speakers:
+                    seg["speaker"] = matched_speakers[seg["speaker"]]
+                    seg["attribution"] = {"method": "acoustic", "model": "speechbrain/spkrec-ecapa-voxceleb"}
+                for word in seg.get("words", []):
+                    word["raw_speaker"] = word.get("speaker", "Unknown")
+                    word["speaker"] = matched_speakers.get(word["raw_speaker"], word["raw_speaker"])
+
             final_hash = compute_transcript_text_hash(updated_segments)
 
             return json.dumps({
                 "status": "success",
+                "preview_seconds": preview_seconds,
                 "segments": updated_segments,
                 "turns": all_turns,
                 "matched_speakers": matched_speakers,
+                "clusters": centroids,
+                "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
                 "text_hash": final_hash,
                 "verified_immutable": (orig_hash == final_hash)
             }, indent=2)
 
     except Exception as e:
         return json.dumps({"error": str(e)}, indent=2)
+
+
+def diarize_window_endpoint(audio_url: str, start_seconds: float = 0,
+                            duration_seconds: float = 300, api_key: str = "") -> str:
+    """One bounded audio window per request/ZeroGPU lease; no transcript upload."""
+    if not validate_api_key(api_key):
+        return json.dumps({"error": "Unauthorized: invalid SPACE_API_KEY"})
+    try:
+        import math
+        start, duration = float(start_seconds), float(duration_seconds)
+        if not math.isfinite(start) or start < 0 or not math.isfinite(duration) or not 0 < duration <= 300:
+            raise ValueError("Window requires finite start >= 0 and duration in (0, 300]")
+        validate_audio_url(audio_url)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            wav = os.path.join(temp_dir, "window.wav")
+            # Seek before input to use HTTP range access instead of decoding the full episode.
+            command = [shutil.which("ffmpeg") or "ffmpeg", "-nostdin", "-y",
+                       "-ss", str(start), "-i", audio_url, "-t", str(duration),
+                       "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav]
+            proc = subprocess.run(command, capture_output=True, timeout=90)
+            if proc.returncode:
+                raise RuntimeError("Audio window extraction failed: " + proc.stderr.decode(errors="replace")[-1200:])
+            import soundfile as sf
+            info = sf.info(wav)
+            actual_duration = info.frames / info.samplerate
+            if actual_duration < duration - 1.0:
+                raise RuntimeError(f"Audio window was truncated: {actual_duration:.2f}s of {duration:.2f}s")
+            result = _gpu_diarize_chunk(wav)
+            result.update({"status": "success", "start_seconds": start,
+                           "duration_seconds": duration, "audio_seconds": actual_duration,
+                           "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"})
+            return json.dumps(result)
+    except Exception as exc:
+        return json.dumps({"error": str(exc)})
 
 
 @spaces.GPU(duration=60)
@@ -469,15 +530,27 @@ try:
             rediar_segs = gr.Code(label="Existing Segments JSON", language="json")
             rediar_key = gr.Textbox(label="Space API Key", type="password")
             rediar_profiles = gr.Code(label="Enrolled Profiles JSON", language="json", value="{}")
+            preview_duration = gr.Number(label="Preview seconds (0 for full episode, maximum 300)", value=0)
             rediar_btn = gr.Button("Re-Diarize Transcripts", variant="primary")
             rediar_output = gr.Code(label="Updated Transcript (JSON)", language="json")
 
             rediar_btn.click(
                 fn=rediarize_endpoint,
-                inputs=[rediar_url, rediar_segs, rediar_key, rediar_profiles, min_spk, max_spk],
+                inputs=[rediar_url, rediar_segs, rediar_key, rediar_profiles, min_spk, max_spk, preview_duration],
                 outputs=[rediar_output],
                 api_name="rediarize"
             )
+
+        with gr.Tab("Audio Window"):
+            window_url = gr.Textbox(label="Audio URL")
+            window_start = gr.Number(label="Start seconds", value=0)
+            window_duration = gr.Number(label="Duration seconds (maximum 300)", value=300)
+            window_key = gr.Textbox(label="Space API Key", type="password")
+            window_button = gr.Button("Diarize window")
+            window_output = gr.Code(label="Window output", language="json")
+            window_button.click(fn=diarize_window_endpoint,
+                                inputs=[window_url, window_start, window_duration, window_key],
+                                outputs=[window_output], api_name="diarize_window")
 
         with gr.Tab("Health"):
             health_key = gr.Textbox(label="Space API Key", type="password")

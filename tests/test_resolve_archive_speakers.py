@@ -153,6 +153,7 @@ def test_overlay_hydration_logic():
                 "raw_speaker": "Speaker 1",
                 "resolved_name": "Sav",
                 "status": "auto_approved",
+                "attribution_method": "acoustic", "acoustic_verified": True,
                 "confidence": 0.92,
                 "acoustic_conflict": False
             },
@@ -234,6 +235,7 @@ def test_sync_summary_index_roster():
                 "raw_speaker": "Speaker 1",
                 "resolved_name": "Sav",
                 "status": "auto_approved",
+                "attribution_method": "acoustic", "acoustic_verified": True,
                 "confidence": 0.95,
                 "acoustic_conflict": False
             }

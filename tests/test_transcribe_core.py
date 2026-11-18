@@ -88,9 +88,11 @@ class TestSpacePipeTranscribeCore(unittest.TestCase):
         """
         enrolled_profiles = {
             "Logan": {
+                "identity_verified": True, "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
                 "embedding": [1.0, 0.0, 0.0]
             },
             "Angela": {
+                "identity_verified": True, "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
                 "embedding": [0.0, 1.0, 0.0]
             }
         }
@@ -121,6 +123,7 @@ class TestSpacePipeTranscribeCore(unittest.TestCase):
         """
         enrolled_profiles = {
             "Logan": {
+                "identity_verified": True, "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
                 "embedding": [1.0, 0.0, 0.0]
             }
         }

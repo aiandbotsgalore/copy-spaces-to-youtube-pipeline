@@ -25,6 +25,9 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "spaces" / "zerogpu-transcriber"))
+from spacepipe_transcribe_core import match_biometrics_1to1, valid_embedding
+
 PROFILES_PATH = Path("voice_profiles.json")
 SUMMARY_PATH = Path("public/transcripts/transcripts_summary_index.json")
 EPISODES_DIR = Path("public/transcripts/episodes")
@@ -54,7 +57,10 @@ def load_profile_embedding(speaker_name: str) -> Optional[List[float]]:
         with open(PROFILES_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
         profile = data.get("profiles", {}).get(speaker_name)
-        if profile and isinstance(profile.get("embedding"), list) and len(profile["embedding"]) == 192:
+        if (profile and profile.get("identity_verified") is True
+                and profile.get("embedding_model") == "speechbrain/spkrec-ecapa-voxceleb"
+                and isinstance(profile.get("embedding"), list) and len(profile["embedding"]) == 192
+                and valid_embedding(profile["embedding"]) is not None):
             return profile["embedding"]
     except Exception as e:
         print(f"[!] Error reading voice profile for {speaker_name}: {e}")
@@ -119,52 +125,8 @@ def cosine_similarity(v1: List[float], v2: List[float]) -> float:
     return dot / (norm1 * norm2)
 
 
-def scan_conversational_heuristics(segments: List[Dict[str, Any]], target_speaker: str) -> Optional[str]:
-    """Detects if a generic speaker is directly handed the mic or introduced as target speaker."""
-    name_lower = target_speaker.lower()
-    address_patterns = [
-        re.compile(rf'\b(?:hey|hi|hello)\s+{name_lower}\b', re.I),
-        re.compile(rf'\bgo\s+ahead\s+{name_lower}\b', re.I),
-        re.compile(rf'\b(?:thanks|thank\s+you)\s+{name_lower}\b', re.I),
-        re.compile(rf'\bwelcome\s+{name_lower}\b', re.I),
-        re.compile(rf'\blet\s+{name_lower}\s+(?:talk|speak)\b', re.I),
-        re.compile(rf'\b{name_lower}\s+(?:what\s+do\s+you|what\s+are\s+your|what\s+is\s+your|go\s+ahead|you\s+there|you\'re\s+on\s+mute|unmute)\b', re.I),
-        re.compile(rf'\bi\s+agree\s+with\s+(?:you,?\s+)?{name_lower}\b', re.I),
-        re.compile(rf'\b{name_lower},?\s+(?:that\'s|you\'re|you\s+need|keeps\s+going|was\s+killing\s+it)\b', re.I),
-    ]
-    self_intro = [
-        re.compile(rf'\b(?:this\s+is|i\'m|it\'s)\s+{name_lower}\b', re.I),
-    ]
-    exclude = re.compile(r'\b(?:amber\s+rose|rose\s+prairie|rose\s+bowl|a\s+rose\s+by\s+any|guns\s+n\s+roses)\b', re.I) if name_lower == "rose" else None
-
-    scores = {}
-    for i, s in enumerate(segments):
-        txt = s.get("text", "")
-        spk = s.get("speaker", "")
-        if exclude and exclude.search(txt):
-            continue
-
-        if any(p.search(txt) for p in self_intro) and spk.lower().startswith("speaker"):
-            scores[spk] = scores.get(spk, 0) + 15
-
-        for p in address_patterns:
-            if p.search(txt):
-                if i + 1 < len(segments):
-                    nspk = segments[i + 1].get("speaker", "")
-                    if nspk != spk and nspk.lower().startswith("speaker"):
-                        scores[nspk] = scores.get(nspk, 0) + 12
-                if i > 0:
-                    pspk = segments[i - 1].get("speaker", "")
-                    if pspk != spk and pspk.lower().startswith("speaker"):
-                        scores[pspk] = scores.get(pspk, 0) + 8
-
-    if scores:
-        sorted_scores = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        best_spk, best_score = sorted_scores[0]
-        runner_up = sorted_scores[1][1] if len(sorted_scores) > 1 else 0
-        if best_score >= 18 and (best_score - runner_up >= 8 or best_score >= 26):
-            return best_spk
-
+def scan_conversational_heuristics(segments, target_speaker):
+    """Dialogue cannot authorize automatic identity assignment."""
     return None
 
 
@@ -176,8 +138,16 @@ def update_episode_speaker(ep_file: Path, summary_map: Dict[str, Any], old_spk: 
         segs = data.get("segments", [])
         updated_turns = 0
         for s in segs:
+            if s.get("speaker_verified") or s.get("attribution", {}).get("method") == "human_verified":
+                continue
             if s.get("speaker") == old_spk or s.get("raw_speaker") == old_spk:
+                s.setdefault("raw_speaker", s.get("speaker"))
                 s["speaker"] = new_name
+                s["attribution"] = {"method": "acoustic", "model": "speechbrain/spkrec-ecapa-voxceleb"}
+                for word in s.get("words", []):
+                    if word.get("speaker") == old_spk:
+                        word.setdefault("raw_speaker", old_spk)
+                        word["speaker"] = new_name
                 updated_turns += 1
 
         if updated_turns > 0:
@@ -203,6 +173,12 @@ def main():
     parser.add_argument("--min-sim", type=float, default=0.54, help="Min cosine similarity for acoustic match (default: 0.54)")
     parser.add_argument("--heuristic-only", action="store_true", help="Run only dialogue heuristic scanner (no audio needed)")
     args = parser.parse_args()
+    if args.heuristic_only:
+        parser.error("Dialogue-only identity assignment is disabled; use human-reviewed candidates")
+    profiles = json.loads(PROFILES_PATH.read_text(encoding="utf-8")).get("profiles", {}) if PROFILES_PATH.exists() else {}
+    verified_profiles = {name: profile for name, profile in profiles.items() if load_profile_embedding(name) is not None}
+    if not verified_profiles:
+        parser.error("No identity-verified acoustic profiles available; no transcript changes made")
 
     if args.all_speakers:
         try:
@@ -237,8 +213,7 @@ def main():
             )
             print("[✓] SpeechBrain Neural Model initialized.")
         except Exception as e:
-            print(f"[!] SpeechBrain not available ({e}). Falling back to conversational heuristic scanner.")
-            classifier = None
+            raise RuntimeError("SpeechBrain is unavailable; no identity assignments performed") from e
 
     if not SUMMARY_PATH.exists():
         print(f"[!] Summary index not found: {SUMMARY_PATH}")
@@ -267,7 +242,8 @@ def main():
         if target_emb:
             print(f"[✓] Voiceprint loaded (192-dim vector).")
         else:
-            print(f"[*] No voiceprint vector found; heuristic matching only.")
+            print("[*] No verified voiceprint; skipping this identity.")
+            continue
 
         spk_matched = 0
         spk_turns = 0
@@ -299,6 +275,10 @@ def main():
             generic_speakers = sorted(list({s.get("speaker", "") for s in segs if s.get("speaker", "").lower().startswith("speaker")}))
             if not generic_speakers:
                 continue
+            if any(s.get("diarization_status") == "not_performed" for s in segs):
+                continue
+            if len(segs) > 15 and len({s.get("speaker") for s in segs}) == 1:
+                continue
 
             matched_spk = None
             match_reason = ""
@@ -327,8 +307,10 @@ def main():
                     if len(clip_files) >= 2:
                         computed_emb = compute_audio_embedding(clip_files, classifier)
                         if computed_emb:
+                            matches = match_biometrics_1to1({g_spk: computed_emb}, verified_profiles,
+                                                             min_similarity=max(0.54, args.min_sim), min_margin=0.06)
                             sim = cosine_similarity(computed_emb, target_emb)
-                            if sim >= args.min_sim:
+                            if matches.get(g_spk) == speaker:
                                 matched_spk = g_spk
                                 match_reason = f"Acoustic ECAPA Match (Cosine Sim: {sim:.3f})"
                                 break
@@ -338,13 +320,6 @@ def main():
                             os.remove(cf)
                         except Exception:
                             pass
-
-            # Tier 1: Conversational Heuristic Fallback
-            if not matched_spk:
-                heuristic_winner = scan_conversational_heuristics(segs, speaker)
-                if heuristic_winner and heuristic_winner in generic_speakers:
-                    matched_spk = heuristic_winner
-                    match_reason = "Conversational Hand-off & Dialogue Direct Address"
 
             if matched_spk:
                 turns = update_episode_speaker(ep_file, summary_map, matched_spk, speaker)

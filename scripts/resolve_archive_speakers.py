@@ -145,18 +145,15 @@ class CandidateOverlay:
                     self.cluster_map[(ep_id, raw_spk)] = cand
 
     def get_effective_speaker(self, episode_id: str, raw_speaker: str, segment_idx: Optional[int] = None) -> str:
-        # 1. Segment-level check
-        if segment_idx is not None:
-            seg_cand = self.segment_map.get((episode_id, segment_idx))
-            if seg_cand and self._is_active(seg_cand):
-                return seg_cand["resolved_name"]
-
-        # 2. Cluster-level check
-        cluster_cand = self.cluster_map.get((episode_id, raw_speaker))
-        if cluster_cand and self._is_active(cluster_cand):
-            return cluster_cand["resolved_name"]
-
-        # 3. Fallback
+        segment = self.segment_map.get((episode_id, segment_idx)) if segment_idx is not None else None
+        cluster = self.cluster_map.get((episode_id, raw_speaker))
+        # Human attribution outranks any automatic prediction, regardless of scope.
+        for candidate in (segment, cluster):
+            if candidate and candidate.get("status") == "human_verified":
+                return candidate["resolved_name"]
+        for candidate in (segment, cluster):
+            if candidate and self._is_active(candidate):
+                return candidate["resolved_name"]
         return raw_speaker
 
     def _is_active(self, cand: Dict[str, Any]) -> bool:
@@ -166,7 +163,9 @@ class CandidateOverlay:
         if status == "auto_approved":
             conf = float(cand.get("confidence", 0.0))
             conflict = bool(cand.get("acoustic_conflict", False))
-            return conf >= 0.85 and not conflict
+            return (conf >= 0.85 and not conflict
+                    and cand.get("attribution_method") == "acoustic"
+                    and cand.get("acoustic_verified") is True)
         return False
 
     def add_or_update(self, cand: Dict[str, Any]) -> None:
@@ -180,6 +179,12 @@ class CandidateOverlay:
 
         replaced = False
         for i, existing in enumerate(cands):
+            same_target = ((cid and existing.get("id") == cid) or
+                           (existing.get("episode_id") == ep_id and existing.get("raw_speaker") == raw_spk
+                            and existing.get("scope", "cluster") == scope
+                            and (scope != "segment" or existing.get("segment_idx") == seg_idx)))
+            if same_target and existing.get("status") == "human_verified" and cand.get("status") != "human_verified":
+                return
             if cid and existing.get("id") == cid:
                 cands[i] = cand
                 replaced = True
@@ -383,7 +388,7 @@ def resolve_cluster_with_context(
     elif potential_split:
         status = "pending"
     elif confidence >= 0.85 and handoff_type != "title_inference_only":
-        status = "auto_approved"
+        status = "pending"  # Conversational evidence requires human review.
     else:
         status = "pending"
 

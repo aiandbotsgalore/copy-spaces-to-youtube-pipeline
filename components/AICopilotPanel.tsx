@@ -112,6 +112,7 @@ export const AICopilotPanel: React.FC = () => {
     clearMessages,
     contextPayload,
     widgetSessionId,
+    status,
   } = useCopilot();
 
   const montage = useMontage();
@@ -244,7 +245,11 @@ export const AICopilotPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-950 text-slate-200">
+    <div
+      data-component="copilot-panel"
+      data-state={status}
+      className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-950 text-slate-200"
+    >
       {/* ── Left Pane: Dialogue & Action Console ── */}
       <div className="flex-1 flex flex-col h-full border-r border-slate-800/80 overflow-hidden">
         {/* Header */}

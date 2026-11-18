@@ -28,8 +28,11 @@ import { triggerBlobDownload } from '../utils/zipUtils';
 import { useConfig } from './ConfigContext';
 import { useMontage } from './MontageContext';
 import { usePlayer } from './PlayerContext';
+import { createMachine } from '../utils/stateMachine';
 
 const COPILOT_MODEL_KEY = 'spacepipe_copilot_model_v1';
+
+export type CopilotMachineStatus = 'idle' | 'thinking' | 'executing_action' | 'error';
 
 export interface CopilotContextType {
   sessions: CopilotSession[];
@@ -43,6 +46,7 @@ export interface CopilotContextType {
   addPinnedContext: (item: PinnedContextItem) => void;
   removePinnedContext: (id: string) => void;
   messages: CopilotMessage[];
+  status: CopilotMachineStatus;
   loading: boolean;
   error: string | null;
   model: string;
@@ -97,11 +101,38 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [autoApply, setAutoApply] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<CopilotMachineStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [contextPayload, setContextPayload] = useState<CopilotContextPayload>({});
   const navHandlerRef = useRef<((panel: string) => void) | undefined>(undefined);
   const loadEpisodeHandlerRef = useRef<((tag: string) => void) | undefined>(undefined);
+
+  const copilotMachineRef = useRef(
+    createMachine<CopilotMachineStatus, 'SEND' | 'RECEIVE' | 'EXECUTE_ACTIONS' | 'FINISH' | 'ERROR'>(
+      {
+        id: 'copilot',
+        initial: 'idle',
+        states: {
+          idle: { SEND: 'thinking' },
+          thinking: {
+            EXECUTE_ACTIONS: 'executing_action',
+            FINISH: 'idle',
+            ERROR: 'error',
+          },
+          executing_action: {
+            FINISH: 'idle',
+            ERROR: 'error',
+          },
+          error: {
+            SEND: 'thinking',
+            FINISH: 'idle',
+          },
+        },
+        onTransition: (_from, to) => setStatus(to),
+      },
+      {}
+    )
+  );
 
   // Initialize sessions from IndexedDB on startup
   useEffect(() => {
@@ -374,13 +405,15 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     [activeSessionId, config, updateConfig, montage, player, contextPayload, updateSessionData]
   );
 
+  const isBusy = status === 'thinking' || status === 'executing_action';
+
   const sendMessage = useCallback(
     async (
       content: string,
       override?: Partial<CopilotContextPayload>,
       options?: { targetSessionId?: string; liveContext?: string }
     ) => {
-      if (!content.trim() || loading) return;
+      if (!content.trim() || isBusy) return;
 
       const targetId = options?.targetSessionId || activeSessionId;
       const targetSession = sessions.find((s) => s.id === targetId) || currentSession;
@@ -402,7 +435,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updatedAt: Date.now(),
       }));
 
-      setLoading(true);
+      copilotMachineRef.current.send('SEND');
       setError(null);
 
       // Build live grounding including pinned items & liveContext
@@ -523,6 +556,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }));
 
         if (autoApply && enrichedActions.length > 0) {
+          copilotMachineRef.current.send('EXECUTE_ACTIONS');
           for (const action of enrichedActions) {
             const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_');
             if (!isReadOnly && action.status !== 'completed' && action.tier !== undefined && action.tier < 2) {
@@ -530,15 +564,15 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
           }
         }
+        copilotMachineRef.current.send('FINISH');
       } catch (err: any) {
         const msg = err?.message || 'Error communicating with AI service';
         setError(msg);
-      } finally {
-        setLoading(false);
+        copilotMachineRef.current.send('ERROR');
       }
     },
     [
-      loading,
+      isBusy,
       activeSessionId,
       sessions,
       currentSession,
@@ -555,6 +589,8 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     ]
   );
 
+  const loading = isBusy;
+
   return (
     <CopilotContext.Provider
       value={{
@@ -569,6 +605,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addPinnedContext,
         removePinnedContext,
         messages,
+        status,
         loading,
         error,
         model,

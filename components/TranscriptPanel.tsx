@@ -58,6 +58,8 @@ export interface ParsedUtterance {
   endLabel: string;
   speaker: string;
   rawSpeaker: string;
+  attribution?: Record<string, unknown>;
+  speakerVerified?: boolean;
   text: string;
   raw: string;
   confidence?: number | null;
@@ -712,6 +714,8 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
             startLabel: formatSeconds(startSec),
             endLabel: endSec !== null ? formatSeconds(endSec) : '',
             speaker: formattedSpeaker, rawSpeaker, text,
+            attribution: seg?.attribution && typeof seg.attribution === 'object' ? seg.attribution : undefined,
+            speakerVerified: seg?.speaker_verified === true,
             raw: `[${formatSeconds(startSec)}${endSec !== null ? ` - ${formatSeconds(endSec)}` : ''}] ${formattedSpeaker}: ${text}`,
             confidence, wordCount,
             words: parsedWords,
@@ -1648,145 +1652,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
-  // Dynamically resolve generic speaker labels ("Speaker 1", "Speaker 2", etc.) to canonical profiles
-  // using host metadata, summary index records, dialogue cues, and user manual overrides.
-  const effectiveSpeakerMap = useMemo(() => {
-    const map: Record<string, string> = { ...speakerMap };
-    if (!parsedUtterances || parsedUtterances.length === 0) return map;
-
-    // Identify which raw speakers are generic (e.g. "Speaker 1", "speaker_0", "SPEAKER_00", "Speaker")
-    const rawSpeakers = Array.from(new Set(parsedUtterances.map(u => u.rawSpeaker)));
-    const genericSpeakers = rawSpeakers.filter(spk => {
-      if (map[spk]) return false; // user manual rename takes precedence
-      const lower = spk.toLowerCase().trim();
-      return lower.startsWith('speaker') || lower === 'speaker' || lower.startsWith('spk_') || /^spk\d+$/i.test(lower);
-    });
-
-    if (genericSpeakers.length === 0) return map;
-
-    // Calculate total duration / turn counts for generic speakers
-    const spkDurations = new Map<string, number>();
-    for (const u of parsedUtterances) {
-      const dur = Math.max(0.5, (u.rawEndSec ?? (u.rawStartSec + 3)) - u.rawStartSec);
-      spkDurations.set(u.rawSpeaker, (spkDurations.get(u.rawSpeaker) || 0) + dur);
-    }
-    const sortedGeneric = [...genericSpeakers].sort((a, b) => (spkDurations.get(b) || 0) - (spkDurations.get(a) || 0));
-
-    // Find host handle from selectedRelease or summaryIndex
-    const currentTag = selectedRelease?.tag_name || '';
-    const currentId = selectedRelease?.id;
-    const epSum = summaryIndex?.find(s => s.release_tag === currentTag || s.release_id === currentId);
-
-    let hostHandle = (epSum?.host_handle || '').toLowerCase();
-    if (!hostHandle && selectedRelease?.body) {
-      const mHost = selectedRelease.body.match(/METADATA::HOST::([^\r\n]+)/i) || selectedRelease.body.match(/\*\*Host:\*\*\s*([^\r\n]+)/i);
-      if (mHost) hostHandle = mHost[1].toLowerCase().trim();
-    }
-    const title = ((selectedRelease?.name || epSum?.title || '') + ' ' + (selectedRelease?.body || '')).toLowerCase();
-
-    // Set of already resolved names (lowercase)
-    const assignedNames = new Set<string>();
-    Object.values(map).forEach(v => assignedNames.add(v.toLowerCase()));
-    parsedUtterances.forEach(u => {
-      const l = u.speaker.toLowerCase().trim();
-      if (!l.startsWith('speaker')) assignedNames.add(l);
-    });
-
-    // 1. Host Resolution
-    const isLoganHost = !assignedNames.has('logan') && (
-      hostHandle.includes('logan') ||
-      hostHandle.includes('loganblack') ||
-      title.includes('logan black')
-    );
-    if (isLoganHost && sortedGeneric.length > 0) {
-      const primarySpk = sortedGeneric.shift()!;
-      map[primarySpk] = 'Logan';
-      assignedNames.add('logan');
-    }
-
-    const isAngelaHost = !assignedNames.has('angela') && (
-      hostHandle.includes('angelamaggard3') ||
-      (hostHandle.includes('txrrxstrxxl') && !hostHandle.includes('king oor')) ||
-      hostHandle.includes('angela')
-    );
-    if (isAngelaHost && sortedGeneric.length > 0) {
-      const primarySpk = sortedGeneric.shift()!;
-      map[primarySpk] = 'Angela';
-      assignedNames.add('angela');
-    }
-
-    const isOorHost = !assignedNames.has('oor') && (
-      hostHandle.includes('king oor') ||
-      (hostHandle.includes('txrrxstrxxl') && assignedNames.has('angela'))
-    );
-    if (isOorHost && sortedGeneric.length > 0) {
-      const primarySpk = sortedGeneric.shift()!;
-      map[primarySpk] = 'Oor';
-      assignedNames.add('oor');
-    }
-
-    const isEricHost = !assignedNames.has('eric hecker') && !assignedNames.has('eric') && (
-      hostHandle.includes('eric') ||
-      hostHandle.includes('hecker') ||
-      hostHandle.includes('decipheringtv') ||
-      hostHandle.includes('deciphering.tv')
-    );
-    if (isEricHost && sortedGeneric.length > 0) {
-      const primarySpk = sortedGeneric.shift()!;
-      map[primarySpk] = 'Eric Hecker';
-      assignedNames.add('eric hecker');
-    }
-
-    // 2. Summary Index Alignment: if summary index already has known speaker names that aren't mapped yet, assign them!
-    if (epSum?.speakers && epSum.speakers.length > 0 && sortedGeneric.length > 0) {
-      const knownUnassigned = epSum.speakers.filter(s => {
-        const sl = s.toLowerCase().trim();
-        return !sl.startsWith('speaker') && !assignedNames.has(sl);
-      });
-      for (const knownName of knownUnassigned) {
-        if (sortedGeneric.length === 0) break;
-        const targetSpk = sortedGeneric.shift()!;
-        map[targetSpk] = knownName;
-        assignedNames.add(knownName.toLowerCase());
-      }
-    }
-
-    // 3. Fast Dialogue Cues for remaining generic speakers
-    if (sortedGeneric.length > 0) {
-      const knownProfiles = [
-        { name: 'Logan', regexIntro: /\b(?:this is|i'm|it's)\s+logan\b/i },
-        { name: 'Angela', regexIntro: /\b(?:this is|i'm|it's)\s+angela\b/i },
-        { name: 'Eric Hecker', regexIntro: /\b(?:this is|i'm|it's)\s+eric\b/i },
-        { name: 'Oor', regexIntro: /\b(?:this is|i'm|it's)\s+oor\b/i },
-        { name: 'God Sauce', regexIntro: /\b(?:this is|i'm|it's)\s+god\s*sauce\b/i },
-        { name: 'Rose', regexIntro: /\b(?:this is|i'm|it's)\s+rose\b/i },
-        { name: 'Brian', regexIntro: /\b(?:this is|i'm|it's)\s+brian\b/i },
-        { name: 'Shane', regexIntro: /\b(?:this is|i'm|it's)\s+shane\b/i },
-        { name: 'Tom', regexIntro: /\b(?:this is|i'm|it's)\s+tom\b/i },
-        { name: 'Mary', regexIntro: /\b(?:this is|i'm|it's)\s+mary\b/i },
-        { name: 'teejay', regexIntro: /\b(?:this is|i'm|it's)\s+(?:teejay|tj)\b/i },
-        { name: 'ConsciousCulprit', regexIntro: /\b(?:this is|i'm|it's)\s+(?:conscious\s+culprit|culprit)\b/i },
-        { name: 'Linn', regexIntro: /\b(?:this is|i'm|it's)\s+linn\b/i },
-        { name: 'Daz', regexIntro: /\b(?:this is|i'm|it's)\s+daz\b/i },
-        { name: 'Grider', regexIntro: /\b(?:this is|i'm|it's)\s+grider\b/i },
-      ];
-
-      for (const prof of knownProfiles) {
-        if (assignedNames.has(prof.name.toLowerCase()) || sortedGeneric.length === 0) continue;
-        for (const u of parsedUtterances) {
-          if (sortedGeneric.includes(u.rawSpeaker) && prof.regexIntro.test(u.text)) {
-            map[u.rawSpeaker] = prof.name;
-            assignedNames.add(prof.name.toLowerCase());
-            const idx = sortedGeneric.indexOf(u.rawSpeaker);
-            if (idx > -1) sortedGeneric.splice(idx, 1);
-            break;
-          }
-        }
-      }
-    }
-
-    return map;
-  }, [parsedUtterances, speakerMap, selectedRelease, summaryIndex]);
+  // Only explicit manual overrides may rename speakers in the presentation layer.
+  // Host, dialogue and roster ordering are not identity evidence.
+  const effectiveSpeakerMap = useMemo(() => ({ ...speakerMap }), [speakerMap]);
 
   const utterances = useMemo(() => parsedUtterances.map(u => {
     const adjustedStart = Math.max(0, u.rawStartSec + timeOffsetSec);
@@ -2530,7 +2398,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         episode: selectedRelease.name || selectedRelease.tag_name,
         tag: selectedRelease.tag_name,
         published_at: selectedRelease.published_at,
-        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
+        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? { attribution: { method: 'human_verified' }, speaker_verified: true } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
       };
       blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       filename = `${baseName}_transcript.json`;
@@ -2866,7 +2734,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         episode: selectedRelease.name || selectedRelease.tag_name,
         tag: selectedRelease.tag_name,
         published_at: selectedRelease.published_at,
-        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
+        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? { attribution: { method: 'human_verified' }, speaker_verified: true } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
       }, null, 2);
       await updateReleaseTranscriptAssets(config.githubToken, owner, repo, selectedRelease, text, jsonData);
       // Offset is now baked into saved timestamps — clear it to prevent double-apply on reload

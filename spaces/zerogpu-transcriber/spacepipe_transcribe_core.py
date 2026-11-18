@@ -18,6 +18,7 @@ import copy
 import math
 import shutil
 import hashlib
+import json
 import logging
 import subprocess
 from typing import List, Dict, Any, Optional, Tuple
@@ -206,7 +207,8 @@ def match_biometrics_1to1(
     enrolled_profiles: Dict[str, Any],
     talk_times: Optional[Dict[str, float]] = None,
     min_similarity: float = 0.54,
-    min_margin: float = 0.06
+    min_margin: float = 0.06,
+    require_verified: bool = True
 ) -> Dict[str, str]:
     """
     Assigns enrolled profiles to cluster centroids using 1-to-1 bipartite matching.
@@ -225,14 +227,22 @@ def match_biometrics_1to1(
     candidate_pairs: List[Dict[str, Any]] = []
 
     for cid, centroid in cluster_centroids.items():
-        c_vec = np.array(centroid, dtype=np.float32)
+        c_vec = valid_embedding(centroid)
+        if c_vec is None:
+            continue
         sims: List[Tuple[str, float]] = []
 
         for name, p_data in enrolled_profiles.items():
+            if require_verified and (not isinstance(p_data, dict)
+                    or p_data.get("identity_verified") is not True
+                    or p_data.get("embedding_model") != "speechbrain/spkrec-ecapa-voxceleb"):
+                continue
             emb = p_data.get("embedding") if isinstance(p_data, dict) else p_data
             if emb is None:
                 continue
-            p_vec = np.array(emb, dtype=np.float32)
+            p_vec = valid_embedding(emb)
+            if p_vec is None or p_vec.shape != c_vec.shape:
+                continue
             sim = compute_cosine_similarity(c_vec, p_vec)
             sims.append((name, sim))
 
@@ -275,22 +285,13 @@ def compute_transcript_text_hash(segments: List[Dict[str, Any]]) -> str:
     Generates a deterministic SHA-256 hash across all words and timings in the transcript.
     Used to guarantee 100% byte-level text/timing immutability during re-diarization.
     """
-    h = hashlib.sha256()
-    for seg in segments:
-        words = seg.get("words")
-        if words and isinstance(words, list):
-            for w in words:
-                word_txt = str(w.get("word", "")).strip()
-                # Safe .get("start") / .get("end") with fallback to segment timing
-                w_start = round(float(w.get("start", seg.get("start", 0.0))), 3)
-                w_end = round(float(w.get("end", seg.get("end", w_start))), 3)
-                h.update(f"{word_txt}|{w_start}|{w_end}\n".encode("utf-8"))
-        else:
-            seg_txt = str(seg.get("text", "")).strip()
-            s_start = round(float(seg.get("start", 0.0)), 3)
-            s_end = round(float(seg.get("end", 0.0)), 3)
-            h.update(f"{seg_txt}|{s_start}|{s_end}\n".encode("utf-8"))
-    return h.hexdigest()
+    # Preserve exact segment and word fields, including whitespace and sub-ms timing.
+    fields = [{k: seg[k] for k in ("text", "start", "end") if k in seg} |
+              ({"words": [{k: w[k] for k in ("word", "text", "start", "end") if k in w}
+                          for w in seg["words"]]} if isinstance(seg.get("words"), list) else {})
+              for seg in segments]
+    return hashlib.sha256(json.dumps(fields, sort_keys=True, ensure_ascii=False,
+                                    allow_nan=False).encode("utf-8")).hexdigest()
 
 
 def project_diarization_onto_segments(
@@ -310,6 +311,12 @@ def project_diarization_onto_segments(
     sorted_turns = sorted(turns, key=lambda x: (x.get("start", 0.0), x.get("end", 0.0)))
 
     for seg in updated_segments:
+        if seg.get("speaker_verified") is True or seg.get("attribution", {}).get("method") == "human_verified":
+            continue
+        seg.setdefault("previous_speaker", seg.get("speaker"))
+        seg["speaker"] = "Unknown"
+        seg["raw_speaker"] = "Unknown"
+        seg["attribution"] = {"method": "diarization", "identity_verified": False}
         s_start = float(seg.get("start", 0.0))
         s_end = float(seg.get("end", s_start))
 
@@ -319,6 +326,7 @@ def project_diarization_onto_segments(
 
         if words and isinstance(words, list):
             for w in words:
+                w["speaker"] = "Unknown"
                 # Safe lookup for unaligned words
                 w_start = float(w.get("start", s_start))
                 w_end = float(w.get("end", s_end))
@@ -349,10 +357,11 @@ def project_diarization_onto_segments(
         # Assign dominant speaker to segment
         if word_speakers:
             dominant_speaker = max(word_speakers.items(), key=lambda x: x[1])[0]
-            seg["speaker"] = dominant_speaker
+            seg["speaker"] = dominant_speaker if len(word_speakers) == 1 else "Multiple speakers"
         else:
             # Fall back to turn overlap with entire segment
             best_speaker = None
+            overlapping_speakers = set()
             max_overlap = -1.0
             for t in sorted_turns:
                 t_start = float(t.get("start", 0.0))
@@ -360,12 +369,15 @@ def project_diarization_onto_segments(
                 ov_s = max(s_start, t_start)
                 ov_e = min(s_end, t_end)
                 if ov_e > ov_s:
+                    overlapping_speakers.add(t.get("speaker"))
                     overlap = ov_e - ov_s
                     if overlap > max_overlap:
                         max_overlap = overlap
                         best_speaker = t.get("speaker")
             if best_speaker:
-                seg["speaker"] = best_speaker
+                seg["speaker"] = best_speaker if len(overlapping_speakers) == 1 else "Multiple speakers"
+
+        seg["raw_speaker"] = seg["speaker"]
 
     # Verify text immutability
     updated_hash = compute_transcript_text_hash(updated_segments)
@@ -448,3 +460,55 @@ def detect_silence_cut_points(
 
     cut_points.append(total_duration)
     return cut_points
+
+
+def valid_embedding(value):
+    try:
+        vec = np.asarray(value, dtype=np.float32)
+    except (TypeError, ValueError):
+        return None
+    if vec.ndim != 1 or vec.size == 0 or not np.isfinite(vec).all() or np.linalg.norm(vec) <= 1e-8:
+        return None
+    return vec / np.linalg.norm(vec)
+
+
+def reconcile_chunk_speakers(turns, embeddings, min_similarity=0.75):
+    """Complete-link acoustic reconciliation with a same-chunk cannot-link constraint.
+
+    Missing/invalid embeddings keep their own stable generic cluster. IDs alone
+    never merge voices. Threshold is conservative and must be evaluated on audio.
+    """
+    ids = list(dict.fromkeys(t["speaker"] for t in turns))
+    vectors = {key: valid_embedding(embeddings.get(key)) for key in ids}
+    groups = [{key} for key in ids]
+    def similarity(a, b):
+        va, vb = vectors[a], vectors[b]
+        if va is None or vb is None or va.shape != vb.shape:
+            return -1.0
+        return float(np.dot(va, vb))
+    while True:
+        best = None
+        for i, left in enumerate(groups):
+            for j in range(i + 1, len(groups)):
+                right = groups[j]
+                if {x.split("_", 1)[0] for x in left} & {x.split("_", 1)[0] for x in right}:
+                    continue
+                score = min(similarity(a, b) for a in left for b in right)
+                if score >= min_similarity and (best is None or score > best[0]):
+                    best = (score, i, j)
+        if best is None:
+            break
+        _, i, j = best
+        groups[i] |= groups.pop(j)
+    mapping, centroids = {}, {}
+    for i, group in enumerate(groups, 1):
+        label = f"Speaker {i}"
+        for key in group:
+            mapping[key] = label
+        vecs = [vectors[key] for key in sorted(group) if vectors[key] is not None]
+        if vecs:
+            centroid = valid_embedding(np.mean(vecs, axis=0))
+            if centroid is not None:
+                centroids[label] = centroid.tolist()
+    reconciled = [dict(t, raw_speaker=t["speaker"], speaker=mapping[t["speaker"]]) for t in turns]
+    return reconciled, centroids

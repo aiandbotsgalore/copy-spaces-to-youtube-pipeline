@@ -415,7 +415,10 @@ def resolve_speakers_acoustically(
     enrolled_profiles = {}
     for name, p in prof_data.get("profiles", {}).items():
         emb = p.get("embedding")
-        if isinstance(emb, list) and len(emb) == 192:
+        if (p.get("identity_verified") is True and p.get("embedding_model") == "speechbrain/spkrec-ecapa-voxceleb"
+                and isinstance(emb, list) and len(emb) == 192
+                and all(isinstance(v, (int, float)) and __import__("math").isfinite(v) for v in emb)
+                and any(v != 0 for v in emb)):
             enrolled_profiles[name] = emb
 
     if not enrolled_profiles:
@@ -678,7 +681,8 @@ def resolve_speakers_intelligently(
               "speaker cluster. Whisper transcription is not diarization.")
         return segments, {}
 
-    known_speakers = load_known_speakers()
+    if any(s.get("diarization_status") == "not_performed" for s in segments):
+        return segments, {}
 
     # Tier 0: Neural Acoustic Voiceprint Matching (192-dim ECAPA-TDNN)
     acoustic_mappings = resolve_speakers_acoustically(
@@ -686,33 +690,19 @@ def resolve_speakers_intelligently(
         audio_path=audio_path
     )
 
-    # Pass confirmed acoustic matches into LLM prompt so it can deduce un-enrolled speakers
-    llm_mappings = resolve_speakers_llm(
-        segments=segments,
-        title=title,
-        known_speakers=known_speakers,
-        gemini_key=gemini_key,
-        cohere_key=cohere_key,
-        openrouter_key=openrouter_key,
-        acoustic_hints=acoustic_mappings
-    )
-
-    heuristic_mappings = analyze_conversational_heuristics(
-        segments=segments,
-        known_speakers=known_speakers
-    )
-
-    final_mappings = dict(heuristic_mappings)
-    final_mappings.update(llm_mappings)
-    final_mappings.update(acoustic_mappings)
+    final_mappings = dict(acoustic_mappings)
 
     if final_mappings:
         print(f"[*] AI Speaker Resolution Identified:")
         for spk_id, name in final_mappings.items():
             print(f"    • {spk_id} -> {name}")
         for s in segments:
+            if s.get("speaker_verified") or s.get("attribution", {}).get("method") == "human_verified":
+                continue
             if s["speaker"] in final_mappings:
+                s.setdefault("raw_speaker", s["speaker"])
                 s["speaker"] = final_mappings[s["speaker"]]
+                s["attribution"] = {"method": "acoustic", "model": "speechbrain/spkrec-ecapa-voxceleb"}
 
     return segments, final_mappings
 
@@ -1008,7 +998,8 @@ def transcribe_audio_chunk_whisper(
                 "start": round(time_offset + s.start, 2),
                 "end": round(time_offset + s.end, 2),
                 "speaker": spk_label,
-                "speaker_confidence": 0.90,
+                "diarization_status": "not_performed",
+                "raw_speaker": spk_label,
                 "text": s.text.strip(),
                 "words": words
             })

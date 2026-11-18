@@ -223,6 +223,11 @@ def enroll_clip_to_profiles(clip_path: str, speaker_name: str, profiles_file: st
     3. EBU R128 loudnorm (-16 LUFS) remediation if low SNR.
     4. Transient network exponential backoff (1s -> 2s -> 4s) with jitter.
     """
+    profile_path = Path(profiles_file)
+    if profile_path.exists():
+        existing = json.loads(profile_path.read_text(encoding="utf-8")).get("profiles", {}).get(speaker_name, {})
+        if existing.get("identity_verified") is True:
+            raise ValueError("Cannot merge unchecked samples into an identity-verified profile")
     raw_clip_paths = []
     if os.path.isdir(clip_path):
         raw_clip_paths = sorted([
@@ -383,6 +388,9 @@ profile_entry.update({{
     'name': speaker_name,
     'sample_count': sample_count,
     'embedding': final_emb,
+    'embedding_model': 'speechbrain/spkrec-ecapa-voxceleb',
+    'identity_verified': False,
+    'source_samples': clip_paths,
     'last_updated': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 }})
 data['profiles'][speaker_name] = profile_entry
@@ -405,7 +413,7 @@ print('__ENROLL_SUCCESS__')
         sys.exit(res.returncode if res.returncode != 0 else 1)
 
     print(f"[✓] Successfully enrolled '{speaker_name}' ({len(clip_paths)} clip(s)) into {profiles_file}!")
-    print(f"    Future Spaces transcribed with transcribe_and_diarize.py will automatically identify {speaker_name}.")
+    print("    Identity remains unverified. Review the source samples before enabling automatic naming.")
 
 
 def main():

@@ -103,7 +103,7 @@ function timeAgo(dateStr: string): string {
 const RunHistory: React.FC<Props> = ({ config }) => {
   const { sendMessage, activePanelNavHandler } = useCopilot();
   const [filter, setFilter] = useState<string>('all');
-  const { runs, loading, error, loaded, isLive, refresh: fetchRuns } = useWorkflowRuns(config, false);
+  const { runs, status, loading, error, loaded, isLive, refresh: fetchRuns } = useWorkflowRuns(config, false);
 
   const hasCredentials = config.githubToken && config.ownerName && config.repoName;
 
@@ -113,7 +113,11 @@ const RunHistory: React.FC<Props> = ({ config }) => {
   const activeCount = runs.filter(isActiveRun).length;
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
+    <div
+      data-component="run-history"
+      data-state={status}
+      className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full"
+    >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">

@@ -47,6 +47,8 @@ transcribe_image = (
         "pydantic>=2.0.0",
         "huggingface_hub>=0.23.0"
     )
+    .add_local_file(str(Path(__file__).resolve().parents[1] / "spaces/zerogpu-transcriber/spacepipe_transcribe_core.py"),
+                    "/root/spacepipe_transcribe_core.py")
 )
 
 CACHE_DIR = "/models/cache"
@@ -389,74 +391,13 @@ def _execute_transcription(
         # Global Cross-Chunk Speaker Clustering & Biometric Matching
         # ---------------------------------------------------------------------
         print("\n[*] Unifying speakers across chunks and matching biometric voiceprints...")
-        spk_keys = list(chunk_speaker_embeddings.keys())
+        from spacepipe_transcribe_core import reconcile_chunk_speakers, match_biometrics_1to1
         mean_embeddings = {k: np.mean(v, axis=0) for k, v in chunk_speaker_embeddings.items()}
-
-        cluster_map: Dict[str, str] = {}
-        for k in spk_keys:
-            cluster_map[k] = k
-
-        for i in range(len(spk_keys)):
-            k1 = spk_keys[i]
-            emb1 = mean_embeddings[k1]
-            for j in range(i + 1, len(spk_keys)):
-                k2 = spk_keys[j]
-                emb2 = mean_embeddings[k2]
-                sim = float(np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2) + 1e-8))
-                if sim > 0.68:
-                    target_root = cluster_map[k1]
-                    cluster_map[k2] = target_root
-
-        unique_roots = sorted(list(set(cluster_map.values())))
-        canonical_labels = {root: f"Speaker {idx}" for idx, root in enumerate(unique_roots, 1)}
-        speaker_mapping = {spk: canonical_labels[cluster_map[spk]] for spk in spk_keys}
-
-        enrolled_vectors = {}
-        if enrolled_profiles:
-            for name, p in enrolled_profiles.items():
-                emb = p.get("embedding")
-                if isinstance(emb, list) and len(emb) == 192:
-                    v = np.array(emb, dtype=np.float32)
-                    norm = np.linalg.norm(v)
-                    if norm > 1e-6:
-                        enrolled_vectors[name] = v / norm
-
-        biometric_matches: Dict[str, str] = {}
-        if enrolled_vectors:
-            for root, canonical_name in canonical_labels.items():
-                cluster_spks = [s for s, r in cluster_map.items() if r == root]
-                cluster_embs = [mean_embeddings[s] for s in cluster_spks if s in mean_embeddings]
-                if not cluster_embs:
-                    continue
-                root_emb = np.mean(cluster_embs, axis=0)
-                root_emb = root_emb / (np.linalg.norm(root_emb) + 1e-8)
-
-                best_match = None
-                best_sim = -1.0
-                for enrolled_name, enr_vec in enrolled_vectors.items():
-                    sim = float(np.dot(root_emb, enr_vec))
-                    if sim > best_sim:
-                        best_sim = sim
-                        best_match = enrolled_name
-
-                if best_match and best_sim >= 0.56:
-                    biometric_matches[canonical_name] = best_match
-                    print(f"[✓] Biometric Match: {canonical_name} -> {best_match} (Cosine Sim: {best_sim:.3f})")
-
-        host_handle_lower = host_handle.lower()
-        is_logan_host = "logan" in host_handle_lower or "loganblack" in host_handle_lower
-        if is_logan_host and "Logan" not in biometric_matches.values():
-            spk_durations: Dict[str, float] = {}
-            for s in all_segments:
-                cur_spk = speaker_mapping.get(s.get("chunk_speaker", ""), "Speaker 1")
-                spk_durations[cur_spk] = spk_durations.get(cur_spk, 0.0) + (s["end"] - s["start"])
-
-            sorted_by_duration = sorted(spk_durations.items(), key=lambda x: x[1], reverse=True)
-            if sorted_by_duration:
-                top_spk = sorted_by_duration[0][0]
-                if top_spk not in biometric_matches:
-                    biometric_matches[top_spk] = "Logan"
-                    print(f"[✓] Contextual Host Anchor: {top_spk} -> Logan (Host Talk-Time Dominance)")
+        turns = [{"speaker": s["chunk_speaker"], "start": s["start"], "end": s["end"]}
+                 for s in all_segments]
+        reconciled, centroids = reconcile_chunk_speakers(turns, mean_embeddings)
+        speaker_mapping = {t["raw_speaker"]: t["speaker"] for t in reconciled}
+        biometric_matches = match_biometrics_1to1(centroids, enrolled_profiles or {})
 
         # ---------------------------------------------------------------------
         # Final Output Formatting
@@ -490,6 +431,9 @@ def _execute_transcription(
                 "start": start,
                 "end": end,
                 "speaker": final_speaker_name,
+                "raw_speaker": assigned_canonical,
+                "chunk_speaker": raw_spk,
+                "attribution": {"method": "acoustic" if assigned_canonical in biometric_matches else "diarization"},
                 "text": text,
                 "words": words
             })

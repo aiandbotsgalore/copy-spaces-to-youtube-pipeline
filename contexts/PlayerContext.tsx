@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
 import { attachAudioSource } from '../utils/hlsPlayer';
 import { toFetchableUrl } from '../utils/audioUrl';
+import { createMachine } from '../utils/stateMachine';
 
 export interface NowPlayingEpisode {
   id: number | string;
@@ -9,9 +10,21 @@ export interface NowPlayingEpisode {
   durationLabel?: string;
 }
 
-interface PlayerContextValue {
+export type AudioPlaybackState =
+  | 'idle'
+  | 'loading'
+  | 'ready'
+  | 'playing'
+  | 'buffering'
+  | 'paused'
+  | 'ended'
+  | 'error';
+
+export interface PlayerContextValue {
   current: NowPlayingEpisode | null;
   isPlaying: boolean;
+  playbackState: AudioPlaybackState;
+  playerError: string | null;
   currentTime: number;
   duration: number;
   playbackRate: number;
@@ -29,9 +42,21 @@ interface PlayerContextValue {
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
 
+type AudioPlayerEvent =
+  | 'ATTACH_SOURCE'
+  | 'METADATA_LOADED'
+  | 'CAN_PLAY'
+  | 'PLAYING'
+  | 'WAITING'
+  | 'PAUSE'
+  | 'ENDED'
+  | 'ERROR'
+  | 'CLOSE';
+
 export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [current, setCurrent] = useState<NowPlayingEpisode | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackState, setPlaybackState] = useState<AudioPlaybackState>('idle');
+  const [playerError, setPlayerError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRateState] = useState(1);
@@ -42,6 +67,72 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pendingSeekRef = useRef<number | null>(null);
   const hlsCleanupRef = useRef<(() => void) | null>(null);
+
+  // Initialize Audio Player State Machine for Agent Introspection (AX)
+  const playerMachineRef = useRef(
+    createMachine<AudioPlaybackState, AudioPlayerEvent>(
+      {
+        id: 'audio-player',
+        initial: 'idle',
+        states: {
+          idle: { ATTACH_SOURCE: 'loading' },
+          loading: {
+            METADATA_LOADED: 'ready',
+            CAN_PLAY: 'ready',
+            PLAYING: 'playing',
+            ERROR: 'error',
+            CLOSE: 'idle',
+          },
+          ready: {
+            PLAYING: 'playing',
+            ATTACH_SOURCE: 'loading',
+            CLOSE: 'idle',
+          },
+          playing: {
+            PAUSE: 'paused',
+            WAITING: 'buffering',
+            ENDED: 'ended',
+            ERROR: 'error',
+            ATTACH_SOURCE: 'loading',
+            CLOSE: 'idle',
+          },
+          buffering: {
+            PLAYING: 'playing',
+            PAUSE: 'paused',
+            ERROR: 'error',
+            CLOSE: 'idle',
+          },
+          paused: {
+            PLAYING: 'playing',
+            ATTACH_SOURCE: 'loading',
+            CLOSE: 'idle',
+          },
+          ended: {
+            PLAYING: 'playing',
+            ATTACH_SOURCE: 'loading',
+            CLOSE: 'idle',
+          },
+          error: {
+            ATTACH_SOURCE: 'loading',
+            CLOSE: 'idle',
+          },
+        },
+        onTransition: (_from, to) => {
+          setPlaybackState(to);
+        },
+      },
+      { current: null }
+    )
+  );
+
+  const dispatchEvent = useCallback((event: AudioPlayerEvent, errorMsg?: string) => {
+    if (errorMsg !== undefined) {
+      setPlayerError(errorMsg);
+    } else if (event !== 'ERROR') {
+      setPlayerError(null);
+    }
+    playerMachineRef.current.send(event);
+  }, []);
 
   useEffect(() => {
     const audio = new Audio();
@@ -63,27 +154,48 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const onLoaded = () => {
       setDuration(audio.duration || 0);
       applyPendingSeek();
+      dispatchEvent('METADATA_LOADED');
     };
     const onCanPlay = () => {
       applyPendingSeek();
+      dispatchEvent('CAN_PLAY');
     };
-    const onEnded = () => setIsPlaying(false);
+    const onPlaying = () => dispatchEvent('PLAYING');
+    const onWaiting = () => dispatchEvent('WAITING');
+    const onPause = () => {
+      if (audio.currentTime < audio.duration) {
+        dispatchEvent('PAUSE');
+      }
+    };
+    const onEnded = () => dispatchEvent('ENDED');
+    const onError = () => {
+      const msg = audio.error?.message || 'Error occurred during audio playback';
+      dispatchEvent('ERROR', msg);
+    };
 
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('loadedmetadata', onLoaded);
     audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('playing', onPlaying);
+    audio.addEventListener('waiting', onWaiting);
+    audio.addEventListener('pause', onPause);
     audio.addEventListener('ended', onEnded);
+    audio.addEventListener('error', onError);
 
     return () => {
       audio.removeEventListener('timeupdate', onTime);
       audio.removeEventListener('loadedmetadata', onLoaded);
       audio.removeEventListener('canplay', onCanPlay);
+      audio.removeEventListener('playing', onPlaying);
+      audio.removeEventListener('waiting', onWaiting);
+      audio.removeEventListener('pause', onPause);
       audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('error', onError);
       audio.pause();
       hlsCleanupRef.current?.();
       hlsCleanupRef.current = null;
     };
-  }, []);
+  }, [dispatchEvent]);
 
   const setPlaybackRate = useCallback((rate: number) => {
     setPlaybackRateState(rate);
@@ -139,6 +251,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (current?.id !== episode.id || current?.audioUrl !== episode.audioUrl) {
       hlsCleanupRef.current?.();
       const streamUrl = toFetchableUrl(episode.audioUrl);
+      dispatchEvent('ATTACH_SOURCE');
       const { destroy } = attachAudioSource(audio, streamUrl);
       hlsCleanupRef.current = destroy;
       audio.playbackRate = playbackRate;
@@ -159,21 +272,22 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     }
 
-    audio.play().catch(() => setIsPlaying(false));
-    setIsPlaying(true);
-  }, [current, playbackRate, volume, isMuted]);
+    audio.play().catch((err: Error) => {
+      dispatchEvent('ERROR', err.message || 'Playback failed');
+    });
+  }, [current, playbackRate, volume, isMuted, dispatchEvent]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !current) return;
-    if (isPlaying) {
+    if (playbackState === 'playing' || playbackState === 'buffering') {
       audio.pause();
-      setIsPlaying(false);
     } else {
-      audio.play().catch(() => setIsPlaying(false));
-      setIsPlaying(true);
+      audio.play().catch((err: Error) => {
+        dispatchEvent('ERROR', err.message || 'Playback failed');
+      });
     }
-  }, [current, isPlaying]);
+  }, [current, playbackState, dispatchEvent]);
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
@@ -191,12 +305,15 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const close = useCallback(() => {
     const audio = audioRef.current;
     if (audio) audio.pause();
-    setIsPlaying(false);
+    dispatchEvent('CLOSE');
     setCurrent(null);
     setCurrentTime(0);
     setDuration(0);
     pendingSeekRef.current = null;
-  }, []);
+  }, [dispatchEvent]);
+
+  // Backward compatible isPlaying boolean
+  const isPlaying = playbackState === 'playing' || playbackState === 'buffering';
 
   // Global Keyboard Shortcuts for audio controls (Space, ←/→ = 1s, Shift+←/→ = 15s, M)
   useEffect(() => {
@@ -231,6 +348,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         current,
         isPlaying,
+        playbackState,
+        playerError,
         currentTime,
         duration,
         playbackRate,

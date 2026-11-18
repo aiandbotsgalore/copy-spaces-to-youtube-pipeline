@@ -175,6 +175,7 @@ def main():
                 name.endswith(".json")
                 and not name.endswith("_clips.json")
                 and not name.endswith(".embeddings.json")
+                and not name.endswith("_voiceprints.json")
                 and name != "clips_catalog.json"
                 and not ("m" in name[:7] and "s" in name[:7])
             ):
@@ -263,7 +264,7 @@ def main():
                     )
 
                 for s in candidates:
-                    text = (s.get("text") or s.get("transcript") or "").strip()
+                    text = s.get("text", s.get("transcript", ""))
                     if not text:
                         continue
                     start = s.get("start") or s.get("start_time") or s.get("start_sec") or 0.0
@@ -271,8 +272,9 @@ def main():
                     speaker = s.get("speaker") or s.get("speaker_label") or s.get("speaker_id") or "Speaker"
                     segments.append(
                         {
-                            "start": round(float(start), 2),
-                            "end": round(float(end), 2),
+                            **s,
+                            "start": start,
+                            "end": end,
                             "speaker": str(speaker),
                             "text": text,
                         }
@@ -327,18 +329,7 @@ def main():
             )
             print(f"  [✓] {rel_name[:36]:36} : {len(cleaned_segments)} turns", flush=True)
 
-    # Apply voice profile matching and dialogue heuristics across index
-    try:
-        from scripts.apply_voice_profiles_to_transcripts import analyze_episode_speakers, build_dialogue_patterns
-        patterns = build_dialogue_patterns()
-        for ep in index:
-            mappings = analyze_episode_speakers(ep, ep, patterns)
-            if mappings:
-                for s in ep.get("segments", []):
-                    if s.get("speaker") in mappings:
-                        s["speaker"] = mappings[s["speaker"]]
-    except Exception as e:
-        print(f"  [!] Post-index voice profile mapping skipped: {e}")
+    # Indexing preserves identities; naming is performed upstream with provenance.
 
     INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(INDEX_PATH, "w", encoding="utf-8") as f:

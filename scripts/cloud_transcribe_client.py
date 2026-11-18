@@ -20,6 +20,7 @@ import shutil
 import tempfile
 import datetime
 import subprocess
+import urllib.request
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -162,7 +163,7 @@ def atomic_update_summary_index(index_path: str, new_entry: Dict[str, Any]):
                 if content:
                     existing_entries = json.loads(content)
         except Exception as e:
-            print(f"[Warning] Could not read existing index, creating new list: {e}")
+            raise ValueError(f"Cannot safely update unreadable summary index: {e}") from e
 
     # Upsert new_entry by release_tag
     updated = False
@@ -216,35 +217,99 @@ def sync_to_local_transcripts(
     txt_path = ep_dir / f"{tag}.txt"
 
     # Save full transcript JSON
-    full_data = {
+    full_data = json.loads(json_path.read_text(encoding="utf-8")) if json_path.exists() else {}
+    if not isinstance(full_data, dict):
+        full_data = {}
+    full_data.update({
         "release_tag": tag,
         "title": title,
         "audio_url": audio_url,
         "segments": segments,
         "turns": turns or []
+    })
+    contents = {
+        json_path: json.dumps(full_data, indent=2, ensure_ascii=False, allow_nan=False),
+        srt_path: generate_srt_content(segments),
+        txt_path: generate_txt_content(segments),
     }
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(full_data, f, indent=2, ensure_ascii=False)
-
-    # Generate and save SRT and TXT
-    srt_content = generate_srt_content(segments)
-    with open(srt_path, "w", encoding="utf-8") as f:
-        f.write(srt_content)
-
-    txt_content = generate_txt_content(segments)
-    with open(txt_path, "w", encoding="utf-8") as f:
-        f.write(txt_content)
+    staged = []
+    try:
+        # Stage every artifact before replacing any source file.
+        for path, content in contents.items():
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=ep_dir,
+                                             suffix=".tmp", delete=False) as handle:
+                staged.append((Path(handle.name), path))
+                handle.write(content)
+                handle.flush()
+                os.fsync(handle.fileno())
+        for temporary, destination in staged:
+            os.replace(temporary, destination)
+    finally:
+        for temporary, _ in staged:
+            temporary.unlink(missing_ok=True)
 
     # Update index
     summary_path = Path(base_dir) / "transcripts_summary_index.json"
-    entry = build_summary_entry(tag, title, audio_url, segments)
+    existing_summary = {}
+    if summary_path.exists():
+        entries = json.loads(summary_path.read_text(encoding="utf-8"))
+        existing_summary = next((item for item in entries if item.get("release_tag") == tag), {})
+    entry = build_summary_entry(tag, title, audio_url, segments,
+                                **{key: existing_summary.get(key) for key in
+                                   ("release_id", "published_at", "episode_date", "host_handle", "body")})
     atomic_update_summary_index(str(summary_path), entry)
+
+    # Keep existing search-index rows consistent with the repaired canonical episode.
+    search_path = Path(base_dir) / "transcripts_search_index.json"
+    if search_path.exists():
+        search_entries = json.loads(search_path.read_text(encoding="utf-8"))
+        for episode in search_entries:
+            if episode.get("release_tag") == tag:
+                episode.update({"segments": segments, "segment_count": len(segments),
+                                "speakers": entry["speakers"]})
+        temporary = search_path.with_suffix(".tmp")
+        temporary.write_text(json.dumps(search_entries, ensure_ascii=False), encoding="utf-8")
+        os.replace(temporary, search_path)
+    if Path(base_dir).resolve() == Path("public/transcripts").resolve():
+        dist = Path("dist/transcripts")
+        if dist.exists():
+            (dist / "episodes").mkdir(exist_ok=True)
+            for source in (json_path, srt_path, txt_path):
+                shutil.copy2(source, dist / "episodes" / source.name)
+            shutil.copy2(summary_path, dist / summary_path.name)
+            if search_path.exists():
+                shutil.copy2(search_path, dist / search_path.name)
 
     return {
         "json": str(json_path),
         "srt": str(srt_path),
         "txt": str(txt_path)
     }
+
+
+def create_gradio_client(endpoint, token=None):
+    import inspect
+    from gradio_client import Client
+    params = inspect.signature(Client).parameters
+    kwargs = {}
+    if "httpx_kwargs" in params:
+        kwargs["httpx_kwargs"] = {"timeout": 180.0}
+    if token:
+        if "token" in params:
+            kwargs["token"] = token
+        elif "hf_token" in params:
+            kwargs["hf_token"] = token
+        else:
+            raise RuntimeError("Installed gradio_client has no supported token authentication parameter")
+    return Client(endpoint, **kwargs)
+
+
+def clobber_upload_to_github_release(repo, tag, file_paths, token=None):
+    env = os.environ.copy()
+    if token:
+        env["GH_TOKEN"] = token
+    subprocess.run(["gh", "release", "upload", tag, *file_paths, "--repo", repo, "--clobber"],
+                   env=env, check=True, capture_output=True)
 
 
 def call_zerogpu_space(
@@ -271,7 +336,7 @@ def call_zerogpu_space(
         raise RuntimeError("gradio_client is required to connect to SpacePipe ZeroGPU Space.")
 
     # HF_TOKEN is passed to gradio_client.Client to route through HF proxy with ZeroGPU quota
-    client = Client(target_endpoint, hf_token=token)
+    client = create_gradio_client(target_endpoint, token)
 
     if action == "transcribe":
         result = client.predict(

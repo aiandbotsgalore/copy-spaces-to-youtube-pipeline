@@ -10,7 +10,9 @@ import {
   Volume1,
   VolumeX,
   Download,
-  Gauge
+  Gauge,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { usePlayer } from '../contexts/PlayerContext';
 
@@ -31,6 +33,8 @@ const PlayerBar: React.FC = () => {
   const {
     current,
     isPlaying,
+    playbackState,
+    playerError,
     currentTime,
     duration,
     playbackRate,
@@ -51,7 +55,11 @@ const PlayerBar: React.FC = () => {
   if (!current) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 md:left-64 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-4 py-2.5 shadow-2xl transition-all">
+    <div
+      data-component="player-bar"
+      data-state={playbackState}
+      className="fixed bottom-0 left-0 right-0 md:left-64 z-40 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 px-4 py-2.5 shadow-2xl transition-all"
+    >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         
         {/* Left: Track Info */}
@@ -63,17 +71,30 @@ const PlayerBar: React.FC = () => {
             <p className="text-xs font-semibold text-white truncate" title={current.title}>
               {current.title}
             </p>
-            <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-              <span>{formatTime(currentTime)}</span>
-              <span className="text-slate-500">/</span>
-              <span>{formatTime(duration)}</span>
-              {current.durationLabel && (
-                <>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-indigo-300/80">{current.durationLabel}</span>
-                </>
-              )}
-            </p>
+            {playbackState === 'error' ? (
+              <p className="text-[11px] text-rose-400 truncate flex items-center gap-1 mt-0.5" title={playerError || undefined}>
+                <AlertCircle size={11} className="shrink-0" />
+                <span>{playerError || 'Playback error. Click play to retry.'}</span>
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                <span>{formatTime(currentTime)}</span>
+                <span className="text-slate-500">/</span>
+                <span>{formatTime(duration)}</span>
+                {current.durationLabel && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-indigo-300/80">{current.durationLabel}</span>
+                  </>
+                )}
+                {playbackState === 'buffering' && (
+                  <>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-amber-400 animate-pulse font-medium">Buffering...</span>
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -97,11 +118,37 @@ const PlayerBar: React.FC = () => {
             {/* Play / Pause */}
             <button
               onClick={togglePlay}
-              className="w-10 h-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 rounded-full text-white shadow-lg transition-all hover:scale-105 cursor-pointer"
-              aria-label={isPlaying ? 'Pause' : 'Play (Space)'}
-              title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+              data-state={playbackState}
+              data-agent-action="toggle-play"
+              className={`w-10 h-10 flex items-center justify-center rounded-full text-white shadow-lg transition-all hover:scale-105 cursor-pointer ${
+                playbackState === 'error' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'
+              }`}
+              aria-label={
+                playbackState === 'loading' || playbackState === 'buffering'
+                  ? 'Buffering audio'
+                  : isPlaying
+                  ? 'Pause'
+                  : 'Play (Space)'
+              }
+              title={
+                playbackState === 'error'
+                  ? (playerError || 'Playback failed. Click to retry.')
+                  : playbackState === 'loading' || playbackState === 'buffering'
+                  ? 'Buffering audio stream...'
+                  : isPlaying
+                  ? 'Pause (Space)'
+                  : 'Play (Space)'
+              }
             >
-              {isPlaying ? <Pause size={18} /> : <Play size={18} className="translate-x-0.5" />}
+              {playbackState === 'loading' || playbackState === 'buffering' ? (
+                <Loader2 size={18} className="animate-spin text-white" />
+              ) : playbackState === 'error' ? (
+                <AlertCircle size={18} className="text-white" />
+              ) : isPlaying ? (
+                <Pause size={18} />
+              ) : (
+                <Play size={18} className="translate-x-0.5" />
+              )}
             </button>
 
             {/* Skip Ahead 15s */}

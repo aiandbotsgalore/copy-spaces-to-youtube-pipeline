@@ -18,7 +18,7 @@ def test_long_single_whisper_cluster_remains_unidentified():
     assert {s["speaker"] for s in actual} == {"Speaker 1"}
 
 
-def test_real_multispeaker_clusters_can_still_be_resolved():
+def test_text_model_cannot_name_real_multispeaker_clusters():
     segments = [
         {"speaker": "Speaker A", "start": 0.0, "end": 2.0, "text": "Hello"},
         {"speaker": "Speaker B", "start": 2.0, "end": 4.0, "text": "Hi"},
@@ -30,5 +30,5 @@ def test_real_multispeaker_clusters_can_still_be_resolved():
                "scripts.transcribe_and_diarize.analyze_conversational_heuristics",
                return_value={}):
         actual, mappings = resolve_speakers_intelligently(segments)
-    assert mappings == {"Speaker B": "Lana"}
-    assert [s["speaker"] for s in actual] == ["Speaker A", "Lana"]
+    assert mappings == {}
+    assert [s["speaker"] for s in actual] == ["Speaker A", "Speaker B"]
