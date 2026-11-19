@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-18T15:28:23.895205+00:00",
+  "timestamp": "2026-11-19T00:09:14.475531+00:00",
   "overall_status": "CRITICAL",
   "voice_profiles": {
     "total": 15,
@@ -12,54 +12,63 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 5,
+  "recent_failures_count": 11,
   "triaged_failures": [
     {
-      "run_id": 44303113415,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44303113415",
-      "root_cause": "Execution Error: Run 44303113415 failed in Update RSS Feed & Deploy Web App",
+      "run_id": 44396583735,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44396583735",
+      "root_cause": "Execution Error: Run 44396583735 failed in Approved transcript UI checks",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     },
     {
-      "run_id": 44258242754,
+      "run_id": 44396583061,
+      "name": "Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44396583061",
+      "root_cause": "Execution Error: Run 44396583061 failed in Transcript Workbench Validation",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 44396583051,
+      "name": "Update RSS Feed & Deploy Web App",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44396583051",
+      "root_cause": "Execution Error: Run 44396583051 failed in Update RSS Feed & Deploy Web App",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 44396354717,
+      "name": "Update RSS Feed & Deploy Web App",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44396354717",
+      "root_cause": "Execution Error: Run 44396354717 failed in Update RSS Feed & Deploy Web App",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 44391178026,
       "name": "Sync SpacesDashboard Speaker Queue",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44258242754",
-      "root_cause": "Execution Error: Run 44258242754 failed in Sync SpacesDashboard Speaker Queue",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44391178026",
+      "root_cause": "Execution Error: Run 44391178026 failed in Sync SpacesDashboard Speaker Queue",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     },
     {
-      "run_id": 44257548452,
+      "run_id": 44355963888,
       "name": "Auto-Detect & Ingest Spaces",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44257548452",
-      "root_cause": "Execution Error: Run 44257548452 failed in Auto-Detect & Ingest Spaces",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 44215400160,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44215400160",
-      "root_cause": "Execution Error: Run 44215400160 failed in Update RSS Feed & Deploy Web App",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 44199672414,
-      "name": "Auto-Detect & Ingest Spaces",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44199672414",
-      "root_cause": "Execution Error: Run 44199672414 failed in Auto-Detect & Ingest Spaces",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44355963888",
+      "root_cause": "Execution Error: Run 44355963888 failed in Auto-Detect & Ingest Spaces",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 5
+  "quarantined_count": 6
 }
