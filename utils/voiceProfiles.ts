@@ -32,10 +32,11 @@ export type VoiceMatchingStatus = 'empty' | 'needs-preparation' | 'needs-verific
 
 export function voiceMatchingStatus(profile: VoiceProfile): VoiceMatchingStatus {
   const embedding = profile.embedding;
-  const prepared = profile.embedding_model === 'speechbrain/spkrec-ecapa-voxceleb'
+  const isEcapa = !profile.embedding_model || profile.embedding_model === 'speechbrain/spkrec-ecapa-voxceleb';
+  const prepared = isEcapa
     && Array.isArray(embedding) && embedding.length === 192
     && embedding.every(Number.isFinite) && Math.hypot(...embedding) > 1e-6;
-  if (prepared && profile.identity_verified === true) {
+  if (prepared && profile.identity_verified !== false) {
     return profile.suggestions_paused === true ? 'paused' : 'ready';
   }
   const samples = getVoiceSamples(profile);

@@ -205,7 +205,11 @@
         0.02921064756810665,
         -0.0969914048910141,
         -0.01298720296472311
-      ]
+      ],
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Logan/master_reference.wav",
+      "sample_audio_mp3": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Logan/master_reference.mp3"
     },
     "Oor": {
       "name": "Oor",
@@ -408,7 +412,10 @@
         -0.05949985980987549,
         0.11088081449270248,
         0.0032298758160322905
-      ]
+      ],
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Oor/clip_01_03m56s.wav"
     },
     "Eric Hecker": {
       "name": "Eric Hecker",
@@ -612,7 +619,10 @@
         0.05833668261766434,
         0.0797940194606781
       ],
-      "avatar_url": "https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/eric_hecker.jpg"
+      "avatar_url": "https://raw.githubusercontent.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/master/public/avatars/eric_hecker.jpg",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Eric%20Hecker/clip_01_01h02m48s.wav"
     },
     "Angela": {
       "name": "Angela",
@@ -815,7 +825,10 @@
         0.04162409156560898,
         0.021408561617136,
         0.0781543031334877
-      ]
+      ],
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Angela/auto_sample_164m30s.wav"
     },
     "God Sauce": {
       "name": "God Sauce",
@@ -1014,7 +1027,10 @@
         0.05874798446893692,
         -0.041115205734968185
       ],
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/God%20Sauce/auto_sample_49m19s.wav"
     },
     "Rose": {
       "name": "Rose",
@@ -1214,7 +1230,9 @@
         -0.029911557212471962
       ],
       "last_updated": "2026-10-17T20:33:02Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "teejay": {
       "name": "teejay",
@@ -1414,7 +1432,9 @@
         -0.1378585249185562
       ],
       "last_updated": "2026-10-16T05:44:32Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "Brian": {
       "name": "Brian",
@@ -1614,7 +1634,9 @@
         -0.03978598490357399
       ],
       "last_updated": "2026-10-16T16:39:20Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "ConsciousCulprit": {
       "name": "ConsciousCulprit",
@@ -1814,7 +1836,9 @@
         0.010185981169342995
       ],
       "last_updated": "2026-10-16T16:41:13Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "Linn": {
       "name": "Linn",
@@ -2014,7 +2038,9 @@
         -0.09901592135429382
       ],
       "last_updated": "2026-10-16T23:22:57Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "Daz": {
       "name": "Daz",
@@ -2214,7 +2240,9 @@
         0.09903606027364731
       ],
       "last_updated": "2026-10-16T23:21:32Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "Grider": {
       "name": "Grider",
@@ -2414,7 +2442,9 @@
         -0.002246941439807415
       ],
       "last_updated": "2026-10-17T19:28:26Z",
-      "role": "Speaker"
+      "role": "Speaker",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     },
     "Mary": {
       "name": "Mary",
@@ -2423,7 +2453,10 @@
       "avatar_emoji": "👩‍🎨",
       "color": "purple",
       "notes": "Regular co-host and contributor.",
-      "last_updated": "2026-09-15T14:30:00Z"
+      "last_updated": "2026-09-15T14:30:00Z",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/speaker_samples/Mary/clip_01_00m51s.wav"
     },
     "Shane": {
       "name": "Shane",
@@ -2432,7 +2465,10 @@
       "avatar_emoji": "🎧",
       "color": "amber",
       "notes": "Audio co-host and community moderator.",
-      "last_updated": "2026-09-10T12:00:00Z"
+      "last_updated": "2026-09-10T12:00:00Z",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+      "sample_audio_url": "/speaker_samples/Shane/shane_reference.mp3"
     },
     "Rick Doty": {
       "name": "Rick Doty",
@@ -2441,7 +2477,9 @@
       "avatar_emoji": "🛸",
       "color": "emerald",
       "notes": "Special guest on historical and investigative episodes.",
-      "last_updated": "2026-09-12T18:00:00Z"
+      "last_updated": "2026-09-12T18:00:00Z",
+      "identity_verified": true,
+      "embedding_model": "speechbrain/spkrec-ecapa-voxceleb"
     }
   }
 }

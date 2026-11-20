@@ -32,6 +32,7 @@ task_prompt.md
 # Environment files
 .env
 .env.*
+!.env.example
 *.env
 __pycache__/
 scripts/__pycache__/
