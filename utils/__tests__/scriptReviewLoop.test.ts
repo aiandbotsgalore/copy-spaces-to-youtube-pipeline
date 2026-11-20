@@ -6,7 +6,7 @@ import {
   applyBodyEdits, boundaryCandidates, createReviewLoop, DEFAULT_CONFIG, extractQuotes, factSheet, FACT_SHEET_MAX, focusedView, makeIntroLock, parseReview, passageExcerpts, passProblems, quoteInText, repairPassage,
   reassemble, sha256, splitScript, TACTICS, type ReviewRun, type SourceHit,
 } from '../../server/scriptReviewLoop';
-import { agyArgs, AGY_DIRECT_NOTE, codexArgs, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
+import { agyArgs, AGY_DIRECT_NOTE, codexArgs, DIRECT_NOTE, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Fixture                                                                                          */
@@ -402,6 +402,45 @@ describe('spending limit', () => {
     expect(resumed.threshold).toBe(90);
     expect(() => loop.resume(PID, run.id)).toThrow(/Only an unfinished run/);
   });
+
+  it('stops before a full rewrite when the limit leaves no room for its blind comparison', async () => {
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return review(70);
+      if (req.schemaName === 'body_revision') return { edits: [edit('points back to the opening question.', 'points back to the opening question. REV1')], resolutions: [], summary: '' };
+      return {};
+    });
+    const run = startRun(loop, { maxCalls: 4 });
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('unfinished');
+    expect(done.stopReason).toBe('spending_limit');
+    expect(done.calls).toBe(2);
+    expect(done.message).toMatch(/Stopped before a full rewrite/);
+    expect(seen.some(x => x.schemaName === 'body_revision')).toBe(false);
+  });
+
+  it('keeps a major rewrite on disk, unjudged, when the limit runs out before its comparison', async () => {
+    const big = 'A completely rewritten opening. '.repeat(30);
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return review(80);
+      if (req.schemaName === 'body_revision') return { edits: [edit('sets things up for the listener today.', big)], resolutions: [], summary: '' };
+      return {};
+    });
+    loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
+    const run = loop.createRun(PID, SCRIPT, { file: 'master.md', maxCalls: 3, maxUsd: 1, maxRounds: 12 });
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('unfinished');
+    expect(done.message).toMatch(/saved unjudged/);
+    const hash = done.rounds[0].revision!.unjudgedHash!;
+    expect(done.drafts.find(d => d.hash === hash)!.origin).toBe('unjudged');
+    const kept = loop.draftText(done, hash);
+    expect(kept.startsWith(INTRO)).toBe(true);
+    expect(kept).toContain('A completely rewritten opening.');
+    // The delivered draft is still one both reviewers saw.
+    expect(done.currentHash).not.toBe(hash);
+    expect(loop.draftText(done, done.result!.hash)).not.toContain('A completely rewritten opening.');
+  });
 });
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -620,6 +659,35 @@ describe('Gemini (agy) long prompts', () => {
     expect(ev.message.content).toBe(`${AGY_DIRECT_NOTE}\n\nSYS\n\n${user}`);
     expect(captured!.cwd).toBe(sandbox);
     expect(agyArgs('s.json')).not.toContain('--dangerously-skip-permissions');
+    fs.rmSync(io, { recursive: true, force: true });
+    fs.rmSync(sandbox, { recursive: true, force: true });
+  });
+
+  it('tells Codex not to use tools, and counts any tool commands it runs anyway', async () => {
+    const io = fs.mkdtempSync(path.join(os.tmpdir(), 'cx-io-'));
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'cx-sb-'));
+    let stdin = '';
+    const registry = createProviderRegistry({
+      env: () => ({}),
+      dirs: { io, sandbox },
+      resolveOverride: async () => ({ ok: true, file: 'codex', prefixArgs: [], via: 'path', found: 'codex' }),
+      runner: async (_file: string, args: string[], opts: { stdin?: Buffer }) => {
+        stdin = opts.stdin ? opts.stdin.toString('utf8') : '';
+        fs.writeFileSync(args[args.indexOf('-o') + 1], JSON.stringify({ ok: true }));
+        const out = [
+          { type: 'item.completed', item: { type: 'reasoning' } },
+          { type: 'item.completed', item: { type: 'command_execution', command: 'ls' } },
+          { type: 'item.completed', item: { type: 'agent_message' } },
+          { type: 'turn.completed', usage: { input_tokens: 150000, cached_input_tokens: 98000, output_tokens: 20000 } },
+        ].map(e => JSON.stringify(e)).join('\n');
+        return { code: 0, stdout: out, stderr: '', timedOut: false, aborted: false };
+      },
+    } as any);
+    const a = registry.adapterFor('codex_cli:gpt-6.2-sol:high', { maxUsd: 0, spentUsd: 0 })!;
+    const r = await a.complete({ role: 'reviser', system: 'SYS', user: 'USER', schema: {}, schemaName: 's', maxTokens: 10, timeoutMs: 1000, signal: new AbortController().signal });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.usage).toMatchObject({ inTok: 150000, outTok: 20000, cachedTok: 98000, toolCalls: 1 });
+    expect(stdin).toBe(`${DIRECT_NOTE}\n\nSYS\n\nUSER`);
     fs.rmSync(io, { recursive: true, force: true });
     fs.rmSync(sandbox, { recursive: true, force: true });
   });
