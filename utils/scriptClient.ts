@@ -50,6 +50,7 @@ export interface StyleState {
   rules: StyleRule[]; lastDistill: DistillStatus | null; decisionsSinceDistill: number; distillEvery: number; distilling: boolean; removedRules: string[];
 }
 export interface LibrarySync { quotes: number; located: number; exact: number; differs: number; unlocated: number; updated: string[] }
+export interface ManuscriptDesignation { versionId: string; designatedAt: number; source?: string; label: string | null; missing: boolean; blocks: number; lockedBlocks: number }
 export interface RelatedHit { releaseTag: string; title: string; date: string | null; score: number; terms: Record<string, number>; samples: { start: number; speaker: string; text: string }[] }
 export interface CuratedQuote { quoteId: string; speaker: string; releaseTag: string; date: string; text: string; category: string; why: string }
 export interface PaperTrailPair {
@@ -120,7 +121,7 @@ export const scriptApi = {
   cancel: (projectId: string, runId: string) => call<{ ok: boolean }>('POST', '/cancel', { projectId, runId }),
   resume: (projectId: string, runId: string, switchRole?: { role: string; spec: string }, maxUsd?: number) => call<{ runId: string }>('POST', '/resume', { projectId, runId, switchRole, maxUsd }),
   decide: (projectId: string, candidateId: string, decision: 'accept' | 'reject', reason = '', roles?: RoleChoice) => call<{ project: ScriptProject; distill: 'started' | 'running' | null }>('POST', '/decide', { projectId, candidateId, decision, reason, ...(roles || loadRoleChoice()) }),
-  related: (projectId: string, q: string) => call<{ query: string; terms: string[]; hits: RelatedHit[]; scanned: number }>('GET', `/related?projectId=${encodeURIComponent(projectId)}&q=${encodeURIComponent(q)}`),
+  related: (projectId: string, q: string) => call<{ query: string; terms: string[]; hits: RelatedHit[]; scanned: number; retrieval?: 'papertrail-hybrid' | 'keyword'; note?: string }>('GET', `/related?projectId=${encodeURIComponent(projectId)}&q=${encodeURIComponent(q)}`),
   paperTrail: (projectId: string) => call<{ quotes: CuratedQuote[]; pairs: PaperTrailPair[] }>('GET', `/paper-trail?projectId=${encodeURIComponent(projectId)}`),
   /** Builds pack.json for a Grok Bot deep pass and saves it as a download; the request is recorded in the project. */
   exportHandoff: async (projectId: string, kind: HandoffKind, note = '') => {
@@ -158,6 +159,10 @@ export const scriptApi = {
     }
   ) => call<{ ok: boolean; audio: AudioBoundary }>('POST', '/quote/review-audio', { ref, ...action }),
   boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
+  manuscript: (projectId: string) => call<{ working: ManuscriptDesignation | null; recording: ManuscriptDesignation | null; headVersionId: string | null; files: { working: string | null; recording: string | null } }>('GET', `/manuscript?projectId=${encodeURIComponent(projectId)}`),
+  importManuscript: (args: { projectId?: string; file: string; lockFile?: string }) => call<{ project: ScriptProject; version: { id: string }; lock: { paragraphs: number; matched: number; newlyLocked: number; missing: string[] } | null; manuscriptFile: string }>('POST', '/manuscript/import', args),
+  designateManuscript: (args: { projectId: string; role: 'working' | 'recording'; versionId?: string; confirm?: boolean; clear?: boolean }) => call<{ project: ScriptProject; manuscriptFile?: string }>('POST', '/manuscript/designate', args),
+  paperTrailStatus: () => call<{ bridge: { configured: boolean; running: boolean; script: string; lastError?: string; requests: number; failures: number }; manuscript: string | null }>('GET', '/papertrail/status'),
   board: (projectId: string) => call<{ board: EvidenceBoard | null }>('GET', `/board?projectId=${encodeURIComponent(projectId)}`),
   pinSource: (projectId: string, docId: string, excerpt: string, label?: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, docId, excerpt, label }),
   unpinSource: (projectId: string, sourceId: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, sourceId, remove: true }),
@@ -165,6 +170,8 @@ export const scriptApi = {
     query: string;
     terms: string[];
     scanned: number;
+    retrieval?: 'papertrail-hybrid' | 'keyword';
+    note?: string;
     hits: Array<{
       releaseTag: string;
       title: string;

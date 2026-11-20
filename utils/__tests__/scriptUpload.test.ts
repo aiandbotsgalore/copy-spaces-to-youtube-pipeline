@@ -477,7 +477,9 @@ And then the calls started coming in.`;
 
       const narr = b.find(x => x.kind === 'narration');
       expect(narr).toBeDefined();
-      expect((narr as any)?.text).toContain('LOGAN:** [close to mic, measured] We reviewed the transcripts & ledger.');
+      // The **LOGAN:** label marks who speaks; it is not spoken, so only the words stay in the narration
+      expect((narr as any)?.text).toContain('[close to mic, measured] We reviewed the transcripts & ledger.');
+      expect((narr as any)?.text).not.toContain('LOGAN:');
       expect((narr as any)?.text).not.toContain('\\');
     });
 
