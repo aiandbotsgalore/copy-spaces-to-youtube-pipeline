@@ -39,6 +39,10 @@ export const RERANK_COST_USD = 0.003;
 export const TARGETED_MAX_FINDINGS = 8;
 /** The excerpts sent for a targeted fix stay under this share of the body (or 4,000 characters for a short body). */
 export const TARGETED_MAX_SHARE = 0.3;
+/** A focused review is used only while the changed scenes stay under this share of the body; above it, a full review. */
+export const FOCUSED_MAX_SHARE = 0.5;
+/** Word-overlap needed to repair a reviewer's slightly misquoted passage to the exact script text. */
+export const QUOTE_REPAIR_MIN = 0.8;
 
 export type ReviewerId = 'gemini' | 'chatgpt';
 export const REVIEWERS: ReviewerId[] = ['gemini', 'chatgpt'];
@@ -91,6 +95,8 @@ export interface Finding {
   sceneKey: string;
   /** The passage is in the locked intro; the fix has to come from the body. */
   inIntro?: boolean;
+  /** The reviewer's quote was slightly off and was matched to the exact script text (no extra model call). */
+  quoteRepaired?: boolean;
 }
 
 export interface Review {
@@ -109,6 +115,8 @@ export interface RoundRecord {
   reviews: Partial<Record<ReviewerId, ReviewOutcome>>;
   passed: boolean;
   passBlockers: string[];
+  /** full = both reviewers read the whole script; focused = changed scenes in full, the rest as an outline. Only a full review can lead to delivery. */
+  scope?: 'full' | 'focused';
   revision?: {
     tactic: string; tacticName: string; recurring?: string;
     applied: number; rejected: { find: string; reason: string }[];
@@ -141,7 +149,7 @@ export interface ReviewRun {
   intro: { sha256: string; length: number; bodyStartLine: string };
   spentUsd: number; calls: number;
   /** Tokens each service reported, by provider (claude_cli, codex_cli, agy_cli, inception). A CLI that reports nothing adds calls only. */
-  usage?: Record<string, { calls: number; inTok: number; outTok: number }>;
+  usage?: Record<string, { calls: number; inTok: number; outTok: number; cachedTok?: number }>;
   round: number; consecutiveFails: number; reviewFailStreak: number; tacticIndex: number;
   drafts: DraftRecord[]; currentHash: string; bestHash: string;
   rounds: RoundRecord[];
@@ -282,6 +290,110 @@ export function sceneAt(text: string, index: number): string {
   return m.length ? m[m.length - 1][1].trim() : '(opening of the body)';
 }
 
+const wordKey = (w: string) => loose(w).replace(/[^a-z0-9']/g, '');
+
+/**
+ * Matches a slightly misquoted passage (a word added, dropped or changed) to the exact text in the script, so a
+ * reviewer's near-miss does not cost a whole new review. Returns the exact script text, or null if nothing is
+ * at least QUOTE_REPAIR_MIN similar.
+ */
+export function repairPassage(passage: string, text: string): string | null {
+  const pw = passage.split(/\s+/).map(wordKey).filter(Boolean);
+  if (pw.length < 4) return null;
+  const toks: { k: string; start: number; end: number }[] = [];
+  for (const m of text.matchAll(/\S+/g)) { const k = wordKey(m[0]); if (k) toks.push({ k, start: m.index!, end: m.index! + m[0].length }); }
+  const firsts = new Set(pw.slice(0, 3));
+  const lasts = new Set(pw.slice(-3));
+  let best: { score: number; a: number; b: number } | null = null;
+  for (let i = 0; i < toks.length; i++) {
+    if (!firsts.has(toks[i].k)) continue;
+    // Try window lengths around the passage length; score = longest common subsequence / passage length.
+    for (let len = Math.max(1, pw.length - 3); len <= pw.length + 3 && i + len <= toks.length; len++) {
+      if (!lasts.has(toks[i + len - 1].k)) continue;
+      const win = toks.slice(i, i + len).map(t => t.k);
+      const dp = new Array(win.length + 1).fill(0);
+      for (let x = 1; x <= pw.length; x++) {
+        let prev = 0;
+        for (let y = 1; y <= win.length; y++) {
+          const tmp = dp[y];
+          dp[y] = pw[x - 1] === win[y - 1] ? prev + 1 : Math.max(dp[y], dp[y - 1]);
+          prev = tmp;
+        }
+      }
+      const score = dp[win.length] / Math.max(pw.length, win.length);
+      if (!best || score > best.score) best = { score, a: i, b: i + len - 1 };
+    }
+  }
+  if (!best || best.score < QUOTE_REPAIR_MIN) return null;
+  return text.slice(toks[best.a].start, toks[best.b].end);
+}
+
+/** The body split at its headings (#, ##, ### or ####): one block per scene or act heading, in order. */
+export function sceneBlocks(body: string): { heading: string; text: string }[] {
+  const out: { heading: string; text: string }[] = [];
+  const re = /^#{1,4}\s+.+$/gm;
+  const marks = [...body.matchAll(re)].map(m => m.index!);
+  if (!marks.length || marks[0] > 0) marks.unshift(0);
+  marks.forEach((at, i) => {
+    const text = body.slice(at, marks[i + 1] ?? body.length);
+    const heading = /^#{1,4}\s+(.+)$/m.exec(text)?.[1]?.trim() ?? '(opening)';
+    out.push({ heading, text });
+  });
+  return out;
+}
+
+const sentences = (t: string) => t.replace(/^#{1,4}\s+.+$/gm, '').split(/(?<=[.!?]["”’)]?)\s+/).map(x => x.trim()).filter(x => x.split(/\s+/).length >= 4);
+
+/**
+ * The script for a focused review: the locked intro, then each body block either in full (changed since the last
+ * reviewed draft, or one of the last two blocks, which carry the ending) or as an outline. Returns null when the
+ * changed text is too large for a focused review to save anything.
+ */
+export function focusedView(intro: string, body: string, prevBody: string): { script: string; changedChars: number } | null {
+  const prev = new Set(sceneBlocks(prevBody).map(b => b.text.trim()));
+  const blocks = sceneBlocks(body);
+  let changedChars = 0;
+  let outlined = 0;
+  const parts = blocks.map((b, i) => {
+    const keep = !prev.has(b.text.trim());
+    if (keep) changedChars += b.text.length;
+    if (keep || i >= blocks.length - 2) return b.text;
+    outlined++;
+    const ss = sentences(b.text);
+    const words = b.text.split(/\s+/).length;
+    const headingLine = /^#{1,4}\s+.+$/m.exec(b.text)?.[0] ?? '';
+    return `${headingLine}\n[UNCHANGED since the last review, about ${words} words. Opens: "${ss[0] ?? ''}" ... Closes: "${ss[ss.length - 1] ?? ''}"]\n\n`;
+  });
+  if (!changedChars || !outlined || changedChars > body.length * FOCUSED_MAX_SHARE) return null;
+  return { script: intro + parts.join(''), changedChars };
+}
+
+/** Caps for the review loop's fact sheet (characters). The final source check pulls exact passages itself. */
+export const FACT_SHEET_MAX = { claims: 3000, sources: 2500, docs: 2500 };
+
+/**
+ * A compact fact sheet for reviews and rewrites, in place of raw claims JSON, full excerpts and long background
+ * documents: one line per claim with its status, one line per pinned source, and each document's name and opening.
+ */
+export function factSheet(x: {
+  claims?: { text: string; status: string; supportRefs?: string[] }[];
+  sources?: { id: string; label: string; excerpt: string }[];
+  docs?: { name: string; content: string }[];
+}): string {
+  const cap = (lines: string[], max: number) => {
+    const out: string[] = []; let n = 0;
+    for (const l of lines) { if (n + l.length > max) { out.push(`[... ${lines.length - out.length} more not shown]`); break; } out.push(l); n += l.length + 1; }
+    return out.join('\n');
+  };
+  const one = (t: string, n: number) => { const c = t.replace(/\s+/g, ' ').trim(); return c.length > n ? `${c.slice(0, n)}...` : c; };
+  const parts: string[] = [];
+  if (x.claims?.length) parts.push(`CLAIMS ON THE EVIDENCE BOARD (status in brackets)\n${cap(x.claims.map(c => `- [${c.status}] ${one(c.text, 220)}${c.supportRefs?.length ? ` (sources: ${c.supportRefs.slice(0, 3).join(', ')})` : ''}`), FACT_SHEET_MAX.claims)}`);
+  if (x.sources?.length) parts.push(`PINNED SOURCES\n${cap(x.sources.map(s => `- [${s.id}] ${one(s.label, 80)}: "${one(s.excerpt, 160)}"`), FACT_SHEET_MAX.sources)}`);
+  const docs = (x.docs || []).filter(d => d.content?.trim());
+  if (docs.length) parts.push(`BACKGROUND DOCUMENTS (openings only)\n${cap(docs.map(d => `- ${one(d.name, 80)}: ${one(d.content, 300)}`), FACT_SHEET_MAX.docs)}`);
+  return parts.join('\n\n');
+}
+
 export interface Excerpt { scene: string; text: string }
 
 /**
@@ -346,10 +458,15 @@ export function parseReview(json: any, reviewer: ReviewerId, meta: { provider: s
   if (!Number.isFinite(score) || score < 0 || score > 100) return { ok: false, reason: 'score missing or outside 0-100' };
   const findings: Finding[] = [];
   for (const f of Array.isArray(json?.findings) ? json.findings : []) {
-    const passage = String(f?.passage || '').trim();
+    let passage = String(f?.passage || '').trim();
     const missing = String(f?.missingConnection || '').trim();
     const effect = String(f?.effectOnListener || '').trim();
-    const loc = passage ? locatePassage(passage, intro, body) : { where: 'none' as const, sceneKey: '' };
+    let loc = passage ? locatePassage(passage, intro, body) : { where: 'none' as const, sceneKey: '' };
+    let quoteRepaired = false;
+    if (passage && loc.where === 'none') {
+      const fixed = repairPassage(passage, body) ?? repairPassage(passage, intro);
+      if (fixed) { passage = fixed; loc = locatePassage(fixed, intro, body); quoteRepaired = loc.where !== 'none'; }
+    }
     const blocker = f?.blocker === true;
     if (blocker || score < PASS_SCORE) {
       if (blocker && !effect) return { ok: false, reason: 'a blocker does not explain its effect on the listener' };
@@ -361,6 +478,7 @@ export function parseReview(json: any, reviewer: ReviewerId, meta: { provider: s
       structural: f?.structural === true, needsMaterial: String(f?.needsMaterial || '').trim(),
       sceneKey: loc.where === 'none' ? (missing ? 'missing connection' : 'unlocated') : loc.sceneKey,
       ...(loc.where === 'intro' ? { inIntro: true } : {}),
+      ...(quoteRepaired ? { quoteRepaired: true } : {}),
     });
   }
   if (score < PASS_SCORE && !findings.some(f => (f.passage && f.sceneKey !== 'unlocated') || f.missingConnection) ) {
@@ -598,10 +716,10 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     run.spentUsd = budget.spentUsd;
     const u = ((run.usage ??= {})[r.provider] ??= { calls: 0, inTok: 0, outTok: 0 });
     u.calls++;
-    if (r.ok && r.usage) { u.inTok += r.usage.inTok || 0; u.outTok += r.usage.outTok || 0; }
+    if (r.ok && r.usage) { u.inTok += r.usage.inTok || 0; u.outTok += r.usage.outTok || 0; u.cachedTok = (u.cachedTok || 0) + (r.usage.cachedTok || 0); }
     deps.appendLog?.(run.id, {
       at: now(), role, label, provider: r.provider, model: r.model, promptVersion: prompt.version, ok: r.ok, code: r.ok ? undefined : r.code,
-      durationMs: r.durationMs, inTok: r.ok ? r.usage?.inTok : undefined, outTok: r.ok ? r.usage?.outTok : undefined, costUsd: r.ok ? r.usage?.costUsd : undefined,
+      durationMs: r.durationMs, inTok: r.ok ? r.usage?.inTok : undefined, outTok: r.ok ? r.usage?.outTok : undefined, cachedTok: r.ok ? r.usage?.cachedTok : undefined, costUsd: r.ok ? r.usage?.costUsd : undefined,
       message: r.ok ? undefined : r.message,
     });
     if (!r.ok && r.code === 'ABORTED') throw new Stop('cancelled', 'cancelled', 'Cancelled.');
@@ -610,9 +728,9 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
   }
 
   /** Both reviewers, in parallel, on one prompt object built once. Each failed review is retried once. */
-  async function reviewBoth(run: ReviewRun, budget: Budget, full: string, intro: string, body: string, signal: AbortSignal): Promise<Partial<Record<ReviewerId, ReviewOutcome>>> {
+  async function reviewBoth(run: ReviewRun, budget: Budget, full: string, intro: string, body: string, signal: AbortSignal, view?: string): Promise<Partial<Record<ReviewerId, ReviewOutcome>>> {
     const ctx = deps.context(run.projectId);
-    const prompt = RP.reviewPrompt({ script: full, bodyStart: run.intro.bodyStartLine, brief: ctx.brief, supporting: ctx.supporting });
+    const prompt = RP.reviewPrompt({ script: view ?? full, bodyStart: run.intro.bodyStartLine, brief: ctx.brief, supporting: ctx.supporting, focused: !!view });
     const draftHash = sha256(full);
     if (run.calls + REVIEWERS.length > run.config.maxCalls) throw new Stop('unfinished', 'spending_limit', `Reached the limit of ${run.config.maxCalls} model calls before the next review.`);
     const one = async (id: ReviewerId): Promise<ReviewOutcome> => {
@@ -847,8 +965,20 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         const reuse = !!last && last.draftHash === run.currentHash && REVIEWERS.every(id => last.reviews[id]?.ok) && (!last.passed || !!pendingSourceIssues);
         const round: RoundRecord = reuse ? last : { n: run.rounds.length + 1, draftHash: run.currentHash, draftNumber: draft.n, startedAt: now(), reviews: {}, passed: false, passBlockers: [] };
         if (!reuse) {
+          // After a reviewed draft, review only what changed (changed scenes in full, the rest as an outline),
+          // unless a focused review just passed: delivery always needs a full review of the same draft by both.
+          const prevReviewed = [...run.rounds].reverse().find(r => r.draftHash !== run.currentHash && REVIEWERS.every(id => r.reviews[id]?.ok));
+          const lastRound = run.rounds[run.rounds.length - 1];
+          const confirmFull = !!lastRound && lastRound.draftHash === run.currentHash && lastRound.scope === 'focused' && lastRound.passed;
+          let view: string | undefined;
+          if (prevReviewed && !confirmFull) {
+            const prevSplit = splitScript(draftText(run, prevReviewed.draftHash), lock);
+            const fv = prevSplit.ok ? focusedView(split.intro, split.body, prevSplit.body) : null;
+            if (fv) view = fv.script;
+          }
+          round.scope = view ? 'focused' : 'full';
           run.rounds.push(round);
-          round.reviews = await reviewBoth(run, budget, full, split.intro, split.body, ctl.signal);
+          round.reviews = await reviewBoth(run, budget, full, split.intro, split.body, ctl.signal, view);
           const paused = Object.values(round.reviews).find(o => o && !o.ok && PAUSE_CODES.has(o.code)) as Extract<ReviewOutcome, { ok: false }> | undefined;
           round.passBlockers = passProblems(round.reviews, run.currentHash);
           round.passed = round.passBlockers.length === 0;
@@ -862,7 +992,10 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
           if (round.passed) run.consecutiveFails = 0;
           else if (draft.origin !== 'start') run.consecutiveFails++;
 
-          // FINISH LINE: both pass on a revised draft, then the final check.
+          // A focused pass is not enough to deliver: the same draft gets a full review by both next.
+          if (round.passed && round.scope === 'focused') { run.round++; save(run); continue; }
+
+          // FINISH LINE: both pass a full review of a revised draft, then the final check.
           if (round.passed && draft.origin !== 'start') {
             const fc = await finalCheck(run, budget, full, ctl.signal);
             round.finalCheck = fc;
