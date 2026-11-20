@@ -10,13 +10,43 @@ export interface RelatedHit { releaseTag: string; title: string; date: string | 
 
 const STOP = new Set('about above after again against also because been before being below between both could does doing down during each from further have having here into itself just more most other over same should some such than that their them then there these they this those through under until very what when where which while will with would your yours really think know like going want people thing things said says yeah okay right well'.split(' '));
 
+/** Short capitalised words that are ordinary English, not names, so a capital letter alone does not make them terms. */
+const SHORT_STOP = new Set('the and but was did why how who she her his him you our its not are has had can for all any one two yes now get got let may say see too way use new old off out own per via yet'.split(' '));
+
+/**
+ * Search terms from a question. Words of four or more letters are kept unless they are stop words.
+ * Shorter words are kept only when they look meaningful: written with a capital (a name such as "Sav"),
+ * in capitals (an acronym such as "DMs"), or containing a digit ("9pm").
+ */
 export function queryTerms(q: string): string[] {
-  return [...new Set(q.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').split(/[\s-]+/).map(w => w.replace(/^'+|'+$/g, '')).filter(w => w.length >= 4 && !STOP.has(w)))].slice(0, 12);
+  const words = q.replace(/[^A-Za-z0-9' -]+/g, ' ').split(/[\s-]+/)
+    .map(w => w.replace(/^'+|'+$/g, '').replace(/'s$/i, '')).filter(Boolean);
+  const keep = words.filter(w => {
+    const lower = w.toLowerCase();
+    if (w.length >= 4) return !STOP.has(lower);
+    if (w.length < 2 || SHORT_STOP.has(lower)) return false;
+    return /^[A-Z]/.test(w) || /\d/.test(w);
+  });
+  return [...new Set(keep.map(w => w.toLowerCase()))].slice(0, 12);
+}
+
+function termPattern(term: string, flags = 'g'): RegExp {
+  const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Long terms also match short word endings ("record" -> "recorded"). Short terms (names, acronyms) match
+  // only themselves, a plural or a possessive, so "sav" does not match "save" or "savvy".
+  return new RegExp(term.length >= 4 ? `\\b${esc}\\w{0,3}\\b` : `\\b${esc}(?:'s|s)?\\b`, flags);
+}
+
+/** Up to 240 characters of a segment, starting a little before the matched word so the sample shows it. */
+function excerptAround(text: string, re: RegExp, max = 240): string {
+  const at = text.toLowerCase().search(re);
+  if (at < 0 || text.length <= max || at < max - 60) return text.slice(0, max);
+  const from = Math.max(0, Math.min(at - 80, text.length - max));
+  return `…${text.slice(from, from + max)}`;
 }
 
 function count(hay: string, term: string): number {
-  const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w{0,3}\\b`, 'g');
-  return (hay.match(re) || []).length;
+  return (hay.match(termPattern(term)) || []).length;
 }
 
 export function searchRecordings(root: string, query: string, opts: { exclude?: string[]; limit?: number } = {}): { terms: string[]; hits: RelatedHit[]; scanned: number } {
@@ -60,8 +90,9 @@ export function searchRecordings(root: string, query: string, opts: { exclude?: 
       const segs: any[] = Array.isArray(j?.segments) ? j.segments : [];
       for (const t of rare) {
         if (samples.length >= 2) break;
-        const s = segs.find(x => String(x?.text || '').toLowerCase().includes(t) && !samples.some(y => y.start === Number(x.start)));
-        if (s) samples.push({ start: Number(s.start) || 0, speaker: String(s.speaker || ''), text: String(s.text || '').slice(0, 240) });
+        const re = termPattern(t, ''); // the same matching as the counts, so a sample never shows "savant" for "sav"
+        const s = segs.find(x => re.test(String(x?.text || '').toLowerCase()) && !samples.some(y => y.start === Number(x.start)));
+        if (s) samples.push({ start: Number(s.start) || 0, speaker: String(s.speaker || ''), text: excerptAround(String(s.text || ''), re) });
       }
     } catch { /* title stays the tag */ }
     return { releaseTag: d.tag, title, date: dateOfTag(d.tag), score: Math.round(score * 100) / 100, terms: d.tf, samples };

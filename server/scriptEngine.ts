@@ -5,7 +5,7 @@
  */
 import { EventEmitter } from 'node:events';
 import type {
-  Block, Critique, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
+  Block, Critique, EvidenceRef, EpisodeAnalysis, EpisodeFormat, MomentInsight, RefinementDecision, Role, RoleMap, RunEvent, RunOptions,
   ScriptProject, ScriptRun, ScriptVersion, Segment, StudioClip, NarrativeFunction,
 } from '../utils/scriptTypes';
 import { NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
@@ -31,11 +31,24 @@ import { Limiter } from './directorMiddleware';
 import { createQuoteLibrary } from './quoteLibrary';
 import { quoteToStudioClip } from './quoteAlign';
 import { pairEvidenceAndTape } from '../utils/evidencePairing';
+import { containsLoose } from './evidenceBoard';
 import { applyLinkedNarration, linkedRevisionView, linkedStoryContext, validateLinkedTargets, type LinkedNarrationEdit } from '../utils/scriptLinkedEdits';
 
 export const MAX_ROUNDS = 4;
 export const LEDGER_MAX_CHARS = 1500 * 4;
 const CALL_TIMEOUT_MS = 10 * 60_000;
+/** Character budget for uploaded background documents in one drafting or rewrite prompt (~6k tokens). */
+const BACKGROUND_DOC_CHARS = 24_000;
+
+/**
+ * The project's rule sheet (Logan's standing editorial rules for this one production) ahead of the
+ * rules shared across projects. The sheet wins where the two disagree.
+ */
+export function withCharter(project: Pick<ScriptProject, 'charter'> | null | undefined, rules: string): string {
+  const charter = project?.charter?.trim();
+  if (!charter) return rules;
+  return `Project rule sheet (Logan's standing rules for this production; they override any other rule below):\n${charter}${rules ? `\n\nRules shared across projects:\n${rules}` : ''}`;
+}
 // Provider problems Logan can fix (or switch away from) without losing the run: the run pauses.
 const PAUSE_CODES = new Set(['USAGE_LIMIT', 'RATE_LIMIT', 'NOT_SIGNED_IN', 'NOT_INSTALLED', 'NO_KEY', 'NOT_ALLOWED']);
 
@@ -109,22 +122,26 @@ export function createEngine(deps: EngineDeps) {
       }
 
       boardQuotesStr = JSON.stringify(quoteSummaries, null, 2);
-      if (board.claims && board.claims.length > 0) {
-        boardClaimsStr = JSON.stringify(board.claims, null, 2);
+    }
+
+    // Claims, pinned document sources and recording notes do not depend on starred quotes: send them
+    // whenever they exist (they used to be dropped while the board had no quote items).
+    if (board?.claims && board.claims.length > 0) {
+      boardClaimsStr = JSON.stringify(board.claims, null, 2);
+    }
+    if (board?.sources && board.sources.length > 0) {
+      const docName = new Map((project.evidenceDocs || []).map(d => [d.id, d.name]));
+      boardSourcesStr = JSON.stringify(board.sources.map(s => ({ sourceId: s.id, label: s.label, document: docName.get(s.docId) || s.docId, excerpt: s.excerpt })), null, 2);
+    }
+    const recNotes: Record<string, string> = {};
+    for (const tag of project.sourceTags) {
+      const lib = deps.store.getLibrary(tag);
+      if (lib?.notes && lib.notes.length > 0) {
+        recNotes[tag] = lib.notes.map(n => n.text).join('\n');
       }
-      if (board.sources && board.sources.length > 0) {
-        boardSourcesStr = JSON.stringify(board.sources, null, 2);
-      }
-      const recNotes: Record<string, string> = {};
-      for (const tag of project.sourceTags) {
-        const lib = deps.store.getLibrary(tag);
-        if (lib?.notes && lib.notes.length > 0) {
-          recNotes[tag] = lib.notes.map(n => n.text).join('\n');
-        }
-      }
-      if (Object.keys(recNotes).length > 0) {
-        contextNotesStr = JSON.stringify(recNotes, null, 2);
-      }
+    }
+    if (Object.keys(recNotes).length > 0) {
+      contextNotesStr = JSON.stringify(recNotes, null, 2);
     }
 
     const clipsById = Object.fromEntries(project.clips.map(c => [c.clipId, c]));
@@ -276,12 +293,12 @@ export function createEngine(deps: EngineDeps) {
   /* Outline and draft                                                                              */
   /* ---------------------------------------------------------------------------------------------- */
 
-  const memoryText = () => deps.store.getMemory().styleRules.slice(0, 30).map(r => `- ${r.rule}`).join('\n');
+  const memoryText = (project?: ScriptProject | null) => withCharter(project, deps.store.getMemory().styleRules.slice(0, 30).map(r => `- ${r.rule}`).join('\n'));
 
   async function outline(project: ScriptProject, analysis: EpisodeAnalysis, ctx: CallCtx): Promise<ScriptVersion> {
     const { boardQuotesStr, boardClaimsStr, boardSourcesStr, contextNotesStr } = ensureBoardClips(project);
     const r = await call('reviser', P.outlinePrompt({
-      format: project.format, targetRuntimeSec: project.targetRuntimeSec, memory: memoryText(),
+      format: project.format, targetRuntimeSec: project.targetRuntimeSec, memory: memoryText(project),
       recordings: corpusFor(project).legend(), thesis: project.thesis || '',
       boardQuotes: boardQuotesStr || undefined,
       boardClaims: boardClaimsStr || undefined,
@@ -367,16 +384,48 @@ export function createEngine(deps: EngineDeps) {
       if (corpus.multi) out.push(`# ${rec.key}, recorded ${rec.date || 'date unknown'}: ${rec.t.title}`);
       out.push(...lines);
     }
-    if (project.evidenceDocs && project.evidenceDocs.length > 0) {
-      out.push('\n--- UPLOADED EVIDENCE & CONTEXT DOCUMENTS ---');
-      out.push('Use these reference documents for factual background, context, quotes, and research information when drafting or revising:');
-      for (const doc of project.evidenceDocs) {
-        out.push('\n[Evidence Document: ' + doc.name + ']');
-        out.push(doc.content);
-      }
-      out.push('--- END UPLOADED EVIDENCE ---\n');
+    const docs = backgroundDocs(project);
+    if (docs) {
+      out.push('\n--- UPLOADED BACKGROUND DOCUMENTS (context only; cite only pinned Documentary Sources) ---');
+      out.push(docs);
+      out.push('--- END UPLOADED BACKGROUND DOCUMENTS ---\n');
     }
     return out.join('\n');
+  }
+
+  /** Narration claims that cite a pinned document Source: the quoted words must be in its excerpt. */
+  function docSourceRefs(project: ScriptProject, claims: any[]): { ok: true; refs: EvidenceRef[] } | { ok: false; reason: string } {
+    if (!claims.length) return { ok: true, refs: [] };
+    const sources = deps.store.getBoard(project.id)?.sources || [];
+    const refs: EvidenceRef[] = [];
+    for (const c of claims) {
+      const src = sources.find(s => s.id === String(c.sourceId));
+      if (!src) return { ok: false, reason: `A claim cites document source ${c.sourceId}, which is not pinned on the Evidence Board.` };
+      const verbatim = String(c.verbatim || '').replace(/\s+/g, ' ').trim();
+      if (!verbatim || !containsLoose(src.excerpt, verbatim)) return { ok: false, reason: `A claim quotes words that are not in document source ${src.id} ("${src.label}").` };
+      refs.push({ releaseTag: '', segStart: 0, segEnd: 0, speaker: `Document: ${src.label}`, verbatim, quoteId: src.id, sourceId: src.id });
+    }
+    return { ok: true, refs };
+  }
+
+  /**
+   * Logan's uploaded documents as bounded background for drafting and rewriting: each document gets an
+   * equal share of the budget (a short document leaves its unused share to the others). Background can
+   * shape context but cannot be cited; citable facts come from Sources pinned on the Evidence Board.
+   */
+  function backgroundDocs(project: ScriptProject, maxChars = BACKGROUND_DOC_CHARS): string {
+    const docs = (project.evidenceDocs || []).filter(d => d.content?.trim());
+    if (!docs.length) return '';
+    const sorted = [...docs].sort((a, b) => a.content.length - b.content.length);
+    let left = maxChars;
+    const cut = new Map<string, string>();
+    sorted.forEach((d, i) => {
+      const share = Math.floor(left / (sorted.length - i));
+      const text = d.content.length > share ? `${d.content.slice(0, share)}\n[... ${(d.content.length - share).toLocaleString()} more characters not shown]` : d.content;
+      left -= Math.min(d.content.length, share);
+      cut.set(d.id, text);
+    });
+    return docs.map(d => `[Document: ${d.name}]\n${cut.get(d.id)}`).join('\n\n');
   }
 
   function toPatch(blocks: any[], project: ScriptProject): { ok: true; patch: PatchBlock[] } | { ok: false; reason: string } {
@@ -384,9 +433,13 @@ export function createEngine(deps: EngineDeps) {
     const out: PatchBlock[] = [];
     for (const b of blocks || []) {
       if (b?.kind === 'narration') {
-        const ev = corpus.toEvidenceRefs(b.claims);
+        const all: any[] = Array.isArray(b.claims) ? b.claims : [];
+        const docClaims = all.filter(c => typeof c?.sourceId === 'string' && c.sourceId);
+        const ev = corpus.toEvidenceRefs(all.filter(c => !docClaims.includes(c)));
         if (ev.ok === false) return ev;
-        out.push({ kind: 'narration', text: String(b.text || ''), mode: b.mode === 'polished' ? 'polished' : 'live', claims: linkQuoteIds(ev.refs, loadPaperTrail(deps.root)) });
+        const docs = docSourceRefs(project, docClaims);
+        if (docs.ok === false) return docs;
+        out.push({ kind: 'narration', text: String(b.text || ''), mode: b.mode === 'polished' ? 'polished' : 'live', claims: [...linkQuoteIds(ev.refs, loadPaperTrail(deps.root)), ...docs.refs] });
       } else if (b?.kind === 'keep') {
         out.push({ kind: 'keep', id: String(b.id) });
       } else if (b?.kind === 'clip') {
@@ -428,6 +481,7 @@ export function createEngine(deps: EngineDeps) {
       baseline, transcripts: tr, clipsById: Object.fromEntries(project.clips.map(c => [c.clipId, c])),
       targetRuntimeSec: project.targetRuntimeSec, runtimeTolerance: project.runtimeTolerance, format: project.format as EpisodeFormat | null,
       transcriptHashes: project.transcriptHashes, evidencePairings: pairings,
+      docSources: Object.fromEntries((deps.store.getBoard(project.id)?.sources || []).map(s => [s.id, s.excerpt])),
       formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
     };
   }
@@ -506,10 +560,11 @@ export function createEngine(deps: EngineDeps) {
         boardQuotes: boardQuotesStr,
         boardClaims: boardClaimsStr,
         boardSources: boardSourcesStr,
+        backgroundDocs: backgroundDocs(project),
         contextNotes: contextNotesStr,
         styleCard,
         approvedPassages,
-        memory: memoryText(),
+        memory: memoryText(project),
         thesis: project.thesis || '',
         recordings: corpusFor(project).legend(),
       });
@@ -573,10 +628,11 @@ export function createEngine(deps: EngineDeps) {
         boardQuotes: boardQuotesStr,
         boardClaims: boardClaimsStr,
         boardSources: boardSourcesStr,
+        backgroundDocs: backgroundDocs(project),
         contextNotes: `${contextNotesStr}\nContinuity from preceding acts:\n${continuityLog.join('\n') || '(Beginning of documentary)'}`,
         styleCard,
         approvedPassages,
-        memory: memoryText(),
+        memory: memoryText(project),
         thesis: project.thesis || '',
         recordings: corpusFor(project).legend(),
       });
@@ -624,7 +680,7 @@ export function createEngine(deps: EngineDeps) {
     styleCard = '',
     approvedPassages = ''
   ): Promise<{ version: ScriptVersion; gates: ReturnType<typeof codeGates> }> {
-    const { clipsById, boardQuotesStr, boardClaimsStr, contextNotesStr } = ensureBoardClips(project);
+    const { clipsById, boardQuotesStr, boardClaimsStr, boardSourcesStr, contextNotesStr } = ensureBoardClips(project);
     const trim = trimFor(project);
 
     let targetScene: any = null;
@@ -675,10 +731,12 @@ export function createEngine(deps: EngineDeps) {
       fullScriptContext,
       boardQuotes: boardQuotesStr,
       boardClaims: boardClaimsStr,
+      boardSources: boardSourcesStr,
+      backgroundDocs: backgroundDocs(project),
       contextNotes: contextNotesStr,
       styleCard,
       approvedPassages,
-      memory: memoryText(),
+      memory: memoryText(project),
       instruction,
     });
 
@@ -737,7 +795,7 @@ export function createEngine(deps: EngineDeps) {
       const r = await call('reviser', P.draftPrompt({
         format: project.format, segmentTitle: seg.title, scenes: JSON.stringify(sceneView), styleCard, approvedPassages,
         recordings: corpusFor(project).legend(), thesis: project.thesis || '',
-        evidence: evidenceLines(project, analysis, momentIds), clips: JSON.stringify(clips), memory: memoryText(),
+        evidence: evidenceLines(project, analysis, momentIds), clips: JSON.stringify(clips), memory: memoryText(project),
       }), { ...ctx, label: `draft ${seg.title}` });
       if (!r.ok) {
         if (PAUSE_CODES.has(r.code) || r.code === 'ABORTED' || r.code === 'BUDGET_EXCEEDED') throw failToError(r, `Draft of "${seg.title}"`);
@@ -971,7 +1029,7 @@ export function createEngine(deps: EngineDeps) {
               ? scenes.flatMap(spokenChecks)
               : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message), ...(project.evidenceDocs?.length ? [`${project.evidenceDocs.length} evidence document(s) uploaded for context: ${project.evidenceDocs.map(d => d.name).join(', ')}`] : []),
                 ...(project.googleDriveFolderUrl ? [`Google Drive evidence folder connected: ${project.googleDriveFolderUrl}`] : [])];
-            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken, voice: voiceSummary(deps.store), storyContext }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
+            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: withCharter(project, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), spoken, voice: voiceSummary(deps.store), storyContext }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
             if (!r.ok) {
               if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
               emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
@@ -1012,7 +1070,7 @@ export function createEngine(deps: EngineDeps) {
           const neighbourScenes = [loc.segment.scenes[loc.sceneIndex - 1], loc.segment.scenes[loc.sceneIndex + 1]];
           const neighbours = neighbourScenes.map((s, i) => { const b = boundaryLines(s); return b ? `${i === 0 ? 'Before' : 'After'}: ${i === 0 ? b.last : b.first}` : ''; }).filter(Boolean).join('\n');
           const sceneClips = [...new Set([...(loc.scene.suggestedClipIds || []), ...loc.scene.blocks.filter(b => b.kind === 'clip').map(b => (b as any).clipId)])].map(id => clipsById[id]).filter(Boolean);
-          const claimUtts = revisionScenes.flatMap(sc => sc.blocks).flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
+          const claimUtts = revisionScenes.flatMap(sc => sc.blocks).flatMap(b => (b.kind === 'narration' ? b.claims : [])).filter(c => !c.sourceId).flatMap(c => {
             const t = transcript(c.releaseTag);
             return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => corpusFor(project!).qualify(c.releaseTag, u.id));
           });
@@ -1020,13 +1078,13 @@ export function createEngine(deps: EngineDeps) {
             format: project.format, baselineId: best.id, critique: JSON.stringify(target), targets: JSON.stringify(linked),
             context: JSON.stringify(linkedRevisionView(best, revisionSceneIds, clipsById)),
             evidence: evidenceLines(project, null, [], claimUtts), recordings: corpusFor(project).legend(),
-            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), styleCard: draftStyleFor(),
+            styleRules: withCharter(project, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), styleCard: draftStyleFor(),
           }) : P.revisePrompt({
             format: project.format, critique: JSON.stringify(target), neighbours, lockedIds,
             scene: JSON.stringify({ sceneId: loc.scene.id, title: loc.scene.title, purpose: loc.scene.purpose, blocks: loc.scene.blocks }),
             evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200, isMulti(project!)))),
             recordings: corpusFor(project!).legend(),
-            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), styleCard: draftStyleFor(),
+            styleRules: withCharter(project, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), styleCard: draftStyleFor(),
           });
           const rev = await call('reviser', revPrompt, ctxFor(linked ? `revise ${revisionSceneIds.length} linked scenes` : `revise ${loc.scene.title}`));
           if (!rev.ok) {
@@ -1140,7 +1198,7 @@ export function createEngine(deps: EngineDeps) {
       /** Structural critique of the whole episode; proposals become review-only candidates. True = stop. */
       async function episodePass(): Promise<boolean> {
         emit(run!, { type: 'round', message: 'Episode pass: structure (order, arc, payoff).' });
-        const r = await call('critic', P.episodeCritiquePrompt({ format: project!.format, targetRuntimeSec: project!.targetRuntimeSec, outline: JSON.stringify(episodeOutlineView(best.segments, true)), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n') }), ctxFor('episode critique'));
+        const r = await call('critic', P.episodeCritiquePrompt({ format: project!.format, targetRuntimeSec: project!.targetRuntimeSec, outline: JSON.stringify(episodeOutlineView(best.segments, true)), memory: withCharter(project, memory.styleRules.map(x => `- ${x.rule}`).join('\n')) }), ctxFor('episode critique'));
         if (!r.ok) {
           if (halted(handleFail('critic', r), 'Stopped at budget before the episode pass.')) return true;
           emit(run!, { type: 'error', message: 'The episode pass critique failed and was skipped.' });

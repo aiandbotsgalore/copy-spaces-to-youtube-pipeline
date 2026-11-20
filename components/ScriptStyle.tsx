@@ -4,8 +4,8 @@
  * examples; Logan never picks episodes. Everything shown comes from /api/script.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BookOpen, CloudDownload, ExternalLink, FileText, FolderSync, Link2, Loader2, Plus, RefreshCw, Search, Trash2, Upload, Wand2, X } from 'lucide-react';
-import type { ScriptEvidenceDoc, ScriptProject } from '../utils/scriptTypes';
+import { BookOpen, CloudDownload, ExternalLink, FileText, FolderSync, Link2, Loader2, Pin, Plus, RefreshCw, ScrollText, Search, Trash2, Upload, Wand2, X } from 'lucide-react';
+import type { BoardSource, ScriptEvidenceDoc, ScriptProject } from '../utils/scriptTypes';
 import {
   loadRoleChoice, scriptApi, type PaperTrailPair, type ProjectResponse, type RelatedHit, type StyleState,
 } from '../utils/scriptClient';
@@ -230,6 +230,26 @@ export function EvidencePanel({ project, onReload, act }: { project: ScriptProje
   const [driveStatus, setDriveStatus] = useState<{ ok: boolean; message: string; needsKey?: boolean } | null>(null);
 
   const docs = project.evidenceDocs || [];
+  const [sources, setSources] = useState<BoardSource[]>([]);
+  const [openDocId, setOpenDocId] = useState<string | null>(null);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const loadSources = useCallback(() => {
+    scriptApi.board(project.id).then(r => setSources(r.board?.sources || [])).catch(() => setSources([]));
+  }, [project.id]);
+  useEffect(() => { loadSources(); }, [loadSources, project.evidenceDocs?.length]);
+
+  /** Pins the words selected inside the open document as a citable Source. */
+  const pinSelection = async (doc: ScriptEvidenceDoc) => {
+    const text = (window.getSelection()?.toString() || '').trim();
+    if (!text) { setPinError('Select the words to pin inside the document first.'); return; }
+    setPinError(null);
+    try { const r = await scriptApi.pinSource(project.id, doc.id, text); setSources(r.board.sources); window.getSelection()?.removeAllRanges(); }
+    catch (e: any) { setPinError(e?.message || String(e)); }
+  };
+  const unpin = async (id: string) => {
+    try { const r = await scriptApi.unpinSource(project.id, id); setSources(r.board.sources); }
+    catch (e: any) { setPinError(e?.message || String(e)); }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -433,6 +453,8 @@ export function EvidencePanel({ project, onReload, act }: { project: ScriptProje
         </div>
       )}
 
+      {pinError && <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-800 rounded p-1.5">{pinError}</div>}
+      {docs.length > 0 && <div className="text-[10px] text-slate-500">Documents are background for the writer. Pin the exact words you want the script to cite; pinned excerpts become Sources it can quote and the checks verify.</div>}
       {docs.length === 0 ? (
         <div className="text-[11px] text-slate-500 italic">No reference documents attached yet.</div>
       ) : (
@@ -452,9 +474,65 @@ export function EvidencePanel({ project, onReload, act }: { project: ScriptProje
                   <Trash2 size={11} />
                 </button>
               </div>
-              <p className="text-[10px] text-slate-400 line-clamp-2 font-mono whitespace-pre-wrap">{doc.content.slice(0, 160)}...</p>
+              {openDocId === doc.id ? (
+                <div className="space-y-1">
+                  <pre className="max-h-64 overflow-auto text-[10px] text-slate-300 font-mono whitespace-pre-wrap bg-slate-950 border border-slate-800 rounded p-1.5 select-text">{doc.content}</pre>
+                  <div className="flex items-center gap-1">
+                    <button className={btnPrimary} onMouseDown={e => e.preventDefault()} onClick={() => void pinSelection(doc)} title="Pin the selected words as a Source the script can cite"><Pin size={11} /> Pin selection</button>
+                    <button className={btnGhost} onClick={() => { setOpenDocId(null); setPinError(null); }}>Close</button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[10px] text-slate-400 line-clamp-2 font-mono whitespace-pre-wrap">{doc.content.slice(0, 160)}...</p>
+              )}
+              {openDocId !== doc.id && <button className={cx(btnGhost, 'text-[10px]')} onClick={() => { setOpenDocId(doc.id); setPinError(null); }}><Pin size={10} /> Open to pin excerpts</button>}
+              {sources.filter(s => s.docId === doc.id).map(s => (
+                <div key={s.id} className="flex items-start gap-1 text-[10px] text-teal-200 bg-teal-950/30 border border-teal-900/50 rounded px-1 py-0.5">
+                  <Pin size={10} className="mt-0.5 shrink-0" />
+                  <span className="flex-1 line-clamp-2" title={s.excerpt}>{s.excerpt}</span>
+                  <button className="text-slate-500 hover:text-rose-400" title="Unpin this source" onClick={() => void unpin(s.id)}><X size={10} /></button>
+                </div>
+              ))}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/**
+ * The project's rule sheet: Logan's standing editorial rules for this one production. It is sent with
+ * every outline, draft, rewrite and critique, ahead of the rules shared across projects.
+ */
+export function RuleSheetPanel({ project, act }: { project: ScriptProject; act: (label: string, fn: () => Promise<unknown>) => Promise<void> }) {
+  const [text, setText] = useState(project.charter || '');
+  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  useEffect(() => { setText(project.charter || ''); }, [project.id, project.charter]);
+  const dirty = text.trim() !== (project.charter || '').trim();
+  const loadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setText(await f.text());
+    if (fileRef.current) fileRef.current.value = '';
+  };
+  return (
+    <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
+      <div className="flex items-center gap-1 justify-between">
+        <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><ScrollText size={12} /> Rule sheet {project.charter ? `(${project.charter.length < 1000 ? `${project.charter.length} chars` : `${Math.round(project.charter.length / 1000)}k chars`})` : '(none)'}</div>
+        <button className={btnGhost} onClick={() => setOpen(o => !o)}>{open ? 'Hide' : project.charter ? 'Edit' : 'Add'}</button>
+      </div>
+      {!open && <div className="text-[10px] text-slate-500">Your standing rules for this production. Sent with every outline, draft, rewrite and critique, and they win over learned rules.</div>}
+      {open && (
+        <div className="space-y-1.5">
+          <textarea className={cx(input, 'w-full h-48 font-mono text-[11px] resize-y')} placeholder="Paste this production's editorial rules, or load them from a file." value={text} onChange={e => setText(e.target.value)} />
+          <div className="flex items-center gap-1.5 justify-end">
+            <input ref={fileRef} type="file" accept=".md,.txt,text/plain,text/markdown" className="hidden" onChange={e => void loadFile(e)} />
+            <button className={btnGhost} onClick={() => fileRef.current?.click()}><Upload size={11} /> Load file</button>
+            <button className={btnGhost} disabled={!dirty} onClick={() => setText(project.charter || '')}>Revert</button>
+            <button className={btnPrimary} disabled={!dirty} onClick={() => void act('Saving rule sheet', () => scriptApi.updateProject(project.id, { charter: text }))}>Save</button>
+          </div>
         </div>
       )}
     </div>

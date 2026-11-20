@@ -408,7 +408,11 @@ export interface GateContext {
   }[];
   /** Loaded transcript hashes, when the caller has them. */
   transcriptHashes?: Record<string, string>;
+  /** Pinned document Sources (source id -> exact excerpt). When given, document claims are checked against them. */
+  docSources?: Record<string, string>;
 }
+
+const squashWs = (s: string) => String(s || '').replace(/\s+/g, ' ').trim();
 
 export function changedBlockIds(baseline: Segment[], candidate: Segment[]): Set<string> {
   const base = new Map(allBlocks(baseline).map(b => [b.id, stable(b)]));
@@ -439,6 +443,13 @@ export function codeGates(candidate: Segment[], ctx: GateContext): GateResult & 
         failures.push(`Narration contains raw diarization label: "${b.text.slice(0, 60)}..."`);
       }
       for (const ref of b.claims) {
+        if (ref.sourceId) {
+          // A pinned document excerpt, not a recording: check the quoted words are in the pinned excerpt.
+          const excerpt = ctx.docSources?.[ref.sourceId];
+          if (excerpt === undefined) { if (ctx.docSources) { factual = false; failures.push(`Claim cites document source ${ref.sourceId}, which is no longer pinned on the Evidence Board.`); } continue; }
+          if (!squashWs(excerpt).includes(squashWs(ref.verbatim))) { factual = false; failures.push(`Claim quotes "${ref.verbatim.slice(0, 60)}" from document source ${ref.sourceId}, but those words are not in the pinned excerpt.`); }
+          continue;
+        }
         const segs = ctx.transcripts[ref.releaseTag];
         if (!segs) { factual = false; failures.push(`Claim cites ${ref.releaseTag}, whose transcript is not loaded.`); continue; }
         const v = verifyVerbatim(ref, segs, ctx.speakerNames);

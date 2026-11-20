@@ -22,7 +22,7 @@ import { getCachedAudioUrl } from '../utils/audioCache';
 import { toFetchableUrl } from '../utils/audioUrl';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
-import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
+import { EvidencePanel, PaperTrailPanel, RecordingsPanel, RuleSheetPanel, StylePanel } from './ScriptStyle';
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
@@ -1713,6 +1713,28 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     }
   };
 
+  // Hooks must run on every render, so the project menu's state lives above the early return below.
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showProjectMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setShowProjectMenu(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowProjectMenu(false);
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showProjectMenu]);
+
   if (!projectId || !project) {
     return <SetupScreen status={status} checking={checking} onRecheck={recheck} onOpen={id => { setRunId(null); setProjectId(id); }} />;
   }
@@ -1784,26 +1806,6 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     }
   };
 
-  const [showProjectMenu, setShowProjectMenu] = useState(false);
-  const projectMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showProjectMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
-        setShowProjectMenu(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowProjectMenu(false);
-    };
-    window.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showProjectMenu]);
 
   const handleDeleteActiveProject = async () => {
     if (!project) return;
@@ -2412,6 +2414,12 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                     <button className={btnGhost} onClick={syncClipsFromManuscript} title="Detect all canonical and inline archival tags in manuscript and reconcile with Clip Bin">
                       <FolderSync size={12} className="text-teal-400" /> Sync Clips
                     </button>
+                    <button className={btnGhost} disabled={!!busy} title="Add highlight-catalog clips from this project's recordings that are not in the Clip Bin yet (clips you removed stay removed)"
+                      onClick={() => void act('Adding highlight clips', async () => {
+                        const r = await scriptApi.updateProject(project.id, { refreshCatalogClips: true });
+                        const n = r.catalogRefresh?.added ?? 0, legacy = r.catalogRefresh?.legacyRemovals ?? 0;
+                        setNotice(`${n ? `Added ${n} highlight clip${n === 1 ? '' : 's'}.` : 'No new highlight clips.'}${legacy ? ` ${legacy} clip${legacy === 1 ? ' you removed' : 's you removed'} before this update could not be matched, so check the new clips for any you had removed.` : ''}`);
+                      })}>Highlights</button>
                     <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with narrative function"
                       onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag</button>
                   </div>
@@ -2459,6 +2467,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
               {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
+              <RuleSheetPanel project={project} act={act} />
               <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
 
               {stats && stats.unnamedShare > 0.2 && (

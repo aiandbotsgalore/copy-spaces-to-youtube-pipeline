@@ -81,7 +81,7 @@ const arr = (items: S): S => ({ type: 'array', items });
 const en = (values: readonly string[]): S => ({ type: 'string', enum: [...values] });
 const nen = (values: readonly string[]): S => ({ type: ['string', 'null'], enum: [...values, null] });
 
-const quoteRef = obj({ utteranceIds: strArr, verbatim: str });
+const quoteRef = obj({ utteranceIds: strArr, verbatim: str, sourceId: nstr });
 
 export const ANALYSIS_SCHEMA = obj({
   ledger: str,
@@ -242,7 +242,8 @@ ${dataBlock(args.clips || '')}`}`,
 }
 
 export const BLOCK_RULES = `Blocks:
-- {"kind":"narration","text":..., "mode":"live"|"polished","claims":[{"utteranceIds":[...],"verbatim":...}]}. Any fact or quote attributed to a speaker must be backed by a claim whose verbatim text is copied exactly from those utterances (consecutive utterances of one speaker may be joined).
+- {"kind":"narration","text":..., "mode":"live"|"polished","claims":[{"utteranceIds":[...],"verbatim":...,"sourceId":null}]}. Any fact or quote attributed to a speaker must be backed by a claim whose verbatim text is copied exactly from those utterances (consecutive utterances of one speaker may be joined).
+- A fact that comes from a pinned Documentary Source (a written message, a document) is backed by a claim with "sourceId" set to that source's id, "utteranceIds": [] and "verbatim" copied exactly from its excerpt. Written messages are not recorded speech: narration must say they were written.
 - {"kind":"clip","clipId":...,"keptText":...,"fn":...,"rationale":...}. keptText is a contiguous excerpt of the clip text, copied exactly: the words to keep. Never write seconds; code computes clip times.
 - {"kind":"pause","sec":...} (0.3 to 3 s).
 - {"kind":"music","cue":"sting"|"bed_in"|"bed_out"|"transition","note":...}: a labeled marker only. Logan adds music himself outside the app.
@@ -286,6 +287,7 @@ export function wholeScriptDraftPrompt(args: {
   boardQuotes: string;
   boardClaims?: string;
   boardSources?: string;
+  backgroundDocs?: string;
   contextNotes?: string;
   styleCard?: string;
   approvedPassages?: string;
@@ -315,8 +317,9 @@ Documentary Craft & Pacing Rules:
 2. Tape Balance: ${balanceDesc}
 3. Archival Tape: Use quotes from the Evidence Board by setting "kind": "clip", "quoteRef": "<canonical quote id>" (e.g. "aq:AQ-0261" or "<releaseTag>:<quoteId>"), with "fn" and "rationale". Do not alter, paraphrase, or invent tape content. Code materializes verified verbatim tape and approved audio bounds.
 4. Reprises: If a quote is repeated across scenes for genuine dramatic effect, you MUST set "isReprise": true and give a "repriseRationale". Otherwise do not duplicate quotes.
-5. Speaker Identity & Attribution: Refer to speakers only by confirmed names or by clear role ("an unidentified speaker"). Never use raw diarization labels like "Speaker 1". Any allegation or disputed claim must be explicitly attributed in narration.
-6. Voice & Tone: Write narration in Logan's authentic voice. Default to "polished" mode (investigative documentary, thoughtful, direct, sensory grounding). Avoid AI cliches (never use "devastating", avoid "it's not X, but Y", avoid asking and answering your own questions).
+5. Documentary Sources: a fact taken from a pinned Documentary Source must be backed by a narration claim {"utteranceIds": [], "verbatim": <words copied exactly from its excerpt>, "sourceId": <its sourceId>}. Uploaded Background Documents are context only and cannot be cited; never present their contents as established fact. Written messages are not recorded speech: say they were written.
+6. Speaker Identity & Attribution: Refer to speakers only by confirmed names or by clear role ("an unidentified speaker"). Never use raw diarization labels like "Speaker 1". Any allegation or disputed claim must be explicitly attributed in narration.
+7. Voice & Tone: Write narration in Logan's authentic voice. Default to "polished" mode (investigative documentary, thoughtful, direct, sensory grounding). Avoid AI cliches (never use "devastating", avoid "it's not X, but Y", avoid asking and answering your own questions).
 ${formatBrief(args.format)}
 ${recordingsNote(args.recordings, args.thesis)}`,
     user: `Outline & Scenes (JSON: sceneId, title, purpose, targetSec, wordBudget, quoteRefs, lockedBlocks):
@@ -325,7 +328,7 @@ ${args.scenes}
 Evidence Board Quotes (canonical references, confirmed speakers, verified text, duration):
 ${args.boardQuotes || '(none)'}
 
-${args.boardClaims ? `Evidence Board Claims:\n${args.boardClaims}\n` : ''}${args.boardSources ? `Documentary Sources:\n${args.boardSources}\n` : ''}${args.contextNotes ? `Recording Context Notes:\n${args.contextNotes}\n` : ''}
+${args.boardClaims ? `Evidence Board Claims:\n${args.boardClaims}\n` : ''}${args.boardSources ? `Documentary Sources (pinned excerpts; cite with sourceId):\n${dataBlock(args.boardSources)}\n` : ''}${args.backgroundDocs ? `Background Documents (Logan's uploads; context only, not citable):\n${dataBlock(args.backgroundDocs)}\n` : ''}${args.contextNotes ? `Recording Context Notes:\n${args.contextNotes}\n` : ''}
 Style Card:
 ${args.styleCard || '(none yet)'}
 
@@ -343,6 +346,8 @@ export function sceneRewritePrompt(args: {
   fullScriptContext: string;
   boardQuotes: string;
   boardClaims?: string;
+  boardSources?: string;
+  backgroundDocs?: string;
   contextNotes?: string;
   styleCard?: string;
   approvedPassages?: string;
@@ -359,6 +364,7 @@ Task: rewrite ONE scene within the documentary script to improve pacing, narrati
 The full script is provided as read-only context. Rewrite ONLY the target scene.
 Return the replacement blocks for this scene. Any locked block must be preserved via {"kind": "keep", "id": "<blockId>"}.
 Conform to the scene's word budget: NarrationWords = max(0, SceneSec - TapeSec - PauseSec) * 2.4.
+A fact taken from a pinned Documentary Source is backed by a narration claim {"utteranceIds": [], "verbatim": <words copied exactly from its excerpt>, "sourceId": <its sourceId>}. Background Documents are context only and cannot be cited.
 ${args.instruction ? `Specific Revision Instruction: ${args.instruction}` : ''}
 ${formatBrief(args.format)}`,
     user: `Target Scene to Rewrite:
@@ -369,7 +375,7 @@ ${args.fullScriptContext}
 
 Relevant Evidence Board Quotes:
 ${args.boardQuotes || '(none)'}
-
+${args.boardClaims ? `\nEvidence Board Claims:\n${args.boardClaims}\n` : ''}${args.boardSources ? `\nDocumentary Sources (pinned excerpts; cite with sourceId):\n${dataBlock(args.boardSources)}\n` : ''}${args.backgroundDocs ? `\nBackground Documents (Logan's uploads; context only, not citable):\n${dataBlock(args.backgroundDocs)}\n` : ''}${args.contextNotes ? `\nRecording Context Notes:\n${args.contextNotes}\n` : ''}
 Style Card:
 ${args.styleCard || '(none)'}
 

@@ -94,7 +94,7 @@ export const scriptApi = {
   projects: () => call<{ projects: ScriptProject[] }>('GET', '/projects'),
   createProject: (releaseTags: string[], targetRuntimeSec: number, extra: { format?: EpisodeFormat | null; thesis?: string } = {}) => call<{ project: ScriptProject }>('POST', '/project', { releaseTags, targetRuntimeSec, ...extra }),
   project: (id: string) => call<ProjectResponse>('GET', `/project?id=${encodeURIComponent(id)}`),
-  updateProject: (id: string, patch: Record<string, unknown>) => call<{ project: ScriptProject }>('POST', '/project/update', { id, ...patch }),
+  updateProject: (id: string, patch: Record<string, unknown>) => call<{ project: ScriptProject; catalogRefresh?: { added: number; legacyRemovals: number } }>('POST', '/project/update', { id, ...patch }),
   deleteProject: (id: string) => call<{ ok: boolean; deleted: boolean }>('POST', '/project/delete', { id }),
   resetScript: (id: string) => call<{ ok: boolean; project: ScriptProject }>('POST', '/project/reset-script', { id }),
   addClip: (id: string, fromId: string, toId: string, releaseTag?: string) => call<{ project: ScriptProject }>('POST', '/project/add-clip', { id, fromId, toId, releaseTag }),
@@ -158,6 +158,9 @@ export const scriptApi = {
     }
   ) => call<{ ok: boolean; audio: AudioBoundary }>('POST', '/quote/review-audio', { ref, ...action }),
   boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
+  board: (projectId: string) => call<{ board: EvidenceBoard | null }>('GET', `/board?projectId=${encodeURIComponent(projectId)}`),
+  pinSource: (projectId: string, docId: string, excerpt: string, label?: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, docId, excerpt, label }),
+  unpinSource: (projectId: string, sourceId: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, sourceId, remove: true }),
   discover: (projectId: string, q?: string) => call<{
     query: string;
     terms: string[];
