@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  applyBodyEdits, boundaryCandidates, createReviewLoop, DEFAULT_CONFIG, extractQuotes, makeIntroLock, parseReview, passageExcerpts, passProblems, quoteInText,
+  applyBodyEdits, boundaryCandidates, createReviewLoop, DEFAULT_CONFIG, extractQuotes, factSheet, FACT_SHEET_MAX, focusedView, makeIntroLock, parseReview, passageExcerpts, passProblems, quoteInText, repairPassage,
   reassemble, sha256, splitScript, TACTICS, type ReviewRun, type SourceHit,
 } from '../../server/scriptReviewLoop';
-import { agyArgs, AGY_FILE_INSTRUCTION, AGY_INLINE_PROMPT_MAX, codexArgs, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
+import { agyArgs, AGY_DIRECT_NOTE, codexArgs, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Fixture                                                                                          */
@@ -185,6 +185,30 @@ describe('independent reviews', () => {
     expect(loop.getRun(PID, run.id)!.status).toBe('complete');
   });
 
+  it('retries a rejected review once, telling only that reviewer what was wrong', async () => {
+    let chatgptCalls = 0;
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') {
+        if (req.user.includes('REV1')) return review(95);
+        if (spec === 'codex_cli') { chatgptCalls++; if (chatgptCalls === 1) return review(70, { blocker: 'words that are not in the script at all anywhere' }); }
+        return review(80);
+      }
+      if (req.schemaName === 'body_revision') return { edits: [edit('sets things up for the listener today.', 'sets things up for the listener today. REV1')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    const run = startRun(loop);
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('complete');
+    const first = seen.filter(x => x.schemaName === 'script_review').slice(0, 3);
+    const retry = first.find(x => x.user.includes('YOUR PREVIOUS ANSWER COULD NOT BE ACCEPTED'))!;
+    expect(retry.spec).toBe('codex_cli');
+    const gemini = first.find(x => x.spec.startsWith('agy'))!;
+    expect(gemini.user).not.toContain('YOUR PREVIOUS ANSWER');
+    expect(done.rounds[0].reviews.chatgpt!.ok).toBe(true);
+  });
+
   it('rejects a review that scores below 90 without naming a passage or missing connection', () => {
     const bad = { ...review(80), findings: [{ passage: '', missingConnection: '', problem: 'meh', effectOnListener: 'bored', proposedChange: '', criterion: 'pacing', blocker: false, structural: false, needsMaterial: '' }] };
     expect(parseReview(bad, 'gemini', { provider: 'p', model: 'm' }, 'h', INTRO, BODY).ok).toBe(false);
@@ -220,7 +244,9 @@ describe('repeat until both pass', () => {
     await loop.runToEnd(run);
     const done = loop.getRun(PID, run.id)!;
     expect(done.status).toBe('complete');
-    expect(done.rounds.map(r => r.passed)).toEqual([true, false, false, true]);
+    // The last revised draft passes a focused review first, then a full review before delivery.
+    expect(done.rounds.map(r => r.passed)).toEqual([true, false, false, true, true]);
+    expect(done.rounds.map(r => r.scope)).toEqual(['full', 'focused', 'focused', 'focused', 'full']);
     expect(done.rounds[1].passBlockers.join(' ')).toMatch(/blocker/);
     expect(done.rounds[2].passBlockers.join(' ')).toMatch(/chatgpt scored 89/);
     expect(loop.draftText(done, done.result!.hash)).toContain('REV3');
@@ -280,17 +306,21 @@ describe('approval is invalidated by any edit', () => {
     await loop.runToEnd(run);
     const done = loop.getRun(PID, run.id)!;
     expect(done.status).toBe('complete');
-    // Round 2 passed both reviews but failed the source check; its fix became a new draft that was reviewed again.
-    expect(done.rounds[1].passed).toBe(true);
-    expect(done.rounds[1].finalCheck!.ok).toBe(false);
-    expect(done.rounds[1].finalCheck!.issues.join(' ')).toMatch(/Quote not found/);
-    expect(done.rounds[2].draftHash).not.toBe(done.rounds[1].draftHash);
-    expect(done.rounds[2].reviews.gemini?.ok && done.rounds[2].reviews.chatgpt?.ok).toBe(true);
-    expect(done.result!.hash).toBe(done.rounds[2].draftHash);
+    // Round 3 (the full review after a focused pass) passed but failed the source check; its fix became a new
+    // draft that went back through both reviews (focused, then full) before delivery.
+    expect(done.rounds.map(r => r.scope)).toEqual(['full', 'focused', 'full', 'focused', 'full']);
+    expect(done.rounds[1].finalCheck).toBeUndefined();
+    expect(done.rounds[2].passed).toBe(true);
+    expect(done.rounds[2].finalCheck!.ok).toBe(false);
+    expect(done.rounds[2].finalCheck!.issues.join(' ')).toMatch(/Quote not found/);
+    expect(done.rounds[3].draftHash).not.toBe(done.rounds[2].draftHash);
+    expect(done.rounds[4].draftHash).toBe(done.rounds[3].draftHash);
+    expect(done.rounds[4].reviews.gemini?.ok && done.rounds[4].reviews.chatgpt?.ok).toBe(true);
+    expect(done.result!.hash).toBe(done.rounds[4].draftHash);
     const finalText = loop.draftText(done, done.result!.hash);
     expect(finalText).toContain('REV-FIX');
     expect(finalText).not.toContain('nobody can find anywhere');
-    expect(done.rounds[2].finalCheck!.quotes.find(q => q.status === 'verified')?.ref).toBe('passage:new');
+    expect(done.rounds[4].finalCheck!.quotes.find(q => q.status === 'verified')?.ref).toBe('passage:new');
   });
 
   it('keeps the old passage when both blind comparisons prefer it over a major rewrite', async () => {
@@ -478,6 +508,74 @@ describe('Claude Pro only for targeted fixes', () => {
   });
 });
 
+/* ---------------------------------------------------------------------------------------------- */
+/* 7. Usage savings                                                                                 */
+/* ---------------------------------------------------------------------------------------------- */
+
+describe('usage savings', () => {
+  const scene = (n: number, extra = '') => `### ACT I — SCENE ${n}: TITLE ${n}\n\nScene ${n} opens with a sentence that sets the scene for the listener. The middle of scene ${n} carries detail number ${n} that only a full reading shows. Scene ${n} closes with a line that hands off to what comes next.${extra}\n\n`;
+  const bigBody = [1, 2, 3, 4, 5, 6].map(n => scene(n)).join('') + '### EPILOGUE\n\nThe ending closes the story for now and points back to the opening question.\n';
+
+  it('shows changed scenes and the ending in full, and unchanged scenes only as an outline', () => {
+    const revised = bigBody.replace('detail number 3 that only', 'detail number 3, now sharper, that only');
+    const v = focusedView(INTRO, revised, bigBody)!;
+    expect(v).not.toBeNull();
+    expect(v.script.startsWith(INTRO)).toBe(true);
+    expect(v.script).toContain('detail number 3, now sharper');                 // the changed scene, in full
+    expect(v.script).toContain('detail number 6 that only a full reading');      // second-to-last block, in full
+    expect(v.script).toContain('points back to the opening question');           // the ending, in full
+    expect(v.script).not.toContain('detail number 1 that only');                 // unchanged scene: outline only
+    expect(v.script).toContain('UNCHANGED since the last review');
+    expect(v.script).toContain('Scene 1 opens with a sentence that sets the scene for the listener.');
+    expect(v.script.length).toBeLessThan(revised.length + INTRO.length);
+    // Too much changed: a full review instead.
+    const rewritten = bigBody.replace(/detail number/g, 'new detail number');
+    expect(focusedView(INTRO, rewritten, bigBody)).toBeNull();
+  });
+
+  it('repairs a slightly misquoted passage to the exact script text instead of rejecting the review', () => {
+    const exact = 'The second scene carries on with more detail for the listener to follow along.';
+    expect(repairPassage('The second scene carries on with much more detail for listeners to follow along', BODY)).toBe(exact);
+    expect(repairPassage('Something that was never written anywhere in this script', BODY)).toBeNull();
+    const r = parseReview(review(70, { blocker: 'The second scene carries on with much more detail for listeners to follow along' }), 'chatgpt', { provider: 'p', model: 'm' }, 'h', INTRO, BODY);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      const f = r.review.findings.find(x => x.blocker)!;
+      expect(f.passage).toBe(exact);
+      expect(f.quoteRepaired).toBe(true);
+      expect(f.sceneKey).toMatch(/SCENE 2/);
+    }
+  });
+
+  it('builds a compact, capped fact sheet instead of raw sources', () => {
+    const long = 'x '.repeat(5000);
+    const sheet = factSheet({
+      claims: Array.from({ length: 80 }, (_, i) => ({ text: `Claim ${i} ${long}`, status: 'allegation', supportRefs: ['s1'] })),
+      sources: [{ id: 's1', label: 'Sav DM', excerpt: long }],
+      docs: [{ name: 'Timeline notes', content: long }],
+    });
+    expect(sheet).toContain('[allegation] Claim 0');
+    expect(sheet).toMatch(/more not shown/);
+    expect(sheet.length).toBeLessThan(FACT_SHEET_MAX.claims + FACT_SHEET_MAX.sources + FACT_SHEET_MAX.docs + 400);
+    expect(factSheet({})).toBe('');
+  });
+
+  it('puts the stable material first in rewrite prompts so a prompt cache can reuse it', async () => {
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(95) : review(80, { structural: 'The second scene carries on with more detail' });
+      if (req.schemaName === 'body_revision') return { edits: [edit('points back to the opening question.', 'points back to the opening question. REV1')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
+    await loop.runToEnd(loop.createRun(PID, SCRIPT, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12 }));
+    const full = seen.find(x => x.schemaName === 'body_revision')!.user;
+    expect(full.indexOf('EDITORIAL BRIEF')).toBe(0);
+    expect(full.indexOf('<<<BODY')).toBeLessThan(full.indexOf('THE TWO REVIEWS'));
+    expect(full.indexOf('<<<BODY')).toBeLessThan(full.indexOf('TACTIC FOR THIS ROUND'));
+  });
+});
+
 describe('helpers', () => {
   it('applies whitespace- and quote-tolerant edits that match exactly once', () => {
     const r = applyBodyEdits(BODY, [edit('The original first   scene sentence', 'X'), edit('for the listener', 'Y'), edit('nowhere to be found here', 'Z')]);
@@ -492,28 +590,35 @@ describe('helpers', () => {
 });
 
 describe('Gemini (agy) long prompts', () => {
-  it('passes a long prompt through a per-call prompt file instead of the command line', async () => {
+  it('sends the whole prompt on stdin, with tools discouraged, and reads tokens from the result event', async () => {
     const io = fs.mkdtempSync(path.join(os.tmpdir(), 'agy-io-'));
     const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'agy-sb-'));
-    let captured: { args: string[]; cwd: string; prompt: string } | null = null;
+    let captured: { args: string[]; cwd: string; stdin: string } | null = null;
     const registry = createProviderRegistry({
       env: () => ({}),
       dirs: { io, sandbox },
       resolveOverride: async () => ({ ok: true, file: 'agy', prefixArgs: [], via: 'path', found: 'agy' }),
-      runner: async (_file: string, args: string[], opts: { cwd: string }) => {
-        const pf = path.join(opts.cwd, 'prompt.md');
-        captured = { args, cwd: opts.cwd, prompt: fs.existsSync(pf) ? fs.readFileSync(pf, 'utf8') : '' };
-        return { code: 0, stdout: JSON.stringify({ structured_output: { ok: true }, usage: {} }), stderr: '', timedOut: false, aborted: false };
+      runner: async (_file: string, args: string[], opts: { cwd: string; stdin?: Buffer }) => {
+        captured = { args, cwd: opts.cwd, stdin: opts.stdin ? opts.stdin.toString('utf8') : '' };
+        const out = [
+          { event: 'init', init: { model: 'gemini-3.8-flash-high' } },
+          { event: 'result', result: { status: 'SUCCESS', structured_output: { ok: true }, usage: { input_tokens: 48000, output_tokens: 3000, cache_read_tokens: 29000 } } },
+        ].map(e => JSON.stringify(e)).join('\n');
+        return { code: 0, stdout: out, stderr: '', timedOut: false, aborted: false };
       },
     } as any);
     const a = registry.adapterFor('agy_cli:gemini-3.8-flash-high', { maxUsd: 0, spentUsd: 0 })!;
-    const user = 'x'.repeat(AGY_INLINE_PROMPT_MAX + 10);
+    const user = 'x'.repeat(60_000);
     const r = await a.complete({ role: 'critic', system: 'SYS', user, schema: {}, schemaName: 's', maxTokens: 10, timeoutMs: 1000, signal: new AbortController().signal });
     expect(r.ok).toBe(true);
-    expect(captured!.args[captured!.args.indexOf('-p') + 1]).toBe(AGY_FILE_INSTRUCTION);
-    expect(captured!.prompt).toBe(`SYS\n\n${user}`);
-    expect(captured!.cwd).not.toBe(sandbox);
-    expect(fs.existsSync(captured!.cwd)).toBe(false); // cleaned up after the call
+    if (r.ok) expect(r.usage).toMatchObject({ inTok: 48000, outTok: 3000, cachedTok: 29000 });
+    // The whole prompt goes in on stdin as one user event; the command line stays short.
+    expect(captured!.args).toEqual(agyArgs(captured!.args[captured!.args.indexOf('--json-schema') + 1]));
+    expect(captured!.args.join(' ').length).toBeLessThan(400);
+    const ev = JSON.parse(captured!.stdin);
+    expect(ev.event).toBe('user');
+    expect(ev.message.content).toBe(`${AGY_DIRECT_NOTE}\n\nSYS\n\n${user}`);
+    expect(captured!.cwd).toBe(sandbox);
     expect(agyArgs('s.json')).not.toContain('--dangerously-skip-permissions');
     fs.rmSync(io, { recursive: true, force: true });
     fs.rmSync(sandbox, { recursive: true, force: true });

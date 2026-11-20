@@ -78,7 +78,7 @@ import { changedBlockIds, codeGates, diffVersions, estimateRuntime } from '../ut
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, legacyRemovedCatalogClips, mergeCatalogClipsInto, removedClipRecord, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, withCharter, type Engine } from './scriptEngine';
-import { boundaryCandidates, createReviewLoop, DEFAULT_CONFIG as REVIEW_DEFAULTS, PASS_SCORE, type SourceHit } from './scriptReviewLoop';
+import { boundaryCandidates, createReviewLoop, factSheet, DEFAULT_CONFIG as REVIEW_DEFAULTS, PASS_SCORE, type SourceHit } from './scriptReviewLoop';
 import { rerankWithCohere } from './transcriptSearchService';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, COHERE_ROLE_MAP, INCEPTION_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
@@ -275,14 +275,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     if (!out.length || (out[0] as any).matchType !== 'rerank') return { ok: false, reason: 'Cohere Rerank did not answer' };
     return { ok: true, items: out.map((o: any) => hits[o.ri]).filter(Boolean) };
   }
+  // A compact fact sheet, not the raw board, excerpts and documents; the final source check pulls exact passages.
   function reviewSupporting(p: ScriptProject): string {
     const board = store.getBoard(p.id);
-    const parts: string[] = [];
-    if (board?.claims?.length) parts.push(`Claims on the Evidence Board:\n${JSON.stringify(board.claims).slice(0, 6000)}`);
-    if (board?.sources?.length) parts.push(`Pinned document sources:\n${board.sources.map(x => `[${x.id}] ${x.label}: ${x.excerpt}`).join('\n').slice(0, 8000)}`);
-    const docs = engine.backgroundDocs(p);
-    if (docs) parts.push(`Background documents:\n${docs}`);
-    return parts.join('\n\n');
+    return factSheet({ claims: board?.claims, sources: board?.sources, docs: p.evidenceDocs });
   }
   const reviewLoop = createReviewLoop({
     base: store.base,

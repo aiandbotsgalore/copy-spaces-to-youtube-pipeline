@@ -41,6 +41,8 @@ export type CompleteResult =
       usage?: {
         inTok: number;
         outTok: number;
+        /** Prompt tokens served from the provider's cache, when the CLI reports them. */
+        cachedTok?: number;
         costUsd: number;
         listCostUsd?: number;
         billedCostUsd?: number;
@@ -344,7 +346,7 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
           return {
             ok: true, json: structured, provider: 'claude_cli', model: String(env?.model || model), durationMs: now() - started,
             // Cached prompt tokens are reported apart from input_tokens; count them so usage reflects the whole prompt.
-            usage: { inTok: (Number(u.input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0), outTok: Number(u.output_tokens) || 0, costUsd: 0 },
+            usage: { inTok: (Number(u.input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0), outTok: Number(u.output_tokens) || 0, cachedTok: Number(u.cache_read_input_tokens) || 0, costUsd: 0 },
           };
         }
         if (r.code === 0 && !r.timedOut && !r.aborted && env && !env.is_error && !hasStructured) return fail('BAD_OUTPUT', 'Claude returned no structured_output (the run may have been declined).', raw, started);
@@ -404,10 +406,10 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
           cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), stdin: Buffer.from(prompt, 'utf8'), timeoutMs: req.timeoutMs, signal: req.signal,
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
-        let usage: { inTok: number; outTok: number; costUsd: number } | undefined;
+        let usage: { inTok: number; outTok: number; cachedTok?: number; costUsd: number } | undefined;
         for (const ev of jsonObjects(r.stdout)) {
           const u = ev?.usage ?? ev?.msg?.usage;
-          if (u && (ev.type === 'turn.completed' || u.input_tokens != null)) usage = { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, costUsd: 0 };
+          if (u && (ev.type === 'turn.completed' || u.input_tokens != null)) usage = { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, cachedTok: Number(u.cached_input_tokens) || 0, costUsd: 0 };
         }
         if (r.code === 0) {
           let last = '';
@@ -433,21 +435,25 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
 export const AGY_DEFAULT_MODEL = 'gemini-3.8-flash-high';
 
 /**
- * Prompts longer than this go to a prompt file instead of the command line: Windows caps a command line at
- * 32,767 characters and agy does not read the prompt from stdin. agy reads the file with its own file viewer
- * (no permission bypass needed); each call gets its own folder so parallel calls never share a prompt.
+ * agy takes the prompt on stdin as one stream-json "user" event, so the whole script goes straight into the
+ * model's context. (A prompt file made agy spend extra turns reading it, which roughly tripled its tokens.)
+ * Antigravity's own fixed overhead (system prompt and tool list) is still about 31k input tokens per call.
  */
-export const AGY_INLINE_PROMPT_MAX = 20_000;
-export const AGY_FILE_INSTRUCTION = 'Your complete instructions and all the material are in the file prompt.md in the current folder. Read the whole file, every part of it to the end, and do exactly what it asks. Do not create, change or delete any file.';
+export const AGY_DIRECT_NOTE = 'Everything you need is in this message. Do not use any tools, files, searches or browsers. Answer directly from this text.';
 
-export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL, prompt = ''): string[] {
+export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL): string[] {
   return [
-    '-p', prompt,
-    '--output-format', 'json',
+    '-p=',
+    '--input-format', 'stream-json',
+    '--output-format', 'stream-json',
     '--json-schema', schemaPath,
     '--model', model,
     '--disable-slash-commands',
   ];
+}
+
+export function agyStdin(system: string, user: string): string {
+  return `${JSON.stringify({ event: 'user', message: { content: `${AGY_DIRECT_NOTE}\n\n${system}\n\n${user}` } })}\n`;
 }
 
 export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterDeps): ProviderAdapter {
@@ -479,35 +485,37 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
       if (bin.ok === false) return fail('NOT_INSTALLED', bin.detail, '', started);
       ensureEmptySandbox(dirs.sandbox);
       const schemaPath = writeIo(dirs.io, 'schema.json', JSON.stringify(req.schema));
-      const fullPrompt = `${req.system}\n\n${req.user}`;
-      const viaFile = fullPrompt.length > AGY_INLINE_PROMPT_MAX;
-      const promptDir = viaFile ? path.join(dirs.io, `agy-${randomUUID()}`) : null;
-      if (promptDir) { fs.mkdirSync(promptDir, { recursive: true }); fs.writeFileSync(path.join(promptDir, 'prompt.md'), fullPrompt, 'utf8'); }
       try {
-        const args = agyArgs(schemaPath, model, viaFile ? AGY_FILE_INSTRUCTION : fullPrompt);
-        const r = await deps.runner(bin.file, [...bin.prefixArgs, ...args], {
-          cwd: promptDir ?? dirs.sandbox,
+        const r = await deps.runner(bin.file, [...bin.prefixArgs, ...agyArgs(schemaPath, model)], {
+          cwd: dirs.sandbox,
           env: subscriptionEnv(deps.env()),
+          stdin: Buffer.from(agyStdin(req.system, req.user), 'utf8'),
           timeoutMs: req.timeoutMs,
           signal: req.signal,
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
-        const parsed: any = parseJsonLoose(r.stdout);
-        const structured = parsed?.structured_output ?? (parsed?.response ? parseJsonLoose(parsed.response) : null);
-        if (structured && typeof structured === 'object') {
-          const u = parsed?.usage || {};
+        const events = jsonObjects(r.stdout);
+        const result: any = events.find((e: any) => e?.event === 'result')?.result ?? parseJsonLoose(r.stdout);
+        const structured = result?.structured_output ?? (typeof result?.response === 'string' ? parseJsonLoose(result.response) : null);
+        if (structured && typeof structured === 'object' && result?.status !== 'ERROR') {
+          const u = result?.usage || {};
           return {
             ok: true,
             json: structured,
             provider: 'agy_cli',
-            model: String(parsed?.model || model),
+            model: String(result?.model || model),
             durationMs: now() - started,
             usage: {
               inTok: Number(u.input_tokens) || 0,
               outTok: Number(u.output_tokens) || 0,
+              cachedTok: Number(u.cache_read_tokens) || 0,
               costUsd: 0,
             },
           };
+        }
+        if (result?.status === 'ERROR' && result?.error) {
+          const c = classifyCliFailure({ ...r, stderr: `${r.stderr}\n${result.error}`, code: r.code || 1 });
+          return fail(c.code, c.message, raw, started);
         }
         if (r.code === 0 && !r.timedOut && !r.aborted) {
           return fail('BAD_OUTPUT', 'Gemini via Antigravity CLI returned non-structured response.', raw, started);
@@ -516,7 +524,6 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
         return fail(c.code, c.message, raw, started);
       } finally {
         rmQuiet(schemaPath);
-        if (promptDir) { try { fs.rmSync(promptDir, { recursive: true, force: true }); } catch { /* ignore */ } }
       }
     },
   };

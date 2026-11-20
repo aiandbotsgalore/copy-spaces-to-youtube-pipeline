@@ -14,7 +14,7 @@ const arr = (items: S): S => ({ type: 'array', items });
 const en = (values: readonly string[]): S => ({ type: 'string', enum: [...values] });
 
 export const REVIEW_PROMPT_VERSIONS = {
-  review: 'review-loop.review.v1',
+  review: 'review-loop.review.v2',
   revise: 'review-loop.revise.v1',
   targeted: 'review-loop.targeted.v1',
   compare: 'review-loop.compare.v1',
@@ -57,7 +57,13 @@ export const REVIEW_SCHEMA = obj({
   ending: obj({ verdict: en(['answers', 'explains_why_open', 'fails']), openingQuestions: strArr, note: str }),
 });
 
-export interface ReviewInputs { script: string; bodyStart: string; brief: string; supporting: string }
+export interface ReviewInputs {
+  script: string; bodyStart: string; brief: string; supporting: string;
+  /** A focused review: the script shows changed scenes in full and unchanged scenes as a short outline. */
+  focused?: boolean;
+}
+
+const FOCUSED_NOTE = `This draft was revised since the last review. To save reading, scenes that did not change are shown only as an outline (heading, opening and closing lines, length, marked UNCHANGED); scenes that changed, the locked intro and the final scene are shown in full. Judge the whole script as it now stands. Quote passages only from text shown in full or from the outline lines, word for word.`;
 
 /**
  * One review prompt. Both reviewers get this exact object, built once per draft: same script, same supporting
@@ -68,7 +74,7 @@ export function reviewPrompt(x: ReviewInputs): Prompt {
     version: REVIEW_PROMPT_VERSIONS.review, schemaName: 'script_review', schema: REVIEW_SCHEMA, maxTokens: 6000,
     system: `You are an independent senior story editor reviewing a complete script draft. Work alone: you are not told what any other reviewer thinks, and you must not guess.
 ${PRODUCTION}
-
+${x.focused ? `\n${FOCUSED_NOTE}\n` : ''}
 The script opens with an INTRO that is locked: Logan approved it word for word. Never propose changes to it. Read it as context, and use it to test the ending: does the ending answer the questions the opening raises, or make clear why they remain open? Direct every proposed edit to the BODY (everything after the intro).
 
 ${CRITERIA_TEXT}
@@ -117,17 +123,18 @@ Rules:
 - Keep allegations clearly distinct from established fact.
 - Write narration in Logan's plain, conversational voice. No melodrama, no AI-sounding phrasing.
 - For every finding you were given, add a resolution: fixed or declined, with the reason.`,
+    // Stable material first (brief, supporting text, intro, body) so a provider's prompt cache can reuse it.
     user: [
+      `EDITORIAL BRIEF\n${x.brief || '(none)'}`,
+      `SUPPORTING TEXT\n${x.supporting || '(none)'}`,
+      `LOCKED INTRO (context only)\n<<<INTRO\n${x.intro}\nINTRO>>>`,
+      `BODY (edit this)\n<<<BODY\n${x.body}\nBODY>>>`,
+      `THE TWO REVIEWS\n${x.reviews}`,
       `TACTIC FOR THIS ROUND\n${x.tactic}`,
       x.sourceIssues ? `SOURCE CHECK PROBLEMS (fix these; a quote or claim that cannot be supported must be corrected or removed)\n${x.sourceIssues}` : '',
       x.rejectedEdits ? `EDITS FROM LAST ROUND THAT COULD NOT BE APPLIED (their "find" text was not unique or not in the body)\n${x.rejectedEdits}` : '',
       x.structureOptions ? `ALTERNATIVE SCENE ORDERS TO CONSIDER (from a structure pass; adopt one only if it fixes the problem)\n${x.structureOptions}` : '',
       x.material ? `ADDITIONAL SOURCE MATERIAL FOUND FOR THIS ROUND (verbatim excerpts; cite only these words)\n${x.material}` : '',
-      `THE TWO REVIEWS\n${x.reviews}`,
-      `EDITORIAL BRIEF\n${x.brief || '(none)'}`,
-      `SUPPORTING TEXT\n${x.supporting || '(none)'}`,
-      `LOCKED INTRO (context only)\n<<<INTRO\n${x.intro}\nINTRO>>>`,
-      `BODY (edit this)\n<<<BODY\n${x.body}\nBODY>>>`,
     ].filter(Boolean).join('\n\n'),
   };
 }
@@ -157,12 +164,12 @@ Rules:
 - Write narration in Logan's plain, conversational voice. No melodrama, no AI-sounding phrasing.
 - For every finding you were given, add a resolution: fixed or declined, with the reason.`,
     user: [
+      `EDITORIAL BRIEF\n${x.brief || '(none)'}`,
+      ...x.excerpts.map((e, i) => `EXCERPT ${i + 1} (scene: ${e.scene})\n<<<EXCERPT\n${e.text}\nEXCERPT>>>`),
+      `THE TWO REVIEWS\n${x.reviews}`,
       `TACTIC FOR THIS ROUND\n${x.tactic}`,
       x.sourceIssues ? `SOURCE CHECK PROBLEMS (fix these; a quote or claim that cannot be supported must be corrected or removed)\n${x.sourceIssues}` : '',
       x.rejectedEdits ? `EDITS FROM LAST ROUND THAT COULD NOT BE APPLIED\n${x.rejectedEdits}` : '',
-      `THE TWO REVIEWS\n${x.reviews}`,
-      `EDITORIAL BRIEF\n${x.brief || '(none)'}`,
-      ...x.excerpts.map((e, i) => `EXCERPT ${i + 1} (scene: ${e.scene})\n<<<EXCERPT\n${e.text}\nEXCERPT>>>`),
     ].filter(Boolean).join('\n\n'),
   };
 }
