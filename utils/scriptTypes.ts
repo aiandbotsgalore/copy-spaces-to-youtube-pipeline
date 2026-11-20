@@ -207,7 +207,7 @@ export interface ScriptProject {
   runtimeTolerance?: number;
   transcriptHashes: Record<string, string>;
   speakerNames: Record<string, string>;      // raw label -> display name (Logan's renames)
-  clips: StudioClip[]; excludedClips: { clipId: string; reason: string }[];
+  clips: StudioClip[]; excludedClips: { clipId: string; reason: string; releaseTag?: string; episodeStartSec?: number; durationSec?: number }[];
   headVersionId: string | null;
   thesis?: string;
   charter?: string;                          // the project's rule sheet: Logan's standing editorial rules, sent with every writing prompt

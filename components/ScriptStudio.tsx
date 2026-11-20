@@ -2413,7 +2413,11 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                       <FolderSync size={12} className="text-teal-400" /> Sync Clips
                     </button>
                     <button className={btnGhost} disabled={!!busy} title="Add highlight-catalog clips from this project's recordings that are not in the Clip Bin yet (clips you removed stay removed)"
-                      onClick={() => void act('Adding highlight clips', () => scriptApi.updateProject(project.id, { refreshCatalogClips: true }))}>Highlights</button>
+                      onClick={() => void act('Adding highlight clips', async () => {
+                        const r = await scriptApi.updateProject(project.id, { refreshCatalogClips: true });
+                        const n = r.catalogRefresh?.added ?? 0, legacy = r.catalogRefresh?.legacyRemovals ?? 0;
+                        setNotice(`${n ? `Added ${n} highlight clip${n === 1 ? '' : 's'}.` : 'No new highlight clips.'}${legacy ? ` ${legacy} clip${legacy === 1 ? ' you removed' : 's you removed'} before this update could not be matched, so check the new clips for any you had removed.` : ''}`);
+                      })}>Highlights</button>
                     <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with narrative function"
                       onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag</button>
                   </div>

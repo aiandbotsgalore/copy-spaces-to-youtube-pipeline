@@ -7,7 +7,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { catalogClipId, catalogClipReleaseTag, catalogClipsForRelease } from '../../server/scriptData';
+import { catalogClipId, catalogClipReleaseTag, catalogClipsForRelease, legacyRemovedCatalogClips, mergeCatalogClipsInto, removedClipRecord } from '../../server/scriptData';
+import { queryTerms } from '../../server/scriptSearch';
+import type { StudioClip } from '../scriptTypes';
 import { addBoardSource, containsLoose, removeBoardSource } from '../../server/evidenceBoard';
 import { createScriptStore } from '../../server/scriptStore';
 import { withCharter } from '../../server/scriptEngine';
@@ -101,5 +103,34 @@ describe('project rule sheet', () => {
     const text = withCharter({ charter: 'Never narrate what Angela says on tape.' }, '- shared');
     expect(text.indexOf('Never narrate')).toBeLessThan(text.indexOf('- shared'));
     expect(text).toMatch(/override/);
+  });
+});
+
+describe('catalog refresh keeps earlier editorial work', () => {
+  const TAG = '20260916_1aJbdEmBBvrKX';
+  const clip = (clipId: string, start: number, dur: number): StudioClip => ({ clipId, title: clipId, speaker: 'Logan', releaseTag: TAG, audioUrl: 'u', durationSec: dur, text: 't', episodeStartSec: start, audioOffsetSec: 0 });
+  it('leaves a clip saved under an old position-based id in place and does not add a duplicate', () => {
+    const legacy = clip('cat17', 931.66, 70.6);
+    const p = { clips: [legacy], excludedClips: [] as any[] };
+    const added = mergeCatalogClipsInto(p, [clip('cat_aaaaaaaaaaaa', 931.66, 70.6), clip('cat_bbbbbbbbbbbb', 10, 10)], []);
+    expect(added).toBe(1);
+    expect(p.clips[0]).toBe(legacy); // the object a saved script's clip block resolves through is untouched
+    expect(p.clips.map(c => c.clipId)).toEqual(['cat17', 'cat_bbbbbbbbbbbb']);
+  });
+  it('keeps a removed clip removed when its id changes, using the recorded window', () => {
+    const p = { clips: [] as StudioClip[], excludedClips: [removedClipRecord(clip('cat5', 10, 10))] };
+    expect(mergeCatalogClipsInto(p, [clip('cat_bbbbbbbbbbbb', 10, 10)], [])).toBe(0);
+    expect(legacyRemovedCatalogClips(p)).toBe(0);
+  });
+  it('counts removals made before windows were recorded, which a refresh cannot match', () => {
+    expect(legacyRemovedCatalogClips({ excludedClips: [{ clipId: 'cat9', reason: 'Removed by Logan.' }, { clipId: 'cat3', reason: 'No audio file.' }] })).toBe(1);
+  });
+});
+
+describe('recording search terms', () => {
+  it('keeps names, acronyms and numbers, and drops short filler words', () => {
+    expect(queryTerms("Did Sav see Angela's DMs at 9pm?")).toEqual(['sav', 'angela', 'dms', '9pm']);
+    expect(queryTerms('why did she say it was a lie')).toEqual([]);
+    expect(queryTerms('The fundraiser for Sav')).toEqual(['fundraiser', 'sav']);
   });
 });

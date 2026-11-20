@@ -198,6 +198,43 @@ export function catalogClipsForRelease(root: string, releaseTag: string): { clip
   return { clips, excluded };
 }
 
+type ClipWindow = { releaseTag?: string; episodeStartSec?: number; durationSec?: number };
+type ExcludedClip = { clipId: string; reason: string } & ClipWindow;
+
+/** Identifies a clip by recording and time window, independent of its id. */
+export const clipWindowKey = (c: ClipWindow) =>
+  `${c.releaseTag ?? ''}|${Math.round((c.episodeStartSec ?? -1) * 10)}|${Math.round((c.durationSec ?? -1) * 10)}`;
+
+/** What is remembered about a clip Logan removes: its id and its window, so it stays removed even if its id changes. */
+export function removedClipRecord(c: StudioClip): ExcludedClip {
+  return { clipId: c.clipId, reason: 'Removed by Logan.', releaseTag: c.releaseTag, episodeStartSec: c.episodeStartSec, durationSec: c.durationSec };
+}
+
+/**
+ * Clips Logan removed before removals recorded a time window, under the old position-based catalog ids
+ * ("cat17"). Their window is unknown, so a catalog refresh cannot recognise them; the count is reported.
+ */
+export function legacyRemovedCatalogClips(p: { excludedClips: ExcludedClip[] }): number {
+  return (p.excludedClips || []).filter(x => /^cat\d+$/.test(x.clipId) && x.reason === 'Removed by Logan.' && x.episodeStartSec === undefined).length;
+}
+
+/**
+ * Adds catalog clips a project does not have yet and returns how many were added. Nothing already in the
+ * project changes: a clip is skipped when its id is present, when a clip of the same recording covers the
+ * same window (older projects hold position-based ids such as "cat17", which saved scripts still
+ * reference), or when Logan removed it (by id or by recorded window).
+ */
+export function mergeCatalogClipsInto(p: { clips: StudioClip[]; excludedClips: ExcludedClip[] }, clips: StudioClip[], excluded: { clipId: string; reason: string }[]): number {
+  const have = new Set(p.clips.map(c => c.clipId));
+  const windows = new Set(p.clips.map(clipWindowKey));
+  const removedIds = new Set(p.excludedClips.map(x => x.clipId));
+  const removedWindows = new Set(p.excludedClips.filter(x => x.episodeStartSec !== undefined).map(clipWindowKey));
+  const fresh = clips.filter(c => !have.has(c.clipId) && !removedIds.has(c.clipId) && !windows.has(clipWindowKey(c)) && !removedWindows.has(clipWindowKey(c)));
+  p.clips.push(...fresh);
+  p.excludedClips.push(...excluded.filter(x => !removedIds.has(x.clipId)));
+  return fresh.length;
+}
+
 /** A clip cut directly from the transcript ("Add to script"): utterances a..b of one release. */
 export function clipFromUtterances(t: LoadedTranscript, fromId: string, toId: string, names: Record<string, string>, audioUrl: string | undefined): StudioClip | null {
   const a = t.utterances.findIndex(u => u.id === fromId);

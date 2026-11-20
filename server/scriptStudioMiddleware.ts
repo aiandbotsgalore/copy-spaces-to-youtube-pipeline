@@ -64,7 +64,7 @@ import { formatChecks } from '../utils/scriptFormats';
 import { findExcerpt } from '../utils/directorValidate';
 import { changedBlockIds, codeGates, diffVersions, estimateRuntime } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
-import { catalogClipsForRelease, clipFromUtterances, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
+import { catalogClipsForRelease, clipFromUtterances, legacyRemovedCatalogClips, mergeCatalogClipsInto, removedClipRecord, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
 import { createEngine, StepError, type Engine } from './scriptEngine';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, COHERE_ROLE_MAP, INCEPTION_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
@@ -217,24 +217,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     assignSourceKeys(p);
   }
 
-  /**
-   * Adds a recording's highlight-catalog clips that the project does not have yet. A clip counts as present
-   * when its id matches, or when a clip of the same recording already covers the same window (projects
-   * made before catalog ids were stable hold position-based ids such as "cat17"). Clips Logan removed stay
-   * removed. Returns how many clips were added.
-   */
+  /** Adds a recording's highlight-catalog clips the project does not have yet (see mergeCatalogClipsInto). */
   function mergeCatalogClips(p: ScriptProject, tag: string): number {
     const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
-    const removed = new Set((p.excludedClips || []).map(x => x.clipId));
-    const have = new Set(p.clips.map(c => c.clipId));
-    const windowKey = (c: { releaseTag?: string; episodeStartSec?: number; durationSec: number }) =>
-      `${c.releaseTag}|${Math.round((c.episodeStartSec ?? -1) * 10)}|${Math.round(c.durationSec * 10)}`;
-    const windows = new Set(p.clips.map(windowKey));
-    const fresh = clips.filter(c => !have.has(c.clipId) && !removed.has(c.clipId) && !windows.has(windowKey(c)));
-    p.clips.push(...fresh);
-    const known = new Set(p.excludedClips.map(x => x.clipId));
-    p.excludedClips.push(...excluded.filter(x => !known.has(x.clipId)));
-    return fresh.length;
+    return mergeCatalogClipsInto(p, clips, excluded);
   }
 
   function removeSources(p: ScriptProject, tags: unknown[]) {
@@ -478,6 +464,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     if (route === '/project/update' && method === 'POST') {
       const body = await readBody(req);
       const p = getProject(body?.id);
+      let catalogRefresh: { added: number; legacyRemovals: number } | null = null;
       if (body.format !== undefined) {
         if (body.format !== null && !EPISODE_FORMATS.includes(body.format)) throw new StepError('BAD_REQUEST', `Unknown format ${body.format}.`);
         p.format = body.format as EpisodeFormat | null;
@@ -500,11 +487,12 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         let added = 0;
         for (const tag of p.sourceTags) added += mergeCatalogClips(p, tag);
         if (added) p.clipTagsKey = undefined;
+        catalogRefresh = { added, legacyRemovals: legacyRemovedCatalogClips(p) };
       }
       if (Array.isArray(body.removeSourceTags)) removeSources(p, body.removeSourceTags);
       if (Array.isArray(body.removeClipIds)) {
         const rm = new Set(body.removeClipIds.map(String));
-        for (const c of p.clips) if (rm.has(c.clipId)) p.excludedClips.push({ clipId: c.clipId, reason: 'Removed by Logan.' });
+        for (const c of p.clips) if (rm.has(c.clipId)) p.excludedClips.push(removedClipRecord(c));
         p.clips = p.clips.filter(c => !rm.has(c.clipId));
       }
       if (Array.isArray(body.clips)) {
@@ -535,7 +523,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
         }
       }
       touch(p);
-      return send(res, 200, { ok: true, project: p });
+      return send(res, 200, { ok: true, project: p, ...(catalogRefresh ? { catalogRefresh } : {}) });
     }
 
     if (route === '/project/add-clip' && method === 'POST') {

@@ -10,12 +10,31 @@ export interface RelatedHit { releaseTag: string; title: string; date: string | 
 
 const STOP = new Set('about above after again against also because been before being below between both could does doing down during each from further have having here into itself just more most other over same should some such than that their them then there these they this those through under until very what when where which while will with would your yours really think know like going want people thing things said says yeah okay right well'.split(' '));
 
+/** Short capitalised words that are ordinary English, not names, so a capital letter alone does not make them terms. */
+const SHORT_STOP = new Set('the and but was did why how who she her his him you our its not are has had can for all any one two yes now get got let may say see too way use new old off out own per via yet'.split(' '));
+
+/**
+ * Search terms from a question. Words of four or more letters are kept unless they are stop words.
+ * Shorter words are kept only when they look meaningful: written with a capital (a name such as "Sav"),
+ * in capitals (an acronym such as "DMs"), or containing a digit ("9pm").
+ */
 export function queryTerms(q: string): string[] {
-  return [...new Set(q.toLowerCase().replace(/[^a-z0-9' -]+/g, ' ').split(/[\s-]+/).map(w => w.replace(/^'+|'+$/g, '')).filter(w => w.length >= 4 && !STOP.has(w)))].slice(0, 12);
+  const words = q.replace(/[^A-Za-z0-9' -]+/g, ' ').split(/[\s-]+/)
+    .map(w => w.replace(/^'+|'+$/g, '').replace(/'s$/i, '')).filter(Boolean);
+  const keep = words.filter(w => {
+    const lower = w.toLowerCase();
+    if (w.length >= 4) return !STOP.has(lower);
+    if (w.length < 2 || SHORT_STOP.has(lower)) return false;
+    return /^[A-Z]/.test(w) || /\d/.test(w);
+  });
+  return [...new Set(keep.map(w => w.toLowerCase()))].slice(0, 12);
 }
 
 function count(hay: string, term: string): number {
-  const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\w{0,3}\\b`, 'g');
+  const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Long terms also match short word endings ("record" -> "recorded"). Short terms (names, acronyms) match
+  // only themselves, a plural or a possessive, so "sav" does not match "save" or "savvy".
+  const re = new RegExp(term.length >= 4 ? `\\b${esc}\\w{0,3}\\b` : `\\b${esc}(?:'s|s)?\\b`, 'g');
   return (hay.match(re) || []).length;
 }
 
