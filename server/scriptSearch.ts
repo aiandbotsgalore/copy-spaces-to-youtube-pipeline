@@ -30,12 +30,23 @@ export function queryTerms(q: string): string[] {
   return [...new Set(keep.map(w => w.toLowerCase()))].slice(0, 12);
 }
 
-function count(hay: string, term: string): number {
+function termPattern(term: string, flags = 'g'): RegExp {
   const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Long terms also match short word endings ("record" -> "recorded"). Short terms (names, acronyms) match
   // only themselves, a plural or a possessive, so "sav" does not match "save" or "savvy".
-  const re = new RegExp(term.length >= 4 ? `\\b${esc}\\w{0,3}\\b` : `\\b${esc}(?:'s|s)?\\b`, 'g');
-  return (hay.match(re) || []).length;
+  return new RegExp(term.length >= 4 ? `\\b${esc}\\w{0,3}\\b` : `\\b${esc}(?:'s|s)?\\b`, flags);
+}
+
+/** Up to 240 characters of a segment, starting a little before the matched word so the sample shows it. */
+function excerptAround(text: string, re: RegExp, max = 240): string {
+  const at = text.toLowerCase().search(re);
+  if (at < 0 || text.length <= max || at < max - 60) return text.slice(0, max);
+  const from = Math.max(0, Math.min(at - 80, text.length - max));
+  return `…${text.slice(from, from + max)}`;
+}
+
+function count(hay: string, term: string): number {
+  return (hay.match(termPattern(term)) || []).length;
 }
 
 export function searchRecordings(root: string, query: string, opts: { exclude?: string[]; limit?: number } = {}): { terms: string[]; hits: RelatedHit[]; scanned: number } {
@@ -79,8 +90,9 @@ export function searchRecordings(root: string, query: string, opts: { exclude?: 
       const segs: any[] = Array.isArray(j?.segments) ? j.segments : [];
       for (const t of rare) {
         if (samples.length >= 2) break;
-        const s = segs.find(x => String(x?.text || '').toLowerCase().includes(t) && !samples.some(y => y.start === Number(x.start)));
-        if (s) samples.push({ start: Number(s.start) || 0, speaker: String(s.speaker || ''), text: String(s.text || '').slice(0, 240) });
+        const re = termPattern(t, ''); // the same matching as the counts, so a sample never shows "savant" for "sav"
+        const s = segs.find(x => re.test(String(x?.text || '').toLowerCase()) && !samples.some(y => y.start === Number(x.start)));
+        if (s) samples.push({ start: Number(s.start) || 0, speaker: String(s.speaker || ''), text: excerptAround(String(s.text || ''), re) });
       }
     } catch { /* title stays the tag */ }
     return { releaseTag: d.tag, title, date: dateOfTag(d.tag), score: Math.round(score * 100) / 100, terms: d.tf, samples };

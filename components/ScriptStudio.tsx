@@ -1713,6 +1713,28 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     }
   };
 
+  // Hooks must run on every render, so the project menu's state lives above the early return below.
+  const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const projectMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showProjectMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
+        setShowProjectMenu(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowProjectMenu(false);
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showProjectMenu]);
+
   if (!projectId || !project) {
     return <SetupScreen status={status} checking={checking} onRecheck={recheck} onOpen={id => { setRunId(null); setProjectId(id); }} />;
   }
@@ -1784,26 +1806,6 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     }
   };
 
-  const [showProjectMenu, setShowProjectMenu] = useState(false);
-  const projectMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showProjectMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (projectMenuRef.current && !projectMenuRef.current.contains(e.target as Node)) {
-        setShowProjectMenu(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowProjectMenu(false);
-    };
-    window.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showProjectMenu]);
 
   const handleDeleteActiveProject = async () => {
     if (!project) return;

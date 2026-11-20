@@ -8,7 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { catalogClipId, catalogClipReleaseTag, catalogClipsForRelease, legacyRemovedCatalogClips, mergeCatalogClipsInto, removedClipRecord } from '../../server/scriptData';
-import { queryTerms } from '../../server/scriptSearch';
+import { queryTerms, searchRecordings } from '../../server/scriptSearch';
 import type { StudioClip } from '../scriptTypes';
 import { addBoardSource, containsLoose, removeBoardSource } from '../../server/evidenceBoard';
 import { createScriptStore } from '../../server/scriptStore';
@@ -132,5 +132,24 @@ describe('recording search terms', () => {
     expect(queryTerms("Did Sav see Angela's DMs at 9pm?")).toEqual(['sav', 'angela', 'dms', '9pm']);
     expect(queryTerms('why did she say it was a lie')).toEqual([]);
     expect(queryTerms('The fundraiser for Sav')).toEqual(['fundraiser', 'sav']);
+  });
+});
+
+describe('recording search samples', () => {
+  it('shows a sample containing the short name itself, not a longer word that starts with it', () => {
+    const root = tmp();
+    const dir = path.join(root, 'public', 'transcripts', 'episodes');
+    fs.mkdirSync(dir, { recursive: true });
+    const filler = 'and then we talked about other things for a long while '.repeat(8);
+    fs.writeFileSync(path.join(dir, '20260101_abc.json'), JSON.stringify({ title: 'Test', segments: [
+      { start: 1, speaker: 'A', text: 'he is a weird savant now' },
+      { start: 2, speaker: 'B', text: `${filler}and then Sav said she would call` },
+    ] }));
+    const r = searchRecordings(root, 'Sav');
+    expect(r.hits).toHaveLength(1);
+    expect(r.hits[0].terms.sav).toBe(1);
+    expect(r.hits[0].samples).toHaveLength(1);
+    expect(r.hits[0].samples[0].start).toBe(2);
+    expect(r.hits[0].samples[0].text).toContain('Sav said');
   });
 });

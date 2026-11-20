@@ -520,7 +520,7 @@ export function RuleSheetPanel({ project, act }: { project: ScriptProject; act: 
   return (
     <div className="space-y-1.5 pt-2 border-t border-slate-800/80">
       <div className="flex items-center gap-1 justify-between">
-        <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><ScrollText size={12} /> Rule sheet {project.charter ? `(${Math.round(project.charter.length / 1000)}k chars)` : '(none)'}</div>
+        <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><ScrollText size={12} /> Rule sheet {project.charter ? `(${project.charter.length < 1000 ? `${project.charter.length} chars` : `${Math.round(project.charter.length / 1000)}k chars`})` : '(none)'}</div>
         <button className={btnGhost} onClick={() => setOpen(o => !o)}>{open ? 'Hide' : project.charter ? 'Edit' : 'Add'}</button>
       </div>
       {!open && <div className="text-[10px] text-slate-500">Your standing rules for this production. Sent with every outline, draft, rewrite and critique, and they win over learned rules.</div>}
