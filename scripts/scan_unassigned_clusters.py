@@ -101,7 +101,17 @@ EXCLUDED_NAMES = {
     "Did", "Does", "Doing", "Done", "Going", "Come", "Came", "Got", "Getting", "Get",
     "Please", "Okay", "Oh", "Uh", "Um", "Wait", "See", "Look", "Listen", "Tell", "Say", "Let", "Make",
     "First", "Second", "Last", "Next", "Another", "One", "Two", "Three", "Four", "Five",
-    "Yes", "No", "Nope", "Yep", "Alright", "Actually", "Basically", "Probably", "Maybe"
+    "Yes", "No", "Nope", "Yep", "Alright", "Actually", "Basically", "Probably", "Maybe",
+    # Months & Days
+    "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+    # Platform, Space & generic nouns
+    "Twitter", "Space", "Spaces", "Host", "Hosts", "Speaker", "Speakers", "Chat", "Admin", "Mod", "Mods",
+    "Call", "Caller", "Callers", "Mic", "Mute", "Unmute", "Stream", "Podcast", "Show", "Channel", "People",
+    "China", "America", "Earth", "Congress", "Government", "Army", "Navy", "Police", "Guys", "Folks",
+    "Friends", "Audience", "Listeners", "Panel", "Room", "Stage", "Music", "Radio", "News", "Video",
+    # Already enrolled profile names to prevent re-attributing generic turns to existing roster
+    "Logan", "Angela", "Shane", "Mary", "Eric", "Doty", "Rick", "Oor", "Rose", "Brian"
 }
 
 
@@ -182,7 +192,8 @@ def scan_clusters(limit_episodes: int = 0, use_mercury: bool = True) -> Dict[str
 
                 ep_speaker_cache[spk] = suggested_name
 
-            cluster_key = suggested_name if suggested_name else f"{tag}_{spk}"
+            # Scope candidate cluster to specific episode to prevent mixing unrelated speakers
+            cluster_key = f"{tag}_{spk}"
 
             if cluster_key not in candidates:
                 candidates[cluster_key] = {

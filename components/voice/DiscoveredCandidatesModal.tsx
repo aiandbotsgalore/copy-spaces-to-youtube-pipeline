@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, X, Play, Square, Plus, RefreshCw, CheckCircle2, Volume2, Sparkles, ExternalLink, AlertCircle } from 'lucide-react';
-import { toFetchableUrl, toSliceableUrl } from '../../utils/audioUrl';
+import { toFetchableUrl } from '../../utils/audioUrl';
 
 export interface SpeakerCandidate {
   id: string;
@@ -41,7 +41,6 @@ export const DiscoveredCandidatesModal: React.FC<DiscoveredCandidatesModalProps>
   const stopPlayback = () => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = '';
     }
     setPlayingClipId(null);
   };
@@ -71,41 +70,56 @@ export const DiscoveredCandidatesModal: React.FC<DiscoveredCandidatesModalProps>
     }
 
     const audio = audioRef.current;
-    const playUrl = (startSec != null && endSec != null && endSec > startSec)
-      ? toSliceableUrl(audioUrl, startSec, endSec)
-      : toFetchableUrl(audioUrl);
-    const isSliced = playUrl !== audioUrl && playUrl.includes('/slice?');
-    audio.src = playUrl;
-    audio.currentTime = isSliced ? 0 : Math.max(0, startSec);
+    const playUrl = toFetchableUrl(audioUrl);
+    const start = Math.max(0, startSec || 0);
+    const end = (endSec != null && endSec > start) ? endSec : undefined;
 
-    const checkEndTime = () => {
-      const current = isSliced ? (startSec + audio.currentTime) : audio.currentTime;
-      if (endSec && current >= endSec) {
-        audio.pause();
-        setPlayingClipId(null);
-        audio.removeEventListener('timeupdate', checkEndTime);
+    // Reset previous event listeners
+    audio.onloadedmetadata = null;
+    audio.ontimeupdate = null;
+    audio.onended = null;
+    audio.onerror = null;
+
+    const seekAndPlay = () => {
+      try {
+        audio.currentTime = start;
+      } catch (e) {
+        console.warn('Direct seek failed, retrying after loadeddata:', e);
       }
+      audio.play().catch(err => {
+        console.warn('Direct audio play blocked or error:', err);
+        setAudioError('Autoplay blocked or stream error. Try clicking again.');
+        setPlayingClipId(null);
+      });
     };
 
-    audio.removeEventListener('timeupdate', checkEndTime);
-    if (endSec) {
-      audio.addEventListener('timeupdate', checkEndTime);
-    }
+    audio.ontimeupdate = () => {
+      if (end && audio.currentTime >= end) {
+        audio.pause();
+        setPlayingClipId(null);
+      }
+    };
 
     audio.onended = () => {
       setPlayingClipId(null);
     };
 
     audio.onerror = () => {
-      setAudioError('Failed to load audio sample. Opening fallback or direct asset.');
+      setAudioError('Failed to load audio sample. Check network or audio source.');
       setPlayingClipId(null);
     };
 
-    audio.play().catch(err => {
-      console.warn('Direct audio play blocked or error:', err);
-      setAudioError('Autoplay blocked or stream error. Try clicking again.');
-      setPlayingClipId(null);
-    });
+    // If source URL changed, wait for metadata before seeking
+    const isSameSrc = audio.src === playUrl || (typeof window !== 'undefined' && audio.src === window.location.origin + playUrl);
+    if (!isSameSrc) {
+      audio.src = playUrl;
+      audio.onloadedmetadata = () => {
+        seekAndPlay();
+      };
+      audio.load();
+    } else {
+      seekAndPlay();
+    }
   };
 
   useEffect(() => {

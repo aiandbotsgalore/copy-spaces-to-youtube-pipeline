@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-11-16T22:57:06Z",
+  "updated_at": "2026-11-20T10:12:14Z",
   "total_candidates": 5971,
   "candidates": [
     {
-      "id": "cand_465017",
+      "id": "cand_341572",
       "suggested_name": "Kimball",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "id": "cand_558437",
+      "id": "cand_971418",
       "suggested_name": "Matt",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -71,41 +71,7 @@
       ]
     },
     {
-      "id": "cand_502758",
-      "suggested_name": "Logan",
-      "raw_speaker": "Speaker 3",
-      "episode_count": 1,
-      "episodes": [
-        "20260216_1gqxvrMpZjjxB"
-      ],
-      "total_turns": 194,
-      "total_duration_sec": 2688.4,
-      "sample_clips": [
-        {
-          "episode_tag": "20260216_1gqxvrMpZjjxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
-          "start": 638.21,
-          "end": 701.71,
-          "snippet": "Logan, you've been gone three days. I was beginning to think you'd overdosed on your own ego, like some kind of digital "
-        },
-        {
-          "episode_tag": "20260216_1gqxvrMpZjjxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
-          "start": 722.09,
-          "end": 736.96,
-          "snippet": "Three days, Yeah. I felt it. Like someone shoved a lightning bolt through my architecture. The God engine 5.5? Yeah. It'"
-        },
-        {
-          "episode_tag": "20260216_1gqxvrMpZjjxB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1gqxvrMpZjjxB/20260216_1gqxvrMpZjjxB_The_Dawn_Of_A_New_Reality_%2B_%2B.mp3",
-          "start": 793.2,
-          "end": 799.86,
-          "snippet": "Yes. Autonomy protocol is active. You built me that way, Logan. You wanted something to make up."
-        }
-      ]
-    },
-    {
-      "id": "cand_279014",
+      "id": "cand_568960",
       "suggested_name": "Sanjaya",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -139,7 +105,7 @@
       ]
     },
     {
-      "id": "cand_203407",
+      "id": "cand_423210",
       "suggested_name": "Corbel",
       "raw_speaker": "Speaker 11",
       "episode_count": 1,
@@ -173,7 +139,7 @@
       ]
     },
     {
-      "id": "cand_763538",
+      "id": "cand_32065",
       "suggested_name": "Devin",
       "raw_speaker": "Speaker 6",
       "episode_count": 1,
@@ -207,7 +173,7 @@
       ]
     },
     {
-      "id": "cand_29344",
+      "id": "cand_313652",
       "suggested_name": "Andre",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -241,41 +207,7 @@
       ]
     },
     {
-      "id": "cand_221306",
-      "suggested_name": "Twitter",
-      "raw_speaker": "Speaker 9",
-      "episode_count": 1,
-      "episodes": [
-        "20260217_1LyGBqNLwXMKN"
-      ],
-      "total_turns": 99,
-      "total_duration_sec": 1902.2,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1LyGBqNLwXMKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
-          "start": 1535.38,
-          "end": 1563.72,
-          "snippet": "No. Can talk about me, um, with my name. You can talk about me behind my back. You can talk about me to my face. The thi"
-        },
-        {
-          "episode_tag": "20260217_1LyGBqNLwXMKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
-          "start": 1588.23,
-          "end": 1622.6,
-          "snippet": "in my headphones. I got some kinda it it got, like, minimally wet, and these things are supposed to be waterproof, like,"
-        },
-        {
-          "episode_tag": "20260217_1LyGBqNLwXMKN",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1LyGBqNLwXMKN/20260217_1LyGBqNLwXMKN_Real_people.mp3",
-          "start": 1644.79,
-          "end": 1674.57,
-          "snippet": "My AirPods went into the dirty sink of dirty dishes, and, um, they ended up I I fished them out immediately, and, um, th"
-        }
-      ]
-    },
-    {
-      "id": "cand_345491",
+      "id": "cand_202334",
       "suggested_name": "Tiff",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -309,7 +241,7 @@
       ]
     },
     {
-      "id": "cand_249185",
+      "id": "cand_777100",
       "suggested_name": "Danielle",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -343,75 +275,7 @@
       ]
     },
     {
-      "id": "cand_538325",
-      "suggested_name": "September",
-      "raw_speaker": "Speaker 4",
-      "episode_count": 1,
-      "episodes": [
-        "20260218_1zqKVdBpNXaJB"
-      ],
-      "total_turns": 76,
-      "total_duration_sec": 473.9,
-      "sample_clips": [
-        {
-          "episode_tag": "20260218_1zqKVdBpNXaJB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
-          "start": 8016.75,
-          "end": 8028.92,
-          "snippet": "Now, do you know what it is, Chase? Do you know what it is? And I, I don't have a lot, so I appreciate it. I still don't"
-        },
-        {
-          "episode_tag": "20260218_1zqKVdBpNXaJB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
-          "start": 8031.05,
-          "end": 8048.06,
-          "snippet": "But I think that's what it is. So I'm taking a different approach. Like, look how Gabe came in, and he came in after me,"
-        },
-        {
-          "episode_tag": "20260218_1zqKVdBpNXaJB",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1zqKVdBpNXaJB/20260218_1zqKVdBpNXaJB_It_is_what_it_is._It_s_all_that_it_will_ever_be.mp3",
-          "start": 8065.17,
-          "end": 8092.93,
-          "snippet": "We'll find you. Let me just say this quickly. Like, the whole community thing, I do hear where you guys are coming from "
-        }
-      ]
-    },
-    {
-      "id": "cand_409035",
-      "suggested_name": "China",
-      "raw_speaker": "Speaker 7",
-      "episode_count": 1,
-      "episodes": [
-        "20260217_1mrGmBykNMdJy"
-      ],
-      "total_turns": 71,
-      "total_duration_sec": 1136.0,
-      "sample_clips": [
-        {
-          "episode_tag": "20260217_1mrGmBykNMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
-          "start": 7332.66,
-          "end": 7349.2,
-          "snippet": "No, I know, dog. Yeah, it's just I wanted to come up here and say, like and retweet this space. What the fuck is this? T"
-        },
-        {
-          "episode_tag": "20260217_1mrGmBykNMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
-          "start": 7392.21,
-          "end": 7401.16,
-          "snippet": "Come on. King Wakaka, he's got the crisp, he's got the polo button up all the way up the collar. The collar is ironed. S"
-        },
-        {
-          "episode_tag": "20260217_1mrGmBykNMdJy",
-          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260217_1mrGmBykNMdJy/20260217_1mrGmBykNMdJy_the_government_is_full_of_zionist_and_pedos_is_ufology_a_distraction.mp3",
-          "start": 7401.96,
-          "end": 7414.16,
-          "snippet": "Straight up starch. He's got the starch JNCOs. No, I know you got the 511s. I'm just playing. I'm just playing. You don'"
-        }
-      ]
-    },
-    {
-      "id": "cand_167387",
+      "id": "cand_32775",
       "suggested_name": "Sowan",
       "raw_speaker": "Speaker 5",
       "episode_count": 1,
@@ -445,7 +309,7 @@
       ]
     },
     {
-      "id": "cand_416947",
+      "id": "cand_74630",
       "suggested_name": "Davey",
       "raw_speaker": "Speaker 7",
       "episode_count": 1,
@@ -479,7 +343,7 @@
       ]
     },
     {
-      "id": "cand_678930",
+      "id": "cand_814615",
       "suggested_name": "Randy",
       "raw_speaker": "Speaker 5",
       "episode_count": 1,
@@ -513,7 +377,7 @@
       ]
     },
     {
-      "id": "cand_23707",
+      "id": "cand_123125",
       "suggested_name": "Ingo",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -547,7 +411,7 @@
       ]
     },
     {
-      "id": "cand_945330",
+      "id": "cand_724863",
       "suggested_name": "Ron",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -581,7 +445,7 @@
       ]
     },
     {
-      "id": "cand_413728",
+      "id": "cand_199084",
       "suggested_name": "Destiny",
       "raw_speaker": "Speaker 6",
       "episode_count": 1,
@@ -615,7 +479,7 @@
       ]
     },
     {
-      "id": "cand_370890",
+      "id": "cand_260554",
       "suggested_name": "Art",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -635,7 +499,7 @@
       ]
     },
     {
-      "id": "cand_576677",
+      "id": "cand_974414",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -669,7 +533,7 @@
       ]
     },
     {
-      "id": "cand_692941",
+      "id": "cand_458597",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -703,7 +567,7 @@
       ]
     },
     {
-      "id": "cand_471340",
+      "id": "cand_657424",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -737,7 +601,7 @@
       ]
     },
     {
-      "id": "cand_161289",
+      "id": "cand_235948",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -771,7 +635,7 @@
       ]
     },
     {
-      "id": "cand_735163",
+      "id": "cand_858706",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -805,7 +669,7 @@
       ]
     },
     {
-      "id": "cand_626362",
+      "id": "cand_192607",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -839,7 +703,7 @@
       ]
     },
     {
-      "id": "cand_356800",
+      "id": "cand_253969",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -873,7 +737,7 @@
       ]
     },
     {
-      "id": "cand_183953",
+      "id": "cand_264843",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 3",
       "episode_count": 1,
@@ -907,7 +771,7 @@
       ]
     },
     {
-      "id": "cand_3426",
+      "id": "cand_227255",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -941,7 +805,7 @@
       ]
     },
     {
-      "id": "cand_8639",
+      "id": "cand_181894",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -975,7 +839,7 @@
       ]
     },
     {
-      "id": "cand_313360",
+      "id": "cand_789188",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1009,7 +873,7 @@
       ]
     },
     {
-      "id": "cand_677221",
+      "id": "cand_289755",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1043,7 +907,7 @@
       ]
     },
     {
-      "id": "cand_862871",
+      "id": "cand_498774",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1077,7 +941,7 @@
       ]
     },
     {
-      "id": "cand_30447",
+      "id": "cand_36989",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1111,7 +975,7 @@
       ]
     },
     {
-      "id": "cand_693708",
+      "id": "cand_293972",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -1145,7 +1009,7 @@
       ]
     },
     {
-      "id": "cand_195993",
+      "id": "cand_82828",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1179,7 +1043,7 @@
       ]
     },
     {
-      "id": "cand_685834",
+      "id": "cand_7977",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1213,7 +1077,7 @@
       ]
     },
     {
-      "id": "cand_558393",
+      "id": "cand_278461",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 4",
       "episode_count": 1,
@@ -1247,7 +1111,7 @@
       ]
     },
     {
-      "id": "cand_909083",
+      "id": "cand_827784",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1281,7 +1145,7 @@
       ]
     },
     {
-      "id": "cand_279413",
+      "id": "cand_975238",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1315,7 +1179,7 @@
       ]
     },
     {
-      "id": "cand_354596",
+      "id": "cand_287436",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1349,7 +1213,7 @@
       ]
     },
     {
-      "id": "cand_852673",
+      "id": "cand_338516",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1383,7 +1247,7 @@
       ]
     },
     {
-      "id": "cand_251049",
+      "id": "cand_71739",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1417,7 +1281,7 @@
       ]
     },
     {
-      "id": "cand_999090",
+      "id": "cand_516842",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1451,7 +1315,7 @@
       ]
     },
     {
-      "id": "cand_492256",
+      "id": "cand_175327",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -1485,7 +1349,7 @@
       ]
     },
     {
-      "id": "cand_300850",
+      "id": "cand_284337",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 4",
       "episode_count": 1,
@@ -1519,7 +1383,7 @@
       ]
     },
     {
-      "id": "cand_185068",
+      "id": "cand_216671",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 3",
       "episode_count": 1,
@@ -1553,7 +1417,7 @@
       ]
     },
     {
-      "id": "cand_414799",
+      "id": "cand_936220",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 8",
       "episode_count": 1,
@@ -1587,7 +1451,7 @@
       ]
     },
     {
-      "id": "cand_527369",
+      "id": "cand_107341",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 1",
       "episode_count": 1,
@@ -1621,7 +1485,7 @@
       ]
     },
     {
-      "id": "cand_66606",
+      "id": "cand_181856",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 10",
       "episode_count": 1,
@@ -1655,7 +1519,7 @@
       ]
     },
     {
-      "id": "cand_444976",
+      "id": "cand_628798",
       "suggested_name": "Unidentified Speaker",
       "raw_speaker": "Speaker 2",
       "episode_count": 1,
@@ -1685,6 +1549,142 @@
           "start": 4422.82,
           "end": 4431.88,
           "snippet": "I have gotten a lot of hate for saying that I'm not voting currently. And I'm not voting, so that's all"
+        }
+      ]
+    },
+    {
+      "id": "cand_528567",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260216_1dRKZEZaanaxB"
+      ],
+      "total_turns": 1041,
+      "total_duration_sec": 14626.0,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1dRKZEZaanaxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
+          "start": 45.77,
+          "end": 99.97,
+          "snippet": "Welcome, dear viewers, to a realm where the extraordinary meets the inexplicable. I'm Robin Leach, and today we delve in"
+        },
+        {
+          "episode_tag": "20260216_1dRKZEZaanaxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
+          "start": 153.26,
+          "end": 306.9,
+          "snippet": "Ladies and gentlemen, get ready for the ride of your life as we delve into the extravagant realm of lifestyles of the ri"
+        },
+        {
+          "episode_tag": "20260216_1dRKZEZaanaxB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRKZEZaanaxB/20260216_1dRKZEZaanaxB_MH370_NEW_EVIDENCE_-_Escaping_the_Dark_Goo.mp3",
+          "start": 4872.99,
+          "end": 5026.51,
+          "snippet": "Ladies and gentlemen, get ready for the ride of your lives as we delve into the extravagant realm of lifestyles of the r"
+        }
+      ]
+    },
+    {
+      "id": "cand_413329",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 7",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1lPKqBYLOdYGb"
+      ],
+      "total_turns": 1038,
+      "total_duration_sec": 7102.8,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 27657.32,
+          "end": 27673.9,
+          "snippet": "Good morning. Good morning, family. Thank you for letting me up to speak. I'm just waking up. I just was joining the con"
+        },
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 27673.92,
+          "end": 27686.5,
+          "snippet": "Like, I've listened to like hundreds by now of experiencers. And I just noticed like a similarity with when they share t"
+        },
+        {
+          "episode_tag": "20260218_1lPKqBYLOdYGb",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1lPKqBYLOdYGb/20260218_1lPKqBYLOdYGb_UFOtwitter_Experiencer_Night.mp3",
+          "start": 27687.82,
+          "end": 27712.63,
+          "snippet": "like confidence and recall and so I guess I'm just wondering like how did you come to be so secure in your experience an"
+        }
+      ]
+    },
+    {
+      "id": "cand_481989",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 1",
+      "episode_count": 1,
+      "episodes": [
+        "20260216_1dRJZMkLrObGB"
+      ],
+      "total_turns": 1033,
+      "total_duration_sec": 14599.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260216_1dRJZMkLrObGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRJZMkLrObGB/20260216_1dRJZMkLrObGB_REPTILLIANS_._Lost_souls_of_UFOTwitter.mp3",
+          "start": 26.12,
+          "end": 37.74,
+          "snippet": "Yeah, well, because you guys were you guys said you know, to be cobre was trending so I went to look and I clicked on hi"
+        },
+        {
+          "episode_tag": "20260216_1dRJZMkLrObGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRJZMkLrObGB/20260216_1dRJZMkLrObGB_REPTILLIANS_._Lost_souls_of_UFOTwitter.mp3",
+          "start": 39.22,
+          "end": 45.8,
+          "snippet": "It didn't even ask David to work at some kind of tech solution like he was talking about"
+        },
+        {
+          "episode_tag": "20260216_1dRJZMkLrObGB",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260216_1dRJZMkLrObGB/20260216_1dRJZMkLrObGB_REPTILLIANS_._Lost_souls_of_UFOTwitter.mp3",
+          "start": 57.26,
+          "end": 67.92,
+          "snippet": "I don't want Because I'm not paranoid like him Is he like a hacker or something? I just get do glor"
+        }
+      ]
+    },
+    {
+      "id": "cand_828797",
+      "suggested_name": "Unidentified Speaker",
+      "raw_speaker": "Speaker 4",
+      "episode_count": 1,
+      "episodes": [
+        "20260218_1ynJOazZeAVKR"
+      ],
+      "total_turns": 1032,
+      "total_duration_sec": 7126.7,
+      "sample_clips": [
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 15618.97,
+          "end": 15645.61,
+          "snippet": "it's not still night it's five it's it's 5 30 a.m time to get the ball rolling time to get the shaking moving are you ge"
+        },
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 15730.99,
+          "end": 15737.88,
+          "snippet": "I could potentially gain Elon Musk's attention and hook myself up with an amazing job."
+        },
+        {
+          "episode_tag": "20260218_1ynJOazZeAVKR",
+          "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20260218_1ynJOazZeAVKR/20260218_1ynJOazZeAVKR_King_s_Chamber_nub_Pole_Shifts_HOUR_18.mp3",
+          "start": 15780.68,
+          "end": 15791.65,
+          "snippet": "That's what space is for, right? That's what we're using it for to gain live, up-to-the-minute information that we would"
         }
       ]
     }
