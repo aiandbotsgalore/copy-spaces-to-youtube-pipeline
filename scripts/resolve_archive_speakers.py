@@ -652,6 +652,8 @@ def process_archive_speakers(
 
             # Check biometric veto if profile exists
             res_name = llm_res.get("resolved_name")
+            if profiles.get(res_name, {}).get("suggestions_paused") is True:
+                continue
             acoustic_conflict = False
             if res_name in profiles:
                 prof_emb = profiles[res_name].get("embedding")

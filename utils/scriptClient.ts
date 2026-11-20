@@ -1,3 +1,4 @@
+import { readSpeakerAssignments, readVoiceCatalog, resolveSpeakerName } from './voiceProfiles';
 /** Browser client for the Script Studio API (/api/script, served by the app's own Vite server). */
 import type { BlockDiff } from './scriptGates';
 import type { CallStatsRow, LogEntry, LogSummary, PromptOutcomeRow, QualityReport } from './scriptQuality';
@@ -60,12 +61,14 @@ export interface PaperTrailPair {
 export function transcriptViewerRenames(): Record<string, Record<string, string>> {
   const out: Record<string, Record<string, string>> = {};
   try {
+    const profiles = readVoiceCatalog()?.profiles ?? {};
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i) || '';
       const m = /^spk_names_([A-Za-z0-9_.-]{3,120})$/.exec(k);
       if (!m) continue;
-      const v = JSON.parse(localStorage.getItem(k) || 'null');
-      if (v && typeof v === 'object') out[m[1]] = v;
+      const assignments = readSpeakerAssignments(localStorage.getItem(k));
+      if (Object.keys(assignments).length) out[m[1]] = Object.fromEntries(Object.entries(assignments).map(([raw, value]) =>
+        [raw, resolveSpeakerName(profiles, value.name, value.profileId)]));
     }
   } catch { /* no storage */ }
   return out;

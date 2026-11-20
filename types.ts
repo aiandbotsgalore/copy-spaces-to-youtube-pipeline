@@ -104,6 +104,17 @@ export interface DeployStep {
   message?: string;
 }
 
+export interface VoiceSample {
+  id: string;
+  audio_url: string;
+  source: 'episode' | 'upload' | 'link' | 'legacy';
+  label?: string;
+  release_id?: number;
+  release_tag?: string;
+  start_sec?: number;
+  end_sec?: number;
+}
+
 export interface VoiceProfile {
   name: string;
   role?: string;
@@ -115,6 +126,11 @@ export interface VoiceProfile {
   color?: string;
   notes?: string;
   sample_audio_url?: string;
+  samples?: VoiceSample[];
+  identity_verified?: boolean;
+  embedding_model?: string;
+  suggestions_paused?: boolean;
+  enrolled_sample_id?: string;
 }
 
 export interface DeadLetterJob {
@@ -147,6 +163,7 @@ export interface VoiceProfilesCatalog {
   embedding_model: string;
   embedding_dim: number;
   profiles: Record<string, VoiceProfile>;
+  removed_profiles?: Record<string, string>;
   dlq?: DeadLetterJob[];
 }
 

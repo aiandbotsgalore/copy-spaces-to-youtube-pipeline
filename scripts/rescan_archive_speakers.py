@@ -237,6 +237,8 @@ def main():
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     for speaker in target_speakers:
+        if profiles.get(speaker, {}).get("suggestions_paused") is True:
+            continue
         target_emb = load_profile_embedding(speaker)
         print(f"\n--- Checking Speaker: '{speaker}' ---")
         if target_emb:

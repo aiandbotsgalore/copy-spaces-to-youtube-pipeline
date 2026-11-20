@@ -129,6 +129,8 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     toggleBlacklist,
     isBlacklisted,
     autoCurate,
+    auditionState,
+    exportState,
     isAuditioning,
     currentAuditionIndex,
     auditionProgress,
@@ -633,7 +635,11 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   ]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 text-slate-200 overflow-hidden font-sans">
+    <div
+      data-component="montage-studio"
+      data-state={isExporting ? exportState : isAuditioning ? auditionState : 'idle'}
+      className="flex-1 flex flex-col h-full bg-slate-950 text-slate-200 overflow-hidden font-sans"
+    >
       {/* ── STUDIO HEADER / TOP METRICS BAR ── */}
       <header className="px-6 py-4 bg-slate-900/80 border-b border-indigo-500/20 backdrop-blur-md flex flex-wrap items-center justify-between gap-4 flex-shrink-0">
         <div className="flex items-center gap-3">

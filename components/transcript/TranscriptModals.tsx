@@ -15,12 +15,13 @@ export interface QuickRenameTarget {
   rawSpeaker: string;
   currentName: string;
   turnCount?: number;
+  profileId?: string;
 }
 
 export interface TranscriptModalsProps {
   quickRenameTarget: QuickRenameTarget | null;
   onCloseRenameModal: () => void;
-  onApplyRename: (rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean) => void;
+  onApplyRename: (rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean, profileId?: string) => void;
   onResetRename: (rawSpeaker: string) => void;
   savedSpeakers: SavedSpeaker[];
   showSavedSpeakersModal: boolean;

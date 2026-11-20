@@ -45,6 +45,9 @@ import {
 import { EnhancedConfig } from '../types';
 import { useMontage } from '../contexts/MontageContext';
 import { AvatarCropModal } from './AvatarCropModal';
+import { createMachine } from '../utils/stateMachine';
+
+export type AvatarRenderState = 'idle' | 'rendering' | 'rendered' | 'error';
 
 interface Props {
   config: EnhancedConfig;
@@ -287,7 +290,29 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   // Generation Engine State: LivePortrait on Modal Cloud GPU (primary) vs Local FFmpeg Preview
   const [renderEngine, setRenderEngine] = useState<'modal' | 'local'>('modal');
   const [latentSteps, setLatentSteps] = useState<number>(6);
+  const [renderState, setRenderState] = useState<AvatarRenderState>('idle');
   const [isRendering, setIsRendering] = useState(false);
+
+  const machineRef = useRef(
+    createMachine<AvatarRenderState, 'START' | 'FINISH' | 'FAIL' | 'RESET'>(
+      {
+        id: 'avatar-studio',
+        initial: 'idle',
+        states: {
+          idle: { START: 'rendering' },
+          rendering: { FINISH: 'rendered', FAIL: 'error', RESET: 'idle' },
+          rendered: { START: 'rendering', RESET: 'idle' },
+          error: { START: 'rendering', RESET: 'idle' },
+        },
+        onTransition: (_from, to) => {
+          setRenderState(to);
+          setIsRendering(to === 'rendering');
+        },
+      },
+      {}
+    )
+  );
+
   const [renderProgress, setRenderProgress] = useState(0);
   const [renderedJob, setRenderedJob] = useState<RenderedAvatarJob | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -443,6 +468,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
     const controller = new AbortController();
     renderAbortRef.current = controller;
 
+    machineRef.current.send('START');
     setIsRendering(true);
     setRenderProgress(10);
     setRenderError(null);
@@ -521,6 +547,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
             setCurrentTime(0);
           }
 
+          machineRef.current.send('FINISH');
           setIsRendering(false);
           showToast(`🎉 Photorealistic LivePortrait talking avatar rendered in ${data.elapsedSec || 60}s!`);
           return;
@@ -588,9 +615,12 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
       } else {
         showToast(`🎬 Rendered ${data.resolution || '1080p'} avatar draft (${data.jobId.slice(0, 16)}).`);
       }
+      machineRef.current.send('FINISH');
+      setIsRendering(false);
     } catch (e: any) {
       if (e?.name === 'AbortError' || renderAbortRef.current !== controller) return;
       const message = e instanceof Error ? e.message : 'Avatar render failed.';
+      machineRef.current.send('FAIL');
       setRenderError(message);
       setRenderedJob(null);
       setRenderProgress(0);
@@ -759,7 +789,11 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
   }, [personas, personaFilter]);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative">
+    <div
+      data-component="avatar-studio"
+      data-state={renderState}
+      className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative"
+    >
       {/* ── HIDDEN AUDIO DRIVER ── */}
       <audio
         ref={audioPlayerRef}
@@ -1226,6 +1260,7 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
                 <button
                   onClick={() => {
                     renderAbortRef.current?.abort();
+                    machineRef.current.send('RESET');
                     setIsRendering(false);
                     setRenderProgress(0);
                     showToast('🛑 Generation canceled by user');

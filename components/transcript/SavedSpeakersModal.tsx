@@ -3,6 +3,7 @@ import { Star, X, Trash2, UserPlus, Plus } from 'lucide-react';
 
 export interface SavedSpeaker {
   id: string;
+  voiceProfileId?: string;
   name: string;
   role?: string;
   color?: string;

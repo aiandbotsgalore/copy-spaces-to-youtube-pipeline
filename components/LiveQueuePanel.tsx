@@ -1,11 +1,15 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { List, RefreshCw, AlertCircle, Globe, Youtube, Mic2, Linkedin } from 'lucide-react';
 import { EnhancedConfig } from '../types';
 import { getRepositoryDefaultBranch, readRepositoryTextFile } from '../utils/github';
+import { createMachine } from '../utils/stateMachine';
 
 interface Props {
   config: EnhancedConfig;
 }
+
+export type LiveQueueStatus = 'idle' | 'loading' | 'success' | 'error';
+type LiveQueueEvent = 'FETCH_START' | 'FETCH_SUCCESS' | 'FETCH_ERROR';
 
 function detectPlatform(url: string): { label: string; icon: React.ReactNode; color: string } {
   const u = url.toLowerCase();
@@ -22,15 +26,32 @@ function detectPlatform(url: string): { label: string; icon: React.ReactNode; co
 
 const LiveQueuePanel: React.FC<Props> = ({ config }) => {
   const [urls, setUrls] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<LiveQueueStatus>('idle');
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
+
+  const machineRef = useRef(
+    createMachine<LiveQueueStatus, LiveQueueEvent>(
+      {
+        id: 'live-queue',
+        initial: 'idle',
+        states: {
+          idle: { FETCH_START: 'loading' },
+          loading: { FETCH_SUCCESS: 'success', FETCH_ERROR: 'error' },
+          success: { FETCH_START: 'loading' },
+          error: { FETCH_START: 'loading' },
+        },
+        onTransition: (_from, to) => setStatus(to),
+      },
+      {}
+    )
+  );
 
   const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
 
   const fetchQueue = useCallback(async () => {
     if (!hasCredentials) return;
-    setLoading(true);
+    machineRef.current.send('FETCH_START');
     setError('');
     try {
       const branch = await getRepositoryDefaultBranch(config.githubToken, config.ownerName.trim(), config.repoName.trim());
@@ -47,20 +68,27 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
         .filter(Boolean);
       setUrls(lines);
       setLoaded(true);
+      machineRef.current.send('FETCH_SUCCESS');
     } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
+      const msg = (e as Error).message;
+      setError(msg);
+      machineRef.current.send('FETCH_ERROR');
     }
   }, [config.githubToken, config.ownerName, config.repoName, hasCredentials]);
 
+  const loading = status === 'loading';
+
   useEffect(() => {
-    if (hasCredentials && !loaded && !loading) fetchQueue();
+    if (hasCredentials && !loaded && status === 'idle') fetchQueue();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasCredentials]);
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-3xl mx-auto w-full">
+    <div
+      data-component="live-queue-panel"
+      data-state={status}
+      className="h-full overflow-y-auto p-6 md:p-12 max-w-3xl mx-auto w-full"
+    >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">

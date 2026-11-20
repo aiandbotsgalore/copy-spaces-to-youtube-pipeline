@@ -6,12 +6,13 @@ export interface RenameTarget {
   rawSpeaker: string;
   currentName: string;
   turnCount?: number;
+  profileId?: string;
 }
 
 interface SpeakerRenameModalProps {
   target: RenameTarget | null;
   onClose: () => void;
-  onApply: (rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean) => void;
+  onApply: (rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean, profileId?: string) => void;
   onReset: (rawSpeaker: string) => void;
   onOpenSavedModal: () => void;
   savedSpeakers: SavedSpeaker[];
@@ -38,6 +39,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
   getAutoSpeakerEmoji,
 }) => {
   const [quickRenameVal, setQuickRenameVal] = useState('');
+  const [profileId, setProfileId] = useState<string>();
   const [quickRenameColor, setQuickRenameColor] = useState('indigo');
   const [quickRenameEmoji, setQuickRenameEmoji] = useState('🎙️');
   const [quickRenameAddToSaved, setQuickRenameAddToSaved] = useState(false);
@@ -45,6 +47,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
   useEffect(() => {
     if (target) {
       setQuickRenameVal(target.currentName);
+      setProfileId(target.profileId);
       const clean = target.currentName.trim();
       const def = defaultSavedSpeakers.find((s) => s.name.toLowerCase() === clean.toLowerCase());
       const existing = savedSpeakers.find((s) => s.name.toLowerCase() === clean.toLowerCase());
@@ -60,7 +63,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
 
   const handleApply = () => {
     if (!quickRenameVal.trim()) return;
-    onApply(target.rawSpeaker, quickRenameVal.trim(), quickRenameColor, quickRenameEmoji, quickRenameAddToSaved);
+    onApply(target.rawSpeaker, quickRenameVal.trim(), quickRenameColor, quickRenameEmoji, quickRenameAddToSaved, profileId);
   };
 
   const displayName = quickRenameVal.trim() || target.rawSpeaker;
@@ -70,7 +73,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-slate-900 border border-slate-700/80 rounded-xl max-w-md w-full p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -107,6 +110,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
               onChange={(e) => {
                 const newVal = e.target.value;
                 setQuickRenameVal(newVal);
+                setProfileId(undefined);
                 const clean = newVal.trim();
                 const def = defaultSavedSpeakers.find((s) => s.name.toLowerCase() === clean.toLowerCase());
                 const existing = savedSpeakers.find((s) => s.name.toLowerCase() === clean.toLowerCase());
@@ -131,13 +135,14 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
             {quickRenameVal && (
               <button
                 type="button"
-                onClick={() => setQuickRenameVal('')}
+                onClick={() => { setQuickRenameVal(''); setProfileId(undefined); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
               >
                 <X size={14} />
               </button>
             )}
           </div>
+          {profileId && <p className="text-xs text-indigo-300">Linked to the {displayName} voice profile.</p>}
           <p className="text-[11px] text-slate-400">
             Renaming will immediately update all turns by <strong className="text-indigo-300">{target.rawSpeaker}</strong> across this entire episode.
           </p>
@@ -213,7 +218,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {savedSpeakers.map((s) => {
-                const isSelected = quickRenameVal.trim().toLowerCase() === s.name.toLowerCase();
+                const isSelected = s.voiceProfileId ? profileId === s.voiceProfileId : !profileId && quickRenameVal.trim().toLowerCase() === s.name.toLowerCase();
                 const sTheme = getSpeakerTheme(s.name, savedSpeakers);
                 return (
                   <button
@@ -221,6 +226,7 @@ export const SpeakerRenameModal: React.FC<SpeakerRenameModalProps> = ({
                     type="button"
                     onClick={() => {
                       setQuickRenameVal(s.name);
+                      setProfileId(s.voiceProfileId);
                       const color = s.color && speakerColorMap[s.color] ? s.color : getAutoSpeakerColor(s.name);
                       const emoji = s.avatarEmoji || getAutoSpeakerEmoji(s.name);
                       setQuickRenameColor(color);

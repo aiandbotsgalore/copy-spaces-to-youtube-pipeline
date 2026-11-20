@@ -25,6 +25,10 @@ import { useMontage } from '../contexts/MontageContext';
 import { useCopilot } from '../contexts/CopilotContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
 import { parseEpisodeSummaries } from '../utils/contracts/transcript';
+import type { VoiceProfile, VoiceProfilesCatalog } from '../types';
+import { collectConfirmedProfiles, mergeVoiceCatalog, readSpeakerAssignments, readVoiceCatalog,
+  recordConfirmedProfiles, resolveSpeakerName } from '../utils/voiceProfiles';
+import type { SpeakerAssignments } from '../utils/voiceProfiles';
 import {
   SearchWorkerClient,
   parseGoogleQuery,
@@ -40,6 +44,7 @@ import {
 interface Props {
   config: EnhancedConfig;
   initialReleaseId?: number | string | null;
+  initialStartSec?: number;
 }
 
 export interface UtteranceWord {
@@ -83,6 +88,7 @@ type ReleaseAssetLike = {
 
 export interface SavedSpeaker {
   id: string;
+  voiceProfileId?: string;
   name: string;
   avatarEmoji?: string;
   avatarUrl?: string;
@@ -781,13 +787,15 @@ function parseTranscriptData(rawContent: string): ParsedUtterance[] {
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
+const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialStartSec }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(typeof initialReleaseId === 'number' ? initialReleaseId : null);
-  const [transcriptRaw, setTranscriptRaw] = useState('');
+  const [transcript, setTranscript] = useState<{ raw: string; releaseId: number | null }>({ raw: '', releaseId: null });
+  const transcriptRaw = transcript.releaseId === selectedId ? transcript.raw : '';
+  const transcriptRequest = useRef(0);
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState('');
   const [search, setSearch] = useState('');
@@ -846,8 +854,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const [audioZipSuccess, setAudioZipSuccess] = useState<string | null>(null);
   const [activeResultsView, setActiveResultsView] = useState<'turns' | 'clips'>('turns');
 
-  const [speakerMap, setSpeakerMap] = useState<Record<string, string>>({});
-  const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number } | null>(null);
+  const [speakerEdits, setSpeakerEdits] = useState<{ releaseId: number | null; entries: SpeakerAssignments }>({ releaseId: null, entries: {} });
+  const [voiceProfiles, setVoiceProfiles] = useState<Record<string, VoiceProfile>>(() => readVoiceCatalog()?.profiles ?? {});
+  const speakerAssignments = useMemo(() => speakerEdits.releaseId === selectedId ? speakerEdits.entries : {}, [speakerEdits, selectedId]);
+  const speakerMap = useMemo(() => Object.fromEntries(Object.entries(speakerAssignments).map(([raw, assignment]) =>
+    [raw, resolveSpeakerName(voiceProfiles, assignment.name, assignment.profileId)])), [speakerAssignments, voiceProfiles]);
+  const [quickRenameTarget, setQuickRenameTarget] = useState<{ rawSpeaker: string; currentName: string; turnCount?: number; profileId?: string } | null>(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
 
   const [savedSpeakers, setSavedSpeakers] = useState<SavedSpeaker[]>(() => {
@@ -916,38 +928,29 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
     loadProfiles()
       .then(data => {
-        if (!data || !data.profiles) return;
+        const local = readVoiceCatalog();
+        const profiles = data?.profiles ? mergeVoiceCatalog(data as VoiceProfilesCatalog, local).profiles : local?.profiles;
+        if (!profiles) return;
+        setVoiceProfiles(profiles);
         setSavedSpeakers(prev => {
-          const map = new Map(prev.map((s, idx) => [s.name.toLowerCase(), idx]));
           const next = [...prev];
-          let changed = false;
-          for (const [pName, pData] of Object.entries<any>(data.profiles)) {
-            const clean = pName.trim();
-            const lower = clean.toLowerCase();
-            const avatarUrl = pData.avatar_url;
-            if (map.has(lower)) {
-              const idx = map.get(lower)!;
-              if (avatarUrl && next[idx].avatarUrl !== avatarUrl) {
-                next[idx] = { ...next[idx], avatarUrl };
-                changed = true;
-              }
-            } else {
-              next.push({
-                id: lower.replace(/\s+/g, '-'),
-                name: clean,
-                avatarUrl,
-                avatarEmoji: getAutoSpeakerEmoji(clean),
-                color: getAutoSpeakerColor(clean),
-                role: 'Speaker',
-              });
-              changed = true;
-            }
+          for (const [id, profile] of Object.entries(profiles)) {
+            const idx = next.findIndex(s => s.voiceProfileId === id || (!s.voiceProfileId &&
+              (s.name.toLowerCase() === id.toLowerCase() || s.name.toLowerCase() === profile.name.toLowerCase())));
+            const existing = idx >= 0 ? next[idx] : undefined;
+            const speaker = {
+              id,
+              voiceProfileId: id,
+              name: profile.name,
+              avatarUrl: profile.avatar_url ?? existing?.avatarUrl,
+              avatarEmoji: profile.avatar_emoji ?? existing?.avatarEmoji ?? getAutoSpeakerEmoji(profile.name),
+              color: profile.color ?? existing?.color ?? getAutoSpeakerColor(profile.name),
+              role: profile.role ?? existing?.role ?? 'Speaker',
+            };
+            if (idx >= 0) next[idx] = speaker;
+            else next.push(speaker);
           }
-          if (changed) {
-            try { localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(next)); } catch {}
-            return next;
-          }
-          return prev;
+          return next;
         });
       })
       .catch(() => {});
@@ -1009,7 +1012,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const transcriptionPollRef = useRef<number | null>(null);
   const lastAutoScrolledUtteranceRef = useRef<string | null>(null);
   const targetScrollSecRef = useRef<number | null>(null);
-  const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(null);
+  const targetScrollRef = useRef<{ releaseId: number; tag?: string; sec: number } | null>(
+    initialReleaseId != null && initialStartSec !== undefined
+      ? { releaseId: typeof initialReleaseId === 'number' ? initialReleaseId : -1, tag: typeof initialReleaseId === 'string' ? initialReleaseId : undefined, sec: initialStartSec }
+      : null,
+  );
 
   const { play, seek, currentTime, isPlaying, current, togglePlay } = usePlayer();
   const { addClip, auditionSoloClip } = useMontage();
@@ -1302,40 +1309,36 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [searchScope, globalIndex, globalIndexLoading, loadGlobalIndex]);
 
   useEffect(() => {
-    if (selectedId) {
-      try {
-        const primary = localStorage.getItem(`spk_names_${selectedId}`);
-        const secondary = selectedRelease?.tag_name ? localStorage.getItem(`spk_names_${selectedRelease.tag_name}`) : null;
-        const saved = primary || secondary;
-        setSpeakerMap(saved ? JSON.parse(saved) : {});
-      } catch { setSpeakerMap({}); }
-    }
+    if (!selectedId) return;
+    let entries: SpeakerAssignments = {};
+    try {
+      const primary = localStorage.getItem(`spk_names_${selectedId}`);
+      const secondary = selectedRelease?.tag_name ? localStorage.getItem(`spk_names_${selectedRelease.tag_name}`) : null;
+      entries = readSpeakerAssignments(primary ?? secondary);
+    } catch { /* browser storage unavailable */ }
+    setSpeakerEdits({ releaseId: selectedId, entries });
   }, [selectedId, selectedRelease?.tag_name]);
 
-  const saveSpeakerRename = (rawSpeaker: string, newName: string) => {
-    const trimmed = newName.trim();
+  const saveSpeakerRename = (rawSpeaker: string, newName: string, profileId?: string) => {
+    const name = newName.trim();
     if (!selectedId) return;
-    setSpeakerMap(prev => {
-      const next = { ...prev };
-      if (trimmed && trimmed !== rawSpeaker) { next[rawSpeaker] = trimmed; } else { delete next[rawSpeaker]; }
-      try {
-        localStorage.setItem(`spk_names_${selectedId}`, JSON.stringify(next));
-        if (selectedRelease?.tag_name) {
-          localStorage.setItem(`spk_names_${selectedRelease.tag_name}`, JSON.stringify(next));
-        }
-      } catch {}
-      return next;
-    });
+    const next = { ...speakerAssignments };
+    if (name && (name !== rawSpeaker || profileId)) next[rawSpeaker] = profileId ? { name, profileId } : { name };
+    else delete next[rawSpeaker];
+    setSpeakerEdits({ releaseId: selectedId, entries: next });
+    try {
+      const data = JSON.stringify(next);
+      localStorage.setItem(`spk_names_${selectedId}`, data);
+      if (selectedRelease?.tag_name) localStorage.setItem(`spk_names_${selectedRelease.tag_name}`, data);
+    } catch { /* the edit is still available for this session */ }
   };
 
   const resetAllSpeakerNames = () => {
     if (!selectedId) return;
-    setSpeakerMap({});
+    setSpeakerEdits({ releaseId: selectedId, entries: {} });
     try {
       localStorage.removeItem(`spk_names_${selectedId}`);
-      if (selectedRelease?.tag_name) {
-        localStorage.removeItem(`spk_names_${selectedRelease.tag_name}`);
-      }
+      if (selectedRelease?.tag_name) localStorage.removeItem(`spk_names_${selectedRelease.tag_name}`);
     } catch {}
   };
 
@@ -1405,6 +1408,10 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   }, [hasCredentials, loaded, loading, fetchReleases]);
 
   const loadTranscript = useCallback(async (release: Release, targetAsset?: ReleaseAsset | null, partNum?: number) => {
+    const request = ++transcriptRequest.current;
+    const setTranscriptRaw = (raw: string) => {
+      if (transcriptRequest.current === request) setTranscript({ raw, releaseId: release.id });
+    };
     const pNum = typeof partNum === 'number' ? partNum : 1;
     setSelectedPartNum(pNum);
     const parts = getReleaseParts(release);
@@ -1652,6 +1659,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
 
   const parsedUtterances = useMemo(() => parseTranscriptData(transcriptRaw), [transcriptRaw]);
 
+  useEffect(() => {
+    if (!selectedRelease || speakerEdits.releaseId !== selectedRelease.id || !parsedUtterances.length) return;
+    const episode = `${owner}/${repo}/${selectedRelease.tag_name || selectedRelease.id}`;
+    recordConfirmedProfiles(episode, collectConfirmedProfiles(parsedUtterances, speakerAssignments), selectedPartNum);
+  }, [selectedRelease, selectedPartNum, owner, repo, parsedUtterances, speakerAssignments, speakerEdits.releaseId]);
+
   // Only explicit manual overrides may rename speakers in the presentation layer.
   // Host, dialogue and roster ordering are not identity evidence.
   const effectiveSpeakerMap = useMemo(() => ({ ...speakerMap }), [speakerMap]);
@@ -1670,10 +1683,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       endSec: adjustedEnd,
       startLabel: formatSeconds(adjustedStart),
       endLabel: adjustedEnd !== null ? formatSeconds(adjustedEnd) : '',
-      speaker: effectiveSpeakerMap[u.rawSpeaker] || speakerMap[u.rawSpeaker] || u.speaker,
+      speaker: effectiveSpeakerMap[u.rawSpeaker] || resolveSpeakerName(
+        voiceProfiles, u.speaker, typeof u.attribution?.profile_id === 'string' ? u.attribution.profile_id : undefined,
+      ),
       words: adjustedWords,
     };
-  }), [parsedUtterances, speakerMap, effectiveSpeakerMap, timeOffsetSec]);
+  }), [parsedUtterances, effectiveSpeakerMap, timeOffsetSec, voiceProfiles]);
 
   useEffect(() => {
     if (targetScrollRef.current && utterances.length > 0 && selectedRelease) {
@@ -1733,7 +1748,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
   const openQuickRename = (rawSpeaker: string, currentName: string) => {
     const turns = speakerStats.find(st => st.rawSpeaker === rawSpeaker)?.count || 0;
     const effectiveName = effectiveSpeakerMap[rawSpeaker] || speakerMap[rawSpeaker] || currentName;
-    setQuickRenameTarget({ rawSpeaker, currentName: effectiveName, turnCount: turns });
+    setQuickRenameTarget({ rawSpeaker, currentName: effectiveName, turnCount: turns, profileId: speakerAssignments[rawSpeaker]?.profileId });
   };
 
 
@@ -2398,7 +2413,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         episode: selectedRelease.name || selectedRelease.tag_name,
         tag: selectedRelease.tag_name,
         published_at: selectedRelease.published_at,
-        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? { attribution: { method: 'human_verified' }, speaker_verified: true } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
+        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? {
+          attribution: { method: 'human_verified', ...(speakerAssignments[u.rawSpeaker]?.profileId
+            ? { profile_id: speakerAssignments[u.rawSpeaker].profileId } : {}) },
+          speaker_verified: true,
+        } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
       };
       blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       filename = `${baseName}_transcript.json`;
@@ -2734,7 +2753,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
         episode: selectedRelease.name || selectedRelease.tag_name,
         tag: selectedRelease.tag_name,
         published_at: selectedRelease.published_at,
-        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? { attribution: { method: 'human_verified' }, speaker_verified: true } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
+        segments: utterances.map(u => ({ start: u.startSec, end: u.endSec, speaker: u.speaker, raw_speaker: u.rawSpeaker, text: u.text, ...(u.attribution ? { attribution: u.attribution } : {}), ...(speakerMap[u.rawSpeaker] ? {
+          attribution: { method: 'human_verified', ...(speakerAssignments[u.rawSpeaker]?.profileId
+            ? { profile_id: speakerAssignments[u.rawSpeaker].profileId } : {}) },
+          speaker_verified: true,
+        } : u.speakerVerified ? { speaker_verified: true } : {}), ...(u.confidence !== undefined ? { confidence: u.confidence } : {}) })),
       }, null, 2);
       await updateReleaseTranscriptAssets(config.githubToken, owner, repo, selectedRelease, text, jsonData);
       // Offset is now baked into saved timestamps — clear it to prevent double-apply on reload
@@ -4209,7 +4232,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
                                   if (part.transcriptAsset) {
                                     loadTranscript(selectedRelease, part.transcriptAsset, part.partNumber);
                                   } else {
-                                    setTranscriptRaw('');
+                                    setTranscript({ raw: '', releaseId: null });
                                     setTranscriptError('');
                                   }
                                 }}
@@ -4660,8 +4683,8 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId }) => {
       <TranscriptModals
         quickRenameTarget={quickRenameTarget}
         onCloseRenameModal={() => setQuickRenameTarget(null)}
-        onApplyRename={(rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean) => {
-          saveSpeakerRename(rawSpeaker, newName);
+        onApplyRename={(rawSpeaker: string, newName: string, color: string, emoji: string, addToSaved: boolean, profileId?: string) => {
+          saveSpeakerRename(rawSpeaker, newName, profileId);
           if (addToSaved) {
             addOrUpdatePermanentSpeaker({
               id: newName.toLowerCase().replace(/\s+/g, '-'),

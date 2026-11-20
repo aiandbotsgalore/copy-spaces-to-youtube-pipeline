@@ -116,6 +116,16 @@ class TestSpacePipeTranscribeCore(unittest.TestCase):
         self.assertEqual(matches.get("CLUSTER_0"), "Logan")
         self.assertNotEqual(matches.get("CLUSTER_1"), "Logan", "Duplicate identity assigned in violation of 1-to-1 bipartite constraint")
 
+    def test_paused_best_match_leaves_cluster_unassigned(self):
+        profiles = {
+            "Angela": {"identity_verified": True, "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+                       "embedding": [1, 0], "suggestions_paused": True},
+            "Other": {"identity_verified": True, "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
+                      "embedding": [0.8, 0.6]},
+        }
+        self.assertEqual(core.match_biometrics_1to1({"cluster": [1, 0]}, profiles), {})
+        self.assertEqual(core.match_biometrics_1to1({"cluster": [.8, .6]}, profiles), {"cluster": "Other"})
+
     def test_elimination_of_talk_time_host_dominance(self):
         """
         Verify that having the most talk time does NOT result in an automatic identity assignment

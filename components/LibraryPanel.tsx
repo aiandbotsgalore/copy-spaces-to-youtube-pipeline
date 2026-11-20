@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Library, RefreshCw, ExternalLink, Download, Play, AlertCircle,
   CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X, Sparkles
@@ -7,6 +7,10 @@ import { Release, EnhancedConfig } from '../types';
 import { getReleases, dispatchWorkflow, deleteRelease, getReleaseParts } from '../utils/github';
 import { usePlayer } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import { createMachine } from '../utils/stateMachine';
+
+export type LibraryStatus = 'idle' | 'loading' | 'success' | 'error';
+type LibraryEvent = 'FETCH_START' | 'FETCH_SUCCESS' | 'FETCH_ERROR';
 
 interface Props {
   config: EnhancedConfig;
@@ -65,13 +69,30 @@ function findDuplicates(releases: Release[]): DuplicateGroup[] {
 
 const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const [releases, setReleases] = useState<Release[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<LibraryStatus>('idle');
   const [error, setError] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [dispatching, setDispatching] = useState<number | null>(null);
   const [dispatchMsg, setDispatchMsg] = useState<Record<number, string>>({});
   const [search, setSearch] = useState('');
   const [confirmRerun, setConfirmRerun] = useState<number | null>(null);
+
+  const machineRef = useRef(
+    createMachine<LibraryStatus, LibraryEvent>(
+      {
+        id: 'library-panel',
+        initial: 'idle',
+        states: {
+          idle: { FETCH_START: 'loading' },
+          loading: { FETCH_SUCCESS: 'success', FETCH_ERROR: 'error' },
+          success: { FETCH_START: 'loading' },
+          error: { FETCH_START: 'loading' },
+        },
+        onTransition: (_from, to) => setStatus(to),
+      },
+      {}
+    )
+  );
 
   const [sort, setSort] = useState<'date-desc' | 'date-asc' | 'dur-desc' | 'dur-asc'>('date-desc');
 
@@ -90,7 +111,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
   const fetchLibrary = useCallback(async () => {
     if (!hasCredentials) return;
-    setLoading(true);
+    machineRef.current.send('FETCH_START');
     setError('');
     try {
       const data = await getReleases(config.githubToken, owner, repo);
@@ -98,15 +119,18 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
       setLoaded(true);
       setDupMode(false);
       setSelected(new Set());
+      machineRef.current.send('FETCH_SUCCESS');
     } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
+      const msg = (e as Error).message;
+      setError(msg);
+      machineRef.current.send('FETCH_ERROR');
     }
   }, [config.githubToken, owner, repo, hasCredentials]);
 
+  const loading = status === 'loading';
+
   useEffect(() => {
-    if (hasCredentials && !loaded && !loading) {
+    if (hasCredentials && !loaded && status === 'idle') {
       fetchLibrary();
     }
   }, [hasCredentials, loaded, loading, fetchLibrary]);
@@ -273,7 +297,11 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const dupCount = findDuplicates(releases).length;
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
+    <div
+      data-component="library-panel"
+      data-state={status}
+      className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full"
+    >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Episode Library</h2>

@@ -21,6 +21,11 @@ on:
         required: false
         default: ''
         type: string
+      sample_id:
+        description: 'Optional ID of a saved voice sample to use for this enrollment'
+        required: false
+        default: ''
+        type: string
       release_tag:
         description: 'Optional episode release_tag to permanently update speaker label in transcript JSON'
         required: false
@@ -56,6 +61,8 @@ jobs:
         env:
           AUDIO_SRC: ${{ inputs.audio_url }}
           SEGMENTS_JSON: ${{ inputs.segments_json }}
+          SPK_NAME: ${{ inputs.speaker_name }}
+          VOICE_SAMPLE_ID: ${{ inputs.sample_id }}
         run: |
           mkdir -p speaker_samples/downloaded/clips
           python -c "
@@ -63,6 +70,21 @@ jobs:
           src = os.environ.get('AUDIO_SRC', '').strip()
           segs_raw = os.environ.get('SEGMENTS_JSON', '').strip()
           clips_dir = 'speaker_samples/downloaded/clips'
+          sample_id = os.environ.get('VOICE_SAMPLE_ID', '')
+          if sample_id:
+              with open('voice_profiles.json', encoding='utf-8') as handle:
+                  profile = json.load(handle)['profiles'][os.environ['SPK_NAME']]
+              samples = profile.get('samples') if 'samples' in profile else [
+                  {'id': 'legacy', 'audio_url': profile.get('sample_audio_url')}
+              ]
+              sample = next((entry for entry in samples if entry.get('id') == sample_id), None)
+              if not sample or sample.get('audio_url') != src:
+                  raise ValueError('Saved sample source changed')
+              start = sample.get('start_sec', 0)
+              end = sample.get('end_sec')
+              expected = [{'start': start, 'duration': end - start}] if end is not None else []
+              if (json.loads(segs_raw) if segs_raw else []) != expected:
+                  raise ValueError('Saved sample selection changed')
           extracted = 0
 
           # 1. Fast Path: Stream only the exact 5 clip byte-ranges directly via FFmpeg HTTP Range Requests
@@ -105,26 +127,35 @@ jobs:
                           extracted += 1
                   except Exception as e:
                       print('Local segment slice fallback:', e)
+              if extracted == 0 and segs_raw:
+                  raise RuntimeError('Could not extract the requested audio selection')
               if extracted == 0:
                   subprocess.run(['ffmpeg', '-y', '-i', raw_in, '-t', '45', '-ar', '16000', '-ac', '1', f'{clips_dir}/clip_01.wav'], check=True)
           "
 
       - name: Enroll Audio Clips into voice_profiles.json (with Auto-Remediation & Retry)
         id: enroll_step
+        env:
+          SPK_NAME: ${{ inputs.speaker_name }}
+          AUDIO_SOURCE: ${{ inputs.audio_url }}
+          SEGMENTS_JSON: ${{ inputs.segments_json }}
+          VOICE_SAMPLE_ID: ${{ inputs.sample_id }}
         run: |
           set +e
-          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/clips" --name "${{ inputs.speaker_name }}" 2>&1 | tee enrollment.log
+          python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/clips" --name "$SPK_NAME" 2>&1 | tee enrollment.log
           ENROLL_EXIT=${PIPESTATUS[0]}
           echo "enroll_exit=$ENROLL_EXIT" >> $GITHUB_OUTPUT
           if [ $ENROLL_EXIT -eq 0 ]; then
             echo "enroll_status=success" >> $GITHUB_OUTPUT
             echo "[✓] Voice enrollment completed on initial or internal retry pass."
+          elif [ -n "$SEGMENTS_JSON" ] || [ -n "$VOICE_SAMPLE_ID" ]; then
+            echo "enroll_status=failed" >> "$GITHUB_OUTPUT"
           else
             echo "[!] Voice enrollment initial attempt exited with code $ENROLL_EXIT. Engaging Auto-Remediation Secondary Pass..."
             # Auto-Remediation: Ensure input_raw exists if fast-path stream slices failed
             if [ ! -f speaker_samples/downloaded/input_raw ]; then
               echo "[*] Downloading input_raw for remediation pass..."
-              SRC="${{ inputs.audio_url }}"
+              SRC="$AUDIO_SOURCE"
               if [[ "$SRC" =~ ^http ]]; then
                 curl -L "$SRC" -o speaker_samples/downloaded/input_raw || true
               elif [ -f "$SRC" ]; then
@@ -142,7 +173,7 @@ jobs:
             
             if [ -f speaker_samples/downloaded/remediated/remediated_voice.wav ]; then
               echo "[*] Re-attempting enrollment with sanitized, loudnorm-filtered audio..."
-              python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/remediated/remediated_voice.wav" --name "${{ inputs.speaker_name }}" 2>&1 | tee -a enrollment.log
+              python scripts/extract_speaker_clips.py --enroll "speaker_samples/downloaded/remediated/remediated_voice.wav" --name "$SPK_NAME" 2>&1 | tee -a enrollment.log
               RETRY_EXIT=${PIPESTATUS[0]}
               if [ $RETRY_EXIT -eq 0 ]; then
                 echo "enroll_status=healed" >> $GITHUB_OUTPUT
@@ -276,21 +307,24 @@ jobs:
 
       - name: Commit and Push Updated voice_profiles.json & Episode Transcript
         if: always()
+        env:
+          SPK_NAME: ${{ inputs.speaker_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add voice_profiles.json public/voice_profiles.json public/transcripts/episodes/ public/transcripts/transcripts_summary_index.json || true
-          git diff --staged --quiet || (git commit -m "feat(voice): update voice profiles and telemetry for '${{ inputs.speaker_name }}' [skip ci]" && git pull --rebase origin master && git push origin master)
+          git diff --staged --quiet || (git commit -m "feat(voice): update voice profiles and telemetry for '$SPK_NAME' [skip ci]" && git pull --rebase origin master && git push origin master)
 
       - name: Quarantine Failure to GitHub Issues DLQ
         if: steps.enroll_step.outputs.enroll_exit != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPK_NAME: ${{ inputs.speaker_name }}
         run: |
           python scripts/report_dlq_issue.py \
             --workflow "Enroll Voice Profile" \
             --run-id "${{ github.run_id }}" \
-            --target "${{ inputs.speaker_name }}" \
+            --target "$SPK_NAME" \
             --log-file enrollment.log || true
 
       - name: Assert Step Result

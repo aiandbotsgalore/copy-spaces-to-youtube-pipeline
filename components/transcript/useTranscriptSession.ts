@@ -1,3 +1,4 @@
+import { readSpeakerAssignments } from '../../utils/voiceProfiles';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Release, ReleaseAsset, EnhancedConfig } from '../../types';
 import { getReleases, fetchReleaseAssetText, getReleaseParts } from '../../utils/github';
@@ -56,6 +57,7 @@ export interface GlobalSearchResult {
 
 export interface SavedSpeaker {
   id: string;
+  voiceProfileId?: string;
   name: string;
   avatarEmoji?: string;
   avatarUrl?: string;
@@ -469,8 +471,8 @@ export function useTranscriptSession({
       try {
         const primary = localStorage.getItem(`spk_names_${selectedId}`);
         const secondary = selectedRelease?.tag_name ? localStorage.getItem(`spk_names_${selectedRelease.tag_name}`) : null;
-        const saved = primary || secondary;
-        setSpeakerMap(saved ? JSON.parse(saved) : {});
+        const saved = readSpeakerAssignments(primary ?? secondary);
+        setSpeakerMap(Object.fromEntries(Object.entries(saved).map(([raw, { name }]) => [raw, name])));
       } catch { setSpeakerMap({}); }
     }
   }, [selectedId, selectedRelease?.tag_name]);

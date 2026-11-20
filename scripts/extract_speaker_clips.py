@@ -224,10 +224,18 @@ def enroll_clip_to_profiles(clip_path: str, speaker_name: str, profiles_file: st
     4. Transient network exponential backoff (1s -> 2s -> 4s) with jitter.
     """
     profile_path = Path(profiles_file)
+    sample_id = os.environ.get("VOICE_SAMPLE_ID", "")
     if profile_path.exists():
         existing = json.loads(profile_path.read_text(encoding="utf-8")).get("profiles", {}).get(speaker_name, {})
         if existing.get("identity_verified") is True:
             raise ValueError("Cannot merge unchecked samples into an identity-verified profile")
+    else:
+        existing = {}
+    saved_samples = existing.get("samples")
+    if saved_samples is None:
+        saved_samples = [{"id": "legacy"}] if existing.get("sample_audio_url") else []
+    if sample_id and not any(sample.get("id") == sample_id for sample in saved_samples):
+        raise ValueError("Saved sample no longer exists in this profile")
     raw_clip_paths = []
     if os.path.isdir(clip_path):
         raw_clip_paths = sorted([
@@ -367,7 +375,8 @@ if os.path.exists(profiles_file):
 
 data.setdefault('profiles', {{}})
 existing_profile = data['profiles'].get(speaker_name, {{}})
-old_count = existing_profile.get('sample_count', 0)
+sample_id = os.environ.get('VOICE_SAMPLE_ID', '')
+old_count = 0 if sample_id else existing_profile.get('sample_count', 0)
 old_emb = existing_profile.get('embedding', [])
 
 if old_count > 0 and isinstance(old_emb, list) and len(old_emb) == 192:
@@ -385,7 +394,7 @@ else:
 
 profile_entry = dict(existing_profile)
 profile_entry.update({{
-    'name': speaker_name,
+    'name': existing_profile.get('name') or speaker_name,
     'sample_count': sample_count,
     'embedding': final_emb,
     'embedding_model': 'speechbrain/spkrec-ecapa-voxceleb',
@@ -393,6 +402,10 @@ profile_entry.update({{
     'source_samples': clip_paths,
     'last_updated': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 }})
+if sample_id:
+    profile_entry['enrolled_sample_id'] = sample_id
+else:
+    profile_entry.pop('enrolled_sample_id', None)
 data['profiles'][speaker_name] = profile_entry
 
 # Clear any past DLQ entries for this speaker upon successful enrollment

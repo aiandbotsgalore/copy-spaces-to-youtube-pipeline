@@ -7,6 +7,18 @@ import { useMontage } from '../contexts/MontageContext';
 import { audioBufferToWav, sliceAudioBuffer } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
+import { createMachine } from '../utils/stateMachine';
+
+export type SlicerStatus = 'idle' | 'decoding' | 'ready' | 'previewing' | 'exporting' | 'exported' | 'error';
+type SlicerEvent =
+  | 'DECODE_START'
+  | 'DECODE_SUCCESS'
+  | 'PLAY_PREVIEW'
+  | 'PAUSE_PREVIEW'
+  | 'EXPORT_START'
+  | 'EXPORT_SUCCESS'
+  | 'ERROR'
+  | 'RESET';
 
 export interface SlicerTurnTarget {
   speaker: string;
@@ -46,12 +58,33 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
   const [startSec, setStartSec] = useState<number>(0);
   const [endSec, setEndSec] = useState<number>(10);
+  const [slicerStatus, setSlicerStatus] = useState<SlicerStatus>('idle');
   const [isPlayingSlice, setIsPlayingSlice] = useState(false);
   const [currentPreviewSec, setCurrentPreviewSec] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [category, setCategory] = useState<'insult' | 'character' | 'abuse' | 'sexual' | 'criminal' | 'threat' | 'other'>('other');
   const [severity, setSeverity] = useState<number>(7);
+
+  const slicerMachineRef = useRef(
+    createMachine<SlicerStatus, SlicerEvent>(
+      {
+        id: 'audio-slicer',
+        initial: 'idle',
+        states: {
+          idle: { DECODE_START: 'decoding', PLAY_PREVIEW: 'previewing', EXPORT_START: 'exporting' },
+          decoding: { DECODE_SUCCESS: 'ready', ERROR: 'error', RESET: 'idle' },
+          ready: { PLAY_PREVIEW: 'previewing', EXPORT_START: 'exporting', DECODE_START: 'decoding', RESET: 'idle' },
+          previewing: { PAUSE_PREVIEW: 'ready', EXPORT_START: 'exporting', RESET: 'idle', ERROR: 'error' },
+          exporting: { EXPORT_SUCCESS: 'exported', ERROR: 'error', RESET: 'idle' },
+          exported: { PLAY_PREVIEW: 'previewing', EXPORT_START: 'exporting', RESET: 'idle' },
+          error: { DECODE_START: 'decoding', PLAY_PREVIEW: 'previewing', EXPORT_START: 'exporting', RESET: 'idle' },
+        },
+        onTransition: (_from, to) => setSlicerStatus(to),
+      },
+      {}
+    )
+  );
 
   // Waveform visualization state
   const [waveformPeaks, setWaveformPeaks] = useState<Float32Array | null>(null);
@@ -110,6 +143,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
     let cancelled = false;
     setIsDecodingWaveform(true);
+    slicerMachineRef.current.send('DECODE_START');
 
     (async () => {
       try {
@@ -144,8 +178,10 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
         }
 
         setWaveformPeaks(peaks);
+        slicerMachineRef.current.send('DECODE_SUCCESS');
       } catch (err) {
         console.warn('Could not extract waveform peaks:', err);
+        slicerMachineRef.current.send('ERROR');
       } finally {
         if (!cancelled) setIsDecodingWaveform(false);
       }
@@ -341,6 +377,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
     if (isPlayingSlice && audioRef.current) {
       audioRef.current.pause();
       setIsPlayingSlice(false);
+      slicerMachineRef.current.send('PAUSE_PREVIEW');
       setCurrentPreviewSec(null);
       return;
     }
@@ -365,6 +402,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
     audio.oncanplay = () => {
       audio.play().catch(e => console.warn('Slice preview error:', e));
       setIsPlayingSlice(true);
+      slicerMachineRef.current.send('PLAY_PREVIEW');
     };
 
     const handleTimeUpdate = () => {
@@ -375,6 +413,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
         audio.currentTime = isSliced ? 0 : startSec;
         setCurrentPreviewSec(startSec);
         setIsPlayingSlice(false);
+        slicerMachineRef.current.send('PAUSE_PREVIEW');
         audio.removeEventListener('timeupdate', handleTimeUpdate);
       }
     };
@@ -382,6 +421,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
     audio.onended = () => {
       setIsPlayingSlice(false);
+      slicerMachineRef.current.send('PAUSE_PREVIEW');
       setCurrentPreviewSec(null);
     };
   };
@@ -424,6 +464,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
     }
 
     setIsExporting(true);
+    slicerMachineRef.current.send('EXPORT_START');
     try {
       let fetchUrl = target.audioUrl;
       const cached = await getCachedAudioUrl(target.audioUrl);
@@ -458,9 +499,11 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
       URL.revokeObjectURL(blobUrl);
 
       setExportSuccess(true);
+      slicerMachineRef.current.send('EXPORT_SUCCESS');
       setTimeout(() => setExportSuccess(false), 2500);
     } catch (err: any) {
       console.error('Failed to export sliced audio:', err);
+      slicerMachineRef.current.send('ERROR');
       alert(`Export error: ${err.message || 'Could not fetch or decode audio. Cross-origin restrictions may apply to this remote stream.'}`);
     } finally {
       setIsExporting(false);
@@ -492,7 +535,11 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+    <div
+      data-component="audio-slicer-modal"
+      data-state={slicerStatus}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+    >
       <div className="bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col text-slate-100">
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">

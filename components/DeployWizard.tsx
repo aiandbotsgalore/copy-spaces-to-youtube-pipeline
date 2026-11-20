@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Rocket, CheckCircle, XCircle, Loader, Github, ExternalLink,
   AlertCircle, RefreshCw, SkipForward
@@ -10,6 +10,7 @@ import {
   generateIngestYaml, generateIngestScript, generateReadme,
   generateQueueFile, generateTestAudioYaml, generateMonitorYaml,
 } from '../utils/templates';
+import { createMachine } from '../utils/stateMachine';
 
 interface Props {
   config: EnhancedConfig;
@@ -68,6 +69,23 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
   const [deployState, setDeployState] = useState<DeployState>('idle');
   const [repoUrl, setRepoUrl] = useState('');
 
+  const machineRef = useRef(
+    createMachine<DeployState, 'START' | 'FINISH' | 'FAIL' | 'RESET'>(
+      {
+        id: 'deploy-wizard',
+        initial: 'idle',
+        states: {
+          idle: { START: 'running' },
+          running: { FINISH: 'done', FAIL: 'error', RESET: 'idle' },
+          done: { START: 'running', RESET: 'idle' },
+          error: { START: 'running', RESET: 'idle' },
+        },
+        onTransition: (_from, to) => setDeployState(to),
+      },
+      {}
+    )
+  );
+
   const isReady = config.githubToken && config.ownerName && config.repoName;
 
   const update = (setter: React.Dispatch<React.SetStateAction<DeployStep[]>>, id: string, updates: Partial<DeployStep>) => {
@@ -89,7 +107,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
         : { ...s, status: 'pending' as const, message: undefined }
     );
     setSteps(initialised);
-    setDeployState('running');
+    machineRef.current.send('START');
     if (!isResume) setRepoUrl('');
 
     const setter: React.Dispatch<React.SetStateAction<DeployStep[]>> = setSteps;
@@ -195,7 +213,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
       }
 
       markDeployed(owner, repo);
-      setDeployState('done');
+      machineRef.current.send('FINISH');
     } catch (e) {
       const err = e as Error & { stepId?: string };
       const runningStep = initialised.find(s => s.status === 'running')?.id;
@@ -204,7 +222,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
         s.id === failId ? { ...s, status: 'error', message: err.message } :
         s.status === 'running' ? { ...s, status: 'error' } : s
       ));
-      setDeployState('error');
+      machineRef.current.send('FAIL');
     }
   };
 
@@ -216,7 +234,11 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
   const hasDoneSteps = steps.some(s => s.status === 'done');
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-2xl mx-auto w-full">
+    <div
+      data-component="deploy-wizard"
+      data-state={deployState}
+      className="h-full overflow-y-auto p-6 md:p-12 max-w-2xl mx-auto w-full"
+    >
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-2">Deploy to GitHub</h2>
         <p className="text-slate-400 text-sm">
@@ -294,7 +316,7 @@ const DeployWizard: React.FC<Props> = ({ config }) => {
               </div>
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => { setDeployState('idle'); setSteps([]); }}
+                  onClick={() => { machineRef.current.send('RESET'); setSteps([]); }}
                   className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-300 transition-colors"
                 >
                   <RefreshCw size={12} /> Deploy / Sync again

@@ -37,6 +37,9 @@ import {
 import { EnhancedConfig } from '../types';
 import { getSpeakerTheme } from '../utils/transcriptData';
 import { useMontage } from '../contexts/MontageContext';
+import { createMachine } from '../utils/stateMachine';
+
+export type VoxSynthesisState = 'idle' | 'synthesizing' | 'synthesized' | 'error';
 
 interface Props {
   config: EnhancedConfig;
@@ -224,7 +227,28 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   const [crossLingualAccent, setCrossLingualAccent] = useState(85);
 
   // Audio Playback & Generation State
+  const [synthesisState, setSynthesisState] = useState<VoxSynthesisState>('idle');
   const [isSynthesizing, setIsSynthesizing] = useState(false);
+
+  const machineRef = useRef(
+    createMachine<VoxSynthesisState, 'START' | 'FINISH' | 'FAIL' | 'RESET'>(
+      {
+        id: 'vox-studio',
+        initial: 'idle',
+        states: {
+          idle: { START: 'synthesizing' },
+          synthesizing: { FINISH: 'synthesized', FAIL: 'error', RESET: 'idle' },
+          synthesized: { START: 'synthesizing', RESET: 'idle' },
+          error: { START: 'synthesizing', RESET: 'idle' },
+        },
+        onTransition: (_from, to) => {
+          setSynthesisState(to);
+          setIsSynthesizing(to === 'synthesizing');
+        },
+      },
+      {}
+    )
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(145.5);
@@ -430,6 +454,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Synthesis Action Engine
   const handleSynthesize = async () => {
     if (!scriptText.trim()) return;
+    machineRef.current.send('START');
     setIsSynthesizing(true);
     setPendingAutoplayClip(null);
     showToast(`⚡ Synthesizing vocal take for ${selectedSpeaker}...`);
@@ -497,9 +522,11 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       // Attempt immediate playback
       await playAudioClip(newClip, true);
 
+      machineRef.current.send('FINISH');
       showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s)!`);
     } catch (err: any) {
       console.warn('Synthesis notice:', err);
+      machineRef.current.send('FAIL');
       showToast(`⚠️ Synthesis failed, no take was created: ${err?.message || err}`);
     } finally {
       setIsSynthesizing(false);
@@ -589,7 +616,11 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   const activeTheme = useMemo(() => getSpeakerTheme(selectedSpeaker), [selectedSpeaker]);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative">
+    <div
+      data-component="vox-studio"
+      data-state={synthesisState}
+      className="flex-1 min-h-0 flex flex-col bg-slate-950 text-slate-100 overflow-hidden select-none relative"
+    >
       {/* ── HIDDEN HTML5 AUDIO ELEMENT ── */}
       <audio
         ref={audioRef}

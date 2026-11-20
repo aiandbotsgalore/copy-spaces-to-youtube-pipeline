@@ -274,7 +274,8 @@ function AppContent() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-  const [selectedTranscriptId, setSelectedTranscriptId] = useState<number | string | null>(null);
+  const [transcriptSelection, setTranscriptSelection] = useState<{ id: number | string | null; seconds?: number }>({ id: null });
+  const setSelectedTranscriptId = useCallback((id: number | string | null, seconds?: number) => setTranscriptSelection({ id, seconds }), []);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [studioSidebarCollapsed, setStudioSidebarCollapsed] = useState(true);
@@ -776,7 +777,8 @@ function AppContent() {
         {activePanel === 'transcripts' && (
           <TranscriptPanel
             config={config}
-            initialReleaseId={selectedTranscriptId}
+            initialReleaseId={transcriptSelection.id}
+            initialStartSec={transcriptSelection.seconds}
           />
         )}
 
@@ -805,8 +807,8 @@ function AppContent() {
         {activePanel === 'voice-profiles' && (
           <VoiceProfileLibrary
             config={config}
-            onOpenTranscript={(id) => {
-              setSelectedTranscriptId(id);
+            onOpenTranscript={(id, seconds) => {
+              setSelectedTranscriptId(id, seconds);
               setActivePanel('transcripts');
             }}
           />

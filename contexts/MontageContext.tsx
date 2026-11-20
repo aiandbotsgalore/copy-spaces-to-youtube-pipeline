@@ -9,6 +9,10 @@ import { mapLimit, probeFileDuration, reconcileWindow } from '../utils/clipProbe
 import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
 import { sanitizeMontageClip, getOrFetchSummaryIndex, getOrFetchPreCutClips } from '../utils/audioResolver';
 import type { DirectorProvenance } from '../utils/directorTypes';
+import { createMachine } from '../utils/stateMachine';
+
+export type MontageAuditionState = 'idle' | 'preparing' | 'auditioning' | 'paused';
+export type MontageExportState = 'idle' | 'exporting' | 'complete' | 'error';
 
 /** localStorage key holding the last natural-language prompt given to the Director (for the manifest). */
 export const DIRECTOR_LAST_PROMPT_KEY = 'spacepipe_director_last_prompt_v1';
@@ -93,6 +97,8 @@ interface MontageContextType {
   isBlacklisted: (quoteIdOrText: string) => boolean;
   autoCurate: (mode: AutoCuratorMode, availablePool: MontageClipItem[], customTargetSec?: number) => void;
   sortByEscalation?: () => void;
+  auditionState: MontageAuditionState;
+  exportState: MontageExportState;
   isAuditioning: boolean;
   currentAuditionIndex: number;
   auditionProgress: AuditionProgress | null;
@@ -211,6 +217,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [auditionState, setAuditionState] = useState<MontageAuditionState>('idle');
+  const [exportState, setExportState] = useState<MontageExportState>('idle');
   const [isAuditioning, setIsAuditioning] = useState(false);
   const [currentAuditionIndex, setCurrentAuditionIndex] = useState(0);
   const [auditionProgress, setAuditionProgress] = useState<AuditionProgress | null>(null);
@@ -218,6 +226,22 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [exportProgress, setExportProgress] = useState('');
   const [exportNotice, setExportNotice] = useState<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
   const clearExportNotice = useCallback(() => setExportNotice(null), []);
+
+  const montageMachineRef = useRef(
+    createMachine<'idle' | 'auditioning' | 'exporting' | 'error', 'START_AUDITION' | 'STOP_AUDITION' | 'START_EXPORT' | 'FINISH_EXPORT' | 'ERROR_EXPORT' | 'RESET'>(
+      {
+        id: 'montage-studio',
+        initial: 'idle',
+        states: {
+          idle: { START_AUDITION: 'auditioning', START_EXPORT: 'exporting' },
+          auditioning: { STOP_AUDITION: 'idle', START_EXPORT: 'exporting' },
+          exporting: { FINISH_EXPORT: 'idle', ERROR_EXPORT: 'error', RESET: 'idle' },
+          error: { START_AUDITION: 'auditioning', START_EXPORT: 'exporting', RESET: 'idle' },
+        },
+      },
+      {}
+    )
+  );
 
   const playerRef = useRef<SequencePlayer | null>(null);
   const [auditionStatus, setAuditionStatus] = useState('');
@@ -553,6 +577,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     playerRef.current = null;
     setAuditionStatus('');
     setIsAuditioning(false);
+    setAuditionState('idle');
+    montageMachineRef.current.send('STOP_AUDITION');
     setAuditionProgress(null);
   }, []);
 
@@ -563,6 +589,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const { plan, sourceIndex } = buildPlayablePlan<MontageClipItem>(sanitizedClips, gapSeconds);
     if (plan.items.length === 0) {
       setIsAuditioning(false);
+      setAuditionState('idle');
+      montageMachineRef.current.send('STOP_AUDITION');
       setAuditionProgress(null);
       setAuditionStatus('No clips with audio to audition.');
       return;
@@ -570,6 +598,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const planStart = sourceIndex.findIndex(si => si >= timelineIndex);
     if (planStart < 0) {
       setIsAuditioning(false);
+      setAuditionState('idle');
+      montageMachineRef.current.send('STOP_AUDITION');
       setAuditionProgress(null);
       return;
     }
@@ -587,6 +617,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           if (playerRef.current === player) {
             playerRef.current = null;
             setIsAuditioning(false);
+            setAuditionState('idle');
+            montageMachineRef.current.send('STOP_AUDITION');
             setAuditionProgress(null);
           }
         },
@@ -599,10 +631,14 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setCurrentAuditionIndex(sourceIndex[planStart]);
     setAuditionProgress({ timelineIndex: sourceIndex[planStart] ?? 0, clipProgress: 0, elapsedSec: 0 });
     setIsAuditioning(true);
+    setAuditionState('auditioning');
+    montageMachineRef.current.send('START_AUDITION');
     player.start(planStart).catch(err => {
       console.warn('Audition failed:', err);
       setAuditionStatus('Audition failed: ' + (err?.message || 'unknown error'));
       setIsAuditioning(false);
+      setAuditionState('idle');
+      montageMachineRef.current.send('STOP_AUDITION');
     });
   }, [clips, gapSeconds, antiClickFades]);
 
@@ -753,6 +789,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return;
     }
     setIsExporting(true);
+    setExportState('exporting');
+    montageMachineRef.current.send('START_EXPORT');
     setExportProgress('Initializing Web Audio engine…');
 
     try {
@@ -871,9 +909,13 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           ? `Master export complete. Skipped ${skipped.length} clip(s): ${skipped.join(', ')}`
           : 'Master export complete!'
       );
+      setExportState('complete');
+      montageMachineRef.current.send('FINISH_EXPORT');
       setTimeout(() => setIsExporting(false), skipped.length > 0 ? 4000 : 1200);
     } catch (err: any) {
       console.error('Failed to export montage WAV:', err);
+      setExportState('error');
+      montageMachineRef.current.send('ERROR_EXPORT');
       setExportNotice({
         type: 'error',
         message: `Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`,
@@ -971,6 +1013,8 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         isBlacklisted,
         autoCurate,
         sortByEscalation: () => autoCurate('escalation', clips),
+        auditionState,
+        exportState,
         isAuditioning,
         currentAuditionIndex,
         auditionProgress,

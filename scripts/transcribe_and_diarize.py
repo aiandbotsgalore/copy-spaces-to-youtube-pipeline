@@ -413,6 +413,7 @@ def resolve_speakers_acoustically(
         return {}
 
     enrolled_profiles = {}
+    paused_profiles = []
     for name, p in prof_data.get("profiles", {}).items():
         emb = p.get("embedding")
         if (p.get("identity_verified") is True and p.get("embedding_model") == "speechbrain/spkrec-ecapa-voxceleb"
@@ -420,6 +421,8 @@ def resolve_speakers_acoustically(
                 and all(isinstance(v, (int, float)) and __import__("math").isfinite(v) for v in emb)
                 and any(v != 0 for v in emb)):
             enrolled_profiles[name] = emb
+            if p.get("suggestions_paused") is True:
+                paused_profiles.append(name)
 
     if not enrolled_profiles:
         return {}
@@ -522,7 +525,7 @@ def resolve_speakers_acoustically(
         shutil.rmtree(tmp_dir, ignore_errors=True)
         return {}
 
-    payload_json = json.dumps({"spk_wavs": spk_wav_map, "profiles": enrolled_profiles})
+    payload_json = json.dumps({"spk_wavs": spk_wav_map, "profiles": enrolled_profiles, "paused_profiles": paused_profiles})
     payload_file = tmp_dir / "match_input.json"
     payload_file.write_text(payload_json, encoding="utf-8")
 
@@ -538,6 +541,7 @@ with open(r'{str(payload_file)}', 'r', encoding='utf-8') as f:
     payload = json.load(f)
 
 spk_wavs = payload['spk_wavs']
+paused_profiles = set(payload['paused_profiles'])
 profiles = {{k: np.array(v, dtype=np.float32) for k, v in payload['profiles'].items()}}
 for k in profiles:
     n = np.linalg.norm(profiles[k])
@@ -619,7 +623,7 @@ for spk, s_vec in spk_vecs.items():
         best_sim, best_name = scored[0]
         runner_up_sim = scored[1][0] if len(scored) > 1 else 0.0
         margin = best_sim - runner_up_sim
-        if best_sim >= 0.54 and margin >= 0.06:
+        if best_name not in paused_profiles and best_sim >= 0.54 and margin >= 0.06:
             pairs.append((best_sim, spk, best_name))
 
 pairs.sort(reverse=True)

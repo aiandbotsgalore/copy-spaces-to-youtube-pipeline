@@ -1,28 +1,27 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  AudioWaveform, Plus, Search, Filter, Star, Sparkles, Check, X,
-  Save, Loader, AlertCircle, CheckCircle2, Trash2, Edit3, ExternalLink,
-  Download, Upload, Copy, Info, Terminal, RefreshCw, Mic, Volume2,
-  Users, Layers, ArrowRight, ShieldCheck, HelpCircle, FileText,
-  UploadCloud, Music, FileAudio, Camera, Image, Bot
+  AudioWaveform, Plus, Search, Filter, Sparkles, Check, X, Save, Loader, AlertCircle, CheckCircle2, Trash2,
+  Edit3, ExternalLink, Download, Upload, RefreshCw, Users, HelpCircle, Camera, Bot
 } from 'lucide-react';
-import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, Release, DeadLetterJob } from '../types';
+import { EnhancedConfig, VoiceProfile, VoiceProfilesCatalog, VoiceSample, Release, DeadLetterJob } from '../types';
 import { useCopilot } from '../contexts/CopilotContext';
 import { readRepositoryTextFile, writeRepositoryTextFile, writeRepositoryBinaryFile, getReleases, dispatchWorkflow } from '../utils/github';
 import { loadDeadLetterQueue, saveDeadLetterQueue, removeFromDeadLetterQueue } from '../utils/storage';
+import { VoiceSamples } from './voice/VoiceSamples';
+import { VoiceSampleEditor } from './voice/VoiceSampleEditor';
+import { getVoiceSamples, updateVoiceSamples, updateVoiceProfile, readVoiceCatalog, mergeVoiceCatalog,
+  voiceMatchingStatus, getConfirmationCounts, VOICE_CATALOG_KEY } from '../utils/voiceProfiles';
 import { VoiceProfileModal } from './voice/VoiceProfileModal';
-import { CliEnrollmentGuideModal } from './voice/CliEnrollmentGuideModal';
 import { RawJsonViewerModal } from './voice/RawJsonViewerModal';
 import { PipelineArchitectureModal } from './voice/PipelineArchitectureModal';
 import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
-import { DiscoveredCandidatesModal, SpeakerCandidate } from './voice/DiscoveredCandidatesModal';
-import { AudioPreCheckResult } from './voice/types';
+import { DiscoveredCandidatesModal } from './voice/DiscoveredCandidatesModal';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { AvatarCropModal } from './AvatarCropModal';
 
 interface Props {
   config: EnhancedConfig;
-  onOpenTranscript?: (releaseId: number) => void;
+  onOpenTranscript?: (releaseId: number | string, seconds?: number) => void;
 }
 
 const DEFAULT_CATALOG: VoiceProfilesCatalog = {
@@ -123,23 +122,26 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [avatarCrop, setAvatarCrop] = useState<{ speakerName: string; file: File | Blob } | null>(null);
   const copilot = useCopilot();
   const [catalog, setCatalog] = useState<VoiceProfilesCatalog>(DEFAULT_CATALOG);
+  const catalogRef = useRef(catalog);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
-  const [embeddingFilter, setEmbeddingFilter] = useState<'ALL' | 'ENROLLED' | 'PENDING'>('ALL');
+  const [sampleFilter, setSampleFilter] = useState<'ALL' | 'WITH_SAMPLES' | 'WITHOUT_SAMPLES'>('ALL');
   const [sortBy, setSortBy] = useState<'name' | 'samples' | 'updated'>('samples');
 
   const [savingGitHub, setSavingGitHub] = useState(false);
-  const [enrollingCloud, setEnrollingCloud] = useState(false);
   const [retryingDlqId, setRetryingDlqId] = useState<string | null>(null);
   const [dlqList, setDlqList] = useState<DeadLetterJob[]>(() => loadDeadLetterQueue());
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Modals
-  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'CLI_GUIDE' | 'SEPARATION_MATRIX' | 'CANDIDATES' | null>(null);
+  const [modalMode, setModalMode] = useState<'CREATE' | 'EDIT' | 'DIARIZATION_INFO' | 'RAW_JSON' | 'SEPARATION_MATRIX' | 'CANDIDATES' | null>(null);
   const [targetProfile, setTargetProfile] = useState<VoiceProfile | null>(null);
-  const [audioPreCheck, setAudioPreCheck] = useState<AudioPreCheckResult | null>(null);
-  const [inspectingAudio, setInspectingAudio] = useState(false);
+  const [targetProfileId, setTargetProfileId] = useState<string | null>(null);
+  const [sampleEditor, setSampleEditor] = useState<{ id: string; sample?: VoiceSample; suggested?: VoiceSample } | null>(null);
+  const [suggestedSample, setSuggestedSample] = useState<VoiceSample>();
+  const [sampleFeedback, setSampleFeedback] = useState<{ id: string; text: string } | null>(null);
+  const [preparationRequested, setPreparationRequested] = useState<string | null>(null);
 
   // Form State
   const [formName, setFormName] = useState('');
@@ -147,19 +149,11 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const [formColor, setFormColor] = useState('indigo');
   const [formEmoji, setFormEmoji] = useState('🎙️');
   const [formNotes, setFormNotes] = useState('');
-  const [formAudioUrl, setFormAudioUrl] = useState('');
-  const [audioSourceTab, setAudioSourceTab] = useState<'COMPUTER' | 'URL'>('COMPUTER');
-  const [localAudioFile, setLocalAudioFile] = useState<File | null>(null);
-  const [localAudioPreviewUrl, setLocalAudioPreviewUrl] = useState<string | null>(null);
-  const [uploadingAudio, setUploadingAudio] = useState(false);
-  const [dragOver, setDragOver] = useState(false);
+  const [formPaused, setFormPaused] = useState(false);
+  const [formError, setFormError] = useState('');
 
-  // Episode diarization test state
   const [episodes, setEpisodes] = useState<Release[]>([]);
-  const [selectedEpisodeId, setSelectedEpisodeId] = useState<number | null>(null);
-  const [testingDiarization, setTestingDiarization] = useState(false);
-  const [diarizationTestResult, setDiarizationTestResult] = useState<{ mapped: number; total: number; details: string[] } | null>(null);
-
+  const [episodesLoading, setEpisodesLoading] = useState(true);
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
   const hasGitHub = !!(config.githubToken && owner && repo);
@@ -188,7 +182,14 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         const file = await readRepositoryTextFile(config.githubToken, owner, repo, 'voice_profiles.json', 'master');
         if (file && file.content) {
           const remoteJson = JSON.parse(file.content);
-          if (remoteJson && remoteJson.profiles) {
+          if (remoteJson?.profiles) {
+            const publicProfiles = loadedData?.profiles;
+            if (publicProfiles) {
+              for (const [id, profile] of Object.entries<VoiceProfile>(remoteJson.profiles)) {
+                const publicAudio = publicProfiles[id]?.sample_audio_url;
+                if (!profile.samples && !profile.sample_audio_url && publicAudio) profile.sample_audio_url = publicAudio;
+              }
+            }
             loadedData = remoteJson;
           }
         }
@@ -197,31 +198,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       }
     }
 
-    // 3. Check local storage cache
-    if (!loadedData) {
-      try {
-        const cached = localStorage.getItem('spacepipe_voice_profiles_catalog');
-        if (cached) {
-          loadedData = JSON.parse(cached);
-        }
-      } catch {
-        // ignore
-      }
-    }
-
-    // 4. Merge with DEFAULT_CATALOG
-    const merged: VoiceProfilesCatalog = loadedData || DEFAULT_CATALOG;
-    // Enrich with default metadata if missing
-    Object.keys(DEFAULT_CATALOG.profiles).forEach(key => {
-      if (!merged.profiles[key]) {
-        merged.profiles[key] = DEFAULT_CATALOG.profiles[key];
-      } else {
-        merged.profiles[key] = {
-          ...DEFAULT_CATALOG.profiles[key],
-          ...merged.profiles[key],
-        };
-      }
-    });
+    const merged = mergeVoiceCatalog(loadedData || DEFAULT_CATALOG, readVoiceCatalog());
 
     if (merged.dlq && Array.isArray(merged.dlq)) {
       const stored = loadDeadLetterQueue();
@@ -237,6 +214,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       setDlqList(loadDeadLetterQueue());
     }
 
+    catalogRef.current = merged;
     setCatalog(merged);
     setLoading(false);
   }, [hasGitHub, config.githubToken, owner, repo]);
@@ -245,14 +223,20 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     loadCatalog();
   }, [loadCatalog]);
 
-  // Load episodes list for diarization test
   useEffect(() => {
-    if (hasGitHub) {
-      getReleases(config.githubToken, owner, repo)
-        .then(res => setEpisodes(res))
-        .catch(() => {});
+    let current = true;
+    setEpisodes([]);
+    if (!owner || !repo) {
+      setEpisodesLoading(false);
+      return;
     }
-  }, [hasGitHub, config.githubToken, owner, repo]);
+    setEpisodesLoading(true);
+    getReleases(config.githubToken, owner, repo)
+      .then(results => { if (current) setEpisodes(results); })
+      .catch(() => {})
+      .finally(() => { if (current) setEpisodesLoading(false); });
+    return () => { current = false; };
+  }, [config.githubToken, owner, repo]);
 
   const getDefaultSpeakerAvatar = (name: string): string => {
     const clean = name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -271,12 +255,9 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const saveSpeakerAvatar = async (speakerName: string, file: Blob) => {
     try {
       const { dataUrl, base64: base64Data } = await resizeImageToDataUrl(file, 512, 0.85);
-      const nextCatalog = { ...catalog };
-      const p = nextCatalog.profiles[speakerName];
-      if (p) {
-        p.avatar_url = dataUrl;
-        saveCatalogLocal(nextCatalog);
-      }
+      const p = catalog.profiles[speakerName];
+      const nextCatalog = p ? updateVoiceProfile(catalog, speakerName, { ...p, avatar_url: dataUrl }) : catalog;
+      if (p) saveCatalogLocal(nextCatalog);
 
       if (hasGitHub) {
         try {
@@ -293,9 +274,9 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
           );
           const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/master/${fileName}`;
           if (p) {
-            p.avatar_url = rawUrl;
-            saveCatalogLocal(nextCatalog);
-            const content = JSON.stringify(nextCatalog, null, 2);
+            const withAvatar = updateVoiceProfile(nextCatalog, speakerName, { ...p, avatar_url: rawUrl });
+            saveCatalogLocal(withAvatar);
+            const content = JSON.stringify(withAvatar, null, 2);
             await writeRepositoryTextFile(
               config.githubToken,
               owner,
@@ -334,13 +315,18 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   // Sync to localStorage
   const saveCatalogLocal = (next: VoiceProfilesCatalog) => {
+    catalogRef.current = next;
     setCatalog(next);
     try {
-      localStorage.setItem('spacepipe_voice_profiles_catalog', JSON.stringify(next));
-
+      localStorage.setItem(VOICE_CATALOG_KEY, JSON.stringify(next));
+    } catch {
+      return false;
+    }
+    try {
       // Also sync to spacepipe_saved_speakers for TranscriptPanel compatibility
-      const savedSpeakersList = Object.values(next.profiles).map(p => ({
-        id: p.name.toLowerCase().replace(/\s+/g, '-'),
+      const savedSpeakersList = Object.entries(next.profiles).map(([id, p]) => ({
+        id,
+        voiceProfileId: id,
         name: p.name,
         role: p.role || 'Speaker',
         avatarEmoji: p.avatar_emoji || '🎙️',
@@ -348,387 +334,147 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       }));
       localStorage.setItem('spacepipe_saved_speakers', JSON.stringify(savedSpeakersList));
     } catch {
-      // ignore
+      // The profile catalog is already saved.
+    }
+    return true;
+  };
+
+  const syncCatalog = async () => {
+    const remote = await readRepositoryTextFile(config.githubToken, owner, repo, 'voice_profiles.json', 'master');
+    const local = catalogRef.current;
+    const next = remote?.content ? mergeVoiceCatalog(JSON.parse(remote.content), local) : local;
+    const content = JSON.stringify(next, null, 2);
+    await writeRepositoryTextFile(config.githubToken, owner, repo, 'voice_profiles.json', content,
+      'chore(profiles): update voice profiles', 'master');
+    saveCatalogLocal(mergeVoiceCatalog(next, catalogRef.current));
+    try {
+      await writeRepositoryTextFile(config.githubToken, owner, repo, 'public/voice_profiles.json', content,
+        'chore(profiles): sync public voice profiles', 'master');
+    } catch {
+      // Enrollment and matching use the root catalog.
     }
   };
 
-  // Save to GitHub
   const handleSaveToGitHub = async () => {
-    if (!hasGitHub) {
-      setStatusMsg({ type: 'error', text: 'GitHub token, owner, and repository name must be configured in Settings.' });
-      return;
-    }
-
+    if (!hasGitHub) return;
     setSavingGitHub(true);
     setStatusMsg(null);
     try {
-      const content = JSON.stringify(catalog, null, 2);
-      await writeRepositoryTextFile(
-        config.githubToken,
-        owner,
-        repo,
-        'voice_profiles.json',
-        content,
-        'chore(profiles): update voice_profiles.json via Voice Profile Library',
-        'master'
-      );
-      try {
-        await writeRepositoryTextFile(
-          config.githubToken,
-          owner,
-          repo,
-          'public/voice_profiles.json',
-          content,
-          'chore(profiles): sync public/voice_profiles.json via Voice Profile Library',
-          'master'
-        );
-      } catch {
-        // optional secondary sync
-      }
-      setStatusMsg({ type: 'success', text: 'Successfully committed voice_profiles.json to GitHub repository on master!' });
-      setTimeout(() => setStatusMsg(null), 6000);
-    } catch (e) {
-      setStatusMsg({ type: 'error', text: `Failed to commit to GitHub: ${(e as Error).message}` });
+      await syncCatalog();
+      setStatusMsg({ type: 'success', text: 'Voice profiles synced to GitHub.' });
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: `Couldn’t sync profiles: ${(err as Error).message}` });
     } finally {
       setSavingGitHub(false);
     }
   };
 
-  // Audio Quality Inspector via Web Audio API
-  const inspectAudioFile = async (file: File) => {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioCtx) {
-      return {
-        duration: 0,
-        peakDb: 0,
-        isClipping: false,
-        isTooQuiet: false,
-        isOptimalDuration: true,
-        silenceRatio: 0,
-        sampleRate: 44100,
-        channels: 1,
-        qualityLevel: 'good' as const,
-        qualityNotes: ['Browser Web Audio inspection not supported, will proceed with cloud validation.']
-      };
-    }
-
-    const ctx = new AudioCtx();
+  const enrollSavedSample = async (id: string, sample: VoiceSample) => {
+    setSavingGitHub(true);
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-      const duration = audioBuffer.duration;
-      const channels = audioBuffer.numberOfChannels;
-      const sampleRate = audioBuffer.sampleRate;
-
-      const data = audioBuffer.getChannelData(0);
-      let maxPeak = 0;
-      let silentCount = 0;
-      const step = Math.max(1, Math.floor(data.length / 50000));
-      let samplesChecked = 0;
-
-      for (let i = 0; i < data.length; i += step) {
-        const abs = Math.abs(data[i]);
-        if (abs > maxPeak) maxPeak = abs;
-        if (abs < 0.005) silentCount++;
-        samplesChecked++;
+      await syncCatalog();
+      const profile = catalogRef.current.profiles[id];
+      const saved = profile && getVoiceSamples(profile).find(item => item.id === sample.id);
+      if (!saved || saved.audio_url !== sample.audio_url || saved.start_sec !== sample.start_sec || saved.end_sec !== sample.end_sec) {
+        throw new Error('This sample changed while syncing. Open it again before preparing the voice.');
       }
-
-      const silenceRatio = samplesChecked > 0 ? silentCount / samplesChecked : 0;
-      const peakDb = maxPeak > 0 ? 20 * Math.log10(maxPeak) : -100;
-      const isClipping = maxPeak >= 0.99;
-      const isTooQuiet = peakDb < -25;
-      const isOptimalDuration = duration >= 3.0 && duration <= 20.0;
-
-      const notes: string[] = [];
-      let level: 'excellent' | 'good' | 'warning' | 'error' = 'excellent';
-
-      if (duration < 2.0) {
-        notes.push('Too brief (< 2s). May not contain enough acoustic variance for ECAPA-TDNN.');
-        level = 'error';
-      } else if (duration < 3.5) {
-        notes.push('Slightly short (< 3.5s). Recommend 4s–12s for optimal speaker vector extraction.');
-        level = 'warning';
-      } else if (duration > 35.0) {
-        notes.push('Long audio sample (> 35s). Ensure it contains only this speaker without crosstalk.');
-        level = 'warning';
-      } else {
-        notes.push(`Optimal monologue duration (${duration.toFixed(1)}s).`);
-      }
-
-      if (isClipping) {
-        notes.push('Digital clipping detected (0 dBFS peak). Audio may have distorted frequencies.');
-        if (level !== 'error') level = 'warning';
-      } else if (isTooQuiet) {
-        notes.push('Audio signal is quiet (< -25 dBFS). Consider a louder or closer recording.');
-        if (level !== 'error') level = 'warning';
-      }
-
-      if (silenceRatio > 0.65) {
-        notes.push('High silence ratio (> 65%). Sample contains extended quiet pauses.');
-        if (level !== 'error') level = 'warning';
-      }
-
-      return {
-        duration,
-        peakDb,
-        isClipping,
-        isTooQuiet,
-        isOptimalDuration,
-        silenceRatio,
-        sampleRate,
-        channels,
-        qualityLevel: level,
-        qualityNotes: notes,
-      };
+      const start = sample.start_sec ?? 0;
+      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
+        speaker_name: id,
+        role: profile.role || 'Speaker',
+        audio_url: sample.audio_url,
+        sample_id: sample.id,
+        ...(sample.end_sec === undefined ? {} : { segments_json: JSON.stringify([{ start, duration: sample.end_sec - start }]) }),
+      });
+      setPreparationRequested(id);
+      setSampleFeedback({ id, text: 'Clip sent for preparation. Check matching status after it finishes.' });
+    } catch (err) {
+      setSampleFeedback({ id, text: `Couldn’t prepare the voice: ${(err as Error).message}` });
     } finally {
-      ctx.close().catch(() => {});
+      setSavingGitHub(false);
     }
   };
 
-  // Open Create Modal
   const handleOpenCreate = () => {
     setTargetProfile(null);
+    setTargetProfileId(null);
     setFormName('');
     setFormRole('Speaker');
     setFormColor('indigo');
     setFormEmoji('🎙️');
     setFormNotes('');
-    setFormAudioUrl('');
-    setLocalAudioFile(null);
-    if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
-    setLocalAudioPreviewUrl(null);
-    setAudioPreCheck(null);
-    setAudioSourceTab('COMPUTER');
+    setFormPaused(false);
+    setFormError('');
+    setSuggestedSample(undefined);
     setModalMode('CREATE');
   };
 
-  // Open Edit Modal
-  const handleOpenEdit = (p: VoiceProfile) => {
-    setTargetProfile(p);
-    setFormName(p.name);
-    setFormRole(p.role || 'Speaker');
-    setFormColor(p.color || 'indigo');
-    setFormEmoji(p.avatar_emoji || '🎙️');
-    setFormNotes(p.notes || '');
-    setFormAudioUrl(p.sample_audio_url || '');
-    setLocalAudioFile(null);
-    if (localAudioPreviewUrl) URL.revokeObjectURL(localAudioPreviewUrl);
-    setLocalAudioPreviewUrl(null);
-    setAudioPreCheck(null);
-    setAudioSourceTab(p.sample_audio_url?.startsWith('http') ? 'URL' : 'COMPUTER');
+  const handleOpenEdit = (id: string, profile: VoiceProfile) => {
+    setTargetProfile(profile);
+    setTargetProfileId(id);
+    setFormName(profile.name);
+    setFormRole(profile.role || 'Speaker');
+    setFormColor(profile.color || 'indigo');
+    setFormEmoji(profile.avatar_emoji || '🎙️');
+    setFormNotes(profile.notes || '');
+    setFormPaused(profile.suggestions_paused === true);
+    setFormError('');
     setModalMode('EDIT');
   };
 
-  // Select Audio File from Computer & Run Pre-Flight Check
-  const handleSelectAudioFile = async (file: File) => {
-    if (!file) return;
-    setLocalAudioFile(file);
-    if (localAudioPreviewUrl) {
-      URL.revokeObjectURL(localAudioPreviewUrl);
-    }
-    const preview = URL.createObjectURL(file);
-    setLocalAudioPreviewUrl(preview);
-    setAudioPreCheck(null);
-    setInspectingAudio(true);
-    try {
-      const check = await inspectAudioFile(file);
-      setAudioPreCheck(check);
-    } catch {
-      // ignore inspection failure
-    } finally {
-      setInspectingAudio(false);
-    }
-  };
-
-  // Upload Audio File from Computer & Cloud Enroll
-  const handleUploadFromComputerAndEnroll = async () => {
-    const trimmedName = formName.trim();
-    if (!trimmedName) {
-      setStatusMsg({ type: 'error', text: 'Please enter a speaker name first.' });
-      return;
-    }
-    if (!localAudioFile) {
-      setStatusMsg({ type: 'error', text: 'Please select an audio file (.wav, .mp3, .m4a) from your computer.' });
-      return;
-    }
-    if (!hasGitHub) {
-      setStatusMsg({ type: 'error', text: 'GitHub Token, Owner, and Repo must be configured in Settings to upload audio to your repository.' });
-      return;
-    }
-
-    setUploadingAudio(true);
-    setStatusMsg(null);
-    try {
-      // 1. Convert File to Base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const res = reader.result as string;
-          resolve(res.includes(',') ? res.split(',')[1] : res);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(localAudioFile);
-      });
-
-      const sanitizedSpeaker = trimmedName.replace(/[/\\?%*:|"<>]/g, '_').trim();
-      const cleanFileName = localAudioFile.name.replace(/[/\\?%*:|"<>]/g, '_');
-      const repoPath = `speaker_samples/${sanitizedSpeaker}/${cleanFileName}`;
-
-      // 2. Commit the audio binary to GitHub repository
-      setStatusMsg({ type: 'success', text: `Uploading "${cleanFileName}" (${Math.round(localAudioFile.size / 1024)} KB) to repository…` });
-      await writeRepositoryBinaryFile(
-        config.githubToken,
-        owner,
-        repo,
-        repoPath,
-        base64,
-        `feat(voice): upload sample audio for speaker ${trimmedName}`,
-        'master'
-      );
-
-      // 3. Save profile metadata locally
-      const nextCatalog: VoiceProfilesCatalog = {
-        ...catalog,
-        updated_at: new Date().toISOString(),
-        profiles: { ...catalog.profiles },
-      };
-      const existing = targetProfile || nextCatalog.profiles[trimmedName] || {};
-      nextCatalog.profiles[trimmedName] = {
-        ...existing,
-        name: trimmedName,
-        role: formRole,
-        color: formColor,
-        avatar_emoji: formEmoji,
-        notes: formNotes,
-        sample_audio_url: repoPath,
-        last_updated: new Date().toISOString(),
-      };
-      saveCatalogLocal(nextCatalog);
-
-      // 4. Trigger GitHub Actions cloud runner with the uploaded repo path
-      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
-        speaker_name: trimmedName,
-        audio_url: repoPath,
-        role: formRole,
-      });
-
-      setModalMode(null);
-      setStatusMsg({
-        type: 'success',
-        text: `🎉 Audio "${cleanFileName}" uploaded directly from your computer! GitHub Actions is now extracting the 192-dim SpeechBrain vector and updating voice_profiles.json.`
-      });
-      setTimeout(() => setStatusMsg(null), 12000);
-    } catch (e) {
-      setStatusMsg({ type: 'error', text: `Failed to upload audio from computer: ${(e as Error).message}` });
-    } finally {
-      setUploadingAudio(false);
-    }
-  };
-
-  // Save Form
   const handleSaveForm = () => {
-    const trimmedName = formName.trim();
-    if (!trimmedName) return;
-
-    const nextCatalog: VoiceProfilesCatalog = {
-      ...catalog,
-      updated_at: new Date().toISOString(),
-      profiles: { ...catalog.profiles },
-    };
-
-    if (modalMode === 'EDIT' && targetProfile && targetProfile.name !== trimmedName) {
-      delete nextCatalog.profiles[targetProfile.name];
+    const name = formName.trim();
+    if (!name) return;
+    const latest = catalogRef.current;
+    const existingId = Object.entries(latest.profiles).find(([, profile]) => profile.name.toLowerCase() === name.toLowerCase())?.[0];
+    if (existingId && existingId !== targetProfileId) {
+      setFormError('A profile already uses this name. Open that profile to add a sample.');
+      return;
     }
-
-    const existing = targetProfile || nextCatalog.profiles[trimmedName];
-
-    nextCatalog.profiles[trimmedName] = {
-      ...(existing || {}),
-      name: trimmedName,
+    const id = targetProfileId ?? (Object.hasOwn(latest.profiles, name) || Object.hasOwn(latest.removed_profiles ?? {}, name) ? crypto.randomUUID() : name);
+    const previous = latest.profiles[id];
+    const profile: VoiceProfile = {
+      ...previous,
+      name,
       role: formRole,
       color: formColor,
       avatar_emoji: formEmoji,
       notes: formNotes,
-      sample_audio_url: formAudioUrl || existing?.sample_audio_url,
-      last_updated: new Date().toISOString(),
+      suggestions_paused: formPaused || previous?.suggestions_paused ? formPaused : undefined,
     };
-
-    saveCatalogLocal(nextCatalog);
+    const saved = saveCatalogLocal(updateVoiceProfile(latest, id, profile));
     setModalMode(null);
-    setStatusMsg({ type: 'success', text: `Voice profile for "${trimmedName}" updated successfully.` });
-    setTimeout(() => setStatusMsg(null), 4000);
-  };
-
-  // Cloud Enrollment via GitHub Actions (enroll_voice.yml)
-  const handleCloudEnroll = async () => {
-    const trimmedName = formName.trim();
-    const trimmedUrl = formAudioUrl.trim();
-
-    if (!trimmedName) {
-      setStatusMsg({ type: 'error', text: 'Please enter a speaker name first.' });
-      return;
-    }
-    if (!trimmedUrl || !trimmedUrl.startsWith('http')) {
-      setStatusMsg({ type: 'error', text: 'Please enter a direct audio URL (.wav, .mp3, or .m4a) to enroll via GitHub Actions cloud runner.' });
-      return;
-    }
-    if (!hasGitHub) {
-      setStatusMsg({ type: 'error', text: 'GitHub Token, Owner, and Repo must be configured in Settings to dispatch cloud enrollment.' });
-      return;
-    }
-
-    setEnrollingCloud(true);
-    setStatusMsg(null);
-    try {
-      // 1. Save profile locally so it's visible in UI immediately
-      const nextCatalog: VoiceProfilesCatalog = {
-        ...catalog,
-        updated_at: new Date().toISOString(),
-        profiles: { ...catalog.profiles },
-      };
-      const existing = targetProfile || nextCatalog.profiles[trimmedName] || {};
-      nextCatalog.profiles[trimmedName] = {
-        ...existing,
-        name: trimmedName,
-        role: formRole,
-        color: formColor,
-        avatar_emoji: formEmoji,
-        notes: formNotes,
-        sample_audio_url: trimmedUrl,
-        last_updated: new Date().toISOString(),
-      };
-      saveCatalogLocal(nextCatalog);
-
-      // 2. Dispatch GitHub Action workflow
-      await dispatchWorkflow(config.githubToken, owner, repo, 'enroll_voice.yml', {
-        speaker_name: trimmedName,
-        audio_url: trimmedUrl,
-        role: formRole,
-      });
-
-      setModalMode(null);
-      setStatusMsg({
-        type: 'success',
-        text: `⚡ Cloud enrollment dispatched for "${trimmedName}"! SpeechBrain ECAPA-TDNN is extracting the 192-dim neural vector in GitHub Actions and committing to voice_profiles.json.`
-      });
-      setTimeout(() => setStatusMsg(null), 10000);
-    } catch (e) {
-      setStatusMsg({ type: 'error', text: `Failed to trigger cloud enrollment: ${(e as Error).message}` });
-    } finally {
-      setEnrollingCloud(false);
+    if (!saved) setStatusMsg({ type: 'error', text: 'Browser storage is unavailable. This change is available for this session only.' });
+    if (targetProfileId) {
+      if (saved) setSampleFeedback({ id, text: 'Profile saved in this browser.' });
+    } else {
+      setSearch('');
+      setRoleFilter('ALL');
+      setSampleFilter('ALL');
+      setSampleEditor({ id, suggested: suggestedSample });
     }
   };
 
-  // Delete Profile
-  const handleDeleteProfile = (name: string) => {
+  const updateSamples = (id: string, samples: VoiceSample[], success: string) => {
+    const latest = catalogRef.current;
+    const previous = latest.profiles[id];
+    if (!previous) return;
+    const updated = updateVoiceSamples(previous, samples);
+    const saved = saveCatalogLocal(updateVoiceProfile(latest, id, updated));
+    setSampleFeedback({ id, text: saved ? success : 'Browser storage is unavailable. This change is available for this session only.' });
+  };
+
+  const handleDeleteProfile = (id: string, name: string) => {
     if (!window.confirm(`Are you sure you want to delete the voice profile for "${name}"?`)) return;
 
+    const now = new Date().toISOString();
     const nextCatalog: VoiceProfilesCatalog = {
       ...catalog,
-      updated_at: new Date().toISOString(),
+      updated_at: now,
       profiles: { ...catalog.profiles },
+      removed_profiles: { ...catalog.removed_profiles, [id]: now },
     };
-    delete nextCatalog.profiles[name];
+    delete nextCatalog.profiles[id];
     saveCatalogLocal(nextCatalog);
     setStatusMsg({ type: 'success', text: `Profile for "${name}" deleted.` });
     setTimeout(() => setStatusMsg(null), 4000);
@@ -770,12 +516,12 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
   // Filter & Sort Profiles
   const profileList = useMemo(() => {
-    let list: VoiceProfile[] = Object.values<VoiceProfile>(catalog.profiles || {});
+    let list = Object.entries(catalog.profiles);
 
     // Search filter
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(p =>
+      list = list.filter(([, p]) =>
         p.name.toLowerCase().includes(q) ||
         (p.role && p.role.toLowerCase().includes(q)) ||
         (p.notes && p.notes.toLowerCase().includes(q))
@@ -784,20 +530,20 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
     // Role filter
     if (roleFilter !== 'ALL') {
-      list = list.filter(p => p.role === roleFilter);
+      list = list.filter(([, p]) => p.role === roleFilter);
     }
 
     // Embedding filter
-    if (embeddingFilter === 'ENROLLED') {
-      list = list.filter(p => p.embedding && p.embedding.length === 192);
-    } else if (embeddingFilter === 'PENDING') {
-      list = list.filter(p => !p.embedding || p.embedding.length !== 192);
+    if (sampleFilter === 'WITH_SAMPLES') {
+      list = list.filter(([, p]) => getVoiceSamples(p).length > 0);
+    } else if (sampleFilter === 'WITHOUT_SAMPLES') {
+      list = list.filter(([, p]) => getVoiceSamples(p).length === 0);
     }
 
     // Sort
-    list.sort((a, b) => {
+    list.sort(([, a], [, b]) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'samples') return (b.sample_count || 0) - (a.sample_count || 0);
+      if (sortBy === 'samples') return getVoiceSamples(b).length - getVoiceSamples(a).length;
       if (sortBy === 'updated') {
         const tA = a.last_updated ? new Date(a.last_updated).getTime() : 0;
         const tB = b.last_updated ? new Date(b.last_updated).getTime() : 0;
@@ -807,7 +553,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     });
 
     return list;
-  }, [catalog, search, roleFilter, embeddingFilter, sortBy]);
+  }, [catalog, search, roleFilter, sampleFilter, sortBy]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -818,8 +564,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       total: all.length,
       enrolled: enrolled.length,
       pending,
-      model: catalog.embedding_model || 'speechbrain/spkrec-ecapa-voxceleb',
-      dim: catalog.embedding_dim || 192,
+      withSamples: all.filter(p => getVoiceSamples(p).length > 0).length,
     };
   }, [catalog]);
 
@@ -861,19 +606,6 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     return pairs;
   }, [catalog]);
 
-  const speakerConfusionMap = useMemo(() => {
-    const map: Record<string, Array<{ other: string; sim: number; risk: 'high' | 'moderate' }>> = {};
-    confusionPairs.forEach(pair => {
-      if (pair.similarity >= 0.65) {
-        map[pair.speakerA] = map[pair.speakerA] || [];
-        map[pair.speakerA].push({ other: pair.speakerB, sim: pair.similarity, risk: pair.risk as 'high' | 'moderate' });
-        map[pair.speakerB] = map[pair.speakerB] || [];
-        map[pair.speakerB].push({ other: pair.speakerA, sim: pair.similarity, risk: pair.risk as 'high' | 'moderate' });
-      }
-    });
-    return map;
-  }, [confusionPairs]);
-
   // Export JSON
   const handleExportJson = () => {
     const blob = new Blob([JSON.stringify(catalog, null, 2)], { type: 'application/json' });
@@ -906,39 +638,28 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     reader.readAsText(file);
   };
 
-  // Run Diarization Match Test
-  const handleTestDiarization = async () => {
-    if (!selectedEpisodeId) return;
-    setTestingDiarization(true);
-    setDiarizationTestResult(null);
-
-    const ep = episodes.find(e => e.id === selectedEpisodeId);
-    if (!ep) {
-      setTestingDiarization(false);
-      return;
-    }
-
-    try {
-      const knownNames = Object.keys(catalog.profiles);
-      const matches: string[] = [];
-
-      // Simulate match evaluation
-      knownNames.slice(0, 3).forEach(name => {
-        const p = catalog.profiles[name];
-        matches.push(`Matched Speaker ${matches.length} → "${name}" (${p.role || 'Speaker'}, similarity 0.88)`);
-      });
-
-      setDiarizationTestResult({
-        mapped: matches.length,
-        total: matches.length + 2,
-        details: matches,
-      });
-    } catch {
-      // ignore
-    } finally {
-      setTestingDiarization(false);
-    }
+  const uploadSample = async (id: string, file: File) => {
+    if (!hasGitHub) throw new Error('Configure GitHub in Settings to upload recordings.');
+    const filename = file.name.replace(/[^a-zA-Z0-9._ -]/g, '_');
+    const folder = id.replace(/[^a-zA-Z0-9._ -]/g, '_').replace(/^\.+$/, '_');
+    const repoPath = `speaker_samples/${folder}/${crypto.randomUUID()}-${filename}`;
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = () => reject(new Error('Couldn’t read this recording.'));
+      reader.readAsDataURL(file);
+    });
+    await writeRepositoryBinaryFile(config.githubToken, owner, repo, repoPath, base64, 'feat(voice): add a voice sample', 'master');
+    return repoPath;
   };
+
+  const resolveSampleUrl = (url: string) => {
+    if (/^https?:\/\//i.test(url) || !owner || !repo || url.startsWith('/')) return url;
+    const path = url.split('/').map(encodeURIComponent).join('/');
+    return `https://raw.githubusercontent.com/${owner}/${repo}/master/${path}`;
+  };
+
+  const confirmations = getConfirmationCounts();
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 text-slate-200">
@@ -960,13 +681,10 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               <div className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
                 <AudioWaveform size={22} />
               </div>
-              <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">Voice Profile Library</h1>
-              <span className="text-[11px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                Acoustic Diarization
-              </span>
+              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">Voice Profiles</h1>
             </div>
             <p className="text-xs text-slate-400 max-w-2xl">
-              Central catalog of speaker neural voice embeddings ({stats.dim}-dim ECAPA-TDNN). Automatically identifies, matches, and labels speakers in Twitter Space transcripts.
+              Pick a person to listen to their clips or add a voice sample.
             </p>
           </div>
 
@@ -974,9 +692,22 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={handleOpenCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold shadow-lg transition-all hover:scale-105 cursor-pointer"
+              className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800"
             >
-              <Plus size={15} /> Add Speaker Profile
+              <Plus size={15} /> Add a person
+            </button>
+
+            <details className="relative">
+              <summary className="cursor-pointer rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-200">More tools</summary>
+              <div className="absolute right-0 top-full z-30 mt-2 flex w-56 flex-col gap-2 rounded-xl border border-slate-700 bg-slate-950 p-2 shadow-xl">
+            <button
+              onClick={handleSaveToGitHub}
+              disabled={savingGitHub || !hasGitHub}
+              title={hasGitHub ? 'Apply profile changes to cloud processing' : 'Connect GitHub in Settings to sync'}
+              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm"
+            >
+              {savingGitHub ? <Loader size={14} className="animate-spin" /> : <Save size={14} />}
+              {savingGitHub ? 'Syncing…' : 'Sync to GitHub'}
             </button>
 
             <button
@@ -989,16 +720,6 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             >
               <Bot size={14} className="text-indigo-400" />
               <span>Ask Copilot to Analyze</span>
-            </button>
-
-            <button
-              onClick={handleSaveToGitHub}
-              disabled={savingGitHub || !hasGitHub}
-              title={hasGitHub ? 'Commit voice_profiles.json directly to master branch' : 'Configure GitHub Token to commit'}
-              className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 disabled:opacity-40 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-sm"
-            >
-              {savingGitHub ? <Loader size={14} className="animate-spin" /> : <Save size={14} />}
-              {savingGitHub ? 'Committing…' : 'Sync to GitHub'}
             </button>
 
             <button
@@ -1044,6 +765,8 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                 <input type="file" accept=".json" onChange={handleImportJson} className="hidden" />
               </label>
             </div>
+              </div>
+            </details>
           </div>
         </div>
 
@@ -1061,47 +784,6 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       </div>
 
       <div className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
-        {/* ── Key Metrics Bar ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Known Speakers</span>
-              <Users size={16} className="text-indigo-400" />
-            </div>
-            <div className="text-2xl font-black text-white">{stats.total}</div>
-            <p className="text-[11px] text-slate-400">Registered across catalog</p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Neural Vectors</span>
-              <Sparkles size={16} className="text-emerald-400" />
-            </div>
-            <div className="text-2xl font-black text-emerald-400">{stats.enrolled}</div>
-            <p className="text-[11px] text-slate-400">192-dim ECAPA enrolled</p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Pending Samples</span>
-              <Mic size={16} className="text-amber-400" />
-            </div>
-            <div className="text-2xl font-black text-amber-400">{stats.pending}</div>
-            <p className="text-[11px] text-slate-400">Awaiting audio clips</p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 shadow-sm space-y-1">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[11px] font-bold uppercase tracking-wider">Pipeline Model</span>
-              <Layers size={16} className="text-slate-300" />
-            </div>
-            <div className="text-sm font-bold text-slate-200 truncate" title={stats.model}>
-              ECAPA-TDNN
-            </div>
-            <p className="text-[11px] text-slate-400">192-dimensional embeddings</p>
-          </div>
-        </div>
-
         {/* ── Dead-Letter Queue (DLQ) Quarantined Enrollments ── */}
         {dlqList.length > 0 && (
           <div className="p-4 bg-rose-950/20 border border-rose-500/30 rounded-xl space-y-3">
@@ -1177,18 +859,19 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
 
         {/* ── Search & Filter Controls ── */}
         <div className="p-3 bg-slate-900/50 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-[280px]">
-            <div className="relative flex-1 max-w-sm">
+          <div className="flex min-w-0 grow basis-[28rem] flex-wrap items-center gap-3">
+            <div className="relative min-w-[11rem] flex-1">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search speaker name, role, notes…"
+                aria-label="Find a person"
+                placeholder="Find a person"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full pl-8 pr-8 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                <button aria-label="Clear person search" onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
                   <X size={12} />
                 </button>
               )}
@@ -1197,28 +880,28 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             {/* Embedding filter */}
             <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
               <button
-                onClick={() => setEmbeddingFilter('ALL')}
+                onClick={() => setSampleFilter('ALL')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                  embeddingFilter === 'ALL' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
+                  sampleFilter === 'ALL' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 All ({stats.total})
               </button>
               <button
-                onClick={() => setEmbeddingFilter('ENROLLED')}
+                onClick={() => setSampleFilter('WITH_SAMPLES')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                  embeddingFilter === 'ENROLLED' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                  sampleFilter === 'WITH_SAMPLES' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                ⚡ Enrolled ({stats.enrolled})
+                Has samples ({stats.withSamples})
               </button>
               <button
-                onClick={() => setEmbeddingFilter('PENDING')}
+                onClick={() => setSampleFilter('WITHOUT_SAMPLES')}
                 className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
-                  embeddingFilter === 'PENDING' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'
+                  sampleFilter === 'WITHOUT_SAMPLES' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
-                ⏳ Pending ({stats.pending})
+                No samples ({stats.total - stats.withSamples})
               </button>
             </div>
           </div>
@@ -1261,43 +944,37 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
             <AudioWaveform size={36} className="mx-auto text-slate-500" />
             <h3 className="text-base font-bold text-white">No voice profiles found</h3>
             <p className="text-xs text-slate-400">
-              {search ? `No profiles match "${search}". Try clearing your filters.` : 'Add your first recurring host or speaker profile to begin automatic diarization.'}
+              {Object.keys(catalog.profiles).length ? 'Try a different name or clear the filters.' : 'Add a person, then choose a short clip of them speaking.'}
             </p>
-            <button
-              onClick={handleOpenCreate}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md cursor-pointer"
-            >
-              <Plus size={14} /> Add Profile
-            </button>
+            {Object.keys(catalog.profiles).length ? (
+              <button type="button" className="rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold"
+                onClick={() => { setSearch(''); setRoleFilter('ALL'); setSampleFilter('ALL'); }}>Clear filters</button>
+            ) : (
+              <button type="button" className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white" onClick={handleOpenCreate}>Add a person</button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {profileList.map(profile => {
-              const hasEmbedding = profile.embedding && profile.embedding.length === 192;
+            {profileList.map(([id, profile]) => {
+              const samples = getVoiceSamples(profile);
+              const matching = voiceMatchingStatus(profile);
+              const confirmed = confirmations.get(id) ?? 0;
+              const requested = preparationRequested === id && matching === 'needs-preparation';
               const colorTheme = COLOR_OPTIONS.find(c => c.id === profile.color) || COLOR_OPTIONS[0];
 
               return (
                 <div
-                  key={profile.name}
-                  className="bg-slate-900/70 border border-slate-800/90 hover:border-slate-700/90 rounded-xl p-5 shadow-lg space-y-4 transition-all group flex flex-col justify-between"
+                  key={id}
+                  className="group self-start space-y-3 rounded-xl border border-slate-800 bg-slate-900/70 p-4 transition-colors hover:border-slate-700"
                 >
-                  <div className="space-y-3">
                     {/* Card Header: Avatar, Name, Role */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`w-13 h-13 rounded-2xl flex items-center justify-center text-xl shadow-md border ${colorTheme.badge} flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative group/avatar bg-slate-950`}>
-                          {profile.avatar_url || getDefaultSpeakerAvatar(profile.name) ? (
-                            <img
-                              src={profile.avatar_url || getDefaultSpeakerAvatar(profile.name)}
-                              alt={profile.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <span>{profile.avatar_emoji || '🎙️'}</span>
-                          )}
+                          <span aria-hidden="true">{profile.avatar_emoji || '🎙️'}</span>
+                          <img src={profile.avatar_url || getDefaultSpeakerAvatar(profile.name)} alt=""
+                            className="absolute inset-0 h-full w-full object-cover"
+                            onError={event => { event.currentTarget.style.display = 'none'; }} />
                           <label
                             className="absolute inset-0 bg-slate-950/75 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-white text-[9px] font-semibold"
                             title="Upload Avatar Photo (.jpg, .png)"
@@ -1308,7 +985,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => handleUploadSpeakerAvatar(profile.name, e.target.files?.[0])}
+                              onChange={(e) => handleUploadSpeakerAvatar(id, e.target.files?.[0])}
                             />
                           </label>
                         </div>
@@ -1318,9 +995,9 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold border border-slate-700">
                               {profile.role || 'Speaker'}
                             </span>
-                            {profile.sample_count !== undefined && (
+                            {samples.length > 0 && (
                               <span className="text-[11px] text-slate-400 font-mono">
-                                {profile.sample_count} sample{profile.sample_count !== 1 ? 's' : ''}
+                                {samples.length} saved sample{samples.length !== 1 ? 's' : ''}
                               </span>
                             )}
                           </div>
@@ -1330,16 +1007,18 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                       {/* Top Action Buttons */}
                       <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => handleOpenEdit(profile)}
+                          onClick={() => handleOpenEdit(id, profile)}
                           className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                           title="Edit Profile"
+                          aria-label={`Edit profile for ${profile.name}`}
                         >
                           <Edit3 size={14} />
                         </button>
                         <button
-                          onClick={() => handleDeleteProfile(profile.name)}
+                          onClick={() => handleDeleteProfile(id, profile.name)}
                           className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                           title="Delete Profile"
+                          aria-label={`Delete profile for ${profile.name}`}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -1353,259 +1032,90 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                       </p>
                     )}
 
-                    {/* Embedding Status & Visualization */}
-                    <div className="p-3 bg-slate-950/80 border border-slate-800/80 rounded-xl space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5">
-                          {hasEmbedding ? (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
-                              <Sparkles size={12} /> 192-dim Neural Vector
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400">
-                              <Mic size={12} /> Pending Voice Sample
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-mono">
-                          {hasEmbedding ? 'Unit Norm (1.00)' : 'Awaiting Clip'}
-                        </span>
-                      </div>
-
-                      {/* Vector Visualizer Barcode */}
-                      {hasEmbedding && profile.embedding ? (
-                        <div className="space-y-1">
-                          <div className="h-7 w-full bg-slate-900 rounded-lg p-1 flex items-end gap-[1px] overflow-hidden border border-slate-800" title="192-dimensional ECAPA-TDNN Acoustic Fingerprint">
-                            {profile.embedding.slice(0, 96).map((val, idx) => {
-                              const heightPct = Math.min(100, Math.max(15, Math.abs(val) * 600));
-                              const isPositive = val >= 0;
-                              return (
-                                <div
-                                  key={idx}
-                                  style={{ height: `${heightPct}%` }}
-                                  className={`flex-1 rounded-t-sm transition-all ${
-                                    isPositive ? 'bg-emerald-400/80 hover:bg-emerald-300' : 'bg-indigo-400/80 hover:bg-indigo-300'
-                                  }`}
-                                  title={`Dim ${idx * 2}: ${val.toFixed(4)}`}
-                                />
-                              );
-                            })}
-                          </div>
-                          <div className="flex justify-between text-[11px] font-mono text-slate-400 px-0.5">
-                            <span>Dim 0</span>
-                            <span>Acoustic Fingerprint (ECAPA-TDNN)</span>
-                            <span>Dim 192</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="py-2 text-center text-[11px] text-slate-400">
-                          Attach an audio clip to enroll acoustic vector
-                        </div>
+                    <div className="space-y-1">
+                      {matching === 'empty' && <p className="text-sm text-slate-300">Add a short clip of {profile.name} speaking alone.</p>}
+                      {matching === 'needs-preparation' && (
+                        <>
+                          <p className="text-sm font-medium text-slate-200">{requested ? 'Preparation requested' : 'Matching needs setup'}</p>
+                          {!requested && <p className="text-xs text-slate-400">{hasGitHub
+                            ? 'Open a saved sample and choose Prepare voice.'
+                            : 'Connect GitHub in Settings to prepare this voice for matching.'}</p>}
+                        </>
                       )}
-
-                      {/* Confusion Risk Alert */}
-                      {hasEmbedding && speakerConfusionMap[profile.name] && speakerConfusionMap[profile.name].length > 0 && (
-                        <div className={`p-2 rounded-lg border text-[11px] flex items-center justify-between gap-1.5 ${
-                          speakerConfusionMap[profile.name][0].risk === 'high'
-                            ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                            : 'bg-amber-500/10 border-amber-500/25 text-amber-300'
-                        }`}>
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <AlertCircle size={12} className={speakerConfusionMap[profile.name][0].risk === 'high' ? 'text-rose-400 flex-shrink-0' : 'text-amber-400 flex-shrink-0'} />
-                            <span className="truncate">
-                              Overlap with <strong>{speakerConfusionMap[profile.name][0].other}</strong> ({Math.round(speakerConfusionMap[profile.name][0].sim * 100)}%)
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => setModalMode('SEPARATION_MATRIX')}
-                            className="text-[11px] underline font-semibold hover:text-white flex-shrink-0 cursor-pointer"
-                          >
-                            Inspect
-                          </button>
-                        </div>
+                      {matching === 'needs-verification' && (
+                        <>
+                          <p className="text-sm font-medium text-slate-200">Voice check needed</p>
+                          <p className="text-xs text-slate-400">The clip was prepared. A person needs to verify whose voice it is before it can be used for matching.</p>
+                        </>
                       )}
+                      {matching === 'ready' && <p className="text-sm font-medium text-emerald-300">Ready for voice matching</p>}
+                      {matching === 'paused' && <p className="text-sm font-medium text-slate-200">Suggestions paused <button type="button"
+                        className="ml-1 text-xs text-indigo-300 underline" onClick={() => handleOpenEdit(id, profile)}>Edit setting</button></p>}
+                      {confirmed > 0 && <p className="text-xs text-slate-400">Names confirmed in {confirmed} episode{confirmed === 1 ? '' : 's'}</p>}
+                      {(requested || matching === 'needs-verification') && hasGitHub && (
+                        <button type="button" disabled={loading || savingGitHub}
+                          className="text-xs font-semibold text-indigo-300 underline disabled:opacity-50"
+                          onClick={() => { void loadCatalog(); }}>Check matching status</button>
+                      )}
+                      {sampleFeedback?.id === id && <p role="status" className="text-xs text-slate-200">{sampleFeedback.text}</p>}
                     </div>
-                  </div>
-
-                  {/* Card Footer: Last Updated & Quick Action */}
-                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs mt-2">
-                    <span className="text-[11px] text-slate-400">
-                      {profile.last_updated ? `Updated ${new Date(profile.last_updated).toLocaleDateString()}` : 'Preset'}
-                    </span>
-                    <button
-                      onClick={() => {
-                        setTargetProfile(profile);
-                        setModalMode('CLI_GUIDE');
+                    <VoiceSamples
+                      profile={profile}
+                      resolveUrl={resolveSampleUrl}
+                      onEdit={sample => setSampleEditor({ id, sample })}
+                      onRemove={sample => {
+                        const current = catalogRef.current.profiles[id];
+                        if (current) updateSamples(id, getVoiceSamples(current).filter(item => item.id !== sample.id), 'Sample removed.');
                       }}
-                      className="text-indigo-400 hover:text-indigo-300 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Terminal size={11} /> Enroll Audio
-                    </button>
-                  </div>
+                      onPrepare={hasGitHub && !savingGitHub && matching === 'needs-preparation' && !profile.identity_verified
+                        ? sample => enrollSavedSample(id, sample) : undefined}
+                      onOpenEpisode={onOpenTranscript}
+                    />
                 </div>
               );
             })}
           </div>
         )}
 
-        {/* ── Diarization Pipeline Integration Hub Section ── */}
-        <div className="mt-12 bg-slate-900/60 border border-slate-800/90 rounded-xl p-6 md:p-8 shadow-xl space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-amber-400" />
-                <h2 className="text-lg font-bold text-white tracking-tight">Diarization Pipeline Synchronization</h2>
-              </div>
-              <p className="text-xs text-slate-400 max-w-xl">
-                How voice profiles automatically resolve generic speakers across new and past Twitter Spaces.
-              </p>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setModalMode('RAW_JSON')}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 cursor-pointer transition-colors"
-              >
-                <FileText size={13} /> View Catalog JSON
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-sm">
-                1
-              </div>
-              <h4 className="text-sm font-bold text-white">Neural Cluster Identification</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                During batch audio processing in <code className="text-indigo-300">batch_transcriber.py</code>, acoustic clusters are compared against enrolled 192-dim ECAPA vectors using cosine similarity (&ge; 0.70 threshold).
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-bold text-sm">
-                2
-              </div>
-              <h4 className="text-sm font-bold text-white">Conversational Heuristics</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                In <code className="text-emerald-300">transcribe_and_diarize.py</code>, registered names seed zero-API self-introduction and vocative address parsers (*"I'm Angela"*, *"Thanks for hosting, Logan"*).
-              </p>
-            </div>
-
-            <div className="p-4 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2">
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold text-sm">
-                3
-              </div>
-              <h4 className="text-sm font-bold text-white">Full-Context LLM Consensus</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                When APIs are active, LLMs (Gemini / Cohere / OpenRouter) disambiguate 3rd-person references and verify dominant host roles against known speaker aliases.
-              </p>
-            </div>
-          </div>
-
-          {/* Test matching against an episode */}
-          {episodes.length > 0 && (
-            <div className="pt-4 border-t border-slate-800 space-y-3">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                Test Diarization Match on Space:
-              </span>
-              <div className="flex flex-wrap items-center gap-3">
-                <select
-                  value={selectedEpisodeId || ''}
-                  onChange={e => setSelectedEpisodeId(Number(e.target.value) || null)}
-                  className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-indigo-500 max-w-md truncate cursor-pointer"
-                >
-                  <option value="">Select an episode to inspect…</option>
-                  {episodes.map(ep => (
-                    <option key={ep.id} value={ep.id}>
-                      {ep.name || ep.tag_name}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  onClick={handleTestDiarization}
-                  disabled={!selectedEpisodeId || testingDiarization}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold rounded-lg transition-all cursor-pointer shadow-md"
-                >
-                  {testingDiarization ? <Loader size={13} className="animate-spin" /> : <Sparkles size={13} className="text-amber-400" />}
-                  {testingDiarization ? 'Matching…' : 'Simulate Match'}
-                </button>
-
-                {selectedEpisodeId && onOpenTranscript && (
-                  <button
-                    onClick={() => onOpenTranscript(selectedEpisodeId)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg border border-slate-700 cursor-pointer"
-                  >
-                    Open in Transcripts <ArrowRight size={13} />
-                  </button>
-                )}
-              </div>
-
-              {diarizationTestResult && (
-                <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-2 mt-3 animate-in fade-in duration-150">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                    <CheckCircle2 size={14} />
-                    <span>Diarization Match Result: {diarizationTestResult.mapped} of {diarizationTestResult.total} speakers recognized</span>
-                  </div>
-                  <ul className="text-xs space-y-1 text-slate-300 pl-5 list-disc">
-                    {diarizationTestResult.details.map((d, idx) => (
-                      <li key={idx}>{d}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ── Extracted Voice Profile Modals ── */}
-      <VoiceProfileModal
-        isOpen={modalMode === 'CREATE' || modalMode === 'EDIT'}
-        modalMode={modalMode}
-        targetProfile={targetProfile}
-        formName={formName}
-        setFormName={setFormName}
-        formRole={formRole}
-        setFormRole={setFormRole}
-        formColor={formColor}
-        setFormColor={setFormColor}
-        formEmoji={formEmoji}
-        setFormEmoji={setFormEmoji}
-        formNotes={formNotes}
-        setFormNotes={setFormNotes}
-        formAudioUrl={formAudioUrl}
-        setFormAudioUrl={setFormAudioUrl}
-        audioSourceTab={audioSourceTab}
-        setAudioSourceTab={setAudioSourceTab}
-        localAudioFile={localAudioFile}
-        setLocalAudioFile={setLocalAudioFile}
-        localAudioPreviewUrl={localAudioPreviewUrl}
-        setLocalAudioPreviewUrl={setLocalAudioPreviewUrl}
-        dragOver={dragOver}
-        setDragOver={setDragOver}
-        inspectingAudio={inspectingAudio}
-        audioPreCheck={audioPreCheck}
-        handleSelectAudioFile={handleSelectAudioFile}
-        handleUploadFromComputerAndEnroll={handleUploadFromComputerAndEnroll}
-        uploadingAudio={uploadingAudio}
-        hasGitHub={hasGitHub}
-        handleCloudEnroll={handleCloudEnroll}
-        enrollingCloud={enrollingCloud}
-        handleSaveForm={handleSaveForm}
-        onClose={() => setModalMode(null)}
-        roleOptions={ROLE_OPTIONS}
-        colorOptions={COLOR_OPTIONS}
-        emojiOptions={EMOJI_OPTIONS}
-      />
+      {(modalMode === 'CREATE' || modalMode === 'EDIT') && (
+        <VoiceProfileModal
+          creating={modalMode === 'CREATE'}
+          name={formName} setName={setFormName}
+          role={formRole} setRole={setFormRole}
+          color={formColor} setColor={setFormColor}
+          emoji={formEmoji} setEmoji={setFormEmoji}
+          notes={formNotes} setNotes={setFormNotes}
+          canPause={!!targetProfile && (targetProfile.suggestions_paused === true || voiceMatchingStatus(targetProfile) === 'ready')}
+          paused={formPaused} setPaused={setFormPaused}
+          hasGitHub={hasGitHub} error={formError} onSave={handleSaveForm} onClose={() => setModalMode(null)}
+          roleOptions={ROLE_OPTIONS} colorOptions={COLOR_OPTIONS} emojiOptions={EMOJI_OPTIONS}
+        />
+      )}
 
-      <CliEnrollmentGuideModal
-        isOpen={modalMode === 'CLI_GUIDE'}
-        targetProfile={targetProfile}
-        onClose={() => setModalMode(null)}
-        onOpenEdit={(p) => handleOpenEdit(p)}
-      />
+      {sampleEditor && catalog.profiles[sampleEditor.id] && (
+        <VoiceSampleEditor
+          name={catalog.profiles[sampleEditor.id].name}
+          episodes={episodes} episodesLoading={episodesLoading}
+          resolveUrl={resolveSampleUrl} canUpload={hasGitHub}
+          sample={sampleEditor.sample} suggested={sampleEditor.suggested}
+          onUpload={file => uploadSample(sampleEditor.id, file)}
+          onClose={() => setSampleEditor(null)}
+          onSave={sample => {
+            const current = catalogRef.current.profiles[sampleEditor.id];
+            if (!current) { setSampleEditor(null); return; }
+            const samples = getVoiceSamples(current);
+            const trim = sampleEditor.sample;
+            updateSamples(sampleEditor.id, trim ? samples.map(item => item.id === trim.id ? sample : item) : [...samples, sample],
+              trim ? 'Trim saved in this browser.' : 'Voice sample saved in this browser.');
+            setSampleEditor(null);
+            if (trim) setPreparationRequested(previous => previous === sampleEditor.id ? null : previous);
+          }}
+        />
+      )}
 
       <RawJsonViewerModal
         isOpen={modalMode === 'RAW_JSON'}
@@ -1632,18 +1142,16 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
       <DiscoveredCandidatesModal
         isOpen={modalMode === 'CANDIDATES'}
         onClose={() => setModalMode(null)}
-        onEnrollCandidate={(candidate) => {
-          setTargetProfile(null);
+        onEnrollCandidate={candidate => {
+          handleOpenCreate();
           setFormName(candidate.suggested_name !== 'Unidentified Speaker' ? candidate.suggested_name : '');
-          setFormRole('Guest');
-          setFormColor('indigo');
-          setFormEmoji('🎙️');
-          setFormNotes(`Auto-discovered candidate from ${candidate.episode_count} episodes (${candidate.raw_speaker}).`);
-          setFormAudioUrl(candidate.sample_clips?.[0]?.audio_url || '');
-          setLocalAudioFile(null);
-          setLocalAudioPreviewUrl(null);
-          setAudioPreCheck(null);
-          setModalMode('CREATE');
+          setFormRole('Special Guest');
+          setFormNotes(`Found in ${candidate.episode_count} episodes.`);
+          const clip = candidate.sample_clips?.[0];
+          if (clip?.audio_url) setSuggestedSample({
+            id: crypto.randomUUID(), source: 'episode', audio_url: clip.audio_url, release_tag: clip.episode_tag,
+            start_sec: clip.start, end_sec: clip.end,
+          });
         }}
       />
     </div>

@@ -254,6 +254,9 @@ def match_biometrics_1to1(
         second_sim = sims[1][1] if len(sims) > 1 else 0.0
         margin = best_sim - second_sim
 
+        best_profile = enrolled_profiles[best_name]
+        if isinstance(best_profile, dict) and best_profile.get("suggestions_paused") is True:
+            continue
         if best_sim >= min_similarity and margin >= min_margin:
             candidate_pairs.append({
                 "cluster_id": cid,
