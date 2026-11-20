@@ -524,6 +524,59 @@ export function clipsFromBlock(block: unknown, opts: ClipsFromBlockOptions): Par
   return out;
 }
 
+/*
+ * Manuscript dialect used by THE PAPER TRAIL masters (November 2026):
+ *   `[CLIP #115-A | AQ-0115 | *Space Title* (20260218_1YpKkgYPjkmKj), Feb 18, 2026, 4321.3s]`
+ *   **ANGELA**
+ *   "What she said on tape."
+ * Cue lines are wrapped in backticks, speakers are named on bold lines (**LOGAN** is Logan narrating), written
+ * messages are read aloud under **NAME — WRITTEN**, and non-spoken notes sit in [NON-SPOKEN …] brackets.
+ */
+
+/** A whole line wrapped in backticks around a bracket cue (`[beat]`) is read as the cue itself. */
+export function unwrapCodeLine(line: string): string {
+  const m = /^`(\[[^`]*\])`$/.exec(line);
+  return m ? m[1] : line;
+}
+
+/** A bold speaker label on its own line or before inline words: **ANGELA**, **ANGELA:**, **SPEAKER 3:** "…". */
+const SPEAKER_LABEL_RE = /^\*\*(?<name>[A-Z][A-Z0-9 .,'’&()/—–-]*?):?\*\*:?\s*(?<rest>.*)$/;
+const MANUSCRIPT_CLIP_HEADER_RE = /^\[CLIP\s+(?<id>#[^|\]]*?)\s*\|\s*(?<meta>[^\]]+)\]$/i;
+const NON_SPOKEN_NOTE_RE = /^\[(?:NON-SPOKEN|SOURCE\s+HOLD|[A-Z][A-Z -]*READING)\b[^\]]*\]$/i;
+/** A direction that the next quoted words are a written message read aloud: [WRITTEN-MESSAGE READING …: SAV — DM …]. */
+const READING_NOTE_RE = /^\[[A-Z][A-Z -]*READING\b[^\]]*\]$/i;
+/** Archive header naming the speaker: [ARCHIVE — ANGELA | *Hook Line Sinker*, September 8, 2026 | Clip #170]. */
+const ARCHIVE_HEADER_RE = /^\[ARCHIVE\s*[—–-]\s*(?<speaker>[^|\]]+?)\s*\|\s*(?<meta>[^\]]+)\]$/i;
+
+/** The person whose message a reading note introduces, when it names one plainly ("…: SAV — DM TO ANGELA"). */
+function readingSpeaker(note: string): string | undefined {
+  const m = /READING\b[^:—–]*[:—–]\s*([A-Z][A-Z'’]*(?:\s[A-Z][A-Z'’]*){0,2})\s*(?:[—–;]|$)/.exec(note);
+  return m ? tidySpeakerName(m[1]) : undefined;
+}
+
+/** Logan speaking now, as the narrator (not Logan heard on archival tape). */
+function isNarratorLabel(name: string): boolean {
+  return /^(?:LOGAN|NARRATOR|HOST)(?:\s*\((?!ARCHIVAL)[^)]*\))?$/i.test(name.trim());
+}
+
+/** "SPEAKER 3 (COMMUNITY WITNESS)" -> "Speaker 3 (Community Witness)"; mixed-case names are kept as written. */
+function tidySpeakerName(name: string): string {
+  const n = name.trim().replace(/:$/, '').trim();
+  if (n !== n.toUpperCase()) return n;
+  return n.toLowerCase().replace(/(^|[\s(/—–-])([a-z])/g, (_m, p: string, c: string) => p + c.toUpperCase());
+}
+
+/** The spoken words of one quoted turn: delivery notes such as `[laughing]` and the outer quote marks removed. */
+function spokenWords(text: string): string {
+  return text
+    .replace(/`\[[^\]`]*\]`/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^[“"]\s*/, '')
+    .replace(/\s*[”"]$/, '')
+    .trim();
+}
+
 const defaultIdGen = (prefix: string) =>
   `${prefix}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 9)}`;
 
@@ -723,6 +776,8 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
   let inFrontmatter = true;
   let inConventions = false;
   let inRevisionNote = false;
+  /** Set by a reading direction ([WRITTEN-MESSAGE READING …]); the next quoted words are that message read aloud. */
+  let pendingReading: string | null = null;
 
   const flushParagraph = () => {
     if (paragraphBuffer.length === 0) return;
@@ -796,7 +851,7 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const rawLine = lines[lineIndex];
-    const line = rawLine.trim();
+    const line = unwrapCodeLine(rawLine.trim());
 
     // Empty line separates paragraphs
     if (!line) {
@@ -860,6 +915,16 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       } else {
         continue;
       }
+    }
+
+    // Non-spoken notes (source holds, reading directions) are kept as production notes, never as narration
+    if (NON_SPOKEN_NOTE_RE.test(line)) {
+      flushParagraph();
+      ensureContext();
+      const note = line.slice(1, -1).trim();
+      if (READING_NOTE_RE.test(line)) pendingReading = note;
+      curScene!.blocks.push({ id: newId('b'), kind: 'cue', type: 'CUE', cueType: 'production_note', text: note, note, sec: 0 });
+      continue;
     }
 
     // Filter Director Notes, Writing Prompts, and Editorial Guidance (Issue 2)
@@ -1069,6 +1134,77 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
           lineIndex = nextIdx;
           continue;
         }
+      }
+    }
+
+    // A2. Manuscript clip header followed by speaker-labelled quotes (THE PAPER TRAIL dialect, see above):
+    // [CLIP #115-A | AQ-0115 | *Title* (20260218_1YpKkgYPjkmKj), Feb 18, 2026, 4321.3s]  then  **ANGELA** / "…"
+    const msHeader = MANUSCRIPT_CLIP_HEADER_RE.exec(line) || ARCHIVE_HEADER_RE.exec(line);
+    if (msHeader) {
+      const at = (k: number) => unwrapCodeLine((lines[k] || '').trim());
+      const turns: { speaker: string; text: string }[] = [];
+      let j = lineIndex + 1;
+      while (j < lines.length) {
+        let k = j;
+        while (k < lines.length && !at(k)) k++;
+        if (k >= lines.length) break;
+        const l = at(k);
+        const label = SPEAKER_LABEL_RE.exec(l);
+        if (label) {
+          const name = label.groups!.name;
+          // **LOGAN** on its own line is Logan narrating again; **LOGAN:** "…" inside the exchange is Logan on tape
+          if (isNarratorLabel(name) && !/^[`“"]/.test(label.groups!.rest)) break;
+          const parts = label.groups!.rest ? [label.groups!.rest] : [];
+          let m = k + 1;
+          if (!parts.length) {
+            // Words on the following lines, up to a blank line, another speaker or a cue
+            while (m < lines.length && at(m) && !SPEAKER_LABEL_RE.test(at(m)) && !at(m).startsWith('[')) parts.push(at(m++));
+          }
+          const words = spokenWords(parts.join(' '));
+          if (!words) break;
+          turns.push({ speaker: tidySpeakerName(name), text: words });
+          j = m;
+          continue;
+        }
+        if (turns.length && k === j && /^[“"]/.test(l)) { turns[turns.length - 1].text += ` ${spokenWords(l)}`; j = k + 1; continue; }
+        break;
+      }
+      if (turns.length) {
+        flushParagraph();
+        ensureContext();
+        const meta = msHeader.groups!.meta;
+        const { spaceTitle, date, time: clockTime } = parseClipMeta(meta, opts.defaultTitle || 'Archival Tape');
+        // [CLIP #115-A | …] carries its number; [ARCHIVE — … | Clip #170] may, otherwise the title and time stand in
+        const rawId = msHeader.groups!.id ?? (/\bClip\s+(#[\w-]+)/i.exec(meta)?.[1] || `archive ${spaceTitle} ${clockTime || date || ''}`);
+        const clipNumber = rawId.replace(/#/g, '').replace(/\s+/g, ' ').trim();
+        const slug = clipNumber.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || '1';
+        const secTime = /(?:^|[,\s])(\d+(?:\.\d+)?)s\b/.exec(meta)?.[1];
+        const releaseTag = /\((\d{8}_[A-Za-z0-9]+)\)/.exec(meta)?.[1];
+        const aq = meta.match(/AQ-\d+/g) || [];
+        const speakers = [...new Set(turns.map(t => t.speaker))];
+        const keptText = speakers.length === 1 ? turns.map(t => t.text).join(' ') : turns.map(t => `${t.speaker}: ${t.text}`).join('\n');
+        const wordsCount = keptText.split(/\s+/).filter(Boolean).length;
+        curScene!.blocks.push({
+          id: newId('b'),
+          kind: 'clip',
+          type: 'ARCHIVAL_CLIP',
+          clipId: `clip_${slug}`,
+          clipNumber,
+          spaceTitle,
+          date,
+          time: clockTime || (secTime ? `${secTime}s` : undefined),
+          speaker: speakers.join(', '),
+          releaseTag,
+          keptText,
+          inSec: 0,
+          outSec: Math.max(1.5, Math.round(((wordsCount / 155) * 60) * 10) / 10),
+          trimBasis: 'full',
+          fn: 'evidence',
+          rationale: `Archival tape from ${spaceTitle}${releaseTag ? ` (${releaseTag})` : ''}${aq.length ? `, ${aq.join(', ')}` : ''}`,
+          locked: false,
+        });
+        lineIndex = j - 1;
+        continue;
       }
     }
 
@@ -1378,6 +1514,67 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
       continue;
     }
 
+    // 4b. Bold speaker labels outside a clip (THE PAPER TRAIL dialect)
+    const speakerLabel = SPEAKER_LABEL_RE.exec(line);
+    if (speakerLabel && !/^\*\*(?:ACT|PART|SEGMENT|SCENE|PROLOGUE|EPILOGUE)\b/i.test(line)) {
+      const name = speakerLabel.groups!.name.trim();
+      const rest = speakerLabel.groups!.rest;
+      if (isNarratorLabel(name)) {
+        // **LOGAN**: Logan narrating from here on; the label itself is not spoken
+        flushParagraph();
+        pendingReading = null;
+        if (rest) paragraphBuffer.push(rest);
+        continue;
+      }
+      if (rest && !/^[`“"]/.test(rest)) {
+        // **SONIC FOUNDATION:** Dry, documentary… is a labelled production direction, not someone speaking
+        flushParagraph();
+        ensureContext();
+        const note = `${tidySpeakerName(name)}: ${rest.trim()}`;
+        curScene!.blocks.push({ id: newId('b'), kind: 'cue', type: 'CUE', cueType: 'production_note', text: note, note, sec: 0 });
+        continue;
+      }
+      if (/^END\s+(?:OF\s+)?(?:ACT|PART|SEGMENT|SCENE)\b/i.test(name) && !rest) {
+        flushParagraph();
+        ensureContext();
+        curScene!.blocks.push({ id: newId('b'), kind: 'heading', type: 'HEADING', text: tidySpeakerName(name), sec: 0 });
+        continue;
+      }
+      // Words that follow the label: on the same line, or the lines up to a blank line, speaker or cue
+      const parts = rest ? [rest] : [];
+      let m = lineIndex + 1;
+      if (!parts.length) {
+        while (m < lines.length) {
+          const l = unwrapCodeLine((lines[m] || '').trim());
+          if (!l || SPEAKER_LABEL_RE.test(l) || l.startsWith('[')) break;
+          parts.push(l);
+          m++;
+        }
+      }
+      const words = spokenWords(parts.join(' '));
+      if (words) {
+        flushParagraph();
+        ensureContext();
+        const written = /\b(?:WRITTEN|MESSAGE|DM|TEXT)\s*$/i.test(name);
+        // A written message read aloud, or words heard on tape whose clip line is missing: both are someone
+        // else's words, kept verbatim and marked for review rather than passed off as Logan's narration.
+        curScene!.blocks.push({
+          id: newId('b'),
+          kind: 'narration',
+          type: 'QUOTE_READ',
+          text: words,
+          mode: 'live',
+          claims: [],
+          readEvidence: true,
+          quoteSpeaker: tidySpeakerName(name.replace(/\s*[—–-]\s*(?:WRITTEN|MESSAGE|DM|TEXT)\s*$/i, '')),
+          quoteMeta: pendingReading || (written ? 'Written message, performed reading' : 'Archival words without a clip line; add the source'),
+        });
+        pendingReading = null;
+        lineIndex = m - 1;
+        continue;
+      }
+    }
+
     // 5. Quoted Transcripts / Evidence Reads (`type: "QUOTE_READ"`)
     // Match: Lines prefixed with LOGAN (READING DM..., LOGAN (READING GROUP CHAT..., etc.
     const quoteReadMatch = /^LOGAN\s*\(\s*READING\b[^)]*\)\s*:?\s*(.*)$/i.exec(line) || /^LOGAN\s*\(\s*READING\b.*$/i.exec(line);
@@ -1393,6 +1590,36 @@ export function parseUploadedScript(scriptText: string, opts: ParseScriptOptions
         claims: [],
         readEvidence: true,
       });
+      continue;
+    }
+
+    // 5b. Quoted words after a reading direction: the written message, read aloud (THE PAPER TRAIL dialect)
+    if (pendingReading && /^[“"]/.test(line)) {
+      flushParagraph();
+      ensureContext();
+      const parts = [line];
+      let m = lineIndex + 1;
+      while (m < lines.length) {
+        const l = unwrapCodeLine((lines[m] || '').trim());
+        if (!l || l.startsWith('[') || SPEAKER_LABEL_RE.test(l)) break;
+        parts.push(l);
+        m++;
+      }
+      curScene!.blocks.push({
+        id: newId('b'), kind: 'narration', type: 'QUOTE_READ', text: spokenWords(parts.join(' ')), mode: 'live', claims: [],
+        readEvidence: true, quoteSpeaker: readingSpeaker(pendingReading), quoteMeta: pendingReading,
+      });
+      pendingReading = null;
+      lineIndex = m - 1;
+      continue;
+    }
+
+    // 5c. Any other line that is only a bracketed direction ([CUT.], [Let Sav's voice finish.]) is not spoken
+    if (/^\[[^\]]+\]$/.test(line)) {
+      flushParagraph();
+      ensureContext();
+      const note = line.slice(1, -1).trim();
+      curScene!.blocks.push({ id: newId('b'), kind: 'cue', type: 'CUE', cueType: 'production_note', text: note, note, sec: 0 });
       continue;
     }
 

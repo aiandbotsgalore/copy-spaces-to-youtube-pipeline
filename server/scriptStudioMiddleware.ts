@@ -35,7 +35,11 @@
  *   GET  /render/manifest?projectId&versionId
  *   GET  /renders?projectId      saved renders of a project
  *   GET  /clip-audio?projectId&clipId   a transcript cut as WAV (ffmpeg reads only that window of the episode)
- *   GET  /related?projectId&q    code search (BM25) over every transcript for recordings related to the thesis
+ *   GET  /related?projectId&q    recordings related to the thesis: PaperTrail bridge hybrid search when available, else code search (BM25)
+ *   GET  /papertrail/status      PaperTrail bridge state (configured, running, last error) and the manuscript file it reads
+ *   GET  /manuscript?projectId   the designated working master and recording manuscript, with locked-passage counts
+ *   POST /manuscript/import      import a manuscript file from the project folder as the working master, locking verbatim passages
+ *   POST /manuscript/designate   set the working master, or (confirm: true) the fully approved recording manuscript
  *   GET  /paper-trail?projectId  Logan's curated quotes and contradiction pairs that touch the project's recordings
  *   GET  /library?projectId      every AQ quote (live corpus record, library link, WAV); imports the corpus into the library first
  *   POST /library/speaker        confirm (or clear) who is speaking in a quote, once for every project
@@ -71,7 +75,9 @@ import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from
 import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule, saveApprovedPassage } from './scriptMemory';
 import { assignSourceKeys, buildCorpus, combineAnalyses, namesForTag, scopeNamesToTag } from './scriptCorpus';
 import { buildStyleCard, cardFreshness, draftStyle, loganRecordingTags, readCard, readNarrationExamples, scanCorpus, type CorpusScan, type Renames } from './scriptStyle';
-import { searchRecordings } from './scriptSearch';
+import { queryTerms, searchRecordings } from './scriptSearch';
+import { createPaperTrailBridge, groupPassagesByRecording, type PaperTrailBridge } from './paperTrailBridge';
+import { lockVerbatimPassages, renderManuscript, type ManuscriptRole, type VerbatimLockReport } from '../utils/scriptManuscript';
 import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
 import { createQuoteLibrary, type ReadModelCaller } from './quoteLibrary';
 import { loadAqCorpus } from './quoteCorpus';
@@ -93,6 +99,8 @@ import { pairEvidenceAndTape } from '../utils/evidencePairing';
 
 export interface ScriptStudioOptions {
   root: string;
+  /** Test seam: a PaperTrail bridge client to use instead of starting Logan's local bridge. */
+  paperTrailBridge?: PaperTrailBridge;
   getEnv: () => Record<string, string | undefined>;
   runner?: ProcessRunner;
   fetchImpl?: typeof fetch;
@@ -170,6 +178,57 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
   const audio: AudioService = createAudioService({ root: opts.root, store, getEnv: opts.getEnv, synth: opts.synth, probe: opts.probe, ffmpeg: opts.ffmpeg, now });
   const withTakes = (segments: Segment[]) => attachTakes(segments, store.getTakes());
   const library = createQuoteLibrary(opts.root, store, { now });
+
+  /* Manuscript states and the PaperTrail bridge ------------------------------------------------- */
+
+  const manuscriptDir = path.join(store.base, 'manuscript');
+  const manuscriptFile = (role: ManuscriptRole) => path.join(manuscriptDir, role === 'working' ? 'working-master.md' : 'recording-manuscript.md');
+  // The bridge reads the designated working master, so research tools, writers and reviewers all see the same text.
+  const bridge: PaperTrailBridge = opts.paperTrailBridge ?? createPaperTrailBridge({
+    manuscriptPath: () => (fs.existsSync(manuscriptFile('working')) ? manuscriptFile('working') : undefined),
+  });
+
+  /** Writes a designated version as plain manuscript text (status-headed, locked passages marked). */
+  function writeManuscriptFile(p: ScriptProject, role: ManuscriptRole): string {
+    const d = role === 'working' ? p.manuscript?.working : p.manuscript?.recording;
+    if (!d) throw new StepError('BAD_REQUEST', `No ${role === 'working' ? 'working master' : 'recording manuscript'} is designated.`);
+    const v = getVersion(p, d.versionId);
+    const file = manuscriptFile(role);
+    fs.mkdirSync(manuscriptDir, { recursive: true });
+    const text = renderManuscript(v.segments, { title: p.title, role, versionId: v.id, designatedAt: d.designatedAt, source: role === 'working' ? p.manuscript?.working?.source : undefined });
+    const tmp = `${file}.tmp`;
+    fs.writeFileSync(tmp, text, 'utf8');
+    fs.renameSync(tmp, file);
+    fs.writeFileSync(path.join(manuscriptDir, 'designation.json'), JSON.stringify({ projectId: p.id, ...p.manuscript }, null, 2), 'utf8');
+    return file;
+  }
+
+  /** A text file directly in the repository root (no folders), for importing Logan's manuscripts. */
+  function rootTextFile(name: unknown): { name: string; text: string } {
+    const n = String(name || '');
+    if (!/^[\w .()-]+\.(md|txt)$/i.test(n) || n.includes('..')) throw new StepError('BAD_REQUEST', `Not a manuscript file name: ${JSON.stringify(name)}.`);
+    const file = path.join(opts.root, n);
+    if (!fs.existsSync(file)) throw new StepError('NOT_FOUND', `${n} is not in the project folder.`);
+    return { name: n, text: fs.readFileSync(file, 'utf8') };
+  }
+
+  /** Recording search: the PaperTrail bridge's hybrid search when it is available, otherwise Studio's keyword search. */
+  async function findRelated(query: string, opt: { exclude?: string[]; limit: number }) {
+    const terms = queryTerms(query);
+    const r = await bridge.request('hybrid_search', { query, limit: 50, max_chars: 300 });
+    if (r.ok && Array.isArray(r.result?.items)) {
+      const known = new Set(listEpisodes(opts.root).map(e => e.releaseTag));
+      const grouped = groupPassagesByRecording(r.result.items, { exclude: opt.exclude, limit: 200 });
+      const hits = grouped.hits.filter(h => known.has(h.releaseTag)).slice(0, opt.limit);
+      const elsewhere = grouped.hits.length - grouped.hits.filter(h => known.has(h.releaseTag)).length;
+      if (hits.length) {
+        return { terms, hits, scanned: r.result.items.length, retrieval: 'papertrail-hybrid' as const,
+          note: `PaperTrail hybrid search over the research catalog.${elsewhere ? ` ${elsewhere} matching recording(s) have no Studio transcript yet.` : ''}${grouped.documents.length ? ` ${grouped.documents.length} matching document passage(s) are not recordings.` : ''}` };
+      }
+    }
+    const kw = searchRecordings(opts.root, query, { exclude: opt.exclude, limit: opt.limit });
+    return { ...kw, retrieval: 'keyword' as const, note: r.ok ? 'PaperTrail found no matching recordings with Studio transcripts; showing keyword search.' : `PaperTrail bridge unavailable (${r.reason}); showing keyword search.` };
+  }
   let interruptedAtStart = 0;
   try { interruptedAtStart = engine.markInterrupted(); } catch { interruptedAtStart = 0; }
 
@@ -364,6 +423,139 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     return fs.readdirSync(dir).filter(f => f.endsWith('.json')).map(f => store.readJson<HandoffRecord>(path.join(dir, f))).filter((x): x is HandoffRecord => !!x).sort((a, b) => b.createdAt - a.createdAt);
   }
 
+  /**
+   * Imports manuscript text as a new version (of an existing project, or of a new project), exactly as the
+   * script upload does. `transform` may adjust the parsed segments before they are saved (for example to lock
+   * verbatim passages). Returns the project, the saved version and whether the project is new.
+   */
+  function importScriptText(body: any, transform?: (segments: Segment[]) => Segment[]): { p: ScriptProject; v: ScriptVersion; segments: Segment[]; isNew: boolean } {
+    const scriptText = String(body?.scriptText || '').trim();
+    if (!scriptText) throw new StepError('BAD_REQUEST', 'scriptText is required.');
+
+    let p: ScriptProject;
+    let isNew = false;
+    if (body?.projectId) {
+      p = getProject(body.projectId);
+    } else {
+      isNew = true;
+      const availableEpisodes = listEpisodes(opts.root);
+      let tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length
+        ? body.releaseTags
+        : (body?.releaseTag ? [body.releaseTag] : []);
+      if (!tags.length) {
+        const autoMatched = scanScriptForSources(scriptText, availableEpisodes);
+        if (autoMatched.length) {
+          tags = autoMatched;
+        } else if (availableEpisodes[0]?.releaseTag) {
+          tags = [availableEpisodes[0].releaseTag];
+        }
+      }
+      if (tags.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
+      if (!tags.length) throw new StepError('BAD_REQUEST', 'No available episode recordings found to associate with project.');
+      const t = loadSource(tags[0]);
+      const tag = t.releaseTag;
+      const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
+      const meta = extractScriptMetadata(scriptText);
+      p = {
+        id: newId('prj'),
+        title: String(body?.title && body.title !== 'Uploaded Script' ? body.title : (meta.title || (body?.filename ? body.filename.replace(/\.[^/.]+$/, '') : 'Uploaded Script'))).slice(0, 200),
+        createdAt: now(),
+        updatedAt: now(),
+        format: EPISODE_FORMATS.includes(body?.format) ? body.format : (meta.format || 'narrative_doc'),
+        sourceTags: [tag],
+        targetRuntimeSec: Math.max(30, Number(body?.targetRuntimeSec) || 900),
+        transcriptHashes: { [tag]: t.hash },
+        speakerNames: sanitizeNames(body?.speakerNames),
+        clips,
+        excludedClips: excluded,
+        headVersionId: null,
+        evidenceDocs: [],
+      };
+      if (typeof body?.thesis === 'string' && body.thesis.trim()) p.thesis = body.thesis.trim().slice(0, 500);
+      if (typeof body?.googleDriveFolderUrl === 'string' && body.googleDriveFolderUrl.trim()) {
+        p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim();
+      }
+      if (tags.length > 1) addSources(p, tags.slice(1));
+    }
+
+    if (!isNew && typeof body?.googleDriveFolderUrl === 'string') {
+      p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
+    }
+    if (!isNew && !p.format) {
+      const meta = extractScriptMetadata(scriptText);
+      if (meta.format) p.format = meta.format;
+    }
+
+    if (Array.isArray(body?.evidenceDocs) && body.evidenceDocs.length) {
+      p.evidenceDocs = p.evidenceDocs || [];
+      for (const doc of body.evidenceDocs) {
+        if (doc?.content && typeof doc.content === 'string') {
+          p.evidenceDocs.push({
+            id: newId('doc'),
+            name: String(doc.name || 'Evidence Document').slice(0, 100),
+            type: String(doc.type || 'text') as any,
+            content: String(doc.content).slice(0, 500_000),
+            addedAt: now(),
+            sizeBytes: Buffer.byteLength(doc.content, 'utf8'),
+            sourceUrl: typeof doc.sourceUrl === 'string' ? doc.sourceUrl : undefined,
+            source: doc.source || (doc.sourceUrl?.includes('drive.google.com') ? 'google_drive' : 'upload'),
+          });
+        }
+      }
+    }
+
+    const parsed = parseUploadedScript(scriptText, { idGenerator: newId, defaultTitle: p.title });
+
+    // Auto-adjust targetRuntimeSec if not explicitly specified and estimated runtime exceeds default by >100% (>1800s / 30m)
+    const estSec = estimateRuntime(parsed).sec;
+    const explicitTarget = Number(body?.targetRuntimeSec);
+    if (!explicitTarget && estSec > (p.targetRuntimeSec || 900) * 2) {
+      p.targetRuntimeSec = Math.round(estSec / 60) * 60;
+    }
+
+    // Automatically register any archival clips found in the parsed script into the project's Clip Bin (p.clips)
+    const existingClips = new Map(p.clips.map(c => [c.clipId, c]));
+    for (const seg of parsed) {
+      for (const sc of seg.scenes) {
+        for (const b of sc.blocks) {
+          if (b.kind === 'clip' && (b.type === 'ARCHIVAL_CLIP' || b.clipNumber)) {
+            if (!existingClips.has(b.clipId)) {
+              const newClip: StudioClip = {
+                clipId: b.clipId,
+                title: b.spaceTitle ? `${b.spaceTitle} (#${b.clipNumber || b.clipId.replace(/^clip_/, '')})` : (b.speaker && b.time ? `${b.speaker} (${b.time})` : `Clip ${b.clipId}`),
+                speaker: b.speaker || 'Tape',
+                releaseTag: b.releaseTag || p.sourceTags[0] || 'catalog',
+                audioUrl: '',
+                durationSec: Math.max(1.5, b.outSec - b.inSec || 5),
+                text: b.keptText || '',
+                episodeStartSec: b.time ? parseTimeToSeconds(b.time) : undefined,
+                fn: 'evidence',
+                fnRationale: 'Parsed from uploaded script',
+              };
+              p.clips.push(newClip);
+              existingClips.set(b.clipId, newClip);
+            }
+          }
+        }
+      }
+    }
+
+    const segments = withTakes(validateSegments(transform ? transform(parsed) : parsed, p));
+    const v: ScriptVersion = {
+      id: newId('v'),
+      parentId: p.headVersionId,
+      projectId: p.id,
+      createdAt: now(),
+      author: 'logan',
+      label: String(body?.label || (body?.filename ? `Uploaded: ${body.filename}` : 'Uploaded script')).slice(0, 80),
+      segments,
+    };
+    store.saveVersion(v);
+    p.headVersionId = v.id;
+    touch(p);
+    return { p, v, segments, isNew };
+  }
+
   async function handle(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url || '/', 'http://local');
     const route = url.pathname.replace(/\/+$/, '') || '/';
@@ -549,130 +741,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
 
     if (route === '/project/upload-script' && method === 'POST') {
       const body = await readBody(req);
-      const scriptText = String(body?.scriptText || '').trim();
-      if (!scriptText) throw new StepError('BAD_REQUEST', 'scriptText is required.');
-
-      let p: ScriptProject;
-      let isNew = false;
-      if (body?.projectId) {
-        p = getProject(body.projectId);
-      } else {
-        isNew = true;
-        const availableEpisodes = listEpisodes(opts.root);
-        let tags: unknown[] = Array.isArray(body?.releaseTags) && body.releaseTags.length
-          ? body.releaseTags
-          : (body?.releaseTag ? [body.releaseTag] : []);
-        if (!tags.length) {
-          const autoMatched = scanScriptForSources(scriptText, availableEpisodes);
-          if (autoMatched.length) {
-            tags = autoMatched;
-          } else if (availableEpisodes[0]?.releaseTag) {
-            tags = [availableEpisodes[0].releaseTag];
-          }
-        }
-        if (tags.length > MAX_SOURCES) throw new StepError('BAD_REQUEST', `A project can draw on at most ${MAX_SOURCES} recordings.`);
-        if (!tags.length) throw new StepError('BAD_REQUEST', 'No available episode recordings found to associate with project.');
-        const t = loadSource(tags[0]);
-        const tag = t.releaseTag;
-        const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
-        const meta = extractScriptMetadata(scriptText);
-        p = {
-          id: newId('prj'),
-          title: String(body?.title && body.title !== 'Uploaded Script' ? body.title : (meta.title || (body?.filename ? body.filename.replace(/\.[^/.]+$/, '') : 'Uploaded Script'))).slice(0, 200),
-          createdAt: now(),
-          updatedAt: now(),
-          format: EPISODE_FORMATS.includes(body?.format) ? body.format : (meta.format || 'narrative_doc'),
-          sourceTags: [tag],
-          targetRuntimeSec: Math.max(30, Number(body?.targetRuntimeSec) || 900),
-          transcriptHashes: { [tag]: t.hash },
-          speakerNames: sanitizeNames(body?.speakerNames),
-          clips,
-          excludedClips: excluded,
-          headVersionId: null,
-          evidenceDocs: [],
-        };
-        if (typeof body?.thesis === 'string' && body.thesis.trim()) p.thesis = body.thesis.trim().slice(0, 500);
-        if (typeof body?.googleDriveFolderUrl === 'string' && body.googleDriveFolderUrl.trim()) {
-          p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim();
-        }
-        if (tags.length > 1) addSources(p, tags.slice(1));
-      }
-
-      if (!isNew && typeof body?.googleDriveFolderUrl === 'string') {
-        p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
-      }
-      if (!isNew && !p.format) {
-        const meta = extractScriptMetadata(scriptText);
-        if (meta.format) p.format = meta.format;
-      }
-
-      if (Array.isArray(body?.evidenceDocs) && body.evidenceDocs.length) {
-        p.evidenceDocs = p.evidenceDocs || [];
-        for (const doc of body.evidenceDocs) {
-          if (doc?.content && typeof doc.content === 'string') {
-            p.evidenceDocs.push({
-              id: newId('doc'),
-              name: String(doc.name || 'Evidence Document').slice(0, 100),
-              type: String(doc.type || 'text') as any,
-              content: String(doc.content).slice(0, 500_000),
-              addedAt: now(),
-              sizeBytes: Buffer.byteLength(doc.content, 'utf8'),
-              sourceUrl: typeof doc.sourceUrl === 'string' ? doc.sourceUrl : undefined,
-              source: doc.source || (doc.sourceUrl?.includes('drive.google.com') ? 'google_drive' : 'upload'),
-            });
-          }
-        }
-      }
-
-      const parsed = parseUploadedScript(scriptText, { idGenerator: newId, defaultTitle: p.title });
-
-      // Auto-adjust targetRuntimeSec if not explicitly specified and estimated runtime exceeds default by >100% (>1800s / 30m)
-      const estSec = estimateRuntime(parsed).sec;
-      const explicitTarget = Number(body?.targetRuntimeSec);
-      if (!explicitTarget && estSec > (p.targetRuntimeSec || 900) * 2) {
-        p.targetRuntimeSec = Math.round(estSec / 60) * 60;
-      }
-
-      // Automatically register any archival clips found in the parsed script into the project's Clip Bin (p.clips)
-      const existingClips = new Map(p.clips.map(c => [c.clipId, c]));
-      for (const seg of parsed) {
-        for (const sc of seg.scenes) {
-          for (const b of sc.blocks) {
-            if (b.kind === 'clip' && (b.type === 'ARCHIVAL_CLIP' || b.clipNumber)) {
-              if (!existingClips.has(b.clipId)) {
-                const newClip: StudioClip = {
-                  clipId: b.clipId,
-                  title: b.spaceTitle ? `${b.spaceTitle} (#${b.clipNumber || b.clipId.replace(/^clip_/, '')})` : (b.speaker && b.time ? `${b.speaker} (${b.time})` : `Clip ${b.clipId}`),
-                  speaker: b.speaker || 'Tape',
-                  releaseTag: p.sourceTags[0] || 'catalog',
-                  audioUrl: '',
-                  durationSec: Math.max(1.5, b.outSec - b.inSec || 5),
-                  text: b.keptText || '',
-                  episodeStartSec: b.time ? parseTimeToSeconds(b.time) : undefined,
-                  fn: 'evidence',
-                  fnRationale: 'Parsed from uploaded script',
-                };
-                p.clips.push(newClip);
-                existingClips.set(b.clipId, newClip);
-              }
-            }
-          }
-        }
-      }
-
-      const segments = withTakes(validateSegments(parsed, p));
-      const v: ScriptVersion = {
-        id: newId('v'),
-        parentId: p.headVersionId,
-        projectId: p.id,
-        createdAt: now(),
-        author: 'logan',
-        label: String(body?.label || (body?.filename ? `Uploaded: ${body.filename}` : 'Uploaded script')).slice(0, 80),
-        segments,
-      };
-      store.saveVersion(v);
-      p.headVersionId = v.id;
-      touch(p);
+      const { p, v, segments, isNew } = importScriptText(body);
       return send(res, isNew ? 201 : 200, { ok: true, project: p, version: v, gates: codeGates(segments, { ...engine.gateContext(p, segments), changedBlockIds: undefined }) });
     }
 
@@ -1152,17 +1221,74 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
     }
 
+    if (route === '/papertrail/status' && method === 'GET') {
+      return send(res, 200, { ok: true, bridge: bridge.status(), manuscript: fs.existsSync(manuscriptFile('working')) ? manuscriptFile('working') : null });
+    }
+
+    if (route === '/manuscript' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const describe = (d?: { versionId: string; designatedAt: number; source?: string }) => {
+        if (!d) return null;
+        const v = store.getVersion(p.id, d.versionId);
+        const blocks = v ? v.segments.flatMap(s => s.scenes.flatMap(sc => sc.blocks)) : [];
+        return { ...d, label: v?.label || null, missing: !v, blocks: blocks.length, lockedBlocks: blocks.filter(b => b.locked).length };
+      };
+      return send(res, 200, { ok: true, working: describe(p.manuscript?.working), recording: describe(p.manuscript?.recording), headVersionId: p.headVersionId,
+        files: { working: fs.existsSync(manuscriptFile('working')) ? manuscriptFile('working') : null, recording: fs.existsSync(manuscriptFile('recording')) ? manuscriptFile('recording') : null } });
+    }
+
+    if (route === '/manuscript/import' && method === 'POST') {
+      // Imports a manuscript file from the project folder as a new version, locks any passages that match a
+      // verbatim reference file word for word, and designates the new version as the working master. It never
+      // marks the manuscript approved for recording.
+      const body = await readBody(req);
+      const file = rootTextFile(body?.file);
+      const lockRef = body?.lockFile ? rootTextFile(body.lockFile) : null;
+      let lock: VerbatimLockReport | null = null;
+      const { p, v, isNew } = importScriptText(
+        { ...body, scriptText: file.text, filename: file.name, label: String(body?.label || `Working master: ${file.name}`) },
+        lockRef ? segs => { const r = lockVerbatimPassages(segs, lockRef.text); lock = r.report; return r.segments; } : undefined,
+      );
+      const hadFile = fs.existsSync(manuscriptFile('working'));
+      p.manuscript = { ...p.manuscript, working: { versionId: v.id, designatedAt: now(), source: file.name } };
+      touch(p);
+      const written = writeManuscriptFile(p, 'working');
+      if (!hadFile) bridge.restart(); // so the bridge starts reading the working master instead of its old default
+      return send(res, isNew ? 201 : 200, { ok: true, project: p, version: v, lock, manuscriptFile: written });
+    }
+
+    if (route === '/manuscript/designate' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const role: ManuscriptRole = body?.role === 'recording' ? 'recording' : 'working';
+      if (body?.clear === true) {
+        if (role === 'working') throw new StepError('BAD_REQUEST', 'The working master can be replaced, not cleared.');
+        if (p.manuscript?.recording) { const { recording: _r, ...rest } = p.manuscript; p.manuscript = rest; }
+        try { fs.rmSync(manuscriptFile('recording'), { force: true }); } catch { /* already gone */ }
+        touch(p);
+        return send(res, 200, { ok: true, project: p });
+      }
+      const v = getVersion(p, body?.versionId);
+      if (role === 'recording' && body?.confirm !== true) throw new StepError('BAD_REQUEST', 'Approving the whole manuscript for recording needs explicit confirmation.');
+      const hadFile = fs.existsSync(manuscriptFile('working'));
+      p.manuscript = { ...p.manuscript, [role]: { versionId: v.id, designatedAt: now() } };
+      touch(p);
+      const written = writeManuscriptFile(p, role);
+      if (role === 'working' && !hadFile) bridge.restart();
+      return send(res, 200, { ok: true, project: p, manuscriptFile: written });
+    }
+
     if (route === '/related' && method === 'GET') {
       const p = getProject(q('projectId'));
       const query = String(q('q') || p.thesis || p.title).slice(0, 300);
-      const r = searchRecordings(opts.root, query, { exclude: p.sourceTags, limit: 10 });
+      const r = await findRelated(query, { exclude: p.sourceTags, limit: 10 });
       return send(res, 200, { ok: true, query, ...r });
     }
 
     if (route === '/discover' && method === 'GET') {
       const p = getProject(q('projectId'));
       const query = String(q('q') || p.thesis || p.title).slice(0, 300);
-      const r = searchRecordings(opts.root, query, { limit: 20 });
+      const r = await findRelated(query, { limit: 20 });
       const board = store.getBoard(p.id);
       const corpus = loadAqCorpus(opts.root);
       const hits = r.hits.map(hit => {
@@ -1177,7 +1303,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
           boardStatus: boardRec?.status ?? (p.sourceTags.includes(hit.releaseTag) ? 'candidate' : undefined),
         };
       });
-      return send(res, 200, { ok: true, query, terms: r.terms, hits, scanned: r.scanned });
+      return send(res, 200, { ok: true, query, terms: r.terms, hits, scanned: r.scanned, retrieval: r.retrieval, note: r.note });
     }
 
     if (route === '/read' && method === 'POST') {

@@ -132,11 +132,12 @@ export function RecordingsPanel({ data, viewTag, onView, act, episodes }: {
   const [q, setQ] = useState(p.thesis || '');
   const [hits, setHits] = useState<RelatedHit[] | null>(null);
   const [searching, setSearching] = useState(false);
+  const [searchNote, setSearchNote] = useState<string | null>(null);
   const [filter, setFilter] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const search = async () => {
     setSearching(true); setErr(null);
-    try { setHits((await scriptApi.related(p.id, q)).hits); } catch (e: any) { setErr(e?.message || String(e)); } finally { setSearching(false); }
+    try { const r = await scriptApi.related(p.id, q); setHits(r.hits); setSearchNote(r.note || null); } catch (e: any) { setErr(e?.message || String(e)); } finally { setSearching(false); }
   };
   const add = (tag: string) => act('Adding recording', () => scriptApi.updateProject(p.id, { addSourceTags: [tag] })).then(() => setHits(h => h?.filter(x => x.releaseTag !== tag) || null));
   const f = filter.trim().toLowerCase();
@@ -170,6 +171,7 @@ export function RecordingsPanel({ data, viewTag, onView, act, episodes }: {
             <button className={btnGhost} disabled={searching || !q.trim()} onClick={() => void search()}>{searching ? <Loader2 size={11} className="animate-spin" /> : <Search size={11} />}</button>
           </div>
           {err && <div className="text-[11px] text-rose-300">{err}</div>}
+          {searchNote && <div className="text-[10px] text-slate-500">{searchNote}</div>}
           {hits && hits.length === 0 && <div className="text-[11px] text-slate-500">No other recording uses those words.</div>}
           {hits?.map(h => (
             <div key={h.releaseTag} className="text-[11px] border-t border-slate-800 pt-1">
@@ -535,6 +537,74 @@ export function RuleSheetPanel({ project, act }: { project: ScriptProject; act: 
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+
+/**
+ * Manuscript states: the working master (the current script), locked passages (approved word for word),
+ * proposed revisions (everything else), and the fully approved recording manuscript, which only Logan sets.
+ * Also shows whether the PaperTrail bridge is reachable, since it reads the working master.
+ */
+export function ManuscriptPanel({ project, headVersionId, act }: { project: ScriptProject; headVersionId: string | null; act: (label: string, fn: () => Promise<unknown>) => Promise<void> }) {
+  const [state, setState] = useState<Awaited<ReturnType<typeof scriptApi.manuscript>> | null>(null);
+  const [bridge, setBridge] = useState<Awaited<ReturnType<typeof scriptApi.paperTrailStatus>>['bridge'] | null>(null);
+  const [file, setFile] = useState('THE_PAPER_TRAIL_MASTER_WITH_VERBATIM_INTRO_20261114.md');
+  const [lockFile, setLockFile] = useState('THE_PAPER_TRAIL_LOCKED_INTRO_USER_VERBATIM_20261114.txt');
+  const [importOpen, setImportOpen] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const refresh = useCallback(() => {
+    scriptApi.manuscript(project.id).then(setState).catch(() => setState(null));
+    scriptApi.paperTrailStatus().then(r => setBridge(r.bridge)).catch(() => setBridge(null));
+  }, [project.id]);
+  useEffect(() => { refresh(); }, [refresh, project.updatedAt]);
+  const when = (t?: number) => (t ? new Date(t).toLocaleString() : '');
+  const w = state?.working, r = state?.recording;
+  const headIsWorking = !!w && w.versionId === headVersionId;
+
+  return (
+    <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-[11px]">
+      <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><BookOpen size={12} /> Manuscript</div>
+      <div className="rounded border border-slate-800 bg-slate-950/40 p-1.5 space-y-0.5">
+        <div className="text-slate-300 font-medium">Working master</div>
+        {w ? <div className="text-slate-400">{w.label || w.versionId}{w.missing ? ' (version missing)' : ''} · {w.lockedBlocks} locked passage{w.lockedBlocks === 1 ? '' : 's'} of {w.blocks} blocks · set {when(w.designatedAt)}{w.source && !(w.label || '').includes(w.source) ? ` · from ${w.source}` : ''}</div>
+          : <div className="text-slate-500 italic">None yet.</div>}
+        {w && !headIsWorking && headVersionId && <div className="text-amber-300/80">The version you are editing is newer than the working master; it counts as a proposed revision until you make it the working master.</div>}
+      </div>
+      <div className="rounded border border-slate-800 bg-slate-950/40 p-1.5 space-y-0.5">
+        <div className="text-slate-300 font-medium">Approved recording manuscript</div>
+        {r ? <div className="text-emerald-300/90">{r.label || r.versionId} · approved {when(r.designatedAt)}</div> : <div className="text-slate-500 italic">Not approved. Only locked passages are approved.</div>}
+      </div>
+      <div className="flex flex-wrap gap-1">
+        <button className={btnGhost} onClick={() => setImportOpen(o => !o)}><Upload size={11} /> Import manuscript</button>
+        <button className={btnGhost} disabled={!headVersionId || headIsWorking} title="Designate the version you are editing as the working master"
+          onClick={() => void act('Setting working master', () => scriptApi.designateManuscript({ projectId: project.id, role: 'working', versionId: headVersionId! }))}>Make current version the working master</button>
+        <button className={btnGhost} disabled={!headVersionId}
+          onClick={() => { if (window.confirm('Approve the ENTIRE current version as the recording manuscript? Do this only when the whole script is final.')) void act('Approving recording manuscript', () => scriptApi.designateManuscript({ projectId: project.id, role: 'recording', versionId: headVersionId!, confirm: true })); }}>Approve for recording…</button>
+        {r && <button className={btnGhost} onClick={() => void act('Withdrawing recording approval', () => scriptApi.designateManuscript({ projectId: project.id, role: 'recording', clear: true }))}>Withdraw approval</button>}
+      </div>
+      {importOpen && (
+        <div className="rounded border border-slate-700 bg-slate-900/80 p-1.5 space-y-1">
+          <div className="text-slate-400">Imports a file from the project folder as a new version and makes it the working master. Passages that match the locked reference file word for word are locked. It is not marked approved for recording.</div>
+          <input className={cx(input, 'w-full')} value={file} onChange={e => setFile(e.target.value)} placeholder="Manuscript file in the project folder" />
+          <input className={cx(input, 'w-full')} value={lockFile} onChange={e => setLockFile(e.target.value)} placeholder="Locked verbatim reference file (optional)" />
+          <div className="flex justify-end gap-1">
+            <button className={btnGhost} onClick={() => setImportOpen(false)}>Cancel</button>
+            <button className={btnPrimary} disabled={!file.trim()} onClick={() => void act('Importing working master', async () => {
+              const res = await scriptApi.importManuscript({ projectId: project.id, file: file.trim(), lockFile: lockFile.trim() || undefined });
+              const l = res.lock;
+              setMessage(l ? (l.missing.length ? `Imported. Locked ${l.matched} of ${l.paragraphs} reference passages; ${l.missing.length} could not be matched word for word, so check them: ${l.missing.join(' / ')}` : `Imported. All ${l.paragraphs} reference passages matched and are locked.`) : 'Imported as the working master.');
+              setImportOpen(false);
+            })}>Import</button>
+          </div>
+        </div>
+      )}
+      {message && <div className="text-indigo-200 bg-indigo-950/40 border border-indigo-900/50 rounded p-1.5 flex gap-1"><span className="flex-1">{message}</span><button onClick={() => setMessage(null)}><X size={11} /></button></div>}
+      <div className="text-[10px] text-slate-500">
+        PaperTrail bridge: {bridge ? (bridge.running ? 'running' : bridge.configured ? 'ready (starts on first search)' : 'not found') : 'unknown'}
+        {bridge?.lastError ? ` · last message: ${bridge.lastError.slice(0, 160)}` : ''}
+      </div>
     </div>
   );
 }

@@ -59,6 +59,8 @@ export type Block =
       date?: string;
       time?: string;
       speaker?: string;
+      /** Recording the clip comes from, when the manuscript names it. */
+      releaseTag?: string;
       isReprise?: boolean;
       repriseRationale?: string;
       repriseApproved?: boolean;
@@ -210,7 +212,16 @@ export interface ScriptProject {
   clips: StudioClip[]; excludedClips: { clipId: string; reason: string; releaseTag?: string; episodeStartSec?: number; durationSec?: number }[];
   headVersionId: string | null;
   thesis?: string;
-  charter?: string;                          // the project's rule sheet: Logan's standing editorial rules, sent with every writing prompt
+  charter?: string;
+  /**
+   * Designated manuscript versions. The working master is the current script while editing continues; the
+   * recording manuscript is only ever set by Logan explicitly. Locked blocks are the individually approved
+   * passages; every other version or candidate is a proposed revision.
+   */
+  manuscript?: {
+    working?: { versionId: string; designatedAt: number; source?: string };
+    recording?: { versionId: string; designatedAt: number };
+  };                          // the project's rule sheet: Logan's standing editorial rules, sent with every writing prompt
   sourceKeys?: Record<string, string>;       // releaseTag -> recording key (E1, E2...) in multi-recording prompts; never reused                           // thematic and investigative episodes: the question the episode answers
   clipTagsKey?: string;                      // analysis hash + clip-tags prompt version of the last tagging
 }
