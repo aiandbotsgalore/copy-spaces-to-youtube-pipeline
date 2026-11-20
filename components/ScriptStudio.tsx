@@ -23,6 +23,7 @@ import { toFetchableUrl } from '../utils/audioUrl';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
 import { EvidencePanel, ManuscriptPanel, PaperTrailPanel, RecordingsPanel, RuleSheetPanel, StylePanel } from './ScriptStyle';
+import { ReviewLoopPanel } from './ScriptReviewLoop';
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
@@ -2468,6 +2469,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
               {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
               <ManuscriptPanel project={project} headVersionId={project.headVersionId} act={act} />
+              <ReviewLoopPanel project={project} act={act} />
               <RuleSheetPanel project={project} act={act} />
               <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
 

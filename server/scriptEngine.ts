@@ -1325,7 +1325,7 @@ export function createEngine(deps: EngineDeps) {
   }
 
   return {
-    bus, call, analyze, tagClips, outline, draft, draftWholeScript, rewriteScene, transcript, gateContext, createRun, runJob, importCandidate, corpusFor,
+    bus, call, analyze, tagClips, outline, draft, draftWholeScript, rewriteScene, transcript, gateContext, createRun, runJob, importCandidate, corpusFor, backgroundDocs,
     start(run: ScriptRun) { void runJob(run.id, run.projectId); },
     cancel(projectId: string, runId: string): boolean {
       const c = controllers.get(runId);

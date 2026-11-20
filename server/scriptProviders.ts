@@ -343,7 +343,8 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
           const u = env?.usage || {};
           return {
             ok: true, json: structured, provider: 'claude_cli', model: String(env?.model || model), durationMs: now() - started,
-            usage: { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, costUsd: 0 },
+            // Cached prompt tokens are reported apart from input_tokens; count them so usage reflects the whole prompt.
+            usage: { inTok: (Number(u.input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0), outTok: Number(u.output_tokens) || 0, costUsd: 0 },
           };
         }
         if (r.code === 0 && !r.timedOut && !r.aborted && env && !env.is_error && !hasStructured) return fail('BAD_OUTPUT', 'Claude returned no structured_output (the run may have been declined).', raw, started);
@@ -362,15 +363,20 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
 
 export const CODEX_MODEL = 'gpt-6.1-sol';
 
-export function codexArgs(schemaPath: string, outPath: string, model = CODEX_MODEL): string[] {
-  return ['exec', '-', '-m', model, '--output-schema', schemaPath, '-o', outPath, '--json', '--ephemeral', '--skip-git-repo-check', '--ignore-user-config'];
+export const CODEX_EFFORTS = ['low', 'medium', 'high', 'xhigh', 'max'] as const;
+export type CodexEffort = typeof CODEX_EFFORTS[number];
+
+/** `effort` sets the model's reasoning level for this call only (user config is ignored, so it is passed explicitly). */
+export function codexArgs(schemaPath: string, outPath: string, model = CODEX_MODEL, effort?: CodexEffort): string[] {
+  return ['exec', '-', '-m', model, ...(effort ? ['-c', `model_reasoning_effort="${effort}"`] : []), '--output-schema', schemaPath, '-o', outPath, '--json', '--ephemeral', '--skip-git-repo-check', '--ignore-user-config'];
 }
 
-export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: string) => string }): ProviderAdapter {
+export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: string) => string; model?: string; effort?: CodexEffort }): ProviderAdapter {
   const dirs = deps.dirs ?? cliDirs();
   const now = deps.now ?? Date.now;
   const readFile = deps.readFile ?? ((p: string) => fs.readFileSync(p, 'utf8'));
-  const model = CODEX_MODEL;
+  const model = deps.model || CODEX_MODEL;
+  const effort = deps.effort;
   const fail = (code: FailCode, message: string, rawOutput: string, started: number, extra: Partial<CompleteResult> = {}): CompleteResult =>
     ({ ok: false, code, message, rawOutput, durationMs: now() - started, provider: 'codex_cli', model, ...extra } as CompleteResult);
   return {
@@ -394,7 +400,7 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
       const outPath = path.join(dirs.io, `${randomUUID()}-out.json`);
       try {
         const prompt = `${req.system}\n\n${req.user}`;
-        const r = await deps.runner(bin.file, [...bin.prefixArgs, ...codexArgs(schemaPath, outPath, model)], {
+        const r = await deps.runner(bin.file, [...bin.prefixArgs, ...codexArgs(schemaPath, outPath, model, effort)], {
           cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), stdin: Buffer.from(prompt, 'utf8'), timeoutMs: req.timeoutMs, signal: req.signal,
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
@@ -426,14 +432,21 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
 
 export const AGY_DEFAULT_MODEL = 'gemini-3.8-flash-high';
 
-export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL): string[] {
+/**
+ * Prompts longer than this go to a prompt file instead of the command line: Windows caps a command line at
+ * 32,767 characters and agy does not read the prompt from stdin. agy reads the file with its own file viewer
+ * (no permission bypass needed); each call gets its own folder so parallel calls never share a prompt.
+ */
+export const AGY_INLINE_PROMPT_MAX = 20_000;
+export const AGY_FILE_INSTRUCTION = 'Your complete instructions and all the material are in the file prompt.md in the current folder. Read the whole file, every part of it to the end, and do exactly what it asks. Do not create, change or delete any file.';
+
+export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL, prompt = ''): string[] {
   return [
-    '-p', '',
+    '-p', prompt,
     '--output-format', 'json',
     '--json-schema', schemaPath,
     '--model', model,
     '--disable-slash-commands',
-    '--dangerously-skip-permissions',
   ];
 }
 
@@ -467,17 +480,13 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
       ensureEmptySandbox(dirs.sandbox);
       const schemaPath = writeIo(dirs.io, 'schema.json', JSON.stringify(req.schema));
       const fullPrompt = `${req.system}\n\n${req.user}`;
+      const viaFile = fullPrompt.length > AGY_INLINE_PROMPT_MAX;
+      const promptDir = viaFile ? path.join(dirs.io, `agy-${randomUUID()}`) : null;
+      if (promptDir) { fs.mkdirSync(promptDir, { recursive: true }); fs.writeFileSync(path.join(promptDir, 'prompt.md'), fullPrompt, 'utf8'); }
       try {
-        const args = [
-          '-p', fullPrompt,
-          '--output-format', 'json',
-          '--json-schema', schemaPath,
-          '--model', model,
-          '--disable-slash-commands',
-          '--dangerously-skip-permissions',
-        ];
+        const args = agyArgs(schemaPath, model, viaFile ? AGY_FILE_INSTRUCTION : fullPrompt);
         const r = await deps.runner(bin.file, [...bin.prefixArgs, ...args], {
-          cwd: dirs.sandbox,
+          cwd: promptDir ?? dirs.sandbox,
           env: subscriptionEnv(deps.env()),
           timeoutMs: req.timeoutMs,
           signal: req.signal,
@@ -507,6 +516,7 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
         return fail(c.code, c.message, raw, started);
       } finally {
         rmQuiet(schemaPath);
+        if (promptDir) { try { fs.rmSync(promptDir, { recursive: true, force: true }); } catch { /* ignore */ } }
       }
     },
   };
@@ -1179,7 +1189,7 @@ export const INCEPTION_ROLE_MAP: RoleMap = {
 
 export type RoleSpec =
   | { provider: 'claude_cli'; model: 'sonnet' | 'haiku' }
-  | { provider: 'codex_cli'; model: string }
+  | { provider: 'codex_cli'; model: string; effort?: CodexEffort }
   | { provider: 'agy_cli'; model: string }
   | { provider: 'cheaperinference'; model: string }
   | { provider: 'ollama'; model: string }
@@ -1191,6 +1201,11 @@ export type RoleSpec =
 export function parseRoleSpec(spec: string): RoleSpec | null {
   if (spec === 'claude_cli:sonnet' || spec === 'claude_cli:haiku') return { provider: 'claude_cli', model: spec.split(':')[1] as 'sonnet' | 'haiku' };
   if (spec === 'codex_cli') return { provider: 'codex_cli', model: CODEX_MODEL };
+  // codex_cli:<model> or codex_cli:<model>:<effort>, e.g. codex_cli:gpt-6.2-sol:high
+  const codexMatch = /^codex_cli:(gpt-[a-z0-9.-]+)(?::([a-z]+))?$/.exec(spec);
+  if (codexMatch && (!codexMatch[2] || (CODEX_EFFORTS as readonly string[]).includes(codexMatch[2]))) {
+    return { provider: 'codex_cli', model: codexMatch[1], ...(codexMatch[2] ? { effort: codexMatch[2] as CodexEffort } : {}) };
+  }
   if (spec.startsWith('agy_cli:')) return { provider: 'agy_cli', model: spec.split(':')[1] || 'gemini-3.8-flash-high' };
   if (spec === 'agy_cli') return { provider: 'agy_cli', model: 'gemini-3.8-flash-high' };
   if (spec.startsWith('cohere:')) return { provider: 'cohere', model: spec.split(':')[1] || 'command-a-03-2025' };
@@ -1271,7 +1286,7 @@ export function createProviderRegistry(deps: RegistryDeps) {
       const p = parseRoleSpec(spec);
       if (!p) return null;
       if (p.provider === 'claude_cli') return createClaudeCliAdapter(p.model, { ...cli, resolve: () => resolve('claude') });
-      if (p.provider === 'codex_cli') return createCodexCliAdapter({ ...cli, resolve: () => resolve('codex') });
+      if (p.provider === 'codex_cli') return createCodexCliAdapter({ ...cli, model: p.model, effort: p.effort, resolve: () => resolve('codex') });
       if (p.provider === 'agy_cli') return createAgyCliAdapter(p.model, { ...cli, resolve: () => resolve('agy') });
       if (p.provider === 'inception') return createInceptionAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
       if (p.provider === 'cohere') return createCohereAdapter(p.model, { env: deps.env, budget, fetchImpl: deps.fetchImpl });
