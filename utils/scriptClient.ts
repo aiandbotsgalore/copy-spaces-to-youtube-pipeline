@@ -158,6 +158,9 @@ export const scriptApi = {
     }
   ) => call<{ ok: boolean; audio: AudioBoundary }>('POST', '/quote/review-audio', { ref, ...action }),
   boardItem: (projectId: string, ref: string, patch: { starred?: boolean; excluded?: boolean; note?: string }) => call<{ board: EvidenceBoard }>('POST', '/board/item', { projectId, ref, ...patch }),
+  board: (projectId: string) => call<{ board: EvidenceBoard | null }>('GET', `/board?projectId=${encodeURIComponent(projectId)}`),
+  pinSource: (projectId: string, docId: string, excerpt: string, label?: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, docId, excerpt, label }),
+  unpinSource: (projectId: string, sourceId: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, sourceId, remove: true }),
   discover: (projectId: string, q?: string) => call<{
     query: string;
     terms: string[];

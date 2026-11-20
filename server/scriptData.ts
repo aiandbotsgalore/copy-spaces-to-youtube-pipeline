@@ -150,6 +150,27 @@ export function releaseTagFromUrl(url: string): string | null {
 }
 
 /**
+ * The release a catalog clip belongs to. Older clips live in the GitHub release (the tag is in the URL);
+ * newer clips are hosted elsewhere (R2), so fall back to the catalog's `episode` field, which is
+ * "<date>_<spaceId>_<title words>": the release tag is its first two parts.
+ */
+export function catalogClipReleaseTag(c: any): string | null {
+  const fromUrl = releaseTagFromUrl(String(c?.download_url || c?.file_path || ''));
+  if (fromUrl) return fromUrl;
+  const m = /^(\d{8}_[^_]+)/.exec(String(c?.episode || ''));
+  return m ? m[1] : null;
+}
+
+/**
+ * A stable id for a catalog clip: derived from its episode and time window, not its position in the
+ * catalog file (the catalog sync adds and drops clips, which shifted position-based ids).
+ */
+export function catalogClipId(c: any): string {
+  const key = `${String(c?.episode || c?.download_url || '')}|${Number(c?.start_seconds) || 0}|${Number(c?.end_seconds) || 0}`;
+  return `cat_${createHash('sha1').update(key).digest('hex').slice(0, 12)}`;
+}
+
+/**
  * Catalog clips for a release. durationSec is the catalog's own end - start window (the duration of the
  * cut file); clips without an audio URL or a positive window are excluded and listed with the reason.
  */
@@ -159,10 +180,10 @@ export function catalogClipsForRelease(root: string, releaseTag: string): { clip
   const list: any[] = JSON.parse(fs.readFileSync(p, 'utf8'));
   const clips: StudioClip[] = [];
   const excluded: { clipId: string; reason: string }[] = [];
-  list.forEach((c, i) => {
+  list.forEach((c) => {
     const url = String(c?.download_url || c?.file_path || '');
-    if (releaseTagFromUrl(url) !== releaseTag) return;
-    const clipId = `cat${i}`;
+    if (catalogClipReleaseTag(c) !== releaseTag) return;
+    const clipId = catalogClipId(c);
     const start = Number(c?.start_seconds);
     const end = Number(c?.end_seconds);
     const dur = Number(c?.duration) > 0 ? Number(c.duration) : end - start;

@@ -6,7 +6,7 @@
  *   GET  /projects               saved projects
  *   POST /project                create a project for one recording, or several (releaseTags[]) for thematic and investigative episodes
  *   GET  /project?id=            project, versions, runs, cached analysis, speaker stats
- *   POST /project/update         format, runtime, thesis, speaker renames, clip removals, title, add or remove source recordings
+ *   POST /project/update         format, runtime, thesis, charter, speaker renames, clip removals, title, add or remove source recordings, refresh catalog clips
  *   POST /project/add-clip       add a clip cut from transcript utterances
  *   POST /analyze                chunked episode analysis (cached by transcript hash + prompt version), then clip tags
  *   POST /tag-clips              narrative-function tags for the project's clips (Logan's own tags are kept)
@@ -42,6 +42,7 @@
  *   GET  /library/audio?ref&mode usable quote audio cut from the episode; mode=window plays the located transcript window
  *   GET  /board?projectId        the project's Evidence Board (null until first used)
  *   POST /board/item             star, exclude or note one quote ref on the project's board
+ *   POST /board/source           pin an exact excerpt of an uploaded document as a citable Source (or remove: true, sourceId)
  *   GET  /style                  the style card, its coverage and freshness, learned rules, distill status
  *   POST /style/build            rebuild the style card from all of Logan's speech and his narration examples -> 202
  *   POST /style/rules            add or remove one of Logan's explicit rules, or remove a learned one
@@ -74,7 +75,7 @@ import { searchRecordings } from './scriptSearch';
 import { loadPaperTrail, paperTrailFor } from './scriptPaperTrail';
 import { createQuoteLibrary, type ReadModelCaller } from './quoteLibrary';
 import { loadAqCorpus } from './quoteCorpus';
-import { setBoardItem } from './evidenceBoard';
+import { addBoardSource, removeBoardSource, setBoardItem } from './evidenceBoard';
 import { alignQuoteAudio, reviewQuoteAudio } from './quoteAlign';
 import { dateOfTag } from '../utils/scriptFormats';
 import {
@@ -140,6 +141,8 @@ const STATUS_FOR_CODE: Record<string, number> = {
 };
 
 export const MAX_SOURCES = 12;
+/** The project rule sheet is sent with every writing prompt, so it is kept to a size that fits beside the evidence (~8k tokens). */
+export const MAX_CHARTER_CHARS = 32_000;
 
 export function resolveRoleMap(body: any): { roleMap: RoleMap; mode: 'subscription' | 'fallback' | 'inception' | 'cohere'; maxUsd: number } {
   const mode = (body?.mode === 'fallback' || body?.mode === 'inception' || body?.mode === 'cohere' || body?.mode === 'subscription') ? body.mode : 'subscription';
@@ -208,13 +211,30 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     for (const t of loaded) {
       p.sourceTags.push(t.releaseTag);
       p.transcriptHashes[t.releaseTag] = t.hash;
-      const { clips, excluded } = catalogClipsForRelease(opts.root, t.releaseTag);
-      const have = new Set(p.clips.map(c => c.clipId));
-      p.clips.push(...clips.filter(c => !have.has(c.clipId)));
-      p.excludedClips.push(...excluded);
+      mergeCatalogClips(p, t.releaseTag);
     }
     p.clipTagsKey = undefined;
     assignSourceKeys(p);
+  }
+
+  /**
+   * Adds a recording's highlight-catalog clips that the project does not have yet. A clip counts as present
+   * when its id matches, or when a clip of the same recording already covers the same window (projects
+   * made before catalog ids were stable hold position-based ids such as "cat17"). Clips Logan removed stay
+   * removed. Returns how many clips were added.
+   */
+  function mergeCatalogClips(p: ScriptProject, tag: string): number {
+    const { clips, excluded } = catalogClipsForRelease(opts.root, tag);
+    const removed = new Set((p.excludedClips || []).map(x => x.clipId));
+    const have = new Set(p.clips.map(c => c.clipId));
+    const windowKey = (c: { releaseTag?: string; episodeStartSec?: number; durationSec: number }) =>
+      `${c.releaseTag}|${Math.round((c.episodeStartSec ?? -1) * 10)}|${Math.round(c.durationSec * 10)}`;
+    const windows = new Set(p.clips.map(windowKey));
+    const fresh = clips.filter(c => !have.has(c.clipId) && !removed.has(c.clipId) && !windows.has(windowKey(c)));
+    p.clips.push(...fresh);
+    const known = new Set(p.excludedClips.map(x => x.clipId));
+    p.excludedClips.push(...excluded.filter(x => !known.has(x.clipId)));
+    return fresh.length;
   }
 
   function removeSources(p: ScriptProject, tags: unknown[]) {
@@ -470,8 +490,17 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       if (body.speakerNames !== undefined) p.speakerNames = sanitizeNames(body.speakerNames);
       if (typeof body.title === 'string') p.title = body.title.slice(0, 200);
       if (typeof body.thesis === 'string') p.thesis = body.thesis.trim().slice(0, 500) || undefined;
+      if (typeof body.charter === 'string') {
+        if (body.charter.length > MAX_CHARTER_CHARS) throw new StepError('BAD_REQUEST', `The rule sheet can be at most ${MAX_CHARTER_CHARS.toLocaleString()} characters.`);
+        p.charter = body.charter.trim() || undefined;
+      }
       if (typeof body.googleDriveFolderUrl === 'string') p.googleDriveFolderUrl = body.googleDriveFolderUrl.trim() || undefined;
       if (Array.isArray(body.addSourceTags)) addSources(p, body.addSourceTags);
+      if (body.refreshCatalogClips === true) {
+        let added = 0;
+        for (const tag of p.sourceTags) added += mergeCatalogClips(p, tag);
+        if (added) p.clipTagsKey = undefined;
+      }
       if (Array.isArray(body.removeSourceTags)) removeSources(p, body.removeSourceTags);
       if (Array.isArray(body.removeClipIds)) {
         const rm = new Set(body.removeClipIds.map(String));
@@ -1122,6 +1151,17 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       };
       try { return send(res, 200, { ok: true, board: setBoardItem(store, p, String(body?.ref || ''), patch, library.hasRef, now) }); }
       catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+    }
+
+    if (route === '/board/source' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      try {
+        const board = body?.remove === true
+          ? removeBoardSource(store, p, String(body?.sourceId || ''))
+          : addBoardSource(store, p, { docId: String(body?.docId || ''), excerpt: String(body?.excerpt || ''), label: typeof body?.label === 'string' ? body.label : undefined }, () => newId('src'));
+        return send(res, 200, { ok: true, board });
+      } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
     }
 
     if (route === '/related' && method === 'GET') {

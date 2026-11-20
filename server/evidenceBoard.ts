@@ -31,3 +31,37 @@ export function setBoardItem(store: ScriptStore, project: ScriptProject, ref: st
   store.saveBoard(project.id, board);
   return board;
 }
+
+const squash = (s: string) => s.replace(/\s+/g, ' ').trim();
+
+/** True when `needle` appears in `hay`, ignoring differences in whitespace. */
+export const containsLoose = (hay: string, needle: string) => !!squash(needle) && squash(hay).includes(squash(needle));
+
+/**
+ * Pins an exact excerpt of one of the project's uploaded documents as a citable Source on the board.
+ * The excerpt must appear in the document (whitespace may differ). Pinning the same excerpt twice
+ * returns the board unchanged.
+ */
+export function addBoardSource(store: ScriptStore, project: ScriptProject, input: { docId: string; excerpt: string; label?: string }, newId: () => string): EvidenceBoard {
+  const doc = (project.evidenceDocs || []).find(d => d.id === input.docId);
+  if (!doc) throw new Error(`Unknown document ${input.docId}.`);
+  const excerpt = squash(String(input.excerpt || ''));
+  if (excerpt.length < 3) throw new Error('Select the words to pin first.');
+  if (excerpt.length > 4000) throw new Error('An excerpt can be at most 4,000 characters; pin a shorter passage.');
+  if (!containsLoose(doc.content, excerpt)) throw new Error('That excerpt is not in the document word for word.');
+  const board = store.getBoard(project.id) ?? emptyBoard(project);
+  if (!board.sources.some(s => s.docId === doc.id && s.excerpt === excerpt)) {
+    const label = squash(String(input.label || '')).slice(0, 200) || `${doc.name}: ${excerpt.slice(0, 60)}${excerpt.length > 60 ? '…' : ''}`;
+    board.sources.push({ id: newId(), docId: doc.id, excerpt, label });
+    store.saveBoard(project.id, board);
+  }
+  return board;
+}
+
+/** Unpins one Source. Narration that already cites it keeps the citation and is flagged by the checks. */
+export function removeBoardSource(store: ScriptStore, project: ScriptProject, sourceId: string): EvidenceBoard {
+  const board = store.getBoard(project.id) ?? emptyBoard(project);
+  board.sources = board.sources.filter(s => s.id !== sourceId);
+  store.saveBoard(project.id, board);
+  return board;
+}

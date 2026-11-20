@@ -11,6 +11,7 @@ export interface EvidenceRef {
   releaseTag: string; segStart: number; segEnd: number;   // episode-time provenance of the quote
   speaker: string; verbatim: string;                        // exact text from contiguous same-speaker segments
   quoteId?: string;                                         // investigative_knowledge_graph.json
+  sourceId?: string;                                        // a pinned document Source on the Evidence Board (releaseTag is '' then)
 }
 
 export interface StudioClip {
@@ -209,6 +210,7 @@ export interface ScriptProject {
   clips: StudioClip[]; excludedClips: { clipId: string; reason: string }[];
   headVersionId: string | null;
   thesis?: string;
+  charter?: string;                          // the project's rule sheet: Logan's standing editorial rules, sent with every writing prompt
   sourceKeys?: Record<string, string>;       // releaseTag -> recording key (E1, E2...) in multi-recording prompts; never reused                           // thematic and investigative episodes: the question the episode answers
   clipTagsKey?: string;                      // analysis hash + clip-tags prompt version of the last tagging
 }

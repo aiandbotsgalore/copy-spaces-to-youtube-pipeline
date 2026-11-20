@@ -22,7 +22,7 @@ import { getCachedAudioUrl } from '../utils/audioCache';
 import { toFetchableUrl } from '../utils/audioUrl';
 import ScriptQuality, { LogTable } from './ScriptQuality';
 import { AudioPanel, usePreviewJob } from './ScriptAudio';
-import { EvidencePanel, PaperTrailPanel, RecordingsPanel, StylePanel } from './ScriptStyle';
+import { EvidencePanel, PaperTrailPanel, RecordingsPanel, RuleSheetPanel, StylePanel } from './ScriptStyle';
 import { HandoffPanel } from './ScriptHandoff';
 import { namesForTag, renameKey } from '../utils/scriptNames';
 import { countTakes, hasValidTake } from '../utils/scriptAudio';
@@ -2412,6 +2412,8 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                     <button className={btnGhost} onClick={syncClipsFromManuscript} title="Detect all canonical and inline archival tags in manuscript and reconcile with Clip Bin">
                       <FolderSync size={12} className="text-teal-400" /> Sync Clips
                     </button>
+                    <button className={btnGhost} disabled={!!busy} title="Add highlight-catalog clips from this project's recordings that are not in the Clip Bin yet (clips you removed stay removed)"
+                      onClick={() => void act('Adding highlight clips', () => scriptApi.updateProject(project.id, { refreshCatalogClips: true }))}>Highlights</button>
                     <button className={btnGhost} disabled={!!busy || !stage.analysis || !project.clips.length} title="Tag each clip with narrative function"
                       onClick={() => void act('Tagging clips', () => scriptApi.tagClips(project.id, roles, true))}>Tag</button>
                   </div>
@@ -2459,6 +2461,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
               {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
+              <RuleSheetPanel project={project} act={act} />
               <EvidencePanel project={project} onReload={() => void load(project.id)} act={act} />
 
               {stats && stats.unnamedShare > 0.2 && (
