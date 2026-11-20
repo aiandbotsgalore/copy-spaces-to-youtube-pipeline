@@ -9,6 +9,8 @@ import { scriptApi, type ReviewRunSummary } from '../utils/scriptClient';
 import type { ReviewRun, RoundRecord } from '../server/scriptReviewLoop';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
+const SERVICE_NAME: Record<string, string> = { claude_cli: 'Claude', codex_cli: 'ChatGPT', agy_cli: 'Gemini', inception: 'Mercury' };
+const fmtTok = (n: number) => n >= 1000 ? `${Math.round(n / 1000)}k` : String(n);
 const btn = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
 const btnPrimary = `${btn} bg-indigo-600 border-indigo-500 text-white hover:bg-indigo-500`;
 const btnGhost = `${btn} bg-slate-900 border-slate-700 text-slate-200 hover:bg-slate-800`;
@@ -150,6 +152,9 @@ export function ReviewLoopPanel({ project, act }: { project: ScriptProject; act:
             <span className="ml-auto text-slate-500">{r.calls}/{r.config.maxCalls} calls · ${r.spentUsd.toFixed(2)}/${r.config.maxUsd.toFixed(2)}</span>
           </div>
           {r.message && <div className="text-slate-400">{r.message}</div>}
+          {r.usage && Object.keys(r.usage).length > 0 && <div className="text-[10px] text-slate-500">
+            Usage so far: {Object.entries(r.usage).map(([k, u]) => `${SERVICE_NAME[k] || k} ${u.calls} call${u.calls === 1 ? '' : 's'}${u.inTok || u.outTok ? `, ${fmtTok(u.inTok)} in / ${fmtTok(u.outTok)} out` : ''}`).join(' · ')}
+          </div>}
           <table className="w-full text-left [&_th]:pr-2 [&_td]:pr-2 [&_td]:py-0.5">
             <thead className="text-slate-500"><tr><th>Round</th><th>Draft</th><th>Gemini</th><th>ChatGPT</th><th>Result</th></tr></thead>
             <tbody>

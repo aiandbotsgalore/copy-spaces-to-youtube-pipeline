@@ -343,7 +343,8 @@ export function createClaudeCliAdapter(model: 'sonnet' | 'haiku', deps: CliAdapt
           const u = env?.usage || {};
           return {
             ok: true, json: structured, provider: 'claude_cli', model: String(env?.model || model), durationMs: now() - started,
-            usage: { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, costUsd: 0 },
+            // Cached prompt tokens are reported apart from input_tokens; count them so usage reflects the whole prompt.
+            usage: { inTok: (Number(u.input_tokens) || 0) + (Number(u.cache_creation_input_tokens) || 0) + (Number(u.cache_read_input_tokens) || 0), outTok: Number(u.output_tokens) || 0, costUsd: 0 },
           };
         }
         if (r.code === 0 && !r.timedOut && !r.aborted && env && !env.is_error && !hasStructured) return fail('BAD_OUTPUT', 'Claude returned no structured_output (the run may have been declined).', raw, started);

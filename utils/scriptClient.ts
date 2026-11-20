@@ -28,7 +28,7 @@ async function call<T>(method: 'GET' | 'POST', route: string, body?: unknown): P
   return j as T;
 }
 
-export interface ReviewRunSummary { id: string; status: ReviewRun['status']; stopReason?: string; message?: string; createdAt: number; updatedAt: number; rounds: number; calls: number; spentUsd: number; config: ReviewLoopConfig; result?: ReviewRun['result']; active: boolean }
+export interface ReviewRunSummary { id: string; status: ReviewRun['status']; stopReason?: string; message?: string; createdAt: number; updatedAt: number; rounds: number; calls: number; spentUsd: number; usage?: ReviewRun['usage']; config: ReviewLoopConfig; result?: ReviewRun['result']; active: boolean }
 export interface ProviderHealth { ok: boolean; detail: string; provider: string; model: string; binPath?: string; code?: string }
 export interface StatusResponse { providers: Record<string, ProviderHealth>; storeDir: string; interruptedAtStart: number; promptVersions: Record<string, string>; defaults: { subscription: RoleMap; fallback: RoleMap; inception?: RoleMap; cohere?: RoleMap } }
 export interface SpeakerStats { totalSec: number; unnamedShare: number; topUnnamed: { speaker: string; sec: number }[]; speakers: { speaker: string; sec: number }[] }

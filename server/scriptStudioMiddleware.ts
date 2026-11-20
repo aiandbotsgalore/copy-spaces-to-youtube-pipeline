@@ -1342,7 +1342,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     if (route === '/review' && method === 'GET') {
       const p = getProject(q('projectId'));
       const lock = reviewLoop.getIntroLock(p.id);
-      const runs = reviewLoop.listRuns(p.id).map(r => ({ id: r.id, status: r.status, stopReason: r.stopReason, message: r.message, createdAt: r.createdAt, updatedAt: r.updatedAt, rounds: r.rounds.length, calls: r.calls, spentUsd: r.spentUsd, config: r.config, result: r.result, active: reviewLoop.isActive(r.id) }));
+      const runs = reviewLoop.listRuns(p.id).map(r => ({ id: r.id, status: r.status, stopReason: r.stopReason, message: r.message, createdAt: r.createdAt, updatedAt: r.updatedAt, rounds: r.rounds.length, calls: r.calls, spentUsd: r.spentUsd, usage: r.usage, config: r.config, result: r.result, active: reviewLoop.isActive(r.id) }));
       return send(res, 200, { ok: true, threshold: PASS_SCORE, defaults: REVIEW_DEFAULTS, lock: lock ? { ...lock, text: undefined, preview: lock.text.slice(-400) } : null, runs });
     }
     if (route === '/review/boundaries' && method === 'GET') {

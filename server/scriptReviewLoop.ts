@@ -128,6 +128,8 @@ export interface ReviewRun {
   source: { file?: string; fromRunId?: string; startHash: string };
   intro: { sha256: string; length: number; bodyStartLine: string };
   spentUsd: number; calls: number;
+  /** Tokens each service reported, by provider (claude_cli, codex_cli, agy_cli, inception). A CLI that reports nothing adds calls only. */
+  usage?: Record<string, { calls: number; inTok: number; outTok: number }>;
   round: number; consecutiveFails: number; reviewFailStreak: number; tacticIndex: number;
   drafts: DraftRecord[]; currentHash: string; bestHash: string;
   rounds: RoundRecord[];
@@ -542,6 +544,9 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     }
     const r = await adapter.complete({ role, system: prompt.system, user: prompt.user, schema: prompt.schema, schemaName: prompt.schemaName, maxTokens: prompt.maxTokens, timeoutMs: CALL_TIMEOUT_MS, signal });
     run.spentUsd = budget.spentUsd;
+    const u = ((run.usage ??= {})[r.provider] ??= { calls: 0, inTok: 0, outTok: 0 });
+    u.calls++;
+    if (r.ok && r.usage) { u.inTok += r.usage.inTok || 0; u.outTok += r.usage.outTok || 0; }
     deps.appendLog?.(run.id, {
       at: now(), role, label, provider: r.provider, model: r.model, promptVersion: prompt.version, ok: r.ok, code: r.ok ? undefined : r.code,
       durationMs: r.durationMs, inTok: r.ok ? r.usage?.inTok : undefined, outTok: r.ok ? r.usage?.outTok : undefined, costUsd: r.ok ? r.usage?.costUsd : undefined,

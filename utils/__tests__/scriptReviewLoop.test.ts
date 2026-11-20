@@ -338,6 +338,10 @@ describe('spending limit', () => {
     expect(done.status).toBe('unfinished');
     expect(done.stopReason).toBe('spending_limit');
     expect(done.calls).toBeLessThanOrEqual(8);
+    // Every call is tallied with the tokens the service reported.
+    const tally = Object.values(done.usage || {});
+    expect(tally.reduce((a, u) => a + u.calls, 0)).toBe(done.calls);
+    expect(tally.reduce((a, u) => a + u.inTok, 0)).toBe(done.calls);
     expect(done.threshold).toBe(90);
     const best = loop.draftText(done, done.result!.hash);
     expect(best).toContain('REV1');
