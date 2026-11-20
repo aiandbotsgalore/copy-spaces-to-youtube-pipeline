@@ -13,14 +13,13 @@ on:
         default: '5'
         type: string
       engine:
-        description: 'Transcription engine (zerogpu = Hugging Face ZeroGPU, whisper = GitHub Cloud, assemblyai = paid API)'
+        description: 'Transcription engine (zerogpu = Hugging Face ZeroGPU, whisper = GitHub Cloud)'
         required: false
-        default: 'whisper'
+        default: 'zerogpu'
         type: choice
         options:
-          - whisper
           - zerogpu
-          - assemblyai
+          - whisper
       dry_run:
         description: 'Preview untranscribed queue in order without running transcription'
         required: false
@@ -89,7 +88,6 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
@@ -98,7 +96,7 @@ jobs:
           SPACE_API_KEY: ${{ secrets.SPACE_API_KEY }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
-          ENGINE="${{ inputs.engine || 'whisper' }}"
+          ENGINE="${{ inputs.engine || 'zerogpu' }}"
           echo "[*] Executing batch transcription on Cloud Runner via $ENGINE (limit: $LIMIT)..."
           python scripts/batch_transcribe_queue.py --engine "$ENGINE" --limit "$LIMIT"
           echo "[✓] Batch transcription completed!"

@@ -9,13 +9,13 @@ on:
         required: true
         type: string
       engine:
-        description: 'Transcription engine (whisper = free GitHub Cloud, assemblyai = paid API)'
+        description: 'Transcription engine (zerogpu = Hugging Face ZeroGPU, whisper = free GitHub Cloud)'
         required: false
-        default: 'whisper'
+        default: 'zerogpu'
         type: choice
         options:
+          - zerogpu
           - whisper
-          - assemblyai
       force:
         description: 'Force re-transcription even if transcript already exists'
         required: false
@@ -56,19 +56,23 @@ jobs:
         env:
           PYTHONUNBUFFERED: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ASSEMBLYAI_API_KEY: ${{ secrets.ASSEMBLYAI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           FORCE_ARG=""
           if [ "${{ inputs.force }}" = "true" ]; then
             FORCE_ARG="--force"
           fi
-          ENGINE_ARG="--engine ${{ inputs.engine || 'whisper' }}"
-          echo "[*] Transcribing ${{ inputs.release_tag }} via engine '${{ inputs.engine || 'whisper' }}'..."
-          python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG $ENGINE_ARG
+          ENGINE="${{ inputs.engine || 'zerogpu' }}"
+          echo "[*] Transcribing ${{ inputs.release_tag }} via engine '$ENGINE'..."
+          if [ "$ENGINE" = "zerogpu" ]; then
+            python scripts/cloud_transcribe_client.py --release-tag "${{ inputs.release_tag }}"
+          else
+            python scripts/transcribe_and_diarize.py --release-tag "${{ inputs.release_tag }}" $FORCE_ARG --engine "$ENGINE"
+          fi
 
       - name: Rebuild Transcript Index & Refresh Discovered Speaker Candidates
         env:
@@ -95,6 +99,8 @@ jobs:
           cache: 'npm'
 
       - name: Install Node Dependencies
+        env:
+          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
         run: npm ci
 
       - name: Generate Transcript Embeddings
