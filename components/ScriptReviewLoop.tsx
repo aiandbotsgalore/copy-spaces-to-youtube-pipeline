@@ -1,6 +1,6 @@
 /**
  * Review loop panel: lock the intro explicitly, start a text-only review loop (Gemini and ChatGPT review,
- * Claude revises the body), watch its rounds, and open the one complete revised script it returns.
+ * ChatGPT rewrites the body, or Claude fixes a few paragraphs), watch its rounds, and open the one complete revised script it returns.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle2, CircleDashed, ExternalLink, Lock, Play, RefreshCw, Square, XCircle } from 'lucide-react';
@@ -76,7 +76,7 @@ export function ReviewLoopPanel({ project, act }: { project: ScriptProject; act:
     <div className="space-y-1.5 pt-2 border-t border-slate-800/80 text-[11px]">
       <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold flex items-center gap-1"><RefreshCw size={12} /> Review loop</div>
       <div className="text-slate-400">
-        Gemini and ChatGPT each review the same full script on their own. Claude rewrites the body (never the intro) using both reviews, and it repeats until both score the same revised draft {state?.threshold ?? 90} or higher with nothing that must be fixed, and the changed quotes and facts check out against the sources.
+        Gemini and ChatGPT each review the same full script on their own. Then the body (never the intro) is revised from both reviews: Claude fixes small, local problems seeing only those paragraphs, and ChatGPT does full rewrites. It repeats until both score the same revised draft {state?.threshold ?? 90} or higher with nothing that must be fixed, and the changed quotes and facts check out against the sources.
       </div>
 
       {/* Intro lock */}
@@ -128,7 +128,7 @@ export function ReviewLoopPanel({ project, act }: { project: ScriptProject; act:
           <label className="text-slate-400">Paid APIs ($)<input type="number" min={0} step={0.25} className={cx(input, 'w-full')} value={maxUsd} onChange={e => setMaxUsd(Number(e.target.value))} /></label>
           <label className="text-slate-400">Rounds<input type="number" min={2} className={cx(input, 'w-full')} value={maxRounds} onChange={e => setMaxRounds(Number(e.target.value))} /></label>
         </div>
-        <div className="text-[10px] text-slate-500">Model calls use your Claude, ChatGPT and Google plans (about 3 per round). Paid APIs are Mercury 3 and Cohere, used only when needed. At the limit the run stops, keeps its strongest draft and is labelled unfinished.</div>
+        <div className="text-[10px] text-slate-500">Each round: Gemini and ChatGPT review the whole script, then one rewrite. Small, local problems go to Claude with only the paragraphs involved; anything bigger is a full rewrite by ChatGPT (gpt-6.2-sol, high). Claude never gets the whole script. Paid APIs (Mercury 3, Cohere) run only when needed. At the limit the run stops, keeps its strongest draft and is labelled unfinished.</div>
         <button className={cx(btnPrimary, 'max-w-full')} title={lock?.sourceFile} disabled={!lock || !!running} onClick={() => void act('Starting the review loop', async () => {
           const res = await scriptApi.reviewStart({ projectId: project.id, file: lock?.sourceFile, maxCalls, maxUsd, maxRounds });
           setSelected(res.run.id);
@@ -167,10 +167,11 @@ export function ReviewLoopPanel({ project, act }: { project: ScriptProject; act:
                   <td className="text-slate-400">
                     {x.passed ? (x.draftNumber === 0 ? 'passed, but the original must be revised first' : x.finalCheck ? (x.finalCheck.ok ? 'passed the source check' : `source check: ${x.finalCheck.issues.length} problem(s)`) : 'passed') : x.passBlockers.join('; ')}
                     {x.revision && <div className="text-slate-500">
-                      Claude ({x.revision.tacticName.replace('_', ' ')}): {x.revision.applied} edit{x.revision.applied === 1 ? '' : 's'}{x.revision.rejected.length ? `, ${x.revision.rejected.length} not applied` : ''}
+                      {x.revision.mode === 'targeted' ? 'Claude small fix' : x.revision.by?.startsWith('codex_cli') ? 'ChatGPT full rewrite' : 'Rewrite'} ({x.revision.tacticName.replace('_', ' ')}): {x.revision.applied} edit{x.revision.applied === 1 ? '' : 's'}{x.revision.rejected.length ? `, ${x.revision.rejected.length} not applied` : ''}
                       {x.revision.major.length ? ` · ${x.revision.major.length} major rewrite(s) compared blind, kept ${x.revision.major.map(m => m.kept).join('/')}` : ''}
                       {x.revision.structure ? ' · Mercury scene orders' : ''}
                       {x.revision.material ? ` · searched for material (${x.revision.material.hits} hits${x.revision.material.reranked ? ', Cohere reranked' : ''})` : ''}
+                      {x.revision.note ? ` · ${x.revision.note}` : ''}
                       {x.revision.error ? ` · ${x.revision.error}` : ''}
                     </div>}
                   </td>

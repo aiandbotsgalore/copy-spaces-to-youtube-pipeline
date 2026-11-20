@@ -16,6 +16,7 @@ const en = (values: readonly string[]): S => ({ type: 'string', enum: [...values
 export const REVIEW_PROMPT_VERSIONS = {
   review: 'review-loop.review.v1',
   revise: 'review-loop.revise.v1',
+  targeted: 'review-loop.targeted.v1',
   compare: 'review-loop.compare.v1',
   structure: 'review-loop.structure.v1',
   factcheck: 'review-loop.factcheck.v1',
@@ -127,6 +128,41 @@ Rules:
       `SUPPORTING TEXT\n${x.supporting || '(none)'}`,
       `LOCKED INTRO (context only)\n<<<INTRO\n${x.intro}\nINTRO>>>`,
       `BODY (edit this)\n<<<BODY\n${x.body}\nBODY>>>`,
+    ].filter(Boolean).join('\n\n'),
+  };
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Targeted fix: only the paragraphs involved, never the whole script                               */
+/* ---------------------------------------------------------------------------------------------- */
+
+export function targetedRevisePrompt(x: {
+  brief: string; reviews: string; tactic: string; excerpts: { scene: string; text: string }[];
+  sourceIssues?: string; rejectedEdits?: string;
+}): Prompt {
+  return {
+    version: REVIEW_PROMPT_VERSIONS.targeted, schemaName: 'body_revision', schema: REVISE_SCHEMA, maxTokens: 6000,
+    system: `You make small, targeted fixes to the BODY of a script for THE PAPER TRAIL. ${PRODUCTION}
+
+Two editors reviewed the whole script independently. Every problem they found sits in the excerpts below, so you are given only those excerpts, not the whole script. Fix the problems in place and leave everything that works alone.
+
+${CRITERIA_TEXT}
+
+Rules:
+- Edit only text inside the excerpts. Return find/replace pairs: "find" must be copied exactly from one excerpt (whole sentences, at least 8 words) so it is unique in the script. "replace" is the new text. Use "" in replace to cut.
+- You cannot see the rest of the script, so do not refer to, move, or depend on anything outside the excerpts.
+- Keep the manuscript's formatting conventions (scene headings, **NAME:** quotes, [CLIP ...] lines, --- separators).
+- Never invent quotes, attributions, dates or facts. Quotes stay word for word. If a quote or claim cannot be supported, correct or remove it.
+- Keep allegations clearly distinct from established fact.
+- Write narration in Logan's plain, conversational voice. No melodrama, no AI-sounding phrasing.
+- For every finding you were given, add a resolution: fixed or declined, with the reason.`,
+    user: [
+      `TACTIC FOR THIS ROUND\n${x.tactic}`,
+      x.sourceIssues ? `SOURCE CHECK PROBLEMS (fix these; a quote or claim that cannot be supported must be corrected or removed)\n${x.sourceIssues}` : '',
+      x.rejectedEdits ? `EDITS FROM LAST ROUND THAT COULD NOT BE APPLIED\n${x.rejectedEdits}` : '',
+      `THE TWO REVIEWS\n${x.reviews}`,
+      `EDITORIAL BRIEF\n${x.brief || '(none)'}`,
+      ...x.excerpts.map((e, i) => `EXCERPT ${i + 1} (scene: ${e.scene})\n<<<EXCERPT\n${e.text}\nEXCERPT>>>`),
     ].filter(Boolean).join('\n\n'),
   };
 }

@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {
-  applyBodyEdits, boundaryCandidates, createReviewLoop, extractQuotes, makeIntroLock, parseReview, passProblems, quoteInText,
+  applyBodyEdits, boundaryCandidates, createReviewLoop, DEFAULT_CONFIG, extractQuotes, makeIntroLock, parseReview, passageExcerpts, passProblems, quoteInText,
   reassemble, sha256, splitScript, TACTICS, type ReviewRun, type SourceHit,
 } from '../../server/scriptReviewLoop';
-import { agyArgs, AGY_FILE_INSTRUCTION, AGY_INLINE_PROMPT_MAX, createProviderRegistry, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
+import { agyArgs, AGY_FILE_INSTRUCTION, AGY_INLINE_PROMPT_MAX, codexArgs, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Fixture                                                                                          */
@@ -81,9 +81,10 @@ function makeLoop(handler: Handler, research?: Partial<{ search: any; rerank: an
   });
 }
 
-function startRun(loop: ReturnType<typeof makeLoop>, limits: Record<string, number> = {}, text = SCRIPT): ReviewRun {
+/** The tests in sections 1 to 5 exercise full rewrites; targeted fixes have their own section. */
+function startRun(loop: ReturnType<typeof makeLoop>, limits: Record<string, number | string> = {}, text = SCRIPT): ReviewRun {
   loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
-  return loop.createRun(PID, text, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12, ...limits });
+  return loop.createRun(PID, text, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12, targetedReviser: '', ...limits });
 }
 
 beforeEach(() => { base = fs.mkdtempSync(path.join(os.tmpdir(), 'review-loop-')); seen = []; saved = []; });
@@ -376,6 +377,106 @@ describe('spending limit', () => {
 /* ---------------------------------------------------------------------------------------------- */
 /* Helpers and the Gemini adapter                                                                   */
 /* ---------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------- */
+/* 6. Who rewrites: ChatGPT 6.2 (high) for full rewrites, Claude Pro only for targeted fixes        */
+/* ---------------------------------------------------------------------------------------------- */
+
+describe('Claude Pro only for targeted fixes', () => {
+  const claudeCalls = () => seen.filter(x => x.spec.startsWith('claude_cli'));
+
+  it('defaults to ChatGPT gpt-6.2-sol at high effort for full rewrites and Claude only for targeted fixes', () => {
+    expect(DEFAULT_CONFIG.reviser).toBe('codex_cli:gpt-6.2-sol:high');
+    expect(DEFAULT_CONFIG.targetedReviser).toBe('claude_cli:sonnet');
+    expect(DEFAULT_CONFIG.reviewers.chatgpt).toBe('codex_cli');
+    expect(parseRoleSpec('codex_cli:gpt-6.2-sol:high')).toEqual({ provider: 'codex_cli', model: 'gpt-6.2-sol', effort: 'high' });
+    expect(parseRoleSpec('codex_cli:gpt-6.2-sol:bogus')).toBeNull();
+    expect(codexArgs('/s', '/o', 'gpt-6.2-sol', 'high')).toEqual(['exec', '-', '-m', 'gpt-6.2-sol', '-c', 'model_reasoning_effort="high"', '--output-schema', '/s', '-o', '/o', '--json', '--ephemeral', '--skip-git-repo-check', '--ignore-user-config']);
+    const reg = createProviderRegistry({ env: () => ({}) } as any);
+    expect(reg.adapterFor('codex_cli:gpt-6.2-sol:high', { maxUsd: 0, spentUsd: 0 })!.model).toBe('gpt-6.2-sol');
+  });
+
+  it('sends Claude only the paragraphs around a local problem, never the intro or the whole script', async () => {
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(spec.startsWith('agy') ? 94 : 92) : review(80);
+      if (req.schemaName === 'body_revision') return { edits: [edit('sets things up for the listener today.', 'sets things up for the listener today. REV1'), edit('The ending closes the story for now and points back to the opening question.', 'Out of reach. REV-OUTSIDE')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    const run = loop.createRun(PID, SCRIPT, (loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md'), { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12 }));
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('complete');
+    const rev = done.rounds[0].revision!;
+    expect(rev.mode).toBe('targeted');
+    expect(rev.by).toBe('claude_cli:sonnet');
+    expect(rev.rejected.map(r => r.reason)).toContain('outside the passages sent for a targeted fix');
+    const sent = claudeCalls();
+    expect(sent).toHaveLength(1);
+    expect(sent[0].user).toContain('sets things up for the listener today.');
+    expect(sent[0].user).not.toContain('The ending closes the story');      // a paragraph far from the problem
+    expect(sent[0].user).not.toContain('This is the paper trail.');         // the locked intro
+    expect(sent[0].user).not.toContain('SUPPORTING: timeline notes.');      // supporting text stays out
+    expect(sent[0].user).not.toContain('<<<BODY');
+    const text = loop.draftText(done, done.result!.hash);
+    expect(text).toContain('REV1');
+    expect(text).not.toContain('REV-OUTSIDE');
+    expect(text.startsWith(INTRO)).toBe(true);
+    // No full rewrite was needed.
+    expect(seen.some(x => x.spec === DEFAULT_CONFIG.reviser && x.schemaName === 'body_revision')).toBe(false);
+  });
+
+  it('uses a ChatGPT full rewrite for a structural problem, and Claude never sees it', async () => {
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(95) : review(80, { structural: 'The second scene carries on with more detail' });
+      if (req.schemaName === 'body_revision') return { edits: [edit('points back to the opening question.', 'points back to the opening question. REV1')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
+    const run = loop.createRun(PID, SCRIPT, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12 });
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('complete');
+    expect(done.rounds[0].revision!.mode).toBe('full');
+    expect(done.rounds[0].revision!.by).toBe('codex_cli:gpt-6.2-sol:high');
+    const full = seen.find(x => x.schemaName === 'body_revision')!;
+    expect(full.spec).toBe('codex_cli:gpt-6.2-sol:high');
+    expect(full.user).toContain('<<<BODY');
+    expect(claudeCalls()).toHaveLength(0);
+  });
+
+  it('falls back to a ChatGPT rewrite when Claude is out of usage, instead of stopping', async () => {
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(95) : review(80);
+      if (req.schemaName === 'body_revision') {
+        if (spec.startsWith('claude_cli')) return { ok: false, code: 'USAGE_LIMIT', message: 'Claude usage limit reached', rawOutput: '', durationMs: 1, provider: 'claude_cli', model: spec };
+        return { edits: [edit('sets things up for the listener today.', 'sets things up for the listener today. REV1')], resolutions: [], summary: '' };
+      }
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
+    const run = loop.createRun(PID, SCRIPT, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12 });
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('complete');
+    const rev = done.rounds[0].revision!;
+    expect(rev.note).toMatch(/Targeted fix unavailable \(USAGE_LIMIT\)/);
+    expect(rev.by).toBe('codex_cli:gpt-6.2-sol:high');
+    expect(loop.draftText(done, done.result!.hash)).toContain('REV1');
+  });
+
+  it('cuts excerpts to the paragraphs around each passage', () => {
+    const body = ['P0 heading', 'P1 alpha words here', 'P2 beta words here', 'P3 gamma words here', 'P4 delta words here', 'P5 epsilon words here', 'P6 zeta words here'].join('\n\n');
+    const r = passageExcerpts(body, ['beta words', 'zeta words', 'not in the body at all']);
+    expect(r.missing).toEqual(['not in the body at all']);
+    expect(r.excerpts.map(e => e.text)).toEqual([
+      ['P1 alpha words here', 'P2 beta words here', 'P3 gamma words here'].join('\n\n'),
+      ['P5 epsilon words here', 'P6 zeta words here'].join('\n\n'),
+    ]);
+  });
+});
 
 describe('helpers', () => {
   it('applies whitespace- and quote-tolerant edits that match exactly once', () => {

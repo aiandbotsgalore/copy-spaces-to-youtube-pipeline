@@ -2,7 +2,8 @@
  * THE PAPER TRAIL review loop (text only).
  *
  * Starting from the existing manuscript, two reviewers (Gemini and ChatGPT) independently review and score
- * the same complete draft in parallel; Claude revises only the body using both reviews; the loop repeats until
+ * the same complete draft in parallel; the body is revised from both reviews (ChatGPT gpt-6.2-sol for full rewrites,
+ * Claude only for small fixes that see just the paragraphs involved); the loop repeats until
  * both reviewers score the same revised draft 90 or more with no unresolved blocker, the locked intro matches
  * byte for byte, and changed quotes, attributions and claims check out against source text. Mercury 3 (scene
  * orders) and Cohere Rerank (source material) run only on demand. A spending limit ends the run as UNFINISHED
@@ -34,13 +35,20 @@ const CHECK_DOWN = 'CHECK UNAVAILABLE: ';
 const PAUSE_CODES = new Set(['USAGE_LIMIT', 'RATE_LIMIT', 'NOT_SIGNED_IN', 'NOT_INSTALLED', 'NO_KEY', 'NOT_ALLOWED']);
 /** Cohere Rerank is billed per search; a conservative list price per call for the spending limit. */
 export const RERANK_COST_USD = 0.003;
+/** A targeted fix handles at most this many findings; more than that is a full rewrite. */
+export const TARGETED_MAX_FINDINGS = 8;
+/** The excerpts sent for a targeted fix stay under this share of the body (or 4,000 characters for a short body). */
+export const TARGETED_MAX_SHARE = 0.3;
 
 export type ReviewerId = 'gemini' | 'chatgpt';
 export const REVIEWERS: ReviewerId[] = ['gemini', 'chatgpt'];
 
 export interface ReviewLoopConfig {
   reviewers: Record<ReviewerId, string>;
+  /** Full rewrites of the body (sees the whole script). */
   reviser: string;
+  /** Small fixes on a few paragraphs: sees only those paragraphs and their neighbours, never the whole script. '' turns it off. */
+  targetedReviser: string;
   structure: string;
   rerankModel: string;
   /** Paid API dollars (Mercury, Cohere): the run stops UNFINISHED before a call that could pass this. */
@@ -54,7 +62,9 @@ export interface ReviewLoopConfig {
 /** Keeps the current Studio provider and model selections. */
 export const DEFAULT_CONFIG: ReviewLoopConfig = {
   reviewers: { gemini: 'agy_cli:gemini-3.8-flash-high', chatgpt: 'codex_cli' },
-  reviser: 'claude_cli:sonnet',
+  // Logan, 2026-11-20: ChatGPT gpt-6.2-sol at high effort does full rewrites; Claude Pro only does small passage fixes.
+  reviser: 'codex_cli:gpt-6.2-sol:high',
+  targetedReviser: 'claude_cli:sonnet',
   structure: 'inception:mercury-3',
   rerankModel: 'rerank-v5.0-fast',
   maxUsd: 1,
@@ -106,6 +116,8 @@ export interface RoundRecord {
     structure?: { problem: string; options: unknown[] } | { problem: string; error: string };
     material?: { queries: string[]; hits: number; reranked: boolean; note?: string };
     resolutions?: unknown[]; summary?: string; newHash?: string; error?: string;
+    /** targeted = a small fix on excerpts only; full = a rewrite that saw the whole script. */
+    mode?: 'targeted' | 'full'; by?: string; excerptChars?: number; note?: string;
   };
   finalCheck?: FinalCheck;
 }
@@ -268,6 +280,46 @@ export function sceneAt(text: string, index: number): string {
   const before = text.slice(0, Math.max(0, index));
   const m = [...before.matchAll(/^#{2,4}\s+(.+)$/gm)];
   return m.length ? m[m.length - 1][1].trim() : '(opening of the body)';
+}
+
+export interface Excerpt { scene: string; text: string }
+
+/**
+ * The paragraphs that hold each passage, plus one paragraph either side, merged where they touch.
+ * Used for targeted fixes, so the model sees only what it needs to change.
+ */
+export function passageExcerpts(body: string, passages: string[]): { excerpts: Excerpt[]; missing: string[] } {
+  const paras: { text: string; at: number }[] = [];
+  const sep = /\n[ \t]*\n+/g;
+  let last = 0;
+  for (let m = sep.exec(body); m; m = sep.exec(body)) { paras.push({ text: body.slice(last, m.index), at: last }); last = m.index + m[0].length; }
+  paras.push({ text: body.slice(last), at: last });
+  const lp = paras.map(p => loose(p.text));
+  const starts: number[] = [];
+  lp.forEach((t, i) => starts.push(i === 0 ? 0 : starts[i - 1] + lp[i - 1].length + 1));
+  const joined = lp.join(' ');
+  const ranges: [number, number][] = [];
+  const missing: string[] = [];
+  for (const passage of passages) {
+    const p = loose(passage);
+    const at = p ? joined.indexOf(p) : -1;
+    if (at < 0) { missing.push(passage); continue; }
+    const end = at + p.length;
+    let first = 0, lastIdx = 0;
+    starts.forEach((st, i) => { if (st <= at) first = i; if (st < end) lastIdx = i; });
+    ranges.push([Math.max(0, first - 1), Math.min(paras.length - 1, lastIdx + 1)]);
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const r of ranges) {
+    const m = merged[merged.length - 1];
+    if (m && r[0] <= m[1] + 1) m[1] = Math.max(m[1], r[1]); else merged.push([...r]);
+  }
+  const excerpts = merged.map(([a, b]) => ({
+    scene: sceneAt(body, paras[a].at + 1),
+    text: paras.slice(a, b + 1).map(p => p.text).join('\n\n').trim(),
+  })).filter(e => e.text);
+  return { excerpts, missing };
 }
 
 /** Where a reviewer's passage sits: in the body (scene key), only in the intro, or nowhere. */
@@ -705,6 +757,38 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     return check;
   }
 
+  /**
+   * Excerpts for a targeted fix, or null when the round needs a full rewrite: too many findings, a finding
+   * with no passage in the body (a missing connection, or one that points into the intro), a structural
+   * finding, an ending that fails, or excerpts too large to be called targeted.
+   */
+  function targetedExcerpts(run: ReviewRun, round: RoundRecord, body: string, sourceIssues: string): Excerpt[] | null {
+    if (!run.config.targetedReviser) return null;
+    let passages: string[];
+    if (sourceIssues) {
+      passages = [...sourceIssues.matchAll(/"([^"]{12,})"/g)].map(m => m[1]);
+      const lock = getIntroLock(run.projectId);
+      const start = lock ? splitScript(draftText(run, run.source.startHash), lock) : null;
+      const changed = changedParagraphs(start && start.ok ? start.body : '', body);
+      if (passageExcerpts(body, passages).missing.length || !passages.length) {
+        if (changed.length > TARGETED_MAX_FINDINGS) return null;
+        passages = [...passages, ...changed];
+      }
+    } else {
+      const reviews = REVIEWERS.map(id => round.reviews[id]).filter((o): o is Extract<ReviewOutcome, { ok: true }> => !!o?.ok).map(o => o.review);
+      if (reviews.some(r => r.ending.verdict === 'fails')) return null;
+      const findings = reviews.flatMap(r => r.findings);
+      if (!findings.length || findings.length > TARGETED_MAX_FINDINGS) return null;
+      if (findings.some(f => f.structural || !f.passage || f.inIntro)) return null;
+      passages = findings.map(f => f.passage);
+    }
+    const { excerpts, missing } = passageExcerpts(body, passages);
+    if (!excerpts.length || (missing.length && !sourceIssues)) return null;
+    const chars = excerpts.reduce((a, e) => a + e.text.length, 0);
+    if (chars > Math.max(4000, body.length * TARGETED_MAX_SHARE)) return null;
+    return excerpts;
+  }
+
   /* The loop ------------------------------------------------------------------------------------- */
   function finish(run: ReviewRun, status: ReviewRunStatus, reason: string, message: string) {
     run.status = status;
@@ -820,21 +904,48 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         }
 
         const ctx = deps.context(run.projectId);
-        const prompt = RP.revisePrompt({
-          intro: split.intro, body: split.body, brief: ctx.brief, supporting: ctx.supporting, reviews: reviewsForReviser(round.reviews),
-          tactic: tacticText, structureOptions: structureText || undefined, material: materialText || undefined,
-          sourceIssues: pendingSourceIssues || undefined, rejectedEdits: rejectedLastRound || undefined,
-        });
-        const rev = await call(run, budget, run.config.reviser, 'reviser', prompt, `revise body (round ${round.n})`, ctl.signal);
+        // A small, local problem goes to the targeted reviser with only the paragraphs involved; anything
+        // that spans the script (structure, a missing connection, new material, a changed tactic) is a full rewrite.
+        const excerpts = !changeTactic && !persistent && !wants.length ? targetedExcerpts(run, round, split.body, pendingSourceIssues) : null;
+        let rev: CompleteResult | null = null;
+        if (excerpts) {
+          const tp = RP.targetedRevisePrompt({
+            brief: ctx.brief, reviews: reviewsForReviser(round.reviews), tactic: tacticText, excerpts,
+            sourceIssues: pendingSourceIssues || undefined, rejectedEdits: rejectedLastRound || undefined,
+          });
+          revision.excerptChars = excerpts.reduce((a, e) => a + e.text.length, 0);
+          const t = await call(run, budget, run.config.targetedReviser, 'reviser', tp, `targeted fix (round ${round.n})`, ctl.signal);
+          if (t.ok) { rev = t; revision.mode = 'targeted'; revision.by = run.config.targetedReviser; }
+          else revision.note = `Targeted fix unavailable (${t.code}); used a full rewrite instead.`;
+        }
+        if (!rev) {
+          const prompt = RP.revisePrompt({
+            intro: split.intro, body: split.body, brief: ctx.brief, supporting: ctx.supporting, reviews: reviewsForReviser(round.reviews),
+            tactic: tacticText, structureOptions: structureText || undefined, material: materialText || undefined,
+            sourceIssues: pendingSourceIssues || undefined, rejectedEdits: rejectedLastRound || undefined,
+          });
+          revision.mode = 'full';
+          revision.by = run.config.reviser;
+          rev = await call(run, budget, run.config.reviser, 'reviser', prompt, `revise body (round ${round.n})`, ctl.signal);
+        }
         if (!rev.ok) {
           revision.error = `${rev.code}: ${rev.message}`;
           save(run);
-          if (PAUSE_CODES.has(rev.code)) throw new Stop('unfinished', `provider_${rev.code.toLowerCase()}`, `Claude could not revise: ${rev.message}`);
+          if (PAUSE_CODES.has(rev.code)) throw new Stop('unfinished', `provider_${rev.code.toLowerCase()}`, `The rewrite could not run: ${rev.message}`);
           run.round++;
           save(run);
           continue;
         }
-        const edits: BodyEdit[] = ((rev.json as any)?.edits || []).map((e: any) => ({ find: String(e?.find ?? ''), replace: String(e?.replace ?? ''), why: String(e?.why ?? '') }));
+        let edits: BodyEdit[] = ((rev.json as any)?.edits || []).map((e: any) => ({ find: String(e?.find ?? ''), replace: String(e?.replace ?? ''), why: String(e?.why ?? '') }));
+        const outside: { find: string; reason: string }[] = [];
+        if (revision.mode === 'targeted' && excerpts) {
+          const allowed = excerpts.map(e => loose(e.text));
+          edits = edits.filter(e => {
+            if (allowed.some(t => t.includes(loose(e.find)))) return true;
+            outside.push({ find: e.find, reason: 'outside the passages sent for a targeted fix' });
+            return false;
+          });
+        }
         revision.resolutions = (rev.json as any)?.resolutions || [];
         revision.summary = String((rev.json as any)?.summary || '');
         let result = applyBodyEdits(split.body, edits);
@@ -842,8 +953,8 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         revision.major = judged.record;
         if (judged.revert.size) result = applyBodyEdits(split.body, edits, judged.revert);
         revision.applied = result.applied.length;
-        revision.rejected = result.rejected.map(r => ({ find: r.find, reason: r.reason }));
-        rejectedLastRound = result.rejected.map(r => `- "${r.find.slice(0, 160)}": ${r.reason}`).join('\n');
+        revision.rejected = [...outside, ...result.rejected.map(r => ({ find: r.find, reason: r.reason }))];
+        rejectedLastRound = revision.rejected.map(r => `- "${r.find.slice(0, 160)}": ${r.reason}`).join('\n');
         const assembled = reassemble(lock, result.body);
         if (assembled.ok === false) throw new Stop('failed', 'intro_mismatch', `A revision would have changed the intro; it was not accepted. ${assembled.reason}`);
         const rec = addDraft(run, assembled.text, pendingSourceIssues ? 'source_fix' : 'revision', run.currentHash);
