@@ -31,6 +31,7 @@ import { Limiter } from './directorMiddleware';
 import { createQuoteLibrary } from './quoteLibrary';
 import { quoteToStudioClip } from './quoteAlign';
 import { pairEvidenceAndTape } from '../utils/evidencePairing';
+import { applyLinkedNarration, linkedRevisionView, linkedStoryContext, validateLinkedTargets, type LinkedNarrationEdit } from '../utils/scriptLinkedEdits';
 
 export const MAX_ROUNDS = 4;
 export const LEDGER_MAX_CHARS = 1500 * 4;
@@ -429,6 +430,20 @@ export function createEngine(deps: EngineDeps) {
       transcriptHashes: project.transcriptHashes, evidencePairings: pairings,
       formatCheck: (segs: Segment[]) => formatChecks(segs, project.format, formatOpts(project)),
     };
+  }
+
+  function linkedPatch(project: ScriptProject, base: ScriptVersion, target: Critique, value: any, allowed: Set<string>) {
+    if (!Array.isArray(value?.edits) || value.edits.length > 8) return { ok: false as const, reason: 'Linked revision needs a complete bounded edit list.' };
+    const edits: LinkedNarrationEdit[] = [];
+    for (const e of value.edits) {
+      if (!e || typeof e.text !== 'string' || !Array.isArray(e.claims)) return { ok: false as const, reason: 'Linked narration requires text and evidence claims.' };
+      const conv = toPatch([{ kind: 'narration', text: e.text, claims: e.claims }], project);
+      if (!conv.ok) return conv;
+      const block = conv.patch[0];
+      if (block.kind !== 'narration') return { ok: false as const, reason: 'Linked edits may only replace narration.' };
+      edits.push({ sceneId: e.sceneId, blockId: e.blockId, sourceText: e.sourceText, text: e.text, claims: block.claims || [] });
+    }
+    return applyLinkedNarration(base, target, value.baselineId, edits, allowed, { newVersionId: newId('v'), now: now() });
   }
 
   function formatOpts(project: ScriptProject) {
@@ -899,18 +914,34 @@ export function createEngine(deps: EngineDeps) {
 
       /** Fact check of changed claims; returns true when the run must stop. */
       const factcheck = async (cand: ScriptVersion, changed: Set<string>, decision: RefinementDecision): Promise<boolean> => {
-        const claims = allBlocks(cand.segments).filter(b => b.kind === 'narration' && changed.has(b.id) && b.claims.length)
-          .map((b, index) => ({ index, narration: (b as any).text, excerpts: (b as any).claims.map((c: any) => `${c.speaker}: ${c.verbatim}`) }));
+        const claims = allBlocks(cand.segments).filter((b): b is Extract<Block, { kind: 'narration' }> => b.kind === 'narration' && changed.has(b.id) && (!!decision.linkedIssue || b.claims.length > 0))
+          .map((b, index) => ({ index, narration: b.text, excerpts: b.claims.map(c => `${c.speaker}: ${c.verbatim}`),
+            ...(decision.linkedIssue ? { evidence: b.claims } : {}),
+          }));
         if (!claims.length) return false;
-        const fc = await call('factcheck', P.factcheckPrompt({ claims: JSON.stringify(claims) }), ctxFor('fact check'));
+        const fc = await call('factcheck', P.factcheckPrompt({ claims: JSON.stringify(claims),
+          context: decision.linkedIssue ? linkedRevisionView(cand, cand.changedScope!.ids, clipsById) : undefined,
+        }), ctxFor('fact check'));
         if (!fc.ok) {
           const h = handleFail('factcheck', fc);
+          if (decision.linkedIssue && halted(h, 'Stopped at budget during linked fact check.')) {
+            decision.notJudged = `Fact check stopped: ${fc.code}: ${fc.message}`;
+            return true;
+          }
           if (h === 'pause' || h === 'cancel') { if (h === 'cancel') finish(run, 'cancelled', 'Cancelled.'); return true; }
           decision.notJudged = `Fact check failed: ${fc.code}: ${fc.message}`;
           return false;
         }
         okCall('factcheck', fc, `checked ${claims.length} claims`);
-        const labels = ((fc.json as any)?.claims || []).map((c: any) => ({ claim: claims[c.index]?.narration?.slice(0, 200) || `#${c.index}`, label: c.label, note: String(c.note || '') }));
+        const rows = (fc.json as any)?.claims;
+        if (decision.linkedIssue && (!Array.isArray(rows) || rows.length !== claims.length
+          || new Set(rows.map((c: any) => c?.index)).size !== claims.length
+          || rows.some((c: any) => !Number.isInteger(c?.index) || !claims[c.index]))) {
+          decision.gates.factual = 'fail';
+          decision.gates.failures.push('Linked fact check omitted, duplicated or misidentified a claim.');
+          return false;
+        }
+        const labels = (rows || []).map((c: any) => ({ claim: claims[c.index]?.narration?.slice(0, 200) || `#${c.index}`, label: c.label, note: String(c.note || '') }));
         decision.gates.factcheck = labels;
         const bad = labels.filter((l: any) => l.label !== 'supported');
         if (bad.length) { decision.gates.factual = 'fail'; decision.gates.failures.push(...bad.map((l: any) => `Fact check: "${l.claim.slice(0, 80)}" is ${l.label}: ${l.note}`)); }
@@ -924,6 +955,7 @@ export function createEngine(deps: EngineDeps) {
           emit(run, { type: 'round', message: `Round ${round + 1} of ${run.maxRounds}.` });
           // CRITIQUE: one call per segment that contains target scenes; locked blocks excluded.
           const crits: Critique[] = [];
+          const storyContext = spoken ? undefined : JSON.stringify(linkedStoryContext(best.segments, targetIds));
           for (let si = 0; si < best.segments.length; si++) {
             const seg = best.segments[si];
             const scenes = seg.scenes.filter(sc => targetIds.has(sc.id));
@@ -939,7 +971,7 @@ export function createEngine(deps: EngineDeps) {
               ? scenes.flatMap(spokenChecks)
               : [...scenes.flatMap(localTextChecks), ...fmt.hard.map(f => `Format rule broken: ${f.message}`), ...fmt.soft.map(f => f.message), ...(project.evidenceDocs?.length ? [`${project.evidenceDocs.length} evidence document(s) uploaded for context: ${project.evidenceDocs.map(d => d.name).join(', ')}`] : []),
                 ...(project.googleDriveFolderUrl ? [`Google Drive evidence folder connected: ${project.googleDriveFolderUrl}`] : [])];
-            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken, voice: voiceSummary(deps.store) }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
+            const r = await call('critic', P.critiquePrompt({ format: project.format, segment: JSON.stringify(view), neighbours, localNotes: notes.join('\n'), memory: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), spoken, voice: voiceSummary(deps.store), storyContext }), ctxFor(`${spoken ? 'spoken critique' : 'critique'} ${seg.title}`));
             if (!r.ok) {
               if (halted(handleFail('critic', r), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
               emit(run, { type: 'error', message: `Critique of segment "${seg.title}" failed this round and was skipped.` });
@@ -951,8 +983,17 @@ export function createEngine(deps: EngineDeps) {
             for (const c of (r.json as any)?.critiques || []) {
               const tid = String(c?.targetId);
               if (!sceneIds.has(tid) || (perScene.get(tid) || 0) >= 3) continue;
+              let linkedTargets: Critique['linkedTargets'];
+              if (c.linkedTargets != null) {
+                const linked = validateLinkedTargets(best, tid, c.linkedTargets, targetIds);
+                if (spoken || !linked.ok) {
+                  emit(run, { type: 'gates', message: `Linked critique rejected: ${spoken ? 'Spoken runs use single-scene revisions.' : !linked.ok ? linked.reason : ''}` });
+                  continue;
+                }
+                linkedTargets = linked.value;
+              }
               perScene.set(tid, (perScene.get(tid) || 0) + 1);
-              crits.push({ id: newId('cr'), versionId: best.id, level: 'scene', targetId: tid, issue: String(c.issue), consequence: String(c.consequence), criterion: c.criterion, severity: c.severity, proposedFix: String(c.proposedFix) });
+              crits.push({ id: newId('cr'), versionId: best.id, level: 'scene', targetId: tid, issue: String(c.issue), consequence: String(c.consequence), criterion: c.criterion, severity: c.severity, proposedFix: String(c.proposedFix), ...(linkedTargets ? { linkedTargets } : {}) });
             }
           }
           run.critiques = crits;
@@ -962,47 +1003,67 @@ export function createEngine(deps: EngineDeps) {
           const target = mostConsequential(crits);
           if (!target || target.severity === 'minor') { sceneEnd = { reason: 'no_major_issues', message: target ? 'Only minor critiques left.' : 'No critiques left.' }; break; }
 
-          // REVISE the one target scene.
+          // One issue: either the existing scene patch or one complete linked narration group.
           const loc = findScene(best.segments, target.targetId)!;
+          const linked = target.linkedTargets;
+          const revisionSceneIds = linked ? [...new Set(linked.map(t => t.sceneId))] : [loc.scene.id];
+          const revisionScenes = revisionSceneIds.map(id => findScene(best.segments, id)!.scene);
           const lockedIds = loc.scene.blocks.filter(b => b.locked).map(b => b.id);
           const neighbourScenes = [loc.segment.scenes[loc.sceneIndex - 1], loc.segment.scenes[loc.sceneIndex + 1]];
           const neighbours = neighbourScenes.map((s, i) => { const b = boundaryLines(s); return b ? `${i === 0 ? 'Before' : 'After'}: ${i === 0 ? b.last : b.first}` : ''; }).filter(Boolean).join('\n');
           const sceneClips = [...new Set([...(loc.scene.suggestedClipIds || []), ...loc.scene.blocks.filter(b => b.kind === 'clip').map(b => (b as any).clipId)])].map(id => clipsById[id]).filter(Boolean);
-          const claimUtts = loc.scene.blocks.flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
+          const claimUtts = revisionScenes.flatMap(sc => sc.blocks).flatMap(b => (b.kind === 'narration' ? b.claims : [])).flatMap(c => {
             const t = transcript(c.releaseTag);
             return t.utterances.filter(u => u.end >= c.segStart && u.start <= c.segEnd).map(u => corpusFor(project!).qualify(c.releaseTag, u.id));
           });
-          const rev = await call('reviser', P.revisePrompt({
+          const revPrompt = linked ? P.linkedRevisePrompt({
+            format: project.format, baselineId: best.id, critique: JSON.stringify(target), targets: JSON.stringify(linked),
+            context: JSON.stringify(linkedRevisionView(best, revisionSceneIds, clipsById)),
+            evidence: evidenceLines(project, null, [], claimUtts), recordings: corpusFor(project).legend(),
+            styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), styleCard: draftStyleFor(),
+          }) : P.revisePrompt({
             format: project.format, critique: JSON.stringify(target), neighbours, lockedIds,
             scene: JSON.stringify({ sceneId: loc.scene.id, title: loc.scene.title, purpose: loc.scene.purpose, blocks: loc.scene.blocks }),
             evidence: evidenceLines(project, null, [], claimUtts), clips: JSON.stringify((sceneClips.length ? sceneClips : project.clips).map(c => clipView(c, 1200, isMulti(project!)))),
             recordings: corpusFor(project!).legend(),
             styleRules: memory.styleRules.map(x => `- ${x.rule}`).join('\n'), styleCard: draftStyleFor(),
-          }), ctxFor(`revise ${loc.scene.title}`));
+          });
+          const rev = await call('reviser', revPrompt, ctxFor(linked ? `revise ${revisionSceneIds.length} linked scenes` : `revise ${loc.scene.title}`));
           if (!rev.ok) {
             if (halted(handleFail('reviser', rev), `Stopped at budget. Scenes not yet refined: ${notRefined()}.`)) return;
             run.staleCount++; run.currentRound = round + 1; save(run);
             if (run.staleCount >= 2) break;
             continue;
           }
-          okCall('reviser', rev, `revised "${loc.scene.title}"`);
-          const conv = toPatch((rev.json as any)?.blocks || [], project);
-          const patched: { ok: true; version: ScriptVersion } | { ok: false; reason: string } = conv.ok
-            ? await applyPatch(best, loc.scene.id, conv.patch, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'reject', newVersionId: newId('v'), now: now() })
-            : conv;
+          okCall('reviser', rev, linked ? `revised ${revisionSceneIds.length} linked scenes` : `revised "${loc.scene.title}"`);
+          let patched: { ok: true; version: ScriptVersion } | { ok: false; reason: string };
+          if (linked) patched = linkedPatch(project, best, target, rev.json, targetIds);
+          else {
+            const conv = toPatch((rev.json as any)?.blocks || [], project);
+            patched = conv.ok
+              ? await applyPatch(best, loc.scene.id, conv.patch, { clipsById, trim, newId: () => newId('b'), onBadTrim: 'reject', newVersionId: newId('v'), now: now() })
+              : conv;
+          }
           if (patched.ok === false) {
             emit(run, { type: 'gates', message: `Revision rejected: ${patched.reason}` });
             run.staleCount++; run.currentRound = round + 1; save(run);
             if (run.staleCount >= 2) break;
             continue;
           }
-          const cand: ScriptVersion = { ...patched.version, label: `Round ${round + 1}: ${loc.scene.title}`, changedScope: { level: 'scene', ids: [loc.scene.id] } };
+          const cand: ScriptVersion = { ...patched.version, label: `Round ${round + 1}: ${linked ? `${revisionSceneIds.length} linked scenes · ` : ''}${loc.scene.title}`, changedScope: { level: 'scene', ids: revisionSceneIds } };
           const changed = changedBlockIds(best.segments, cand.segments);
           cand.segments = withTakes(cand.segments);
-          const gates = codeGates(cand.segments, { ...gateContext(project, best.segments), changedBlockIds: changed });
+          const gates = codeGates(cand.segments, { ...gateContext(project, best.segments, linked ? cand.segments : best.segments), changedBlockIds: changed });
           const decision: RefinementDecision = { candidateId: cand.id, baselineId: best.id, round, promptVersion: P.PROMPT_VERSIONS.revise, gates, loopAccepted: false };
+          if (linked) {
+            decision.promptVersion = P.PROMPT_VERSIONS.reviseLinked;
+            decision.linkedIssue = { critiqueId: target.id, issue: target.issue, targets: linked };
+          }
 
-          if (gates.ok && await factcheck(cand, changed, decision)) return;
+          if (gates.ok && await factcheck(cand, changed, decision)) {
+            if (linked) { cand.decision = decision; deps.store.saveVersion(cand); run.candidateIds.push(cand.id); save(run); }
+            return;
+          }
           emit(run, {
             type: 'gates',
             message: decision.gates.failures.length
@@ -1015,11 +1076,11 @@ export function createEngine(deps: EngineDeps) {
 
           if (decision.gates.failures.length === 0 && !decision.notJudged) {
             // BLIND PAIRWISE JUDGE, both orders at once.
-            const baseView = anonymousScene(loc.scene, clipsById);
-            const candView = anonymousScene(findScene(cand.segments, loc.scene.id)!.scene, clipsById);
+            const baseView = linked ? linkedRevisionView(best, revisionSceneIds, clipsById) : anonymousScene(loc.scene, clipsById);
+            const candView = linked ? linkedRevisionView(cand, revisionSceneIds, clipsById) : anonymousScene(findScene(cand.segments, loc.scene.id)!.scene, clipsById);
             const [ab, ba] = await Promise.all([
-              call('judge', P.judgePrompt({ format: project.format, a: baseView, b: candView }), ctxFor('judge A=baseline')),
-              call('judge', P.judgePrompt({ format: project.format, a: candView, b: baseView }), ctxFor('judge A=candidate')),
+              call('judge', P.judgePrompt({ format: project.format, a: baseView, b: candView, level: linked ? 'linked' : 'scene' }), ctxFor('judge A=baseline')),
+              call('judge', P.judgePrompt({ format: project.format, a: candView, b: baseView, level: linked ? 'linked' : 'scene' }), ctxFor('judge A=candidate')),
             ]);
             const failed = [ab, ba].find(x => !x.ok) as Extract<CompleteResult, { ok: false }> | undefined;
             if (failed) {
@@ -1034,7 +1095,7 @@ export function createEngine(deps: EngineDeps) {
               const wAB = (A.json as any)?.winner;
               const wBA = (B.json as any)?.winner;
               const verdict = judgeConsensus(wAB, wBA, target.severity);
-              decision.judge = { provider: A.provider, model: A.model, promptVersion: P.PROMPT_VERSIONS.judge, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
+              decision.judge = { provider: A.provider, model: A.model, promptVersion: linked ? P.PROMPT_VERSIONS.judgeLinked : P.PROMPT_VERSIONS.judge, winnerAB: wAB, winnerBA: wBA, consensus: verdict.consensus, reasons: [...((A.json as any)?.reasons || []), ...((B.json as any)?.reasons || [])].map(String) };
               decision.loopAccepted = verdict.win;
               emit(run, { type: 'judge', message: `Judge: AB=${wAB}, BA=${wBA} -> ${verdict.consensus}.`, data: decision.judge });
             }
@@ -1042,7 +1103,7 @@ export function createEngine(deps: EngineDeps) {
           cand.decision = decision;
           deps.store.saveVersion(cand);
           run.candidateIds.push(cand.id);
-          if (!run.refinedSceneIds.includes(loc.scene.id)) run.refinedSceneIds.push(loc.scene.id);
+          for (const id of revisionSceneIds) if (!run.refinedSceneIds.includes(id)) run.refinedSceneIds.push(id);
           emit(run, { type: 'decision', message: decision.loopAccepted ? `Candidate ${cand.id} accepted by the loop.` : `Candidate ${cand.id} not accepted${decision.notJudged ? ` (${decision.notJudged})` : ''}.`, data: { candidateId: cand.id, loopAccepted: decision.loopAccepted } });
           if (decision.loopAccepted) { best = cand; run.bestVersionId = cand.id; run.staleCount = 0; } else run.staleCount++;
           run.currentRound = round + 1;

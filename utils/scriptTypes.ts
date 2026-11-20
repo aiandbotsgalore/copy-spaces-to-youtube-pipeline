@@ -116,10 +116,14 @@ export interface ScriptVersion {
 export type FormatCriterion = 'curiosity' | 'momentum' | 'clarity' | 'pacing' | 'authenticity'
   | 'clip_choice' | 'resonance' | 'payoff' | 'fairness';
 
+/** Exact current narration checkpoint; saved targets always contain the full block text. */
+export interface NarrationTarget { sceneId: string; blockId: string; sourceText: string }
+
 export interface Critique {
   id: string; versionId: string; level: 'scene' | 'segment' | 'episode'; targetId: string;
   issue: string; consequence: string; criterion: FormatCriterion;
   severity: 'blocker' | 'major' | 'minor'; proposedFix: string;
+  linkedTargets?: NarrationTarget[];                               // one atomic narration repair across scenes
   structuralKind?: 'order' | 'arc' | 'payoff';                       // episode pass only
   proposedOrder?: { segmentId: string; sceneIds: string[] }[] | null; // episode pass only
 }
@@ -137,6 +141,7 @@ export interface GateResult {
 export interface RefinementDecision {
   candidateId: string; baselineId: string; round: number; promptVersion: string;
   gates: GateResult;
+  linkedIssue?: { critiqueId: string; issue: string; targets: NarrationTarget[] };
   judge?: { provider: string; model: string; winnerAB: JudgeWinner; winnerBA: JudgeWinner;
             consensus: JudgeConsensus; reasons: string[]; promptVersion?: string };
   notJudged?: string;

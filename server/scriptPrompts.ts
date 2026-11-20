@@ -16,9 +16,12 @@ export const PROMPT_VERSIONS = {
   clipTags: 'clip-tags.v1',
   outline: 'outline.v3',
   draft: 'draft.v3',
-  critique: 'critique.v3',
-  critiqueSpoken: 'critique-spoken.v2',
+  critique: 'critique.v4',
+  critiqueSpoken: 'critique-spoken.v3',
   revise: 'revise.v3',
+  reviseLinked: 'revise-linked.v1',
+  judgeLinked: 'judge-linked.v1',
+  factcheckLinked: 'factcheck-linked.v1',
   judge: 'judge.v2',
   episodeCritique: 'episode-critique.v1',
   polish: 'polish.v1',
@@ -128,11 +131,15 @@ export const PATCH_BLOCK_SCHEMA = obj({
 });
 export const DRAFT_SCHEMA = obj({ scenes: arr(obj({ sceneId: str, blocks: arr(PATCH_BLOCK_SCHEMA) })) });
 export const REVISE_SCHEMA = obj({ blocks: arr(PATCH_BLOCK_SCHEMA), summary: str });
+export const LINKED_REVISE_SCHEMA = obj({ baselineId: str, summary: str, edits: arr(obj({
+  sceneId: str, blockId: str, sourceText: str, text: str, claims: arr(quoteRef),
+})) });
 export const CRITIQUE_SCHEMA = obj({
   critiques: arr(obj({
     targetId: str, issue: str, consequence: str,
     criterion: en(['curiosity', 'momentum', 'clarity', 'pacing', 'authenticity', 'clip_choice', 'resonance', 'payoff', 'fairness']),
     severity: en(['blocker', 'major', 'minor']), proposedFix: str,
+    linkedTargets: { type: ['array', 'null'], items: obj({ sceneId: str, blockId: str, sourceText: str }) },
   })),
 });
 export const EPISODE_CRITIQUE_SCHEMA = obj({
@@ -374,11 +381,12 @@ ${args.memory || '(none)'}`,
   };
 }
 
-export function critiquePrompt(args: { format: EpisodeFormat | null; segment: string; neighbours: string; localNotes: string; memory: string; spoken?: boolean; voice?: string }): Prompt {
+export function critiquePrompt(args: { format: EpisodeFormat | null; segment: string; neighbours: string; localNotes: string; memory: string; spoken?: boolean; voice?: string; storyContext?: string }): Prompt {
   return {
     version: args.spoken ? PROMPT_VERSIONS.critiqueSpoken : PROMPT_VERSIONS.critique, schemaName: 'critique', schema: CRITIQUE_SCHEMA, maxTokens: 1500,
     system: `${BASE_RULES}
 Task: critique the scenes of one script segment${args.spoken ? ` as SPOKEN audio: rhythm, breath points, repeated transitions, rushed or dragging lines, and the handoffs between narration and clips. Each block carries its length in seconds; durationSource "vox" is measured from the real narration take, "estimated" is a word-count estimate, so do not rest a pacing critique on an estimated length alone. wordsPerSec is given for measured takes. Critique how it will sound, not the facts` : ''}. At most 3 critiques per scene. Each names the scene id in targetId, the issue, its consequence for the listener, the rubric criterion, a severity (blocker: factual or fairness problem or broken flow; major: clearly weakens the scene; minor: polish) and a concrete fix. Return an empty list if nothing is worth changing. Locked blocks are Logan's and are not critiqued.
+${args.spoken || !args.storyContext ? 'Set linkedTargets to null.' : 'For ONE story issue that requires coordinated narration changes (such as early setup and later payoff), supply linkedTargets: 2–8 distinct editable narration blocks spanning at least two eligible scenes, including targetId in this segment. Copy sceneId, blockId and an exact nonempty sourceText excerpt from the current narration. Declare every block that must change together; otherwise use null for the existing single-scene revision. Other scenes in the story context are eligible only where listed. Preserve the order of revelations, contradictions, attribution, quote reads, tape and cues. Do not propose scene moves here.'}
 ${formatBrief(args.format)}`,
     user: `Local checks already run (do not repeat them, but weigh them):
 ${args.localNotes || '(none)'}
@@ -393,7 +401,7 @@ Neighbouring lines (context only):
 ${args.neighbours || '(none)'}
 
 Segment (JSON):
-${dataBlock(args.segment)}`,
+${dataBlock(args.segment)}${args.storyContext ? `\n\nEligible story context in episode order (exact narration previews, possibly shortened; not evidence):\n${dataBlock(args.storyContext)}` : ''}`,
   };
 }
 
@@ -429,12 +437,33 @@ ${dataBlock(args.evidence)}`,
   };
 }
 
-export function judgePrompt(args: { format: EpisodeFormat | null; a: unknown; b: unknown; level?: 'scene' | 'episode' }): Prompt {
+export function linkedRevisePrompt(args: {
+  format: EpisodeFormat | null; baselineId: string; critique: string; targets: string; context: string;
+  evidence: string; styleRules: string; styleCard: string; recordings: string;
+}): Prompt {
+  return {
+    version: PROMPT_VERSIONS.reviseLinked, schemaName: 'linked_narration_revision', schema: LINKED_REVISE_SCHEMA, maxTokens: 4000,
+    system: `${BASE_RULES}
+Task: fix ONE story issue with one complete linked narration revision. Return baselineId exactly and one edit for EVERY required target, each with its exact sceneId, blockId and full sourceText. Change each target's text meaningfully; supply its complete claims using the existing utteranceIds/verbatim evidence contract. No other block may change. Tape, quote reads, cues, headings, locked narration and scene/block order are immutable. Do not move a later revelation into an early setup. Keep contradictory context and exact attribution. The context contains fully reconstructed scenes and unchanged neighbour checkpoints, not evidence for new claims.
+${formatBrief(args.format)}
+${recordingsNote(args.recordings)}`,
+    user: `Baseline version: ${args.baselineId}
+Issue (JSON):\n${dataBlock(args.critique)}
+Required targets (full exact source text, JSON):\n${dataBlock(args.targets)}
+Story context (JSON):\n${dataBlock(args.context)}
+Style rules:\n${args.styleRules || '(none yet)'}
+Style card:\n${args.styleCard || '(none yet)'}
+Evidence (claims cite utteranceIds and copy verbatim words):\n${dataBlock(args.evidence)}`,
+  };
+}
+
+export function judgePrompt(args: { format: EpisodeFormat | null; a: unknown; b: unknown; level?: 'scene' | 'episode' | 'linked' }): Prompt {
   const crit = args.format ? FORMAT_CONVENTIONS[args.format].criteria.join(', ') : 'curiosity, momentum, clarity, pacing';
   return {
-    version: PROMPT_VERSIONS.judge, schemaName: 'pairwise_judgement', schema: JUDGE_SCHEMA, maxTokens: 600,
+    version: args.level === 'linked' ? PROMPT_VERSIONS.judgeLinked : PROMPT_VERSIONS.judge, schemaName: 'pairwise_judgement', schema: JUDGE_SCHEMA, maxTokens: 600,
     system: `${BASE_RULES}
-Task: you are a blind judge. Compare two versions of the same ${args.level === 'episode' ? 'episode structure' : 'script scene'}, A and B, for a listener. Judge on: ${crit}, and faithfulness to the quoted recordings. Do not prefer a version for being longer or more polished. Answer "tie" when neither is clearly better. Give short reasons.
+Task: you are a blind judge. Compare two versions of the same ${args.level === 'episode' ? 'episode structure' : args.level === 'linked' ? 'linked script scenes in story context' : 'script scene'}, A and B, for a listener. Judge on: ${crit}, and faithfulness to the quoted recordings. Do not prefer a version for being longer or more polished. Answer "tie" when neither is clearly better. Give short reasons.
+${args.level === 'linked' ? 'Evaluate the complete group together: setup and payoff, order of revelations, duplicated reveals, contradictions and continuity with unchanged neighbour scenes and the episode outline. A local improvement cannot compensate for a regression in another linked scene. Judge the reconstructed scenes, not isolated edits.' : ''}
 ${formatBrief(args.format)}`,
     user: `Version A (JSON):
 ${dataBlock(JSON.stringify(args.a))}
@@ -444,13 +473,13 @@ ${dataBlock(JSON.stringify(args.b))}`,
   };
 }
 
-export function factcheckPrompt(args: { claims: string }): Prompt {
+export function factcheckPrompt(args: { claims: string; context?: unknown }): Prompt {
   return {
-    version: PROMPT_VERSIONS.factcheck, schemaName: 'factcheck', schema: FACTCHECK_SCHEMA, maxTokens: 600,
+    version: args.context ? PROMPT_VERSIONS.factcheckLinked : PROMPT_VERSIONS.factcheck, schemaName: 'factcheck', schema: FACTCHECK_SCHEMA, maxTokens: args.context ? 1800 : 600,
     system: `${BASE_RULES}
-Task: fact-check narration against the supplied evidence pairing. For each claim index, label it supported (the evidence supports the narration), overstated (the narration goes beyond it), misattributed (the speaker or source is wrong), unsupported (the evidence does not establish it), or uncertain (the supplied evidence is incomplete or ambiguous). Never infer identity from a raw diarization label or an unconfirmed display name. Give a concise rationale.`,
+Task: fact-check narration against the supplied evidence pairing. For each claim index, label it supported (the evidence supports the narration), overstated (the narration goes beyond it), misattributed (the speaker or source is wrong), unsupported (the evidence does not establish it), or uncertain (the supplied evidence is incomplete or ambiguous). Never infer identity from a raw diarization label or an unconfirmed display name. Give a concise rationale.${args.context ? ' Check every index exactly once, including narration with no evidence excerpts. Empty evidence is supported only for narration with no factual assertion requiring evidence; otherwise label unsupported or uncertain. Assess the combined linked narration and supplied source/time provenance in story context for conflicting attribution, chronology and interpretations. Context is not evidence.' : ''}`,
     user: `Claims (JSON: index, narration, excerpts):
-${dataBlock(args.claims)}`,
+${dataBlock(args.claims)}${args.context ? `\n\nCombined story context (JSON):\n${dataBlock(JSON.stringify(args.context))}` : ''}`,
   };
 }
 

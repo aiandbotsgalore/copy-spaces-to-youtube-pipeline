@@ -14,7 +14,7 @@ import {
   loadRoleChoice, PROJECT_STORAGE_KEY, ROLE_SPECS, saveRoleChoice, scriptApi, ScriptApiError, streamRun,
   type ProjectResponse, type RoleChoice, type RunResponse, type StatusResponse,
 } from '../utils/scriptClient';
-import { blockSeconds, estimateRuntime } from '../utils/scriptGates';
+import { blockSeconds, estimateRuntime, findScene } from '../utils/scriptGates';
 import { compileScript, buildManifest } from '../utils/scriptCompile';
 import { renderCompiled, RenderError } from '../utils/scriptRender';
 import { getSharedAudioContext } from '../utils/sequencePlayer';
@@ -2840,6 +2840,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                         <div className={cx('font-medium', c.severity === 'blocker' ? 'text-rose-300' : c.severity === 'major' ? 'text-amber-300' : 'text-slate-300')}>{c.severity} · {c.criterion}</div>
                         <div className="text-slate-300">{c.issue}</div>
                         <div className="text-slate-400">Fix: {c.proposedFix}</div>
+                        {c.linkedTargets?.length > 0 && <div className="text-slate-400">Linked narration: {[...new Set<string>(c.linkedTargets.map((t: any) => t.sceneId))].map(id => findScene(data?.head?.segments || [], id)?.scene.title || id).join(' · ')}</div>}
                       </div>
                     ))}
                   </div>
@@ -2857,6 +2858,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                             {d?.loopAccepted && <span className="text-emerald-300">· loop accepted</span>}
                             {d?.loganDecision && <span className="text-indigo-300">· you: {d.loganDecision}</span>}
                           </div>
+                          {d?.linkedIssue && <div className="text-slate-300">Linked revision · {d.linkedIssue.issue} · {new Set(d.linkedIssue.targets.map(t => t.sceneId)).size} scenes, accepted or rejected together</div>}
                           <DiffList diff={c.diff} />
                           {!d?.loganDecision && (
                             <div className="flex gap-1.5 pt-1">

@@ -981,6 +981,16 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const decision = body?.decision === 'accept' ? 'accept' : body?.decision === 'reject' ? 'reject' : null;
       if (!decision) throw new StepError('BAD_REQUEST', 'decision must be accept or reject.');
       if (decision === 'accept') {
+        if (cand.decision?.linkedIssue) {
+          // A linked proposal may build on earlier loop wins, but must not overwrite a divergent edit.
+          const ancestors = new Set<string>();
+          let ancestor: ScriptVersion | null = cand;
+          while (ancestor && !ancestors.has(ancestor.id)) {
+            ancestors.add(ancestor.id);
+            ancestor = ancestor.parentId ? store.getVersion(p.id, ancestor.parentId) : null;
+          }
+          if (!p.headVersionId || !ancestors.has(p.headVersionId)) throw new StepError('CONFLICT', 'The current script changed outside this linked revision. Refine the current version before accepting the group.');
+        }
         const currentHead = p.headVersionId ? store.getVersion(p.id, p.headVersionId) : null;
         const gates = codeGates(cand.segments, { ...engine.gateContext(p, currentHead?.segments || [], cand.segments), changedBlockIds: undefined });
         if (!gates.ok) {

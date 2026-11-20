@@ -19,6 +19,7 @@ export function schemaKind(schema: any): string {
     segments: 'outline',
     scenes: 'draft',
     'blocks,summary': 'revise',
+    'baselineId,edits,summary': 'reviseLinked',
     critiques: 'critique',
     'reasons,winner': 'judge',
     claims: 'factcheck',

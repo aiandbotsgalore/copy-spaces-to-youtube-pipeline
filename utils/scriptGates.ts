@@ -570,10 +570,12 @@ export function anonymousScene(scene: Scene, clipsById: Record<string, StudioCli
     purpose: scene.purpose,
     blocks: scene.blocks.map(b => {
       switch (b.kind) {
-        case 'narration': return { kind: 'narration', text: b.text };
+        case 'narration': return { kind: 'narration', text: b.text, ...(b.type === 'QUOTE_READ' || b.readEvidence ? { type: 'QUOTE_READ', speaker: b.quoteSpeaker || '' } : {}) };
         case 'clip': return { kind: 'clip', speaker: clipsById[b.clipId]?.speaker || '', words: b.keptText, seconds: Math.round((b.outSec - b.inSec) * 10) / 10 };
         case 'pause': return { kind: 'pause', sec: b.sec };
         case 'music': return { kind: 'music_marker', cue: b.cue, note: b.note };
+        case 'cue': return { kind: 'cue', text: b.text, note: b.note, sec: b.sec, cueType: b.cueType };
+        case 'heading': return { kind: 'heading', text: b.text };
       }
     }),
   };

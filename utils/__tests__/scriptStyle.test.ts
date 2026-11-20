@@ -140,7 +140,7 @@ describe('the card reaches every writing role', () => {
     const P = await import('../../server/scriptPrompts');
     const c = P.critiquePrompt({ format: 'narrative_doc', segment: '{}', neighbours: '', localNotes: '', memory: '- Name the speaker.', voice: 'Live: quick.' });
     expect(c.user).toContain("Logan's voice (narration that does not sound like this is an authenticity problem):\nLive: quick.");
-    expect(c.version).toBe('critique.v3');
+    expect(c.version).toBe('critique.v4');
     const r = P.revisePrompt({ format: null, scene: '{}', critique: '{}', neighbours: '', evidence: '', clips: '[]', styleRules: '- r', lockedIds: [], styleCard: 'CARD', recordings: '' });
     expect(r.user).toContain('Style card:\nCARD');
     expect(r.system).not.toContain('several recordings');
