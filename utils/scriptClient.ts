@@ -6,6 +6,7 @@ import type { RenderManifest } from './scriptCompile';
 import type { HandoffKind, HandoffRecord, ImportSummary } from '../server/scriptHandoff';
 import type { AqLink, AudioBoundary, DistillStatus, EpisodeAnalysis, EpisodeFormat, EvidenceBoard, GateResult, LibraryQuote, RoleMap, RunEvent, ScriptProject, ScriptRun, ScriptVersion, Segment, StyleCard, StyleRule } from './scriptTypes';
 import type { ViewEntry } from './quoteView';
+import type { IntroLock, ReviewLoopConfig, ReviewRun } from '../server/scriptReviewLoop';
 
 export const ROLE_STORAGE_KEY = 'spacepipe_script_roles_v1';
 export const PROJECT_STORAGE_KEY = 'spacepipe_script_project_v1';
@@ -27,6 +28,7 @@ async function call<T>(method: 'GET' | 'POST', route: string, body?: unknown): P
   return j as T;
 }
 
+export interface ReviewRunSummary { id: string; status: ReviewRun['status']; stopReason?: string; message?: string; createdAt: number; updatedAt: number; rounds: number; calls: number; spentUsd: number; config: ReviewLoopConfig; result?: ReviewRun['result']; active: boolean }
 export interface ProviderHealth { ok: boolean; detail: string; provider: string; model: string; binPath?: string; code?: string }
 export interface StatusResponse { providers: Record<string, ProviderHealth>; storeDir: string; interruptedAtStart: number; promptVersions: Record<string, string>; defaults: { subscription: RoleMap; fallback: RoleMap; inception?: RoleMap; cohere?: RoleMap } }
 export interface SpeakerStats { totalSec: number; unnamedShare: number; topUnnamed: { speaker: string; sec: number }[]; speakers: { speaker: string; sec: number }[] }
@@ -162,6 +164,14 @@ export const scriptApi = {
   manuscript: (projectId: string) => call<{ working: ManuscriptDesignation | null; recording: ManuscriptDesignation | null; headVersionId: string | null; files: { working: string | null; recording: string | null } }>('GET', `/manuscript?projectId=${encodeURIComponent(projectId)}`),
   importManuscript: (args: { projectId?: string; file: string; lockFile?: string }) => call<{ project: ScriptProject; version: { id: string }; lock: { paragraphs: number; matched: number; newlyLocked: number; missing: string[] } | null; manuscriptFile: string }>('POST', '/manuscript/import', args),
   designateManuscript: (args: { projectId: string; role: 'working' | 'recording'; versionId?: string; confirm?: boolean; clear?: boolean }) => call<{ project: ScriptProject; manuscriptFile?: string }>('POST', '/manuscript/designate', args),
+  review: (projectId: string) => call<{ threshold: number; defaults: ReviewLoopConfig; lock: (Omit<IntroLock, 'text'> & { preview: string }) | null; runs: ReviewRunSummary[] }>('GET', `/review?projectId=${encodeURIComponent(projectId)}`),
+  reviewBoundaries: (file: string) => call<{ file: string; candidates: { line: string; lineNumber: number; introChars: number }[] }>('GET', `/review/boundaries?file=${encodeURIComponent(file)}`),
+  reviewSetIntro: (args: { projectId: string; file: string; bodyStartLine: string; referenceFile?: string }) => call<{ lock: Omit<IntroLock, 'text'> & { preview: string } }>('POST', '/review/intro', args),
+  reviewStart: (args: { projectId: string; file?: string; fromRunId?: string; maxUsd?: number; maxCalls?: number; maxRounds?: number }) => call<{ run: ReviewRun }>('POST', '/review/start', args),
+  reviewRun: (projectId: string, runId: string) => call<{ run: ReviewRun; active: boolean }>('GET', `/review/run?projectId=${encodeURIComponent(projectId)}&runId=${encodeURIComponent(runId)}`),
+  reviewTextUrl: (projectId: string, runId: string, hash?: string) => `/api/script/review/text?projectId=${encodeURIComponent(projectId)}&runId=${encodeURIComponent(runId)}${hash ? `&hash=${encodeURIComponent(hash)}` : ''}`,
+  reviewCancel: (projectId: string, runId: string) => call<{ cancelled: boolean }>('POST', '/review/cancel', { projectId, runId }),
+  reviewResume: (args: { projectId: string; runId: string; maxUsd?: number; maxCalls?: number; maxRounds?: number }) => call<{ run: ReviewRun }>('POST', '/review/resume', args),
   paperTrailStatus: () => call<{ bridge: { configured: boolean; running: boolean; script: string; lastError?: string; requests: number; failures: number }; manuscript: string | null }>('GET', '/papertrail/status'),
   board: (projectId: string) => call<{ board: EvidenceBoard | null }>('GET', `/board?projectId=${encodeURIComponent(projectId)}`),
   pinSource: (projectId: string, docId: string, excerpt: string, label?: string) => call<{ board: EvidenceBoard }>('POST', '/board/source', { projectId, docId, excerpt, label }),

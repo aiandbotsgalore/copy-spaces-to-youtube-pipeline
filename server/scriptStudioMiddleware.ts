@@ -40,6 +40,14 @@
  *   GET  /manuscript?projectId   the designated working master and recording manuscript, with locked-passage counts
  *   POST /manuscript/import      import a manuscript file from the project folder as the working master, locking verbatim passages
  *   POST /manuscript/designate   set the working master, or (confirm: true) the fully approved recording manuscript
+ *   GET  /review?projectId       the review loop: intro lock, runs, defaults (finish line: both reviewers 90+ on the same revised draft)
+ *   GET  /review/boundaries?projectId&file   lines where the body could start, to lock the intro explicitly
+ *   POST /review/intro           lock the intro: everything before one exact line of a manuscript file
+ *   POST /review/start           start a review loop from a manuscript file (or an earlier run's result) -> 202 { run }
+ *   GET  /review/run?projectId&runId     a review run with its rounds, reviews, revisions and result
+ *   GET  /review/text?projectId&runId&hash   a draft of a run as text (default: its result, else its current draft)
+ *   POST /review/cancel          stop a review run (its strongest draft is kept)
+ *   POST /review/resume          continue an unfinished run, optionally with a higher limit
  *   GET  /paper-trail?projectId  Logan's curated quotes and contradiction pairs that touch the project's recordings
  *   GET  /library?projectId      every AQ quote (live corpus record, library link, WAV); imports the corpus into the library first
  *   POST /library/speaker        confirm (or clear) who is speaking in a quote, once for every project
@@ -69,7 +77,9 @@ import { findExcerpt } from '../utils/directorValidate';
 import { changedBlockIds, codeGates, diffVersions, estimateRuntime } from '../utils/scriptGates';
 import { isLoopback } from './directorMiddleware';
 import { catalogClipsForRelease, clipFromUtterances, legacyRemovedCatalogClips, mergeCatalogClipsInto, removedClipRecord, resolveEpisodeAudio, isSafeTag, listEpisodes, readTranscript, speakerStats } from './scriptData';
-import { createEngine, StepError, type Engine } from './scriptEngine';
+import { createEngine, StepError, withCharter, type Engine } from './scriptEngine';
+import { boundaryCandidates, createReviewLoop, DEFAULT_CONFIG as REVIEW_DEFAULTS, PASS_SCORE, type SourceHit } from './scriptReviewLoop';
+import { rerankWithCohere } from './transcriptSearchService';
 import { createProviderRegistry, DEFAULT_ROLE_MAP, FALLBACK_ROLE_MAP, COHERE_ROLE_MAP, INCEPTION_ROLE_MAP, parseRoleSpec, roleMapNeedsBudget, verifyCrossFamily, type ProcessRunner, type ResolvedBinary } from './scriptProviders';
 import { createScriptStore, isSafeId, newId, StoreError, type ScriptStore } from './scriptStore';
 import { addExplicitRule, distillRules, dueForDistill, DISTILL_EVERY, recordDecision, removeRule, saveApprovedPassage } from './scriptMemory';
@@ -245,6 +255,56 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     return v;
   };
   const touch = (p: ScriptProject) => { p.updatedAt = now(); store.saveProject(p); };
+
+  /* Review loop (text only): research for material and source checks, the brief, and saving results ---- */
+
+  async function researchSearch(query: string, limit: number): Promise<{ ok: true; items: SourceHit[] } | { ok: false; reason: string }> {
+    const r = await bridge.request('hybrid_search', { query, limit: Math.min(50, limit), max_chars: 3000 });
+    if (r.ok) {
+      return { ok: true, items: ((r.result as any)?.items || []).map((i: any) => ({ ref: String(i.passage_id || i.source_id || ''), text: String(i.text || ''), speaker: i.speaker ? String(i.speaker) : undefined, recording: i.recording_id ? String(i.recording_id) : undefined })) };
+    }
+    const kw = searchRecordings(opts.root, query, { limit: Math.min(10, limit) });
+    const items = kw.hits.flatMap(h => h.samples.map(x => ({ ref: `${h.releaseTag}@${Math.round(x.start)}s`, text: x.text, speaker: x.speaker, recording: h.releaseTag })));
+    return items.length ? { ok: true, items } : { ok: false, reason: `PaperTrail bridge unavailable (${r.reason}) and keyword search found nothing` };
+  }
+  async function researchRerank(query: string, hits: SourceHit[], topN: number, model: string): Promise<{ ok: true; items: SourceHit[] } | { ok: false; reason: string }> {
+    const key = String(opts.getEnv().COHERE_API_KEY || '').trim();
+    if (!key) return { ok: false, reason: 'no COHERE_API_KEY' };
+    const cands = hits.map((h, i) => ({ text: h.text, ri: i })) as any[];
+    const out = await rerankWithCohere(query, cands, { apiKey: key, model: model as any, topN, fetchImpl: opts.fetchImpl });
+    if (!out.length || (out[0] as any).matchType !== 'rerank') return { ok: false, reason: 'Cohere Rerank did not answer' };
+    return { ok: true, items: out.map((o: any) => hits[o.ri]).filter(Boolean) };
+  }
+  function reviewSupporting(p: ScriptProject): string {
+    const board = store.getBoard(p.id);
+    const parts: string[] = [];
+    if (board?.claims?.length) parts.push(`Claims on the Evidence Board:\n${JSON.stringify(board.claims).slice(0, 6000)}`);
+    if (board?.sources?.length) parts.push(`Pinned document sources:\n${board.sources.map(x => `[${x.id}] ${x.label}: ${x.excerpt}`).join('\n').slice(0, 8000)}`);
+    const docs = engine.backgroundDocs(p);
+    if (docs) parts.push(`Background documents:\n${docs}`);
+    return parts.join('\n\n');
+  }
+  const reviewLoop = createReviewLoop({
+    base: store.base,
+    registry,
+    research: { search: researchSearch, rerank: researchRerank },
+    context: projectId => {
+      const p = store.getProject(projectId);
+      const memory = store.getMemory();
+      return { brief: withCharter(p, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), supporting: p ? reviewSupporting(p) : '' };
+    },
+    // The result is saved as a version for Logan to read and edit; it does not move the head or the working master.
+    saveResult: (projectId, text, label) => {
+      const head = store.getProject(projectId)?.headVersionId ?? null;
+      const { p, v } = importScriptText({ projectId, scriptText: text, label });
+      p.headVersionId = head;
+      touch(p);
+      return v.id;
+    },
+    appendLog: (runId, e) => store.appendLog(runId, e),
+    now,
+  });
+  try { reviewLoop.markInterrupted(store.listProjects().map(p => p.id)); } catch { /* nothing to mark */ }
   const allPairs = () => collectPairs(store.listProjects().flatMap(pr => store.listVersions(pr.id)));
   const interactiveCtx = (body: any, label: string) => {
     const { roleMap, maxUsd } = resolveRoleMap(body);
@@ -1276,6 +1336,80 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
       const written = writeManuscriptFile(p, role);
       if (role === 'working' && !hadFile) bridge.restart();
       return send(res, 200, { ok: true, project: p, manuscriptFile: written });
+    }
+
+    /* Review loop ------------------------------------------------------------------------------- */
+    if (route === '/review' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const lock = reviewLoop.getIntroLock(p.id);
+      const runs = reviewLoop.listRuns(p.id).map(r => ({ id: r.id, status: r.status, stopReason: r.stopReason, message: r.message, createdAt: r.createdAt, updatedAt: r.updatedAt, rounds: r.rounds.length, calls: r.calls, spentUsd: r.spentUsd, config: r.config, result: r.result, active: reviewLoop.isActive(r.id) }));
+      return send(res, 200, { ok: true, threshold: PASS_SCORE, defaults: REVIEW_DEFAULTS, lock: lock ? { ...lock, text: undefined, preview: lock.text.slice(-400) } : null, runs });
+    }
+    if (route === '/review/boundaries' && method === 'GET') {
+      const file = rootTextFile(q('file'));
+      return send(res, 200, { ok: true, file: file.name, candidates: boundaryCandidates(file.text) });
+    }
+    if (route === '/review/intro' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      const file = rootTextFile(body?.file);
+      const ref = body?.referenceFile ? rootTextFile(body.referenceFile) : undefined;
+      try {
+        const lock = reviewLoop.setIntroLock(p.id, file.text, String(body?.bodyStartLine || ''), file.name, ref ? { file: ref.name, text: ref.text } : undefined);
+        return send(res, 200, { ok: true, lock: { ...lock, text: undefined, preview: lock.text.slice(-400) } });
+      } catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+    }
+    if (route === '/review/start' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      let text: string;
+      let file: string | undefined;
+      if (body?.fromRunId) {
+        const prev = reviewLoop.getRun(p.id, String(body.fromRunId));
+        if (!prev?.result?.hash) throw new StepError('BAD_REQUEST', 'That run has no saved result to start from.');
+        text = reviewLoop.draftText(prev, prev.result.hash);
+      } else {
+        const f = rootTextFile(body?.file || reviewLoop.getIntroLock(p.id)?.sourceFile);
+        text = f.text;
+        file = f.name;
+      }
+      const limits = { maxUsd: body?.maxUsd, maxCalls: body?.maxCalls, maxRounds: body?.maxRounds };
+      let run;
+      try { run = reviewLoop.createRun(p.id, text, { ...limits, file, fromRunId: body?.fromRunId ? String(body.fromRunId) : undefined }); }
+      catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+      reviewLoop.start(run);
+      return send(res, 202, { ok: true, run });
+    }
+    if (route === '/review/run' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const run = reviewLoop.getRun(p.id, String(q('runId') || ''));
+      if (!run) throw new StepError('NOT_FOUND', 'Review run not found.');
+      return send(res, 200, { ok: true, run, active: reviewLoop.isActive(run.id) });
+    }
+    if (route === '/review/text' && method === 'GET') {
+      const p = getProject(q('projectId'));
+      const run = reviewLoop.getRun(p.id, String(q('runId') || ''));
+      if (!run) throw new StepError('NOT_FOUND', 'Review run not found.');
+      const hash = String(q('hash') || run.result?.hash || run.currentHash);
+      let text: string;
+      try { text = reviewLoop.draftText(run, hash); } catch (e: any) { throw new StepError('NOT_FOUND', e?.message || String(e)); }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      return res.end(text);
+    }
+    if (route === '/review/cancel' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      return send(res, 200, { ok: true, cancelled: reviewLoop.cancel(p.id, String(body?.runId || '')) });
+    }
+    if (route === '/review/resume' && method === 'POST') {
+      const body = await readBody(req);
+      const p = getProject(body?.projectId);
+      let run;
+      try { run = reviewLoop.resume(p.id, String(body?.runId || ''), { maxUsd: body?.maxUsd, maxCalls: body?.maxCalls, maxRounds: body?.maxRounds }); }
+      catch (e: any) { throw new StepError('BAD_REQUEST', e?.message || String(e)); }
+      reviewLoop.start(run);
+      return send(res, 202, { ok: true, run });
     }
 
     if (route === '/related' && method === 'GET') {

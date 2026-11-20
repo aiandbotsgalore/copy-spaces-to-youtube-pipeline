@@ -426,14 +426,21 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
 
 export const AGY_DEFAULT_MODEL = 'gemini-3.8-flash-high';
 
-export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL): string[] {
+/**
+ * Prompts longer than this go to a prompt file instead of the command line: Windows caps a command line at
+ * 32,767 characters and agy does not read the prompt from stdin. agy reads the file with its own file viewer
+ * (no permission bypass needed); each call gets its own folder so parallel calls never share a prompt.
+ */
+export const AGY_INLINE_PROMPT_MAX = 20_000;
+export const AGY_FILE_INSTRUCTION = 'Your complete instructions and all the material are in the file prompt.md in the current folder. Read the whole file, every part of it to the end, and do exactly what it asks. Do not create, change or delete any file.';
+
+export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL, prompt = ''): string[] {
   return [
-    '-p', '',
+    '-p', prompt,
     '--output-format', 'json',
     '--json-schema', schemaPath,
     '--model', model,
     '--disable-slash-commands',
-    '--dangerously-skip-permissions',
   ];
 }
 
@@ -467,17 +474,13 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
       ensureEmptySandbox(dirs.sandbox);
       const schemaPath = writeIo(dirs.io, 'schema.json', JSON.stringify(req.schema));
       const fullPrompt = `${req.system}\n\n${req.user}`;
+      const viaFile = fullPrompt.length > AGY_INLINE_PROMPT_MAX;
+      const promptDir = viaFile ? path.join(dirs.io, `agy-${randomUUID()}`) : null;
+      if (promptDir) { fs.mkdirSync(promptDir, { recursive: true }); fs.writeFileSync(path.join(promptDir, 'prompt.md'), fullPrompt, 'utf8'); }
       try {
-        const args = [
-          '-p', fullPrompt,
-          '--output-format', 'json',
-          '--json-schema', schemaPath,
-          '--model', model,
-          '--disable-slash-commands',
-          '--dangerously-skip-permissions',
-        ];
+        const args = agyArgs(schemaPath, model, viaFile ? AGY_FILE_INSTRUCTION : fullPrompt);
         const r = await deps.runner(bin.file, [...bin.prefixArgs, ...args], {
-          cwd: dirs.sandbox,
+          cwd: promptDir ?? dirs.sandbox,
           env: subscriptionEnv(deps.env()),
           timeoutMs: req.timeoutMs,
           signal: req.signal,
@@ -507,6 +510,7 @@ export function createAgyCliAdapter(model = AGY_DEFAULT_MODEL, deps: CliAdapterD
         return fail(c.code, c.message, raw, started);
       } finally {
         rmQuiet(schemaPath);
+        if (promptDir) { try { fs.rmSync(promptDir, { recursive: true, force: true }); } catch { /* ignore */ } }
       }
     },
   };
