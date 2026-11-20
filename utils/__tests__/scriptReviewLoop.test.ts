@@ -185,6 +185,30 @@ describe('independent reviews', () => {
     expect(loop.getRun(PID, run.id)!.status).toBe('complete');
   });
 
+  it('retries a rejected review once, telling only that reviewer what was wrong', async () => {
+    let chatgptCalls = 0;
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') {
+        if (req.user.includes('REV1')) return review(95);
+        if (spec === 'codex_cli') { chatgptCalls++; if (chatgptCalls === 1) return review(70, { blocker: 'words that are not in the script at all anywhere' }); }
+        return review(80);
+      }
+      if (req.schemaName === 'body_revision') return { edits: [edit('sets things up for the listener today.', 'sets things up for the listener today. REV1')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    const run = startRun(loop);
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.status).toBe('complete');
+    const first = seen.filter(x => x.schemaName === 'script_review').slice(0, 3);
+    const retry = first.find(x => x.user.includes('YOUR PREVIOUS ANSWER COULD NOT BE ACCEPTED'))!;
+    expect(retry.spec).toBe('codex_cli');
+    const gemini = first.find(x => x.spec.startsWith('agy'))!;
+    expect(gemini.user).not.toContain('YOUR PREVIOUS ANSWER');
+    expect(done.rounds[0].reviews.chatgpt!.ok).toBe(true);
+  });
+
   it('rejects a review that scores below 90 without naming a passage or missing connection', () => {
     const bad = { ...review(80), findings: [{ passage: '', missingConnection: '', problem: 'meh', effectOnListener: 'bored', proposedChange: '', criterion: 'pacing', blocker: false, structural: false, needsMaterial: '' }] };
     expect(parseReview(bad, 'gemini', { provider: 'p', model: 'm' }, 'h', INTRO, BODY).ok).toBe(false);

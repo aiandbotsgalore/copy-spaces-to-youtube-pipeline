@@ -617,9 +617,12 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     if (run.calls + REVIEWERS.length > run.config.maxCalls) throw new Stop('unfinished', 'spending_limit', `Reached the limit of ${run.config.maxCalls} model calls before the next review.`);
     const one = async (id: ReviewerId): Promise<ReviewOutcome> => {
       let last: ReviewOutcome = { ok: false, reviewer: id, code: 'NOT_RUN', message: 'not run' };
+      let rejected = '';
       for (let attempt = 0; attempt < 2; attempt++) {
         if (attempt > 0 && run.calls + 1 > run.config.maxCalls) break;
-        const r = await call(run, budget, run.config.reviewers[id], id === 'chatgpt' ? 'judge' : 'critic', prompt, `${id} review (draft ${draftHash.slice(0, 8)})`, signal);
+        // A retry after a rejected answer tells this reviewer what to correct (its own output only; nothing from the other reviewer).
+        const p = rejected ? { ...prompt, user: `${prompt.user}\n\nYOUR PREVIOUS ANSWER COULD NOT BE ACCEPTED: ${rejected}\nReview the same script again and follow the rules exactly; copy every passage word for word from the script.` } : prompt;
+        const r = await call(run, budget, run.config.reviewers[id], id === 'chatgpt' ? 'judge' : 'critic', p, `${id} review (draft ${draftHash.slice(0, 8)})${rejected ? ' retry' : ''}`, signal);
         if (!r.ok) {
           last = { ok: false, reviewer: id, code: r.code, message: r.message };
           if (PAUSE_CODES.has(r.code)) break;
@@ -628,6 +631,8 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         const parsed = parseReview(r.json, id, { provider: r.provider, model: r.model }, draftHash, intro, body);
         if (parsed.ok) return parsed;
         last = { ok: false, reviewer: id, code: 'INVALID_REVIEW', message: parsed.reason };
+        rejected = parsed.reason;
+        deps.appendLog?.(run.id, { at: now(), role: 'review_rejected', label: `${id} review not accepted`, ok: false, code: 'INVALID_REVIEW', message: parsed.reason });
       }
       return last;
     };
