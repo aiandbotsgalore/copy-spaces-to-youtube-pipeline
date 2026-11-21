@@ -124,6 +124,8 @@ export interface RoundRecord {
     structure?: { problem: string; options: unknown[] } | { problem: string; error: string };
     material?: { queries: string[]; hits: number; reranked: boolean; note?: string };
     resolutions?: unknown[]; summary?: string; newHash?: string; error?: string;
+    /** A rewrite kept on disk but never compared, because the limit ran out first. It is not the current draft. */
+    unjudgedHash?: string;
     /** targeted = a small fix on excerpts only; full = a rewrite that saw the whole script. */
     mode?: 'targeted' | 'full'; by?: string; excerptChars?: number; note?: string;
   };
@@ -137,7 +139,7 @@ export interface FinalCheck {
   issues: string[]; unavailable?: string;
 }
 
-export interface DraftRecord { hash: string; n: number; file: string; createdAt: number; parentHash?: string; origin: 'start' | 'revision' | 'source_fix' }
+export interface DraftRecord { hash: string; n: number; file: string; createdAt: number; parentHash?: string; origin: 'start' | 'revision' | 'source_fix' | 'unjudged' }
 
 export type ReviewRunStatus = 'running' | 'complete' | 'unfinished' | 'cancelled' | 'failed';
 
@@ -149,7 +151,7 @@ export interface ReviewRun {
   intro: { sha256: string; length: number; bodyStartLine: string };
   spentUsd: number; calls: number;
   /** Tokens each service reported, by provider (claude_cli, codex_cli, agy_cli, inception). A CLI that reports nothing adds calls only. */
-  usage?: Record<string, { calls: number; inTok: number; outTok: number; cachedTok?: number }>;
+  usage?: Record<string, { calls: number; inTok: number; outTok: number; cachedTok?: number; toolCalls?: number }>;
   round: number; consecutiveFails: number; reviewFailStreak: number; tacticIndex: number;
   drafts: DraftRecord[]; currentHash: string; bestHash: string;
   rounds: RoundRecord[];
@@ -716,10 +718,10 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     run.spentUsd = budget.spentUsd;
     const u = ((run.usage ??= {})[r.provider] ??= { calls: 0, inTok: 0, outTok: 0 });
     u.calls++;
-    if (r.ok && r.usage) { u.inTok += r.usage.inTok || 0; u.outTok += r.usage.outTok || 0; u.cachedTok = (u.cachedTok || 0) + (r.usage.cachedTok || 0); }
+    if (r.ok && r.usage) { u.inTok += r.usage.inTok || 0; u.outTok += r.usage.outTok || 0; u.cachedTok = (u.cachedTok || 0) + (r.usage.cachedTok || 0); if (r.usage.toolCalls) u.toolCalls = (u.toolCalls || 0) + r.usage.toolCalls; }
     deps.appendLog?.(run.id, {
       at: now(), role, label, provider: r.provider, model: r.model, promptVersion: prompt.version, ok: r.ok, code: r.ok ? undefined : r.code,
-      durationMs: r.durationMs, inTok: r.ok ? r.usage?.inTok : undefined, outTok: r.ok ? r.usage?.outTok : undefined, cachedTok: r.ok ? r.usage?.cachedTok : undefined, costUsd: r.ok ? r.usage?.costUsd : undefined,
+      durationMs: r.durationMs, inTok: r.ok ? r.usage?.inTok : undefined, outTok: r.ok ? r.usage?.outTok : undefined, cachedTok: r.ok ? r.usage?.cachedTok : undefined, toolCalls: r.ok ? r.usage?.toolCalls : undefined, costUsd: r.ok ? r.usage?.costUsd : undefined,
       message: r.ok ? undefined : r.message,
     });
     if (!r.ok && r.code === 'ABORTED') throw new Stop('cancelled', 'cancelled', 'Cancelled.');
@@ -1057,6 +1059,10 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
           else revision.note = `Targeted fix unavailable (${t.code}); used a full rewrite instead.`;
         }
         if (!rev) {
+          // A full rewrite is usually major, so it needs room for its blind comparison too. Stop before paying for one that couldn't be judged.
+          if (!pendingSourceIssues && run.calls + 1 + REVIEWERS.length > run.config.maxCalls) {
+            throw new Stop('unfinished', 'spending_limit', `Stopped before a full rewrite: it needs ${1 + REVIEWERS.length} model calls (the rewrite and its blind comparison), and the limit of ${run.config.maxCalls} leaves ${Math.max(0, run.config.maxCalls - run.calls)}.`);
+          }
           const prompt = RP.revisePrompt({
             intro: split.intro, body: split.body, brief: ctx.brief, supporting: ctx.supporting, reviews: reviewsForReviser(round.reviews),
             tactic: tacticText, structureOptions: structureText || undefined, material: materialText || undefined,
@@ -1087,7 +1093,20 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         revision.resolutions = (rev.json as any)?.resolutions || [];
         revision.summary = String((rev.json as any)?.summary || '');
         let result = applyBodyEdits(split.body, edits);
-        const judged = pendingSourceIssues ? { revert: new Set<number>(), record: [] } : await judgeMajor(run, budget, split.body, result.applied, result.body, ctl.signal);
+        let judged: Awaited<ReturnType<typeof judgeMajor>>;
+        try {
+          judged = pendingSourceIssues ? { revert: new Set<number>(), record: [] } : await judgeMajor(run, budget, split.body, result.applied, result.body, ctl.signal);
+        } catch (e) {
+          // Keep the paid-for rewrite on disk instead of discarding it; it stays out of the current draft until judged.
+          const kept = e instanceof Stop ? reassemble(lock, result.body) : null;
+          if (kept && kept.ok) {
+            revision.unjudgedHash = addDraft(run, kept.text, 'unjudged', run.currentHash).hash;
+            revision.applied = result.applied.length;
+            save(run);
+            throw new Stop((e as Stop).status, (e as Stop).reason, `${(e as Stop).message} The rewrite was saved unjudged as a separate draft; the current draft is unchanged.`);
+          }
+          throw e;
+        }
         revision.major = judged.record;
         if (judged.revert.size) result = applyBodyEdits(split.body, edits, judged.revert);
         revision.applied = result.applied.length;
