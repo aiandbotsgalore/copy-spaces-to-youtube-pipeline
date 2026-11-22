@@ -4,8 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   applyBodyEdits, boundaryCandidates, createReviewLoop, DEFAULT_CONFIG, extractQuotes, factSheet, FACT_SHEET_MAX, focusedView, makeIntroLock, parseReview, passageExcerpts, passProblems, quoteInText, repairPassage,
-  reassemble, sha256, splitScript, TACTICS, type ReviewRun, type SourceHit,
+  reassemble, sha256, splitScript, spokenCaveat, TACTICS, type ReviewRun, type SourceHit,
 } from '../../server/scriptReviewLoop';
+import { extractDirective, reviewPrompt } from '../../server/scriptReviewPrompts';
 import { agyArgs, AGY_DIRECT_NOTE, codexArgs, DIRECT_NOTE, createProviderRegistry, parseRoleSpec, type CompleteRequest, type CompleteResult, type ProviderAdapter } from '../../server/scriptProviders';
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -63,6 +64,7 @@ const review = (score: number, opts: { blocker?: string; structural?: string; ne
 const edit = (find: string, replace: string) => ({ find, replace, why: 'test' });
 
 let base: string;
+let directiveText = '';
 let seen: Seen[];
 let saved: { projectId: string; text: string; label: string }[];
 const PID = 'prj_test1';
@@ -75,7 +77,7 @@ function makeLoop(handler: Handler, research?: Partial<{ search: any; rerank: an
       search: research?.search ?? (async (q: string) => ({ ok: true, items: SOURCES.filter(s => quoteInText(q, s.text) || s.text.toLowerCase().includes(q.toLowerCase().slice(0, 12))) })),
       ...(research?.rerank ? { rerank: research.rerank } : {}),
     },
-    context: () => ({ brief: 'BRIEF: keep allegations distinct from fact.', supporting: 'SUPPORTING: timeline notes.' }),
+    context: () => ({ brief: 'BRIEF: keep allegations distinct from fact.', supporting: 'SUPPORTING: timeline notes.', directive: directiveText }),
     saveResult: (projectId, text, label) => { saved.push({ projectId, text, label }); return `v_${saved.length}`; },
     random: () => 0.9,
   });
@@ -87,7 +89,7 @@ function startRun(loop: ReturnType<typeof makeLoop>, limits: Record<string, numb
   return loop.createRun(PID, text, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12, targetedReviser: '', ...limits });
 }
 
-beforeEach(() => { base = fs.mkdtempSync(path.join(os.tmpdir(), 'review-loop-')); seen = []; saved = []; });
+beforeEach(() => { base = fs.mkdtempSync(path.join(os.tmpdir(), 'review-loop-')); seen = []; saved = []; directiveText = ''; });
 afterEach(() => { fs.rmSync(base, { recursive: true, force: true }); });
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -692,3 +694,86 @@ describe('Gemini (agy) long prompts', () => {
     fs.rmSync(sandbox, { recursive: true, force: true });
   });
 });
+
+/* ---------------------------------------------------------------------------------------------- */
+/* 7. Logan's narrative focus directive and the no-caveats-in-narration rule (2026-11-22)          */
+/* ---------------------------------------------------------------------------------------------- */
+
+describe('narrative focus directive', () => {
+  const real = extractDirective(fs.readFileSync(path.join(__dirname, '../../AGENTS.md'), 'utf8'));
+
+  it('reads the directive verbatim from AGENTS.md', () => {
+    expect(real.startsWith('THE PAPER TRAIL — MANDATORY NARRATIVE FOCUS ENFORCEMENT')).toBe(true);
+    expect(real).toContain('5. MANDATORY SCENE ACCEPTANCE TEST');
+    expect(real).toContain('7. FULL-MANUSCRIPT ENFORCEMENT');
+    expect(real).not.toContain('VERBATIM DIRECTIVE');
+    expect(extractDirective('no markers here')).toBe('');
+  });
+
+  it('sends it to both reviewers, the rewriter and the blind comparison, and asks for both tests', async () => {
+    directiveText = real;
+    const big = 'A completely rewritten scene. '.repeat(30);
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return review(80);
+      if (req.schemaName === 'body_revision') return { edits: [edit('The second scene carries on with more detail for the listener to follow along.', big)], resolutions: [], summary: '' };
+      if (req.schemaName === 'blind_compare') return { pairs: [{ pair: 1, stronger: 'B', confidence: 'clear', reason: 'x' }] };
+      return {};
+    });
+    await loop.runToEnd(startRun(loop, { maxCalls: 5, maxRounds: 1 }));
+    for (const name of ['script_review', 'body_revision', 'blind_compare']) {
+      const calls = seen.filter(x => x.schemaName === name);
+      expect(calls.length).toBeGreaterThan(0);
+      for (const c of calls) expect(c.system).toContain(real);
+    }
+    const rv = seen.filter(x => x.schemaName === 'script_review');
+    expect(rv[0].system).toBe(rv[1].system);
+    expect(rv[0].system).toContain('SCENE TEST');
+    expect(rv[0].system).toContain('FULL-MANUSCRIPT TEST');
+    expect(seen.find(x => x.schemaName === 'body_revision')!.system).toContain('NON-SPOKEN PRODUCTION NOTE');
+  });
+
+  it('never passes a draft whose whole story drifts, however high the score, and sends it to a full rewrite', async () => {
+    directiveText = real;
+    const drift = { centralSubject: 'Logan and Angela\'s friendship', drivingQuestion: 'why did they fall out?', mostEmphasis: 'the Oor dispute', turningPoint: 'July', climax: 'the feud ends', verdict: 'fails', note: 'rebuild around what Angela did with private information' };
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(95) : { ...review(95), narrativeFocus: drift };
+      if (req.schemaName === 'body_revision') return { edits: [edit('points back to the opening question.', 'points back to the opening question. REV1')], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    loop.setIntroLock(PID, SCRIPT, BODY_START, 'master.md');
+    const run = loop.createRun(PID, SCRIPT, { file: 'master.md', maxCalls: 40, maxUsd: 1, maxRounds: 12 });
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.rounds[0].passed).toBe(false);
+    expect(done.rounds[0].passBlockers?.join(' ') ?? JSON.stringify(done.rounds[0])).toMatch(/narrative focus/);
+    expect(done.rounds[0].revision!.mode).toBe('full');
+    expect(seen.find(x => x.schemaName === 'body_revision')!.user).toContain('Narrative focus (whole manuscript): FAILS');
+    expect(done.status).toBe('complete');
+  });
+
+  it('refuses edits that put source caveats into spoken lines, but allows them in production notes', async () => {
+    expect(spokenCaveat('The supplied material does not establish whether an image was completed.')).toBeTruthy();
+    expect(spokenCaveat('I won\'t reconstruct the exchange. The record here cannot support it, and this draft leaves it open.')).toBeTruthy();
+    expect(spokenCaveat('the excerpt should be treated as an undated exchange until the original file is verified.')).toBeTruthy();
+    expect(spokenCaveat('[NON-SPOKEN PRODUCTION NOTE — the supplied material does not establish the date; verify the original file.]')).toBeNull();
+    expect(spokenCaveat('Angela said she kept everything. Sav told me she never agreed to that.')).toBeNull();
+    const loop = makeLoop((spec, req) => {
+      if (req.schemaName === 'script_review') return req.user.includes('REV1') ? review(95) : review(80);
+      if (req.schemaName === 'body_revision') return { edits: [
+        edit('The ending closes the story for now and points back to the opening question.', 'The supplied material does not establish how the story ends. REV-CAVEAT'),
+        edit('sets things up for the listener today.', 'sets things up for the listener today. REV1\n\n[NON-SPOKEN PRODUCTION NOTE — the supplied material does not establish the date.]'),
+      ], resolutions: [], summary: '' };
+      if (req.schemaName === 'source_check') return { claims: [] };
+      return {};
+    });
+    const run = startRun(loop);
+    await loop.runToEnd(run);
+    const done = loop.getRun(PID, run.id)!;
+    expect(done.rounds[0].revision!.rejected.map(r => r.reason).join(' ')).toMatch(/source caveat into a spoken line/);
+    const text = loop.draftText(done, done.result!.hash);
+    expect(text).not.toContain('REV-CAVEAT');
+    expect(text).toContain('[NON-SPOKEN PRODUCTION NOTE — the supplied material does not establish the date.]');
+  });
+});
+

@@ -69,6 +69,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { extractDirective } from './scriptReviewPrompts';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { DistillStatus, EpisodeAnalysis, EpisodeFormat, RoleMap, ScriptProject, ScriptVersion, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
@@ -275,6 +276,10 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     if (!out.length || (out[0] as any).matchType !== 'rerank') return { ok: false, reason: 'Cohere Rerank did not answer' };
     return { ok: true, items: out.map((o: any) => hits[o.ri]).filter(Boolean) };
   }
+  // Logan's narrative focus directive, read verbatim from AGENTS.md on every run so an approved edit there applies at once.
+  function narrativeDirective(): string {
+    try { return extractDirective(fs.readFileSync(path.join(opts.root, 'AGENTS.md'), 'utf8')); } catch { return ''; }
+  }
   // A compact fact sheet, not the raw board, excerpts and documents; the final source check pulls exact passages.
   function reviewSupporting(p: ScriptProject): string {
     const board = store.getBoard(p.id);
@@ -287,7 +292,7 @@ export function createScriptStudioMiddleware(opts: ScriptStudioOptions) {
     context: projectId => {
       const p = store.getProject(projectId);
       const memory = store.getMemory();
-      return { brief: withCharter(p, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), supporting: p ? reviewSupporting(p) : '' };
+      return { brief: withCharter(p, memory.styleRules.map(x => `- ${x.rule}`).join('\n')), supporting: p ? reviewSupporting(p) : '', directive: narrativeDirective() };
     },
     // The result is saved as a version for Logan to read and edit; it does not move the head or the working master.
     saveResult: (projectId, text, label) => {
