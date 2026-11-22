@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-11-21T18:59:04.390564+00:00",
-  "overall_status": "DEGRADED",
+  "timestamp": "2026-11-22T06:09:36.603340+00:00",
+  "overall_status": "HEALTHY",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
@@ -12,27 +12,8 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 2,
-  "triaged_failures": [
-    {
-      "run_id": 44842039351,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44842039351",
-      "root_cause": "Execution Error: Run 44842039351 failed in Update RSS Feed & Deploy Web App",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 44814600856,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/44814600856",
-      "root_cause": "Execution Error: Run 44814600856 failed in Update RSS Feed & Deploy Web App",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    }
-  ],
+  "recent_failures_count": 0,
+  "triaged_failures": [],
   "auto_retried_count": 0,
-  "quarantined_count": 2
+  "quarantined_count": 0
 }
