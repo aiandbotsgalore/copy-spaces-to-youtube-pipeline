@@ -43,6 +43,8 @@ export type CompleteResult =
         outTok: number;
         /** Prompt tokens served from the provider's cache, when the CLI reports them. */
         cachedTok?: number;
+        /** Tool commands the CLI ran during the call (each one resends the conversation). */
+        toolCalls?: number;
         costUsd: number;
         listCostUsd?: number;
         billedCostUsd?: number;
@@ -401,16 +403,19 @@ export function createCodexCliAdapter(deps: CliAdapterDeps & { readFile?: (p: st
       const schemaPath = writeIo(dirs.io, 'schema.json', JSON.stringify(req.schema));
       const outPath = path.join(dirs.io, `${randomUUID()}-out.json`);
       try {
-        const prompt = `${req.system}\n\n${req.user}`;
+        const prompt = `${DIRECT_NOTE}\n\n${req.system}\n\n${req.user}`;
         const r = await deps.runner(bin.file, [...bin.prefixArgs, ...codexArgs(schemaPath, outPath, model, effort)], {
           cwd: dirs.sandbox, env: subscriptionEnv(deps.env()), stdin: Buffer.from(prompt, 'utf8'), timeoutMs: req.timeoutMs, signal: req.signal,
         });
         const raw = `${r.stdout}${r.stderr ? `\n[stderr]\n${r.stderr}` : ''}`;
-        let usage: { inTok: number; outTok: number; cachedTok?: number; costUsd: number } | undefined;
+        let usage: { inTok: number; outTok: number; cachedTok?: number; toolCalls?: number; costUsd: number } | undefined;
+        let toolCalls = 0;
         for (const ev of jsonObjects(r.stdout)) {
+          if (ev?.type === 'item.completed' && ev?.item?.type && ev.item.type !== 'agent_message' && ev.item.type !== 'reasoning') toolCalls++;
           const u = ev?.usage ?? ev?.msg?.usage;
           if (u && (ev.type === 'turn.completed' || u.input_tokens != null)) usage = { inTok: Number(u.input_tokens) || 0, outTok: Number(u.output_tokens) || 0, cachedTok: Number(u.cached_input_tokens) || 0, costUsd: 0 };
         }
+        if (usage) usage.toolCalls = toolCalls;
         if (r.code === 0) {
           let last = '';
           try { last = readFile(outPath); } catch { /* no output file */ }
@@ -439,7 +444,8 @@ export const AGY_DEFAULT_MODEL = 'gemini-3.8-flash-high';
  * model's context. (A prompt file made agy spend extra turns reading it, which roughly tripled its tokens.)
  * Antigravity's own fixed overhead (system prompt and tool list) is still about 31k input tokens per call.
  */
-export const AGY_DIRECT_NOTE = 'Everything you need is in this message. Do not use any tools, files, searches or browsers. Answer directly from this text.';
+export const DIRECT_NOTE = 'Everything you need is in this message. Do not use any tools, files, searches, commands or browsers. Answer directly from this text.';
+export const AGY_DIRECT_NOTE = DIRECT_NOTE;
 
 export function agyArgs(schemaPath: string, model = AGY_DEFAULT_MODEL): string[] {
   return [
