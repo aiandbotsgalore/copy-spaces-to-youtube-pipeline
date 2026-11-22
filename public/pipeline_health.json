@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-11-22T06:09:36.603340+00:00",
-  "overall_status": "HEALTHY",
+  "timestamp": "2026-11-22T19:21:24.579267+00:00",
+  "overall_status": "DEGRADED",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
@@ -12,8 +12,27 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 0,
-  "triaged_failures": [],
+  "recent_failures_count": 2,
+  "triaged_failures": [
+    {
+      "run_id": 45018007174,
+      "name": "Enroll Voice Profile",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45018007174",
+      "root_cause": "Execution Error: Run 45018007174 failed in Enroll Voice Profile",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 45018004386,
+      "name": "Enroll Voice Profile",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45018004386",
+      "root_cause": "Execution Error: Run 45018004386 failed in Enroll Voice Profile",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    }
+  ],
   "auto_retried_count": 0,
-  "quarantined_count": 0
+  "quarantined_count": 2
 }
