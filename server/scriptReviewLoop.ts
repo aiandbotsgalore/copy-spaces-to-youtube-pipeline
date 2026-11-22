@@ -103,6 +103,8 @@ export interface Review {
   reviewer: ReviewerId; provider: string; model: string; draftHash: string;
   score: number; summary: string; works: { passage: string; why: string }[]; findings: Finding[];
   ending: { verdict: 'answers' | 'explains_why_open' | 'fails'; openingQuestions: string[]; note: string };
+  /** The directive's full-manuscript test: who and what the whole listening experience is about. */
+  narrativeFocus?: { centralSubject: string; drivingQuestion: string; mostEmphasis: string; turningPoint: string; climax: string; verdict: 'passes' | 'fails'; note: string };
 }
 
 export type ReviewOutcome = { ok: true; review: Review } | { ok: false; reviewer: ReviewerId; code: string; message: string };
@@ -171,7 +173,7 @@ export interface ReviewLoopDeps {
   registry: { adapterFor(spec: string, budget: Budget): ProviderAdapter | null };
   research: ResearchDeps;
   /** Editorial brief and supporting text for a project (the same for both reviewers). */
-  context(projectId: string): { brief: string; supporting: string };
+  context(projectId: string): { brief: string; supporting: string; directive?: string };
   /** Saves a finished or unfinished result as a Studio version; returns its id. Optional. */
   saveResult?(projectId: string, text: string, label: string): string | undefined;
   appendLog?(runId: string, entry: Record<string, unknown>): void;
@@ -487,6 +489,11 @@ export function parseReview(json: any, reviewer: ReviewerId, meta: { provider: s
     return { ok: false, reason: `score ${score} is below ${PASS_SCORE} but no finding identifies a passage or missing connection` };
   }
   const verdict = ['answers', 'explains_why_open', 'fails'].includes(json?.ending?.verdict) ? json.ending.verdict : 'fails';
+  const nf = json?.narrativeFocus;
+  const narrativeFocus = nf && typeof nf === 'object' ? {
+    centralSubject: String(nf.centralSubject || ''), drivingQuestion: String(nf.drivingQuestion || ''), mostEmphasis: String(nf.mostEmphasis || ''),
+    turningPoint: String(nf.turningPoint || ''), climax: String(nf.climax || ''), verdict: nf.verdict === 'fails' ? 'fails' as const : 'passes' as const, note: String(nf.note || ''),
+  } : undefined;
   return {
     ok: true,
     review: {
@@ -494,6 +501,7 @@ export function parseReview(json: any, reviewer: ReviewerId, meta: { provider: s
       works: (Array.isArray(json?.works) ? json.works : []).map((w: any) => ({ passage: String(w?.passage || ''), why: String(w?.why || '') })),
       findings,
       ending: { verdict, openingQuestions: (json?.ending?.openingQuestions || []).map(String), note: String(json?.ending?.note || '') },
+      ...(narrativeFocus ? { narrativeFocus } : {}),
     },
   };
 }
@@ -510,8 +518,28 @@ export function passProblems(reviews: Partial<Record<ReviewerId, ReviewOutcome>>
     const blockers = r.review.findings.filter(f => f.blocker);
     if (blockers.length) out.push(`${id} reported ${blockers.length} blocker(s)`);
     if (r.review.ending.verdict === 'fails') out.push(`${id}: the ending does not answer the opening or explain why it stays open`);
+    if (r.review.narrativeFocus?.verdict === 'fails') out.push(`${id}: the manuscript as a whole drifts from Angela's documented conduct (narrative focus test)`);
   }
   return out;
+}
+
+/**
+ * Source caveats and verification talk that must never be spoken (Logan's rule, 2026-11-22): they go into a
+ * [NON-SPOKEN PRODUCTION NOTE ...] line instead. Returns the offending phrase, or null. Bracketed notes are ignored.
+ */
+const SPOKEN_CAVEATS: RegExp[] = [
+  /\b(?:the\s+)?(?:supplied|provided|available)\s+(?:material|materials|excerpts?|records?|sources?|packet)\b/i,
+  /\bthis\s+draft\b/i,
+  /\b(?:the\s+)?(?:excerpt|packet|source\s+note|materials?)\s+(?:does|do|did)\s*n[o']t\s+(?:establish|show|identify|contain|include|support|resolve)\b/i,
+  /\b(?:does|do|did|can)\s*(?:not|n't)\s+(?:establish|corroborate)\b/i,
+  /\bunless\s+(?:it\s+is\s+|they\s+are\s+)?independently\s+(?:corroborated|verified)\b/i,
+  /\bshould\s+be\s+treated\s+as\b/i,
+  /\buntil\s+the\s+original\s+(?:file|audio|recording|messages?)\s+(?:is|are)\s+verified\b/i,
+];
+export function spokenCaveat(text: string): string | null {
+  const spoken = text.replace(/\[[^\]]*\]/g, ' ');
+  for (const re of SPOKEN_CAVEATS) { const m = spoken.match(re); if (m) return m[0]; }
+  return null;
 }
 
 /** Paragraphs of the body that are new or changed compared with the starting body (spoken text only). */
@@ -615,6 +643,7 @@ function reviewsForReviser(reviews: Partial<Record<ReviewerId, ReviewOutcome>>):
     return [`REVIEW ${i + 1} (${id}) score ${r.score}/100`, `Summary: ${r.summary}`,
       `Works (keep): ${r.works.map(w => `"${w.passage}" (${w.why})`).join('; ') || 'none listed'}`,
       `Ending: ${r.ending.verdict}. ${r.ending.note} Opening questions: ${r.ending.openingQuestions.join(' | ')}`,
+      ...(r.narrativeFocus ? [`Narrative focus (whole manuscript): ${r.narrativeFocus.verdict.toUpperCase()}. Central subject: ${r.narrativeFocus.centralSubject}. Driving question: ${r.narrativeFocus.drivingQuestion}. Most emphasis: ${r.narrativeFocus.mostEmphasis}. Turning point: ${r.narrativeFocus.turningPoint}. Climax: ${r.narrativeFocus.climax}. ${r.narrativeFocus.note}`] : []),
       ...r.findings.map((f, j) => `Finding ${i + 1}.${j + 1}${f.blocker ? ' [BLOCKER]' : ''}${f.structural ? ' [STRUCTURE]' : ''} (${f.criterion}; scene: ${f.sceneKey}${f.inIntro ? '; points into the locked intro, fix it in the body' : ''})\n  Where: ${f.passage ? `"${f.passage}"` : f.missingConnection}\n  Problem: ${f.problem}\n  Effect on listener: ${f.effectOnListener}\n  Proposed: ${f.proposedChange}${f.needsMaterial ? `\n  Needs material: ${f.needsMaterial}` : ''}`),
     ].join('\n');
   }).join('\n\n');
@@ -732,7 +761,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
   /** Both reviewers, in parallel, on one prompt object built once. Each failed review is retried once. */
   async function reviewBoth(run: ReviewRun, budget: Budget, full: string, intro: string, body: string, signal: AbortSignal, view?: string): Promise<Partial<Record<ReviewerId, ReviewOutcome>>> {
     const ctx = deps.context(run.projectId);
-    const prompt = RP.reviewPrompt({ script: view ?? full, bodyStart: run.intro.bodyStartLine, brief: ctx.brief, supporting: ctx.supporting, focused: !!view });
+    const prompt = RP.reviewPrompt({ script: view ?? full, bodyStart: run.intro.bodyStartLine, brief: ctx.brief, supporting: ctx.supporting, directive: ctx.directive, focused: !!view });
     const draftHash = sha256(full);
     if (run.calls + REVIEWERS.length > run.config.maxCalls) throw new Stop('unfinished', 'spending_limit', `Reached the limit of ${run.config.maxCalls} model calls before the next review.`);
     const one = async (id: ReviewerId): Promise<ReviewOutcome> => {
@@ -799,7 +828,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
     const major = applied.filter(a => a.major);
     if (!major.length) return { revert: new Set(), record: [] };
     if (run.calls + REVIEWERS.length > run.config.maxCalls) throw new Stop('unfinished', 'spending_limit', `Reached the limit of ${run.config.maxCalls} model calls before comparing a major rewrite.`);
-    const brief = deps.context(run.projectId).brief;
+    const { brief, directive } = deps.context(run.projectId);
     const flips = major.map(() => random() < 0.5);
     const pairs = major.map((m, i) => {
       const oldStart = oldBody.indexOf(m.before);
@@ -807,7 +836,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
       const after = oldStart >= 0 ? oldBody.slice(oldStart + m.before.length, oldStart + m.before.length + 700) : '';
       return { pair: i + 1, before, after, a: flips[i] ? m.replace : m.before, b: flips[i] ? m.before : m.replace };
     });
-    const prompt = RP.comparePrompt(pairs, brief);
+    const prompt = RP.comparePrompt(pairs, brief, directive);
     const results = await Promise.all(REVIEWERS.map(id => call(run, budget, run.config.reviewers[id], 'judge', prompt, `${id} blind compare`, signal)));
     const revert = new Set<number>();
     const record = major.map((m, i) => {
@@ -901,7 +930,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
       }
     } else {
       const reviews = REVIEWERS.map(id => round.reviews[id]).filter((o): o is Extract<ReviewOutcome, { ok: true }> => !!o?.ok).map(o => o.review);
-      if (reviews.some(r => r.ending.verdict === 'fails')) return null;
+      if (reviews.some(r => r.ending.verdict === 'fails' || r.narrativeFocus?.verdict === 'fails')) return null;
       const findings = reviews.flatMap(r => r.findings);
       if (!findings.length || findings.length > TARGETED_MAX_FINDINGS) return null;
       if (findings.some(f => f.structural || !f.passage || f.inIntro)) return null;
@@ -1050,7 +1079,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
         let rev: CompleteResult | null = null;
         if (excerpts) {
           const tp = RP.targetedRevisePrompt({
-            brief: ctx.brief, reviews: reviewsForReviser(round.reviews), tactic: tacticText, excerpts,
+            brief: ctx.brief, directive: ctx.directive, reviews: reviewsForReviser(round.reviews), tactic: tacticText, excerpts,
             sourceIssues: pendingSourceIssues || undefined, rejectedEdits: rejectedLastRound || undefined,
           });
           revision.excerptChars = excerpts.reduce((a, e) => a + e.text.length, 0);
@@ -1064,7 +1093,7 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
             throw new Stop('unfinished', 'spending_limit', `Stopped before a full rewrite: it needs ${1 + REVIEWERS.length} model calls (the rewrite and its blind comparison), and the limit of ${run.config.maxCalls} leaves ${Math.max(0, run.config.maxCalls - run.calls)}.`);
           }
           const prompt = RP.revisePrompt({
-            intro: split.intro, body: split.body, brief: ctx.brief, supporting: ctx.supporting, reviews: reviewsForReviser(round.reviews),
+            intro: split.intro, body: split.body, brief: ctx.brief, supporting: ctx.supporting, directive: ctx.directive, reviews: reviewsForReviser(round.reviews),
             tactic: tacticText, structureOptions: structureText || undefined, material: materialText || undefined,
             sourceIssues: pendingSourceIssues || undefined, rejectedEdits: rejectedLastRound || undefined,
           });
@@ -1090,6 +1119,13 @@ export function createReviewLoop(deps: ReviewLoopDeps) {
             return false;
           });
         }
+        // Logan's rule: verification gaps go into production notes, never into spoken lines.
+        edits = edits.filter(e => {
+          const hit = spokenCaveat(e.replace);
+          if (!hit || loose(e.find).includes(loose(hit))) return true; // only new caveats are refused
+          outside.push({ find: e.find, reason: `puts a source caveat into a spoken line ("${hit}"); put it in a [NON-SPOKEN PRODUCTION NOTE — ...] line instead` });
+          return false;
+        });
         revision.resolutions = (rev.json as any)?.resolutions || [];
         revision.summary = String((rev.json as any)?.summary || '');
         let result = applyBodyEdits(split.body, edits);
