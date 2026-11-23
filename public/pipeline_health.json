@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-11-22T19:21:24.579267+00:00",
-  "overall_status": "DEGRADED",
+  "timestamp": "2026-11-23T07:02:01.322901+00:00",
+  "overall_status": "CRITICAL",
   "voice_profiles": {
     "total": 15,
     "enrolled": 15,
@@ -12,8 +12,26 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 2,
+  "recent_failures_count": 4,
   "triaged_failures": [
+    {
+      "run_id": 45103307979,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45103307979",
+      "root_cause": "Execution Error: Run 45103307979 failed in Approved transcript UI checks",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 45103307910,
+      "name": "Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45103307910",
+      "root_cause": "Execution Error: Run 45103307910 failed in Transcript Workbench Validation",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
     {
       "run_id": 45018007174,
       "name": "Enroll Voice Profile",
@@ -34,5 +52,5 @@
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 2
+  "quarantined_count": 4
 }
