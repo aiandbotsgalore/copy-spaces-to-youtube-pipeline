@@ -1583,7 +1583,7 @@ export async function executeCopilotAction(
           };
         }
 
-        if (imagesGeneratedInTurn >= 1 && options?.triggerSource === 'auto_apply') {
+        if (imagesGeneratedInTurn >= 1) {
           return {
             ok: false,
             status: 'failed',
@@ -1598,9 +1598,9 @@ export async function executeCopilotAction(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt: params.prompt,
-              aspect_ratio: params.aspectRatio,
+              aspect_ratio: params.aspect_ratio || params.aspectRatio,
               model: params.model,
-              reference_image_filename: params.referenceImageFilename,
+              reference_image_filename: params.reference_image_filename || params.referenceImageFilename,
             }),
           });
 

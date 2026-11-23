@@ -366,16 +366,18 @@ describe('Ascension Copilot Action Contracts & Tiers', () => {
     }
   });
 
-  it('POST /api/ascension/generate-image invokes OpenRouter image API, validates media and records audit log', async () => {
-    const mockImageB64 = Buffer.from('mock_flux_png_image_data').toString('base64');
+  it('POST /api/ascension/generate-image invokes OpenRouter image API with Recraft payload, validates media and records audit log', async () => {
+    const mockImageB64 = Buffer.from('mock_recraft_png_image_data').toString('base64');
+    let capturedBody: any = null;
     const mockFetch = async (url: string, opts: any) => {
       if (url.includes('openrouter.ai/api/v1/images')) {
+        capturedBody = JSON.parse(opts.body);
         return {
           ok: true,
           status: 200,
           json: async () => ({
             data: [{ b64_json: mockImageB64, media_type: 'image/png' }],
-            usage: { cost: 0.0025 },
+            usage: { cost: 0.0 },
           }),
         } as any;
       }
@@ -397,16 +399,26 @@ describe('Ascension Copilot Action Contracts & Tiers', () => {
     req.sendBody({
       prompt: 'A cinematic wide angle shot of a recording studio with retro neon lighting',
       aspect_ratio: '16:9',
-      model: 'black-forest-labs/flux.2-klein-4b',
     });
     await done;
 
     expect(res.statusCode).toBe(200);
     const data = res.json();
     expect(data.status).toBe('success');
-    expect(data.image_url).toMatch(/^\/api\/media\/generated\/gen_/);
-    expect(data.filename).toMatch(/^gen_.*\.png$/);
-    expect(data.cost).toBe(0.0025);
+    expect(data.image_url).toBe('/api/media/generated/gen_1763870000000.png');
+    expect(data.filename).toBe('gen_1763870000000.png');
+    expect(data.model_used).toBe('recraft/recraft-v4.1-flash-v2:free');
+    expect(data.cost).toBe(0.0);
+
+    // Verify Recraft payload has ONLY model, prompt, aspect_ratio, n: 1
+    expect(capturedBody).toEqual({
+      model: 'recraft/recraft-v4.1-flash-v2:free',
+      prompt: 'A cinematic wide angle shot of a recording studio with retro neon lighting',
+      aspect_ratio: '16:9',
+      n: 1,
+    });
+    expect(capturedBody.output_format).toBeUndefined();
+    expect(capturedBody.input_references).toBeUndefined();
 
     // Verify generated file exists and clean it up
     const savedPath = path.resolve(testRoot, 'data', 'generated_images', data.filename);
@@ -419,6 +431,67 @@ describe('Ascension Copilot Action Contracts & Tiers', () => {
       const logs = fs.readFileSync(auditFile, 'utf8');
       expect(logs).not.toContain(mockImageB64);
     }
+  });
+
+  it('POST /api/ascension/generate-image handles 401, 402, 404, and 429 status codes with clear error messages', async () => {
+    let mockStatus = 401;
+    let mockStatusText = 'Unauthorized';
+    const mockFetch = async () => ({
+      ok: false,
+      status: mockStatus,
+      statusText: mockStatusText,
+      text: async () => 'Error details from OpenRouter',
+    });
+
+    const mw = createAscensionApiMiddleware({
+      rootDir: testRoot,
+      getEnv: () => ({ OPENROUTER_API_KEY: 'sk-or-test-mock-key' }),
+      fetchImpl: mockFetch as any,
+    });
+
+    // 401
+    mockStatus = 401;
+    let req = new MockRequest('POST', '/api/ascension/generate-image');
+    let res = new MockResponse();
+    let done = new Promise((resolve) => res.on('finish', resolve));
+    mw(req as any, res as any);
+    req.sendBody({ prompt: 'Test 401' });
+    await done;
+    expect(res.statusCode).toBe(401);
+    expect(res.json().error).toContain('401 Unauthorized');
+
+    // 402
+    mockStatus = 402;
+    req = new MockRequest('POST', '/api/ascension/generate-image');
+    res = new MockResponse();
+    done = new Promise((resolve) => res.on('finish', resolve));
+    mw(req as any, res as any);
+    req.sendBody({ prompt: 'Test 402' });
+    await done;
+    expect(res.statusCode).toBe(402);
+    expect(res.json().error).toContain('402 Payment Required');
+
+    // 404
+    mockStatus = 404;
+    req = new MockRequest('POST', '/api/ascension/generate-image');
+    res = new MockResponse();
+    done = new Promise((resolve) => res.on('finish', resolve));
+    mw(req as any, res as any);
+    req.sendBody({ prompt: 'Test 404' });
+    await done;
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error).toContain('404 Not Found');
+
+    // 429
+    mockStatus = 429;
+    req = new MockRequest('POST', '/api/ascension/generate-image');
+    res = new MockResponse();
+    done = new Promise((resolve) => res.on('finish', resolve));
+    mw(req as any, res as any);
+    req.sendBody({ prompt: 'Test 429' });
+    await done;
+    expect(res.statusCode).toBe(429);
+    expect(res.json().error).toContain('429 Too Many Requests');
   });
 
   it('POST /api/ascension/generate-image respects Kill Switch (pause and permanent)', async () => {

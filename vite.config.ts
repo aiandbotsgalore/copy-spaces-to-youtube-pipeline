@@ -13,7 +13,7 @@ import { createAvatarRenderHandler } from './server/avatarRender';
 import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
 import { createAscensionApiMiddleware, createGeneratedMediaMiddleware } from './server/ascensionApi';
 
-function setupProxyMiddlewares(middlewares: any, env?: any) {
+function setupProxyMiddlewares(middlewares: any, env?: any, mode: string = 'development') {
   if (env) {
     if (env.HF_TOKEN && !process.env.HF_TOKEN) process.env.HF_TOKEN = env.HF_TOKEN;
     if (env.HF_BACKUP_TOKEN && !process.env.HF_BACKUP_TOKEN) process.env.HF_BACKUP_TOKEN = env.HF_BACKUP_TOKEN;
@@ -138,7 +138,7 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
   // Ascension API: Divine Action Hooks, GraphRAG Mutation, Sandboxed Exec & Kill Switch
   middlewares.use('/api/ascension', createAscensionApiMiddleware({
     rootDir: __dirname,
-    getEnv: () => ({ ...process.env, ...env }),
+    getEnv: () => ({ ...process.env, ...loadEnv(mode, process.cwd(), ''), ...(env || {}) }),
   }));
 
   // Static Media Route for Generated Images (/api/media/generated/:filename)
@@ -148,16 +148,16 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+  const env = loadEnv(mode, process.cwd(), '');
   // AI Prompt Director API. Reads .env.local per request (server-side only; the key never reaches the client bundle).
-  const director = createDirectorMiddleware({ getEnv: () => loadEnv(mode, '.', '') });
-  const audioProxy = createAudioProxy({ allowRemote: () => loadEnv(mode, '.', '').DIRECTOR_ALLOW_REMOTE === '1' });
+  const director = createDirectorMiddleware({ getEnv: () => loadEnv(mode, process.cwd(), '') });
+  const audioProxy = createAudioProxy({ allowRemote: () => loadEnv(mode, process.cwd(), '').DIRECTOR_ALLOW_REMOTE === '1' });
   // Script Studio API (server/scriptStudioMiddleware.ts). State lives in .spacepipe-studio/ (watch-ignored).
   // Created only when a dev or preview server starts (not for builds or tests), because creating it marks
   // runs left 'running' by a previous server as 'interrupted'.
   let scriptStudioInstance: ReturnType<typeof createScriptStudioMiddleware> | null = null;
   const scriptStudio = (req: any, res: any) => {
-    scriptStudioInstance ??= createScriptStudioMiddleware({ root: __dirname, getEnv: () => ({ ...process.env, ...loadEnv(mode, '.', '') }) });
+    scriptStudioInstance ??= createScriptStudioMiddleware({ root: __dirname, getEnv: () => ({ ...process.env, ...loadEnv(mode, process.cwd(), '') }) });
     return scriptStudioInstance(req, res);
   };
   return {
@@ -228,10 +228,10 @@ export default defineConfig(({ mode }) => {
       {
         name: 'github-asset-proxy',
         configureServer(server) {
-          setupProxyMiddlewares(server.middlewares, env);
+          setupProxyMiddlewares(server.middlewares, env, mode);
         },
         configurePreviewServer(server) {
-          setupProxyMiddlewares(server.middlewares, env);
+          setupProxyMiddlewares(server.middlewares, env, mode);
         },
       },
       {

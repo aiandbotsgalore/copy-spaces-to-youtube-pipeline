@@ -190,6 +190,34 @@ function writeAuditLog(rootDir: string, entry: AuditLogEntry) {
   }
 }
 
+function parseEnvFile(filePath: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (!fs.existsSync(filePath)) return result;
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx > 0) {
+        const key = trimmed.slice(0, eqIdx).trim();
+        let val = trimmed.slice(eqIdx + 1).trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        result[key] = val;
+      }
+    }
+  } catch {}
+  return result;
+}
+
+export function loadLocalEnv(rootDir: string): Record<string, string> {
+  const envStandard = parseEnvFile(path.join(rootDir, '.env'));
+  const envLocal = parseEnvFile(path.join(rootDir, '.env.local'));
+  return { ...envStandard, ...envLocal };
+}
+
 /* -------------------------------------------------------------------------- */
 /* Static Media Middleware for Generated Images                              */
 /* -------------------------------------------------------------------------- */
@@ -842,63 +870,34 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
           return;
         }
 
-        const validAspectRatios = ['16:9', '9:16', '1:1', '4:3'];
-        let aspectRatio = body.aspect_ratio || body.aspectRatio || '16:9';
+        const validAspectRatios = ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', 'auto'];
+        let aspectRatio = body.aspect_ratio || body.aspectRatio || '1:1';
         if (!validAspectRatios.includes(aspectRatio)) {
-          aspectRatio = '16:9';
+          aspectRatio = '1:1';
         }
 
-        const env = getEnv();
-        const openRouterApiKey = env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+        const localEnv = loadLocalEnv(rootDir);
+        const env = { ...localEnv, ...process.env, ...getEnv() };
+        const openRouterApiKey = env.OPENROUTER_API_KEY;
         if (!openRouterApiKey) {
           sendJson(res, 400, {
             status: 'error',
-            error: 'Missing OPENROUTER_API_KEY. Configure OPENROUTER_API_KEY in your environment or .env file to enable image generation.',
+            error: 'Missing OPENROUTER_API_KEY. Configure OPENROUTER_API_KEY in your environment or .env.local file to enable image generation.',
           });
           return;
         }
 
-        const model = String(body.model || env.OPENROUTER_IMAGE_MODEL || process.env.OPENROUTER_IMAGE_MODEL || 'black-forest-labs/flux.2-klein-4b').trim();
-
-        // Optional reference image input for iterative edits
-        const refFilename = body.reference_image_filename || body.referenceImageFilename;
-        let inputReferences: Array<{ type: string; image_url: { url: string } }> | undefined = undefined;
-
-        if (refFilename) {
-          const VALID_REF_NAME = /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/i;
-          if (!VALID_REF_NAME.test(String(refFilename))) {
-            sendJson(res, 400, { status: 'error', error: 'Invalid reference_image_filename format' });
-            return;
-          }
-          const cleanRefName = path.basename(String(refFilename));
-          const refFilePath = path.resolve(rootDir, 'data', 'generated_images', cleanRefName);
-          if (!fs.existsSync(refFilePath)) {
-            sendJson(res, 400, { status: 'error', error: `Reference image not found in generated_images: ${cleanRefName}` });
-            return;
-          }
-
-          try {
-            const refBuffer = fs.readFileSync(refFilePath);
-            const ext = path.extname(cleanRefName).toLowerCase();
-            const refMime = ext === '.webp' ? 'image/webp' : (ext === '.png' ? 'image/png' : 'image/jpeg');
-            const dataUrl = `data:${refMime};base64,${refBuffer.toString('base64')}`;
-            inputReferences = [{ type: 'image_url', image_url: { url: dataUrl } }];
-          } catch (refErr: any) {
-            sendJson(res, 500, { status: 'error', error: `Failed reading reference image: ${refErr?.message}` });
-            return;
-          }
-        }
+        const model = String(body.model || env.OPENROUTER_IMAGE_MODEL || 'recraft/recraft-v4.1-flash-v2:free').trim();
 
         const fetchFn = deps.fetchImpl || globalThis.fetch;
+        // Recraft and text-to-image models on OpenRouter accept ONLY these fields.
+        // Do NOT send output_format or input_references, which triggers HTTP 400 on Recraft.
         const reqPayload: Record<string, any> = {
           model,
           prompt,
           aspect_ratio: aspectRatio,
-          output_format: 'png',
+          n: 1,
         };
-        if (inputReferences) {
-          reqPayload.input_references = inputReferences;
-        }
 
         let upstreamRes: Response;
         try {
@@ -931,6 +930,23 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
           return;
         }
 
+        if (upstreamRes.status === 401) {
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'denied',
+            error: 'Invalid OpenRouter API Key (401)',
+          });
+          sendJson(res, 401, {
+            status: 'error',
+            error: 'Invalid OpenRouter API Key (401 Unauthorized). Check your OPENROUTER_API_KEY in .env.local.',
+          });
+          return;
+        }
+
         if (upstreamRes.status === 402) {
           writeAuditLog(rootDir, {
             timestamp: new Date(now()).toISOString(),
@@ -939,11 +955,45 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
             ipHash,
             params: { model, promptLength: prompt.length },
             resultStatus: 'denied',
-            error: 'OpenRouter balance below minimum credit threshold (402)',
+            error: 'Insufficient OpenRouter credits (402)',
           });
           sendJson(res, 402, {
             status: 'error',
-            error: 'OpenRouter credit balance insufficient (402 Payment Required). Paid OpenRouter Image API calls require an active credit balance above $1.00.',
+            error: 'Insufficient credits (402 Payment Required). Paid OpenRouter models require an active credit balance above $1.00.',
+          });
+          return;
+        }
+
+        if (upstreamRes.status === 404) {
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'failed',
+            error: `Model not found or retired: ${model} (404)`,
+          });
+          sendJson(res, 404, {
+            status: 'error',
+            error: `Model not found or retired (404 Not Found): ${model}. Check OPENROUTER_IMAGE_MODEL in .env.local.`,
+          });
+          return;
+        }
+
+        if (upstreamRes.status === 429) {
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'failed',
+            error: 'OpenRouter rate limit reached (429)',
+          });
+          sendJson(res, 429, {
+            status: 'error',
+            error: 'OpenRouter free tier rate limit reached (429 Too Many Requests). Please retry shortly.',
           });
           return;
         }
@@ -989,7 +1039,7 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
         }
 
         const ext = mediaType.includes('webp') ? 'webp' : (mediaType.includes('jpeg') || mediaType.includes('jpg')) ? 'jpg' : 'png';
-        const filename = `gen_${now()}_${crypto.randomBytes(4).toString('hex')}.${ext}`;
+        const filename = `gen_${now()}.${ext}`;
         const generatedDir = path.resolve(rootDir, 'data', 'generated_images');
         if (!fs.existsSync(generatedDir)) {
           fs.mkdirSync(generatedDir, { recursive: true });
@@ -998,7 +1048,7 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
         const imageBuffer = Buffer.from(b64Json, 'base64');
         fs.writeFileSync(outFilePath, imageBuffer);
 
-        const cost = result?.usage?.cost ?? null;
+        const cost = result?.usage?.cost ?? 0;
 
         // Log metadata ONLY to wizard_audit.jsonl. Never log base64 data.
         writeAuditLog(rootDir, {

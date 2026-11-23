@@ -186,7 +186,7 @@ AVAILABLE ACTIONS:
     - RENDER_AVATAR (Tier 2): { "audioUrl": "...", "avatarId": "..." }
     - RENDER_AVATAR_DIRECT (Tier 2): { "clipId": "...", "avatarId": "...", "audioUrl": "...", "imageUrl": "..." }
     - ENROLL_VOICE_PROFILE (Tier 1): { "speakerName": "...", "audioUrl": "...", "vocalTraits": ["..."], "aliases": ["..."] }
-    - GENERATE_IMAGE (Tier 0): { "prompt": "Vivid cinematic visual description...", "aspectRatio": "16:9" | "9:16" | "1:1" | "4:3", "model": "black-forest-labs/flux.2-klein-4b", "referenceImageFilename": "optional filename from previous generation for iterative edits" }
+    - GENERATE_IMAGE (Tier 0): { "prompt": "Vivid cinematic visual description...", "aspectRatio": "1:1" | "16:9" | "9:16" | "4:3" | "3:4" | "3:2" | "2:3" | "auto", "model": "recraft/recraft-v4.1-flash-v2:free" }
 
 14. MONTAGE STUDIO & AUDIO EDITING ACTIONS:
     - RENDER_MONTAGE (Tier 1): { "format": "wav" | "mp4", "clipIds": ["id1", "id2"], "filename": "montage.wav" }

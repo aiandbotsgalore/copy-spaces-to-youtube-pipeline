@@ -498,10 +498,15 @@ export const GenerateImageParamsSchema = z.object({
   prompt: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'prompt is required')),
   aspectRatio: z.preprocess(v => {
     const s = String(v || '').trim();
-    return ['16:9', '9:16', '1:1', '4:3'].includes(s) ? s : '16:9';
-  }, z.enum(['16:9', '9:16', '1:1', '4:3']).optional()),
+    return ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', 'auto'].includes(s) ? s : undefined;
+  }, z.enum(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', 'auto']).optional()),
+  aspect_ratio: z.preprocess(v => {
+    const s = String(v || '').trim();
+    return ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', 'auto'].includes(s) ? s : undefined;
+  }, z.enum(['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', 'auto']).optional()),
   model: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
   referenceImageFilename: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reference_image_filename: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
   reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
 });
 
