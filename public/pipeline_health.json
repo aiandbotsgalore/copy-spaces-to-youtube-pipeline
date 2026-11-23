@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-11-23T07:02:01.322901+00:00",
-  "overall_status": "CRITICAL",
+  "timestamp": "2026-11-23T23:42:01.576259+00:00",
+  "overall_status": "DEGRADED",
   "voice_profiles": {
-    "total": 15,
-    "enrolled": 15,
+    "total": 16,
+    "enrolled": 16,
     "status": "healthy"
   },
   "transcript_coverage": {
@@ -12,45 +12,27 @@
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 4,
+  "recent_failures_count": 2,
   "triaged_failures": [
     {
-      "run_id": 45103307979,
-      "name": "Approved transcript UI checks",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45103307979",
-      "root_cause": "Execution Error: Run 45103307979 failed in Approved transcript UI checks",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 45103307910,
+      "run_id": 45132388290,
       "name": "Transcript Workbench Validation",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45103307910",
-      "root_cause": "Execution Error: Run 45103307910 failed in Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45132388290",
+      "root_cause": "Execution Error: Run 45132388290 failed in Transcript Workbench Validation",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     },
     {
-      "run_id": 45018007174,
-      "name": "Enroll Voice Profile",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45018007174",
-      "root_cause": "Execution Error: Run 45018007174 failed in Enroll Voice Profile",
-      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
-      "is_transient": false,
-      "action": "quarantined"
-    },
-    {
-      "run_id": 45018004386,
-      "name": "Enroll Voice Profile",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45018004386",
-      "root_cause": "Execution Error: Run 45018004386 failed in Enroll Voice Profile",
+      "run_id": 45132388285,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45132388285",
+      "root_cause": "Execution Error: Run 45132388285 failed in Approved transcript UI checks",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 4
+  "quarantined_count": 2
 }
