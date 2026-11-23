@@ -17,7 +17,7 @@ import type {
   ActionExecutionStatus,
   ActionSnapshot,
 } from './copilotTypes';
-import { EnhancedConfig } from '../types';
+import { EnhancedConfig, VoiceProfilesCatalog, VoiceProfile } from '../types';
 import {
   appendLineToRepositoryTextFile,
   dispatchWorkflow,
@@ -1056,7 +1056,13 @@ export async function executeCopilotAction(
           else if (clip) audioUrl = `https://audio.spacepipe.internal/clips/${clip.id}.wav`;
         }
         if (!audioUrl && params.episodeTag) {
-          audioUrl = resolveEpisodeAudioSync(params.episodeTag, ctx.contextPayload?.currentEpisode?.audioUrl);
+          const resolved = resolveEpisodeAudioSync({
+            tag: params.episodeTag,
+            providedUrl: ctx.contextPayload?.currentEpisode?.audioUrl,
+          });
+          if (resolved?.audioUrl) {
+            audioUrl = resolved.audioUrl;
+          }
         }
         if (!audioUrl && ctx.contextPayload?.currentEpisode?.audioUrl) {
           audioUrl = ctx.contextPayload.currentEpisode.audioUrl;
@@ -1275,10 +1281,21 @@ export async function executeCopilotAction(
       }
 
       case 'ENROLL_VOICE_PROFILE': {
-        const catalog = readVoiceCatalog() || { version: 1, updated_at: new Date().toISOString(), profiles: {} };
+        const defaultCatalog: VoiceProfilesCatalog = {
+          version: '1.0',
+          updated_at: new Date().toISOString(),
+          embedding_model: 'ecapa_tdnn',
+          embedding_dim: 192,
+          profiles: {},
+        };
+        const catalog: VoiceProfilesCatalog = readVoiceCatalog() || defaultCatalog;
         const id = params.speakerName;
         const now = new Date().toISOString();
-        const existing = catalog.profiles[id] || {
+        const profiles =
+          catalog.profiles && typeof catalog.profiles === 'object' && !Array.isArray(catalog.profiles)
+            ? (catalog.profiles as Record<string, VoiceProfile>)
+            : {};
+        const existing: VoiceProfile = profiles[id] || {
           name: id,
           aliases: [],
           traits: [],
@@ -1286,7 +1303,7 @@ export async function executeCopilotAction(
           notes: '',
         };
 
-        const updatedProfile = {
+        const updatedProfile: VoiceProfile = {
           ...existing,
           name: id,
           aliases: params.aliases || existing.aliases || [],
@@ -1298,7 +1315,9 @@ export async function executeCopilotAction(
             ...(existing.samples || []),
             {
               id: `sample_${Date.now()}`,
+              audio_url: params.audioUrl,
               url: params.audioUrl,
+              source: 'upload',
               created_at: now,
               verified: true,
             },
@@ -1320,8 +1339,8 @@ export async function executeCopilotAction(
             speakerName: id,
             enrolled: true,
             identityVerified: true,
-            samplesCount: updatedProfile.samples.length,
-            traits: updatedProfile.traits,
+            samplesCount: updatedProfile.samples?.length || 0,
+            traits: updatedProfile.traits || [],
             message: `Voice profile for "${id}" successfully enrolled and verified.`,
           },
         };

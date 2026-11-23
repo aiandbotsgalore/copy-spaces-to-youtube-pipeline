@@ -211,7 +211,12 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
   return async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const host = req.headers.host || 'localhost:5000';
     const parsedUrl = new URL(req.url || '', `http://${host}`);
-    const pathname = parsedUrl.pathname;
+    let pathname = parsedUrl.pathname;
+    // Normalize pathname whether mounted at root or mounted via Connect middleware at /api/ascension
+    if (!pathname.startsWith('/api/ascension')) {
+      pathname = '/api/ascension' + (pathname.startsWith('/') ? pathname : '/' + pathname);
+    }
+    pathname = pathname.replace(/\/+$/, '') || '/api/ascension';
     const method = (req.method || 'GET').toUpperCase();
 
     // CORS & Options

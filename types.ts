@@ -25,6 +25,7 @@ export interface PipelineConfig {
   discordWebhookUrl: string;
   enableScheduledMonitoring: boolean;
   scheduledCron: string;
+  branchName?: string;
   // Pipeline Settings (all optional; defaults live in DEFAULT_CONFIG)
   clipMinScore?: number;
   clipMaxLengthSec?: number;
@@ -107,12 +108,15 @@ export interface DeployStep {
 export interface VoiceSample {
   id: string;
   audio_url: string;
-  source: 'episode' | 'upload' | 'link' | 'legacy';
+  url?: string;
+  source?: 'episode' | 'upload' | 'link' | 'legacy';
   label?: string;
   release_id?: number;
   release_tag?: string;
   start_sec?: number;
   end_sec?: number;
+  created_at?: string;
+  verified?: boolean;
 }
 
 export interface VoiceProfile {
@@ -131,6 +135,8 @@ export interface VoiceProfile {
   embedding_model?: string;
   suggestions_paused?: boolean;
   enrolled_sample_id?: string;
+  traits?: string[];
+  aliases?: string[];
 }
 
 export interface DeadLetterJob {
