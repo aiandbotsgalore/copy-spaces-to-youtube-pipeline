@@ -408,6 +408,93 @@ export const RenderAvatarDirectParamsSchema = z.object({
 });
 
 /* -------------------------------------------------------------------------- */
+/* Ascension API Action Parameter Schemas                                     */
+/* -------------------------------------------------------------------------- */
+
+export const IntrospectNodeLinkageParamsSchema = z.object({
+  query: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  episodeTag: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const RevealVectorEmbeddingsParamsSchema = z.object({
+  text: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'text is required')),
+  topK: z.preprocess(v => (v !== undefined ? Number(v) : 5), z.number().int().min(1).max(50).default(5)),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const ReadFileParamsSchema = z.object({
+  path: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'path is required')),
+  encoding: z.enum(['utf8', 'base64']).default('utf8'),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const WriteFileParamsSchema = z.object({
+  path: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'path is required')),
+  content: z.preprocess(v => String(v || '').trim(), z.string()),
+  encoding: z.enum(['utf8', 'base64']).default('utf8'),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+}).refine(data => !containsSecretContent(data.content), {
+  message: 'Security violation: file content contains hardcoded authentication tokens or secrets',
+  path: ['content'],
+});
+
+export const ExecuteBashCommandParamsSchema = z.object({
+  command: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'command is required')),
+  args: z.array(z.string()).optional(),
+  reason: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'reason is required for bash execution')),
+}).refine(data => {
+  const baseCmd = data.command.toLowerCase().split(/[\\/]/).pop() || '';
+  const allowlist = ['ls', 'dir', 'cat', 'ffprobe', 'ffmpeg', 'sha256sum', 'stat', 'du', 'df', 'wc'];
+  return allowlist.includes(baseCmd);
+}, {
+  message: 'Command is not in allowlist (ls, dir, cat, ffprobe, ffmpeg, sha256sum, stat, du, df, wc)',
+  path: ['command'],
+}).refine(data => {
+  const metacharacters = /[;&|`$><()]/;
+  if (metacharacters.test(data.command)) return false;
+  if (data.args && data.args.some(a => metacharacters.test(a))) return false;
+  return true;
+}, {
+  message: 'Command contains forbidden shell metacharacters',
+  path: ['command'],
+});
+
+export const CloneVoiceProfileParamsSchema = z.object({
+  sourceProfileId: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'sourceProfileId is required')),
+  name: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'name is required')),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const SyncCronParamsSchema = z.object({
+  action: z.enum(['sync', 'dry-run']).default('dry-run'),
+  direction: z.enum(['config_to_workflow', 'workflow_to_config']).default('config_to_workflow'),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const StreamLiveLogsParamsSchema = z.object({
+  runId: z.preprocess(v => (v !== undefined ? Number(v) : undefined), z.number().int().positive().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const SendDiscordMessageParamsSchema = z.object({
+  message: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'message is required')),
+  channel: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const SendSlackMessageParamsSchema = z.object({
+  message: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'message is required')),
+  channel: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const ToggleKillSwitchParamsSchema = z.object({
+  level: z.enum(['resume', 'pause', 'permanent']),
+  reason: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'reason is required for kill switch change')),
+});
+
+/* -------------------------------------------------------------------------- */
 /* Action Schema Registry                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -454,6 +541,17 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   REJECT_SPEAKER: RejectSpeakerParamsSchema,
   RELABEL_SPEAKER: RelabelSpeakerParamsSchema,
   LOAD_CONTRADICTION_REEL: LoadContradictionReelParamsSchema,
+  INTROSPECT_NODE_LINKAGE: IntrospectNodeLinkageParamsSchema,
+  REVEAL_VECTOR_EMBEDDINGS: RevealVectorEmbeddingsParamsSchema,
+  READ_FILE: ReadFileParamsSchema,
+  WRITE_FILE: WriteFileParamsSchema,
+  EXECUTE_BASH_COMMAND: ExecuteBashCommandParamsSchema,
+  CLONE_VOICE_PROFILE: CloneVoiceProfileParamsSchema,
+  SYNC_CRON: SyncCronParamsSchema,
+  STREAM_LIVE_LOGS: StreamLiveLogsParamsSchema,
+  SEND_DISCORD_MESSAGE: SendDiscordMessageParamsSchema,
+  SEND_SLACK_MESSAGE: SendSlackMessageParamsSchema,
+  TOGGLE_KILL_SWITCH: ToggleKillSwitchParamsSchema,
 };
 
 /**
@@ -491,7 +589,7 @@ export function validateActionParams(
  * Determines the authorization tier for an action instance based on what it actually modifies.
  * Tier 0: Run immediately (search, inspect, navigate, play, pause, seek, logs, fetch audio).
  * Tier 1: Auto-apply allowed if Auto-Apply is on; reliable undo snapshot required.
- * Tier 2: Explicit user confirmation required (destinations, pipelines, cloud dispatch, sensitive config, costs, workflow file write).
+ * Tier 2: Explicit user confirmation required (destinations, pipelines, cloud dispatch, sensitive config, costs, workflow file write, kill switch).
  */
 export function resolveActionTier(actionType: CopilotActionType, params: Record<string, any>): ActionTier {
   switch (actionType) {
@@ -504,6 +602,10 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'INSPECT_KNOWLEDGE_GRAPH':
     case 'FETCH_RAW_AUDIO':
     case 'GET_SERVER_LOGS':
+    case 'STREAM_LIVE_LOGS':
+    case 'READ_FILE':
+    case 'INTROSPECT_NODE_LINKAGE':
+    case 'REVEAL_VECTOR_EMBEDDINGS':
     case 'PLAY_AUDIO':
     case 'PAUSE_AUDIO':
     case 'SEEK_AUDIO':
@@ -521,6 +623,11 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'PURGE_AND_REINDEX':
     case 'AUTO_EXECUTE_VOX':
     case 'ENROLL_VOICE_PROFILE':
+    case 'CLONE_VOICE_PROFILE':
+    case 'WRITE_FILE':
+    case 'SYNC_CRON':
+    case 'SEND_DISCORD_MESSAGE':
+    case 'SEND_SLACK_MESSAGE':
     case 'APPROVE_SPEAKER':
     case 'REJECT_SPEAKER':
     case 'RELABEL_SPEAKER':
@@ -534,7 +641,9 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
       return touchesSensitive ? 2 : 1;
     }
 
+    case 'EXECUTE_BASH_COMMAND':
     case 'WRITE_WORKFLOW_FILE':
+    case 'TOGGLE_KILL_SWITCH':
     case 'ENQUEUE_SPACE':
     case 'DISPATCH_WORKFLOW':
     case 'CREATE_PROJECT':

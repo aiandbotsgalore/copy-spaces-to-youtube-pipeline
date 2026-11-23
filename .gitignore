@@ -82,6 +82,8 @@ public/motion_templates/
 # Cloudflare Wrangler
 .wrangler/
 
+# Runtime data & audit logs
+/data/
 
 tmp_model/
 

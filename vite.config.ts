@@ -11,6 +11,7 @@ import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
 import { createOutputStatic } from './server/serveFile';
 import { createAvatarRenderHandler } from './server/avatarRender';
 import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
+import { createAscensionApiMiddleware } from './server/ascensionApi';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -130,6 +131,12 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
 
   // Modal WhisperX + PyAnnote 3.1 Neural Cloud Transcription API
   middlewares.use('/api/transcribe/modal', createModalTranscribeHandler({
+    rootDir: __dirname,
+    getEnv: () => ({ ...process.env, ...env }),
+  }));
+
+  // Ascension API: Divine Action Hooks, GraphRAG Mutation, Sandboxed Exec & Kill Switch
+  middlewares.use('/api/ascension', createAscensionApiMiddleware({
     rootDir: __dirname,
     getEnv: () => ({ ...process.env, ...env }),
   }));

@@ -1144,7 +1144,7 @@ interface ActionCardProps {
 
 const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAnalyze }) => {
   const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS';
-  const isInspectionAction = action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO';
+  const isInspectionAction = action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO' || action.action === 'READ_FILE' || action.action === 'INTROSPECT_NODE_LINKAGE' || action.action === 'REVEAL_VECTOR_EMBEDDINGS' || action.action === 'STREAM_LIVE_LOGS';
   const tier = action.tier ?? resolveActionTier(action.action, action.params);
   const isTier2 = tier === 2;
   const [showTelemetry, setShowTelemetry] = useState(false);
@@ -1207,10 +1207,32 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAn
         return { label: 'Server Logs', bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40' };
       case 'ENROLL_VOICE_PROFILE':
         return { label: 'Enroll Voice', bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'CLONE_VOICE_PROFILE':
+        return { label: 'Clone Voice', bg: 'bg-teal-500/20 text-teal-300 border-teal-500/40' };
       case 'MUTATE_KNOWLEDGE_GRAPH':
         return { label: 'Mutate Graph', bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40' };
+      case 'INTROSPECT_NODE_LINKAGE':
+        return { label: 'Graph Topology', bg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' };
+      case 'REVEAL_VECTOR_EMBEDDINGS':
+        return { label: 'Vector Search', bg: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' };
       case 'PURGE_AND_REINDEX':
         return { label: 'Purge & Reindex', bg: 'bg-rose-500/20 text-rose-300 border-rose-500/40' };
+      case 'READ_FILE':
+        return { label: 'Read File', bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40' };
+      case 'WRITE_FILE':
+        return { label: 'Write File', bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40' };
+      case 'EXECUTE_BASH_COMMAND':
+        return { label: 'Bash Exec', bg: 'bg-red-500/20 text-red-300 border-red-500/40' };
+      case 'SYNC_CRON':
+        return { label: 'Cron Sync', bg: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' };
+      case 'STREAM_LIVE_LOGS':
+        return { label: 'Stream Logs', bg: 'bg-sky-500/20 text-sky-300 border-sky-500/40' };
+      case 'SEND_DISCORD_MESSAGE':
+        return { label: 'Discord Alert', bg: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' };
+      case 'SEND_SLACK_MESSAGE':
+        return { label: 'Slack Alert', bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'TOGGLE_KILL_SWITCH':
+        return { label: 'Kill Switch', bg: 'bg-red-600/30 text-red-300 border-red-500/60 font-bold' };
       case 'GET_QUEUE':
       case 'GET_RUN_HISTORY':
       case 'GET_VOICE_PROFILES':

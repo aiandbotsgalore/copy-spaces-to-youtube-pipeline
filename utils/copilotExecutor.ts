@@ -1353,6 +1353,201 @@ export async function executeCopilotAction(
         };
       }
 
+      /* ─── ASCENSION API: EXPANDED SYSTEM ACTION HOOKS ─── */
+      case 'INTROSPECT_NODE_LINKAGE': {
+        try {
+          const res = await fetch('/api/ascension/graph/introspect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: params.query, episodeTag: params.episodeTag }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            return { ok: true, status: 'completed', resultData: data };
+          }
+        } catch {}
+
+        // Fallback to internal reader if offline
+        const local = await executeCopilotAction(
+          { ...action, action: 'INSPECT_KNOWLEDGE_GRAPH', params },
+          ctx,
+          options
+        );
+        return local;
+      }
+
+      case 'REVEAL_VECTOR_EMBEDDINGS': {
+        try {
+          const res = await fetch('/api/ascension/graph/query-embeddings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: params.text, topK: params.topK }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Embeddings query failed: ${res.status}`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Vector embeddings search failed.' };
+        }
+      }
+
+      case 'READ_FILE': {
+        try {
+          const res = await fetch('/api/ascension/fs/read', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: params.path, encoding: params.encoding }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `File read error (${res.status})`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Failed to read file.' };
+        }
+      }
+
+      case 'WRITE_FILE': {
+        try {
+          const res = await fetch('/api/ascension/fs/write', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              path: params.path,
+              content: params.content,
+              encoding: params.encoding,
+            }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `File write failed (${res.status})`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Failed to write file.' };
+        }
+      }
+
+      case 'EXECUTE_BASH_COMMAND': {
+        try {
+          const res = await fetch('/api/ascension/fs/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command: params.command, args: params.args }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || data.stderr || `Command failed with exit code ${data.exitCode}`);
+          }
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Execution error.' };
+        }
+      }
+
+      case 'CLONE_VOICE_PROFILE': {
+        try {
+          const res = await fetch('/api/ascension/voice/clone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceProfileId: params.sourceProfileId,
+              name: params.name,
+            }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Voice clone failed (${res.status})`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Voice cloning failed.' };
+        }
+      }
+
+      case 'SYNC_CRON': {
+        try {
+          const res = await fetch('/api/ascension/pipeline/cron-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: params.action, direction: params.direction }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Cron sync failed (${res.status})`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Cron sync failed.' };
+        }
+      }
+
+      case 'STREAM_LIVE_LOGS': {
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            streamUrl: '/api/ascension/logs/stream',
+            runId: params.runId,
+            message: 'Active SSE log stream connection established.',
+          },
+        };
+      }
+
+      case 'SEND_DISCORD_MESSAGE': {
+        try {
+          const res = await fetch('/api/ascension/notify/discord', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: params.message, channel: params.channel }),
+          });
+          const data = await res.json();
+          return { ok: res.ok, status: res.ok ? 'completed' : 'failed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Discord notify failed.' };
+        }
+      }
+
+      case 'SEND_SLACK_MESSAGE': {
+        try {
+          const res = await fetch('/api/ascension/notify/slack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: params.message, channel: params.channel }),
+          });
+          const data = await res.json();
+          return { ok: res.ok, status: res.ok ? 'completed' : 'failed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Slack notify failed.' };
+        }
+      }
+
+      case 'TOGGLE_KILL_SWITCH': {
+        try {
+          const res = await fetch('/api/ascension/kill-switch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ level: params.level, reason: params.reason }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Failed to update kill-switch (${res.status})`);
+          }
+          const data = await res.json();
+          return { ok: true, status: 'completed', resultData: data };
+        } catch (e: any) {
+          return { ok: false, status: 'failed', errorMessage: e?.message || 'Failed to toggle kill switch.' };
+        }
+      }
+
       default:
         return {
           ok: false,

@@ -200,8 +200,21 @@ AVAILABLE ACTIONS:
 16. WORKFLOW & PIPELINE CODE ACTIONS:
     - WRITE_WORKFLOW_FILE (Tier 2): { "filename": "monitor.yml", "content": "name: ...\non: ...\njobs: ...", "commitMessage": "..." }
     - GET_SERVER_LOGS (Tier 0): { "runId": 12345678, "jobId": 87654321, "lines": 100 }
+    - SYNC_CRON (Tier 1): { "action": "sync" | "dry-run", "direction": "config_to_workflow" | "workflow_to_config" }
 
-17. READ_ONLY_INSPECTION_TOOLS (Tier 0):
+17. SANDBOXED FILESYSTEM & SYSTEM CONTROL ACTIONS:
+    - READ_FILE (Tier 0): { "path": "data/notes.txt", "encoding": "utf8" }
+    - WRITE_FILE (Tier 1): { "path": "data/notes.txt", "content": "..." }
+    - EXECUTE_BASH_COMMAND (Tier 2): { "command": "ls", "args": ["-la"], "reason": "Inspect audio directory" }
+    - INTROSPECT_NODE_LINKAGE (Tier 0): { "query": "eviction", "episodeTag": "AQ-0118" }
+    - REVEAL_VECTOR_EMBEDDINGS (Tier 0): { "text": "statements about NDAs", "topK": 5 }
+    - CLONE_VOICE_PROFILE (Tier 1): { "sourceProfileId": "Logan", "name": "Logan_Reference_Clone" }
+    - STREAM_LIVE_LOGS (Tier 0): { "runId": 12345678 }
+    - SEND_DISCORD_MESSAGE (Tier 1): { "message": "Episode processing complete!" }
+    - SEND_SLACK_MESSAGE (Tier 1): { "message": "Pipeline alert: job failure detected." }
+    - TOGGLE_KILL_SWITCH (Tier 2): { "level": "resume" | "pause" | "permanent", "reason": "Operator maintenance" }
+
+18. READ_ONLY_INSPECTION_TOOLS (Tier 0):
     - GET_QUEUE: { "queueType": "batch" | "priority" | "both" }
     - GET_RUN_HISTORY: { "limit": 10, "status": "all" | "failed" | "completed" | "active" }
     - GET_RUN_JOBS: { "runId": 12345678, "runIds": [12345678, 87654321] }

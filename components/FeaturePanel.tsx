@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mic, Bell, BellOff, Clock, Zap, Info } from 'lucide-react';
 import { EnhancedConfig } from '../types';
+import { KillSwitchCard } from './KillSwitchCard';
 
 interface Props {
   config: EnhancedConfig;
@@ -56,6 +57,9 @@ const FeaturePanel: React.FC<Props> = ({ config, onChange }) => {
       </div>
 
       <div className="space-y-4">
+        {/* Ascension Copilot Safeguard Kill Switch */}
+        <KillSwitchCard />
+
         <ToggleRow
           enabled={config.enableTranscription}
           onToggle={() => onChange({ enableTranscription: !config.enableTranscription })}

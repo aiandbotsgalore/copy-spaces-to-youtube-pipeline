@@ -473,7 +473,7 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
 
       if (autoApply && enrichedActions.length > 0) {
         for (const action of enrichedActions) {
-          const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO';
+          const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO' || action.action === 'READ_FILE' || action.action === 'INTROSPECT_NODE_LINKAGE' || action.action === 'REVEAL_VECTOR_EMBEDDINGS' || action.action === 'STREAM_LIVE_LOGS';
           if (!isReadOnly && action.status !== 'completed' && action.tier !== undefined && action.tier < 2) {
             await applyAction(action, { triggerSource: 'auto_apply' });
           }
