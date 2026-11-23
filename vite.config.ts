@@ -8,7 +8,7 @@ import { AUDIO_PROXY_PATH, createAudioProxy } from './server/audioProxy';
 import { searchTranscriptLexical } from './server/transcriptSearchService';
 import { createVoxSynthesizeHandler } from './server/voxSynthesize';
 import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
-import { createOutputStatic } from './server/serveFile';
+import { createOutputStatic, createSpeakerSamplesStatic } from './server/serveFile';
 import { createAvatarRenderHandler } from './server/avatarRender';
 import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
 import { createAscensionApiMiddleware, createGeneratedMediaMiddleware } from './server/ascensionApi';
@@ -242,6 +242,7 @@ export default defineConfig(({ mode }) => {
           server.middlewares.use('/api/script', scriptStudio);
           // public/output is watch-ignored, so files written while the server runs (Vox takes) are served from disk here.
           server.middlewares.use('/output', createOutputStatic(__dirname));
+          server.middlewares.use('/speaker_samples', createSpeakerSamplesStatic(__dirname));
         },
         configurePreviewServer(server) {
           server.middlewares.use('/api/montage/direct', director);
@@ -249,6 +250,7 @@ export default defineConfig(({ mode }) => {
           server.middlewares.use('/api/script', scriptStudio);
           // public/output is watch-ignored, so files written while the server runs (Vox takes) are served from disk here.
           server.middlewares.use('/output', createOutputStatic(__dirname));
+          server.middlewares.use('/speaker_samples', createSpeakerSamplesStatic(__dirname));
         },
       }
     ],

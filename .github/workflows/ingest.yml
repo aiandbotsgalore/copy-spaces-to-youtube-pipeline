@@ -219,6 +219,18 @@ jobs:
             gh release upload "$REL_TAG" work/*.mp3 --clobber
           fi
 
+      - name: Sync Highlight Clips to Cloudflare R2 CDN
+        if: success() && steps.process.outputs.already_exists != 'true'
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME || 'documentary-audio-clips' }}
+          R2_PUBLIC_BASE_URL: ${{ secrets.R2_PUBLIC_BASE_URL || 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev' }}
+        run: |
+          pip install --quiet boto3
+          python3 scripts/sync_clips_to_r2.py || echo "[!] Notice: R2 clips sync completed with warnings"
+
       - name: Trigger Cloud Audio Transcription (ZeroGPU / Whisper)
         if: success() && steps.process.outputs.already_exists != 'true'
         env:

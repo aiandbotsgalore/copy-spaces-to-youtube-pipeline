@@ -1,7 +1,16 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { apostropheAlternate, createAudioProxy, isAllowedAudioUrl, isAllowedAudioHost } from '../../server/audioProxy';
+import {
+  apostropheAlternate,
+  createAudioProxy,
+  isAllowedAudioUrl,
+  isAllowedAudioHost,
+  getSliceKey,
+  serveAudioFile,
+  ensureSliceAvailable,
+  SLICES_CACHE_DIR,
+} from '../../server/audioProxy';
 import { needsAudioProxy, toFetchableUrl, toSliceableUrl, getEdgeSlicerBaseUrl } from '../audioUrl';
 
 const bytes = (n: number) => new Uint8Array(Array.from({ length: n }, (_, i) => i % 251));
@@ -165,3 +174,95 @@ describe('proxy', () => {
     expect(Object.keys(log[0].headers).map(k => k.toLowerCase()).sort()).toEqual(['user-agent']);
   });
 });
+
+describe('exact audio slicing & caching', () => {
+  it('generates consistent deterministic slice keys', () => {
+    const k1 = getSliceKey('https://github.com/test.mp3', 266.6, 275.6);
+    const k2 = getSliceKey('https://github.com/test.mp3', 266.6, 275.6);
+    const k3 = getSliceKey('https://github.com/test.mp3', 266.6, 280.0);
+    expect(k1).toBe(k2);
+    expect(k1).toHaveLength(16);
+    expect(k1).not.toBe(k3);
+  });
+
+  it('serves local slice file with byte range support', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const tempFile = path.resolve(SLICES_CACHE_DIR, 'test_serve_file.mp3');
+    if (!fs.existsSync(SLICES_CACHE_DIR)) fs.mkdirSync(SLICES_CACHE_DIR, { recursive: true });
+    fs.writeFileSync(tempFile, Buffer.from('0123456789ABCDEF'));
+
+    const testServer = http.createServer((req, res) => {
+      serveAudioFile(tempFile, req, res);
+    });
+    await new Promise<void>(r => testServer.listen(0, '127.0.0.1', r));
+    const port = (testServer.address() as AddressInfo).port;
+    const base = `http://127.0.0.1:${port}`;
+
+    try {
+      // Full request
+      const rFull = await fetch(base);
+      expect(rFull.status).toBe(200);
+      expect(rFull.headers.get('content-type')).toBe('audio/mpeg');
+      expect(rFull.headers.get('accept-ranges')).toBe('bytes');
+      expect(await rFull.text()).toBe('0123456789ABCDEF');
+
+      // Range request
+      const rRange = await fetch(base, { headers: { Range: 'bytes=4-9' } });
+      expect(rRange.status).toBe(206);
+      expect(rRange.headers.get('content-range')).toBe('bytes 4-9/16');
+      expect(await rRange.text()).toBe('456789');
+
+      // Out of bounds Range request (416)
+      const rOob = await fetch(base, { headers: { Range: 'bytes=99-150' } });
+      expect(rOob.status).toBe(416);
+      expect(rOob.headers.get('content-range')).toBe('bytes */16');
+    } finally {
+      await new Promise<void>(resolve => testServer.close(() => resolve()));
+      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    }
+  });
+
+  it('blocks path traversal outside slices cache directory', async () => {
+    const testServer = http.createServer((req, res) => {
+      serveAudioFile('C:\\Windows\\System32\\drivers\\etc\\hosts', req, res);
+    });
+    await new Promise<void>(r => testServer.listen(0, '127.0.0.1', r));
+    const port = (testServer.address() as AddressInfo).port;
+    const base = `http://127.0.0.1:${port}`;
+
+    try {
+      const r = await fetch(base);
+      expect(r.status).toBe(403);
+      expect(await r.text()).toBe('Access denied');
+    } finally {
+      await new Promise<void>(resolve => testServer.close(() => resolve()));
+    }
+  });
+
+  it('rejects invalid or inverted slice time boundaries in ensureSliceAvailable', async () => {
+    await expect(ensureSliceAvailable('https://github.com/test.mp3', NaN, 10)).rejects.toThrow('Invalid slice time boundaries');
+    await expect(ensureSliceAvailable('https://github.com/test.mp3', 20, 10)).rejects.toThrow('Invalid slice time boundaries');
+    await expect(ensureSliceAvailable('https://github.com/test.mp3', 10, 10)).rejects.toThrow('Invalid slice time boundaries');
+  });
+
+  it('resolves directly from local cache without running generator when cached', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const testTarget = 'https://github.com/aiandbotsgalore/test/test.mp3';
+    const k = getSliceKey(testTarget, 10, 20);
+    const mockFile = path.resolve(SLICES_CACHE_DIR, `slice_${k}.mp3`);
+    if (!fs.existsSync(SLICES_CACHE_DIR)) fs.mkdirSync(SLICES_CACHE_DIR, { recursive: true });
+    // Write fake buffer > 1024 bytes
+    fs.writeFileSync(mockFile, Buffer.alloc(2048, 1));
+
+    try {
+      const resultPath = await ensureSliceAvailable(testTarget, 10, 20);
+      expect(resultPath).toBe(mockFile);
+      expect(fs.existsSync(resultPath)).toBe(true);
+    } finally {
+      if (fs.existsSync(mockFile)) fs.unlinkSync(mockFile);
+    }
+  });
+});
+

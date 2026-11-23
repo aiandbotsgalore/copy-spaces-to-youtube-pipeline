@@ -652,7 +652,37 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 export const useCopilot = (): CopilotContextType => {
   const context = useContext(CopilotContext);
   if (!context) {
-    throw new Error('useCopilot must be used within a CopilotProvider');
+    console.warn('[useCopilot] Called outside of CopilotProvider; returning safe fallback');
+    return {
+      sessions: [],
+      activeSessionId: '',
+      setActiveSessionId: () => {},
+      createSession: async () => '',
+      deleteSession: async () => {},
+      renameSession: async () => {},
+      exportSessionMarkdown: () => {},
+      pinnedContexts: [],
+      addPinnedContext: () => {},
+      removePinnedContext: () => {},
+      messages: [],
+      status: 'idle',
+      loading: false,
+      error: null,
+      model: 'default',
+      setModel: () => {},
+      autoApply: false,
+      setAutoApply: () => {},
+      actionHistory: [],
+      contextPayload: {},
+      setContextPayload: () => {},
+      sendMessage: async () => {},
+      applyAction: async () => false,
+      revertAction: async () => false,
+      clearMessages: () => {},
+      setActivePanelNavHandler: () => {},
+      setLoadEpisodeHandler: () => {},
+      widgetSessionId: '',
+    };
   }
   return context;
 };

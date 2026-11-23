@@ -60,3 +60,27 @@ export function createOutputStatic(root: string) {
     serveFile(req, res, full);
   };
 }
+
+/** Middleware for /speaker_samples: files under <root>/speaker_samples or <root>/public/speaker_samples, GET and HEAD only; anything else falls through. */
+export function createSpeakerSamplesStatic(root: string) {
+  const base1 = path.resolve(root, 'speaker_samples');
+  const base2 = path.resolve(root, 'public', 'speaker_samples');
+  return (req: IncomingMessage, res: ServerResponse, next: () => void) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    let rel: string;
+    try { rel = decodeURIComponent(new URL(req.url || '/', 'http://local').pathname); } catch { return next(); }
+    for (const base of [base1, base2]) {
+      const full = path.resolve(base, '.' + rel);
+      if (full.startsWith(base + path.sep)) {
+        try {
+          const st = fs.statSync(full);
+          if (st.isFile()) {
+            serveFile(req, res, full);
+            return;
+          }
+        } catch {}
+      }
+    }
+    next();
+  };
+}

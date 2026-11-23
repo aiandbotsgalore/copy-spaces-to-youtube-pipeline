@@ -103,18 +103,30 @@ def main():
                 except Exception as e:
                     print(f"  [!] Failed {k}: {e}")
 
-    # Update public/voice_profiles.json Logan audio references to CDN
-    vp_path = Path("public/voice_profiles.json")
-    if vp_path.exists():
-        with open(vp_path, "r", encoding="utf-8") as f:
-            vp = json.load(f)
-        profiles = vp.get("profiles", {})
-        if "Logan" in profiles:
-            profiles["Logan"]["sample_audio_url"] = f"{CDN_BASE}/speaker_samples/Logan/master_reference.wav"
-            profiles["Logan"]["sample_audio_mp3"] = f"{CDN_BASE}/speaker_samples/Logan/master_reference.mp3"
-        with open(vp_path, "w", encoding="utf-8") as f:
-            json.dump(vp, f, indent=2)
-        print("[✓] Updated public/voice_profiles.json with Cloudflare R2 speaker sample URLs.")
+    # Update voice_profiles.json and public/voice_profiles.json with Cloudflare R2 CDN URLs
+    for vp_name in ["voice_profiles.json", "public/voice_profiles.json"]:
+        vp_path = Path(vp_name)
+        if vp_path.exists():
+            with open(vp_path, "r", encoding="utf-8") as f:
+                vp = json.load(f)
+            profiles = vp.get("profiles", {})
+            for name, prof in profiles.items():
+                sample = prof.get("sample_audio_url") or ""
+                if sample.startswith("speaker_samples/"):
+                    enc = "/".join(urllib.parse.quote(seg) for seg in sample.split("/"))
+                    prof["sample_audio_url_cdn"] = f"{CDN_BASE}/{enc}"
+                    if sample.endswith(".wav"):
+                        mp3_candidate = sample[:-4] + ".mp3"
+                        prof["sample_audio_mp3"] = f"{CDN_BASE}/{'/'.join(urllib.parse.quote(s) for s in mp3_candidate.split('/'))}"
+                if "samples" in prof and isinstance(prof["samples"], list):
+                    for s in prof["samples"]:
+                        s_url = s.get("audio_url", "")
+                        if s_url.startswith("speaker_samples/"):
+                            s_enc = "/".join(urllib.parse.quote(seg) for seg in s_url.split("/"))
+                            s["audio_url_cdn"] = f"{CDN_BASE}/{s_enc}"
+            with open(vp_path, "w", encoding="utf-8") as f:
+                json.dump(vp, f, indent=2)
+            print(f"[✓] Updated {vp_name} with Cloudflare R2 speaker sample CDN URLs.")
 
     print("[🎉] Speaker samples sync complete!")
 

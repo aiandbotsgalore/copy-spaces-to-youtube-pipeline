@@ -654,8 +654,20 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   };
 
   const resolveSampleUrl = (url: string) => {
-    if (/^https?:\/\//i.test(url) || !owner || !repo || url.startsWith('/')) return url;
-    const path = url.split('/').map(encodeURIComponent).join('/');
+    if (!url) return '';
+    if (/^https?:\/\//i.test(url)) return url;
+    const clean = url.replace(/^\/+/, '');
+    if (clean.startsWith('speaker_samples/')) {
+      const encoded = clean.split('/').map(encodeURIComponent).join('/');
+      // In local dev, use local byte-range streamer; on deployed web instances, use Cloudflare R2 CDN
+      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return `/${encoded}`;
+      }
+      return `https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/${encoded}`;
+    }
+    if (url.startsWith('/')) return url;
+    if (!owner || !repo) return `/${clean.split('/').map(encodeURIComponent).join('/')}`;
+    const path = clean.split('/').map(encodeURIComponent).join('/');
     return `https://raw.githubusercontent.com/${owner}/${repo}/master/${path}`;
   };
 
@@ -1067,7 +1079,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                         const current = catalogRef.current.profiles[id];
                         if (current) updateSamples(id, getVoiceSamples(current).filter(item => item.id !== sample.id), 'Sample removed.');
                       }}
-                      onPrepare={hasGitHub && !savingGitHub && matching === 'needs-preparation' && !profile.identity_verified
+                      onPrepare={hasGitHub && !savingGitHub && matching === 'needs-preparation'
                         ? sample => enrollSavedSample(id, sample) : undefined}
                       onOpenEpisode={onOpenTranscript}
                     />

@@ -24,6 +24,7 @@ import { TranscriptExportBar } from './transcript/TranscriptExportBar';
 import { useMontage } from '../contexts/MontageContext';
 import { useCopilot } from '../contexts/CopilotContext';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
+import { toSliceableUrl } from '../utils/audioUrl';
 import { parseEpisodeSummaries } from '../utils/contracts/transcript';
 import type { VoiceProfile, VoiceProfilesCatalog } from '../types';
 import { collectConfirmedProfiles, mergeVoiceCatalog, readSpeakerAssignments, readVoiceCatalog,
@@ -2277,28 +2278,24 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
 
   const handlePlayGlobalResult = (res: GlobalSearchResult) => {
     if (!res.audio_url) return;
-    const effectiveTime = currentTime - audioSeekOffsetSec;
-    const isThisPlaying = current?.id === res.release_id && isPlaying &&
-      effectiveTime >= res.segment.start &&
-      effectiveTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30);
+    const startSec = Math.max(0, res.segment.start);
+    const endSec = res.segment.end !== null && res.segment.end > startSec ? res.segment.end : startSec + 12;
+    const sliceId = `slice_${res.release_tag}_${startSec.toFixed(1)}_${endSec.toFixed(1)}`;
+    const sliceUrl = toSliceableUrl(res.audio_url, startSec, endSec);
 
-    if (isThisPlaying) {
+    const isCurrentSlice = current?.id === sliceId || current?.audioUrl === sliceUrl;
+    if (isCurrentSlice) {
       togglePlay();
       return;
     }
 
     const nowPlaying: NowPlayingEpisode = {
-      id: res.release_id,
-      title: res.title,
-      audioUrl: res.audio_url,
+      id: sliceId,
+      title: `🎙️ ${res.segment.speaker}: "${res.segment.text.slice(0, 45).trim()}…"`,
+      audioUrl: sliceUrl,
+      durationLabel: formatSeconds(endSec - startSec),
     };
-    const targetSeekSec = Math.max(0, res.segment.start + audioSeekOffsetSec);
-    if (current?.id !== res.release_id) {
-      play(nowPlaying, targetSeekSec);
-    } else {
-      seek(targetSeekSec);
-      if (!isPlaying) togglePlay();
-    }
+    play(nowPlaying, 0);
   };
 
   const handleOpenInFullTranscript = (res: GlobalSearchResult) => {
@@ -3645,9 +3642,18 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
                           const theme = getSpeakerTheme(res.segment.speaker, savedSpeakers);
                           const matchedClip = getMatchingExtractedClip(res);
                           const effectiveGlobalTime = currentTime - audioSeekOffsetSec;
-                          const isPlayingThis = (current?.id === res.release_id || (matchedClip && current?.audioUrl === `./${matchedClip.url}`)) && isPlaying &&
-                            ((matchedClip && current?.audioUrl === `./${matchedClip.url}`) || (effectiveGlobalTime >= res.segment.start &&
-                            effectiveGlobalTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30)));
+                          const startSec = Math.max(0, res.segment.start);
+                          const endSec = res.segment.end !== null && res.segment.end > startSec ? res.segment.end : startSec + 12;
+                          const sliceId = `slice_${res.release_tag}_${startSec.toFixed(1)}_${endSec.toFixed(1)}`;
+                          const isSlicePlaying = current?.id === sliceId || (typeof current?.id === 'string' && current.id.startsWith(`slice_${res.release_tag}_${startSec.toFixed(1)}`));
+
+                          const isPlayingThis = isPlaying && (
+                            (matchedClip && current?.audioUrl === `./${matchedClip.url}`) ||
+                            isSlicePlaying ||
+                            (current?.id === res.release_id &&
+                              effectiveGlobalTime >= res.segment.start &&
+                              effectiveGlobalTime <= (res.segment.end !== null && res.segment.end > res.segment.start ? res.segment.end : res.segment.start + 30))
+                          );
                           const initialChar = res.segment.speaker.replace(/^Speaker\s+/i, '').trim().charAt(0).toUpperCase() || 'S';
 
                           let searchWordIndex = -1;
@@ -3659,18 +3665,19 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
                               endSec: res.segment.end,
                               words: (res.segment as any).words,
                             });
+                            const timeForWords = isSlicePlaying ? (res.segment.start + currentTime) : effectiveGlobalTime;
                             for (let wI = 0; wI < searchWords.length; wI++) {
                               const wObj = searchWords[wI];
                               const nextStart = wI < searchWords.length - 1 ? searchWords[wI + 1].start : (wObj.end + 0.8);
-                              if (effectiveGlobalTime >= wObj.start && effectiveGlobalTime < nextStart) {
+                              if (timeForWords >= wObj.start && timeForWords < nextStart) {
                                 searchWordIndex = wI;
                                 break;
                               }
                             }
-                            if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= res.segment.start && effectiveGlobalTime < searchWords[0].start) {
+                            if (searchWordIndex === -1 && searchWords.length > 0 && timeForWords >= res.segment.start && timeForWords < searchWords[0].start) {
                               searchWordIndex = 0;
                             }
-                            if (searchWordIndex === -1 && searchWords.length > 0 && effectiveGlobalTime >= searchWords[searchWords.length - 1].start) {
+                            if (searchWordIndex === -1 && searchWords.length > 0 && timeForWords >= searchWords[searchWords.length - 1].start) {
                               searchWordIndex = searchWords.length - 1;
                             }
                           }
@@ -3843,17 +3850,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
                                         <span
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            const nowPlaying: NowPlayingEpisode = {
-                                              id: res.release_id,
-                                              title: res.title,
-                                              audioUrl: res.audio_url,
-                                            };
-                                            const targetSeekSec = Math.max(0, w.start + audioSeekOffsetSec);
-                                            if (current?.id !== res.release_id) {
-                                              play(nowPlaying, targetSeekSec);
-                                            } else {
-                                              seek(targetSeekSec);
+                                            if (isSlicePlaying) {
+                                              const wordRelTime = Math.max(0, w.start - res.segment.start);
+                                              seek(wordRelTime);
                                               if (!isPlaying) togglePlay();
+                                            } else {
+                                              handlePlayGlobalResult(res);
                                             }
                                           }}
                                           className={`cursor-pointer transition-all duration-75 rounded px-1 -mx-0.5 py-0.5 ${

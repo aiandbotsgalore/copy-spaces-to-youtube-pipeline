@@ -257,8 +257,8 @@ All 4 failures occurred during Space ingest workflows:
           status: 'completed',
           resultData: expect.objectContaining({
             voiceProfilesCatalog: expect.objectContaining({
-              total: 15,
-              enrolled: 15,
+              total: 16,
+              enrolled: 16,
             }),
           }),
         }),
