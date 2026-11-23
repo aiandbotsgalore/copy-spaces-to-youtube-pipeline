@@ -82,3 +82,6 @@ public/motion_templates/
 # Cloudflare Wrangler
 .wrangler/
 
+
+tmp_model/
+

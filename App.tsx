@@ -743,6 +743,8 @@ function AppContent() {
                   config={config}
                   onViewRunHistory={() => setActivePanel('run-history')}
                   onNavigateBatch={() => setActivePanel('batch')}
+                  onNavigateVoiceProfiles={() => setActivePanel('voice-profiles')}
+                  onUpdateWatchedHosts={hosts => updateConfig({ watchedHosts: hosts })}
                 />
               ) : activePanel === 'batch' ? (
                 <React.Suspense fallback={<div className="p-8 text-slate-400 text-sm">Loading Batch Submit…</div>}>

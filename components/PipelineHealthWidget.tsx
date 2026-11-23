@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   ShieldCheck, AlertCircle, CheckCircle2, Clock, RefreshCw,
-  ExternalLink, Loader, Activity, Key, Server, Check, X, AlertTriangle, FileText
+  ExternalLink, Loader, Activity, Key, Server, Check, X, AlertTriangle, FileText, RotateCcw
 } from 'lucide-react';
 import { EnhancedConfig, WorkflowRun, DeadLetterJob } from '../types';
 import { useWorkflowRuns, isActiveRun } from '../hooks/useWorkflowRuns';
-import { getCachedRateLimit, onRateLimitChange, GitHubRateLimitInfo, validateToken } from '../utils/github';
+import { getCachedRateLimit, onRateLimitChange, GitHubRateLimitInfo, validateToken, rerunWorkflowRun } from '../utils/github';
 import { loadHealedRunIds, loadDeadLetterQueue, removeFromDeadLetterQueue, markRunHealed } from '../utils/storage';
 
 interface Props {
@@ -25,6 +25,8 @@ export const PipelineHealthWidget: React.FC<Props> = ({
   const [tokenUser, setTokenUser] = useState<string | null>(null);
   const [tokenChecking, setTokenChecking] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [retryingRunId, setRetryingRunId] = useState<number | null>(null);
+  const [retryStatus, setRetryStatus] = useState<string | null>(null);
   const [dismissedRunId, setDismissedRunId] = useState<number | null>(() => {
     try {
       return Number(localStorage.getItem('spacepipe_dismissed_failed_run')) || null;
@@ -143,6 +145,29 @@ export const PipelineHealthWidget: React.FC<Props> = ({
     return `${mins}m ${secs}s`;
   };
 
+  const handleRerun = async (run: WorkflowRun) => {
+    if (!config.githubToken || !owner || !repo) {
+      alert('GitHub Token or repository configuration missing.');
+      return;
+    }
+    setRetryingRunId(run.id);
+    setRetryStatus('Triggering rerun on GitHub Actions...');
+    try {
+      await rerunWorkflowRun(config.githubToken, owner, repo, run.id, true);
+      setRetryStatus('Rerun requested successfully! Auto-healing run...');
+      markRunHealed(run.id);
+      setTimeout(() => {
+        refreshRuns(false);
+        setRetryingRunId(null);
+        setRetryStatus(null);
+      }, 1500);
+    } catch (err: any) {
+      console.error('Failed to rerun workflow run:', err);
+      setRetryStatus(err?.message || 'Failed to trigger rerun.');
+      setTimeout(() => setRetryingRunId(null), 3000);
+    }
+  };
+
   const getStatusText = () => {
     if (isCritical) return 'Pipeline Alert';
     if (runsError) return 'Telemetry Error';
@@ -250,47 +275,92 @@ export const PipelineHealthWidget: React.FC<Props> = ({
                 )}
 
                 {unacknowledgedFailedRuns.length > 0 && (
-                  <div className="p-2 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300 space-y-1">
+                  <div className="p-2.5 bg-rose-500/10 border border-rose-500/25 rounded-lg text-rose-300 space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="font-bold">Latest Failed Run:</p>
+                      <p className="font-bold text-xs text-rose-200">
+                        Failed Runs ({unacknowledgedFailedRuns.length}):
+                      </p>
                       <button
                         onClick={() => {
-                          const id = unacknowledgedFailedRuns[0].id;
-                          markRunHealed(id);
-                          setDismissedRunId(id);
-                          try {
-                            localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
-                          } catch {}
+                          unacknowledgedFailedRuns.forEach(f => markRunHealed(f.id));
+                          const firstId = unacknowledgedFailedRuns[0]?.id;
+                          if (firstId) {
+                            setDismissedRunId(firstId);
+                            try {
+                              localStorage.setItem('spacepipe_dismissed_failed_run', String(firstId));
+                            } catch {}
+                          }
                         }}
                         className="text-[10px] text-slate-400 hover:text-white cursor-pointer"
+                        title="Dismiss all failure alerts"
                       >
-                        Dismiss
+                        Dismiss All
                       </button>
                     </div>
-                    <p className="truncate">{unacknowledgedFailedRuns[0].name} ({new Date(unacknowledgedFailedRuns[0].created_at).toLocaleTimeString()})</p>
-                    <p className="text-[10px] text-rose-300/90 leading-tight">{failureHint(unacknowledgedFailedRuns[0])}</p>
-                    <div className="flex items-center justify-between pt-0.5">
-                      <a
-                        href={unacknowledgedFailedRuns[0].html_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] text-rose-400 underline font-bold"
-                      >
-                        [View Failure Log] <ExternalLink size={10} />
-                      </a>
-                      <button
-                        onClick={() => {
-                          const id = unacknowledgedFailedRuns[0].id;
-                          markRunHealed(id);
-                          setDismissedRunId(id);
-                          try {
-                            localStorage.setItem('spacepipe_dismissed_failed_run', String(id));
-                          } catch {}
-                        }}
-                        className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
-                      >
-                        ✓ Mark Healed
-                      </button>
+
+                    {retryStatus && (
+                      <p className="text-[10px] text-amber-300 bg-amber-500/10 p-1.5 rounded border border-amber-500/20 leading-tight">
+                        {retryStatus}
+                      </p>
+                    )}
+
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {unacknowledgedFailedRuns.map((failedRun) => (
+                        <div key={failedRun.id} className="p-2 bg-slate-950/60 rounded border border-rose-500/20 text-[11px] space-y-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-semibold text-white truncate max-w-[170px]" title={failedRun.name}>
+                              {failedRun.display_title || failedRun.name}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono flex-shrink-0">
+                              {new Date(failedRun.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-rose-300/90 leading-tight">
+                            {failureHint(failedRun)}
+                          </p>
+                          <div className="flex items-center justify-between pt-1 gap-1 flex-wrap">
+                            <a
+                              href={failedRun.html_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] text-rose-400 hover:text-rose-200 underline font-bold"
+                            >
+                              [Log] <ExternalLink size={9} />
+                            </a>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleRerun(failedRun)}
+                                disabled={retryingRunId === failedRun.id}
+                                className="inline-flex items-center gap-1 text-[10px] bg-rose-600/80 hover:bg-rose-600 text-white px-2 py-0.5 rounded font-semibold cursor-pointer disabled:opacity-50"
+                                title="One-click automatic re-run on GitHub Actions"
+                              >
+                                {retryingRunId === failedRun.id ? (
+                                  <>
+                                    <Loader size={9} className="animate-spin" /> Retrying…
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCcw size={9} /> One-Click Rerun
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  markRunHealed(failedRun.id);
+                                  setDismissedRunId(failedRun.id);
+                                  try {
+                                    localStorage.setItem('spacepipe_dismissed_failed_run', String(failedRun.id));
+                                  } catch {}
+                                }}
+                                className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
+                                title="Mark this run as healed"
+                              >
+                                ✓ Clear
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -497,16 +567,13 @@ export const PipelineHealthWidget: React.FC<Props> = ({
 
       {/* Actionable Error Remediation (If any failures detected) */}
       {unacknowledgedFailedRuns.length > 0 && (
-        <div className="p-3.5 bg-rose-950/30 border border-rose-500/30 rounded-xl space-y-2">
+        <div className="p-3.5 bg-rose-950/30 border border-rose-500/30 rounded-xl space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-rose-200 flex items-center gap-1.5">
               <AlertTriangle size={14} className="text-rose-400" />
-              Workflow Execution Failure Detected ({unacknowledgedFailedRuns[0].name})
+              Failed Workflow Runs ({unacknowledgedFailedRuns.length})
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-400 font-mono">
-                {new Date(unacknowledgedFailedRuns[0].created_at).toLocaleString()}
-              </span>
               <button
                 onClick={() => {
                   unacknowledgedFailedRuns.forEach(f => markRunHealed(f.id));
@@ -518,54 +585,89 @@ export const PipelineHealthWidget: React.FC<Props> = ({
                     } catch {}
                   }
                 }}
-                className="text-slate-400 hover:text-white p-1 rounded transition-colors cursor-pointer"
+                className="text-xs text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
                 title="Dismiss all failure alerts"
               >
-                <X size={13} />
+                Clear All
               </button>
             </div>
           </div>
-          <p className="text-[11px] text-slate-300 leading-relaxed">
-            The latest execution of <strong className="text-white">{unacknowledgedFailedRuns[0].display_title || unacknowledgedFailedRuns[0].name}</strong>
-            {unacknowledgedFailedRuns[0].head_branch ? ` (${unacknowledgedFailedRuns[0].head_branch})` : ''} failed in GitHub Actions. Check logs for details (e.g., empty queue trigger, invalid URL).
-          </p>
-            <p className="text-[11px] text-rose-300/90 leading-relaxed">{failureHint(unacknowledgedFailedRuns[0])}</p>
-          <div className="flex items-center gap-2 pt-1 flex-wrap">
-            <a
-              href={unacknowledgedFailedRuns[0].html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer"
-            >
-              [View Failure Log] <ExternalLink size={12} />
-            </a>
-            <button
-              onClick={() => {
-                unacknowledgedFailedRuns.forEach(f => markRunHealed(f.id));
-                const firstId = unacknowledgedFailedRuns[0]?.id;
-                if (firstId) {
-                  setDismissedRunId(firstId);
-                  try {
-                    localStorage.setItem('spacepipe_dismissed_failed_run', String(firstId));
-                  } catch {}
-                }
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
-              title="Acknowledge and clear all failure alerts"
-            >
-              <Check size={12} className="text-emerald-400" /> Mark as Healed &amp; Clear Alert
-            </button>
-            {hasRepo && (
+
+          {retryStatus && (
+            <p className="text-xs text-amber-300 bg-amber-500/15 p-2 rounded-lg border border-amber-500/25 leading-tight">
+              {retryStatus}
+            </p>
+          )}
+
+          <div className="space-y-2.5">
+            {unacknowledgedFailedRuns.map((failedRun) => (
+              <div key={failedRun.id} className="p-3 bg-slate-950/70 border border-rose-500/25 rounded-lg space-y-1.5">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <span className="font-bold text-white text-xs">
+                    {failedRun.display_title || failedRun.name}
+                    {failedRun.head_branch ? ` (${failedRun.head_branch})` : ''}
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {new Date(failedRun.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-[11px] text-rose-300/90 leading-relaxed">
+                  {failureHint(failedRun)}
+                </p>
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <a
+                    href={failedRun.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-rose-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    [View Failure Log] <ExternalLink size={12} />
+                  </a>
+                  <button
+                    onClick={() => handleRerun(failedRun)}
+                    disabled={retryingRunId === failedRun.id}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                    title="One-click automatic re-run on GitHub Actions"
+                  >
+                    {retryingRunId === failedRun.id ? (
+                      <>
+                        <Loader size={12} className="animate-spin" /> Retrying…
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw size={12} /> One-Click Rerun
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      markRunHealed(failedRun.id);
+                      setDismissedRunId(failedRun.id);
+                      try {
+                        localStorage.setItem('spacepipe_dismissed_failed_run', String(failedRun.id));
+                      } catch {}
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    <Check size={12} /> Mark as Healed
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {hasRepo && (
+            <div className="pt-1">
               <a
                 href={`https://github.com/${owner}/${repo}/settings/secrets/actions`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
               >
                 Manage Repository Secrets <ExternalLink size={12} />
               </a>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>

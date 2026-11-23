@@ -469,6 +469,35 @@ export async function getWorkflowRunJobs(token: string, owner: string, repo: str
   return data.jobs || [];
 }
 
+export async function rerunWorkflowRun(
+  token: string,
+  owner: string,
+  repo: string,
+  runId: number,
+  failedOnly: boolean = false
+): Promise<void> {
+  const endpoint = failedOnly
+    ? `/repos/${owner}/${repo}/actions/runs/${runId}/rerun-failed-jobs`
+    : `/repos/${owner}/${repo}/actions/runs/${runId}/rerun`;
+  const res = await ghFetch(token, endpoint, {
+    method: 'POST',
+  });
+  assertNotRateLimited(res);
+  if (!res.ok) {
+    if (failedOnly) {
+      const fallback = await ghFetch(token, `/repos/${owner}/${repo}/actions/runs/${runId}/rerun`, {
+        method: 'POST',
+      });
+      assertNotRateLimited(fallback);
+      if (!fallback.ok) {
+        throw await githubError(fallback, 'Failed to rerun workflow run.');
+      }
+      return;
+    }
+    throw await githubError(res, 'Failed to rerun workflow run.');
+  }
+}
+
 export async function getJobStepLogExcerpt(
   token: string,
   owner: string,

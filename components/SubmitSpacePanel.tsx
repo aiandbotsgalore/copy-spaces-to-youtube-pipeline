@@ -19,6 +19,7 @@ import {
   Users,
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
+import TrackedProfilesPanel from './TrackedProfilesPanel';
 import {
   appendLineToRepositoryTextFile,
   createOrUpdateRelease,
@@ -40,6 +41,8 @@ interface Props {
   onViewRunHistory: () => void;
   onDispatched?: (url: string) => void;
   onNavigateBatch?: () => void;
+  onNavigateVoiceProfiles?: () => void;
+  onUpdateWatchedHosts?: (hosts: string[]) => void;
 }
 
 type Action = SubmitAction;
@@ -75,6 +78,8 @@ const SubmitSpacePanel: React.FC<Props> = ({
   onViewRunHistory,
   onDispatched,
   onNavigateBatch,
+  onNavigateVoiceProfiles,
+  onUpdateWatchedHosts,
 }) => {
   const [mode, setMode] = useState<IngestMode>('url');
 
@@ -290,69 +295,98 @@ const SubmitSpacePanel: React.FC<Props> = ({
     : null;
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-3xl mx-auto w-full pb-24">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 bg-indigo-500/15 border border-indigo-500/20 rounded-xl">
-            <Radio size={18} className="text-indigo-400" />
+    <div className="h-full overflow-y-auto p-4 md:p-8 xl:p-10 max-w-7xl mx-auto w-full pb-24">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-1.5">
+            <div className="p-2 bg-indigo-500/15 border border-indigo-500/20 rounded-xl">
+              <Radio size={18} className="text-indigo-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Submit New Episode</h2>
           </div>
-          <h2 className="text-2xl font-bold text-white">Submit New Episode</h2>
+          <p className="text-slate-400 text-sm">
+            Ingest a Space or audio link, upload local recordings, and track monitored accounts for automatic background ingestion.
+          </p>
         </div>
-        <p className="text-slate-400 text-sm">
-          Ingest a Space/audio link or upload a local audio file from your computer into the episode library.
-        </p>
-      </div>
 
-      {/* Mode Switcher Tabs */}
-      <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl mb-6">
         <button
           type="button"
-          onClick={() => {
-            setMode('url');
-            if (notice) setNotice(null);
-          }}
-          disabled={isLoading}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            mode === 'url'
-              ? 'bg-indigo-600 text-white shadow-lg'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-          }`}
+          onClick={onViewRunHistory}
+          className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg border border-slate-800 transition-colors cursor-pointer shadow-sm"
         >
-          <Link2 size={15} />
-          Single URL
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (onNavigateBatch) {
-              onNavigateBatch();
-            }
-          }}
-          disabled={isLoading}
-          className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all cursor-pointer"
-        >
-          <ListPlus size={15} />
-          Batch Submit
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode('file');
-            if (notice) setNotice(null);
-          }}
-          disabled={isLoading}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-            mode === 'file'
-              ? 'bg-indigo-600 text-white shadow-lg'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-          }`}
-        >
-          <UploadCloud size={15} />
-          Upload Local File
+          <History size={14} className="text-indigo-400" />
+          Run History
         </button>
       </div>
 
-      <div className="space-y-5">
+      {/* 2-Column Responsive Layout: Left = Tracked Profiles, Right = Ingest Form */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
+        {/* Left Column: Monitored & Tracked Profiles (Matches user diagram LIST: 1... 2... 3...) */}
+        <div className="lg:col-span-5 xl:col-span-5">
+          <TrackedProfilesPanel
+            config={config}
+            onNavigateVoiceProfiles={onNavigateVoiceProfiles}
+            onSelectHandleForIngest={handle => {
+              setMode('url');
+              setUrl(`https://x.com/${handle}`);
+              if (notice) setNotice(null);
+            }}
+            onUpdateWatchedHosts={onUpdateWatchedHosts}
+          />
+        </div>
+
+        {/* Right Column: Ingest Mode Selector & Submission Form */}
+        <div className="lg:col-span-7 xl:col-span-7 space-y-5">
+          {/* Mode Switcher Tabs */}
+          <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-900/90 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('url');
+                if (notice) setNotice(null);
+              }}
+              disabled={isLoading}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                mode === 'url'
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Link2 size={15} />
+              Single URL
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (onNavigateBatch) {
+                  onNavigateBatch();
+                }
+              }}
+              disabled={isLoading}
+              className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-all cursor-pointer"
+            >
+              <ListPlus size={15} />
+              Batch Submit
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('file');
+                if (notice) setNotice(null);
+              }}
+              disabled={isLoading}
+              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                mode === 'file'
+                  ? 'bg-indigo-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <UploadCloud size={15} />
+              Upload Local File
+            </button>
+          </div>
+
+          <div className="space-y-5">
         {mode === 'url' ? (
           <>
             <section className="p-5 md:p-6 bg-slate-900 border border-slate-800 rounded-xl space-y-4">
@@ -789,6 +823,8 @@ const SubmitSpacePanel: React.FC<Props> = ({
             </div>
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );
