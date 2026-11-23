@@ -39,6 +39,9 @@ import {
   Film,
   FileText,
   X,
+  Image as ImageIcon,
+  Maximize2,
+  Video,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
@@ -119,7 +122,19 @@ export const AICopilotPanel: React.FC = () => {
   const player = usePlayer();
 
   const [input, setInput] = useState('');
-  const [showCanvas, setShowCanvas] = useState(true);
+  const [isReelOpen, setIsReelOpen] = useState(() => montage.clips.length > 0);
+  const prevClipCount = useRef(montage.clips.length);
+
+  useEffect(() => {
+    const prev = prevClipCount.current;
+    const curr = montage.clips.length;
+    if (prev === 0 && curr > 0) {
+      setIsReelOpen(true);
+    } else if (prev > 0 && curr === 0) {
+      setIsReelOpen(false);
+    }
+    prevClipCount.current = curr;
+  }, [montage.clips.length]);
   const [copiedMatchKey, setCopiedMatchKey] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
@@ -251,7 +266,7 @@ export const AICopilotPanel: React.FC = () => {
       className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-950 text-slate-200"
     >
       {/* ── Left Pane: Dialogue & Action Console ── */}
-      <div className="flex-1 flex flex-col h-full border-r border-slate-800/80 overflow-hidden">
+      <div className={`flex-1 min-w-0 flex flex-col h-full ${isReelOpen ? 'border-r border-slate-800/80' : ''} overflow-hidden`}>
         {/* Header */}
         <div className="p-4 border-b border-slate-800/80 bg-slate-900/60 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -296,13 +311,13 @@ export const AICopilotPanel: React.FC = () => {
               ))}
             </select>
 
-            {/* Split Canvas Toggle */}
+            {/* Split Canvas / Montage Reel Toggle */}
             <button
-              onClick={() => setShowCanvas(!showCanvas)}
+              onClick={() => setIsReelOpen(!isReelOpen)}
               className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer hidden lg:block ${
-                showCanvas ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'
+                isReelOpen ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'
               }`}
-              title="Toggle Live Studio Canvas"
+              title={isReelOpen ? 'Hide Active Montage Reel' : 'Show Active Montage Reel'}
             >
               <SplitSquareVertical size={16} />
             </button>
@@ -409,6 +424,21 @@ export const AICopilotPanel: React.FC = () => {
             >
               <Pin size={11} className={pinnedContexts.length > 0 ? 'text-amber-400 fill-current' : ''} />
               <span>Pin Context {pinnedContexts.length > 0 ? `(${pinnedContexts.length})` : ''}</span>
+            </button>
+
+            {/* Reel (N) Compact Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsReelOpen(!isReelOpen)}
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors cursor-pointer ${
+                isReelOpen
+                  ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 shadow-sm'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-700/80 hover:bg-slate-750'
+              }`}
+              title={isReelOpen ? 'Hide Active Montage Reel' : 'Show Active Montage Reel'}
+            >
+              <Layers size={11} className={montage.clips.length > 0 ? 'text-indigo-400' : ''} />
+              <span>Reel ({montage.clips.length})</span>
             </button>
 
             <button
@@ -854,6 +884,112 @@ export const AICopilotPanel: React.FC = () => {
                   </div>
                 )}
 
+                {/* Inline Image Generation: Loading Skeleton & Rendered Visuals */}
+                {m.actions?.some(a => a.action === 'GENERATE_IMAGE' && a.status === 'running') && (
+                  <div className="w-full max-w-md rounded-lg border border-indigo-500/30 my-3 overflow-hidden shadow-lg bg-slate-950 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Sparkles size={14} className="text-fuchsia-400 animate-spin" />
+                      <span className="text-xs font-semibold text-fuchsia-300">Generating Neural Image via OpenRouter...</span>
+                    </div>
+                    <div className="w-full aspect-video rounded-md bg-slate-900 animate-pulse flex items-center justify-center border border-slate-800">
+                      <div className="text-center p-4">
+                        <ImageIcon size={24} className="text-slate-600 mx-auto mb-1 animate-bounce" />
+                        <p className="text-[11px] text-slate-500 italic">Synthesizing visual canvas...</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(() => {
+                  const combinedImages = [
+                    ...(m.generatedImages || []),
+                    ...(m.actions || [])
+                      .filter(a => a.action === 'GENERATE_IMAGE' && a.status === 'completed' && a.resultData?.image_url)
+                      .map(a => ({
+                        image_url: a.resultData!.image_url,
+                        filename: a.resultData!.filename,
+                        prompt_used: a.resultData!.prompt_used || a.params.prompt,
+                        model_used: a.resultData!.model_used,
+                        cost: a.resultData!.cost,
+                      }))
+                  ].filter((img, i, arr) => arr.findIndex(x => x.filename === img.filename) === i);
+
+                  if (combinedImages.length === 0) return null;
+
+                  return (
+                    <div className="my-3 space-y-3">
+                      {combinedImages.map((img, idx) => (
+                        <div key={img.filename || idx} className="w-full max-w-md rounded-lg border border-indigo-500/30 overflow-hidden shadow-lg bg-slate-950">
+                          <div
+                            className="relative group cursor-pointer overflow-hidden bg-slate-900"
+                            onClick={() => window.open(img.image_url, '_blank')}
+                            title="Click to open full size"
+                          >
+                            <img
+                              src={img.image_url}
+                              alt={img.prompt_used || 'Generated visual'}
+                              className="w-full h-auto object-cover max-h-[360px] hover:scale-102 transition-transform duration-200"
+                            />
+                            <div className="absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-medium bg-black/75 backdrop-blur text-slate-300 border border-white/10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Maximize2 size={11} />
+                              <span>Full Size</span>
+                            </div>
+                          </div>
+                          <div className="p-3 bg-slate-900/95 border-t border-slate-800 flex flex-col gap-2">
+                            {img.prompt_used && (
+                              <p className="text-[11px] text-slate-300 line-clamp-2 italic">
+                                "{img.prompt_used}"
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between text-[10px] text-slate-400">
+                              <span>Model: <span className="text-slate-300 font-mono">{img.model_used || 'FLUX.2 / OpenRouter'}</span></span>
+                              {img.cost !== null && img.cost !== undefined && (
+                                <span className="text-emerald-400 font-mono">${Number(img.cost).toFixed(4)}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                              {/* Download Button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const a = document.createElement('a');
+                                  a.href = img.image_url;
+                                  a.download = img.filename || `gen_${Date.now()}.png`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                }}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+                              >
+                                <Download size={12} />
+                                <span>Download</span>
+                              </button>
+
+                              {/* Send to Avatar Studio Button */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    sessionStorage.setItem('spacepipe_pending_avatar_image', img.image_url);
+                                  } catch {}
+                                  window.dispatchEvent(new CustomEvent('spacepipe:load-avatar-image', { detail: { imageUrl: img.image_url } }));
+                                  window.location.hash = '#avatar-studio';
+                                }}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-1 px-2 rounded-md bg-indigo-600/25 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold border border-indigo-500/40 transition-colors cursor-pointer shadow-sm"
+                              >
+                                <Video size={12} className="text-cyan-400" />
+                                <span>Send to Avatar Studio</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
                 {/* Render Executable Actions attached to this message */}
                 {m.actions && m.actions.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
@@ -986,7 +1122,7 @@ export const AICopilotPanel: React.FC = () => {
       </div>
 
       {/* ── Right Pane: Live Interactive Studio Canvas ── */}
-      {showCanvas && (
+      {isReelOpen && (
         <div className="w-full lg:w-96 flex-shrink-0 bg-slate-950 p-4 overflow-y-auto flex flex-col gap-5">
           {/* Reel Status & Audition Header */}
           <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80">
@@ -1187,6 +1323,8 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAn
       case 'DRAFT_PROJECT':
       case 'REFINE_PROJECT':
         return { label: 'Script Studio', bg: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
+      case 'GENERATE_IMAGE':
+        return { label: 'Generate Image', bg: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40' };
       case 'SYNTHESIZE_VOX':
         return { label: 'Voice Synth', bg: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30' };
       case 'AUTO_EXECUTE_VOX':

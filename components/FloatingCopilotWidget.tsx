@@ -9,6 +9,9 @@ import {
   ToggleRight,
   RotateCcw,
   Plus,
+  Download,
+  Video,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useConfig } from '../contexts/ConfigContext';
@@ -475,7 +478,32 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
         for (const action of enrichedActions) {
           const isReadOnly = action.action === 'SEARCH_TRANSCRIPTS' || action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO' || action.action === 'READ_FILE' || action.action === 'INTROSPECT_NODE_LINKAGE' || action.action === 'REVEAL_VECTOR_EMBEDDINGS' || action.action === 'STREAM_LIVE_LOGS';
           if (!isReadOnly && action.status !== 'completed' && action.tier !== undefined && action.tier < 2) {
-            await applyAction(action, { triggerSource: 'auto_apply' });
+            const success = await applyAction(action, { triggerSource: 'auto_apply' });
+            if (success && action.action === 'GENERATE_IMAGE' && action.resultData?.image_url) {
+              setTabs((prev) =>
+                prev.map((t) => {
+                  if (t.id !== targetTabId) return t;
+                  return {
+                    ...t,
+                    messages: t.messages.map((m) => {
+                      if (m.id !== assistantMsg.id) return m;
+                      const genImages = [{
+                        image_url: action.resultData!.image_url,
+                        filename: action.resultData!.filename,
+                        prompt_used: action.resultData!.prompt_used || action.params.prompt,
+                        model_used: action.resultData!.model_used,
+                        cost: action.resultData!.cost,
+                      }];
+                      return {
+                        ...m,
+                        generatedImages: [...(m.generatedImages || []), ...genImages],
+                      };
+                    }),
+                    updatedAt: Date.now(),
+                  };
+                })
+              );
+            }
           }
         }
       }
@@ -733,6 +761,101 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
                         }}
                       />
                     )}
+
+                    {/* Inline Image Generation: Loading Skeleton & Rendered Visuals */}
+                    {m.actions?.some(a => a.action === 'GENERATE_IMAGE' && a.status === 'running') && (
+                      <div className="w-full rounded-lg border border-indigo-500/30 my-2 overflow-hidden shadow-lg bg-slate-950 p-3">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Sparkles size={12} className="text-fuchsia-400 animate-spin" />
+                          <span className="text-[11px] font-semibold text-fuchsia-300">Generating Neural Image...</span>
+                        </div>
+                        <div className="w-full aspect-video rounded bg-slate-900 animate-pulse flex items-center justify-center border border-slate-800">
+                          <ImageIcon size={18} className="text-slate-600 animate-bounce" />
+                        </div>
+                      </div>
+                    )}
+
+                    {(() => {
+                      const combinedImages = [
+                        ...(m.generatedImages || []),
+                        ...(m.actions || [])
+                          .filter(a => a.action === 'GENERATE_IMAGE' && a.status === 'completed' && a.resultData?.image_url)
+                          .map(a => ({
+                            image_url: a.resultData!.image_url,
+                            filename: a.resultData!.filename,
+                            prompt_used: a.resultData!.prompt_used || a.params.prompt,
+                            model_used: a.resultData!.model_used,
+                            cost: a.resultData!.cost,
+                          }))
+                      ].filter((img, i, arr) => arr.findIndex(x => x.filename === img.filename) === i);
+
+                      if (combinedImages.length === 0) return null;
+
+                      return (
+                        <div className="my-2 space-y-2">
+                          {combinedImages.map((img, idx) => (
+                            <div key={img.filename || idx} className="w-full rounded-lg border border-indigo-500/30 overflow-hidden shadow-lg bg-slate-950">
+                              <div
+                                className="relative group cursor-pointer overflow-hidden bg-slate-900"
+                                onClick={() => window.open(img.image_url, '_blank')}
+                                title="Click to open full size"
+                              >
+                                <img
+                                  src={img.image_url}
+                                  alt={img.prompt_used || 'Generated visual'}
+                                  className="w-full h-auto object-cover max-h-[220px] hover:scale-102 transition-transform duration-200"
+                                />
+                                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/75 backdrop-blur text-slate-300 border border-white/10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Maximize2 size={9} />
+                                  <span>Full Size</span>
+                                </div>
+                              </div>
+                              <div className="p-2 bg-slate-900/95 border-t border-slate-800 flex flex-col gap-1.5">
+                                {img.prompt_used && (
+                                  <p className="text-[10px] text-slate-300 line-clamp-2 italic">
+                                    "{img.prompt_used}"
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-1 pt-1 border-t border-slate-800/80">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const a = document.createElement('a');
+                                      a.href = img.image_url;
+                                      a.download = img.filename || `gen_${Date.now()}.png`;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-1 py-0.5 px-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-semibold border border-slate-700 transition-colors cursor-pointer"
+                                  >
+                                    <Download size={10} />
+                                    <span>Download</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      try {
+                                        sessionStorage.setItem('spacepipe_pending_avatar_image', img.image_url);
+                                      } catch {}
+                                      window.dispatchEvent(new CustomEvent('spacepipe:load-avatar-image', { detail: { imageUrl: img.image_url } }));
+                                      window.location.hash = '#avatar-studio';
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-1 py-0.5 px-1.5 rounded bg-indigo-600/25 hover:bg-indigo-600/40 text-indigo-300 text-[10px] font-semibold border border-indigo-500/40 transition-colors cursor-pointer shadow-sm"
+                                  >
+                                    <Video size={10} className="text-cyan-400" />
+                                    <span>Send to Avatar</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
 
                     {/* Quick Action Chips in Assistant Messages */}
                     {m.matches && m.matches.length > 0 && (

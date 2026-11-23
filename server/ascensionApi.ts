@@ -191,6 +191,63 @@ function writeAuditLog(rootDir: string, entry: AuditLogEntry) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Static Media Middleware for Generated Images                              */
+/* -------------------------------------------------------------------------- */
+
+export function createGeneratedMediaMiddleware(deps: { rootDir: string }) {
+  const rootDir = deps.rootDir;
+  const generatedDir = path.resolve(rootDir, 'data', 'generated_images');
+  if (!fs.existsSync(generatedDir)) {
+    try {
+      fs.mkdirSync(generatedDir, { recursive: true });
+    } catch {}
+  }
+
+  return (req: IncomingMessage, res: ServerResponse): void => {
+    const host = req.headers.host || 'localhost:5000';
+    const parsedUrl = new URL(req.url || '', `http://${host}`);
+    let filename = parsedUrl.pathname.replace(/^\/+/, '');
+    if (filename.startsWith('api/media/generated/')) {
+      filename = filename.slice('api/media/generated/'.length);
+    }
+    filename = path.basename(filename);
+
+    const VALID_IMAGE_FILENAME = /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/i;
+    if (!VALID_IMAGE_FILENAME.test(filename)) {
+      sendJson(res, 400, { ok: false, error: 'Invalid or disallowed image filename. Allowed formats: png, jpg, jpeg, webp.' });
+      return;
+    }
+
+    const targetFile = path.resolve(generatedDir, filename);
+    if (!fs.existsSync(targetFile)) {
+      sendJson(res, 404, { ok: false, error: `Image not found: ${filename}` });
+      return;
+    }
+
+    const ext = path.extname(filename).toLowerCase();
+    const mimeMap: Record<string, string> = {
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.webp': 'image/webp',
+    };
+    const mime = mimeMap[ext] || 'application/octet-stream';
+
+    try {
+      const data = fs.readFileSync(targetFile);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', mime);
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Content-Length', String(data.length));
+      res.end(data);
+    } catch (err: any) {
+      sendJson(res, 500, { ok: false, error: err?.message || 'Error reading generated image' });
+    }
+  };
+}
+
+/* -------------------------------------------------------------------------- */
 /* Main Middleware Factory                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -763,6 +820,209 @@ export function createAscensionApiMiddleware(deps: AscensionDeps) {
           name,
           cloned: true,
           profile: clonedProfile,
+        });
+        return;
+      }
+
+      // POST /api/ascension/generate-image (OpenRouter Unified Image API)
+      if (method === 'POST' && pathname === '/api/ascension/generate-image') {
+        if (currentKillSwitchState === 'pause') {
+          sendJson(res, 403, {
+            status: 'error',
+            error: `SpacePipe Kill Switch is engaged (${currentKillSwitchState}). Image generation is blocked.`,
+            killSwitchState: currentKillSwitchState,
+          });
+          return;
+        }
+
+        const body = await parseJsonBody(req);
+        const prompt = String(body.prompt || '').trim();
+        if (!prompt) {
+          sendJson(res, 400, { status: 'error', error: 'Prompt is required' });
+          return;
+        }
+
+        const validAspectRatios = ['16:9', '9:16', '1:1', '4:3'];
+        let aspectRatio = body.aspect_ratio || body.aspectRatio || '16:9';
+        if (!validAspectRatios.includes(aspectRatio)) {
+          aspectRatio = '16:9';
+        }
+
+        const env = getEnv();
+        const openRouterApiKey = env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+        if (!openRouterApiKey) {
+          sendJson(res, 400, {
+            status: 'error',
+            error: 'Missing OPENROUTER_API_KEY. Configure OPENROUTER_API_KEY in your environment or .env file to enable image generation.',
+          });
+          return;
+        }
+
+        const model = String(body.model || env.OPENROUTER_IMAGE_MODEL || process.env.OPENROUTER_IMAGE_MODEL || 'black-forest-labs/flux.2-klein-4b').trim();
+
+        // Optional reference image input for iterative edits
+        const refFilename = body.reference_image_filename || body.referenceImageFilename;
+        let inputReferences: Array<{ type: string; image_url: { url: string } }> | undefined = undefined;
+
+        if (refFilename) {
+          const VALID_REF_NAME = /^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/i;
+          if (!VALID_REF_NAME.test(String(refFilename))) {
+            sendJson(res, 400, { status: 'error', error: 'Invalid reference_image_filename format' });
+            return;
+          }
+          const cleanRefName = path.basename(String(refFilename));
+          const refFilePath = path.resolve(rootDir, 'data', 'generated_images', cleanRefName);
+          if (!fs.existsSync(refFilePath)) {
+            sendJson(res, 400, { status: 'error', error: `Reference image not found in generated_images: ${cleanRefName}` });
+            return;
+          }
+
+          try {
+            const refBuffer = fs.readFileSync(refFilePath);
+            const ext = path.extname(cleanRefName).toLowerCase();
+            const refMime = ext === '.webp' ? 'image/webp' : (ext === '.png' ? 'image/png' : 'image/jpeg');
+            const dataUrl = `data:${refMime};base64,${refBuffer.toString('base64')}`;
+            inputReferences = [{ type: 'image_url', image_url: { url: dataUrl } }];
+          } catch (refErr: any) {
+            sendJson(res, 500, { status: 'error', error: `Failed reading reference image: ${refErr?.message}` });
+            return;
+          }
+        }
+
+        const fetchFn = deps.fetchImpl || globalThis.fetch;
+        const reqPayload: Record<string, any> = {
+          model,
+          prompt,
+          aspect_ratio: aspectRatio,
+          output_format: 'png',
+        };
+        if (inputReferences) {
+          reqPayload.input_references = inputReferences;
+        }
+
+        let upstreamRes: Response;
+        try {
+          upstreamRes = await fetchFn('https://openrouter.ai/api/v1/images', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openRouterApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'http://localhost:5000',
+              'X-Title': 'SpacePipe Studio',
+            },
+            body: JSON.stringify(reqPayload),
+            signal: AbortSignal.timeout(45000),
+          });
+        } catch (callErr: any) {
+          const isTimeout = callErr?.name === 'TimeoutError' || String(callErr?.message).includes('timeout');
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'failed',
+            error: isTimeout ? 'Timeout (45s)' : callErr?.message,
+          });
+          sendJson(res, isTimeout ? 504 : 500, {
+            status: 'error',
+            error: isTimeout ? 'OpenRouter image generation timed out after 45 seconds.' : (callErr?.message || 'Error communicating with OpenRouter Image API'),
+          });
+          return;
+        }
+
+        if (upstreamRes.status === 402) {
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'denied',
+            error: 'OpenRouter balance below minimum credit threshold (402)',
+          });
+          sendJson(res, 402, {
+            status: 'error',
+            error: 'OpenRouter credit balance insufficient (402 Payment Required). Paid OpenRouter Image API calls require an active credit balance above $1.00.',
+          });
+          return;
+        }
+
+        if (!upstreamRes.ok) {
+          const errText = await upstreamRes.text();
+          writeAuditLog(rootDir, {
+            timestamp: new Date(now()).toISOString(),
+            action: 'GENERATE_IMAGE',
+            user: 'Copilot',
+            ipHash,
+            params: { model, promptLength: prompt.length },
+            resultStatus: 'failed',
+            error: `HTTP ${upstreamRes.status}: ${errText.slice(0, 200)}`,
+          });
+          sendJson(res, upstreamRes.status, {
+            status: 'error',
+            error: `OpenRouter Image API error (${upstreamRes.status}): ${errText}`,
+          });
+          return;
+        }
+
+        let result: any;
+        try {
+          result = await upstreamRes.json();
+        } catch {
+          sendJson(res, 502, { status: 'error', error: 'Malformed JSON response from OpenRouter' });
+          return;
+        }
+
+        const firstItem = result?.data?.[0];
+        const b64Json = firstItem?.b64_json;
+        if (!b64Json || typeof b64Json !== 'string') {
+          sendJson(res, 502, { status: 'error', error: 'No image data (b64_json) in OpenRouter response.' });
+          return;
+        }
+
+        const mediaType = (firstItem.media_type || 'image/png').toLowerCase();
+        const VALID_MEDIA_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp']);
+        if (!VALID_MEDIA_TYPES.has(mediaType)) {
+          sendJson(res, 502, { status: 'error', error: `Disallowed media type returned: ${mediaType}` });
+          return;
+        }
+
+        const ext = mediaType.includes('webp') ? 'webp' : (mediaType.includes('jpeg') || mediaType.includes('jpg')) ? 'jpg' : 'png';
+        const filename = `gen_${now()}_${crypto.randomBytes(4).toString('hex')}.${ext}`;
+        const generatedDir = path.resolve(rootDir, 'data', 'generated_images');
+        if (!fs.existsSync(generatedDir)) {
+          fs.mkdirSync(generatedDir, { recursive: true });
+        }
+        const outFilePath = path.resolve(generatedDir, filename);
+        const imageBuffer = Buffer.from(b64Json, 'base64');
+        fs.writeFileSync(outFilePath, imageBuffer);
+
+        const cost = result?.usage?.cost ?? null;
+
+        // Log metadata ONLY to wizard_audit.jsonl. Never log base64 data.
+        writeAuditLog(rootDir, {
+          timestamp: new Date(now()).toISOString(),
+          action: 'GENERATE_IMAGE',
+          user: 'Copilot',
+          ipHash,
+          params: {
+            model,
+            filename,
+            promptLength: prompt.length,
+            cost,
+            aspectRatio,
+          },
+          resultStatus: 'success',
+        });
+
+        sendJson(res, 200, {
+          status: 'success',
+          image_url: `/api/media/generated/${filename}`,
+          filename,
+          prompt_used: prompt,
+          model_used: model,
+          cost,
         });
         return;
       }

@@ -9,7 +9,7 @@ import type {
   ActionExecutionStatus,
 } from '../utils/copilotTypes';
 import { sendCopilotMessage } from '../utils/copilotClient';
-import { executeCopilotAction, revertCopilotAction, type CopilotExecutionContext } from '../utils/copilotExecutor';
+import { executeCopilotAction, revertCopilotAction, resetTurnActionLimits, type CopilotExecutionContext } from '../utils/copilotExecutor';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { buildCompactStateSummary } from '../utils/copilotState';
 import {
@@ -347,9 +347,25 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         actionHistory: [updatedAction, ...(prev.actionHistory || []).filter((a) => a.id !== action.id)],
         messages: prev.messages.map((m) => {
           if (!m.actions) return m;
+          const hasThisAction = m.actions.some((a) => a.id === action.id);
+          let newGeneratedImages = m.generatedImages;
+          if (hasThisAction && action.action === 'GENERATE_IMAGE' && res.ok && res.resultData?.image_url) {
+            const imgData = {
+              image_url: res.resultData.image_url,
+              filename: res.resultData.filename,
+              prompt_used: res.resultData.prompt_used || action.params.prompt,
+              model_used: res.resultData.model_used,
+              cost: res.resultData.cost,
+            };
+            const existing = m.generatedImages || [];
+            if (!existing.some((img) => img.filename === imgData.filename)) {
+              newGeneratedImages = [...existing, imgData];
+            }
+          }
           return {
             ...m,
             actions: m.actions.map((a) => (a.id === action.id ? updatedAction : a)),
+            generatedImages: newGeneratedImages,
           };
         }),
       }));
@@ -414,6 +430,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       options?: { targetSessionId?: string; liveContext?: string }
     ) => {
       if (!content.trim() || isBusy) return;
+      resetTurnActionLimits();
 
       const targetId = options?.targetSessionId || activeSessionId;
       const targetSession = sessions.find((s) => s.id === targetId) || currentSession;

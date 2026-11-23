@@ -11,7 +11,7 @@ import { createScriptStudioMiddleware } from './server/scriptStudioMiddleware';
 import { createOutputStatic } from './server/serveFile';
 import { createAvatarRenderHandler } from './server/avatarRender';
 import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
-import { createAscensionApiMiddleware } from './server/ascensionApi';
+import { createAscensionApiMiddleware, createGeneratedMediaMiddleware } from './server/ascensionApi';
 
 function setupProxyMiddlewares(middlewares: any, env?: any) {
   if (env) {
@@ -139,6 +139,11 @@ function setupProxyMiddlewares(middlewares: any, env?: any) {
   middlewares.use('/api/ascension', createAscensionApiMiddleware({
     rootDir: __dirname,
     getEnv: () => ({ ...process.env, ...env }),
+  }));
+
+  // Static Media Route for Generated Images (/api/media/generated/:filename)
+  middlewares.use('/api/media/generated', createGeneratedMediaMiddleware({
+    rootDir: __dirname,
   }));
 }
 

@@ -75,6 +75,13 @@ export interface ExecutionResult {
   errorMessage?: string;
 }
 
+let isImageGenerationInProgress = false;
+let imagesGeneratedInTurn = 0;
+
+export function resetTurnActionLimits(): void {
+  imagesGeneratedInTurn = 0;
+}
+
 /**
  * Single allowlisted execution boundary for all Copilot actions.
  */
@@ -1564,6 +1571,64 @@ export async function executeCopilotAction(
           return { ok: true, status: 'completed', resultData: data };
         } catch (e: any) {
           return { ok: false, status: 'failed', errorMessage: e?.message || 'Failed to toggle kill switch.' };
+        }
+      }
+
+      case 'GENERATE_IMAGE': {
+        if (isImageGenerationInProgress) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'An image generation is already in progress. Please wait for it to complete.',
+          };
+        }
+
+        if (imagesGeneratedInTurn >= 1 && options?.triggerSource === 'auto_apply') {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'Safety cap: Maximum of 1 image generation per Copilot turn reached to protect credits.',
+          };
+        }
+
+        isImageGenerationInProgress = true;
+        try {
+          const res = await fetch('/api/ascension/generate-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: params.prompt,
+              aspect_ratio: params.aspectRatio,
+              model: params.model,
+              reference_image_filename: params.referenceImageFilename,
+            }),
+          });
+
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || data.status === 'error' || !data.image_url) {
+            throw new Error(data.error || `Image generation failed with HTTP ${res.status}`);
+          }
+
+          imagesGeneratedInTurn++;
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              image_url: data.image_url,
+              filename: data.filename,
+              prompt_used: data.prompt_used || params.prompt,
+              model_used: data.model_used,
+              cost: data.cost,
+            },
+          };
+        } catch (e: any) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: e?.message || 'Failed to generate image via OpenRouter',
+          };
+        } finally {
+          isImageGenerationInProgress = false;
         }
       }
 

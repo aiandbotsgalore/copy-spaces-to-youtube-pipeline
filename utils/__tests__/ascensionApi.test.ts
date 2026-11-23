@@ -4,6 +4,7 @@ import fs from 'fs';
 import { EventEmitter } from 'events';
 import {
   createAscensionApiMiddleware,
+  createGeneratedMediaMiddleware,
   sanitizePath,
   checkSecretLeak,
   setKillSwitchState,
@@ -69,8 +70,9 @@ class MockResponse extends EventEmitter {
   }
 }
 
+const testRoot = path.resolve(__dirname, '..', '..');
+
 describe('Ascension API Backend & Security Guardrails', () => {
-  const testRoot = path.resolve(__dirname, '..', '..');
   let middleware: ReturnType<typeof createAscensionApiMiddleware>;
 
   beforeEach(() => {
@@ -328,5 +330,113 @@ describe('Ascension Copilot Action Contracts & Tiers', () => {
       name: 'Logan_Clone_01',
     });
     expect(cloneVoice.ok).toBe(true);
+  });
+
+  it('Static Media Route (GET /api/media/generated/:filename) strictly validates filenames and serves images', async () => {
+    const mediaMiddleware = createGeneratedMediaMiddleware({ rootDir: testRoot });
+    const genDir = path.resolve(testRoot, 'data', 'generated_images');
+    if (!fs.existsSync(genDir)) fs.mkdirSync(genDir, { recursive: true });
+
+    const sampleFile = path.resolve(genDir, 'test_sample.png');
+    fs.writeFileSync(sampleFile, Buffer.from('fake_png_data'));
+
+    try {
+      // 1. Valid file served
+      const req1 = new MockRequest('GET', '/api/media/generated/test_sample.png');
+      const res1 = new MockResponse();
+      mediaMiddleware(req1 as any, res1 as any);
+      expect(res1.statusCode).toBe(200);
+      expect(res1.headers['content-type']).toBe('image/png');
+      expect(res1.headers['x-content-type-options']).toBe('nosniff');
+
+      // 2. Reject SVG (XSS prevention)
+      const req2 = new MockRequest('GET', '/api/media/generated/vector.svg');
+      const res2 = new MockResponse();
+      mediaMiddleware(req2 as any, res2 as any);
+      expect(res2.statusCode).toBe(400);
+
+      // 3. Reject path traversal
+      const req3 = new MockRequest('GET', '/api/media/generated/../../secret.png');
+      const res3 = new MockResponse();
+      mediaMiddleware(req3 as any, res3 as any);
+      // Path traversal or invalid format rejected
+      expect(res3.statusCode).toBeGreaterThanOrEqual(400);
+    } finally {
+      if (fs.existsSync(sampleFile)) fs.unlinkSync(sampleFile);
+    }
+  });
+
+  it('POST /api/ascension/generate-image invokes OpenRouter image API, validates media and records audit log', async () => {
+    const mockImageB64 = Buffer.from('mock_flux_png_image_data').toString('base64');
+    const mockFetch = async (url: string, opts: any) => {
+      if (url.includes('openrouter.ai/api/v1/images')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            data: [{ b64_json: mockImageB64, media_type: 'image/png' }],
+            usage: { cost: 0.0025 },
+          }),
+        } as any;
+      }
+      return { ok: false, status: 404 } as any;
+    };
+
+    const imageMiddleware = createAscensionApiMiddleware({
+      rootDir: testRoot,
+      getEnv: () => ({ OPENROUTER_API_KEY: 'sk-or-test-mock-key' }),
+      fetchImpl: mockFetch as any,
+      now: () => 1763870000000,
+    });
+
+    const req = new MockRequest('POST', '/api/ascension/generate-image');
+    const res = new MockResponse();
+    const done = new Promise((resolve) => res.on('finish', resolve));
+
+    imageMiddleware(req as any, res as any);
+    req.sendBody({
+      prompt: 'A cinematic wide angle shot of a recording studio with retro neon lighting',
+      aspect_ratio: '16:9',
+      model: 'black-forest-labs/flux.2-klein-4b',
+    });
+    await done;
+
+    expect(res.statusCode).toBe(200);
+    const data = res.json();
+    expect(data.status).toBe('success');
+    expect(data.image_url).toMatch(/^\/api\/media\/generated\/gen_/);
+    expect(data.filename).toMatch(/^gen_.*\.png$/);
+    expect(data.cost).toBe(0.0025);
+
+    // Verify generated file exists and clean it up
+    const savedPath = path.resolve(testRoot, 'data', 'generated_images', data.filename);
+    expect(fs.existsSync(savedPath)).toBe(true);
+    fs.unlinkSync(savedPath);
+
+    // Verify audit log has no base64
+    const auditFile = path.resolve(testRoot, 'data', 'audit', 'wizard_audit.jsonl');
+    if (fs.existsSync(auditFile)) {
+      const logs = fs.readFileSync(auditFile, 'utf8');
+      expect(logs).not.toContain(mockImageB64);
+    }
+  });
+
+  it('POST /api/ascension/generate-image respects Kill Switch (pause and permanent)', async () => {
+    setKillSwitchState('pause');
+    const pausedMiddleware = createAscensionApiMiddleware({
+      rootDir: testRoot,
+      getEnv: () => ({ OPENROUTER_API_KEY: 'sk-or-test-mock-key' }),
+    });
+
+    const req = new MockRequest('POST', '/api/ascension/generate-image');
+    const res = new MockResponse();
+    const done = new Promise((resolve) => res.on('finish', resolve));
+
+    pausedMiddleware(req as any, res as any);
+    req.sendBody({ prompt: 'A cool visual' });
+    await done;
+
+    expect(res.statusCode).toBe(403);
+    setKillSwitchState('resume');
   });
 });

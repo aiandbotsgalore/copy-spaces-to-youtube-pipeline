@@ -244,6 +244,18 @@ export function exportSessionToMarkdown(session: CopilotSession): string {
       }
     }
 
+    if (m.generatedImages && m.generatedImages.length > 0) {
+      lines.push(`\n#### Generated Images:`);
+      const origin = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'http://localhost:5000';
+      for (const img of m.generatedImages) {
+        const fullUrl = img.image_url.startsWith('http')
+          ? img.image_url
+          : `${origin}${img.image_url.startsWith('/') ? '' : '/'}${img.image_url}`;
+        lines.push(`\n![${img.prompt_used || img.filename}](${fullUrl})`);
+        lines.push(`*Prompt: "${img.prompt_used || ''}" | Model: ${img.model_used || 'OpenRouter'}*`);
+      }
+    }
+
     lines.push('\n---\n');
   }
 

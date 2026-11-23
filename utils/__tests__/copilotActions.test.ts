@@ -405,6 +405,20 @@ describe('Execution Boundary & Undo Snapshots', () => {
       });
       expect(avatar.ok).toBe(true);
       expect(resolveActionTier('RENDER_AVATAR_DIRECT', {})).toBe(2);
+
+      // GENERATE_IMAGE (Tier 0)
+      const validImage = validateActionParams('GENERATE_IMAGE', {
+        prompt: 'A cinematic noir recording studio bathed in warm amber light',
+        aspectRatio: '16:9',
+        model: 'black-forest-labs/flux.2-klein-4b',
+      });
+      expect(validImage.ok).toBe(true);
+      expect(resolveActionTier('GENERATE_IMAGE', {})).toBe(0);
+
+      const invalidImage = validateActionParams('GENERATE_IMAGE', {
+        prompt: '',
+      });
+      expect(invalidImage.ok).toBe(false);
     });
   });
 });

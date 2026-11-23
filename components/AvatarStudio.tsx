@@ -338,6 +338,49 @@ export const AvatarStudio: React.FC<Props> = ({ config }) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
   }, []);
 
+  // Consume pending hand-off image from Copilot Image Studio on mount or via event
+  useEffect(() => {
+    const applyImageAsAvatar = (imageUrl: string) => {
+      if (!imageUrl) return;
+      const customPersona: AvatarPersona = {
+        id: `gen-avatar-${Date.now()}`,
+        name: 'Copilot Generated Character',
+        type: 'Neural Avatar',
+        avatarEmoji: '✨',
+        stability: 95,
+        description: 'Generated via SpacePipe Copilot Image Studio',
+        thumbnailColor: 'from-indigo-600 to-violet-600',
+        avatarUrl: imageUrl,
+        category: 'custom',
+        isCustom: true,
+      };
+      setPersonas((prev) => [customPersona, ...prev.filter((p) => p.id !== customPersona.id)]);
+      setSelectedPersona(customPersona);
+      showToast('🎨 AI-generated character loaded onto LivePortrait rig!');
+    };
+
+    // Check sessionStorage on mount
+    try {
+      const pending = sessionStorage.getItem('spacepipe_pending_avatar_image');
+      if (pending) {
+        sessionStorage.removeItem('spacepipe_pending_avatar_image');
+        applyImageAsAvatar(pending);
+      }
+    } catch {}
+
+    // Listen for custom event
+    const handleAvatarImageEvent = (e: any) => {
+      const url = e.detail?.imageUrl || e.detail;
+      if (url) {
+        applyImageAsAvatar(url);
+      }
+    };
+    window.addEventListener('spacepipe:load-avatar-image', handleAvatarImageEvent);
+    return () => {
+      window.removeEventListener('spacepipe:load-avatar-image', handleAvatarImageEvent);
+    };
+  }, []);
+
   // Sync totalDuration whenever selectedAudio changes
   useEffect(() => {
     if (selectedAudio && Number.isFinite(selectedAudio.durationSec) && selectedAudio.durationSec > 0) {

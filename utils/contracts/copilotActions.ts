@@ -494,6 +494,17 @@ export const ToggleKillSwitchParamsSchema = z.object({
   reason: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'reason is required for kill switch change')),
 });
 
+export const GenerateImageParamsSchema = z.object({
+  prompt: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'prompt is required')),
+  aspectRatio: z.preprocess(v => {
+    const s = String(v || '').trim();
+    return ['16:9', '9:16', '1:1', '4:3'].includes(s) ? s : '16:9';
+  }, z.enum(['16:9', '9:16', '1:1', '4:3']).optional()),
+  model: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  referenceImageFilename: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
 /* -------------------------------------------------------------------------- */
 /* Action Schema Registry                                                     */
 /* -------------------------------------------------------------------------- */
@@ -552,6 +563,7 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   SEND_DISCORD_MESSAGE: SendDiscordMessageParamsSchema,
   SEND_SLACK_MESSAGE: SendSlackMessageParamsSchema,
   TOGGLE_KILL_SWITCH: ToggleKillSwitchParamsSchema,
+  GENERATE_IMAGE: GenerateImageParamsSchema,
 };
 
 /**
@@ -612,6 +624,7 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'NAVIGATE_TAB':
     case 'LOAD_EPISODE':
     case 'AUDITION_MONTAGE':
+    case 'GENERATE_IMAGE':
       return 0;
 
     case 'CREATE_CLIP':

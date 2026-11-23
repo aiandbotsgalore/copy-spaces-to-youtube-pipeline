@@ -51,7 +51,8 @@ export type CopilotActionType =
   | 'STREAM_LIVE_LOGS'
   | 'SEND_DISCORD_MESSAGE'
   | 'SEND_SLACK_MESSAGE'
-  | 'TOGGLE_KILL_SWITCH';
+  | 'TOGGLE_KILL_SWITCH'
+  | 'GENERATE_IMAGE';
 
 export type ActionTier = 0 | 1 | 2;
 
@@ -125,6 +126,14 @@ export interface CopilotAction {
   activePhase?: string;
 }
 
+export interface GeneratedImage {
+  image_url: string;
+  filename: string;
+  prompt_used?: string;
+  model_used?: string;
+  cost?: number | null;
+}
+
 export interface CopilotMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -134,6 +143,7 @@ export interface CopilotMessage {
   matches?: TranscriptMatch[];
   model?: string;
   usage?: { promptTokens: number; completionTokens: number };
+  generatedImages?: GeneratedImage[];
 }
 
 export interface CopilotContextPayload {
