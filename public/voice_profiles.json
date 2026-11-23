@@ -1306,7 +1306,7 @@
         0.04703756794333458,
         -0.19788669049739838,
         -0.1043488085269928,
-        7.501134678022936e-05,
+        0.00007501134678022936,
         -0.0059992289170622826,
         -0.05738537758588791,
         0.02139360085129738,
@@ -1842,7 +1842,7 @@
         -0.1302686333656311,
         -0.026365911588072777,
         -0.02515185810625553,
-        9.320316894445568e-05,
+        0.00009320316894445568,
         -0.0011004331754520535,
         -0.033886395394802094,
         -0.0007821585168130696,
@@ -2343,7 +2343,7 @@
         -0.16972705721855164,
         -0.04213054105639458,
         -0.05028130114078522,
-        6.756374932592735e-05,
+        0.00006756374932592735,
         0.0074738492257893085,
         0.05149935930967331,
         0.07879307866096497,
@@ -2490,12 +2490,19 @@
       "avatar_emoji": "👩‍🎨",
       "color": "purple",
       "notes": "Regular co-host and contributor.",
-      "last_updated": "2026-09-15T14:30:00Z",
+      "last_updated": "2026-11-23T15:17:24.988Z",
       "identity_verified": true,
       "embedding_model": "speechbrain/spkrec-ecapa-voxceleb",
-      "sample_audio_url": "",
+      "sample_audio_url": "speaker_samples/Mary/95fd5018-744d-44d4-8c60-a2507f9d82e7-mary fingerprint voice sample.mp3",
       "embedding": [],
-      "samples": []
+      "samples": [
+        {
+          "id": "1b7401e9-419e-48e8-bce3-f728605a8a9e",
+          "source": "upload",
+          "audio_url": "speaker_samples/Mary/95fd5018-744d-44d4-8c60-a2507f9d82e7-mary fingerprint voice sample.mp3",
+          "label": "mary fingerprint voice sample.mp3"
+        }
+      ]
     },
     "Shane": {
       "name": "Shane",
