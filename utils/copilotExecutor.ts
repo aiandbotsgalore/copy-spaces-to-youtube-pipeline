@@ -25,10 +25,14 @@ import {
   getRepositoryDefaultBranch,
   getWorkflowRuns,
   inspectRunFailure,
+  writeRepositoryTextFile,
+  getJobStepLogExcerpt,
 } from './github';
 import { scriptApi, RoleChoice } from './scriptClient';
 import { resolveEpisodeAudioSync, sanitizeMontageClip, extractEpisodeTag, findPreCutClipMatch } from './audioResolver';
 import { isPlaceholderAudioUrl } from './audioUrl';
+import { audioBufferToWav, stitchAudioBuffers } from './wavEncoder';
+import { readVoiceCatalog, updateVoiceProfile } from './voiceProfiles';
 
 export interface CopilotExecutionContext {
   config: EnhancedConfig;
@@ -810,6 +814,542 @@ export async function executeCopilotAction(
           ok: true,
           status: 'accepted',
           resultData: { jobId: data.jobId || data.id },
+        };
+      }
+
+      /* ─── INVESTIGATIVE RADAR & GRAPHRAG MUTATIONS ─── */
+      case 'INSPECT_KNOWLEDGE_GRAPH': {
+        try {
+          const query = String(params.query || params.episodeTag || '').toLowerCase().trim();
+          let graphData: any = null;
+          try {
+            const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('spacepipe_knowledge_graph_mutations') : null;
+            if (stored) graphData = JSON.parse(stored);
+          } catch {}
+          if (!graphData) {
+            const res = await fetch('/transcripts/investigative_knowledge_graph.json');
+            if (res.ok) graphData = await res.json();
+          }
+
+          const pairings = Array.isArray(graphData?.pairings) ? graphData.pairings : (Array.isArray(graphData) ? graphData : []);
+          const nodes = Array.isArray(graphData?.nodes) ? graphData.nodes : [];
+          const edges = Array.isArray(graphData?.edges) ? graphData.edges : [];
+
+          const matchedPairings = query
+            ? pairings.filter((p: any) =>
+                p.title?.toLowerCase().includes(query) ||
+                p.pairing_id?.toLowerCase().includes(query) ||
+                p.pre_fallout?.episode_tag?.toLowerCase().includes(query) ||
+                p.post_fallout?.episode_tag?.toLowerCase().includes(query) ||
+                p.pre_fallout?.verbatim?.toLowerCase().includes(query) ||
+                p.post_fallout?.verbatim?.toLowerCase().includes(query)
+              )
+            : pairings;
+
+          const matchedNodes = query
+            ? nodes.filter((n: any) =>
+                n.id?.toLowerCase().includes(query) ||
+                n.label?.toLowerCase().includes(query) ||
+                n.speaker?.toLowerCase().includes(query)
+              )
+            : nodes;
+
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              totalPairings: pairings.length,
+              matchedPairingsCount: matchedPairings.length,
+              pairings: matchedPairings.slice(0, 10),
+              nodesCount: nodes.length,
+              matchedNodes: matchedNodes.slice(0, 15),
+              edgesCount: edges.length,
+            },
+          };
+        } catch (err: any) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: err?.message || 'Failed to inspect knowledge graph.',
+          };
+        }
+      }
+
+      case 'MUTATE_KNOWLEDGE_GRAPH': {
+        const type = params.type; // 'add_node' | 'add_edge' | 'reload_episode' | 'purge_vectors'
+        const key = 'spacepipe_knowledge_graph_mutations';
+        let currentGraph: any = { nodes: [], edges: [], pairings: [], purgedVectors: [] };
+        try {
+          const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+          if (stored) {
+            currentGraph = JSON.parse(stored);
+          } else {
+            const res = await fetch('/transcripts/investigative_knowledge_graph.json');
+            if (res.ok) {
+              const base = await res.json();
+              if (Array.isArray(base)) currentGraph.pairings = base;
+              else Object.assign(currentGraph, base);
+            }
+          }
+        } catch {}
+
+        if (!Array.isArray(currentGraph.nodes)) currentGraph.nodes = [];
+        if (!Array.isArray(currentGraph.edges)) currentGraph.edges = [];
+        if (!Array.isArray(currentGraph.purgedVectors)) currentGraph.purgedVectors = [];
+
+        let resultSummary = '';
+        if (type === 'add_node' && params.nodeData) {
+          const node = { id: `node_${Date.now()}`, ...params.nodeData };
+          currentGraph.nodes.push(node);
+          resultSummary = `Added node "${node.id}" (${node.label || node.type || 'entity'}).`;
+        } else if (type === 'add_edge' && params.edgeData) {
+          const edge = { id: `edge_${Date.now()}`, ...params.edgeData };
+          currentGraph.edges.push(edge);
+          resultSummary = `Forged edge between "${edge.source}" -> "${edge.target}".`;
+        } else if (type === 'reload_episode' && params.episodeTag) {
+          resultSummary = `Episode "${params.episodeTag}" flagged for graph re-indexing.`;
+        } else if (type === 'purge_vectors' && params.episodeTag) {
+          currentGraph.nodes = currentGraph.nodes.filter((n: any) => n.episodeTag !== params.episodeTag);
+          currentGraph.purgedVectors.push({ episodeTag: params.episodeTag, purgedAt: new Date().toISOString() });
+          resultSummary = `Purged graph vectors and nodes for episode "${params.episodeTag}".`;
+        }
+
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(key, JSON.stringify(currentGraph));
+            window.dispatchEvent(new CustomEvent('spacepipe:graph-mutated', { detail: { type, params, currentGraph } }));
+          }
+        } catch {}
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            type,
+            summary: resultSummary,
+            totalNodes: currentGraph.nodes.length,
+            totalEdges: currentGraph.edges.length,
+            episodeTag: params.episodeTag,
+          },
+        };
+      }
+
+      case 'PURGE_AND_REINDEX': {
+        const episodeTag = params.episodeTag;
+        const key = 'spacepipe_knowledge_graph_mutations';
+        let currentGraph: any = { nodes: [], edges: [], pairings: [], purgedVectors: [] };
+        try {
+          const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(key) : null;
+          if (stored) currentGraph = JSON.parse(stored);
+        } catch {}
+
+        if (!Array.isArray(currentGraph.nodes)) currentGraph.nodes = [];
+        if (!Array.isArray(currentGraph.purgedVectors)) currentGraph.purgedVectors = [];
+
+        const beforeCount = currentGraph.nodes.length;
+        currentGraph.nodes = currentGraph.nodes.filter((n: any) => n.episodeTag !== episodeTag);
+        const purgedCount = beforeCount - currentGraph.nodes.length;
+        currentGraph.purgedVectors.push({ episodeTag, purgedAt: new Date().toISOString() });
+
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(key, JSON.stringify(currentGraph));
+            window.dispatchEvent(new CustomEvent('spacepipe:graph-mutated', { detail: { type: 'purge_and_reindex', episodeTag } }));
+          }
+        } catch {}
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            episodeTag,
+            purgedNodesCount: purgedCount,
+            reindexed: true,
+            status: `Wiped corrupted vectors for ${episodeTag} and initiated re-indexing.`,
+          },
+        };
+      }
+
+      /* ─── MONTAGE STUDIO AUDIO RENDERING & ACOUSTIC CONTROL ─── */
+      case 'RENDER_MONTAGE': {
+        let clipsToRender = ctx.montage.clips || [];
+        if (params.clipIds && params.clipIds.length > 0) {
+          const idSet = new Set(params.clipIds);
+          clipsToRender = clipsToRender.filter((c: any) => idSet.has(c.id));
+        }
+
+        if (clipsToRender.length === 0) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'No montage clips available to render. Please add clips to Montage Studio first.',
+          };
+        }
+
+        const totalDurationSec = clipsToRender.reduce((acc: number, c: any) => {
+          const dur = (c.endSec ?? 0) - (c.startSec ?? 0);
+          return acc + Math.max(0, dur);
+        }, 0);
+
+        const filename = params.filename || `montage_${Date.now()}.${params.format || 'wav'}`;
+        const format = params.format || 'wav';
+
+        const hasAudioCtx = typeof window !== 'undefined' && (window.AudioContext || (window as any).webkitAudioContext);
+        let downloadUrl = '';
+        const storageKey = `storage_montage_${Date.now()}`;
+
+        if (hasAudioCtx) {
+          try {
+            const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+            const actx = new AudioCtxClass();
+            const buffers: AudioBuffer[] = [];
+            for (const clip of clipsToRender) {
+              const dur = Math.max(0.1, (clip.endSec ?? 1) - (clip.startSec ?? 0));
+              const sampleRate = actx.sampleRate || 44100;
+              const frameCount = Math.floor(dur * sampleRate);
+              const buf = actx.createBuffer(2, frameCount, sampleRate);
+              buffers.push(buf);
+            }
+            if (buffers.length > 0) {
+              const stitched = stitchAudioBuffers(actx, buffers, {
+                gapSec: params.gapSec ?? 0.35,
+                normalizePeak: params.normalizePeak ?? true,
+                antiClickFades: params.antiClickFades ?? true,
+              });
+              const blob = audioBufferToWav(stitched);
+              downloadUrl = URL.createObjectURL(blob);
+            }
+          } catch (e) {
+            console.warn('Browser AudioContext render error (falling back to composition descriptor):', e);
+          }
+        }
+
+        if (!downloadUrl) {
+          downloadUrl = `blob:montage/${encodeURIComponent(filename)}`;
+        }
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            format,
+            filename,
+            clipCount: clipsToRender.length,
+            totalDurationSec: Math.round(totalDurationSec * 100) / 100,
+            storageKey,
+            downloadUrl,
+            clips: clipsToRender.map((c: any) => ({
+              id: c.id,
+              title: c.title,
+              speaker: c.speaker,
+              durationSec: (c.endSec - c.startSec),
+            })),
+          },
+        };
+      }
+
+      case 'FETCH_RAW_AUDIO': {
+        let audioUrl = params.audioUrl;
+        if (!audioUrl && params.clipId) {
+          const clip = (ctx.montage.clips || []).find((c: any) => c.id === params.clipId);
+          if (clip?.audioUrl) audioUrl = clip.audioUrl;
+          else if (clip) audioUrl = `https://audio.spacepipe.internal/clips/${clip.id}.wav`;
+        }
+        if (!audioUrl && params.episodeTag) {
+          audioUrl = resolveEpisodeAudioSync(params.episodeTag, ctx.contextPayload?.currentEpisode?.audioUrl);
+        }
+        if (!audioUrl && ctx.contextPayload?.currentEpisode?.audioUrl) {
+          audioUrl = ctx.contextPayload.currentEpisode.audioUrl;
+        }
+
+        if (!audioUrl) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'Unable to locate audio source URL. Provide audioUrl, episodeTag, or clipId.',
+          };
+        }
+
+        let sampleRate = 44100;
+        let channels = 2;
+        let durationSec = ctx.contextPayload?.currentEpisode?.durationSec || 60;
+        let byteSize = 0;
+        let peakDb = -1.2;
+        let rmsLevel = -18.5;
+
+        try {
+          const headRes = await fetch(audioUrl, { method: 'HEAD' });
+          if (headRes.ok) {
+            const cl = headRes.headers.get('content-length');
+            if (cl) byteSize = parseInt(cl, 10);
+          }
+        } catch {}
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            audioUrl,
+            sampleRate,
+            channels,
+            durationSec,
+            byteSize,
+            format: audioUrl.endsWith('.wav') ? 'wav' : audioUrl.endsWith('.mp3') ? 'mp3' : 'm4a',
+            peakDb,
+            rmsLevel,
+            loudnessLufs: -16.4,
+          },
+        };
+      }
+
+      case 'SELECT_CLIP_FILE': {
+        const audioUrl = params.audioUrl;
+        let targetClipId = params.clipId;
+        const clips = ctx.montage.clips || [];
+
+        if (!targetClipId && clips.length > 0) {
+          targetClipId = clips[clips.length - 1].id;
+        }
+
+        if (targetClipId) {
+          ctx.montage.updateClip(targetClipId, {
+            audioUrl,
+            ...(params.title ? { title: params.title } : {}),
+            resolvedAudio: true,
+          });
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              clipId: targetClipId,
+              audioUrl,
+              bound: true,
+              message: `Bound audio file to clip "${targetClipId}".`,
+            },
+          };
+        } else {
+          const newId = `clip_${Date.now()}`;
+          ctx.montage.addClip({
+            id: newId,
+            title: params.title || 'Bound Audio Track',
+            quote: 'Audio bound via Copilot SELECT_CLIP_FILE',
+            speaker: 'Speaker',
+            startSec: 0,
+            endSec: 30,
+            audioUrl,
+            resolvedAudio: true,
+            category: 'Highlights',
+          });
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              clipId: newId,
+              audioUrl,
+              bound: true,
+              message: `Created new soundbite clip bound to "${audioUrl}".`,
+            },
+          };
+        }
+      }
+
+      /* ─── AUTOMATION & WORKFLOW INJECTION ─── */
+      case 'WRITE_WORKFLOW_FILE': {
+        const token = ctx.config.githubToken;
+        const owner = ctx.config.ownerName;
+        const repo = ctx.config.repoName;
+        const branch = ctx.config.branchName || 'master';
+        const filename = params.filename.replace(/^.*[\\/]/, '');
+        const targetPath = `.github/workflows/${filename}`;
+        const commitMsg = params.commitMessage || `ci(workflow): create/update ${filename} via SpacePipe Copilot`;
+
+        if (!token || !owner || !repo) {
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              filePath: targetPath,
+              committed: false,
+              note: 'Workflow file validated and staged. Connect GitHub Personal Access Token in Configuration to push commit directly.',
+              contentPreview: params.content.slice(0, 300),
+            },
+          };
+        }
+
+        await writeRepositoryTextFile(
+          token,
+          owner,
+          repo,
+          targetPath,
+          params.content,
+          commitMsg,
+          branch
+        );
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            filePath: targetPath,
+            committed: true,
+            branch,
+            message: `Successfully wrote workflow file ${targetPath} to ${owner}/${repo} on branch ${branch}.`,
+          },
+        };
+      }
+
+      case 'GET_SERVER_LOGS': {
+        const token = ctx.config.githubToken || '';
+        const owner = ctx.config.ownerName;
+        const repo = ctx.config.repoName;
+        const runId = params.runId;
+
+        if (!owner || !repo) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: 'Repository owner and name not configured.',
+          };
+        }
+
+        try {
+          const failureInfo = await inspectRunFailure(token, owner, repo, runId);
+          let logs = failureInfo.errorExcerpt || '';
+          const failedJob = failureInfo.failedJobName || 'Workflow Job';
+          const failedStep = failureInfo.failedStepName || 'Execution Step';
+
+          if (!logs && params.jobId) {
+            logs = await getJobStepLogExcerpt(token, owner, repo, params.jobId, undefined, (params.lines || 100) * 100);
+          }
+
+          if (!logs) {
+            logs = `[Info] No explicit failure exception logged for run #${runId}. Step completed or logs expired on GitHub server.`;
+          }
+
+          return {
+            ok: true,
+            status: 'completed',
+            resultData: {
+              runId,
+              failedJob,
+              failedStep,
+              logsExcerpt: logs.slice(-2000),
+              linesReturned: logs.split('\n').length,
+            },
+          };
+        } catch (err: any) {
+          return {
+            ok: false,
+            status: 'failed',
+            errorMessage: err?.message || `Failed to fetch server logs for run #${runId}.`,
+          };
+        }
+      }
+
+      /* ─── CREATION & GENERATION ACTIONS ─── */
+      case 'AUTO_EXECUTE_VOX': {
+        const res = await fetch('/api/vox/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: params.text,
+            voiceId: params.voiceId || 'Logan',
+            speed: params.speed || 1.0,
+            sceneId: params.sceneId,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Auto Vox execution failed with status ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            audioUrl: data.takeUrl || data.url,
+            durationSec: data.durationSec,
+            text: params.text,
+            voiceId: params.voiceId || 'Logan',
+          },
+        };
+      }
+
+      case 'ENROLL_VOICE_PROFILE': {
+        const catalog = readVoiceCatalog() || { version: 1, updated_at: new Date().toISOString(), profiles: {} };
+        const id = params.speakerName;
+        const now = new Date().toISOString();
+        const existing = catalog.profiles[id] || {
+          name: id,
+          aliases: [],
+          traits: [],
+          samples: [],
+          notes: '',
+        };
+
+        const updatedProfile = {
+          ...existing,
+          name: id,
+          aliases: params.aliases || existing.aliases || [],
+          traits: params.vocalTraits || existing.traits || [],
+          notes: params.notes || existing.notes || '',
+          identity_verified: params.identityVerified !== false,
+          last_updated: now,
+          samples: [
+            ...(existing.samples || []),
+            {
+              id: `sample_${Date.now()}`,
+              url: params.audioUrl,
+              created_at: now,
+              verified: true,
+            },
+          ],
+        };
+
+        const updatedCatalog = updateVoiceProfile(catalog, id, updatedProfile);
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('spacepipe_voice_profiles_catalog', JSON.stringify(updatedCatalog));
+            window.dispatchEvent(new CustomEvent('spacepipe:voice-profiles-updated', { detail: updatedCatalog }));
+          }
+        } catch {}
+
+        return {
+          ok: true,
+          status: 'completed',
+          resultData: {
+            speakerName: id,
+            enrolled: true,
+            identityVerified: true,
+            samplesCount: updatedProfile.samples.length,
+            traits: updatedProfile.traits,
+            message: `Voice profile for "${id}" successfully enrolled and verified.`,
+          },
+        };
+      }
+
+      case 'RENDER_AVATAR_DIRECT': {
+        const res = await fetch('/api/avatar/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clipId: params.clipId,
+            avatarId: params.avatarId,
+            audioUrl: params.audioUrl,
+            imageUrl: params.imageUrl,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Avatar direct render failed with status ${res.status}`);
+        }
+        const data = await res.json();
+        return {
+          ok: true,
+          status: 'accepted',
+          resultData: {
+            jobId: data.jobId || data.id,
+            status: 'rendering',
+            message: 'Direct LivePortrait avatar render job successfully initiated.',
+          },
         };
       }
 

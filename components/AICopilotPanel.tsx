@@ -1144,7 +1144,7 @@ interface ActionCardProps {
 
 const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAnalyze }) => {
   const isSearchAction = action.action === 'SEARCH_TRANSCRIPTS';
-  const isInspectionAction = action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH';
+  const isInspectionAction = action.action.startsWith('GET_') || action.action === 'INSPECT_KNOWLEDGE_GRAPH' || action.action === 'FETCH_RAW_AUDIO';
   const tier = action.tier ?? resolveActionTier(action.action, action.params);
   const isTier2 = tier === 2;
   const [showTelemetry, setShowTelemetry] = useState(false);
@@ -1189,8 +1189,28 @@ const ActionCard: React.FC<ActionCardProps> = ({ action, onApply, onRevert, onAn
         return { label: 'Script Studio', bg: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' };
       case 'SYNTHESIZE_VOX':
         return { label: 'Voice Synth', bg: 'bg-fuchsia-500/15 text-fuchsia-300 border-fuchsia-500/30' };
+      case 'AUTO_EXECUTE_VOX':
+        return { label: 'Auto Vox', bg: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40' };
       case 'RENDER_AVATAR':
         return { label: 'Render Avatar', bg: 'bg-pink-500/15 text-pink-300 border-pink-500/30' };
+      case 'RENDER_AVATAR_DIRECT':
+        return { label: 'Direct Avatar', bg: 'bg-pink-500/20 text-pink-300 border-pink-500/40' };
+      case 'RENDER_MONTAGE':
+        return { label: 'Render Montage', bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'FETCH_RAW_AUDIO':
+        return { label: 'Acoustic Audio', bg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' };
+      case 'SELECT_CLIP_FILE':
+        return { label: 'Bind Clip Audio', bg: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' };
+      case 'WRITE_WORKFLOW_FILE':
+        return { label: 'Workflow File', bg: 'bg-purple-500/20 text-purple-300 border-purple-500/40' };
+      case 'GET_SERVER_LOGS':
+        return { label: 'Server Logs', bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40' };
+      case 'ENROLL_VOICE_PROFILE':
+        return { label: 'Enroll Voice', bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' };
+      case 'MUTATE_KNOWLEDGE_GRAPH':
+        return { label: 'Mutate Graph', bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40' };
+      case 'PURGE_AND_REINDEX':
+        return { label: 'Purge & Reindex', bg: 'bg-rose-500/20 text-rose-300 border-rose-500/40' };
       case 'GET_QUEUE':
       case 'GET_RUN_HISTORY':
       case 'GET_VOICE_PROFILES':

@@ -39,6 +39,12 @@ export function containsForbiddenSecretKey(obj: unknown): string | null {
   return null;
 }
 
+export function containsSecretContent(text: string): boolean {
+  if (!text) return false;
+  const secretPattern = /(?:ghp_[a-zA-Z0-9]{16,}|github_pat_[a-zA-Z0-9_]{16,}|(?:api[_-]?key|secret|token|password)\s*[:=]\s*['"]?[a-zA-Z0-9_\-\.]{16,}['"]?)/i;
+  return secretPattern.test(text);
+}
+
 export const SENSITIVE_CONFIG_KEYS = new Set([
   'scheduledCron',
   'enableScheduledMonitoring',
@@ -315,6 +321,92 @@ export const LoadContradictionReelParamsSchema = z.object({
   }).optional(),
 });
 
+export const MutateKnowledgeGraphParamsSchema = z.object({
+  type: z.enum(['add_node', 'add_edge', 'reload_episode', 'purge_vectors']),
+  episodeTag: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  nodeData: z.record(z.string(), z.unknown()).optional(),
+  edgeData: z.record(z.string(), z.unknown()).optional(),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const PurgeAndReindexParamsSchema = z.object({
+  episodeTag: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'episodeTag is required')),
+  purgeCorrupted: z.boolean().default(true),
+  reindex: z.boolean().default(true),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const RenderMontageParamsSchema = z.object({
+  format: z.enum(['wav', 'mp4']).default('wav'),
+  clipIds: z.array(z.string()).optional(),
+  filename: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  normalizePeak: z.boolean().default(true),
+  antiClickFades: z.boolean().default(true),
+  gapSec: z.preprocess(v => (v !== undefined ? Number(v) : 0.35), z.number().nonnegative().default(0.35)),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const FetchRawAudioParamsSchema = z.object({
+  audioUrl: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  episodeTag: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  clipId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const SelectClipFileParamsSchema = z.object({
+  clipId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  audioUrl: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'audioUrl is required')),
+  title: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  source: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const WriteWorkflowFileParamsSchema = z.object({
+  filename: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'filename is required').refine(
+    f => (f.endsWith('.yml') || f.endsWith('.yaml')) && !f.includes('..') && !f.includes('/') && !f.includes('\\'),
+    { message: 'filename must be a valid YAML file name (e.g., monitor.yml) without path traversal' }
+  )),
+  content: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'content is required').refine(
+    c => !containsSecretContent(c),
+    { message: 'Security violation: workflow content contains hardcoded authentication tokens or secrets' }
+  )),
+  commitMessage: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const GetServerLogsParamsSchema = z.object({
+  runId: z.preprocess(v => Number(v), z.number().int().positive('runId must be a positive integer')),
+  jobId: z.preprocess(v => (v !== undefined ? Number(v) : undefined), z.number().int().positive().optional()),
+  stepName: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  lines: z.preprocess(v => (v !== undefined ? Number(v) : 100), z.number().int().min(1).max(1000).default(100)),
+});
+
+export const AutoExecuteVoxParamsSchema = z.object({
+  text: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'text is required')),
+  voiceId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  sceneId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  speed: z.preprocess(v => (v !== undefined ? Number(v) : 1.0), z.number().min(0.25).max(3.0).default(1.0)),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const EnrollVoiceProfileParamsSchema = z.object({
+  speakerName: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'speakerName is required')),
+  audioUrl: z.preprocess(v => String(v || '').trim(), z.string().min(1, 'audioUrl is required')),
+  vocalTraits: z.array(z.string()).optional(),
+  aliases: z.array(z.string()).optional(),
+  identityVerified: z.boolean().default(true),
+  notes: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
+export const RenderAvatarDirectParamsSchema = z.object({
+  clipId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  avatarId: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  audioUrl: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  imageUrl: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+  reason: z.preprocess(v => (v ? String(v).trim() : undefined), z.string().optional()),
+});
+
 /* -------------------------------------------------------------------------- */
 /* Action Schema Registry                                                     */
 /* -------------------------------------------------------------------------- */
@@ -324,6 +416,9 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   TRIM_CLIP: TrimClipParamsSchema,
   SEQUENCE_MONTAGE: SequenceMontageParamsSchema,
   AUDITION_MONTAGE: AuditionMontageParamsSchema,
+  RENDER_MONTAGE: RenderMontageParamsSchema,
+  FETCH_RAW_AUDIO: FetchRawAudioParamsSchema,
+  SELECT_CLIP_FILE: SelectClipFileParamsSchema,
   PLAY_AUDIO: PlayAudioParamsSchema,
   PAUSE_AUDIO: PauseAudioParamsSchema,
   SEEK_AUDIO: SeekAudioParamsSchema,
@@ -333,21 +428,28 @@ export const ACTION_SCHEMAS: Record<CopilotActionType, z.ZodType<any>> = {
   UPDATE_CONFIG: UpdateConfigParamsSchema,
   ENQUEUE_SPACE: EnqueueSpaceParamsSchema,
   DISPATCH_WORKFLOW: DispatchWorkflowParamsSchema,
+  WRITE_WORKFLOW_FILE: WriteWorkflowFileParamsSchema,
+  GET_SERVER_LOGS: GetServerLogsParamsSchema,
   GET_QUEUE: GetQueueParamsSchema,
   GET_RUN_HISTORY: GetRunHistoryParamsSchema,
   GET_RUN_JOBS: GetRunJobsParamsSchema,
   GET_VOICE_PROFILES: GetVoiceProfilesParamsSchema,
+  ENROLL_VOICE_PROFILE: EnrollVoiceProfileParamsSchema,
   GET_SCRIPT_PROJECTS: GetScriptProjectsParamsSchema,
   INSPECT_KNOWLEDGE_GRAPH: InspectKnowledgeGraphParamsSchema,
+  MUTATE_KNOWLEDGE_GRAPH: MutateKnowledgeGraphParamsSchema,
+  PURGE_AND_REINDEX: PurgeAndReindexParamsSchema,
   CREATE_PROJECT: CreateProjectParamsSchema,
   ANALYZE_PROJECT: AnalyzeProjectParamsSchema,
   OUTLINE_PROJECT: OutlineProjectParamsSchema,
   DRAFT_PROJECT: DraftProjectParamsSchema,
   REFINE_PROJECT: RefineProjectParamsSchema,
   SYNTHESIZE_VOX: SynthesizeVoxParamsSchema,
-  RENDER_AVATAR: RenderAvatarParamsSchema,
+  AUTO_EXECUTE_VOX: AutoExecuteVoxParamsSchema,
   GET_TRANSCRIPT_GAPS: GetTranscriptGapsParamsSchema,
   DISPATCH_TRANSCRIPT_BACKFILL: DispatchTranscriptBackfillParamsSchema,
+  RENDER_AVATAR: RenderAvatarParamsSchema,
+  RENDER_AVATAR_DIRECT: RenderAvatarDirectParamsSchema,
   APPROVE_SPEAKER: ApproveSpeakerParamsSchema,
   REJECT_SPEAKER: RejectSpeakerParamsSchema,
   RELABEL_SPEAKER: RelabelSpeakerParamsSchema,
@@ -387,9 +489,9 @@ export function validateActionParams(
 
 /**
  * Determines the authorization tier for an action instance based on what it actually modifies.
- * Tier 0: Run immediately (search, inspect, navigate, play, pause, seek).
+ * Tier 0: Run immediately (search, inspect, navigate, play, pause, seek, logs, fetch audio).
  * Tier 1: Auto-apply allowed if Auto-Apply is on; reliable undo snapshot required.
- * Tier 2: Explicit user confirmation required (destinations, pipelines, cloud dispatch, sensitive config, costs).
+ * Tier 2: Explicit user confirmation required (destinations, pipelines, cloud dispatch, sensitive config, costs, workflow file write).
  */
 export function resolveActionTier(actionType: CopilotActionType, params: Record<string, any>): ActionTier {
   switch (actionType) {
@@ -400,6 +502,8 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'GET_VOICE_PROFILES':
     case 'GET_SCRIPT_PROJECTS':
     case 'INSPECT_KNOWLEDGE_GRAPH':
+    case 'FETCH_RAW_AUDIO':
+    case 'GET_SERVER_LOGS':
     case 'PLAY_AUDIO':
     case 'PAUSE_AUDIO':
     case 'SEEK_AUDIO':
@@ -411,6 +515,16 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'CREATE_CLIP':
     case 'TRIM_CLIP':
     case 'SEQUENCE_MONTAGE':
+    case 'RENDER_MONTAGE':
+    case 'SELECT_CLIP_FILE':
+    case 'MUTATE_KNOWLEDGE_GRAPH':
+    case 'PURGE_AND_REINDEX':
+    case 'AUTO_EXECUTE_VOX':
+    case 'ENROLL_VOICE_PROFILE':
+    case 'APPROVE_SPEAKER':
+    case 'REJECT_SPEAKER':
+    case 'RELABEL_SPEAKER':
+    case 'LOAD_CONTRADICTION_REEL':
       return 1;
 
     case 'UPDATE_CONFIG': {
@@ -420,6 +534,7 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
       return touchesSensitive ? 2 : 1;
     }
 
+    case 'WRITE_WORKFLOW_FILE':
     case 'ENQUEUE_SPACE':
     case 'DISPATCH_WORKFLOW':
     case 'CREATE_PROJECT':
@@ -429,6 +544,8 @@ export function resolveActionTier(actionType: CopilotActionType, params: Record<
     case 'REFINE_PROJECT':
     case 'SYNTHESIZE_VOX':
     case 'RENDER_AVATAR':
+    case 'RENDER_AVATAR_DIRECT':
+    case 'DISPATCH_TRANSCRIPT_BACKFILL':
       return 2;
 
     default:

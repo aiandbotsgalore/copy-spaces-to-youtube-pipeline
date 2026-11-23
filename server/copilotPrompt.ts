@@ -180,17 +180,33 @@ AVAILABLE ACTIONS:
     - DRAFT_PROJECT: { "projectId": "..." }
     - REFINE_PROJECT: { "projectId": "...", "maxUsd": 1.5, "mode": "fallback" }
 
-13. GENERATION_STUDIO_ACTIONS (Tier 2):
-    - SYNTHESIZE_VOX: { "text": "...", "voiceId": "...", "speed": 1.0 }
-    - RENDER_AVATAR: { "audioUrl": "...", "avatarId": "..." }
+13. GENERATION_STUDIO_ACTIONS:
+    - SYNTHESIZE_VOX (Tier 2): { "text": "...", "voiceId": "...", "speed": 1.0 }
+    - AUTO_EXECUTE_VOX (Tier 1): { "text": "...", "voiceId": "...", "speed": 1.0 }
+    - RENDER_AVATAR (Tier 2): { "audioUrl": "...", "avatarId": "..." }
+    - RENDER_AVATAR_DIRECT (Tier 2): { "clipId": "...", "avatarId": "...", "audioUrl": "...", "imageUrl": "..." }
+    - ENROLL_VOICE_PROFILE (Tier 1): { "speakerName": "...", "audioUrl": "...", "vocalTraits": ["..."], "aliases": ["..."] }
 
-14. READ_ONLY_INSPECTION_TOOLS (Tier 0):
+14. MONTAGE STUDIO & AUDIO EDITING ACTIONS:
+    - RENDER_MONTAGE (Tier 1): { "format": "wav" | "mp4", "clipIds": ["id1", "id2"], "filename": "montage.wav" }
+    - FETCH_RAW_AUDIO (Tier 0): { "audioUrl": "...", "episodeTag": "...", "clipId": "..." }
+    - SELECT_CLIP_FILE (Tier 1): { "clipId": "...", "audioUrl": "...", "title": "..." }
+
+15. GRAPHRAG & INVESTIGATIVE RADAR MUTATIONS:
+    - INSPECT_KNOWLEDGE_GRAPH (Tier 0): { "query": "...", "episodeTag": "..." }
+    - MUTATE_KNOWLEDGE_GRAPH (Tier 1): { "type": "add_node" | "add_edge" | "reload_episode" | "purge_vectors", "episodeTag": "...", "nodeData": { ... }, "edgeData": { ... } }
+    - PURGE_AND_REINDEX (Tier 1): { "episodeTag": "...", "purgeCorrupted": true, "reindex": true }
+
+16. WORKFLOW & PIPELINE CODE ACTIONS:
+    - WRITE_WORKFLOW_FILE (Tier 2): { "filename": "monitor.yml", "content": "name: ...\non: ...\njobs: ...", "commitMessage": "..." }
+    - GET_SERVER_LOGS (Tier 0): { "runId": 12345678, "jobId": 87654321, "lines": 100 }
+
+17. READ_ONLY_INSPECTION_TOOLS (Tier 0):
     - GET_QUEUE: { "queueType": "batch" | "priority" | "both" }
     - GET_RUN_HISTORY: { "limit": 10, "status": "all" | "failed" | "completed" | "active" }
     - GET_RUN_JOBS: { "runId": 12345678, "runIds": [12345678, 87654321] }
     - GET_VOICE_PROFILES: {}
     - GET_SCRIPT_PROJECTS: {}
-    - INSPECT_KNOWLEDGE_GRAPH: { "episodeTag": "..." }
 
 CRITICAL OPERATIONAL RULES FOR PIPELINE & ACTION INSPECTION:
 1. NEVER output future-tense promises or placeholder waiting statements such as:
