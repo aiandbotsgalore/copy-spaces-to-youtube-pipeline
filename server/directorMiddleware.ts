@@ -47,6 +47,7 @@ import { getWorkflowRuns, inspectRunFailure, getReleases } from '../utils/github
 import { diffTranscriptGaps, enqueueMissingTranscripts } from './transcriptGapService';
 import { buildCopilotSystemPrompt, extractCopilotActions } from './copilotPrompt';
 import { sanitizeCopilotText } from '../utils/copilotText';
+import { formatAttachmentsForPrompt } from '../utils/attachmentUtils';
 import {
   searchTranscriptArchive,
   detectSearchIntent,
@@ -1407,6 +1408,12 @@ async function runCopilot(
     .map(m => {
       let content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content);
       content = sanitizeCopilotText(content);
+      if (m.attachments && m.attachments.length > 0) {
+        const attPrompt = formatAttachmentsForPrompt(m.attachments);
+        if (attPrompt) {
+          content = `${content}\n\n${attPrompt}`;
+        }
+      }
       return {
         role: m.role as 'user' | 'assistant',
         content: content || '...',

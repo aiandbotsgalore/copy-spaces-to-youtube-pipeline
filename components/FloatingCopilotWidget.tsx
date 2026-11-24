@@ -12,12 +12,16 @@ import {
   Download,
   Video,
   Image as ImageIcon,
+  Paperclip,
+  UploadCloud,
+  FileText,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useConfig } from '../contexts/ConfigContext';
 import { usePlayer } from '../contexts/PlayerContext';
 import { useMontage } from '../contexts/MontageContext';
 import { CopilotMarkdown } from './CopilotMarkdown';
+import { CopilotAttachmentViewer } from './CopilotAttachmentViewer';
 import { extractLiveStudioContext } from '../utils/liveContextExtractor';
 import { sendCopilotMessage } from '../utils/copilotClient';
 import { buildCompactStateSummary } from '../utils/copilotState';
@@ -29,7 +33,15 @@ import type {
   CopilotAction,
   CopilotContextPayload,
   CopilotRequestBody,
+  CopilotAttachment,
 } from '../utils/copilotTypes';
+import {
+  ACCEPTED_FILE_TYPES,
+  formatFileSize,
+  readFileAsAttachment,
+  extractFilesFromClipboard,
+  extractFilesFromDataTransfer,
+} from '../utils/attachmentUtils';
 
 export interface CopilotWidgetTab {
   id: string;
@@ -158,6 +170,71 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
   // Active tab's input draft
   const [input, setInput] = useState(() => activeTabObj?.inputDraft || '');
   const prevActiveTabIdRef = useRef(activeTabId);
+
+  // File upload, paste, and drag-drop attachments state
+  const [pendingAttachments, setPendingAttachments] = useState<CopilotAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dragCounterRef = useRef(0);
+
+  const handleAddFiles = async (files: File[]) => {
+    const newAttachments: CopilotAttachment[] = [];
+    for (const f of files) {
+      try {
+        const att = await readFileAsAttachment(f);
+        newAttachments.push(att);
+      } catch (err) {
+        console.warn('Failed to read attached file:', f.name, err);
+      }
+    }
+    if (newAttachments.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...newAttachments]);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current <= 0) {
+      setIsDragging(false);
+      dragCounterRef.current = 0;
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+    const files = extractFilesFromDataTransfer(e.dataTransfer);
+    if (files.length > 0) {
+      await handleAddFiles(files);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const files = extractFilesFromClipboard(e.clipboardData);
+    if (files.length > 0) {
+      e.preventDefault();
+      await handleAddFiles(files);
+    }
+  };
 
   useEffect(() => {
     if (prevActiveTabIdRef.current !== activeTabId) {
@@ -321,19 +398,22 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
     const currentTab = tabs.find((t) => t.id === targetTabId);
     if (!currentTab) return;
 
-    const msg = (textToSend || input).trim();
-    if (!msg || loadingTabIds.has(targetTabId)) return;
+    const raw = textToSend !== undefined ? textToSend : input;
+    const msg = raw.trim();
+    const attachments = [...pendingAttachments];
+    if ((!msg && attachments.length === 0) || loadingTabIds.has(targetTabId)) return;
 
     const userMsg: CopilotMessage = {
       id: `user_${Date.now()}`,
       role: 'user',
-      content: msg,
+      content: msg || (attachments.length > 0 ? 'Please analyze the attached file(s).' : ''),
       timestamp: Date.now(),
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
 
     // Auto-title tab from the first prompt
     const shouldAutoTitle = currentTab.messages.length === 0 || /^Chat \d+$/.test(currentTab.title);
-    const cleanPrompt = msg.replace(/\s+/g, ' ').trim();
+    const cleanPrompt = (msg || attachments[0]?.name || 'Chat').replace(/\s+/g, ' ').trim();
     const updatedTitle = shouldAutoTitle
       ? (cleanPrompt.length > 18 ? `${cleanPrompt.slice(0, 16)}…` : cleanPrompt)
       : currentTab.title;
@@ -358,6 +438,7 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
     if (!textToSend) {
       setInput('');
     }
+    setPendingAttachments([]);
 
     setLoadingTabIds((prev) => new Set(prev).add(targetTabId));
     setTabErrors((prev) => {
@@ -426,6 +507,7 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
         messages: updatedMessages.map((m) => ({
           role: m.role,
           content: m.content,
+          attachments: m.attachments,
         })),
         model: model || DEFAULT_COPILOT_MODEL,
         context: {
@@ -560,7 +642,25 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
     <div className="fixed bottom-20 right-5 z-40 flex flex-col items-end select-none">
       {/* Expanded Floating Drawer Panel */}
       {isOpen && (
-        <div className="mb-3 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-10rem)] bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl backdrop-blur-md flex flex-col overflow-hidden text-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div
+          className="mb-3 w-[420px] max-w-[calc(100vw-2.5rem)] h-[580px] max-h-[calc(100vh-10rem)] bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl backdrop-blur-md flex flex-col overflow-hidden text-slate-200 animate-in fade-in zoom-in-95 duration-200 relative select-text"
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          {/* Drag & Drop Frame Overlay */}
+          {isDragging && (
+            <div className="absolute inset-0 z-50 bg-indigo-950/90 backdrop-blur-sm border-2 border-dashed border-indigo-400 rounded-2xl m-2 flex flex-col items-center justify-center gap-2.5 text-indigo-200 pointer-events-none animate-in fade-in duration-150 shadow-2xl">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600/30 border border-indigo-400/50 flex items-center justify-center text-indigo-300 shadow-lg shadow-indigo-500/20">
+                <UploadCloud size={24} className="animate-bounce" />
+              </div>
+              <div className="text-center px-4">
+                <p className="text-sm font-bold text-white">Drop images or documents here</p>
+                <p className="text-[11px] text-indigo-300/80 mt-0.5">Attach to Copilot chat</p>
+              </div>
+            </div>
+          )}
           {/* Header */}
           <div className="px-4 py-3 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
@@ -740,7 +840,12 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
                     }`}
                   >
                     {m.role === 'user' ? (
-                      <div className="whitespace-pre-wrap">{m.content}</div>
+                      <div>
+                        <div className="whitespace-pre-wrap">{m.content}</div>
+                        {m.attachments && m.attachments.length > 0 && (
+                          <CopilotAttachmentViewer attachments={m.attachments} isUserMessage />
+                        )}
+                      </div>
                     ) : (
                       <CopilotMarkdown
                         content={m.content}
@@ -910,6 +1015,40 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
 
           {/* Input Footer */}
           <div className="p-2.5 bg-slate-950 border-t border-slate-800 flex-shrink-0">
+            {/* Pending Attachments Strip */}
+            {pendingAttachments.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2 p-1.5 rounded-lg bg-slate-900/90 border border-slate-800 max-h-24 overflow-y-auto">
+                {pendingAttachments.map((att) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[11px] text-slate-200"
+                  >
+                    {att.type === 'image' && att.dataUrl ? (
+                      <img src={att.dataUrl} alt={att.name} className="w-4 h-4 rounded object-cover flex-shrink-0" />
+                    ) : (
+                      <FileText size={11} className="text-indigo-400 flex-shrink-0" />
+                    )}
+                    <span className="truncate max-w-[90px] text-white text-[10px]">{att.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setPendingAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                      className="text-slate-400 hover:text-rose-400 p-0.5 cursor-pointer"
+                      title="Remove"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setPendingAttachments([])}
+                  className="text-[10px] text-slate-500 hover:text-rose-400 px-1 self-center cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -918,19 +1057,41 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
               className="flex items-center gap-1.5"
             >
               <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={ACCEPTED_FILE_TYPES}
+                className="hidden"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    await handleAddFiles(Array.from(e.target.files));
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload image or document (or paste/drag into chat)"
+                className="p-1.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+              >
+                <Paperclip size={14} />
+              </button>
+              <input
                 type="text"
                 value={input}
                 onChange={(e) => handleInputChange(e.target.value)}
+                onPaste={handlePaste}
                 placeholder={
                   includeContext
-                    ? `Ask about ${liveContext.badge}...`
-                    : 'Ask a general question...'
+                    ? `Ask about ${liveContext.badge} or paste/drop files...`
+                    : 'Ask Copilot or paste/drop files...'
                 }
                 className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               />
               <button
                 type="submit"
-                disabled={!input.trim() || isLoadingActive}
+                disabled={(!input.trim() && pendingAttachments.length === 0) || isLoadingActive}
                 className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white cursor-pointer transition-colors"
                 title="Send Message"
               >

@@ -42,13 +42,23 @@ import {
   Image as ImageIcon,
   Maximize2,
   Video,
+  Paperclip,
+  UploadCloud,
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
 import { usePlayer } from '../contexts/PlayerContext';
 import { TensionArc } from './TensionArc';
 import { TargetWindowGauge } from './TargetWindowGauge';
-import type { CopilotAction } from '../utils/copilotTypes';
+import type { CopilotAction, CopilotAttachment } from '../utils/copilotTypes';
+import {
+  ACCEPTED_FILE_TYPES,
+  formatFileSize,
+  readFileAsAttachment,
+  extractFilesFromClipboard,
+  extractFilesFromDataTransfer,
+} from '../utils/attachmentUtils';
+import { CopilotAttachmentViewer } from './CopilotAttachmentViewer';
 import { resolveActionTier } from '../utils/contracts/copilotActions';
 import { renderTranscriptWithContextFocus } from '../utils/searchWorker';
 import { CopilotMarkdown } from './CopilotMarkdown';
@@ -144,6 +154,71 @@ export const AICopilotPanel: React.FC = () => {
   const activeTimelineCardRef = useRef<HTMLDivElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // File upload, paste and drag-drop attachments state
+  const [pendingAttachments, setPendingAttachments] = useState<CopilotAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dragCounterRef = useRef(0);
+
+  const handleAddFiles = async (files: File[]) => {
+    const newAttachments: CopilotAttachment[] = [];
+    for (const f of files) {
+      try {
+        const att = await readFileAsAttachment(f);
+        newAttachments.push(att);
+      } catch (err) {
+        console.warn('Failed to read attached file:', f.name, err);
+      }
+    }
+    if (newAttachments.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...newAttachments]);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current <= 0) {
+      setIsDragging(false);
+      dragCounterRef.current = 0;
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounterRef.current = 0;
+    const files = extractFilesFromDataTransfer(e.dataTransfer);
+    if (files.length > 0) {
+      await handleAddFiles(files);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const files = extractFilesFromClipboard(e.clipboardData);
+    if (files.length > 0) {
+      e.preventDefault();
+      await handleAddFiles(files);
+    }
+  };
+
   useEffect(() => {
     fetchSummaryIndex().then(list => {
       setEpisodeSummaries(list);
@@ -178,9 +253,10 @@ export const AICopilotPanel: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
-    sendMessage(input);
+    if ((!input.trim() && pendingAttachments.length === 0) || loading) return;
+    sendMessage(input, undefined, { attachments: pendingAttachments });
     setInput('');
+    setPendingAttachments([]);
   };
 
   const handlePillClick = (prompt: string) => {
@@ -266,7 +342,25 @@ export const AICopilotPanel: React.FC = () => {
       className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-slate-950 text-slate-200"
     >
       {/* ── Left Pane: Dialogue & Action Console ── */}
-      <div className={`flex-1 min-w-0 flex flex-col h-full ${isReelOpen ? 'border-r border-slate-800/80' : ''} overflow-hidden`}>
+      <div
+        className={`flex-1 min-w-0 flex flex-col h-full ${isReelOpen ? 'border-r border-slate-800/80' : ''} overflow-hidden relative`}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Drag & Drop Frame Overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 z-50 bg-indigo-950/85 backdrop-blur-sm border-2 border-dashed border-indigo-400 rounded-2xl m-3 flex flex-col items-center justify-center gap-3 text-indigo-200 pointer-events-none animate-in fade-in duration-150 shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-600/30 border border-indigo-400/50 flex items-center justify-center text-indigo-300 shadow-xl shadow-indigo-500/20">
+              <UploadCloud size={32} className="animate-bounce" />
+            </div>
+            <div className="text-center">
+              <p className="text-base font-bold text-white">Drop images or documents here</p>
+              <p className="text-xs text-indigo-300/80 mt-1">Attach files directly to SpacePipe Copilot</p>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="p-4 border-b border-slate-800/80 bg-slate-900/60 flex flex-wrap items-center justify-between gap-3 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -615,7 +709,12 @@ export const AICopilotPanel: React.FC = () => {
                 }`}
               >
                 {m.role === 'user' ? (
-                  <div className="whitespace-pre-wrap">{m.content}</div>
+                  <div>
+                    <div className="whitespace-pre-wrap">{m.content}</div>
+                    {m.attachments && m.attachments.length > 0 && (
+                      <CopilotAttachmentViewer attachments={m.attachments} isUserMessage />
+                    )}
+                  </div>
                 ) : (
                   <CopilotMarkdown
                     content={m.content}
@@ -1101,17 +1200,76 @@ export const AICopilotPanel: React.FC = () => {
 
         {/* Input Bar */}
         <div className="p-4 border-t border-slate-800/80 bg-slate-900/60 flex-shrink-0">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          {/* Pending Attachments Strip */}
+          {pendingAttachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2.5 p-2 rounded-xl bg-slate-950/80 border border-slate-800/80 max-h-36 overflow-y-auto">
+              {pendingAttachments.map((att) => (
+                <div
+                  key={att.id}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200 group relative"
+                >
+                  {att.type === 'image' && att.dataUrl ? (
+                    <img src={att.dataUrl} alt={att.name} className="w-8 h-8 rounded object-cover flex-shrink-0 border border-slate-700" />
+                  ) : (
+                    <FileText size={16} className="text-indigo-400 flex-shrink-0" />
+                  )}
+                  <div className="min-w-0 max-w-[140px]">
+                    <p className="font-medium truncate text-white text-[11px]">{att.name}</p>
+                    <p className="text-[10px] text-slate-400">{formatFileSize(att.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPendingAttachments((prev) => prev.filter((a) => a.id !== att.id))}
+                    className="text-slate-500 hover:text-rose-400 transition-colors p-0.5 rounded cursor-pointer"
+                    title="Remove attachment"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPendingAttachments([])}
+                className="text-[11px] text-slate-500 hover:text-rose-400 px-2 py-1 transition-colors self-center cursor-pointer"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPTED_FILE_TYPES}
+              className="hidden"
+              onChange={async (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  await handleAddFiles(Array.from(e.target.files));
+                  e.target.value = '';
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload images or documents (or paste/drag into chat)"
+              className="p-2.5 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer flex-shrink-0 border border-transparent hover:border-slate-700"
+            >
+              <Paperclip size={18} />
+            </button>
             <input
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
-              placeholder="Ask Copilot: 'Find best debate soundbite', 'Reorder montage for tension', 'Fix cron'..."
+              onPaste={handlePaste}
+              placeholder="Ask Copilot: type a question, or paste/drop images and documents..."
               className="flex-1 bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
             />
             <button
               type="submit"
-              disabled={!input.trim() || loading}
+              disabled={(!input.trim() && pendingAttachments.length === 0) || loading}
               className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-600/20 cursor-pointer"
             >
               <Send size={15} />

@@ -134,6 +134,18 @@ export interface GeneratedImage {
   cost?: number | null;
 }
 
+export type AttachmentType = 'image' | 'document';
+
+export interface CopilotAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: AttachmentType;
+  mimeType: string;
+  dataUrl?: string;
+  textContent?: string;
+}
+
 export interface CopilotMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
@@ -144,6 +156,7 @@ export interface CopilotMessage {
   model?: string;
   usage?: { promptTokens: number; completionTokens: number };
   generatedImages?: GeneratedImage[];
+  attachments?: CopilotAttachment[];
 }
 
 export interface CopilotContextPayload {
@@ -231,7 +244,11 @@ export interface InspectedRunEvidence {
 }
 
 export interface CopilotRequestBody {
-  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  messages: Array<{
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    attachments?: CopilotAttachment[];
+  }>;
   model?: string;
   context?: CopilotContextPayload;
 }

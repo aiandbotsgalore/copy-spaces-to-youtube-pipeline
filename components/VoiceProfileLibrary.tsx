@@ -157,6 +157,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
   const hasGitHub = !!(config.githubToken && owner && repo);
+  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
   // Load Catalog
   const loadCatalog = useCallback(async () => {
@@ -372,6 +373,37 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const enrollSavedSample = async (id: string, sample: VoiceSample) => {
     setSavingGitHub(true);
     try {
+      if (isLocal) {
+        setStatusMsg({ type: 'success', text: `⚡ Extracting AI voice fingerprint locally for ${id}...` });
+        const res = await fetch('/api/voice-profiles/auto-enroll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            speaker: id,
+            file: sample.audio_url,
+            role: catalogRef.current.profiles[id]?.role || 'Speaker',
+            start_sec: sample.start_sec,
+            end_sec: sample.end_sec,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || 'Failed to extract voice embedding');
+        }
+        await loadCatalog();
+        if (hasGitHub) {
+          try {
+            await syncCatalog();
+          } catch (syncErr) {
+            console.warn('Background GitHub sync error:', syncErr);
+          }
+        }
+        setStatusMsg({ type: 'success', text: `🎉 Voice fingerprint ready! ${id} is now active for voice matching.` });
+        setSampleFeedback({ id, text: 'Voice fingerprint extracted and enrolled.' });
+        setTimeout(() => setStatusMsg(null), 5000);
+        return;
+      }
+
       await syncCatalog();
       const profile = catalogRef.current.profiles[id];
       const saved = profile && getVoiceSamples(profile).find(item => item.id === sample.id);
@@ -639,6 +671,43 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   };
 
   const uploadSample = async (id: string, file: File) => {
+    if (isLocal) {
+      setStatusMsg({ type: 'success', text: `⚡ Saving sample & extracting AI voice fingerprint for ${id}...` });
+      const query = new URLSearchParams({
+        speaker: id,
+        filename: file.name,
+        role: catalogRef.current.profiles[id]?.role || 'Speaker',
+      });
+      const res = await fetch(`/api/voice-profiles/auto-enroll?${query.toString()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: file,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Voice enrollment failed');
+      }
+      const repoPath = data.sample_audio_url || `speaker_samples/${id}/${file.name}`;
+      if (hasGitHub) {
+        try {
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result).split(',')[1]);
+            reader.onerror = () => reject(new Error('Couldn’t read this recording.'));
+            reader.readAsDataURL(file);
+          });
+          void writeRepositoryBinaryFile(config.githubToken, owner, repo, repoPath, base64, 'feat(voice): add a voice sample', 'master').catch(console.warn);
+          void syncCatalog().catch(console.warn);
+        } catch {
+          // background sync best effort
+        }
+      }
+      await loadCatalog();
+      setStatusMsg({ type: 'success', text: `🎉 Voice sample saved & fingerprint extracted! ${id} is ready for voice matching.` });
+      setTimeout(() => setStatusMsg(null), 5000);
+      return repoPath;
+    }
+
     if (!hasGitHub) throw new Error('Configure GitHub in Settings to upload recordings.');
     const filename = file.name.replace(/[^a-zA-Z0-9._ -]/g, '_');
     const folder = id.replace(/[^a-zA-Z0-9._ -]/g, '_').replace(/^\.+$/, '_');
@@ -1049,7 +1118,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                       {matching === 'needs-preparation' && (
                         <>
                           <p className="text-sm font-medium text-slate-200">{requested ? 'Preparation requested' : 'Matching needs setup'}</p>
-                          {!requested && <p className="text-xs text-slate-400">{hasGitHub
+                          {!requested && <p className="text-xs text-slate-400">{hasGitHub || isLocal
                             ? 'Open a saved sample and choose Prepare voice.'
                             : 'Connect GitHub in Settings to prepare this voice for matching.'}</p>}
                         </>
@@ -1079,7 +1148,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
                         const current = catalogRef.current.profiles[id];
                         if (current) updateSamples(id, getVoiceSamples(current).filter(item => item.id !== sample.id), 'Sample removed.');
                       }}
-                      onPrepare={hasGitHub && !savingGitHub && matching === 'needs-preparation'
+                      onPrepare={(hasGitHub || isLocal) && !savingGitHub && matching === 'needs-preparation'
                         ? sample => enrollSavedSample(id, sample) : undefined}
                       onOpenEpisode={onOpenTranscript}
                     />
@@ -1112,7 +1181,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         <VoiceSampleEditor
           name={catalog.profiles[sampleEditor.id].name}
           episodes={episodes} episodesLoading={episodesLoading}
-          resolveUrl={resolveSampleUrl} canUpload={hasGitHub}
+          resolveUrl={resolveSampleUrl} canUpload={hasGitHub || isLocal}
           sample={sampleEditor.sample} suggested={sampleEditor.suggested}
           onUpload={file => uploadSample(sampleEditor.id, file)}
           onClose={() => setSampleEditor(null)}
@@ -1125,6 +1194,10 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
               trim ? 'Trim saved in this browser.' : 'Voice sample saved in this browser.');
             setSampleEditor(null);
             if (trim) setPreparationRequested(previous => previous === sampleEditor.id ? null : previous);
+            // On local dev, immediately run local neural voice enrollment so matching is ready automatically
+            if (isLocal && (!current.embedding || current.embedding.length !== 192 || trim)) {
+              void enrollSavedSample(sampleEditor.id, sample);
+            }
           }}
         />
       )}

@@ -50,4 +50,61 @@ describe('copilotClient', () => {
       })
     ).rejects.toThrow('[NO_KEY] No API key configured.');
   });
+
+  it('serializes message attachments properly in post body', async () => {
+    const mockResponse = {
+      ok: true,
+      text: 'Analyzing the attached image and document.',
+      actions: [],
+      model: 'mercury-3',
+      usage: { promptTokens: 120, completionTokens: 60 },
+      ms: 180,
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    globalThis.fetch = mockFetch;
+
+    const attachments = [
+      {
+        id: 'att_1',
+        name: 'architecture.png',
+        size: 50000,
+        type: 'image' as const,
+        mimeType: 'image/png',
+        dataUrl: 'data:image/png;base64,abc123',
+      },
+      {
+        id: 'att_2',
+        name: 'notes.md',
+        size: 1024,
+        type: 'document' as const,
+        mimeType: 'text/markdown',
+        textContent: '# System Architecture Notes',
+      },
+    ];
+
+    const result = await sendCopilotMessage({
+      req: {
+        messages: [
+          {
+            role: 'user',
+            content: 'Please review these files.',
+            attachments,
+          },
+        ],
+        model: 'mercury-3',
+      },
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const bodySent = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(bodySent.messages[0].attachments).toHaveLength(2);
+    expect(bodySent.messages[0].attachments[0].name).toBe('architecture.png');
+    expect(bodySent.messages[0].attachments[1].textContent).toBe('# System Architecture Notes');
+    expect(result).toEqual(mockResponse);
+  });
 });

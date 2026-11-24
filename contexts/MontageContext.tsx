@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
 import { MONTAGE_EDITORIAL_CONFIG } from '../config/montageEditorial';
-import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades } from '../utils/wavEncoder';
+import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades, MIN_CLIP_SEC } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { buildPlayablePlan } from '../utils/sequencePlan';
 import { createSequencePlayer, getSharedAudioContext, decodeAudioUrl } from '../utils/sequencePlayer';
@@ -478,7 +478,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(c => {
         if (c.id !== id) return c;
         const newStart = Math.max(0, parseFloat((c.startSec + deltaSec).toFixed(2)));
-        if (newStart >= c.endSec - 0.2) return c; // maintain min 0.2s duration
+        if (newStart >= c.endSec - MIN_CLIP_SEC) return c; // maintain min duration
         return { ...c, startSec: newStart, origStartSec: c.origStartSec ?? c.startSec, origEndSec: c.origEndSec ?? c.endSec, trimBasis: 'manual' as const };
       })
     );
@@ -488,7 +488,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setClips(prev =>
       prev.map(c => {
         if (c.id !== id) return c;
-        const newEnd = Math.max(c.startSec + 0.2, parseFloat((c.endSec + deltaSec).toFixed(2)));
+        const newEnd = Math.max(c.startSec + MIN_CLIP_SEC, parseFloat((c.endSec + deltaSec).toFixed(2)));
         return { ...c, endSec: newEnd, origStartSec: c.origStartSec ?? c.startSec, origEndSec: c.origEndSec ?? c.endSec, trimBasis: 'manual' as const };
       })
     );
@@ -655,7 +655,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     playerRef.current?.stop();
     playerRef.current = null;
     const sanitized = sanitizeMontageClip(clip);
-    const effDur = Math.max(0.2, sanitized.endSec - sanitized.startSec);
+    const effDur = Math.max(MIN_CLIP_SEC, sanitized.endSec - sanitized.startSec);
     const soloPlan = {
       items: [{
         index: 0,

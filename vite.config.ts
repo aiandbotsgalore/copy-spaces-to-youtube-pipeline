@@ -12,6 +12,7 @@ import { createOutputStatic, createSpeakerSamplesStatic } from './server/serveFi
 import { createAvatarRenderHandler } from './server/avatarRender';
 import { createModalTranscribeHandler } from './server/modalTranscribeHandler';
 import { createAscensionApiMiddleware, createGeneratedMediaMiddleware } from './server/ascensionApi';
+import { createVoiceProfileAutoEnrollHandler } from './server/voiceProfileAutoEnroll';
 
 function setupProxyMiddlewares(middlewares: any, env?: any, mode: string = 'development') {
   if (env) {
@@ -144,6 +145,12 @@ function setupProxyMiddlewares(middlewares: any, env?: any, mode: string = 'deve
   // Static Media Route for Generated Images (/api/media/generated/:filename)
   middlewares.use('/api/media/generated', createGeneratedMediaMiddleware({
     rootDir: __dirname,
+  }));
+
+  // Automated Voice Profile Enrollment & Neural Fingerprint Extraction API
+  middlewares.use('/api/voice-profiles/auto-enroll', createVoiceProfileAutoEnrollHandler({
+    rootDir: __dirname,
+    getEnv: () => ({ ...process.env, ...loadEnv(mode, process.cwd(), ''), ...(env || {}) }),
   }));
 }
 

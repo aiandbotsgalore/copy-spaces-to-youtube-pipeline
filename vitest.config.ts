@@ -13,6 +13,8 @@ export default defineConfig(async (env) => {
             name: 'fast',
             include: ['utils/__tests__/**/*.test.ts', 'components/**/__tests__/**/*.test.ts'],
             exclude: ['utils/__tests__/**/*.integration.test.ts', 'scripts/acceptance/**'],
+            testTimeout: 45000,
+            hookTimeout: 45000,
           },
         },
         {

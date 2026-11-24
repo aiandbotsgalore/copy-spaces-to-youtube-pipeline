@@ -3,6 +3,8 @@
  * Allows in-browser audio slicing and multi-clip montage stitching with zero server dependencies.
  */
 
+export const MIN_CLIP_SEC = 0.2;
+
 export function audioBufferToWav(buffer: AudioBuffer): Blob {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;

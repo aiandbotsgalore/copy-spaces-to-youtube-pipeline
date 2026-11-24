@@ -5,6 +5,7 @@ import type {
   CopilotMessage,
   CopilotContextPayload,
   CopilotRequestBody,
+  CopilotAttachment,
   ActionTier,
   ActionExecutionStatus,
 } from '../utils/copilotTypes';
@@ -59,7 +60,7 @@ export interface CopilotContextType {
   sendMessage: (
     content: string,
     override?: Partial<CopilotContextPayload>,
-    options?: { targetSessionId?: string; liveContext?: string }
+    options?: { targetSessionId?: string; liveContext?: string; attachments?: CopilotAttachment[] }
   ) => Promise<void>;
   applyAction: (
     action: CopilotAction,
@@ -427,9 +428,11 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
     async (
       content: string,
       override?: Partial<CopilotContextPayload>,
-      options?: { targetSessionId?: string; liveContext?: string }
+      options?: { targetSessionId?: string; liveContext?: string; attachments?: CopilotAttachment[] }
     ) => {
-      if (!content.trim() || isBusy) return;
+      const trimmed = content.trim();
+      const attachments = options?.attachments || [];
+      if ((!trimmed && attachments.length === 0) || isBusy) return;
       resetTurnActionLimits();
 
       const targetId = options?.targetSessionId || activeSessionId;
@@ -439,8 +442,9 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const userMsg: CopilotMessage = {
         id: `user_${Date.now()}`,
         role: 'user',
-        content: content.trim(),
+        content: trimmed || (attachments.length > 0 ? 'Please analyze the attached file(s).' : ''),
         timestamp: Date.now(),
+        attachments: attachments.length > 0 ? attachments : undefined,
       };
 
       const updatedMessages = [...existingMessages, userMsg];
@@ -522,6 +526,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
           messages: updatedMessages.map((m) => ({
             role: m.role,
             content: m.content,
+            attachments: m.attachments,
           })),
           model,
           context: {

@@ -42,8 +42,14 @@ beforeAll(async () => {
     resolveOverride: async name => ({ ok: true, file: `/usr/local/bin/${name}`, prefixArgs: [], via: 'path', found: `/usr/local/bin/${name}` }),
   });
   server = http.createServer((req, res) => { req.url = (req.url || '').replace(/^\/api\/script/, '') || '/'; void mw(req, res); });
-  await new Promise<void>(r => server.listen(0, '127.0.0.1', () => r()));
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/script`;
+  await new Promise<void>((resolve, reject) => {
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address() as AddressInfo;
+      if (!addr || typeof addr.port !== 'number') return reject(new Error('Failed to obtain server port'));
+      base = `http://127.0.0.1:${addr.port}/api/script`;
+      resolve();
+    });
+  });
 });
 afterAll(() => { server?.close(); });
 
