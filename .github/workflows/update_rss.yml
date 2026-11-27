@@ -110,5 +110,21 @@ jobs:
         with:
           path: site
 
+      # deploy-pages can run before the just-uploaded artifact is visible to the
+      # API ("No artifacts named github-pages were found", actions/deploy-pages#451).
+      # Wait briefly, then retry once if the first attempt still misses it.
+      - name: Wait for Pages artifact to register
+        run: sleep 20
+
       - name: Deploy Pages
+        id: deploy
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Wait before retrying Pages deploy
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 60
+
+      - name: Deploy Pages (retry)
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
