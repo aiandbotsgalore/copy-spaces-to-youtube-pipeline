@@ -1,15 +1,162 @@
 {
-  "last_updated": "2026-11-27T23:47:07.844816+00:00",
-  "total_episodes_with_audio": 848,
-  "transcribed_count": 848,
-  "untranscribed_count": 0,
-  "recent_untranscribed_count": 0,
-  "focus_mode": "backlog",
+  "last_updated": "2026-11-28T16:03:35.695582+00:00",
+  "total_episodes_with_audio": 918,
+  "transcribed_count": 852,
+  "untranscribed_count": 66,
+  "recent_untranscribed_count": 66,
+  "focus_mode": "recent_only",
   "recent_cutoff": "2026-10-27",
-  "percent_complete": 100.0,
-  "auto_chain_active": false,
-  "is_queue_complete": true,
+  "percent_complete": 92.8,
+  "auto_chain_active": true,
+  "is_queue_complete": false,
   "fatal_error": null,
-  "failed_episodes": {},
-  "next_in_queue": []
+  "failed_episodes": {
+    "20261125_1NgyBENnpqyMkz": {
+      "attempts": 1,
+      "last_error": "[Error] ZeroGPU transcription failed: 'You have exceeded your free ZeroGPU quota (180s requested vs. 168s left). Try aga",
+      "last_attempt": "2026-11-28T15:54:32.414792+00:00"
+    },
+    "20261128_1OdQaQyZmKNaLj": {
+      "attempts": 1,
+      "last_error": "[Error] ZeroGPU transcription failed: 'You have exceeded your free ZeroGPU quota (180s requested vs. 168s left). Try aga",
+      "last_attempt": "2026-11-28T15:54:32.414810+00:00"
+    },
+    "20260730_1dKrPPjLZYVJX": {
+      "attempts": 1,
+      "last_error": "[Error] ZeroGPU transcription failed: 'You have exceeded your free ZeroGPU quota (180s requested vs. 168s left). Try aga",
+      "last_attempt": "2026-11-28T15:54:32.414813+00:00"
+    },
+    "20260730_1aJbddgQnBQKX": {
+      "attempts": 1,
+      "last_error": "[Error] ZeroGPU transcription failed: 'You have exceeded your free ZeroGPU quota (180s requested vs. 168s left). Try aga",
+      "last_attempt": "2026-11-28T15:54:32.414815+00:00"
+    },
+    "20261128_1YRlLamPPpRZOJ": {
+      "attempts": 1,
+      "last_error": "[Error] ZeroGPU transcription failed: 'You have exceeded your free ZeroGPU quota (180s requested vs. 168s left). Try aga",
+      "last_attempt": "2026-11-28T15:54:32.414816+00:00"
+    }
+  },
+  "next_in_queue": [
+    {
+      "tag": "20261125_1NgyBENnpqyMkz",
+      "name": "24_7_WANT_A_SLOT_DM_US_MUSIC_TILL_NEXT_SHOW_SPACES_TOKEN_LIVE",
+      "date": "Nov 25, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261128_1OdQaQyZmKNaLj",
+      "name": "The_Cypher_01_Beyond_the_Breach_-_Connecting_the_Dots",
+      "date": "Nov 28, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20260730_1dKrPPjLZYVJX",
+      "name": "UFOx_Rogan_Pasulka_Listening_Party",
+      "date": "Jul 30, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20260730_1aJbddgQnBQKX",
+      "name": "UFO",
+      "date": "Jul 30, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261128_1YRlLamPPpRZOJ",
+      "name": "ufo_shane",
+      "date": "Nov 28, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261128_1zkpaerBbVEQBE",
+      "name": "BRIEF_ALIEN_NUDITY",
+      "date": "Nov 28, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261104_1QnmnMQeNoWkKJ",
+      "name": "i_wana_know_what_love_is",
+      "date": "Nov 4, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261101_1POJnjZoyyvAge",
+      "name": "twitter-spaces_video_1POJnjZoyyvAge",
+      "date": "Nov 1, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261125_1gqMbdPonlbpYV",
+      "name": "But_why",
+      "date": "Nov 25, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261106_1rJqboeezyXgAQ",
+      "name": "Interview_w_an_Idiot_Savant._Who_s_the_fool_now",
+      "date": "Nov 6, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261124_1ybYyzeavgXJmR",
+      "name": "7am_Sunrise",
+      "date": "Nov 24, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261124_1AMjRXmVnqlaZV",
+      "name": "We_Build_Grow_Each_Other_Forward_Together",
+      "date": "Nov 24, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261125_1JQononrEQNLLX",
+      "name": "10am_Coffee_with_Xtraplanetary_Love_Knowledge",
+      "date": "Nov 25, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261013_1nJOLQZpopzxR",
+      "name": "Cawffee_Tawk_Brewing_UFO_news_Jay_Stratton_book_review",
+      "date": "Oct 13, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261102_1AMXVEmoXBqyRy",
+      "name": "PSIONICS_ARE_FAKE_AND_GAY",
+      "date": "Nov 2, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261125_1vyYLdnnYAOkko",
+      "name": "7am_ET_Sunrise_Show",
+      "date": "Nov 25, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261126_1RekBqNBlZkmKL",
+      "name": "Madness_Lauren_+_Fam_TRIVIA_10_PM_EST",
+      "date": "Nov 26, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261106_1gqvkBbOomMzpV",
+      "name": "Eggnog_Meeting",
+      "date": "Nov 6, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261124_1aWRryjmQPpLJr",
+      "name": "The_Space_About_Spacing_In_Spaces",
+      "date": "Nov 24, 2026",
+      "is_recent": true
+    },
+    {
+      "tag": "20261124_1evjpmlYaglXam",
+      "name": "10am_Coffee_with_Swedish_Death_Cleaning",
+      "date": "Nov 24, 2026",
+      "is_recent": true
+    }
+  ]
 }
