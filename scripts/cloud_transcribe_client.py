@@ -30,7 +30,7 @@ try:
 except Exception:
     pass
 
-DEFAULT_SPACE_ENDPOINT = os.environ.get("HF_TRANSCRIBE_ENDPOINT", "loganblack0/spacepipe-transcriber")
+DEFAULT_SPACE_ENDPOINT = (os.environ.get("HF_TRANSCRIBE_ENDPOINT") or "").strip() or "loganblack0/spacepipe-transcriber"
 
 
 def load_env_files():
@@ -328,7 +328,7 @@ def call_zerogpu_space(
     """
     token = hf_token or os.environ.get("HF_TOKEN")
     api_key = space_api_key or os.environ.get("SPACE_API_KEY", "")
-    target_endpoint = endpoint or DEFAULT_SPACE_ENDPOINT
+    target_endpoint = (endpoint or DEFAULT_SPACE_ENDPOINT or "").strip() or "loganblack0/spacepipe-transcriber"
 
     try:
         from gradio_client import Client
