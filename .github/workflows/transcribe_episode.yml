@@ -57,6 +57,7 @@ jobs:
           PYTHONUNBUFFERED: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_BACKUP_TOKEN: ${{ secrets.HF_BACKUP_TOKEN }}
           HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT || 'loganblack0/spacepipe-transcriber' }}
           SPACE_API_KEY: ${{ secrets.SPACE_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

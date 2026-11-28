@@ -312,30 +312,24 @@ def clobber_upload_to_github_release(repo, tag, file_paths, token=None):
                    env=env, check=True, capture_output=True)
 
 
-def call_zerogpu_space(
+def _candidate_hf_tokens(explicit_token: Optional[str] = None) -> List[Optional[str]]:
+    tokens: List[Optional[str]] = []
+    for t in (explicit_token, os.environ.get("HF_TOKEN"), os.environ.get("HF_BACKUP_TOKEN")):
+        cleaned = (t or "").strip()
+        if cleaned and cleaned not in tokens:
+            tokens.append(cleaned)
+    return tokens or [None]
+
+
+def _invoke_zerogpu_once(
     action: str,
     audio_url: str,
-    endpoint: Optional[str] = None,
+    target_endpoint: str,
+    token: Optional[str],
+    api_key: str,
     existing_segments: Optional[List[Dict[str, Any]]] = None,
     enrolled_profiles: Optional[Dict[str, Any]] = None,
-    hf_token: Optional[str] = None,
-    space_api_key: Optional[str] = None
 ) -> Dict[str, Any]:
-    """
-    Calls the Hugging Face ZeroGPU Space endpoint.
-    Passes HF_TOKEN to gradio_client for priority ZeroGPU quota,
-    and passes SPACE_API_KEY as an explicit api_key parameter to the endpoint function.
-    """
-    token = hf_token or os.environ.get("HF_TOKEN")
-    api_key = space_api_key or os.environ.get("SPACE_API_KEY", "")
-    target_endpoint = (endpoint or DEFAULT_SPACE_ENDPOINT or "").strip() or "loganblack0/spacepipe-transcriber"
-
-    try:
-        from gradio_client import Client
-    except ImportError:
-        raise RuntimeError("gradio_client is required to connect to SpacePipe ZeroGPU Space.")
-
-    # HF_TOKEN is passed to gradio_client.Client to route through HF proxy with ZeroGPU quota
     client = create_gradio_client(target_endpoint, token)
 
     if action == "transcribe":
@@ -364,6 +358,61 @@ def call_zerogpu_space(
     if isinstance(result, str):
         return json.loads(result)
     return result
+
+
+def call_zerogpu_space(
+    action: str,
+    audio_url: str,
+    endpoint: Optional[str] = None,
+    existing_segments: Optional[List[Dict[str, Any]]] = None,
+    enrolled_profiles: Optional[Dict[str, Any]] = None,
+    hf_token: Optional[str] = None,
+    space_api_key: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Calls the Hugging Face ZeroGPU Space endpoint with HF_TOKEN -> HF_BACKUP_TOKEN rotation.
+    Passes SPACE_API_KEY as an explicit api_key parameter to the endpoint function.
+    """
+    api_key = space_api_key or os.environ.get("SPACE_API_KEY", "")
+    target_endpoint = (endpoint or DEFAULT_SPACE_ENDPOINT or "").strip() or "loganblack0/spacepipe-transcriber"
+
+    try:
+        from gradio_client import Client  # noqa: F401
+    except ImportError:
+        raise RuntimeError("gradio_client is required to connect to SpacePipe ZeroGPU Space.")
+
+    tokens = _candidate_hf_tokens(hf_token)
+    last_err: Optional[Exception] = None
+    last_res: Optional[Dict[str, Any]] = None
+
+    for idx, tok in enumerate(tokens):
+        try:
+            res = _invoke_zerogpu_once(
+                action=action,
+                audio_url=audio_url,
+                target_endpoint=target_endpoint,
+                token=tok,
+                api_key=api_key,
+                existing_segments=existing_segments,
+                enrolled_profiles=enrolled_profiles,
+            )
+            last_res = res
+            if isinstance(res, dict) and res.get("error") and is_quota_error(str(res["error"])) and idx + 1 < len(tokens):
+                print(f"[!] ZeroGPU quota hit on HF token #{idx + 1}; retrying with backup HF token...")
+                continue
+            return res
+        except Exception as exc:
+            last_err = exc
+            if is_quota_error(str(exc)) and idx + 1 < len(tokens):
+                print(f"[!] ZeroGPU quota hit on HF token #{idx + 1}; retrying with backup HF token...")
+                continue
+            raise
+
+    if last_res is not None:
+        return last_res
+    if last_err is not None:
+        raise last_err
+    return {"error": "ZeroGPU call failed without response"}
 
 
 def fetch_release_details(repo: str, tag: str, token: Optional[str] = None) -> Dict[str, Any]:
@@ -477,6 +526,7 @@ def main():
         for s in segments
     )
     enrolled_profiles = load_verified_voice_profiles()
+    resolved_via_zerogpu = False
     if segments and has_generic_speakers and enrolled_profiles:
         print(f"[*] Matching diarized clusters against {len(enrolled_profiles)} verified voice profile(s) via /rediarize...")
         try:
@@ -491,11 +541,37 @@ def main():
                 segments = redi["segments"]
                 turns = redi.get("turns") or turns
                 matched = redi.get("matched_speakers") or {}
+                resolved_via_zerogpu = True
                 print(f"[✓] Biometric speaker matching resolved: {matched or 'no confident matches'}")
             elif isinstance(redi, dict) and redi.get("error"):
-                print(f"[Warning] Biometric speaker resolution skipped: {redi['error']}")
+                print(f"[Warning] Biometric ZeroGPU /rediarize skipped: {redi['error']}")
         except Exception as e:
-            print(f"[Warning] Biometric speaker resolution skipped: {e}")
+            print(f"[Warning] Biometric ZeroGPU /rediarize skipped: {e}")
+
+        if not resolved_via_zerogpu:
+            try:
+                sys.path.insert(0, str(Path(__file__).resolve().parent))
+                from transcribe_and_diarize import resolve_speakers_acoustically
+                with tempfile.TemporaryDirectory() as tmp_audio_dir:
+                    local_mp3 = Path(tmp_audio_dir) / f"{tag}.mp3"
+                    print("[*] Falling back to local SpeechBrain ECAPA-TDNN matching on downloaded audio...")
+                    import requests as _req
+                    with _req.get(audio_url, stream=True, timeout=180) as r:
+                        r.raise_for_status()
+                        with open(local_mp3, "wb") as f_out:
+                            for chunk in r.iter_content(chunk_size=1048576):
+                                if chunk:
+                                    f_out.write(chunk)
+                    cpu_map = resolve_speakers_acoustically(segments, audio_path=local_mp3)
+                    if cpu_map:
+                        for seg in segments:
+                            if seg.get("speaker") in cpu_map:
+                                seg.setdefault("raw_speaker", seg["speaker"])
+                                seg["speaker"] = cpu_map[seg["speaker"]]
+                                seg["attribution"] = {"method": "acoustic", "model": "speechbrain/spkrec-ecapa-voxceleb"}
+                        print(f"[✓] CPU biometric speaker matching resolved: {cpu_map}")
+            except Exception as cpu_err:
+                print(f"[Warning] CPU biometric speaker fallback unavailable: {cpu_err}")
 
     artifacts = sync_to_local_transcripts(tag, title, segments, turns, audio_url)
     # Enrich transcripts_summary_index.json with release metadata if available

@@ -92,7 +92,8 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT }}
+          HF_BACKUP_TOKEN: ${{ secrets.HF_BACKUP_TOKEN }}
+          HF_TRANSCRIBE_ENDPOINT: ${{ secrets.HF_TRANSCRIBE_ENDPOINT || 'loganblack0/spacepipe-transcriber' }}
           SPACE_API_KEY: ${{ secrets.SPACE_API_KEY }}
         run: |
           LIMIT="${{ inputs.limit || '5' }}"
