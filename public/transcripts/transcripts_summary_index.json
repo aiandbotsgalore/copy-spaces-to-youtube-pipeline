@@ -95,12 +95,27 @@
     "published_at": "2026-11-16T22:39:13Z",
     "episode_date": "2026-11-16",
     "audio_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/releases/download/20261116_1AMLarKymdEPkX/20261116_1AMLarKymdEPkX_EARLY_XMAS_RPATZ_AS_007_CONFIRMED.mp3",
-    "segment_count": 2044,
+    "segment_count": 954,
     "body": "- **Space Title:** EARLY_XMAS_RPATZ_AS_007_CONFIRMED\n- **Duration:** 02:10:19\n- **Processed:** 20261116_1AMLarKymdEPkX\n- **Source ID:** 1AMLarKymdEPkX\n\n---\nMETADATA::DURATION::02:10:19\nMETADATA::SOURCE_ID::1AMLarKymdEPkX\nMETADATA::EPISODE_DATE::20261116\nMETADATA::HOST::ourniosaob\nMETADATA::YOUTUBE_STATUS::UNLISTED\n",
     "duration_sec": 7819,
     "host_handle": "ourniosaob",
     "speakers": [
-      "Angela"
+      "Alana",
+      "Oor",
+      "Speaker 1",
+      "Rose",
+      "Speaker 2",
+      "Speaker 3",
+      "Speaker 4",
+      "Speaker 5",
+      "Speaker 6",
+      "Speaker 7",
+      "Speaker 8",
+      "Speaker 9",
+      "Speaker 10",
+      "Speaker 12",
+      "Speaker 11",
+      "Speaker 13"
     ]
   },
   {
