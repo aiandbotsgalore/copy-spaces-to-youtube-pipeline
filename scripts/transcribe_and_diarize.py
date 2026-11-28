@@ -958,6 +958,178 @@ def transcribe_audio_chunk_assemblyai(
 
 
 
+def _decode_audio_16k_mono(audio_path: Path) -> Tuple[Optional[Any], Optional[Path], Optional[Path]]:
+    """Decodes audio once to 16kHz mono float32 WAV via FFmpeg, bypassing PyAV version quirks."""
+    try:
+        import numpy as np
+        import soundfile as sf
+    except Exception:
+        return None, None, None
+    tmp_dir = Path(tempfile.mkdtemp(prefix="sp_wav_"))
+    wav_path = tmp_dir / "cond_16k.wav"
+    conv = subprocess.run(
+        [FFMPEG_EXE, "-y", "-i", str(audio_path), "-ac", "1", "-ar", "16000", str(wav_path)],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    if conv.returncode != 0 or not wav_path.exists():
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return None, None, None
+    audio_data, _ = sf.read(str(wav_path), dtype="float32")
+    if audio_data.ndim > 1:
+        audio_data = np.mean(audio_data, axis=1)
+    return audio_data, wav_path, tmp_dir
+
+
+def _diarize_segments_speechbrain(
+    audio_path: Path,
+    segments: List[Dict[str, Any]],
+    time_offset: float = 0.0,
+    predecoded_audio: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Diarizes faster-whisper segments on CPU using SpeechBrain ECAPA-TDNN embeddings
+    and complete-linkage cosine clustering when multiple distinct speakers exist.
+    """
+    if not segments:
+        return segments
+    try:
+        import numpy as np
+        import torch
+        from speechbrain.inference.speaker import EncoderClassifier
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from spacepipe_transcribe_core import cluster_speaker_embeddings
+    except Exception:
+        return segments
+
+    sr = 16000
+    tmp_wav_dir = None
+    audio_data = predecoded_audio
+    if audio_data is None:
+        audio_data, _, tmp_wav_dir = _decode_audio_16k_mono(audio_path)
+    if audio_data is None:
+        return segments
+
+    try:
+        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        classifier = EncoderClassifier.from_hparams(
+            source="speechbrain/spkrec-ecapa-voxceleb",
+            savedir=os.path.join(os.path.expanduser("~"), ".cache", "speechbrain", "spkrec-ecapa-voxceleb"),
+            run_opts={"device": device},
+        )
+
+        # Build turn windows (>= 1.8s) from Whisper segments for stable voiceprint embeddings
+        emb_vectors: List[np.ndarray] = []
+        emb_seg_indices: List[int] = []
+        for idx, s in enumerate(segments):
+            rel_start = max(0.0, float(s["start"]) - time_offset)
+            rel_end = max(rel_start, float(s["end"]) - time_offset)
+            if (rel_end - rel_start) < 1.8:
+                continue
+            s_i = int(rel_start * sr)
+            e_i = min(len(audio_data), int(min(rel_end, rel_start + 12.0) * sr))
+            chunk = audio_data[s_i:e_i]
+            if len(chunk) < int(1.8 * sr):
+                continue
+            peak = float(np.max(np.abs(chunk)))
+            if peak > 1e-6:
+                chunk = chunk / peak
+            with torch.no_grad():
+                vec = classifier.encode_batch(torch.from_numpy(chunk).unsqueeze(0).to(device)).squeeze().cpu().numpy()
+            norm = float(np.linalg.norm(vec))
+            if norm > 1e-6:
+                emb_vectors.append(vec / norm)
+                emb_seg_indices.append(idx)
+
+        if len(emb_vectors) < 2:
+            return segments
+
+        from scipy.cluster.hierarchy import linkage, fcluster
+        from scipy.spatial.distance import squareform
+
+        emb_mat = np.stack(emb_vectors, axis=0)
+        dot_mat = np.clip(np.dot(emb_mat, emb_mat.T), -1.0, 1.0)
+        dist_mat = 1.0 - dot_mat
+        np.fill_diagonal(dist_mat, 0.0)
+        Z = linkage(squareform(dist_mat, checks=False), method="average")
+        clusters = [int(c) for c in fcluster(Z, t=0.58, criterion="distance")]
+
+        # Merge clusters whose normalized centroids share high cosine similarity (>= 0.56)
+        cluster_members: Dict[int, List[int]] = defaultdict(list)
+        for pos, cid in enumerate(clusters):
+            cluster_members[cid].append(pos)
+
+        def _centroid(positions: List[int]) -> np.ndarray:
+            v = np.mean(emb_mat[positions], axis=0)
+            n = float(np.linalg.norm(v))
+            return (v / n) if n > 1e-6 else v
+
+        while len(cluster_members) > 1:
+            cids = sorted(cluster_members.keys())
+            centroids = {cid: _centroid(cluster_members[cid]) for cid in cids}
+            best_pair = None
+            best_sim = 0.56
+            for i in range(len(cids)):
+                for j in range(i + 1, len(cids)):
+                    sim = float(np.dot(centroids[cids[i]], centroids[cids[j]]))
+                    if sim >= best_sim:
+                        best_sim = sim
+                        best_pair = (cids[i], cids[j])
+            if not best_pair:
+                break
+            keep_id, drop_id = best_pair
+            cluster_members[keep_id].extend(cluster_members.pop(drop_id))
+
+        # Keep significant clusters (>= 2 turns) and map single-turn micro-clusters to nearest centroid
+        major_cids = [cid for cid, members in cluster_members.items() if len(members) >= 2]
+        if len(major_cids) < 2:
+            return segments
+        major_centroids = {cid: _centroid(cluster_members[cid]) for cid in major_cids}
+
+        pos_to_cid: Dict[int, int] = {}
+        for cid, members in cluster_members.items():
+            if cid in major_centroids:
+                for p in members:
+                    pos_to_cid[p] = cid
+            else:
+                for p in members:
+                    best_cid = max(major_cids, key=lambda m: float(np.dot(emb_mat[p], major_centroids[m])))
+                    pos_to_cid[p] = best_cid
+
+        # Re-number clusters 1..K in chronological order of first appearance
+        remap: Dict[int, str] = {}
+        assigned_idx: Dict[int, str] = {}
+        for pos, seg_idx in enumerate(emb_seg_indices):
+            c_int = pos_to_cid[pos]
+            if c_int not in remap:
+                remap[c_int] = f"Speaker {len(remap) + 1}"
+            assigned_idx[seg_idx] = remap[c_int]
+
+        # Propagate nearest clustered speaker to tiny <1.8s segments and strip not_performed flag
+        last_spk = next(iter(assigned_idx.values()))
+        for idx, s in enumerate(segments):
+            spk = assigned_idx.get(idx)
+            if spk:
+                last_spk = spk
+            else:
+                spk = last_spk
+            s["speaker"] = spk
+            s["raw_speaker"] = spk
+            s.pop("diarization_status", None)
+            for w in s.get("words") or []:
+                w["speaker"] = spk
+
+        print(f"[✓] CPU SpeechBrain diarization separated {len(remap)} speaker cluster(s) across {len(segments)} segments.")
+        return segments
+    except Exception as e:
+        print(f"[!] Notice: CPU SpeechBrain diarization skipped ({e})")
+        return segments
+    finally:
+        if tmp_wav_dir is not None:
+            shutil.rmtree(tmp_wav_dir, ignore_errors=True)
+
+
 def transcribe_audio_chunk_whisper(
     audio_path: Path,
     time_offset: float = 0.0,
@@ -971,6 +1143,7 @@ def transcribe_audio_chunk_whisper(
             f"Cannot transcribe {audio_path.name}: AssemblyAI failed and local 'faster_whisper' is not installed in the environment."
         )
     print(f"[*] Transcribing {audio_path.name} via faster-whisper (GitHub Cloud runner)...")
+    tmp_wav_dir = None
     try:
         try:
             import torch
@@ -982,7 +1155,9 @@ def transcribe_audio_chunk_whisper(
         beam_size = int(os.environ.get("WHISPER_BEAM_SIZE", "1" if device == "cpu" else "5"))
         print(f"[*] Loading faster-whisper {model_size} model on {device.upper()} ({compute_type}, beam_size={beam_size})...")
         model = WhisperModel(model_size, device=device, compute_type=compute_type)
-        segments_gen, info = model.transcribe(str(audio_path), beam_size=beam_size, word_timestamps=True)
+        decoded_audio, _, tmp_wav_dir = _decode_audio_16k_mono(audio_path)
+        transcribe_input = decoded_audio if decoded_audio is not None else str(audio_path)
+        segments_gen, info = model.transcribe(transcribe_input, beam_size=beam_size, word_timestamps=True, vad_filter=True)
         results: List[Dict[str, Any]] = []
 
         spk_label = "Speaker 1"
@@ -1008,10 +1183,14 @@ def transcribe_audio_chunk_whisper(
                 "words": words
             })
         print(f"[✓] faster-whisper finished {len(results)} segment(s) successfully!")
+        results = _diarize_segments_speechbrain(audio_path, results, time_offset=time_offset, predecoded_audio=decoded_audio)
         return results
     except Exception as e:
         print(f"[!] faster-whisper failed: {e}")
         raise
+    finally:
+        if tmp_wav_dir is not None:
+            shutil.rmtree(tmp_wav_dir, ignore_errors=True)
 
 def process_audio_file(
     input_audio: Path,
@@ -1370,7 +1549,7 @@ def main():
         shutil.rmtree(clips_dir, ignore_errors=True)
         clips_dir.mkdir(parents=True, exist_ok=True)
 
-        if json_path.exists():
+        if json_path.exists() and os.environ.get("SKIP_CLIPS", "") != "1":
             print(f"\n[*] Extracting AI Highlight Clips via Gemini Flash...")
             clipper_script = Path("scripts/find_and_cut_best_clips.py")
             if clipper_script.exists():
