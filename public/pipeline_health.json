@@ -1,38 +1,74 @@
 {
-  "timestamp": "2026-11-27T20:58:49.420423+00:00",
-  "overall_status": "DEGRADED",
+  "timestamp": "2026-11-28T15:06:08.269812+00:00",
+  "overall_status": "CRITICAL",
   "voice_profiles": {
-    "total": 10,
-    "enrolled": 10,
+    "total": 13,
+    "enrolled": 13,
     "status": "healthy"
   },
   "transcript_coverage": {
-    "on_disk_transcripts": 830,
-    "indexed_transcripts": 830,
+    "on_disk_transcripts": 834,
+    "indexed_transcripts": 834,
     "expected_releases_approx": 793,
     "gap_estimate": 0
   },
-  "recent_failures_count": 2,
+  "recent_failures_count": 17,
   "triaged_failures": [
     {
-      "run_id": 46005182421,
-      "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46005182421",
-      "root_cause": "Execution Error: Run 46005182421 failed in Update RSS Feed & Deploy Web App",
+      "run_id": 46155177027,
+      "name": "Transcribe 20261125_1NgyBENnpqyMkz via zerogpu",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46155177027",
+      "root_cause": "Execution Error: Run 46155177027 failed in Transcribe 20261125_1NgyBENnpqyMkz via zerogpu",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     },
     {
-      "run_id": 45867239955,
+      "run_id": 46151862861,
       "name": "Update RSS Feed & Deploy Web App",
-      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/45867239955",
-      "root_cause": "Execution Error: Run 45867239955 failed in Update RSS Feed & Deploy Web App",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46151862861",
+      "root_cause": "Execution Error: Run 46151862861 failed in Update RSS Feed & Deploy Web App",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 46151862842,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46151862842",
+      "root_cause": "Execution Error: Run 46151862842 failed in Approved transcript UI checks",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 46151862817,
+      "name": "Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46151862817",
+      "root_cause": "Execution Error: Run 46151862817 failed in Transcript Workbench Validation",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 46151025447,
+      "name": "Approved transcript UI checks",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46151025447",
+      "root_cause": "Execution Error: Run 46151025447 failed in Approved transcript UI checks",
+      "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
+      "is_transient": false,
+      "action": "quarantined"
+    },
+    {
+      "run_id": 46151025396,
+      "name": "Transcript Workbench Validation",
+      "html_url": "https://github.com/aiandbotsgalore/copy-spaces-to-youtube-pipeline/actions/runs/46151025396",
+      "root_cause": "Execution Error: Run 46151025396 failed in Transcript Workbench Validation",
       "advice": "Review workflow execution log in GitHub Actions to determine root cause, then comment `/retry` on this issue.",
       "is_transient": false,
       "action": "quarantined"
     }
   ],
   "auto_retried_count": 0,
-  "quarantined_count": 2
+  "quarantined_count": 6
 }
