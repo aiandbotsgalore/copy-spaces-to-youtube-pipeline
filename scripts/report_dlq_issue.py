@@ -45,15 +45,10 @@ def diagnose_root_cause(log_path: str, fallback_error: str) -> tuple[str, str]:
             "Audio pre-flight rejection (VAD < 1.0s or silent audio)",
             "The source audio had insufficient continuous speech. Ensure audio contains clean vocal turns without background music, or provide larger segment windows."
         )
-    if "AssemblyAI Authentication Failed" in combined or "Invalid API key" in combined:
-        return (
-            "AssemblyAI Authentication Failed (Invalid API Key)",
-            "Check that repository secret `ASSEMBLYAI_API_KEY` is set and valid in repository settings."
-        )
     if "Insufficient Credits" in combined or "spend limit" in combined.lower():
         return (
-            "API Provider Credit Limit Exhausted",
-            "The external transcription provider (AssemblyAI/Deepgram) reported zero balance or reached spend limit. Top up account or switch to Kaggle WhisperX worker."
+            "Worker Credit Limit Exhausted",
+            "A cloud compute provider reported zero balance or reached its limit. Switch to Kaggle WhisperX worker or local CPU SpeechBrain/Whisper."
         )
     if "Model initialization failed" in combined or "SpeechBrain unreachable" in combined or "429 Client Error" in combined:
         return (

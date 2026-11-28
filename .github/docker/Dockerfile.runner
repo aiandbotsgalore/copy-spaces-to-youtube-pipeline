@@ -33,7 +33,6 @@ RUN pip install \
     speechbrain \
     soundfile \
     requests \
-    assemblyai \
     yt-dlp \
     faster-whisper \
     numpy

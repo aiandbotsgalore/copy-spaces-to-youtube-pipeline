@@ -341,7 +341,7 @@ def main():
     parser = argparse.ArgumentParser(description="Batch Transcribe Episodes in order from newest to oldest")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     parser.add_argument("--limit", type=int, default=10, help="Number of episodes to transcribe (0 for all)")
-    parser.add_argument("--engine", type=str, choices=["modal", "assemblyai", "whisper", "zerogpu"], default="zerogpu" if os.environ.get("HF_TOKEN") else "whisper", help="Transcription engine (default: zerogpu if HF_TOKEN else whisper)")
+    parser.add_argument("--engine", type=str, choices=["modal", "whisper", "zerogpu"], default="zerogpu" if os.environ.get("HF_TOKEN") else "whisper", help="Transcription engine (default: zerogpu if HF_TOKEN else whisper)")
     parser.add_argument("--since", type=str, default="2026-10-27", help="Prioritize episodes since date (YYYY-MM-DD, default: 2026-10-27). Pass 'all' to disable filter.")
     parser.add_argument("--missing-clips", action="store_true", help="Process transcribed episodes that are missing highlight clips")
     parser.add_argument("--dry-run", action="store_true", help="Preview queue and exit without running Modal")
@@ -431,7 +431,7 @@ def main():
         print("\n[✓] Dry-run complete. Exiting without dispatching transcription jobs.")
         sys.exit(0)
 
-    # Execute AssemblyAI transcription for each item in the batch sequentially
+    # Execute transcription for each item in the batch sequentially
     print("\n" + "=" * 65)
     print("          STARTING CLOUD WHISPER TRANSCRIPTION BATCH         ")
     print("=" * 65)

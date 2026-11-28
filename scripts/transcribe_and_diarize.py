@@ -2,14 +2,13 @@
 """
 scripts/transcribe_and_diarize.py - Cloud Audio Transcriber, Speaker Diarizer & Highlight Extractor
 
-Transcribes Twitter Spaces 100% in the cloud via AssemblyAI Universal-3.5 Pro with:
-- Neural speech-to-text with precise millisecond word-level timestamps
-- Automatic multi-speaker diarization (speaker_labels=True)
-- Universal-3.5 Pro flagship with automatic fallback to Universal-2
+Transcribes Twitter Spaces with faster-whisper and SpeechBrain biometric diarization:
+- Speech-to-text with word-level timestamps
+- Automatic multi-speaker diarization & ECAPA-TDNN voiceprint matching
 - Automated Cloud Audio Workarounds:
-  * Auto-compression via FFmpeg (48kbps mono) for high-bitrate audio near 2GB
-  * Lossless 4-hour chunking & timestamp offset stitching for marathon spaces (>10 hours)
-- Multi-tier contextual speaker discovery (identifying Logan, hosts, guests, etc.)
+  * Auto-compression via FFmpeg (24kHz 64kbps mono) for high-bitrate audio near 2GB
+  * Lossless 2-hour chunking & timestamp offset stitching for marathon spaces (>2 hours)
+- Multi-tier contextual & acoustic speaker discovery (identifying Logan, hosts, guests, etc.)
 - AI Highlight Clip extraction & cutting (via scripts/find_and_cut_best_clips.py)
 - Direct upload of .txt, .srt, .json, and clips to GitHub Release assets
 - Zero local PC disk/bandwidth usage (runs in GitHub Actions cloud runners or locally)
@@ -392,7 +391,7 @@ def resolve_speakers_acoustically(
     profiles_file: str = "voice_profiles.json"
 ) -> Dict[str, str]:
     """
-    1. Splits any merged speaker cluster where AssemblyAI lumped 2 distinct voices together.
+    1. Splits any merged speaker cluster where diarization lumped 2 distinct voices together.
     2. Matches speakers against 192-dim SpeechBrain ECAPA-TDNN voiceprints in voice_profiles.json
        using isolated, edge-trimmed turns, outlier rejection, and a clear-winner separation margin.
     """
@@ -583,7 +582,7 @@ for spk, entries in spk_wavs.items():
             pass
     if embs:
         # Sub-cluster splitting & Outlier rejection:
-        # If AssemblyAI merged a 2nd distinct voice into this speaker bucket (sim < 0.36 to main voice),
+        # If diarization merged a 2nd distinct voice into this speaker bucket (sim < 0.36 to main voice),
         # split those turns into a separate speaker cluster (f"{{spk}}_B") and reject outliers.
         if len(embs) >= 3:
             mat = np.stack(embs, axis=0)
@@ -709,253 +708,6 @@ def resolve_speakers_intelligently(
                 s["attribution"] = {"method": "acoustic", "model": "speechbrain/spkrec-ecapa-voxceleb"}
 
     return segments, final_mappings
-
-
-def _upload_file_to_assemblyai(audio_path: Path, headers: Dict[str, str]) -> str:
-    """Streams a local audio file to AssemblyAI's /v2/upload endpoint in 5MB chunks."""
-    def _read_chunks(file_path: Path, chunk_size: int = 5242880):
-        with open(file_path, "rb") as f:
-            while True:
-                data = f.read(chunk_size)
-                if not data:
-                    break
-                yield data
-
-    resp = requests.post(
-        "https://api.assemblyai.com/v2/upload",
-        headers=headers,
-        data=_read_chunks(audio_path),
-        timeout=600
-    )
-    if resp.status_code != 200:
-        raise RuntimeError(f"AssemblyAI upload failed ({resp.status_code}): {resp.text}")
-    return resp.json()["upload_url"]
-
-
-def transcribe_audio_chunk_assemblyai(
-    audio_path: Path,
-    assemblyai_key: str,
-    time_offset: float = 0.0,
-    chunk_prefix: str = "",
-    title: str = ""
-) -> List[Dict[str, Any]]:
-    """
-    Transcribes a single audio file or chunk via AssemblyAI Universal-3.5 Pro REST API
-    following https://assemblyai.com/docs/llms-full.txt best practices:
-    - speech_models: ["universal-3-5-pro", "universal-2"]
-    - language_detection: True
-    - speaker_labels: True
-    - speaker_options: min_speakers_expected=2, max_speakers_expected=10, include_speaker_confidence=True
-    - prompt & keyterms_prompt: Universal-3.5 Pro contextual and speaker name prompting
-    """
-    file_mb = audio_path.stat().st_size / (1024 * 1024)
-    print(f"[*] Submitting {audio_path.name} ({file_mb:.1f} MB, offset: {time_offset:.1f}s) to AssemblyAI...")
-
-    headers = {"authorization": assemblyai_key}
-    start_t = time.time()
-    upload_url = _upload_file_to_assemblyai(audio_path, headers)
-
-    known_speakers = load_known_speakers()
-    keyterms = []
-    seen_kt = set()
-    for spk in known_speakers:
-        clean_spk = spk.strip()
-        if clean_spk and len(clean_spk.split()) <= 6 and clean_spk.lower() not in seen_kt:
-            seen_kt.add(clean_spk.lower())
-            keyterms.append(clean_spk)
-        if len(keyterms) >= 150:
-            break
-
-    clean_title = re.sub(r"[_\-]+", " ", title or audio_path.stem).strip()
-    context_prompt = (
-        f"Live multi-speaker Twitter Space audio discussion titled '{clean_title}' "
-        f"featuring host Logan and regular community speakers."
-    )
-
-    payload: Dict[str, Any] = {
-        "audio_url": upload_url,
-        "speech_models": ["universal-3-5-pro", "universal-2"],
-        "language_detection": True,
-        "punctuate": True,
-        "format_text": True,
-        "speaker_labels": True,
-        "speaker_options": {
-            "min_speakers_expected": 2,
-            "max_speakers_expected": 10,
-            "include_speaker_confidence": True,
-        },
-        "prompt": context_prompt,
-    }
-    if keyterms:
-        payload["keyterms_prompt"] = keyterms
-
-    submit_resp = requests.post(
-        "https://api.assemblyai.com/v2/transcript",
-        headers=headers,
-        json=payload,
-        timeout=60
-    )
-    if submit_resp.status_code != 200:
-        # Fallback without optional Universal-3.5 Pro prompt/confidence fields if rejected
-        payload.pop("prompt", None)
-        payload.pop("keyterms_prompt", None)
-        if "speaker_options" in payload:
-            payload["speaker_options"].pop("include_speaker_confidence", None)
-        submit_resp = requests.post(
-            "https://api.assemblyai.com/v2/transcript",
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
-        if submit_resp.status_code != 200:
-            raise RuntimeError(f"AssemblyAI submit failed ({submit_resp.status_code}): {submit_resp.text}")
-
-    transcript_id = submit_resp.json()["id"]
-    polling_endpoint = f"https://api.assemblyai.com/v2/transcript/{transcript_id}"
-
-    while True:
-        poll_resp = requests.get(polling_endpoint, headers=headers, timeout=60)
-        if poll_resp.status_code != 200:
-            time.sleep(3)
-            continue
-        t_data = poll_resp.json()
-        status = t_data.get("status")
-        if status == "completed":
-            break
-        elif status == "error":
-            err_msg = t_data.get("error") or "Unknown error"
-            raise RuntimeError(f"AssemblyAI Transcription Error: {err_msg}")
-        else:
-            time.sleep(3)
-
-    elapsed = time.time() - start_t
-    model_used = t_data.get("speech_model_used") or "universal-3-5-pro"
-    print(f"[✓] AssemblyAI transcription ({model_used}) completed in {elapsed:.1f}s!")
-
-    segments: List[Dict[str, Any]] = []
-    utterances = t_data.get("utterances") or []
-    words_top = t_data.get("words") or []
-
-    # 1. Parse speaker utterances with word-level speaker boundary splitting & speaker_confidence
-    if utterances:
-        for u in utterances:
-            raw_u_spk = str(u.get("speaker") or "A").strip()
-            if raw_u_spk.lower().startswith("speaker"):
-                raw_u_spk = raw_u_spk.split()[-1]
-            u_speaker_label = f"Speaker {chunk_prefix}{raw_u_spk}"
-            u_spk_conf = float(u.get("speaker_confidence") or 0.90)
-
-            u_words = u.get("words") or []
-            if not u_words:
-                segments.append({
-                    "start": round((float(u.get("start", 0)) / 1000.0) + time_offset, 2),
-                    "end": round((float(u.get("end", 0)) / 1000.0) + time_offset, 2),
-                    "speaker": u_speaker_label,
-                    "speaker_confidence": round(u_spk_conf, 3),
-                    "text": (u.get("text") or "").strip(),
-                    "words": []
-                })
-                continue
-
-            # Split utterance if word-level speaker changes mid-utterance (for >= 3 consecutive words)
-            runs: List[Tuple[str, List[Dict[str, Any]]]] = []
-            for w in u_words:
-                w_start = round((float(w.get("start", 0)) / 1000.0) + time_offset, 3)
-                w_end = round((float(w.get("end", 0)) / 1000.0) + time_offset, 3)
-                conf = round(float(w.get("confidence", 1.0) or 1.0), 3)
-                w_spk_conf = round(float(w.get("speaker_confidence") or u_spk_conf), 3)
-                w_raw_spk = str(w.get("speaker") or raw_u_spk).strip()
-                if w_raw_spk.lower().startswith("speaker"):
-                    w_raw_spk = w_raw_spk.split()[-1]
-                w_spk_label = f"Speaker {chunk_prefix}{w_raw_spk}"
-                w_obj = {
-                    "word": w.get("text", ""),
-                    "start": w_start,
-                    "end": w_end,
-                    "confidence": conf,
-                    "speaker_confidence": w_spk_conf,
-                }
-                if runs and runs[-1][0] == w_spk_label:
-                    runs[-1][1].append(w_obj)
-                else:
-                    runs.append((w_spk_label, [w_obj]))
-
-            # Merge tiny 1-2 word flickers back into neighboring run
-            cleaned_runs: List[Tuple[str, List[Dict[str, Any]]]] = []
-            for spk_lbl, w_list in runs:
-                if cleaned_runs and len(w_list) < 3:
-                    cleaned_runs[-1][1].extend(w_list)
-                else:
-                    cleaned_runs.append((spk_lbl, w_list))
-
-            for spk_lbl, w_list in cleaned_runs:
-                run_spk_conf = sum(x.get("speaker_confidence", 0.90) for x in w_list) / len(w_list)
-                segments.append({
-                    "start": round(w_list[0]["start"], 2),
-                    "end": round(w_list[-1]["end"], 2),
-                    "speaker": spk_lbl,
-                    "speaker_confidence": round(run_spk_conf, 3),
-                    "text": " ".join(x["word"] for x in w_list).strip(),
-                    "words": w_list
-                })
-    elif words_top:
-        # Fallback if utterances is empty but words exist
-        curr_words = []
-        curr_start = 0.0
-        curr_end = 0.0
-        curr_spk = f"Speaker {chunk_prefix}A"
-
-        for w in words_top:
-            w_start = round((float(w.get("start", 0)) / 1000.0) + time_offset, 3)
-            w_end = round((float(w.get("end", 0)) / 1000.0) + time_offset, 3)
-            spk_tag = w.get("speaker")
-            spk_name = f"Speaker {chunk_prefix}{spk_tag}" if spk_tag else f"Speaker {chunk_prefix}A"
-
-            if spk_name != curr_spk and curr_words:
-                segments.append({
-                    "start": curr_start,
-                    "end": curr_end,
-                    "speaker": curr_spk,
-                    "text": " ".join([x["word"] for x in curr_words]),
-                    "words": curr_words
-                })
-                curr_words = []
-                curr_spk = spk_name
-                curr_start = w_start
-
-            if not curr_words:
-                curr_start = w_start
-                curr_spk = spk_name
-
-            curr_end = w_end
-            curr_words.append({
-                "word": w.get("text", ""),
-                "start": w_start,
-                "end": w_end,
-                "confidence": round(float(w.get("confidence", 1.0) or 1.0), 3)
-            })
-
-        if curr_words:
-            segments.append({
-                "start": curr_start,
-                "end": curr_end,
-                "speaker": curr_spk,
-                "text": " ".join([x["word"] for x in curr_words]),
-                "words": curr_words
-            })
-    elif t_data.get("text"):
-        # Monologue fallback
-        dur = float(t_data.get("audio_duration") or 0.0)
-        segments.append({
-            "start": round(time_offset, 2),
-            "end": round(time_offset + dur, 2),
-            "speaker": f"Speaker {chunk_prefix}A",
-            "text": (t_data.get("text") or "").strip(),
-            "words": []
-        })
-
-    return segments
-
 
 
 def _decode_audio_16k_mono(audio_path: Path) -> Tuple[Optional[Any], Optional[Path], Optional[Path]]:
@@ -1140,7 +892,7 @@ def transcribe_audio_chunk_whisper(
         from faster_whisper import WhisperModel
     except ImportError:
         raise RuntimeError(
-            f"Cannot transcribe {audio_path.name}: AssemblyAI failed and local 'faster_whisper' is not installed in the environment."
+            f"Cannot transcribe {audio_path.name}: local 'faster_whisper' is not installed in the environment."
         )
     print(f"[*] Transcribing {audio_path.name} via faster-whisper (GitHub Cloud runner)...")
     tmp_wav_dir = None
@@ -1194,7 +946,6 @@ def transcribe_audio_chunk_whisper(
 
 def process_audio_file(
     input_audio: Path,
-    assemblyai_key: str,
     gemini_key: str,
     title: str,
     output_dir: Path,
@@ -1202,7 +953,7 @@ def process_audio_file(
     openrouter_key: str = "",
     engine: str = "whisper"
 ) -> Tuple[Path, Path, Path, float]:
-    """Processes an audio file through AssemblyAI with compression and marathon chunking if needed."""
+    """Processes an audio file with compression and marathon chunking if needed."""
     file_size = input_audio.stat().st_size
     duration_sec = get_audio_duration(input_audio)
     print(f"\n[*] Audio File Inspection: {input_audio.name}")
@@ -1267,76 +1018,23 @@ def process_audio_file(
                 for idx, c_file in enumerate(chunk_files, 1):
                     c_dur = get_audio_duration(c_file)
                     print(f"\n--- Processing Chunk [{idx}/{len(chunk_files)}]: {c_file.name} ({format_timestamp(c_dur)}) ---")
-                    if engine == "assemblyai" and assemblyai_key:
-                        try:
-                            chunk_segs = transcribe_audio_chunk_assemblyai(
-                                audio_path=c_file,
-                                assemblyai_key=assemblyai_key,
-                                time_offset=current_offset,
-                                chunk_prefix=f"C{idx}_" if len(chunk_files) > 1 else "",
-                                title=title
-                            )
-                        except Exception as e:
-                            print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
-                            chunk_segs = transcribe_audio_chunk_whisper(
-                                c_file,
-                                time_offset=current_offset,
-                                title=title
-                            )
-                    else:
-                        chunk_segs = transcribe_audio_chunk_whisper(
-                            c_file,
-                            time_offset=current_offset,
-                            title=title
-                        )
+                    chunk_segs = transcribe_audio_chunk_whisper(
+                        c_file,
+                        time_offset=current_offset,
+                        title=title
+                    )
                     all_segments.extend(chunk_segs)
                     current_offset += c_dur if c_dur > 0 else chunk_seconds
 
                 shutil.rmtree(chunks_dir, ignore_errors=True)
             else:
-                if engine == "assemblyai" and assemblyai_key:
-                    try:
-                        all_segments = transcribe_audio_chunk_assemblyai(
-                            audio_path=active_audio,
-                            assemblyai_key=assemblyai_key,
-                            time_offset=0.0,
-                            title=title
-                        )
-                    except Exception as e:
-                        print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
-                        all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-                else:
-                    all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
         except Exception as e:
             print(f"[!] Slicing failed ({e}); submitting as direct audio stream.")
-            if engine == "assemblyai" and assemblyai_key:
-                try:
-                    all_segments = transcribe_audio_chunk_assemblyai(
-                        audio_path=active_audio,
-                        assemblyai_key=assemblyai_key,
-                        time_offset=0.0,
-                        title=title
-                    )
-                except Exception as e2:
-                    print(f"[!] AssemblyAI failed ({e2}); falling back to GitHub Cloud faster-whisper.")
-                    all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-            else:
-                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+            all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
     else:
         # Standard Single-Pass transcription
-        if engine == "assemblyai" and assemblyai_key:
-            try:
-                all_segments = transcribe_audio_chunk_assemblyai(
-                    audio_path=active_audio,
-                    assemblyai_key=assemblyai_key,
-                    time_offset=0.0,
-                    title=title
-                )
-            except Exception as e:
-                print(f"[!] AssemblyAI failed ({e}); falling back to GitHub Cloud faster-whisper.")
-                all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
-        else:
-            all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
+        all_segments = transcribe_audio_chunk_whisper(active_audio, 0.0, title)
 
     # Clean temporary compressed audio if generated
     if active_audio != input_audio and active_audio.exists():
@@ -1401,7 +1099,7 @@ def process_audio_file(
     # 1. Text transcript
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(f"=== TRANSCRIPT: {title} ===\n")
-        model_name = "assemblyai-universal-3-5-pro" if engine == "assemblyai" else f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}"
+        model_name = f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}"
         f.write(f"Duration: {format_timestamp(duration_sec)}\n")
         f.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}\n")
         f.write(f"Engine: {model_name}\n\n")
@@ -1422,7 +1120,7 @@ def process_audio_file(
         "source": input_audio.name,
         "duration_seconds": duration_sec,
         "duration_formatted": format_timestamp(duration_sec),
-        "model": "assemblyai-universal-3-5-pro" if engine == "assemblyai" else f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}",
+        "model": f"faster-whisper-{os.environ.get('WHISPER_MODEL', 'base')}",
         "speakers_detected": list(speaker_talk_time.keys()),
         "speaker_talk_time": speaker_talk_time,
         "segments": all_segments
@@ -1438,16 +1136,11 @@ def main():
     parser.add_argument("--release-tag", type=str, required=True, help="GitHub release tag (e.g. 20260918_1MJgNbdaAPlGL)")
     parser.add_argument("--part", type=int, default=0, help="Specific audio part (0 for all)")
     parser.add_argument("--force", action="store_true", help="Force re-transcribe even if transcript exists")
-    parser.add_argument("--engine", type=str, choices=["whisper", "assemblyai", "auto"], default="whisper", help="Transcription engine (default: whisper)")
+    parser.add_argument("--engine", type=str, choices=["whisper", "auto"], default="whisper", help="Transcription engine (default: whisper)")
     parser.add_argument("--repo", type=str, default="aiandbotsgalore/copy-spaces-to-youtube-pipeline", help="GitHub repo")
     args = parser.parse_args()
 
-    assemblyai_key = os.environ.get("ASSEMBLYAI_API_KEY", "").strip()
-    if args.engine == "assemblyai" and not assemblyai_key:
-        print("[!] --engine assemblyai requested but no ASSEMBLYAI_API_KEY detected; defaulting to free GitHub Cloud faster-whisper.")
-        args.engine = "whisper"
-    elif args.engine == "whisper":
-        print("[*] Engine set to 'whisper' (default): running free faster-whisper on GitHub Cloud runner (zero AssemblyAI credits).")
+    print("[*] Engine set to 'whisper': running faster-whisper + SpeechBrain biometric diarization.")
 
     gh_token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
@@ -1456,7 +1149,7 @@ def main():
 
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "SpacePipe-AssemblyAITranscriber"
+        "User-Agent": "SpacePipe-Transcriber"
     }
     if gh_token:
         headers["Authorization"] = f"token {gh_token}"
@@ -1488,7 +1181,7 @@ def main():
     if args.part > 0 and args.part <= len(mp3_assets):
         mp3_assets = [mp3_assets[args.part - 1]]
 
-    work_dir = Path(tempfile.gettempdir()) / "spacepipe_assemblyai_work"
+    work_dir = Path(tempfile.gettempdir()) / "spacepipe_transcribe_work"
     work_dir.mkdir(parents=True, exist_ok=True)
     output_dir = work_dir / "output_transcripts"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1535,7 +1228,6 @@ def main():
                 space_title = f"{space_title}{p_suffix}"
             txt_path, srt_path, json_path, _ = process_audio_file(
                 input_audio=local_mp3,
-                assemblyai_key=assemblyai_key,
                 gemini_key=gemini_key,
                 title=space_title,
                 output_dir=output_dir,
@@ -1588,7 +1280,7 @@ def main():
             safe_name = urllib.parse.quote(f_name)
             u_headers = {
                 "Content-Type": "application/octet-stream",
-                "User-Agent": "SpacePipe-AssemblyAITranscriber"
+                "User-Agent": "SpacePipe-Transcriber"
             }
             if gh_token:
                 u_headers["Authorization"] = f"token {gh_token}"
@@ -1609,7 +1301,7 @@ def main():
 
         processed_count += 1
 
-    print(f"\n[🎉] AssemblyAI Transcription Completed for {args.release_tag} ({processed_count} asset(s) processed)!")
+    print(f"\n[🎉] Transcription Completed for {args.release_tag} ({processed_count} asset(s) processed)!")
 
 
 if __name__ == "__main__":
