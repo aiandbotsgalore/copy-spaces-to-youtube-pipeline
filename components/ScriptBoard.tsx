@@ -100,11 +100,15 @@ export default function ScriptBoard({ lib, projectId, question, onOpenLibrary, o
                 onChange={async e => {
                   const balance = e.target.value as any;
                   try {
-                    await fetch('/api/script-studio/board/tape-balance', {
+                    const res = await fetch('/api/script-studio/board/tape-balance', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ projectId, tapeBalance: balance }),
                     });
+                    const ct = (res.headers.get('content-type') || '').toLowerCase();
+                    if (!res.ok || ct.includes('text/html')) {
+                      throw new Error(`Tape balance endpoint unavailable (${res.status})`);
+                    }
                     await lib.reload();
                   } catch (err) {
                     console.error('Failed to update tape balance', err);

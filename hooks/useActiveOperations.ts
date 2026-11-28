@@ -45,11 +45,66 @@ function resolveStatus(run: WorkflowRun): OperationStatus {
  * custom run-name. Safe for single-operator use; not built for concurrent
  * dispatches racing within the same few seconds.
  */
+const ACTIVE_OPS_STORAGE_KEY = 'spacepipe_active_operations_v1';
+const ACTIVE_OPS_EVENT = 'spacepipe:active-operations-updated';
+
+function readStoredOps(): PendingOperation[] {
+  try {
+    const raw = localStorage.getItem(ACTIVE_OPS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.slice(0, 10) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeStoredOps(ops: PendingOperation[]): void {
+  try {
+    localStorage.setItem(ACTIVE_OPS_STORAGE_KEY, JSON.stringify(ops.slice(0, 10)));
+  } catch {}
+}
+
+/**
+ * Records a newly dispatched workflow URL so DashboardOverview / Command Center
+ * picks it up immediately even when triggered from another tab (e.g. SubmitSpacePanel).
+ */
+export function recordActiveOperationDispatch(url: string): string {
+  const op: PendingOperation = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    url,
+    dispatchedAt: Date.now(),
+    status: 'dispatching',
+  };
+  const next = [op, ...readStoredOps()].slice(0, 10);
+  writeStoredOps(next);
+  try {
+    window.dispatchEvent(new CustomEvent(ACTIVE_OPS_EVENT, { detail: next }));
+  } catch {}
+  return op.id;
+}
+
 export function useActiveOperations(config: EnhancedConfig) {
-  const [operations, setOperations] = useState<PendingOperation[]>([]);
+  const [operations, setOperations] = useState<PendingOperation[]>(() => readStoredOps());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opsRef = useRef<PendingOperation[]>(operations);
   opsRef.current = operations;
+
+  useEffect(() => {
+    const onExternalUpdate = (ev: Event) => {
+      const detail = (ev as CustomEvent<PendingOperation[]>).detail;
+      if (Array.isArray(detail)) {
+        setOperations(detail);
+        if (!timerRef.current && detail.some(op => op.status !== 'success' && op.status !== 'failure' && op.status !== 'not_found')) {
+          timerRef.current = setTimeout(() => { void tickRef.current?.(); }, 3000);
+        }
+      }
+    };
+    window.addEventListener(ACTIVE_OPS_EVENT, onExternalUpdate);
+    return () => window.removeEventListener(ACTIVE_OPS_EVENT, onExternalUpdate);
+  }, []);
+
+  const tickRef = useRef<(() => Promise<void>) | null>(null);
 
   const hasCredentials = !!(config.githubToken && config.ownerName && config.repoName);
 
@@ -104,6 +159,7 @@ export function useActiveOperations(config: EnhancedConfig) {
     });
 
     setOperations(next);
+    writeStoredOps(next);
 
     const stillUnresolved = next.some(
       op => op.status !== 'success' && op.status !== 'failure' && op.status !== 'not_found'
@@ -113,6 +169,7 @@ export function useActiveOperations(config: EnhancedConfig) {
       timerRef.current = setTimeout(tick, anyMatched ? ACTIVE_POLL_MS : FAST_POLL_MS);
     }
   }, [hasCredentials, config.githubToken, config.ownerName, config.repoName]);
+  tickRef.current = tick;
 
   // On mount, reconcile against any ingest run that's already active in the
   // cloud (e.g. dispatched just before a page refresh) even though we have
@@ -150,21 +207,20 @@ export function useActiveOperations(config: EnhancedConfig) {
   useEffect(() => () => clearTimer(), []);
 
   const trackDispatch = useCallback((url: string) => {
-    const op: PendingOperation = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      url,
-      dispatchedAt: Date.now(),
-      status: 'dispatching',
-    };
-    setOperations(prev => [op, ...prev].slice(0, 10));
+    const id = recordActiveOperationDispatch(url);
+    setOperations(readStoredOps());
     if (!timerRef.current) {
       timerRef.current = setTimeout(tick, 3000);
     }
-    return op.id;
+    return id;
   }, [tick]);
 
   const dismissOperation = useCallback((id: string) => {
-    setOperations(prev => prev.filter(op => op.id !== id));
+    setOperations(prev => {
+      const next = prev.filter(op => op.id !== id);
+      writeStoredOps(next);
+      return next;
+    });
   }, []);
 
   return { operations, trackDispatch, dismissOperation };

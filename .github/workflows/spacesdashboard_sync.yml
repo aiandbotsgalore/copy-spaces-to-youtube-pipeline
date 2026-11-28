@@ -55,9 +55,21 @@ jobs:
             npx playwright install chromium
           }
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Latest yt-dlp
+        run: |
+          python3 -m pip install --upgrade --no-cache-dir yt-dlp
+          yt-dlp --version
+
       - name: Run SpacesDashboard Scraper
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
+          X_CT0: ${{ secrets.X_CT0 }}
           SPACESDASHBOARD_HANDLE: ${{ inputs.handle || 'AngelaMaggard3' }}
           DISPATCH_LIMIT: ${{ inputs.limit || '5' }}
           DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}

@@ -19,6 +19,7 @@ import {
   Users,
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
+import { useConfig } from '../contexts/ConfigContext';
 import TrackedProfilesPanel from './TrackedProfilesPanel';
 import {
   appendLineToRepositoryTextFile,
@@ -81,11 +82,13 @@ const SubmitSpacePanel: React.FC<Props> = ({
   onNavigateVoiceProfiles,
   onUpdateWatchedHosts,
 }) => {
+  const { updateConfig } = useConfig();
   const [mode, setMode] = useState<IngestMode>('url');
 
   // URL mode state
   const [url, setUrl] = useState('');
   const [recordLive, setRecordLive] = useState(false);
+  const urlInputRef = useRef<HTMLInputElement | null>(null);
 
   // Local file upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -328,10 +331,14 @@ const SubmitSpacePanel: React.FC<Props> = ({
             onNavigateVoiceProfiles={onNavigateVoiceProfiles}
             onSelectHandleForIngest={handle => {
               setMode('url');
-              setUrl(`https://x.com/${handle}`);
-              if (notice) setNotice(null);
+              setUrl('');
+              setNotice({
+                kind: 'success',
+                message: `Selected @${handle} — paste a specific Space URL (https://x.com/i/spaces/...) below or run Scan on their profile.`,
+              });
+              window.setTimeout(() => urlInputRef.current?.focus(), 30);
             }}
-            onUpdateWatchedHosts={onUpdateWatchedHosts}
+            onUpdateWatchedHosts={onUpdateWatchedHosts || (hosts => updateConfig({ watchedHosts: hosts }))}
           />
         </div>
 
@@ -407,6 +414,7 @@ const SubmitSpacePanel: React.FC<Props> = ({
                   )}
                 </div>
                 <input
+                  ref={urlInputRef}
                   id="space-url"
                   type="url"
                   value={url}
@@ -420,7 +428,7 @@ const SubmitSpacePanel: React.FC<Props> = ({
                     if (lines.length > 1 && onNavigateBatch) {
                       event.preventDefault();
                       const existing = config.batchUrls || [];
-                      config.batchUrls = [...existing, ...lines];
+                      updateConfig({ batchUrls: [...existing, ...lines] });
                       onNavigateBatch();
                     }
                   }}

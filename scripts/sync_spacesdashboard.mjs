@@ -36,7 +36,7 @@ function getArg(flag) {
 
 function getExistingReleases() {
   try {
-    return execSync('gh release list --limit 1000', {
+    return execSync('gh release list --limit 2000', {
       encoding: 'utf-8',
       env: { ...process.env, GITHUB_TOKEN }
     });
@@ -85,7 +85,7 @@ function getOpenDlqSpaces() {
     const ids = new Set();
     for (const iss of issues) {
       const text = `${iss.title} ${iss.body || ''}`;
-      const matches = text.match(/[a-zA-Z0-9]{13}/g);
+      const matches = text.match(/[a-zA-Z0-9]{13,16}/g);
       if (matches) {
         matches.forEach(id => ids.add(id));
       }
@@ -97,10 +97,35 @@ function getOpenDlqSpaces() {
   }
 }
 
+const YT_DLP_PLUGIN_DIR = path.resolve('scripts/ytdlp_plugins');
+const YT_DLP_PLUGIN_ARGS = existsSync(YT_DLP_PLUGIN_DIR) ? `--plugin-dirs "${YT_DLP_PLUGIN_DIR}"` : '';
+
+function buildCookiesArgs() {
+  const authToken = process.env.X_AUTH_TOKEN || process.env.TWITTER_AUTH_TOKEN;
+  const csrfToken = process.env.X_CT0 || process.env.X_CSRF_TOKEN || process.env.TWITTER_CT0;
+  if (!authToken) return '';
+  try {
+    const cookiesPath = path.resolve('cookies.txt');
+    const lines = [
+      '# Netscape HTTP Cookie File',
+      `.x.com\tTRUE\t/\tTRUE\t1893456000\tauth_token\t${authToken}`,
+      csrfToken ? `.x.com\tTRUE\t/\tTRUE\t1893456000\tct0\t${csrfToken}` : '',
+      `.twitter.com\tTRUE\t/\tTRUE\t1893456000\tauth_token\t${authToken}`,
+      csrfToken ? `.twitter.com\tTRUE\t/\tTRUE\t1893456000\tct0\t${csrfToken}` : '',
+    ].filter(Boolean).join('\n') + '\n';
+    writeFileSync(cookiesPath, lines, 'utf-8');
+    return `--cookies "${cookiesPath}"`;
+  } catch {
+    return '';
+  }
+}
+
+const YT_DLP_COOKIES_ARGS = buildCookiesArgs();
+
 function probeSpace(url) {
   try {
     const output = execSync(
-      `yt-dlp --print "%(live_status)s|||%(title)s" --no-warnings "${url}"`,
+      `yt-dlp ${YT_DLP_PLUGIN_ARGS} ${YT_DLP_COOKIES_ARGS} --print "%(live_status)s|||%(title)s" --no-warnings "${url}"`,
       {
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 25000,
@@ -167,6 +192,15 @@ async function scrapeSpacesDashboard() {
     await page.goto(profileUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(3000);
 
+    const pageCheck = await page.evaluate(() => ({
+      title: document.title || '',
+      body: (document.body?.innerText || '').slice(0, 600),
+    }));
+    if (/just a moment/i.test(pageCheck.title) || /performing security verification/i.test(pageCheck.body)) {
+      console.warn('⚠️ SpacesDashboard returned a Cloudflare verification challenge — cannot scrape automatically.');
+      return;
+    }
+
     // List of tabs to inspect: "Spoke in", "CoHosted", "Hosted"
     const tabs = ['Spoke in', 'CoHosted', 'Hosted'];
 
@@ -184,7 +218,7 @@ async function scrapeSpacesDashboard() {
         // Extract Space links from page
         const extracted = await page.evaluate((currentTab) => {
           const results = [];
-          const spaceRegex = /(?:spaces\/|\/space\/|^)([a-zA-Z0-9]{13})(?:[/?#]|$)/;
+          const spaceRegex = /(?:spaces\/|\/space\/|^)(1[a-zA-Z0-9]{12,15})(?:[/?#]|$)/;
 
           // Scan all anchors first
           document.querySelectorAll('a').forEach(a => {
@@ -203,15 +237,20 @@ async function scrapeSpacesDashboard() {
             }
           });
 
-          // Also check for Play buttons with wire:click or custom attributes
-          document.querySelectorAll('button, a').forEach(el => {
-            const attrText = (el.getAttribute('wire:click') || '') + ' ' + (el.getAttribute('onclick') || '') + ' ' + (el.innerText || '');
-            const m = attrText.match(/([a-zA-Z0-9]{13})/);
+          // Also check wire:click / onclick / data attributes for Space URLs (never raw innerText UI labels)
+          document.querySelectorAll('button, a, [data-space-id]').forEach(el => {
+            const attrText = [
+              el.getAttribute('wire:click') || '',
+              el.getAttribute('onclick') || '',
+              el.getAttribute('data-space-id') || '',
+              el.getAttribute('href') || '',
+            ].join(' ');
+            const m = attrText.match(/(?:spaces\/|space[_-]?id['":=\s]+|^)(1[a-zA-Z0-9]{12,15})(?![a-zA-Z0-9])/i);
             if (m && !results.some(r => r.spaceId === m[1])) {
               results.push({
                 spaceId: m[1],
                 url: `https://x.com/i/spaces/${m[1]}`,
-                rawText: el.innerText,
+                rawText: el.innerText || '',
                 tab: currentTab
               });
             }

@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 import { useCopilot } from '../contexts/CopilotContext';
 import { useConfig } from '../contexts/ConfigContext';
-import { usePlayer } from '../contexts/PlayerContext';
-import { useMontage } from '../contexts/MontageContext';
+import { usePlayerControls } from '../contexts/PlayerContext';
+import { useMontageClips } from '../contexts/MontageContext';
 import { CopilotMarkdown } from './CopilotMarkdown';
 import { CopilotAttachmentViewer } from './CopilotAttachmentViewer';
 import { extractLiveStudioContext } from '../utils/liveContextExtractor';
@@ -98,8 +98,8 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
   } = useCopilot();
 
   const { config } = useConfig();
-  const player = usePlayer();
-  const montage = useMontage();
+  const player = usePlayerControls();
+  const montage = useMontageClips();
 
   const [isOpen, setIsOpen] = useState(false);
   const [contextRefreshKey, setContextRefreshKey] = useState(0);
@@ -132,6 +132,7 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
   const [loadingTabIds, setLoadingTabIds] = useState<Set<string>>(new Set());
   const [tabErrors, setTabErrors] = useState<Record<string, string>>({});
   const abortControllersRef = useRef<Record<string, AbortController>>({});
+  const sendingTabsRef = useRef<Set<string>>(new Set());
 
   // Active tab object
   const activeTabObj = useMemo(() => {
@@ -401,7 +402,8 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
     const raw = textToSend !== undefined ? textToSend : input;
     const msg = raw.trim();
     const attachments = [...pendingAttachments];
-    if ((!msg && attachments.length === 0) || loadingTabIds.has(targetTabId)) return;
+    if ((!msg && attachments.length === 0) || sendingTabsRef.current.has(targetTabId) || loadingTabIds.has(targetTabId)) return;
+    sendingTabsRef.current.add(targetTabId);
 
     const userMsg: CopilotMessage = {
       id: `user_${Date.now()}`,
@@ -482,8 +484,8 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
             player: {
               isPlaying: player.isPlaying,
               current: (player as any).current,
-              currentTime: (player as any).currentTime,
-              duration: (player as any).duration,
+              currentTime: player.getTime().currentTime,
+              duration: player.getTime().duration,
             },
             montage: {
               clipCount: montage.clips.length,
@@ -596,6 +598,7 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
       const errorMsg = err?.message || 'Error communicating with AI service';
       setTabErrors((prev) => ({ ...prev, [targetTabId]: errorMsg }));
     } finally {
+      sendingTabsRef.current.delete(targetTabId);
       delete abortControllersRef.current[targetTabId];
       setLoadingTabIds((prev) => {
         const next = new Set(prev);
@@ -901,19 +904,23 @@ export const FloatingCopilotWidget: React.FC<FloatingCopilotWidgetProps> = ({ ac
                           {combinedImages.map((img, idx) => (
                             <div key={img.filename || idx} className="w-full rounded-lg border border-indigo-500/30 overflow-hidden shadow-lg bg-slate-950">
                               <div
-                                className="relative group cursor-pointer overflow-hidden bg-slate-900"
-                                onClick={() => window.open(img.image_url, '_blank')}
-                                title="Click to open full size"
+                                className="relative group bg-slate-900 overflow-hidden"
                               >
                                 <img
                                   src={img.image_url}
                                   alt={img.prompt_used || 'Generated visual'}
-                                  className="w-full h-auto object-cover max-h-[220px] hover:scale-102 transition-transform duration-200"
+                                  className="w-full h-auto object-cover max-h-[220px]"
                                 />
-                                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/75 backdrop-blur text-slate-300 border border-white/10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a
+                                  href={img.image_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-black/75 backdrop-blur text-slate-300 border border-white/10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="Open full size"
+                                >
                                   <Maximize2 size={9} />
                                   <span>Full Size</span>
-                                </div>
+                                </a>
                               </div>
                               <div className="p-2 bg-slate-900/95 border-t border-slate-800 flex flex-col gap-1.5">
                                 {img.prompt_used && (

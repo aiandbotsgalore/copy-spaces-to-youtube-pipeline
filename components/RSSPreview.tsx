@@ -120,7 +120,7 @@ const RSSPreview: React.FC<Props> = ({ config }) => {
   const displayEpisodes = isLiveMode ? liveEpisodes : MOCK_EPISODES;
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-3xl mx-auto w-full">
+    <div className="h-full overflow-y-auto p-6 md:p-12 pb-24 max-w-3xl mx-auto w-full">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-2">RSS Feed Preview</h2>
         <p className="text-slate-400 text-sm">

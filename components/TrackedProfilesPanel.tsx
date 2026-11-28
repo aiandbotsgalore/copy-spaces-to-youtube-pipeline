@@ -22,6 +22,8 @@ import { EnhancedConfig, WorkflowRun } from '../types';
 import { dispatchWorkflow } from '../utils/github';
 import { friendlyGitHubError } from '../utils/submitSpace';
 import { useWorkflowRuns, isActiveRun } from '../hooks/useWorkflowRuns';
+import { useVoiceProfilesQuery } from '../hooks/useStudioQueries';
+import { useConfig } from '../contexts/ConfigContext';
 
 export interface TrackedProfileItem {
   id: string;
@@ -286,9 +288,7 @@ export const TrackedProfilesPanel: React.FC<Props> = ({
   const [newHandle, setNewHandle] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
 
-  // Local Voice Catalog data
-  const [voiceCatalog, setVoiceCatalog] = useState<Record<string, VoiceProfileData>>({});
-  const [catalogLoaded, setCatalogLoaded] = useState(false);
+  const { updateConfig } = useConfig();
 
   // Workflow runs for checking real-time status and last run timestamps
   const { runs, loading: runsLoading, refresh: refreshRuns } = useWorkflowRuns(config);
@@ -297,28 +297,9 @@ export const TrackedProfilesPanel: React.FC<Props> = ({
   const repo = (config.repoName || '').trim();
   const hasCredentials = !!(config.githubToken && owner && repo);
 
-  // Load public/voice_profiles.json on mount
-  useEffect(() => {
-    let active = true;
-    const fetchCatalog = async () => {
-      try {
-        const res = await fetch('/voice_profiles.json');
-        if (res.ok) {
-          const data = (await res.json()) as VoiceProfilesCatalogJson;
-          if (active && data?.profiles) {
-            setVoiceCatalog(data.profiles);
-            setCatalogLoaded(true);
-          }
-        }
-      } catch (err) {
-        console.warn('Could not fetch /voice_profiles.json directly', err);
-      }
-    };
-    fetchCatalog();
-    return () => {
-      active = false;
-    };
-  }, []);
+  // Load voice_profiles.json via shared React Query cache
+  const { data: voiceCatalogData, isFetched: catalogLoaded } = useVoiceProfilesQuery(owner, repo);
+  const voiceCatalog: Record<string, VoiceProfileData> = voiceCatalogData?.profiles || {};
 
   // Merge base profiles with any custom watchedHosts in config
   const profilesList = useMemo(() => {
@@ -486,7 +467,7 @@ export const TrackedProfilesPanel: React.FC<Props> = ({
       if (onUpdateWatchedHosts) {
         onUpdateWatchedHosts(updated);
       } else {
-        config.watchedHosts = updated;
+        updateConfig({ watchedHosts: updated });
       }
     }
     setNewHandle('');

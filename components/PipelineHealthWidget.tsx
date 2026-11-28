@@ -7,6 +7,7 @@ import { EnhancedConfig, WorkflowRun, DeadLetterJob } from '../types';
 import { useWorkflowRuns, isActiveRun } from '../hooks/useWorkflowRuns';
 import { getCachedRateLimit, onRateLimitChange, GitHubRateLimitInfo, validateToken, rerunWorkflowRun } from '../utils/github';
 import { loadHealedRunIds, loadDeadLetterQueue, removeFromDeadLetterQueue, markRunHealed } from '../utils/storage';
+import { appDialog } from '../contexts/DialogContext';
 
 interface Props {
   config: EnhancedConfig;
@@ -147,7 +148,7 @@ export const PipelineHealthWidget: React.FC<Props> = ({
 
   const handleRerun = async (run: WorkflowRun) => {
     if (!config.githubToken || !owner || !repo) {
-      alert('GitHub Token or repository configuration missing.');
+      appDialog.toast('GitHub Token or repository configuration missing.', 'warning');
       return;
     }
     setRetryingRunId(run.id);

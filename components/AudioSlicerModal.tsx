@@ -8,6 +8,7 @@ import { audioBufferToWav, sliceAudioBuffer } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
 import { createMachine } from '../utils/stateMachine';
+import { appDialog } from '../contexts/DialogContext';
 
 export type SlicerStatus = 'idle' | 'decoding' | 'ready' | 'previewing' | 'exporting' | 'exported' | 'error';
 type SlicerEvent =
@@ -370,7 +371,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
   const togglePlaySlice = async () => {
     if (!target.audioUrl) {
-      alert('No audio stream URL available for this episode.');
+      appDialog.toast('No audio stream URL available for this episode.', 'warning');
       return;
     }
 
@@ -459,7 +460,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
 
   const handleDownloadWav = async () => {
     if (!target.audioUrl) {
-      alert('Audio stream URL is not available to export.');
+      appDialog.toast('Audio stream URL is not available to export.', 'warning');
       return;
     }
 
@@ -504,7 +505,7 @@ export const AudioSlicerModal: React.FC<AudioSlicerModalProps> = ({ isOpen, onCl
     } catch (err: any) {
       console.error('Failed to export sliced audio:', err);
       slicerMachineRef.current.send('ERROR');
-      alert(`Export error: ${err.message || 'Could not fetch or decode audio. Cross-origin restrictions may apply to this remote stream.'}`);
+      appDialog.toast(`Export error: ${err.message || 'Could not fetch or decode audio.'}`, 'error');
     } finally {
       setIsExporting(false);
     }

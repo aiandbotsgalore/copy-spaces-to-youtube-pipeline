@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       x_handles:
-        description: 'Comma-separated X handles to scan (no @) e.g. AngelaMaggard3,txrrxstrxxl,LoganBlack,TurtleOfTime12'
+        description: 'Comma-separated X handles to scan (no @), defaults to config/watched_hosts.json'
         required: false
-        default: 'AngelaMaggard3,txrrxstrxxl,LoganBlack,TurtleOfTime12,UFOkimball,Gabe_Trust,Kaalos_,shdw_nxs,DecipheringTV,RedPandaKoala,tupacabra,GodSawUs,StopTehMadness,YOIMSTEVE_'
+        default: ''
         type: string
       x_handle:
         description: 'Single handle (legacy fallback)'
@@ -42,10 +42,14 @@ jobs:
       - name: Install xactions CLI
         run: npm install -g xactions
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Install Latest yt-dlp
         run: |
-          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-          sudo chmod a+rx /usr/local/bin/yt-dlp
+          python3 -m pip install --upgrade --no-cache-dir yt-dlp
           yt-dlp --version
 
       - name: Auto-Detect & Trigger Ingestion
@@ -53,8 +57,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           X_AUTH_TOKEN: ${{ secrets.X_AUTH_TOKEN }}
           X_CT0: ${{ secrets.X_CT0 }}
-          # Supports either input parameter or defaults to LoganBlack
-          X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || 'AngelaMaggard3,txrrxstrxxl,LoganBlack,TurtleOfTime12,UFOkimball,Gabe_Trust,Kaalos_,shdw_nxs,DecipheringTV,RedPandaKoala,tupacabra,GodSawUs,StopTehMadness,YOIMSTEVE_' }}
+          X_HANDLES: ${{ inputs.x_handles || inputs.x_handle || '' }}
           TWEET_LIMIT: ${{ inputs.limit || '20' }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |

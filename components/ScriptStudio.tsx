@@ -8,8 +8,8 @@ import {
   AlertTriangle, ArrowDown, BookOpen, BookmarkPlus, ArrowUp, CloudDownload, ExternalLink, Film, FolderSync, Link2, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleSlash, Disc, Download, FileText, History, Layers, Loader2, Lock, Mic,
   Pause, Play, Plus, RefreshCw, RotateCcw, Save, Scissors, Search, Sparkles, Square, Star, Trash2, Unlock, Upload, Volume2, Wand2, X, XCircle, MoreVertical,
 } from 'lucide-react';
-import { usePlayer } from '../contexts/PlayerContext';
-import { useMontage } from '../contexts/MontageContext';
+import { usePlayerControls } from '../contexts/PlayerContext';
+import { useMontageClips } from '../contexts/MontageContext';
 import {
   loadRoleChoice, PROJECT_STORAGE_KEY, ROLE_SPECS, saveRoleChoice, scriptApi, ScriptApiError, streamRun,
   type ProjectResponse, type RoleChoice, type RunResponse, type StatusResponse,
@@ -38,6 +38,17 @@ import {
 import type { LogEntry } from '../utils/scriptQuality';
 import type { Block, EpisodeFormat, RoleMap, RunEvent, Segment, StudioClip } from '../utils/scriptTypes';
 import { EPISODE_FORMATS, NARRATIVE_FUNCTIONS } from '../utils/scriptTypes';
+import { appDialog } from '../contexts/DialogContext';
+import { safeReadErrorPayload } from '../utils/safeFetch';
+
+const COPILOT_SCRIPT_DRAFT_KEY = 'spacepipe_script_studio_active_draft';
+
+interface PendingCopilotDraft {
+  title?: string;
+  outlineSummary?: string;
+  scenes?: any[];
+  updatedAt?: number;
+}
 
 interface TranscriptRow { id: string; start: number; end: number; speaker: string; text: string }
 
@@ -631,14 +642,28 @@ function UploadVersionModal({
 /* Setup screen                                                                                    */
 /* ---------------------------------------------------------------------------------------------- */
 
-function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusResponse | null; onRecheck: () => void; checking: boolean; onOpen: (id: string) => void }) {
+function SetupScreen({
+  status,
+  onRecheck,
+  checking,
+  onOpen,
+  initialDraft,
+  onClearDraft,
+}: {
+  status: StatusResponse | null;
+  onRecheck: () => void;
+  checking: boolean;
+  onOpen: (id: string) => void;
+  initialDraft?: PendingCopilotDraft | null;
+  onClearDraft?: () => void;
+}) {
   const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
   const [projects, setProjects] = useState<{ id: string; title: string; updatedAt: number; sourceTags: string[] }[]>([]);
   const [filter, setFilter] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [minutes, setMinutes] = useState(15);
   const [newFormat, setNewFormat] = useState<EpisodeFormat | ''>('');
-  const [thesis, setThesis] = useState('');
+  const [thesis, setThesis] = useState(() => initialDraft?.outlineSummary || '');
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
   const [tab, setTab] = useState<'projects' | 'style' | 'quality'>('projects');
@@ -696,8 +721,22 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
   };
 
   useEffect(() => {
-    scriptApi.episodes().then(r => setEpisodes(r.episodes)).catch(setError).finally(() => setLoadingEpisodes(false));
-    scriptApi.projects().then(r => setProjects(r.projects)).catch(setError);
+    if (initialDraft?.outlineSummary && !thesis) {
+      setThesis(initialDraft.outlineSummary);
+    }
+  }, [initialDraft]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    scriptApi.episodes().then(r => { if (!controller.signal.aborted) setEpisodes(r.episodes); }).catch(() => {
+      // Gracefully handled when /api/script backend is unavailable
+    });
+    scriptApi.projects().then(r => { if (!controller.signal.aborted) setProjects(r.projects); }).catch(() => {
+      // Gracefully handled when /api/script backend is unavailable
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoadingEpisodes(false);
+    });
+    return () => controller.abort();
   }, []);
 
   useEffect(() => { setVisibleCount(60); }, [filter, onlySelected]);
@@ -778,6 +817,7 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
       const r = await scriptApi.createProject(picked, minutes * 60, {
         format, thesis: thesis.trim() || undefined,
       });
+      onClearDraft?.();
       onOpen(r.project.id);
     } catch (e) { setError(e); } finally { setCreating(false); }
   };
@@ -788,8 +828,15 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
       const data = JSON.parse(await f.text());
       let r;
       try { r = await scriptApi.importProject(data, false); } catch (e) {
-        if (e instanceof ScriptApiError && e.code === 'CONFLICT' && window.confirm(e.message + '\n\nReplace the existing project?')) r = await scriptApi.importProject(data, true);
-        else throw e;
+        if (
+          e instanceof ScriptApiError &&
+          e.code === 'CONFLICT' &&
+          await appDialog.confirm({ title: 'Project Exists', message: `${e.message}\n\nReplace the existing project?`, confirmLabel: 'Replace', destructive: true })
+        ) {
+          r = await scriptApi.importProject(data, true);
+        } else {
+          throw e;
+        }
       }
       onOpen(r.project.id);
     } catch (e) { setError(e); }
@@ -866,6 +913,39 @@ function SetupScreen({ status, onRecheck, checking, onOpen }: { status: StatusRe
           <section className={cx(panel, 'mt-5 p-5')}><ScriptQuality onOpenProject={onOpen} /></section>
         ) : (
           <>
+            {initialDraft?.outlineSummary && (
+              <div className="mb-5 rounded-xl border border-indigo-500/40 bg-indigo-950/30 p-4 text-xs text-slate-200 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-semibold text-indigo-200">
+                    <Sparkles size={14} className="text-indigo-400" />
+                    <span>Imported Outline from AI Copilot: {initialDraft.title || 'Draft'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setThesis(initialDraft.outlineSummary || '');
+                        setUploadModalOpen(true);
+                      }}
+                      className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-semibold cursor-pointer"
+                    >
+                      Open in Upload Script Modal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onClearDraft?.()}
+                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+                <p className="text-slate-300 whitespace-pre-wrap max-h-32 overflow-y-auto bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                  {initialDraft.outlineSummary}
+                </p>
+              </div>
+            )}
+
             <button type="button" onClick={() => setStatusOpen(true)}
               className={cx(panel, 'mb-6 flex min-h-12 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[#1A2030] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#A496FF]')}>
               <span className="flex items-center gap-3">
@@ -1527,8 +1607,8 @@ function BlockView({ block, clip, onChange, onRemove, onMove, onPlay, onClaim, o
 /* ---------------------------------------------------------------------------------------------- */
 
 export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => void } = {}) {
-  const player = usePlayer();
-  const montage = useMontage();
+  const player = usePlayerControls();
+  const montage = useMontageClips();
   const [status, setStatus] = useState<StatusResponse | null>(null);
   const [checking, setChecking] = useState(false);
   const [projectId, setProjectId] = useState<string | null>(() => { try { return localStorage.getItem(PROJECT_STORAGE_KEY); } catch { return null; } });
@@ -1554,7 +1634,23 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   const [showUploadVersionModal, setShowUploadVersionModal] = useState(false);
   const [episodes, setEpisodes] = useState<{ releaseTag: string; title: string }[]>([]);
   const [leftTab, setLeftTab] = useState<'pipeline' | 'evidence' | 'transcripts'>('pipeline');
+  const [leftRailOpen, setLeftRailOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState<'refine' | 'versions' | null>(null);
+  const [pendingCopilotDraft, setPendingCopilotDraft] = useState<PendingCopilotDraft | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(COPILOT_SCRIPT_DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as PendingCopilotDraft;
+      if (parsed && (parsed.outlineSummary || parsed.title || (parsed.scenes && parsed.scenes.length > 0))) {
+        setPendingCopilotDraft(parsed);
+      }
+      localStorage.removeItem(COPILOT_SCRIPT_DRAFT_KEY);
+    } catch {
+      // ignore malformed draft
+    }
+  }, []);
   const [collapsedScenes, setCollapsedScenes] = useState<Record<string, boolean>>({});
   const [audioProgress, setAudioProgress] = useState<string | null>(null);
   const [evidenceReview, setEvidenceReview] = useState<EvidenceCheckResult | null>(null);
@@ -1640,9 +1736,16 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
   // Stop clip playback at the cut's out point.
   useEffect(() => {
-    const s = stopRef.current;
-    if (s && player.current?.id === s.id && player.isPlaying && player.currentTime >= s.at) { player.togglePlay(); stopRef.current = null; }
-  }, [player.currentTime, player.current, player.isPlaying, player]);
+    if (!player.isPlaying) return;
+    const id = window.setInterval(() => {
+      const s = stopRef.current;
+      if (s && player.current?.id === s.id && player.getTime().currentTime >= s.at) {
+        player.togglePlay();
+        stopRef.current = null;
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [player.current, player.isPlaying, player]);
 
   const project = data?.project;
   const tag = project && project.sourceTags.includes(viewTag) ? viewTag : project?.sourceTags[0] || '';
@@ -1694,7 +1797,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   }, [segments]);
 
   const act = async (label: string, fn: () => Promise<unknown>) => {
-    if (dirty && !window.confirm('You have unsaved edits. Continue and discard them?')) return;
+    if (dirty && !(await appDialog.confirm({ title: 'Unsaved Edits', message: 'You have unsaved edits. Continue and discard them?', confirmLabel: 'Discard & Continue', destructive: true }))) return;
     setBusy(label); setError(null);
     try { await fn(); if (projectId) await load(projectId); } catch (e) { setError(e); } finally { setBusy(null); }
   };
@@ -1737,7 +1840,16 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
   }, [showProjectMenu]);
 
   if (!projectId || !project) {
-    return <SetupScreen status={status} checking={checking} onRecheck={recheck} onOpen={id => { setRunId(null); setProjectId(id); }} />;
+    return (
+      <SetupScreen
+        status={status}
+        checking={checking}
+        onRecheck={recheck}
+        onOpen={id => { setRunId(null); setProjectId(id); }}
+        initialDraft={pendingCopilotDraft}
+        onClearDraft={() => setPendingCopilotDraft(null)}
+      />
+    );
   }
 
   const editBlock = (segI: number, scI: number, bI: number, next: Block | null, move?: -1 | 1) => {
@@ -1810,7 +1922,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
   const handleDeleteActiveProject = async () => {
     if (!project) return;
-    if (!window.confirm(`Are you sure you want to permanently delete project "${project.title}"? This will remove it from disk and cannot be undone.`)) return;
+    if (!(await appDialog.confirm({ title: 'Delete Project', message: `Are you sure you want to permanently delete project "${project.title}"? This will remove it from disk and cannot be undone.`, confirmLabel: 'Delete Project', destructive: true }))) return;
     setBusy('Deleting project');
     setError(null);
     try {
@@ -1835,7 +1947,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
   const handleResetScript = async () => {
     if (!project) return;
-    if (!window.confirm(`Wipe and reset the current script in "${project.title}"? All imported scenes and blocks will be cleared.`)) return;
+    if (!(await appDialog.confirm({ title: 'Reset Script', message: `Wipe and reset the current script in "${project.title}"? All imported scenes and blocks will be cleared.`, confirmLabel: 'Reset Script', destructive: true }))) return;
     setBusy('Resetting script');
     setError(null);
     try {
@@ -2150,16 +2262,16 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
   const syncClipsFromScript = syncClipsFromManuscript;
 
-  const sendToMontage = () => {
+  const sendToMontage = async () => {
     if (!data?.head) return;
     const c = compileScript(project, data.head, { clipAudioUrl: clipId => scriptApi.clipAudioUrl(project.id, clipId) });
     if (!c || !c.ok) {
       if (c?.blocked?.length) {
-        alert(`Cannot send to Montage:\n${c.blocked.map(b => `• ${b.sceneTitle}: ${b.reason}`).join('\n')}`);
+        appDialog.toast(`Cannot send to Montage: ${c.blocked.map(b => `${b.sceneTitle}: ${b.reason}`).join('; ')}`, 'error');
       }
       return;
     }
-    if (montage.clips.length && !window.confirm(`Replace the ${montage.clips.length} clips on the Montage timeline with this script (${c.items.length} items)? Undo in Montage brings them back.`)) return;
+    if (montage.clips.length && !(await appDialog.confirm({ title: 'Replace Montage Timeline', message: `Replace the ${montage.clips.length} clips on the Montage timeline with this script (${c.items.length} items)? Undo in Montage brings them back.`, confirmLabel: 'Replace Timeline' }))) return;
     montage.replaceClips(c.items.map(i => i.item));
     setNotice(`Sent ${c.items.length} items to Montage Studio${c.markers.length ? `; ${c.markers.length} music markers listed` : ''}.`);
     onOpenMontage?.();
@@ -2170,7 +2282,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     const c = compileScript(project, data.head, { clipAudioUrl: clipId => scriptApi.clipAudioUrl(project.id, clipId) });
     if (!c || !c.ok) {
       if (c?.blocked?.length) {
-        alert(`Cannot finish episode:\n${c.blocked.map(b => `• ${b.sceneTitle}: ${b.reason}`).join('\n')}`);
+        appDialog.toast(`Cannot finish episode: ${c.blocked.map(b => `${b.sceneTitle}: ${b.reason}`).join('; ')}`, 'error');
       }
       return;
     }
@@ -2226,7 +2338,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
     <div id="script-studio" className="h-full flex flex-col bg-slate-950 text-slate-200 overflow-hidden relative font-sans">
       {/* Header */}
       <div className="border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center gap-2.5 shrink-0 bg-slate-950 z-20">
-        <button className={btnGhost} onClick={() => { if (dirty && !window.confirm('Discard unsaved edits?')) return; setProjectId(null); setRunId(null); }}><ChevronLeft size={12} /> Projects</button>
+        <button className={btnGhost} onClick={async () => { if (dirty && !(await appDialog.confirm({ title: 'Unsaved Edits', message: 'Discard unsaved edits?', confirmLabel: 'Discard', destructive: true }))) return; setProjectId(null); setRunId(null); }}><ChevronLeft size={12} /> Projects</button>
         <input className={cx(input, 'w-60 font-semibold text-white')} value={project.title} onChange={e => setData(d => (d ? { ...d, project: { ...d.project, title: e.target.value } } : d))}
           onBlur={e => void scriptApi.updateProject(project.id, { title: e.target.value }).catch(setError)} />
         <select className={input} value={project.format || ''} onChange={e => void act('Saving format', () => scriptApi.updateProject(project.id, { format: e.target.value || null }))}>
@@ -2360,10 +2472,11 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
         </div>
       )}
 
-      {/* Main 2-Pane Work Area: Left Tabbed Column (30%) + Center Script Editor (70%) */}
-      <div className="flex-1 min-h-0 flex overflow-hidden">
+      {/* Main 2-Pane Work Area: Left Tabbed Column (collapsible on smaller viewports) + Center Script Editor */}
+      <div className="flex-1 min-h-0 flex flex-col xl:flex-row overflow-hidden">
         {/* Left Consolidated Panel: Top Tabs for Pipeline, Evidence, Transcripts */}
-        <aside className="w-80 md:w-88 shrink-0 border-r border-slate-800 flex flex-col bg-slate-950 overflow-hidden">
+        {leftRailOpen && (
+        <aside className="w-full xl:w-88 max-h-[42vh] xl:max-h-none shrink-0 border-b xl:border-b-0 xl:border-r border-slate-800 flex flex-col bg-slate-950 overflow-hidden">
           {/* Top Tabs */}
           <div className="border-b border-slate-800 bg-slate-950 px-2 pt-2 flex items-center gap-1 shrink-0 text-xs font-medium">
             <button
@@ -2391,7 +2504,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
           {/* Tab 1: Pipeline & Stages */}
           {leftTab === 'pipeline' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 pb-24 space-y-4">
               <div className="space-y-1.5">
                 <div className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Pipeline Stages</div>
                 <StageRow done={stage.analysis} label={project.sourceTags.length > 1 ? `Analyse ${project.sourceTags.length} recordings` : 'Analyse episode'} note={project.sourceTags.length > 1 ? `${project.sourceTags.filter(t => data?.analyses[t]).length} of ${project.sourceTags.length} analysed` : analysis ? `${analysis.moments.length} moments, ${analysis.themes.length} themes` : undefined}
@@ -2465,7 +2578,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
           {/* Tab 2: Evidence & Context */}
           {leftTab === 'evidence' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 pb-24 space-y-4">
               {data && <RecordingsPanel data={data} viewTag={tag} onView={setViewTag} act={act} episodes={episodes} />}
               {project.format === 'investigative' && <PaperTrailPanel projectId={project.id} sourceTags={project.sourceTags} act={act} />}
               <ManuscriptPanel project={project} headVersionId={project.headVersionId} act={act} />
@@ -2489,7 +2602,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
 
           {/* Tab 3: Source Transcripts */}
           {leftTab === 'transcripts' && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className="flex-1 overflow-y-auto p-3 pb-24 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wide text-slate-500 font-bold">Transcript</span>
                 {project.sourceTags.length > 1 && (
@@ -2525,11 +2638,20 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             </div>
           )}
         </aside>
+        )}
 
         {/* Center Script Editor (55–65%+ Screen Width) */}
         <main className="flex-1 min-w-0 flex flex-col overflow-hidden bg-slate-950">
           {/* Main view: the script, the project's Evidence Board, or the shared Evidence Library */}
           <div className="shrink-0 border-b border-slate-800 px-4 pt-2 flex items-center gap-1 text-xs bg-slate-950" role="tablist" aria-label="Main view">
+            <button
+              type="button"
+              onClick={() => setLeftRailOpen(o => !o)}
+              className="px-2 py-1 mr-1 rounded border border-slate-800 bg-slate-900 text-slate-300 hover:text-white text-[11px] cursor-pointer"
+              title={leftRailOpen ? 'Collapse left rail' : 'Expand left rail'}
+            >
+              {leftRailOpen ? '◀ Rail' : '▶ Rail'}
+            </button>
             {([['script', 'Script', FileText], ['board', 'Board', Star], ['library', 'Library', BookOpen]] as const).map(([key, label, Icon]) => (
               <button key={key} role="tab" aria-selected={mainView === key} onClick={() => setMainView(key)}
                 className={cx('px-3 py-1.5 border-b-2 -mb-px transition-colors inline-flex items-center gap-1.5', mainView === key ? 'border-indigo-500 text-indigo-300' : 'border-transparent text-slate-400 hover:text-slate-200')}>
@@ -2562,7 +2684,50 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
           </div>
 
           {/* Script Content Area */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-5">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-28 space-y-5">
+            {pendingCopilotDraft?.outlineSummary && (
+              <div className="p-3 rounded-xl border border-indigo-500/40 bg-indigo-950/30 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-indigo-200">
+                  Imported outline from <strong>AI Copilot</strong> ({pendingCopilotDraft.title || 'Draft'}) is ready to insert into this project.
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className={btnPrimary}
+                    onClick={() => {
+                      const outlineText = pendingCopilotDraft.outlineSummary || '';
+                      setSegments(prev => {
+                        const base: Segment[] = prev ? JSON.parse(JSON.stringify(prev)) : [];
+                        const newScene = {
+                          id: `sc_copilot_${Date.now().toString(36)}`,
+                          title: pendingCopilotDraft.title || 'Copilot Outline',
+                          purpose: pendingCopilotDraft.outlineSummary || 'Drafted outline from AI Copilot',
+                          blocks: [{
+                            id: `b_copilot_${Date.now().toString(36)}`,
+                            kind: 'narration' as const,
+                            type: 'NARRATION' as const,
+                            text: outlineText,
+                            mode: 'live' as const,
+                            claims: [],
+                          }],
+                        };
+                        if (base.length === 0) {
+                          base.push({ id: `seg_copilot_${Date.now().toString(36)}`, title: 'Imported Outline', scenes: [newScene] });
+                        } else {
+                          base[0].scenes.unshift(newScene);
+                        }
+                        return base;
+                      });
+                      setDirty(true);
+                      setPendingCopilotDraft(null);
+                    }}
+                  >
+                    Insert into Script
+                  </button>
+                  <button type="button" className={btnGhost} onClick={() => setPendingCopilotDraft(null)}>Dismiss</button>
+                </div>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <div className="text-sm text-slate-300 font-medium">
                 {headVersion ? `${headVersion.label || 'Version'} · ${headVersion.author} · ${new Date(headVersion.createdAt).toLocaleTimeString()}` : 'No script loaded yet'}
@@ -2572,17 +2737,15 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
               <button
                 className={btnGhost}
                 disabled={!dirty && (!segments || segments.length === 0)}
-                onClick={() => {
+                onClick={async () => {
                   if (dirty) {
-                    if (window.confirm('Discard all unsaved edits and revert to the saved version?')) {
+                    if (await appDialog.confirm({ title: 'Discard Edits', message: 'Discard all unsaved edits and revert to the saved version?', confirmLabel: 'Discard', destructive: true })) {
                       setSegments(data?.head?.segments || null);
                       setDirty(false);
                       dirtyRef.current = false;
                     }
                   } else if (segments && segments.length > 0) {
-                    if (window.confirm('Clear and wipe all imported scenes and blocks in the current project?')) {
-                      void handleResetScript();
-                    }
+                    void handleResetScript();
                   }
                 }}
                 title={dirty ? 'Discard unsaved edits and revert' : 'Clear / Reset script'}
@@ -2681,8 +2844,12 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                         className="text-[11px] text-slate-400 hover:text-indigo-300 disabled:opacity-40 flex items-center gap-1"
                         disabled={dirty || !!busy}
                         title="Rewrite this scene with AI while keeping other scenes intact"
-                        onClick={() => {
-                          const inst = window.prompt(`Instructions for rewriting "${sc.title}" (optional):`);
+                        onClick={async () => {
+                          const inst = await appDialog.prompt({
+                            title: `Rewrite "${sc.title}"`,
+                            message: 'Instructions for rewriting this scene (optional):',
+                            placeholder: 'Tighten pacing, sharper transition...',
+                          });
                           if (inst === null) return;
                           void act(`Rewriting ${sc.title}`, async () => {
                             const res = await fetch('/api/script-studio/scene/rewrite', {
@@ -2690,6 +2857,10 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ projectId: project.id, sceneId: sc.id, instruction: inst || undefined }),
                             });
+                            if (!res.ok) {
+                              const errInfo = await safeReadErrorPayload(res);
+                              throw new Error(errInfo.message || `Scene rewrite failed (${res.status})`);
+                            }
                             const r = await res.json();
                             if (!r.ok) throw new Error(r.error || r.message || 'Scene rewrite failed');
                             await load(project.id);
@@ -2729,7 +2900,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
           </div>
 
           {/* Sticky Bottom Control Bar for Audio Actions */}
-          <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-20 shrink-0">
+          <div className="sticky bottom-0 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-4 py-2.5 pr-24 pb-6 flex flex-wrap items-center justify-between gap-3 shadow-2xl z-20 shrink-0">
             <div className="flex items-center gap-3 text-xs">
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-400">Runtime:</span>
@@ -2803,7 +2974,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+          <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-4 text-xs">
             {drawerOpen === 'refine' && (
               <>
                 {/* Refinement Run Status */}
@@ -2875,7 +3046,7 @@ export default function ScriptStudio({ onOpenMontage }: { onOpenMontage?: () => 
                           {!d?.loganDecision && (
                             <div className="flex gap-1.5 pt-1">
                               <button className={btnPrimary} disabled={dirty} onClick={() => void act('Accepting', () => scriptApi.decide(project.id, c.id, 'accept', '', roles))}><Check size={12} /> Accept</button>
-                              <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason, roles)); }}><CircleSlash size={12} /> Reject</button>
+                              <button className={btnGhost} onClick={async () => { const reason = (await appDialog.prompt({ title: 'Reject Candidate', message: 'Why reject it? (saved to editorial memory, optional)' })) ?? ''; void act('Rejecting', () => scriptApi.decide(project.id, c.id, 'reject', reason, roles)); }}><CircleSlash size={12} /> Reject</button>
                             </div>
                           )}
                         </div>

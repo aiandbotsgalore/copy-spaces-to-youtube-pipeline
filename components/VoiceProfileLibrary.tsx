@@ -18,6 +18,8 @@ import { SeparationMatrixModal } from './voice/SeparationMatrixModal';
 import { DiscoveredCandidatesModal } from './voice/DiscoveredCandidatesModal';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { AvatarCropModal } from './AvatarCropModal';
+import { fetchJsonCandidates, safeReadErrorPayload } from '../utils/safeFetch';
+import { appDialog } from '../contexts/DialogContext';
 
 interface Props {
   config: EnhancedConfig;
@@ -160,21 +162,25 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
   // Load Catalog
-  const loadCatalog = useCallback(async () => {
+  const loadCatalog = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     let loadedData: VoiceProfilesCatalog | null = null;
 
-    // 1. Try fetching from public/voice_profiles.json
+    // 1. Try fetching from voice_profiles.json (with content-type validation + raw GitHub fallback)
     try {
-      const res = await fetch('/voice_profiles.json');
-      if (res.ok) {
-        const json = await res.json();
-        if (json && json.profiles) {
-          loadedData = json;
-        }
+      const hit = await fetchJsonCandidates<VoiceProfilesCatalog>(
+        [
+          '/voice_profiles.json',
+          './voice_profiles.json',
+          ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/voice_profiles.json`] : []),
+        ],
+        { signal, validate: j => Boolean(j && j.profiles) }
+      );
+      if (hit?.data) {
+        loadedData = hit.data;
       }
-    } catch {
-      // ignore
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
     }
 
     // 2. If authenticated and repo exists, check remote GitHub version
@@ -373,35 +379,53 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const enrollSavedSample = async (id: string, sample: VoiceSample) => {
     setSavingGitHub(true);
     try {
+      let localUnavailable = !isLocal;
       if (isLocal) {
         setStatusMsg({ type: 'success', text: `⚡ Extracting AI voice fingerprint locally for ${id}...` });
-        const res = await fetch('/api/voice-profiles/auto-enroll', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            speaker: id,
-            file: sample.audio_url,
-            role: catalogRef.current.profiles[id]?.role || 'Speaker',
-            start_sec: sample.start_sec,
-            end_sec: sample.end_sec,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          throw new Error(data.error || 'Failed to extract voice embedding');
-        }
-        await loadCatalog();
-        if (hasGitHub) {
-          try {
-            await syncCatalog();
-          } catch (syncErr) {
-            console.warn('Background GitHub sync error:', syncErr);
+        try {
+          const res = await fetch('/api/voice-profiles/auto-enroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              speaker: id,
+              file: sample.audio_url,
+              role: catalogRef.current.profiles[id]?.role || 'Speaker',
+              start_sec: sample.start_sec,
+              end_sec: sample.end_sec,
+            }),
+          });
+          const errInfo = !res.ok ? await safeReadErrorPayload(res) : null;
+          if (res.status === 404 || errInfo?.isHtml) {
+            localUnavailable = true;
+          } else {
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || 'Failed to extract voice embedding');
+            }
+            await loadCatalog();
+            if (hasGitHub) {
+              try {
+                await syncCatalog();
+              } catch (syncErr) {
+                console.warn('Background GitHub sync error:', syncErr);
+              }
+            }
+            setStatusMsg({ type: 'success', text: `🎉 Voice fingerprint ready! ${id} is now active for voice matching.` });
+            setSampleFeedback({ id, text: 'Voice fingerprint extracted and enrolled.' });
+            setTimeout(() => setStatusMsg(null), 5000);
+            return;
+          }
+        } catch (err: any) {
+          if (err instanceof TypeError) {
+            localUnavailable = true;
+          } else {
+            throw err;
           }
         }
-        setStatusMsg({ type: 'success', text: `🎉 Voice fingerprint ready! ${id} is now active for voice matching.` });
-        setSampleFeedback({ id, text: 'Voice fingerprint extracted and enrolled.' });
-        setTimeout(() => setStatusMsg(null), 5000);
-        return;
+      }
+
+      if (localUnavailable && !hasGitHub) {
+        throw new Error('Local auto-enroll backend is offline and GitHub is not connected.');
       }
 
       await syncCatalog();
@@ -496,8 +520,14 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     setSampleFeedback({ id, text: saved ? success : 'Browser storage is unavailable. This change is available for this session only.' });
   };
 
-  const handleDeleteProfile = (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete the voice profile for "${name}"?`)) return;
+  const handleDeleteProfile = async (id: string, name: string) => {
+    const confirmed = await appDialog.confirm({
+      title: 'Delete Voice Profile',
+      message: `Are you sure you want to delete the voice profile for "${name}"?`,
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     const now = new Date().toISOString();
     const nextCatalog: VoiceProfilesCatalog = {
@@ -671,6 +701,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   };
 
   const uploadSample = async (id: string, file: File) => {
+    let localUnavailable = !isLocal;
     if (isLocal) {
       setStatusMsg({ type: 'success', text: `⚡ Saving sample & extracting AI voice fingerprint for ${id}...` });
       const query = new URLSearchParams({
@@ -678,37 +709,50 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         filename: file.name,
         role: catalogRef.current.profiles[id]?.role || 'Speaker',
       });
-      const res = await fetch(`/api/voice-profiles/auto-enroll?${query.toString()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: file,
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.error || 'Voice enrollment failed');
-      }
-      const repoPath = data.sample_audio_url || `speaker_samples/${id}/${file.name}`;
-      if (hasGitHub) {
-        try {
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(String(reader.result).split(',')[1]);
-            reader.onerror = () => reject(new Error('Couldn’t read this recording.'));
-            reader.readAsDataURL(file);
-          });
-          void writeRepositoryBinaryFile(config.githubToken, owner, repo, repoPath, base64, 'feat(voice): add a voice sample', 'master').catch(console.warn);
-          void syncCatalog().catch(console.warn);
-        } catch {
-          // background sync best effort
+      try {
+        const res = await fetch(`/api/voice-profiles/auto-enroll?${query.toString()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: file,
+        });
+        const errInfo = !res.ok ? await safeReadErrorPayload(res) : null;
+        if (res.status === 404 || errInfo?.isHtml) {
+          localUnavailable = true;
+        } else {
+          const data = await res.json();
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || 'Voice enrollment failed');
+          }
+          const repoPath = data.sample_audio_url || `speaker_samples/${id}/${file.name}`;
+          if (hasGitHub) {
+            try {
+              const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result).split(',')[1]);
+                reader.onerror = () => reject(new Error('Couldn’t read this recording.'));
+                reader.readAsDataURL(file);
+              });
+              void writeRepositoryBinaryFile(config.githubToken, owner, repo, repoPath, base64, 'feat(voice): add a voice sample', 'master').catch(console.warn);
+              void syncCatalog().catch(console.warn);
+            } catch {
+              // background sync best effort
+            }
+          }
+          await loadCatalog();
+          setStatusMsg({ type: 'success', text: `🎉 Voice sample saved & fingerprint extracted! ${id} is ready for voice matching.` });
+          setTimeout(() => setStatusMsg(null), 5000);
+          return repoPath;
+        }
+      } catch (err: any) {
+        if (err instanceof TypeError) {
+          localUnavailable = true;
+        } else {
+          throw err;
         }
       }
-      await loadCatalog();
-      setStatusMsg({ type: 'success', text: `🎉 Voice sample saved & fingerprint extracted! ${id} is ready for voice matching.` });
-      setTimeout(() => setStatusMsg(null), 5000);
-      return repoPath;
     }
 
-    if (!hasGitHub) throw new Error('Configure GitHub in Settings to upload recordings.');
+    if (localUnavailable && !hasGitHub) throw new Error('Configure GitHub in Settings to upload recordings.');
     const filename = file.name.replace(/[^a-zA-Z0-9._ -]/g, '_');
     const folder = id.replace(/[^a-zA-Z0-9._ -]/g, '_').replace(/^\.+$/, '_');
     const repoPath = `speaker_samples/${folder}/${crypto.randomUUID()}-${filename}`;
@@ -728,10 +772,6 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
     const clean = url.replace(/^\/+/, '');
     if (clean.startsWith('speaker_samples/')) {
       const encoded = clean.split('/').map(encodeURIComponent).join('/');
-      // In local dev, use local byte-range streamer; on deployed web instances, use Cloudflare R2 CDN
-      if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return `/${encoded}`;
-      }
       return `https://pub-b492226ab4ed45d692e9f14794366106.r2.dev/${encoded}`;
     }
     if (url.startsWith('/')) return url;
@@ -743,7 +783,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
   const confirmations = getConfirmationCounts();
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-slate-950 text-slate-200">
+    <div className="flex-1 flex flex-col h-full overflow-y-auto pb-24 bg-slate-950 text-slate-200">
       <AvatarCropModal
         file={avatarCrop?.file || null}
         speakerName={avatarCrop?.speakerName || ''}
@@ -864,7 +904,7 @@ export const VoiceProfileLibrary: React.FC<Props> = ({ config, onOpenTranscript 
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto w-full px-6 py-8 pb-24 space-y-6">
         {/* ── Dead-Letter Queue (DLQ) Quarantined Enrollments ── */}
         {dlqList.length > 0 && (
           <div className="p-4 bg-rose-950/20 border border-rose-500/30 rounded-xl space-y-3">

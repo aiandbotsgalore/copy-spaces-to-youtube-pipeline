@@ -27,8 +27,8 @@ import {
 } from '../utils/copilotStorage';
 import { triggerBlobDownload } from '../utils/zipUtils';
 import { useConfig } from './ConfigContext';
-import { useMontage } from './MontageContext';
-import { usePlayer } from './PlayerContext';
+import { useMontageClips } from './MontageContext';
+import { usePlayerControls } from './PlayerContext';
 import { createMachine } from '../utils/stateMachine';
 
 const COPILOT_MODEL_KEY = 'spacepipe_copilot_model_v1';
@@ -62,6 +62,7 @@ export interface CopilotContextType {
     override?: Partial<CopilotContextPayload>,
     options?: { targetSessionId?: string; liveContext?: string; attachments?: CopilotAttachment[] }
   ) => Promise<void>;
+  retryLastMessage: (targetSessionId?: string) => Promise<void>;
   applyAction: (
     action: CopilotAction,
     options?: { confirmed?: boolean; triggerSource?: 'user' | 'auto_apply' | 'palette' | 'chain' }
@@ -81,8 +82,8 @@ const CopilotContext = createContext<CopilotContextType | null>(null);
 
 export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { config, updateConfig } = useConfig();
-  const montage = useMontage();
-  const player = usePlayer();
+  const montage = useMontageClips();
+  const player = usePlayerControls();
 
   const [sessions, setSessions] = useState<CopilotSession[]>([]);
   const [activeSessionId, setActiveSessionIdState] = useState<string>(() => {
@@ -107,6 +108,9 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [contextPayload, setContextPayload] = useState<CopilotContextPayload>({});
   const navHandlerRef = useRef<((panel: string) => void) | undefined>(undefined);
   const loadEpisodeHandlerRef = useRef<((tag: string) => void) | undefined>(undefined);
+  const isSendingRef = useRef(false);
+  const sessionsRef = useRef<CopilotSession[]>(sessions);
+  sessionsRef.current = sessions;
 
   const copilotMachineRef = useRef(
     createMachine<CopilotMachineStatus, 'SEND' | 'RECEIVE' | 'EXECUTE_ACTIONS' | 'FINISH' | 'ERROR'>(
@@ -424,48 +428,22 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const isBusy = status === 'thinking' || status === 'executing_action';
 
-  const sendMessage = useCallback(
+  const dispatchCopilotTurn = useCallback(
     async (
-      content: string,
+      targetId: string,
+      conversationMessages: CopilotMessage[],
+      targetPinnedContexts: PinnedContextItem[],
       override?: Partial<CopilotContextPayload>,
-      options?: { targetSessionId?: string; liveContext?: string; attachments?: CopilotAttachment[] }
+      liveContext?: string
     ) => {
-      const trimmed = content.trim();
-      const attachments = options?.attachments || [];
-      if ((!trimmed && attachments.length === 0) || isBusy) return;
-      resetTurnActionLimits();
-
-      const targetId = options?.targetSessionId || activeSessionId;
-      const targetSession = sessions.find((s) => s.id === targetId) || currentSession;
-      const existingMessages = targetSession.messages || [];
-
-      const userMsg: CopilotMessage = {
-        id: `user_${Date.now()}`,
-        role: 'user',
-        content: trimmed || (attachments.length > 0 ? 'Please analyze the attached file(s).' : ''),
-        timestamp: Date.now(),
-        attachments: attachments.length > 0 ? attachments : undefined,
-      };
-
-      const updatedMessages = [...existingMessages, userMsg];
-
-      // Optimistically update target session
-      updateSessionData(targetId, (prev) => ({
-        ...prev,
-        messages: updatedMessages,
-        updatedAt: Date.now(),
-      }));
-
       copilotMachineRef.current.send('SEND');
       setError(null);
 
-      // Build live grounding including pinned items & liveContext
-      const sessionPinned = targetSession.pinnedContexts || [];
-      const pinnedText = sessionPinned.length > 0
-        ? `PINNED GROUNDING CONTEXTS:\n${sessionPinned.map((c) => `- [${c.type.toUpperCase()}] ${c.title}: ${c.detail || ''}`).join('\n')}`
+      const pinnedText = targetPinnedContexts.length > 0
+        ? `PINNED GROUNDING CONTEXTS:\n${targetPinnedContexts.map((c) => `- [${c.type.toUpperCase()}] ${c.title}: ${c.detail || ''}`).join('\n')}`
         : '';
 
-      const liveContextSummary = options?.liveContext ? `LIVE VIEW STATE: ${options.liveContext}` : '';
+      const liveContextSummary = liveContext ? `LIVE VIEW STATE: ${liveContext}` : '';
 
       const dynamicContext: CopilotContextPayload = {
         ...contextPayload,
@@ -500,8 +478,8 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
             player: {
               isPlaying: player.isPlaying,
               current: (player as any).current,
-              currentTime: (player as any).currentTime,
-              duration: (player as any).duration,
+              currentTime: player.getTime().currentTime,
+              duration: player.getTime().duration,
             },
             montage: {
               clipCount: montage.clips.length,
@@ -523,7 +501,7 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
       try {
         const req: CopilotRequestBody = {
-          messages: updatedMessages.map((m) => ({
+          messages: conversationMessages.map((m) => ({
             role: m.role,
             content: m.content,
             attachments: m.attachments,
@@ -594,11 +572,6 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     },
     [
-      isBusy,
-      activeSessionId,
-      sessions,
-      currentSession,
-      updateSessionData,
       contextPayload,
       montage.clips,
       montage.targetDurationSec,
@@ -608,7 +581,85 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
       model,
       autoApply,
       applyAction,
+      updateSessionData,
     ]
+  );
+
+  const sendMessage = useCallback(
+    async (
+      content: string,
+      override?: Partial<CopilotContextPayload>,
+      options?: { targetSessionId?: string; liveContext?: string; attachments?: CopilotAttachment[] }
+    ) => {
+      const trimmed = content.trim();
+      const attachments = options?.attachments || [];
+      if ((!trimmed && attachments.length === 0) || isSendingRef.current || isBusy) return;
+      isSendingRef.current = true;
+      resetTurnActionLimits();
+
+      try {
+        const targetId = options?.targetSessionId || activeSessionId;
+        const targetSession = sessionsRef.current.find((s) => s.id === targetId) || currentSession;
+
+        const userMsg: CopilotMessage = {
+          id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          role: 'user',
+          content: trimmed || (attachments.length > 0 ? 'Please analyze the attached file(s).' : ''),
+          timestamp: Date.now(),
+          attachments: attachments.length > 0 ? attachments : undefined,
+        };
+
+        const existingMessages = targetSession.messages || [];
+        const updatedMessages = [...existingMessages, userMsg];
+
+        // Functional update avoids dropping concurrent state updates
+        updateSessionData(targetId, (prev) => ({
+          ...prev,
+          messages: [...(prev.messages || []), userMsg],
+          updatedAt: Date.now(),
+        }));
+
+        await dispatchCopilotTurn(
+          targetId,
+          updatedMessages,
+          targetSession.pinnedContexts || [],
+          override,
+          options?.liveContext
+        );
+      } finally {
+        isSendingRef.current = false;
+      }
+    },
+    [isBusy, activeSessionId, currentSession, updateSessionData, dispatchCopilotTurn]
+  );
+
+  const retryLastMessage = useCallback(
+    async (targetSessionId?: string) => {
+      if (isSendingRef.current || isBusy) return;
+      const targetId = targetSessionId || activeSessionId;
+      const targetSession = sessionsRef.current.find((s) => s.id === targetId) || currentSession;
+      const msgs = targetSession.messages || [];
+      if (msgs.length === 0) return;
+
+      isSendingRef.current = true;
+      resetTurnActionLimits();
+      try {
+        await dispatchCopilotTurn(targetId, msgs, targetSession.pinnedContexts || []);
+      } finally {
+        isSendingRef.current = false;
+      }
+    },
+    [isBusy, activeSessionId, currentSession, dispatchCopilotTurn]
+  );
+
+  const analyzeActionResults = useCallback(
+    async (action: CopilotAction) => {
+      const summary = `[ACTION RESULT TELEMETRY] Action "${action.action}" finished with status=${action.status}. Result: ${JSON.stringify(
+        action.resultData || { error: action.errorMessage || null }
+      ).slice(0, 1200)}`;
+      await sendMessage(summary);
+    },
+    [sendMessage]
   );
 
   const loading = isBusy;
@@ -638,8 +689,10 @@ export const CopilotProvider: React.FC<{ children: React.ReactNode }> = ({ child
         contextPayload,
         setContextPayload,
         sendMessage,
+        retryLastMessage,
         applyAction,
         revertAction,
+        analyzeActionResults,
         clearMessages,
         activePanelNavHandler,
         setActivePanelNavHandler,
@@ -681,8 +734,10 @@ export const useCopilot = (): CopilotContextType => {
       contextPayload: {},
       setContextPayload: () => {},
       sendMessage: async () => {},
+      retryLastMessage: async () => {},
       applyAction: async () => false,
       revertAction: async () => false,
+      analyzeActionResults: async () => {},
       clearMessages: () => {},
       setActivePanelNavHandler: () => {},
       setLoadEpisodeHandler: () => {},

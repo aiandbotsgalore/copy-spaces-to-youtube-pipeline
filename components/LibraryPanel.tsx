@@ -1,13 +1,15 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   Library, RefreshCw, ExternalLink, Download, Play, AlertCircle,
   CheckCircle, Loader, Music, FileText, RotateCcw, Copy, Trash2, X, Sparkles
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
 import { getReleases, dispatchWorkflow, deleteRelease, getReleaseParts } from '../utils/github';
-import { usePlayer } from '../contexts/PlayerContext';
+import { usePlayerControls } from '../contexts/PlayerContext';
 import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
 import { createMachine } from '../utils/stateMachine';
+import { fetchJsonCandidates } from '../utils/safeFetch';
 
 export type LibraryStatus = 'idle' | 'loading' | 'success' | 'error';
 type LibraryEvent = 'FETCH_START' | 'FETCH_SUCCESS' | 'FETCH_ERROR';
@@ -103,7 +105,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   const [deleteProgress, setDeleteProgress] = useState({ done: 0, total: 0 });
   const [deleteError, setDeleteError] = useState('');
 
-  const { play, current, isPlaying } = usePlayer();
+  const { play, current, isPlaying } = usePlayerControls();
 
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
@@ -133,7 +135,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     if (hasCredentials && !loaded && status === 'idle') {
       fetchLibrary();
     }
-  }, [hasCredentials, loaded, loading, fetchLibrary]);
+  }, [hasCredentials, loaded, status, fetchLibrary]);
 
   const enterDupMode = () => {
     const groups = findDuplicates(releases);
@@ -199,6 +201,22 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
       setDispatchMsg(m => ({ ...m, [release.id]: 'No MP3 asset found to re-run.' }));
       return;
     }
+    const body = release.body || '';
+    const explicitSpaceUrl = body.match(/https?:\/\/(?:x\.com|twitter\.com)\/i\/spaces\/[A-Za-z0-9]+/i)?.[0];
+    const sourceId = parseSourceId(body);
+    const spaceUrl =
+      explicitSpaceUrl ||
+      (sourceId && !sourceId.startsWith('local_') ? `https://x.com/i/spaces/${sourceId}` : '');
+
+    if (!spaceUrl) {
+      setConfirmRerun(null);
+      setDispatchMsg(m => ({
+        ...m,
+        [release.id]: 'No original X Space URL/ID in release metadata (cannot re-ingest from GitHub Release URL).',
+      }));
+      return;
+    }
+
     setConfirmRerun(null);
     setDispatching(release.id);
     setDispatchMsg(m => ({ ...m, [release.id]: '' }));
@@ -208,7 +226,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
         config.ownerName,
         config.repoName,
         'ingest.yml',
-        { space_url: release.html_url }
+        { space_url: spaceUrl }
       );
       setDispatchMsg(m => ({ ...m, [release.id]: 'Workflow dispatched — check Run History.' }));
     } catch (e) {
@@ -238,29 +256,30 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
   };
 
   const [transcriptionStatus, setTranscriptionStatus] = useState<any>(null);
+  const scrollParentRef = useRef<HTMLDivElement>(null);
 
-  const loadStatusManifest = useCallback(async () => {
+  const loadStatusManifest = useCallback(async (signal?: AbortSignal) => {
     try {
       const candidates = [
         ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcription_status.json`] : []),
         `/transcripts/transcription_status.json`,
-        `./transcripts/transcription_status.json`
+        `./transcripts/transcription_status.json`,
       ];
-      for (const url of candidates) {
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            const data = await res.json();
-            setTranscriptionStatus(data);
-            return;
-          }
-        } catch {}
+      const hit = await fetchJsonCandidates<any>(candidates, { signal });
+      if (hit?.data && !signal?.aborted) {
+        setTranscriptionStatus(hit.data);
       }
-    } catch {}
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        // Manifest optional
+      }
+    }
   }, [owner, repo]);
 
   useEffect(() => {
-    loadStatusManifest();
+    const controller = new AbortController();
+    loadStatusManifest(controller.signal);
+    return () => controller.abort();
   }, [loadStatusManifest]);
 
   function durationToSecs(body: string | null): number {
@@ -270,37 +289,51 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
     return h * 3600 + m * 60 + s;
   }
 
-  const filtered = releases
-    .filter(r => !search.trim() || r.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (sort === 'date-desc') {
-        const diff = episodeDateMs(b) - episodeDateMs(a);
-        if (diff !== 0) return diff;
-        return new Date(b.published_at || (b as any).created_at || 0).getTime() - new Date(a.published_at || (a as any).created_at || 0).getTime();
-      }
-      if (sort === 'date-asc') {
-        const diff = episodeDateMs(a) - episodeDateMs(b);
-        if (diff !== 0) return diff;
-        return new Date(a.published_at || (a as any).created_at || 0).getTime() - new Date(b.published_at || (b as any).created_at || 0).getTime();
-      }
-      if (sort === 'dur-desc')  return durationToSecs(b.body) - durationToSecs(a.body);
-      if (sort === 'dur-asc')   return durationToSecs(a.body) - durationToSecs(b.body);
-      return 0;
-    });
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return releases
+      .filter(r => !q || (r.name || r.tag_name || '').toLowerCase().includes(q))
+      .sort((a, b) => {
+        if (sort === 'date-desc') {
+          const diff = episodeDateMs(b) - episodeDateMs(a);
+          if (diff !== 0) return diff;
+          return new Date(b.published_at || (b as any).created_at || 0).getTime() - new Date(a.published_at || (a as any).created_at || 0).getTime();
+        }
+        if (sort === 'date-asc') {
+          const diff = episodeDateMs(a) - episodeDateMs(b);
+          if (diff !== 0) return diff;
+          return new Date(a.published_at || (a as any).created_at || 0).getTime() - new Date(b.published_at || (b as any).created_at || 0).getTime();
+        }
+        if (sort === 'dur-desc') return durationToSecs(b.body) - durationToSecs(a.body);
+        if (sort === 'dur-asc') return durationToSecs(a.body) - durationToSecs(b.body);
+        return 0;
+      });
+  }, [releases, search, sort]);
 
-  const mp3Count = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
-  const txtCount = releases.reduce((n, r) => n + (r.assets.some(a => a.name.endsWith('.txt') || (a.name.endsWith('.json') && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')) ? 1 : 0), 0);
-  const untranscribedCount = releases.filter(r => 
-    r.assets.some(a => a.name.endsWith('.mp3')) && 
-    !r.assets.some(a => (a.name.endsWith('.txt') || a.name.endsWith('.json')) && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')
-  ).length;
-  const dupCount = findDuplicates(releases).length;
+  const { mp3Count, txtCount, untranscribedCount, dupCount } = useMemo(() => {
+    const mp3s = releases.reduce((n, r) => n + r.assets.filter(a => a.name.endsWith('.mp3')).length, 0);
+    const txts = releases.reduce((n, r) => n + (r.assets.some(a => a.name.endsWith('.txt') || (a.name.endsWith('.json') && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')) ? 1 : 0), 0);
+    const untranscribed = releases.filter(r =>
+      r.assets.some(a => a.name.endsWith('.mp3')) &&
+      !r.assets.some(a => (a.name.endsWith('.txt') || a.name.endsWith('.json')) && !a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json')
+    ).length;
+    const dups = findDuplicates(releases).length;
+    return { mp3Count: mp3s, txtCount: txts, untranscribedCount: untranscribed, dupCount: dups };
+  }, [releases]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => scrollParentRef.current,
+    estimateSize: () => 136,
+    overscan: 8,
+  });
 
   return (
     <div
+      ref={scrollParentRef}
       data-component="library-panel"
       data-state={status}
-      className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full"
+      className="h-full overflow-y-auto p-6 md:p-12 pb-28 max-w-4xl mx-auto w-full"
     >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
@@ -462,7 +495,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
           ))}
 
           {/* Delete bar */}
-          <div className="sticky bottom-0 bg-slate-950/95 backdrop-blur border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4">
+          <div className="sticky bottom-20 z-20 bg-slate-950/95 backdrop-blur border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4 shadow-2xl">
             {deleting ? (
               <div className="flex items-center gap-3 flex-1">
                 <Loader size={16} className="text-rose-400 animate-spin flex-shrink-0" />
@@ -621,8 +654,11 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            {filtered.map(release => {
+          <div
+            style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}
+          >
+            {rowVirtualizer.getVirtualItems().map(virtualRow => {
+              const release = filtered[virtualRow.index];
               const parts = getReleaseParts(release);
               const isMultiPart = parts.length > 1;
               const mp3 = isMultiPart ? parts[0]?.mp3Asset : release.assets.find(a => a.name.endsWith('.mp3') && !/^\d+(?:h\d+)?m\d+s_/i.test(a.name));
@@ -633,7 +669,20 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
 
               const isCurrent = current?.id === release.id;
               return (
-                <div key={release.id} className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
+                <div
+                  key={release.id}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualRow.start}px)`,
+                    paddingBottom: '8px',
+                  }}
+                >
+                <div className="p-4 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl transition-all">
                   <div className="flex items-start gap-3">
                     <button
                       onClick={() => mp3 && play({ id: release.id, title: isMultiPart ? `${release.name || release.tag_name} (Part 1)` : (release.name || release.tag_name), audioUrl: mp3.browser_download_url })}
@@ -796,6 +845,7 @@ const LibraryPanel: React.FC<Props> = ({ config, onOpenTranscript }) => {
                       </div>
                     </div>
                   </div>
+                </div>
                 </div>
               );
             })}

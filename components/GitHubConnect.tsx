@@ -46,7 +46,7 @@ const GitHubConnect: React.FC<Props> = ({ token, user, onTokenChange, onUserChan
   const storedTokenExists = hasStoredToken();
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-2xl mx-auto w-full">
+    <div className="h-full overflow-y-auto p-6 md:p-12 pb-24 max-w-2xl mx-auto w-full">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-2">GitHub Connection</h2>
         <p className="text-slate-400 text-sm">

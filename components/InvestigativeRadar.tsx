@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 import { PipelineConfig } from '../types';
 import { getSpeakerTheme } from '../utils/transcriptData';
-import { usePlayer } from '../contexts/PlayerContext';
+import { usePlayerControls } from '../contexts/PlayerContext';
 import { toSliceableUrl, toFetchableUrl } from '../utils/audioUrl';
+import { fetchJsonCandidates } from '../utils/safeFetch';
 
 interface ContradictionPairing {
   pairing_id: string;
@@ -74,7 +75,7 @@ interface KnowledgeGraphData {
 
 interface InvestigativeRadarProps {
   config: PipelineConfig;
-  onOpenTranscript?: (releaseTag: string) => void;
+  onOpenTranscript?: (releaseTag: string, startSec?: number) => void;
 }
 
 export function parseTimeWindow(tw?: string): { start: number; end: number } | null {
@@ -130,7 +131,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
     isSlice?: boolean;
   } | null>(null);
 
-  const globalPlayer = usePlayer();
+  const globalPlayer = usePlayerControls();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'matrix' | 'quotes'>('matrix');
@@ -141,41 +142,74 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedFallout, setSelectedFallout] = useState<'ALL' | 'PRE-FALLOUT' | 'POST-FALLOUT'>('ALL');
 
+  const owner = (config.ownerName || '').trim();
+  const repo = (config.repoName || '').trim();
+
   // 1. Load Knowledge Graph
   useEffect(() => {
+    const controller = new AbortController();
     async function loadGraph() {
       try {
         setLoading(true);
-        const res = await fetch('./transcripts/investigative_knowledge_graph.json');
-        if (!res.ok) throw new Error(`HTTP ${res.status} loading knowledge graph`);
-        const json = await res.json();
-        setData(json);
+        setError(null);
+        const candidates = [
+          './transcripts/investigative_knowledge_graph.json',
+          '/transcripts/investigative_knowledge_graph.json',
+          ...(owner && repo
+            ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/investigative_knowledge_graph.json`]
+            : []),
+        ];
+        const hit = await fetchJsonCandidates<KnowledgeGraphData>(candidates, {
+          signal: controller.signal,
+          validate: d => Boolean(d && Array.isArray(d.quotes)),
+        });
+        if (!hit) {
+          throw new Error('Investigative knowledge graph JSON unavailable (local asset missing or returned HTML).');
+        }
+        if (!controller.signal.aborted) {
+          setData(hit.data);
+        }
       } catch (err: any) {
-        setError(err.message || 'Failed to load knowledge graph data');
+        if (err?.name !== 'AbortError' && !controller.signal.aborted) {
+          setError(err.message || 'Failed to load knowledge graph data');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     }
     loadGraph();
-  }, []);
+    return () => controller.abort();
+  }, [owner, repo]);
 
   // 2. Load Episode Audio Index Map
   useEffect(() => {
-    fetch('./transcripts/transcripts_summary_index.json')
-      .then(r => (r.ok ? r.json() : []))
-      .then((items: any[]) => {
+    const controller = new AbortController();
+    const candidates = [
+      './transcripts/transcripts_summary_index.json',
+      '/transcripts/transcripts_summary_index.json',
+      ...(owner && repo
+        ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/transcripts/transcripts_summary_index.json`]
+        : []),
+    ];
+    fetchJsonCandidates<any[]>(candidates, {
+      signal: controller.signal,
+      validate: d => Array.isArray(d),
+    })
+      .then(hit => {
+        if (!hit || controller.signal.aborted) return;
         const map: Record<string, string> = {};
-        if (Array.isArray(items)) {
-          items.forEach(it => {
-            if (it.release_tag && it.audio_url) {
-              map[it.release_tag] = it.audio_url;
-            }
-          });
-        }
+        hit.data.forEach(it => {
+          if (it.release_tag && it.audio_url) {
+            map[it.release_tag] = it.audio_url;
+          }
+        });
         setAudioMap(map);
       })
       .catch(() => {});
-  }, []);
+    return () => controller.abort();
+  }, [owner, repo]);
 
   // Map of Quote ID -> Curated Quote
   const quotesMap = useMemo(() => {
@@ -205,12 +239,12 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
       }
 
       const audioUrl = audioMap[releaseTag];
+      const range = parseTimeWindow(timeWindow);
       if (!audioUrl) {
-        onOpenTranscript?.(releaseTag);
+        onOpenTranscript?.(releaseTag, range?.start);
         return;
       }
 
-      const range = parseTimeWindow(timeWindow);
       if (!audioRef.current) {
         audioRef.current = new Audio();
       }
@@ -248,7 +282,10 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
     }
   }, [globalPlayer?.isPlaying, playingQuoteId]);
 
-  // Audio event listeners for snippet progression and chaining
+  const handleTogglePlayRef = useRef(handleTogglePlay);
+  handleTogglePlayRef.current = handleTogglePlay;
+
+  // Audio event listeners for snippet progression and chaining (mount/unmount lifecycle only)
   useEffect(() => {
     const audio = audioRef.current || new Audio();
     audioRef.current = audio;
@@ -264,7 +301,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
         audio.pause();
         if (nextQuote) {
           setTimeout(() => {
-            handleTogglePlay(nextQuote.quoteId, nextQuote.releaseTag, nextQuote.timeWindow);
+            handleTogglePlayRef.current(nextQuote.quoteId, nextQuote.releaseTag, nextQuote.timeWindow);
           }, 600);
         } else {
           setPlayingQuoteId(null);
@@ -283,7 +320,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
       const nextQuote = currentRangeRef.current?.nextQuote;
       if (nextQuote) {
         setTimeout(() => {
-          handleTogglePlay(nextQuote.quoteId, nextQuote.releaseTag, nextQuote.timeWindow);
+          handleTogglePlayRef.current(nextQuote.quoteId, nextQuote.releaseTag, nextQuote.timeWindow);
         }, 600);
       } else {
         setPlayingQuoteId(null);
@@ -308,7 +345,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
       audio.removeEventListener('error', onError);
       audio.pause();
     };
-  }, [handleTogglePlay]);
+  }, []);
 
   // Play both Pre and Post quotes sequentially
   const handlePlayPairing = (pair: ContradictionPairing) => {
@@ -466,7 +503,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
                 </button>
               ) : (
                 <button
-                  onClick={() => releaseTag && onOpenTranscript?.(releaseTag)}
+                  onClick={() => releaseTag && onOpenTranscript?.(releaseTag, range?.start)}
                   className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-400 cursor-pointer"
                   title="Episode audio indexing in background"
                 >
@@ -481,7 +518,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
 
             {releaseTag && (
               <button
-                onClick={() => onOpenTranscript?.(releaseTag)}
+                onClick={() => onOpenTranscript?.(releaseTag, range?.start)}
                 className="text-indigo-400 hover:text-indigo-300 hover:underline flex items-center gap-1 cursor-pointer truncate max-w-[160px]"
                 title={`View episode: ${episodeTitle || releaseTag}`}
               >
@@ -549,7 +586,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
       </header>
 
       {/* ── Main View ── */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-6 md:p-8">
+      <div className="flex-1 min-h-0 overflow-y-auto p-6 md:p-8 pb-24">
         {loading && (
           <div className="h-64 flex flex-col items-center justify-center gap-3">
             <RefreshCw className="w-6 h-6 text-indigo-400 animate-spin" />
@@ -788,7 +825,7 @@ export const InvestigativeRadar: React.FC<InvestigativeRadarProps> = ({ config, 
                               </span>
                               {q.release_tag && (
                                 <button
-                                  onClick={() => onOpenTranscript?.(q.release_tag)}
+                                  onClick={() => onOpenTranscript?.(q.release_tag, range?.start)}
                                   className="text-indigo-400 hover:text-indigo-300 cursor-pointer"
                                   title="Jump to Episode Transcript"
                                 >

@@ -12,16 +12,18 @@ import { PlayerProvider } from './contexts/PlayerContext';
 import { MontageProvider } from './contexts/MontageContext';
 import { CopilotProvider, useCopilot } from './contexts/CopilotContext';
 import { ConfigProvider, useConfig, DEFAULT_CONFIG } from './contexts/ConfigContext';
+import { DialogProvider, useDialog } from './contexts/DialogContext';
+import { OverlayErrorBoundary } from './components/OverlayErrorBoundary';
 import { MontageReelDrawer } from './components/MontageReelDrawer';
 import { CopilotCommandPalette } from './components/copilot/CopilotCommandPalette';
 import { FloatingCopilotWidget } from './components/FloatingCopilotWidget';
-import { PipelineHealthWidget } from './components/PipelineHealthWidget';
 import { EnhancedConfig, GitHubUser, PipelineFile } from './types';
 import { loadStoredToken, saveToken } from './utils/storage';
 import { validateToken } from './utils/github';
 import { exportPipelineZip } from './utils/exportZip';
 import { getActivePanelFromHash, syncHashWithPanel } from './components/registry/studios';
-import { confirmLeave } from './utils/unsavedGuard';
+import { confirmLeaveAsync, hasUnsavedChanges } from './utils/unsavedGuard';
+import { recordActiveOperationDispatch } from './hooks/useActiveOperations';
 
 // Code-split / Lazy-loaded Panels
 const DashboardOverview = React.lazy(() => import('./components/DashboardOverview'));
@@ -210,7 +212,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, badge, 
     {!collapsed && (
       <div className="flex items-center gap-1.5 flex-shrink-0">
         {badge && (
-          <span className={`text-[11px] px-1.5 py-0.5 rounded font-bold ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
+          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${badgeColor || 'bg-slate-700 text-slate-400'}`}>
             {badge}
           </span>
         )}
@@ -252,28 +254,53 @@ function AppContent() {
     config,
     updateConfig,
   } = useConfig();
+  const dialog = useDialog();
   const [activePanel, setActivePanelState] = useState<Panel>(() => (getActivePanelFromHash() as Panel));
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const activePanelRef = useRef(activePanel);
   activePanelRef.current = activePanel;
   // A panel with unsaved edits (Script Studio) is unmounted on switch, so ask before leaving it.
   const setActivePanel = useCallback((panel: Panel) => {
-    if (panel !== activePanelRef.current && !confirmLeave()) return;
+    if (panel === activePanelRef.current) {
+      setMobileNavOpen(false);
+      return;
+    }
+    if (hasUnsavedChanges()) {
+      void confirmLeaveAsync((msg) =>
+        dialog.confirm({ title: 'Unsaved Changes', message: msg, confirmLabel: 'Leave & Discard', destructive: true })
+      ).then((ok) => {
+        if (!ok) return;
+        setActivePanelState(panel);
+        syncHashWithPanel(panel);
+        setMobileNavOpen(false);
+      });
+      return;
+    }
     setActivePanelState(panel);
     syncHashWithPanel(panel);
     setMobileNavOpen(false);
-  }, []);
+  }, [dialog]);
 
   useEffect(() => {
     const handleHashChange = () => {
       const p = getActivePanelFromHash() as Panel;
       if (p === activePanelRef.current) return;
-      if (!confirmLeave()) { syncHashWithPanel(activePanelRef.current); return; }
+      if (hasUnsavedChanges()) {
+        syncHashWithPanel(activePanelRef.current);
+        void confirmLeaveAsync((msg) =>
+          dialog.confirm({ title: 'Unsaved Changes', message: msg, confirmLabel: 'Leave & Discard', destructive: true })
+        ).then((ok) => {
+          if (!ok) return;
+          setActivePanelState(p);
+          syncHashWithPanel(p);
+        });
+        return;
+      }
       setActivePanelState(p);
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [dialog]);
   const [transcriptSelection, setTranscriptSelection] = useState<{ id: number | string | null; seconds?: number }>({ id: null });
   const setSelectedTranscriptId = useCallback((id: number | string | null, seconds?: number) => setTranscriptSelection({ id, seconds }), []);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
@@ -621,21 +648,6 @@ function AppContent() {
           </div>
         </nav>
 
-        {!isSidebarRail && (
-          <>
-            <div className="p-3 border-t border-slate-800/80">
-              <PipelineHealthWidget
-                config={config}
-                compact={true}
-                onNavigateToGitHub={() => setActivePanel('github')}
-              />
-            </div>
-
-            <div className="px-4 py-2 border-t border-slate-800/40 text-[11px] text-slate-400 text-center">
-              Generated files comply with DevOps strict mode
-            </div>
-          </>
-        )}
       </aside>
 
       {/* ── Main Content ── */}
@@ -663,6 +675,10 @@ function AppContent() {
           <DashboardOverview
             config={config}
             onNavigate={panel => setActivePanel(panel)}
+            onOpenTranscript={(id, seconds) => {
+              setSelectedTranscriptId(id, seconds);
+              setActivePanel('transcripts');
+            }}
           />
         )}
 
@@ -742,6 +758,7 @@ function AppContent() {
                 <SubmitSpacePanel
                   config={config}
                   onViewRunHistory={() => setActivePanel('run-history')}
+                  onDispatched={recordActiveOperationDispatch}
                   onNavigateBatch={() => setActivePanel('batch')}
                   onNavigateVoiceProfiles={() => setActivePanel('voice-profiles')}
                   onUpdateWatchedHosts={hosts => updateConfig({ watchedHosts: hosts })}
@@ -799,8 +816,8 @@ function AppContent() {
         {activePanel === 'investigative-radar' && (
           <InvestigativeRadar
             config={config}
-            onOpenTranscript={(id) => {
-              setSelectedTranscriptId(id);
+            onOpenTranscript={(id, seconds) => {
+              setSelectedTranscriptId(id, seconds);
               setActivePanel('transcripts');
             }}
           />
@@ -830,10 +847,18 @@ function AppContent() {
         </Suspense>
         </PanelErrorBoundary>
       </main>
-      <PlayerBar />
-      <MontageReelDrawer isHidden={activePanel === 'montage'} />
-      <CopilotCommandPalette />
-      <FloatingCopilotWidget activeTab={activePanel} />
+      <OverlayErrorBoundary name="PlayerBar">
+        <PlayerBar />
+      </OverlayErrorBoundary>
+      <OverlayErrorBoundary name="MontageReelDrawer">
+        <MontageReelDrawer isHidden={activePanel === 'montage'} />
+      </OverlayErrorBoundary>
+      <OverlayErrorBoundary name="CopilotCommandPalette">
+        <CopilotCommandPalette />
+      </OverlayErrorBoundary>
+      <OverlayErrorBoundary name="FloatingCopilotWidget">
+        <FloatingCopilotWidget activeTab={activePanel} />
+      </OverlayErrorBoundary>
     </div>
     </CopilotProvider>
     </MontageProvider>
@@ -855,9 +880,11 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider>
-        <AppContent />
-      </ConfigProvider>
+      <DialogProvider>
+        <ConfigProvider>
+          <AppContent />
+        </ConfigProvider>
+      </DialogProvider>
     </QueryClientProvider>
   );
 }

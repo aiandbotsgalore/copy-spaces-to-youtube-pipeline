@@ -23,6 +23,8 @@ import { TranscriptModals } from './transcript/TranscriptModals';
 import { TranscriptExportBar } from './transcript/TranscriptExportBar';
 import { useMontage } from '../contexts/MontageContext';
 import { useCopilot } from '../contexts/CopilotContext';
+import { appDialog } from '../contexts/DialogContext';
+import { fetchJsonCandidates } from '../utils/safeFetch';
 import { isAudioCached, cacheAudioFile, getCachedAudioUrl, removeCachedAudio } from '../utils/audioCache';
 import { toSliceableUrl } from '../utils/audioUrl';
 import { parseEpisodeSummaries } from '../utils/contracts/transcript';
@@ -1073,6 +1075,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
   const owner = (config.ownerName || '').trim();
   const repo = (config.repoName || '').trim();
   const hasCredentials = !!(config.githubToken && owner && repo);
+  const canFetchReleases = !!(owner && repo);
 
   const effectiveReleases = useMemo((): Release[] => {
     let list: Release[] = [];
@@ -1190,7 +1193,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
   const handleToggleCacheCurrentAudio = async () => {
     const url = mp3Asset?.browser_download_url;
     if (!url) {
-      alert('No audio stream URL found for this episode.');
+      appDialog.toast('No audio stream URL found for this episode.', 'warning');
       return;
     }
 
@@ -1204,7 +1207,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
         await cacheAudioFile(url, (p) => setCurrentAudioCachePct(p.percent));
         setIsCurrentAudioCached(true);
       } catch (err: any) {
-        alert(`Failed to cache audio: ${err.message || 'Stream error'}`);
+        appDialog.toast(`Failed to cache audio: ${err.message || 'Stream error'}`, 'error');
       } finally {
         setIsCachingCurrentAudio(false);
       }
@@ -1389,7 +1392,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
   };
 
   const fetchReleases = useCallback(async () => {
-    if (!hasCredentials) return;
+    if (!canFetchReleases) return;
     setLoading(true);
     setError('');
     currentLoadedIdRef.current = null;
@@ -1402,11 +1405,11 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
     } finally {
       setLoading(false);
     }
-  }, [config.githubToken, owner, repo, hasCredentials]);
+  }, [config.githubToken, owner, repo, canFetchReleases]);
 
   useEffect(() => {
-    if (hasCredentials && !loaded && !loading) fetchReleases();
-  }, [hasCredentials, loaded, loading, fetchReleases]);
+    if (canFetchReleases && !loaded && !loading) fetchReleases();
+  }, [canFetchReleases, loaded, loading, fetchReleases]);
 
   const loadTranscript = useCallback(async (release: Release, targetAsset?: ReleaseAsset | null, partNum?: number) => {
     const request = ++transcriptRequest.current;
@@ -2107,8 +2110,9 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
     }
 
     fetch(`/api/montage/direct/transcripts/search?${params.toString()}`)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      .then(async res => {
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (!res.ok || ct.includes('text/html')) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then(data => {
@@ -2599,19 +2603,27 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
 
   // Load extracted audio clips manifest on mount
   useEffect(() => {
-    let isMounted = true;
-    fetch('./clips/angela/manifest.json')
-      .then(res => res.ok ? res.json() : [])
-      .then((data: ExtractedClip[]) => {
-        if (isMounted && Array.isArray(data)) {
-          setExtractedAudioClips(data);
+    const controller = new AbortController();
+    fetchJsonCandidates<ExtractedClip[]>(
+      [
+        './clips/angela/manifest.json',
+        '/clips/angela/manifest.json',
+        ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/clips/angela/manifest.json`] : []),
+      ],
+      { signal: controller.signal, validate: d => Array.isArray(d) }
+    )
+      .then(hit => {
+        if (!controller.signal.aborted && hit?.data) {
+          setExtractedAudioClips(hit.data);
         }
       })
       .catch(err => {
-        console.warn('Could not load audio clips manifest:', err);
+        if (err?.name !== 'AbortError') {
+          console.warn('Could not load audio clips manifest:', err);
+        }
       });
-    return () => { isMounted = false; };
-  }, []);
+    return () => controller.abort();
+  }, [owner, repo]);
 
   const handleDownloadSingleClip = useCallback((clip: ExtractedClip) => {
     const downloadAnchor = document.createElement('a');
@@ -2773,9 +2785,14 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
     utterances[utterances.length - 1]?.endSec ||
     utterances[utterances.length - 1]?.startSec || 0;
   const episodeTags = selectedRelease ? (customTags[selectedRelease.tag_name] || []) : [];
-  const addTag = () => {
+  const addTag = async () => {
     if (!selectedRelease) return;
-    const tag = window.prompt('New tag for this episode:')?.trim().slice(0,40);
+    const raw = await appDialog.prompt({
+      title: 'Add Episode Tag',
+      message: 'New tag for this episode:',
+      placeholder: 'e.g. key-contradiction',
+    });
+    const tag = raw?.trim().slice(0, 40);
     if (!tag) return;
     setCustomTags(prev => ({
       ...prev,
@@ -2784,7 +2801,15 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
   };
   const askEpisodeCopilot = (instruction: string) => {
     if (!selectedRelease || !utterances.length) return;
-    const sample = utterances.slice(0, 150).map(u => ({
+    // Sample evenly across the entire transcript so multi-hour Spaces aren't truncated to the first 150 turns
+    const maxSample = 300;
+    const picked =
+      utterances.length <= maxSample
+        ? utterances
+        : Array.from({ length: maxSample }, (_, i) =>
+            utterances[Math.min(utterances.length - 1, Math.floor((i * utterances.length) / maxSample))]
+          );
+    const sample = picked.map(u => ({
       speaker: u.speaker, text: u.text, start: u.startSec, end: u.endSec ?? u.startSec + 5
     }));
     const context = {
@@ -2793,7 +2818,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
         releaseId: selectedRelease.id, releaseTag: selectedRelease.tag_name,
         title: selectedRelease.name || selectedRelease.tag_name,
         audioUrl: mp3Asset?.browser_download_url, speakers: uniqueDisplaySpeakers,
-        segmentsSample: sample.slice(0,30), allSegments: sample, totalTurns: utterances.length,
+        segmentsSample: sample.slice(0, 40), allSegments: sample, totalTurns: utterances.length,
         durationSec: episodeDuration
       }
     };
@@ -2875,7 +2900,7 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
             <span>Ask Copilot</span>
           </button>
 
-          <button onClick={fetchReleases} disabled={loading || !hasCredentials}
+          <button onClick={fetchReleases} disabled={loading || !canFetchReleases}
             className="flex items-center gap-2 px-3.5 py-2 text-xs font-medium bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 rounded-lg transition-colors border border-slate-700 cursor-pointer">
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
             {loading ? 'Refreshing…' : 'Refresh'}
@@ -2887,12 +2912,12 @@ const TranscriptPanel: React.FC<Props> = ({ config, initialReleaseId, initialSta
         <div className="mx-4 md:mx-10 my-2 px-3.5 py-2 bg-indigo-950/40 border border-indigo-500/30 rounded-lg flex items-center justify-between gap-3 text-xs text-indigo-300 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Globe size={14} className="text-indigo-400 flex-shrink-0" />
-            <span>Viewing local transcript archive ({effectiveReleases.length} episodes). Connect your GitHub Token in settings to sync live releases and save changes.</span>
+            <span>Showing {effectiveReleases.length} episodes{loaded ? ' (synced with GitHub Releases)' : ' from local transcript archive'}. Add a GitHub Token in settings to rename speakers or dispatch jobs.</span>
           </div>
         </div>
       )}
 
-      {hasCredentials && error && (
+      {canFetchReleases && error && (
         <div className="mx-4 md:mx-10 my-2 flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex-shrink-0">
           <AlertCircle size={14} className="text-rose-400 flex-shrink-0" />
           <span className="flex-1">{error}</span>

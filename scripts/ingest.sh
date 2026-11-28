@@ -241,7 +241,7 @@ fi
 SPACE_ID=$(yt-dlp "${YTDLP_PLUGIN_ARGS[@]}" "${COOKIE_ARGS[@]}" --get-id "$TARGET_URL" 2>/dev/null | head -n 1 | tr -d '[:space:]' || echo "")
 # Fallback to URL regex if yt-dlp query fails (e.g. rate limit, access control denial)
 if [[ -z "$SPACE_ID" ]]; then
-    if [[ "$TARGET_URL" =~ (twitter\.com|x\.com)/i/spaces/([a-zA-Z0-9]{12,14}) ]]; then
+    if [[ "$TARGET_URL" =~ (twitter\.com|x\.com)/i/spaces/([a-zA-Z0-9]{12,16}) ]]; then
         SPACE_ID="${BASH_REMATCH[2]}"
     elif [[ "$TARGET_URL" =~ (youtu\.be/|watch\?v=|shorts/)([a-zA-Z0-9_-]{11}) ]]; then
         SPACE_ID="${BASH_REMATCH[2]}"

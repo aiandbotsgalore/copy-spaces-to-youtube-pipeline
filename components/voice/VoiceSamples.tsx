@@ -3,6 +3,7 @@ import { ArrowUpRight, Plus, Scissors, Trash2 } from 'lucide-react';
 import type { VoiceProfile, VoiceSample } from '../../types';
 import { formatVoiceTimestamp, getVoiceSamples } from '../../utils/voiceProfiles';
 import { VoiceClipPlayer, voiceButton, voicePrimary } from './VoiceSampleEditor';
+import { appDialog } from '../../contexts/DialogContext';
 
 interface Props {
   profile: VoiceProfile;
@@ -73,8 +74,10 @@ export function VoiceSamples({ profile, resolveUrl, onEdit, onRemove, onPrepare,
                   <button type="button" className={voiceButton} onClick={() => onEdit(sample)}>
                     <Scissors size={12} className="mr-1 inline" /> Trim
                   </button>
-                  <button type="button" className={voiceButton} onClick={() => {
-                    if (window.confirm('Remove this sample from the voice profile?')) onRemove(sample);
+                  <button type="button" className={voiceButton} onClick={async () => {
+                    if (await appDialog.confirm({ title: 'Remove Sample', message: 'Remove this sample from the voice profile?', confirmLabel: 'Remove', destructive: true })) {
+                      onRemove(sample);
+                    }
                   }}>
                     <Trash2 size={12} className="mr-1 inline" /> Remove
                   </button>

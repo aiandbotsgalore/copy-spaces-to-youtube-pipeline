@@ -13,7 +13,17 @@ export function setUnsavedGuard(guard: Guard): () => void {
 }
 
 /** True when navigation may go ahead: nothing unsaved, or the person agreed to discard it. */
+export function hasUnsavedChanges(): string | null {
+  return current?.() ?? null;
+}
+
 export function confirmLeave(ask: (message: string) => boolean = m => window.confirm(m)): boolean {
+  const message = current?.();
+  if (!message) return true;
+  return ask(`${message} Leave and discard them?`);
+}
+
+export async function confirmLeaveAsync(ask: (message: string) => Promise<boolean>): Promise<boolean> {
   const message = current?.();
   if (!message) return true;
   return ask(`${message} Leave and discard them?`);

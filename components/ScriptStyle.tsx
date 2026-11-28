@@ -9,6 +9,7 @@ import type { BoardSource, ScriptEvidenceDoc, ScriptProject } from '../utils/scr
 import {
   loadRoleChoice, scriptApi, type PaperTrailPair, type ProjectResponse, type RelatedHit, type StyleState,
 } from '../utils/scriptClient';
+import { appDialog } from '../contexts/DialogContext';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 const btn = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
@@ -581,7 +582,7 @@ export function ManuscriptPanel({ project, headVersionId, act }: { project: Scri
         <button className={btnGhost} disabled={!headVersionId || headIsWorking} title="Designate the version you are editing as the working master"
           onClick={() => void act('Setting working master', () => scriptApi.designateManuscript({ projectId: project.id, role: 'working', versionId: headVersionId! }))}>Make current version the working master</button>
         <button className={btnGhost} disabled={!headVersionId}
-          onClick={() => { if (window.confirm('Approve the ENTIRE current version as the recording manuscript? Do this only when the whole script is final.')) void act('Approving recording manuscript', () => scriptApi.designateManuscript({ projectId: project.id, role: 'recording', versionId: headVersionId!, confirm: true })); }}>Approve for recording…</button>
+          onClick={async () => { if (await appDialog.confirm({ title: 'Approve Recording Manuscript', message: 'Approve the ENTIRE current version as the recording manuscript? Do this only when the whole script is final.', confirmLabel: 'Approve' })) void act('Approving recording manuscript', () => scriptApi.designateManuscript({ projectId: project.id, role: 'recording', versionId: headVersionId!, confirm: true })); }}>Approve for recording…</button>
         {r && <button className={btnGhost} onClick={() => void act('Withdrawing recording approval', () => scriptApi.designateManuscript({ projectId: project.id, role: 'recording', clear: true }))}>Withdraw approval</button>}
       </div>
       {importOpen && (

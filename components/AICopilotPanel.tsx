@@ -48,6 +48,7 @@ import {
 import { useCopilot } from '../contexts/CopilotContext';
 import { useMontage } from '../contexts/MontageContext';
 import { usePlayer } from '../contexts/PlayerContext';
+import { useDialog } from '../contexts/DialogContext';
 import { TensionArc } from './TensionArc';
 import { TargetWindowGauge } from './TargetWindowGauge';
 import type { CopilotAction, CopilotAttachment } from '../utils/copilotTypes';
@@ -65,6 +66,7 @@ import { CopilotMarkdown } from './CopilotMarkdown';
 import { fetchSummaryIndex, findEpisodeInSummary, EpisodeSummary } from '../utils/transcriptData';
 import { resolveEpisodeAudioSync, extractEpisodeTag, setCachedSummaryIndex, findPreCutClipMatch } from '../utils/audioResolver';
 import { isPlaceholderAudioUrl } from '../utils/audioUrl';
+import { formatTimestamp as formatTime } from '../utils/copilotText';
 
 const PRESET_PILLS = [
   {
@@ -119,6 +121,7 @@ export const AICopilotPanel: React.FC = () => {
     autoApply,
     setAutoApply,
     sendMessage,
+    retryLastMessage,
     applyAction,
     revertAction,
     analyzeActionResults,
@@ -130,8 +133,11 @@ export const AICopilotPanel: React.FC = () => {
 
   const montage = useMontage();
   const player = usePlayer();
+  const dialog = useDialog();
 
   const [input, setInput] = useState('');
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; caption?: string } | null>(null);
+  const composerInputRef = useRef<HTMLInputElement | null>(null);
   const [isReelOpen, setIsReelOpen] = useState(() => montage.clips.length > 0);
   const prevClipCount = useRef(montage.clips.length);
 
@@ -260,79 +266,12 @@ export const AICopilotPanel: React.FC = () => {
   };
 
   const handlePillClick = (prompt: string) => {
+    if (prompt.endsWith(' ')) {
+      setInput(prompt);
+      window.setTimeout(() => composerInputRef.current?.focus(), 20);
+      return;
+    }
     sendMessage(prompt);
-  };
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  // Helper to parse [timestamp] badges and quick action chips into interactive buttons
-  const renderMessageContent = (content: string, firstMatch?: any) => {
-    const parts = content.split(/(\[▶\s*(?:Jump to|Play)\s*[^\]]+\]|\[▶\s*Play\s*\d{1,2}:\d{2}\]|\b\d{1,2}:\d{2}\b|\[\+\s*Append to Reel\])/gi);
-    return parts.map((part, i) => {
-      if (/\[\+\s*Append to Reel\]/i.test(part)) {
-        return (
-          <button
-            key={i}
-            onClick={() => {
-              if (firstMatch) {
-                montage.addClip({
-                  id: `clip_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                  title: `${firstMatch.speaker}: ${firstMatch.snippet.slice(0, 30)}...`,
-                  quote: firstMatch.snippet,
-                  speaker: firstMatch.speaker,
-                  sourceTitle: firstMatch.episode_title,
-                  sourceTag: firstMatch.episode_id,
-                  audioUrl: firstMatch.audio_url || contextPayload.currentEpisode?.audioUrl,
-                  startSec: firstMatch.start_timestamp,
-                  endSec: firstMatch.end_timestamp || firstMatch.start_timestamp + 25,
-                  category: 'Highlights',
-                  severity: 8,
-                  tensionScore: 7,
-                });
-              }
-            }}
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-1 text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 rounded border border-emerald-500/30 transition-colors cursor-pointer"
-          >
-            <Sparkles size={10} />
-            + Append to Reel
-          </button>
-        );
-      }
-
-      const match = part.match(/(\d{1,2}):(\d{2})/);
-      if (match) {
-        const sec = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-        return (
-          <button
-            key={i}
-            onClick={() => {
-              const audioUrl = firstMatch?.audio_url || contextPayload.currentEpisode?.audioUrl;
-              if (audioUrl) {
-                player.play(
-                  {
-                    id: firstMatch?.episode_id || contextPayload.currentEpisode?.releaseId || Date.now(),
-                    title: firstMatch?.episode_title || contextPayload.currentEpisode?.title || 'Space Audio',
-                    audioUrl,
-                  },
-                  sec
-                );
-              } else {
-                player.seek(sec);
-              }
-            }}
-            className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-1 text-[11px] font-semibold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 rounded border border-indigo-500/30 transition-colors cursor-pointer"
-          >
-            <Play size={10} className="fill-current" />
-            {part.startsWith('[▶') ? part : `▶ ${match[0]}`}
-          </button>
-        );
-      }
-      return <span key={i}>{part}</span>;
-    });
   };
 
   return (
@@ -476,10 +415,16 @@ export const AICopilotPanel: React.FC = () => {
                   {!isWidget && sessions.length > 2 && (
                     <button
                       type="button"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
                         if ((sess.messages?.length || 0) > 1) {
-                          if (!window.confirm(`Close and delete "${sess.title}"?`)) return;
+                          const ok = await dialog.confirm({
+                            title: 'Delete Chat Session',
+                            message: `Close and delete "${sess.title}"?`,
+                            confirmLabel: 'Delete',
+                            destructive: true,
+                          });
+                          if (!ok) return;
                         }
                         deleteSession(sess.id);
                       }}
@@ -630,7 +575,7 @@ export const AICopilotPanel: React.FC = () => {
                         detail: `${p.scenes?.length || 0} scenes`,
                       });
                     } else {
-                      window.alert('No active script draft found in Script Studio to pin.');
+                      dialog.toast('No active script draft found in Script Studio to pin.', 'warning');
                     }
                   } catch {}
                 }}
@@ -643,7 +588,7 @@ export const AICopilotPanel: React.FC = () => {
         )}
 
         {/* Quick Action Pills */}
-        <div className="px-4 py-2 border-b border-slate-800/40 bg-slate-900/30 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+        <div className="px-4 py-2 border-b border-slate-800/40 bg-slate-900/30 flex flex-wrap items-center gap-2 flex-shrink-0">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">Playbooks:</span>
           {PRESET_PILLS.map((pill, i) => (
             <button
@@ -1021,8 +966,8 @@ export const AICopilotPanel: React.FC = () => {
                         <div key={img.filename || idx} className="w-full max-w-md rounded-lg border border-indigo-500/30 overflow-hidden shadow-lg bg-slate-950">
                           <div
                             className="relative group cursor-pointer overflow-hidden bg-slate-900"
-                            onClick={() => window.open(img.image_url, '_blank')}
-                            title="Click to open full size"
+                            onClick={() => setLightboxImage({ url: img.image_url, caption: img.prompt_used })}
+                            title="Click to preview full size"
                           >
                             <img
                               src={img.image_url}
@@ -1141,7 +1086,7 @@ export const AICopilotPanel: React.FC = () => {
                   <div className="mt-2 text-[10px] text-slate-500 flex items-center justify-end gap-2">
                     <span>{m.model}</span>
                     <span>•</span>
-                    <span>{m.usage.completionTokens} tokens</span>
+                    <span>{(m.usage as any).completionTokens ?? (m.usage as any).completion_tokens ?? 0} tokens</span>
                   </div>
                 )}
               </div>
@@ -1187,8 +1132,9 @@ export const AICopilotPanel: React.FC = () => {
             <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs rounded-xl flex items-center justify-between">
               <span>{error}</span>
               <button
-                onClick={() => sendMessage(messages[messages.length - 1]?.content || 'retry')}
-                className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 rounded font-semibold transition-colors cursor-pointer"
+                onClick={() => retryLastMessage()}
+                disabled={loading}
+                className="px-2.5 py-1 bg-rose-600/20 hover:bg-rose-600/30 disabled:opacity-50 text-rose-300 rounded font-semibold transition-colors cursor-pointer"
               >
                 Retry
               </button>
@@ -1199,7 +1145,7 @@ export const AICopilotPanel: React.FC = () => {
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-900/60 flex-shrink-0">
+        <div className={`p-4 border-t border-slate-800/80 bg-slate-900/60 flex-shrink-0 ${player.current ? 'pb-20' : ''}`}>
           {/* Pending Attachments Strip */}
           {pendingAttachments.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2.5 p-2 rounded-xl bg-slate-950/80 border border-slate-800/80 max-h-36 overflow-y-auto">
@@ -1260,6 +1206,7 @@ export const AICopilotPanel: React.FC = () => {
               <Paperclip size={18} />
             </button>
             <input
+              ref={composerInputRef}
               type="text"
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -1281,7 +1228,7 @@ export const AICopilotPanel: React.FC = () => {
 
       {/* ── Right Pane: Live Interactive Studio Canvas ── */}
       {isReelOpen && (
-        <div className="w-full lg:w-96 flex-shrink-0 bg-slate-950 p-4 overflow-y-auto flex flex-col gap-5">
+        <div className={`w-full lg:w-96 flex-shrink-0 bg-slate-950 p-4 overflow-y-auto flex flex-col gap-5 ${player.current ? 'pb-24' : ''}`}>
           {/* Reel Status & Audition Header */}
           <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800/80">
             <div className="flex items-center justify-between mb-3">
@@ -1421,6 +1368,35 @@ export const AICopilotPanel: React.FC = () => {
                   </div>
                 );
               })
+            )}
+          </div>
+        </div>
+      )}
+
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[9995] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxImage(null)}
+              className="absolute top-3 right-3 z-10 p-1.5 rounded-lg bg-black/70 text-slate-200 hover:text-white border border-white/10 cursor-pointer"
+              aria-label="Close image preview"
+            >
+              <X size={16} />
+            </button>
+            <img
+              src={lightboxImage.url}
+              alt={lightboxImage.caption || 'Generated visual preview'}
+              className="w-full max-h-[80vh] object-contain bg-slate-950"
+            />
+            {lightboxImage.caption && (
+              <p className="p-3 text-xs text-slate-300 border-t border-slate-800">{lightboxImage.caption}</p>
             )}
           </div>
         </div>

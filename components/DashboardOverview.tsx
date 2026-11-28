@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Zap, Play, ListPlus, Loader, CheckCircle, XCircle, AlertCircle,
   Copy, Check, Github, ExternalLink, Library, FileText, ChevronRight, Radio,
 } from 'lucide-react';
 import { Release, EnhancedConfig } from '../types';
-import { getReleases, dispatchWorkflow, appendLineToRepositoryTextFile } from '../utils/github';
+import { dispatchWorkflow, appendLineToRepositoryTextFile } from '../utils/github';
 import { validateSubmission, friendlyGitHubError } from '../utils/submitSpace';
 import { useActiveOperations } from '../hooks/useActiveOperations';
-import { usePlayer } from '../contexts/PlayerContext';
-import { getEpisodeRecordedDate, sortReleasesByRecordedDate } from '../utils/dates';
+import { useReleasesQuery } from '../hooks/useStudioQueries';
+import { usePlayerControls } from '../contexts/PlayerContext';
+import { getEpisodeRecordedDate } from '../utils/dates';
 import PipelineHealthWidget from './PipelineHealthWidget';
 
 interface Props {
   config: EnhancedConfig;
-  onNavigate: (panel: 'library' | 'transcripts' | 'run-history' | 'live-queue' | 'submit-space') => void;
+  onNavigate: (panel: 'library' | 'transcripts' | 'run-history' | 'live-queue' | 'submit-space' | 'github') => void;
+  onOpenTranscript?: (releaseId: number | string, startSec?: number) => void;
 }
 
 function parseDuration(body: string | null): string {
@@ -26,20 +28,17 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
+const DashboardOverview: React.FC<Props> = ({ config, onNavigate, onOpenTranscript }) => {
   const [url, setUrl] = useState('');
   const [recordLive, setRecordLive] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState<'run' | 'queue' | null>(null);
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
 
-  const [releases, setReleases] = useState<Release[]>([]);
-  const [releasesLoading, setReleasesLoading] = useState(false);
-  const [releasesError, setReleasesError] = useState('');
   const [copied, setCopied] = useState(false);
   const [scanning, setScanning] = useState(false);
 
-  const { play } = usePlayer();
+  const { play } = usePlayerControls();
   const { operations, trackDispatch, dismissOperation } = useActiveOperations(config);
 
   const owner = (config.ownerName || '').trim();
@@ -48,23 +47,15 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   const hasRepo = !!(owner && repo);
   const rssUrl = owner && repo ? `https://${owner}.github.io/${repo}/podcast.xml` : '';
 
-  const loadReleases = useCallback(async () => {
-    if (!hasRepo) return;
-    setReleasesLoading(true);
-    setReleasesError('');
-    try {
-      const data = await getReleases(config.githubToken, owner, repo);
-      setReleases(sortReleasesByRecordedDate(data, 'desc'));
-    } catch (e) {
-      setReleasesError((e as Error).message);
-    } finally {
-      setReleasesLoading(false);
-    }
-  }, [config.githubToken, owner, repo, hasRepo]);
+  const {
+    data: releases = [],
+    isLoading: releasesLoading,
+    error: releasesQueryError,
+    refetch: loadReleases,
+  } = useReleasesQuery(config);
+  const releasesError = releasesQueryError ? (releasesQueryError as Error).message : '';
 
-  useEffect(() => { loadReleases(); }, [loadReleases]);
-
-  const recent: Release[] = sortReleasesByRecordedDate<Release>(releases).slice(0, 4);
+  const recent: Release[] = useMemo(() => releases.slice(0, 4), [releases]);
 
   const handlePlay = (rel: Release) => {
     const mp3 = rel.assets?.find(a => a.name.endsWith('.mp3'));
@@ -168,7 +159,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-5xl mx-auto w-full pb-20">
+    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-5xl mx-auto w-full pb-28">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-white mb-1">Command Center</h2>
         <p className="text-slate-400 text-sm">Ingest a new Space, keep an eye on what's running, and jump back into recent episodes.</p>
@@ -178,7 +169,7 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
       <div className="mb-8">
         <PipelineHealthWidget
           config={config}
-          onNavigateToGitHub={() => onNavigate('submit-space')}
+          onNavigateToGitHub={() => onNavigate('github')}
         />
       </div>
 
@@ -458,8 +449,8 @@ const DashboardOverview: React.FC<Props> = ({ config, onNavigate }) => {
                       {duration && <span className="text-xs text-slate-400">· {duration}</span>}
                       {txt && (
                         <button
-                          onClick={() => onNavigate('transcripts')}
-                          className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded-md font-medium hover:bg-slate-700 transition-colors"
+                          onClick={() => (onOpenTranscript ? onOpenTranscript(release.id) : onNavigate('transcripts'))}
+                          className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded-md font-medium hover:bg-slate-700 transition-colors cursor-pointer"
                         >
                           <FileText size={9} /> Transcript
                         </button>

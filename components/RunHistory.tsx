@@ -116,7 +116,7 @@ const RunHistory: React.FC<Props> = ({ config }) => {
     <div
       data-component="run-history"
       data-state={status}
-      className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full"
+      className="h-full overflow-y-auto p-6 md:p-12 pb-24 max-w-4xl mx-auto w-full"
     >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>

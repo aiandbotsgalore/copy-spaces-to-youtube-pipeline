@@ -16,13 +16,18 @@ from yt_dlp.utils import ExtractorError, str_or_none, traverse_obj, url_or_none
 _OLD_QUERY = 'HPEisOmj1epUNLCWTYhUWw/AudioSpaceById'
 _NEW_QUERY = 'zm3JmUpYWDXIUsf_33-ZrA/AudioSpaceById'
 _BUILTIN_URL = TwitterSpacesIE._VALID_URL
-_BUILTIN_SOURCE = inspect.getsource(TwitterSpacesIE._real_extract)
+try:
+    _BUILTIN_SOURCE = inspect.getsource(TwitterSpacesIE._real_extract)
+    _QUERY_STALE = _OLD_QUERY in _BUILTIN_SOURCE
+except OSError:
+    # Frozen / standalone yt-dlp binaries omit .py source lines; fall back to current query.
+    _BUILTIN_SOURCE = ''
+    _QUERY_STALE = True
 _ID_TRUNCATED = (
     '[0-9a-zA-Z]{13}' in _BUILTIN_URL
     and '{13,}' not in _BUILTIN_URL
     and '[0-9a-zA-Z]+' not in _BUILTIN_URL
 )
-_QUERY_STALE = _OLD_QUERY in _BUILTIN_SOURCE
 
 
 def _bigger_avatar(url):

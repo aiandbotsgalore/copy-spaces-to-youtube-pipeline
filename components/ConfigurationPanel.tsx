@@ -35,7 +35,7 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   };
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-12 max-w-4xl mx-auto w-full">
+    <div className="h-full overflow-y-auto p-6 md:p-12 pb-24 max-w-4xl mx-auto w-full">
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">Pipeline Configuration</h2>

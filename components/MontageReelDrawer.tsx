@@ -9,6 +9,8 @@ import { buildSequencePlan } from '../utils/sequencePlan';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
 import { categoryDotClass } from '../utils/uiTokens';
+import { fetchJsonCandidates } from '../utils/safeFetch';
+import { appDialog } from '../contexts/DialogContext';
 
 const GENERIC_SPEAKER_RE = /^(?:speaker|caller|guest|host|unknown|unidentified|unassigned)(?:[\s_#-]*\d+)?$/i;
 function isGenericSpeaker(speaker?: string): boolean {
@@ -83,9 +85,15 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
 
   const loadCuratedContradictionReel = async () => {
     try {
-      const res = await fetch('/transcripts/investigative_knowledge_graph.json');
-      if (!res.ok) return;
-      const data = await res.json();
+      const hit = await fetchJsonCandidates<any>(
+        ['/transcripts/investigative_knowledge_graph.json', './transcripts/investigative_knowledge_graph.json'],
+        { validate: d => Boolean(d && Array.isArray(d.contradiction_pairings)) }
+      );
+      if (!hit) {
+        appDialog.toast('Contradiction knowledge graph JSON unavailable in this environment.', 'warning');
+        return;
+      }
+      const data = hit.data;
       const pairs = data.contradiction_pairings || [];
       if (pairs.length === 0) return;
       const pair = pairs[0];
@@ -557,7 +565,11 @@ export const MontageReelDrawer: React.FC<{ isHidden?: boolean }> = ({ isHidden =
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
-                              const newName = window.prompt(`Relabel speaker "${clip.speaker}" for this clip:`, '');
+                              const newName = await appDialog.prompt({
+                                title: 'Relabel Speaker',
+                                message: `Relabel speaker "${clip.speaker}" for this clip:`,
+                                placeholder: 'Speaker name',
+                              });
                               if (!newName || !newName.trim()) return;
                               const trimmed = newName.trim();
                               updateClip(clip.id, { speaker: trimmed });

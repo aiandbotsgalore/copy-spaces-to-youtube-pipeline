@@ -22,7 +22,11 @@ export interface StagedLocalReleasePayload {
 }
 
 export function validateSubmission(url: string, config: EnhancedConfig): string | null {
-  if (!url.trim()) return 'Enter a Space or audio URL first.';
+  const trimmed = url.trim();
+  if (!trimmed) return 'Enter a Space or audio URL first.';
+  if (/^https?:\/\/(x\.com|twitter\.com)\/[A-Za-z0-9_]+\/?$/i.test(trimmed)) {
+    return 'That is an X profile URL. Paste the specific Space URL (https://x.com/i/spaces/...) instead.';
+  }
   if (!config.githubToken) return 'Connect GitHub before submitting a URL.';
   if (!config.ownerName || !config.repoName) {
     return 'Add the GitHub owner and repository name in Configuration before submitting.';

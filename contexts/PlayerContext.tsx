@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { attachAudioSource } from '../utils/hlsPlayer';
 import { toFetchableUrl } from '../utils/audioUrl';
 import { createMachine } from '../utils/stateMachine';
@@ -20,16 +20,15 @@ export type AudioPlaybackState =
   | 'ended'
   | 'error';
 
-export interface PlayerContextValue {
+export interface PlayerControlsValue {
   current: NowPlayingEpisode | null;
   isPlaying: boolean;
   playbackState: AudioPlaybackState;
   playerError: string | null;
-  currentTime: number;
-  duration: number;
   playbackRate: number;
   volume: number;
   isMuted: boolean;
+  getTime: () => { currentTime: number; duration: number };
   play: (episode: NowPlayingEpisode, startTime?: number) => void;
   togglePlay: () => void;
   seek: (time: number) => void;
@@ -40,7 +39,15 @@ export interface PlayerContextValue {
   close: () => void;
 }
 
-const PlayerContext = createContext<PlayerContextValue | null>(null);
+export interface PlayerTimeValue {
+  currentTime: number;
+  duration: number;
+}
+
+export interface PlayerContextValue extends PlayerControlsValue, PlayerTimeValue {}
+
+const PlayerControlsContext = createContext<PlayerControlsValue | null>(null);
+const PlayerTimeContext = createContext<PlayerTimeValue | null>(null);
 
 type AudioPlayerEvent =
   | 'ATTACH_SOURCE'
@@ -324,6 +331,14 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
+      // Yield Space / ArrowLeft / ArrowRight when Montage Studio is mounted (it owns transport hotkeys)
+      if (
+        (e.code === 'Space' || e.code === 'ArrowLeft' || e.code === 'ArrowRight') &&
+        document.querySelector('[data-component="montage-studio"]')
+      ) {
+        return;
+      }
+
       if (e.code === 'Space' && current) {
         e.preventDefault();
         togglePlay();
@@ -343,35 +358,77 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [current, togglePlay, skip, toggleMute]);
 
+  const timeRef = useRef({ currentTime: 0, duration: 0 });
+  timeRef.current = { currentTime, duration };
+  const getTime = useCallback(() => timeRef.current, []);
+
+  const controlsValue = useMemo<PlayerControlsValue>(
+    () => ({
+      current,
+      isPlaying,
+      playbackState,
+      playerError,
+      playbackRate,
+      volume,
+      isMuted,
+      getTime,
+      play,
+      togglePlay,
+      seek,
+      skip,
+      setPlaybackRate,
+      setVolume,
+      toggleMute,
+      close,
+    }),
+    [
+      current,
+      isPlaying,
+      playbackState,
+      playerError,
+      playbackRate,
+      volume,
+      isMuted,
+      getTime,
+      play,
+      togglePlay,
+      seek,
+      skip,
+      setPlaybackRate,
+      setVolume,
+      toggleMute,
+      close,
+    ]
+  );
+
+  const timeValue = useMemo<PlayerTimeValue>(
+    () => ({ currentTime, duration }),
+    [currentTime, duration]
+  );
+
   return (
-    <PlayerContext.Provider
-      value={{
-        current,
-        isPlaying,
-        playbackState,
-        playerError,
-        currentTime,
-        duration,
-        playbackRate,
-        volume,
-        isMuted,
-        play,
-        togglePlay,
-        seek,
-        skip,
-        setPlaybackRate,
-        setVolume,
-        toggleMute,
-        close
-      }}
-    >
-      {children}
-    </PlayerContext.Provider>
+    <PlayerControlsContext.Provider value={controlsValue}>
+      <PlayerTimeContext.Provider value={timeValue}>
+        {children}
+      </PlayerTimeContext.Provider>
+    </PlayerControlsContext.Provider>
   );
 };
 
-export function usePlayer(): PlayerContextValue {
-  const ctx = useContext(PlayerContext);
-  if (!ctx) throw new Error('usePlayer must be used within a PlayerProvider');
+export function usePlayerControls(): PlayerControlsValue {
+  const ctx = useContext(PlayerControlsContext);
+  if (!ctx) throw new Error('usePlayerControls must be used within a PlayerProvider');
   return ctx;
+}
+
+export function usePlayerTime(): PlayerTimeValue {
+  const ctx = useContext(PlayerTimeContext);
+  if (!ctx) throw new Error('usePlayerTime must be used within a PlayerProvider');
+  return ctx;
+}
+
+export function usePlayer(): PlayerContextValue {
+  const controls = usePlayerControls();
+  const time = usePlayerTime();
+  return useMemo(() => ({ ...controls, ...time }), [controls, time]);
 }

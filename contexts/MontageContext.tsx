@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { MONTAGE_EDITORIAL_CONFIG } from '../config/montageEditorial';
 import { audioBufferToWav, sliceAudioBuffer, stitchAudioBuffers, normalizeBroadcastLoudness, applyAntiClickFades, MIN_CLIP_SEC } from '../utils/wavEncoder';
 import { getCachedAudioUrl } from '../utils/audioCache';
@@ -10,6 +10,7 @@ import { toFetchableUrl, toSliceableUrl } from '../utils/audioUrl';
 import { sanitizeMontageClip, getOrFetchSummaryIndex, getOrFetchPreCutClips } from '../utils/audioResolver';
 import type { DirectorProvenance } from '../utils/directorTypes';
 import { createMachine } from '../utils/stateMachine';
+import { appDialog } from './DialogContext';
 
 export type MontageAuditionState = 'idle' | 'preparing' | 'auditioning' | 'paused';
 export type MontageExportState = 'idle' | 'exporting' | 'complete' | 'error';
@@ -157,6 +158,8 @@ export const getCategoryEscalationWeight = (cat?: string): number => {
   }
   return 25;
 };
+
+const MontageProgressContext = createContext<AuditionProgress | null>(null);
 
 export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [clips, setClips] = useState<MontageClipItem[]>(() => {
@@ -785,7 +788,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const exportStitchedWav = async () => {
     const { plan } = buildPlayablePlan<MontageClipItem>(clips, gapSeconds);
     if (plan.items.length === 0) {
-      alert('Nothing to export: none of the clips on the timeline has audio.');
+      appDialog.toast('Nothing to export: none of the clips on the timeline has audio.', 'warning');
       return;
     }
     setIsExporting(true);
@@ -920,7 +923,7 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         type: 'error',
         message: `Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`,
       });
-      alert(`Export Error: ${err.message || 'Could not fetch or decode audio clip data. Check audio streams.'}`);
+      appDialog.toast(`Export Error: ${err.message || 'Could not fetch or decode audio clip data.'}`, 'error');
       setIsExporting(false);
     }
   };
@@ -974,73 +977,108 @@ export const MontageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     triggerDownload(new Blob([lines.join('\n')], { type: 'text/plain' }), 'Montage_Audacity_labels.txt');
   };
 
+  const auditionProgressRef = useRef<AuditionProgress | null>(auditionProgress);
+  auditionProgressRef.current = auditionProgress;
+
+  const coreValue = useMemo<MontageContextType>(
+    () => ({
+      clips,
+      isDrawerOpen,
+      openDrawer,
+      closeDrawer,
+      toggleDrawer,
+      addClip,
+      removeClip,
+      moveClip,
+      reorderClips,
+      nudgeClipStart,
+      nudgeClipEnd,
+      clearClips,
+      replaceClips,
+      updateClip,
+      setClipGap,
+      toggleClipLock,
+      resetClipTrim,
+      undo,
+      redo,
+      canUndo: historyRef.current.past.length > 0,
+      canRedo: historyRef.current.future.length > 0,
+      unverifiableClipIds,
+      auditionStatus,
+      gapSeconds,
+      setGapSeconds,
+      targetDurationSec,
+      setTargetDurationSec,
+      normalizeAudio,
+      setNormalizeAudio,
+      antiClickFades,
+      setAntiClickFades,
+      blacklistedQuoteIds,
+      toggleBlacklist,
+      isBlacklisted,
+      autoCurate,
+      sortByEscalation: () => autoCurate('escalation', clips),
+      auditionState,
+      exportState,
+      isAuditioning,
+      currentAuditionIndex,
+      auditionProgress: auditionProgressRef.current,
+      startAudition,
+      stopAudition,
+      skipAudition,
+      auditionSoloClip,
+      insertClipAt,
+      exportStitchedWav,
+      exportManifestJson,
+      exportAudacityLabels,
+      isExporting,
+      exportProgress,
+      exportNotice,
+      clearExportNotice,
+    }),
+    // auditionProgress deliberately excluded so 60fps progress frames do not re-render non-progress consumers
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      clips,
+      isDrawerOpen,
+      unverifiableClipIds,
+      auditionStatus,
+      gapSeconds,
+      targetDurationSec,
+      normalizeAudio,
+      antiClickFades,
+      blacklistedQuoteIds,
+      auditionState,
+      exportState,
+      isAuditioning,
+      currentAuditionIndex,
+      isExporting,
+      exportProgress,
+      exportNotice,
+    ]
+  );
+
   return (
-    <MontageContext.Provider
-      value={{
-        clips,
-        isDrawerOpen,
-        openDrawer,
-        closeDrawer,
-        toggleDrawer,
-        addClip,
-        removeClip,
-        moveClip,
-        reorderClips,
-        nudgeClipStart,
-        nudgeClipEnd,
-        clearClips,
-        replaceClips,
-        updateClip,
-        setClipGap,
-        toggleClipLock,
-        resetClipTrim,
-        undo,
-        redo,
-        canUndo: historyRef.current.past.length > 0,
-        canRedo: historyRef.current.future.length > 0,
-        unverifiableClipIds,
-        auditionStatus,
-        gapSeconds,
-        setGapSeconds,
-        targetDurationSec,
-        setTargetDurationSec,
-        normalizeAudio,
-        setNormalizeAudio,
-        antiClickFades,
-        setAntiClickFades,
-        blacklistedQuoteIds,
-        toggleBlacklist,
-        isBlacklisted,
-        autoCurate,
-        sortByEscalation: () => autoCurate('escalation', clips),
-        auditionState,
-        exportState,
-        isAuditioning,
-        currentAuditionIndex,
-        auditionProgress,
-        startAudition,
-        stopAudition,
-        skipAudition,
-        auditionSoloClip,
-        insertClipAt,
-        exportStitchedWav,
-        exportManifestJson,
-        exportAudacityLabels,
-        isExporting,
-        exportProgress,
-        exportNotice,
-        clearExportNotice,
-      }}
-    >
-      {children}
+    <MontageContext.Provider value={coreValue}>
+      <MontageProgressContext.Provider value={auditionProgress}>
+        {children}
+      </MontageProgressContext.Provider>
     </MontageContext.Provider>
   );
 };
 
-export const useMontage = () => {
+export const useMontageClips = () => {
   const ctx = useContext(MontageContext);
   if (!ctx) {
-    throw new Error('useMontage must be used within a MontageProvider');
+    throw new Error('useMontageClips must be used within a MontageProvider');
   }
   return ctx;
+};
+
+export const useMontageProgress = () => useContext(MontageProgressContext);
+
+export const useMontage = () => {
+  const ctx = useMontageClips();
+  const auditionProgress = useMontageProgress();
+  return useMemo(() => ({ ...ctx, auditionProgress }), [ctx, auditionProgress]);
 };

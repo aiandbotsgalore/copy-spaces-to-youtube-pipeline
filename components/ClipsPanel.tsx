@@ -37,11 +37,12 @@ import {
   Image as ImageIcon,
   ExternalLink
 } from 'lucide-react';
-import { writeRepositoryBinaryFile } from '../utils/github';
-import { usePlayer } from '../contexts/PlayerContext';
-import { getEpisodeRecordedDate, sortReleasesByRecordedDate, getClipRecordedDate } from '../utils/dates';
-import { fetchReleaseAssetText } from '../utils/github';
+import { writeRepositoryBinaryFile, getReleases, fetchReleaseAssetText } from '../utils/github';
+import { usePlayerControls } from '../contexts/PlayerContext';
+import { getClipRecordedDate } from '../utils/dates';
 import { EnhancedConfig } from '../types';
+import { fetchJsonCandidates } from '../utils/safeFetch';
+import { buildClipsCatalogCandidates, normalizeClipCatalogItems } from '../hooks/useClipsCatalog';
 import { resizeImageToDataUrl } from '../utils/imageResize';
 import { getEpisodeSegments, fetchSummaryIndex, type SearchIndexSegment } from '../utils/transcriptData';
 import { cleanClipSpeakers, MAX_STAGE_SPEAKERS, planAvatarStage, resolveClipReleaseTag } from '../utils/avatarStage';
@@ -189,7 +190,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     }
   };
 
-  const globalPlayer = usePlayer();
+  const globalPlayer = usePlayerControls();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const owner = config?.ownerName || 'aiandbotsgalore';
@@ -313,186 +314,191 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
     }
   };
 
-  const loadClips = async () => {
+  const loadClips = async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       let combinedClips: ClipItem[] = [];
 
-      // 1. Fetch static local catalog (try relative, base, and root paths) with cache busting
-      const ts = Date.now();
-      const catalogCandidates = [
-        `./clips/clips_catalog.json?t=${ts}`,
-        `/clips/clips_catalog.json?t=${ts}`,
-        `${import.meta.env.BASE_URL || '/'}clips/clips_catalog.json?t=${ts}`.replace(/\/+/g, '/')
-      ];
-      for (const catUrl of catalogCandidates) {
-        try {
-          const res = await fetch(catUrl, { cache: 'no-store' });
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              combinedClips = data.map((c: any) => ({
-                ...c,
-                viral_score: normalizeViralScore(c.viral_score),
-                speakers: normalizeClipSpeakers(c.speakers),
-                category: normalizeCategory(c.category)
-              }));
-              break;
-            }
-          }
-        } catch (e) {
-          // try next path
-        }
+      // 1. Fetch static/raw catalog with content-type guard (prevents Vite HTML SyntaxErrors)
+      const catHit = await fetchJsonCandidates<any[]>(buildClipsCatalogCandidates(owner, repo), {
+        cache: 'no-store',
+        signal,
+        validate: d => Array.isArray(d) && d.length > 0,
+      });
+      if (catHit?.data) {
+        combinedClips = normalizeClipCatalogItems(catHit.data);
       }
 
-      // 2. Fetch live clips directly from GitHub Releases API
+      if (signal?.aborted) return;
+
+      // 2. Build O(1) deduplication indexes
+      const indexByFilename = new Map<string, number>();
+      const indexByTitleBucket = new Map<string, number>();
+      const registerIndex = (clip: ClipItem, idx: number) => {
+        const fname = (clip.file_path || '').split(/[\\/]/).pop()?.toLowerCase();
+        if (fname && !indexByFilename.has(fname)) indexByFilename.set(fname, idx);
+        const bucketKey = `${(clip.title || '').toLowerCase()}::${Math.round((clip.start_seconds || 0) / 10)}`;
+        if (!indexByTitleBucket.has(bucketKey)) indexByTitleBucket.set(bucketKey, idx);
+      };
+      combinedClips.forEach(registerIndex);
+
+      // 3. Fetch live clips directly from paginated GitHub Releases (throttled asset reads)
       try {
-        const headers: Record<string, string> = {
-          'Accept': 'application/vnd.github.v3+json',
-        };
-        if (token) {
-          headers['Authorization'] = `token ${token}`;
-        }
-        const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases?per_page=50`, { headers });
-        if (ghRes.ok) {
-          const rawReleases = await ghRes.json();
-          const releases = Array.isArray(rawReleases) ? sortReleasesByRecordedDate(rawReleases, 'desc') : [];
-          const seenFiles = new Set(
-            combinedClips.map(c => (c.file_path ? c.file_path.split(/[\\/]/).pop()?.toLowerCase() : ''))
-          );
+        const releases = await getReleases(token, owner, repo);
+        if (signal?.aborted) return;
 
-          for (const r of releases) {
-            const relTitle = r.name || r.tag_name || 'Space Episode';
-            const assets: any[] = r.assets || [];
+        const seenFiles = new Set(
+          combinedClips.map(c => (c.file_path ? c.file_path.split(/[\\/]/).pop()?.toLowerCase() : '')).filter(Boolean)
+        );
+        const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
 
-            // Rich clips JSON (only individual episode clips, exclude global catalog)
-            const clipsJsonAsset = assets.find((a: any) =>
+        // Pre-fetch *_clips.json metadata with bounded concurrency (max 6)
+        const releasesWithJson = releases
+          .map(r => ({
+            release: r,
+            clipsJsonAsset: (r.assets || []).find((a: any) =>
               a.name && a.name.endsWith('_clips.json') && a.name !== 'clips_catalog.json'
-            );
+            ),
+          }))
+          .filter(x => Boolean(x.clipsJsonAsset));
 
-            if (clipsJsonAsset) {
+        const parsedMetaByTag = new Map<string, any[]>();
+        const CONCURRENCY = 6;
+        for (let i = 0; i < releasesWithJson.length; i += CONCURRENCY) {
+          if (signal?.aborted) return;
+          const batch = releasesWithJson.slice(i, i + CONCURRENCY);
+          await Promise.all(
+            batch.map(async ({ release: r, clipsJsonAsset }) => {
+              if (!clipsJsonAsset) return;
               try {
                 const text = await fetchReleaseAssetText(token, clipsJsonAsset, owner, repo, r.tag_name).catch(() => null);
-                if (text) {
-                  const metaClips = JSON.parse(text);
-                  if (Array.isArray(metaClips)) {
-                    for (const mc of metaClips) {
-                      const mcStart = Math.round(mc.start_seconds || 0);
-                      const matchingMp3 = assets.find((a: any) => {
-                        const aname = (a.name || '').toLowerCase();
-                        if (!aname.includes('m') || !aname.includes('s')) return false;
-                        const cBase = (mc.file_path || '').split(/[\\/]/).pop()?.toLowerCase() || '';
-                        if (cBase && aname === cBase) return true;
-                        const m = aname.match(/^(?:(\d+)h)?(\d+)m(\d+)s/);
-                        if (m) {
-                          const h = parseInt(m[1] || '0', 10);
-                          const mi = parseInt(m[2] || '0', 10);
-                          const s = parseInt(m[3] || '0', 10);
-                          const aStart = h * 3600 + mi * 60 + s;
-                          return Math.abs(aStart - mcStart) <= 5;
-                        }
-                        return false;
-                      });
-
-                      // Prefer R2 CDN URL over raw GitHub release URL for browser streaming.
-                      // GitHub release download URLs lack CORS/CORP headers and stall under
-                      // the app's Cross-Origin-Embedder-Policy: require-corp header.
-                      const ghUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
-                      const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
-                      const cleanGhUrl = decodeURIComponent(ghUrl).replace(/\\/g, '/');
-                      const fileName = cleanGhUrl.split('/').pop()?.split('?')[0]?.trim() || '';
-                      const audioUrl = fileName && (fileName.toLowerCase().endsWith('.mp3') || fileName.toLowerCase().endsWith('.wav'))
-                        ? `${r2Base}/${encodeURIComponent(fileName)}`
-                        : ghUrl;
-
-                      const existingIdx = combinedClips.findIndex(ec => {
-                        const ecName = (ec.file_path || '').split(/[\\/]/).pop()?.toLowerCase();
-                        return (matchingMp3 && ecName === matchingMp3.name.toLowerCase()) ||
-                               (ec.title.toLowerCase() === mc.title.toLowerCase() && Math.abs((ec.start_seconds || 0) - mcStart) <= 5);
-                      });
-
-                      if (existingIdx >= 0) {
-                        combinedClips[existingIdx] = {
-                          ...combinedClips[existingIdx],
-                          ...mc,
-                          viral_score: normalizeViralScore(mc.viral_score ?? combinedClips[existingIdx].viral_score),
-                          speakers: normalizeClipSpeakers(mc.speakers ?? combinedClips[existingIdx].speakers),
-                          category: normalizeCategory(mc.category || combinedClips[existingIdx].category),
-                          episode: mc.episode || relTitle,
-                          // Preserve existing R2 URL if present; only update if we have a better URL
-                          file_path: combinedClips[existingIdx].file_path?.startsWith(r2Base)
-                            ? combinedClips[existingIdx].file_path
-                            : (audioUrl || combinedClips[existingIdx].file_path),
-                          download_url: combinedClips[existingIdx].download_url?.startsWith(r2Base)
-                            ? combinedClips[existingIdx].download_url
-                            : (audioUrl || combinedClips[existingIdx].download_url),
-                        };
-                      } else {
-                        combinedClips.push({
-                          ...mc,
-                          viral_score: normalizeViralScore(mc.viral_score),
-                          speakers: normalizeClipSpeakers(mc.speakers),
-                          category: normalizeCategory(mc.category),
-                          episode: mc.episode || relTitle,
-                          file_path: audioUrl,
-                          download_url: audioUrl,
-                        });
-                      }
-
-                      if (matchingMp3) seenFiles.add(matchingMp3.name.toLowerCase());
-                    }
-                  }
-                }
+                if (!text || text.trim().startsWith('<')) return;
+                const metaClips = JSON.parse(text);
+                if (Array.isArray(metaClips)) parsedMetaByTag.set(r.tag_name, metaClips);
               } catch {
-                // Silently fallback if release clip JSON is unavailable or unparseable
+                // ignore malformed release clip JSON
               }
-            }
+            })
+          );
+        }
 
-            // Standalone clip MP3s (must have timestamp pattern like 05m20s_ or 01h15m30s_)
-            for (const a of assets) {
-              const fname: string = a.name || '';
-              if (fname.endsWith('.mp3')) {
-                const stem = fname.replace(/\.mp3$/, '');
-                const match = stem.match(/^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$/);
-                if (!match) continue;
+        for (const r of releases) {
+          if (signal?.aborted) return;
+          const relTitle = r.name || r.tag_name || 'Space Episode';
+          const assets: any[] = r.assets || [];
+          const metaClips = parsedMetaByTag.get(r.tag_name);
 
-                const baseName = fname.toLowerCase();
-                if (!seenFiles.has(baseName)) {
-                  seenFiles.add(baseName);
-                  const h = parseInt(match[1] || '0', 10);
-                  const m = parseInt(match[2] || '0', 10);
-                  const s = parseInt(match[3] || '0', 10);
-                  const startSec = h * 3600 + m * 60 + s;
-                  const title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
-                  // Route through Cloudflare R2 CDN instead of raw GitHub release URL
-                  const r2Base = 'https://pub-b492226ab4ed45d692e9f14794366106.r2.dev';
-                  const r2Url = `${r2Base}/${encodeURIComponent(fname)}`;
-                  combinedClips.push({
-                    title: title,
-                    category: 'Highlights',
-                    start_seconds: startSec,
-                    end_seconds: startSec + 60,
-                    duration: 60,
-                    speakers: ['Speaker'],
-                    viral_score: 9,
-                    reason: `${title} is a 60-second highlight beginning at ${formatSec(startSec)}.`,
-                    transcript_snippet: `${title} (${formatSec(startSec)}–${formatSec(startSec + 60)})`,
-                    episode: relTitle,
-                    file_path: r2Url,
-                    download_url: r2Url,
-                  });
+          if (metaClips) {
+            for (const mc of metaClips) {
+              const mcStart = Math.round(mc.start_seconds || 0);
+              const matchingMp3 = assets.find((a: any) => {
+                const aname = (a.name || '').toLowerCase();
+                if (!aname.includes('m') || !aname.includes('s')) return false;
+                const cBase = (mc.file_path || '').split(/[\\/]/).pop()?.toLowerCase() || '';
+                if (cBase && aname === cBase) return true;
+                const m = aname.match(/^(?:(\d+)h)?(\d+)m(\d+)s/);
+                if (m) {
+                  const h = parseInt(m[1] || '0', 10);
+                  const mi = parseInt(m[2] || '0', 10);
+                  const s = parseInt(m[3] || '0', 10);
+                  const aStart = h * 3600 + mi * 60 + s;
+                  return Math.abs(aStart - mcStart) <= 5;
                 }
+                return false;
+              });
+
+              const ghUrl = matchingMp3 ? matchingMp3.browser_download_url : (mc.file_path || '');
+              const cleanGhUrl = decodeURIComponent(ghUrl).replace(/\\/g, '/');
+              const fileName = cleanGhUrl.split('/').pop()?.split('?')[0]?.trim() || '';
+              const audioUrl = fileName && (fileName.toLowerCase().endsWith('.mp3') || fileName.toLowerCase().endsWith('.wav'))
+                ? `${r2Base}/${encodeURIComponent(fileName)}`
+                : ghUrl;
+
+              const matchFname = matchingMp3?.name.toLowerCase();
+              const bucketKey = `${(mc.title || '').toLowerCase()}::${Math.round(mcStart / 10)}`;
+              const existingIdx =
+                (matchFname ? indexByFilename.get(matchFname) : undefined) ??
+                indexByTitleBucket.get(bucketKey);
+
+              if (existingIdx !== undefined) {
+                combinedClips[existingIdx] = {
+                  ...combinedClips[existingIdx],
+                  ...mc,
+                  viral_score: normalizeViralScore(mc.viral_score ?? combinedClips[existingIdx].viral_score),
+                  speakers: normalizeClipSpeakers(mc.speakers ?? combinedClips[existingIdx].speakers),
+                  category: normalizeCategory(mc.category || combinedClips[existingIdx].category),
+                  episode: mc.episode || relTitle,
+                  file_path: combinedClips[existingIdx].file_path?.startsWith(r2Base)
+                    ? combinedClips[existingIdx].file_path
+                    : (audioUrl || combinedClips[existingIdx].file_path),
+                  download_url: combinedClips[existingIdx].download_url?.startsWith(r2Base)
+                    ? combinedClips[existingIdx].download_url
+                    : (audioUrl || combinedClips[existingIdx].download_url),
+                };
+              } else {
+                const nextClip: ClipItem = {
+                  ...mc,
+                  viral_score: normalizeViralScore(mc.viral_score),
+                  speakers: normalizeClipSpeakers(mc.speakers),
+                  category: normalizeCategory(mc.category),
+                  episode: mc.episode || relTitle,
+                  file_path: audioUrl,
+                  download_url: audioUrl,
+                };
+                const idx = combinedClips.length;
+                combinedClips.push(nextClip);
+                registerIndex(nextClip, idx);
+              }
+
+              if (matchingMp3) seenFiles.add(matchingMp3.name.toLowerCase());
+            }
+          }
+
+          // Standalone clip MP3s
+          for (const a of assets) {
+            const fname: string = a.name || '';
+            if (fname.endsWith('.mp3')) {
+              const stem = fname.replace(/\.mp3$/, '');
+              const match = stem.match(/^(?:(\d+)h)?(\d+)m(\d+)s_(.*)$/);
+              if (!match) continue;
+
+              const baseName = fname.toLowerCase();
+              if (!seenFiles.has(baseName)) {
+                seenFiles.add(baseName);
+                const h = parseInt(match[1] || '0', 10);
+                const m = parseInt(match[2] || '0', 10);
+                const s = parseInt(match[3] || '0', 10);
+                const startSec = h * 3600 + m * 60 + s;
+                const title = match[4].replace(/_/g, ' ').replace(/\./g, "'").trim();
+                const r2Url = `${r2Base}/${encodeURIComponent(fname)}`;
+                const standalone: ClipItem = {
+                  title,
+                  category: 'Highlights',
+                  start_seconds: startSec,
+                  end_seconds: startSec + 60,
+                  duration: 60,
+                  speakers: ['Speaker'],
+                  viral_score: 9,
+                  reason: `${title} is a 60-second highlight beginning at ${formatSec(startSec)}.`,
+                  transcript_snippet: `${title} (${formatSec(startSec)}–${formatSec(startSec + 60)})`,
+                  episode: relTitle,
+                  file_path: r2Url,
+                  download_url: r2Url,
+                };
+                const idx = combinedClips.length;
+                combinedClips.push(standalone);
+                registerIndex(standalone, idx);
               }
             }
           }
         }
       } catch (err) {
+        if ((err as any)?.name === 'AbortError') return;
         console.warn('Could not fetch live GitHub release clips:', err);
       }
 
-      // Older standalone MP3 records used the release title as a placeholder for
-      // both the explanation and quote. Ground those records in the clip title,
-      // then replace the fallback with the transcript turns in the clip window.
+      if (signal?.aborted) return;
+
       const placeholderClips = combinedClips.filter(hasPlaceholderClipMetadata);
       let displayClips = combinedClips.map(clip => enrichPlaceholderClipMetadata(clip));
       if (placeholderClips.length) {
@@ -503,13 +509,22 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
               .map(clip => resolveClipReleaseTag(clip, summaries))
               .filter(Boolean)
           ));
-          const segmentEntries = await Promise.all(releaseTags.map(async tag => {
-            try {
-              return [tag, await getEpisodeSegments(tag, owner, repo)] as const;
-            } catch {
-              return [tag, [] as SearchIndexSegment[]] as const;
-            }
-          }));
+          const segmentEntries: Array<readonly [string, SearchIndexSegment[]]> = [];
+          const SEG_CONCURRENCY = 6;
+          for (let i = 0; i < releaseTags.length; i += SEG_CONCURRENCY) {
+            if (signal?.aborted) return;
+            const chunk = releaseTags.slice(i, i + SEG_CONCURRENCY);
+            const resolved = await Promise.all(
+              chunk.map(async tag => {
+                try {
+                  return [tag, await getEpisodeSegments(tag, owner, repo)] as const;
+                } catch {
+                  return [tag, [] as SearchIndexSegment[]] as const;
+                }
+              })
+            );
+            segmentEntries.push(...resolved);
+          }
           const segmentsByTag = new Map(segmentEntries);
           displayClips = displayClips.map((clip, index) => {
             const sourceClip = combinedClips[index];
@@ -522,23 +537,25 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         }
       }
 
+      if (signal?.aborted) return;
       setClips(annotateJunkSuspects(displayClips));
-      // Auto expand only the first 2 episodes initially to prevent browser OOM from 25,000+ DOM nodes
       const initialExpanded: Record<string, boolean> = {};
       const distinctEps = Array.from(new Set(displayClips.map(c => c.episode).filter(Boolean)));
       if (distinctEps[0]) initialExpanded[distinctEps[0]] = true;
       if (distinctEps[1]) initialExpanded[distinctEps[1]] = true;
       setExpandedEpisodes(initialExpanded);
-    } catch {
-      setClips([]);
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') setClips([]);
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadClips();
-  }, []);
+    const controller = new AbortController();
+    loadClips(controller.signal);
+    return () => controller.abort();
+  }, [owner, repo]);
 
   // Filter Categories & Counts
   const categoryCounts = useMemo(() => {
@@ -578,25 +595,34 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
       .map(([name, { count }]) => ({ name, count }));
   }, [clips]);
 
-  // Unique Speakers list
-  const speakerList = useMemo(() => {
+  // Memoized speaker counts and junk suspect count (avoids O(speakers * clips) work on 4Hz audio ticks)
+  const { speakerList, speakerOptions, junkSuspectCount } = useMemo(() => {
     const displayName = (speaker: string) => {
       const canonical = canonicalizeSpeakerName(speaker);
       return (/^[A-Za-z]$/.test(canonical) || /^speaker[_ ]\d+$/i.test(canonical) ? 'Unverified / unmapped' : canonical);
     };
-    const spkSet = new Set<string>();
+    const counts = new Map<string, number>();
+    let junkCount = 0;
     clips.forEach(c => {
+      if (c.junk_suspect) junkCount++;
+      const clipSpeakers = new Set<string>();
       (c.speakers || []).forEach(s => {
         const tokens = String(s ?? '').split(/[,;&|/]+/);
         tokens.forEach(tok => {
           const norm = canonicalizeSpeakerName(tok);
           if (norm && norm !== 'Speaker') {
-            spkSet.add(displayName(norm));
+            clipSpeakers.add(displayName(norm));
           }
         });
       });
+      clipSpeakers.forEach(sp => counts.set(sp, (counts.get(sp) || 0) + 1));
     });
-    return Array.from(spkSet).sort((a, b) => a.localeCompare(b));
+    const list = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b));
+    return {
+      speakerList: list,
+      speakerOptions: list.map(name => ({ name, count: counts.get(name) || 0 })),
+      junkSuspectCount: junkCount,
+    };
   }, [clips]);
 
   // Filtered and Sorted Clips
@@ -863,7 +889,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
             <span>{copiedRss ? 'Copied clips.xml URL!' : 'Clips RSS Feed (YouTube)'}</span>
           </button>
           <button
-            onClick={loadClips}
+            onClick={() => void loadClips()}
             disabled={loading}
             className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium rounded-lg transition-all cursor-pointer shadow-sm"
             title="Refresh clip library from GitHub Releases"
@@ -889,19 +915,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         episodes={episodeList.map(e => e.name)}
         selectedEpisode={selectedEpisode}
         setSelectedEpisode={setSelectedEpisode}
-        speakers={speakerList.map(spk => ({
-          name: spk,
-          count: clips.filter(c => c.speakers?.some(s => {
-            const tokens = String(s ?? '').split(/[,;&|/]+/);
-            return tokens.some(tok => {
-              const canonical = canonicalizeSpeakerName(tok);
-              const mapped = /^[A-Za-z]$/.test(canonical) || /^speaker[_ ]\d+$/i.test(canonical)
-                ? 'Unverified / unmapped'
-                : canonical;
-              return mapped === spk;
-            });
-          })).length
-        }))}
+        speakers={speakerOptions}
         selectedSpeaker={selectedSpeaker}
         setSelectedSpeaker={setSelectedSpeaker}
         onlyTopRated={onlyTopRated}
@@ -922,7 +936,7 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
           {selectedEpisode !== 'ALL' && ` in "${formatEpisodeTitle(selectedEpisode)}"`}
           {selectedCategory !== 'ALL' && ` • ${selectedCategory}`}
         </span>
-        <span className="text-amber-300" title="Reviewable only; suspected clips remain searchable">Junk suspects: {clips.filter(c => c.junk_suspect).length}</span>
+        <span className="text-amber-300" title="Reviewable only; suspected clips remain searchable">Junk suspects: {junkSuspectCount}</span>
         {activeClip && (
           <span className="flex items-center gap-1.5 text-indigo-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
@@ -1266,9 +1280,9 @@ export const ClipsPanel: React.FC<ClipsPanelProps> = ({ config }) => {
         </div>
       )}
 
-      {/* PERSISTENT PRO AUDIO DOCK (Sticky at bottom when any clip is active) */}
+      {/* PERSISTENT PRO AUDIO DOCK (Docked inside layout above global bottom overlays) */}
       {activeClip && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-5xl mx-auto z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="sticky bottom-4 max-w-5xl mx-auto z-30 animate-in fade-in slide-in-from-bottom-5 duration-300">
           <div className="p-3.5 sm:p-4 bg-slate-950/95 border border-indigo-500/40 rounded-xl shadow-2xl shadow-black/80 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4">
             {/* Left: Info & Soundwave */}
             <div className="flex items-center gap-3 min-w-0 w-full md:w-auto">

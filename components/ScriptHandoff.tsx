@@ -10,6 +10,7 @@ import { Check, CircleSlash, Download, Loader2, Plus, Upload } from 'lucide-reac
 import { scriptApi, type HandoffView } from '../utils/scriptClient';
 import type { HandoffKind } from '../server/scriptHandoff';
 import type { BlockDiff } from '../utils/scriptGates';
+import { appDialog } from '../contexts/DialogContext';
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 const btn = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border transition-colors disabled:opacity-40 disabled:cursor-not-allowed';
@@ -87,7 +88,7 @@ export function HandoffPanel({ projectId, headVersionId, sourceTags, act, dirty,
                     {view && !view.loganDecision && (
                       <div className="flex gap-1">
                         <button className={btnPrimary} disabled={dirty} onClick={() => void run('Accepting', () => scriptApi.decide(projectId, c.versionId!, 'accept'))}><Check size={12} /> Accept</button>
-                        <button className={btnGhost} onClick={() => { const reason = window.prompt('Why reject it? (saved to editorial memory, optional)') ?? ''; void run('Rejecting', () => scriptApi.decide(projectId, c.versionId!, 'reject', reason)); }}><CircleSlash size={12} /> Reject</button>
+                        <button className={btnGhost} onClick={async () => { const reason = (await appDialog.prompt({ title: 'Reject Candidate', message: 'Why reject it? (saved to editorial memory, optional)' })) ?? ''; void run('Rejecting', () => scriptApi.decide(projectId, c.versionId!, 'reject', reason)); }}><CircleSlash size={12} /> Reject</button>
                       </div>
                     )}
                   </div>

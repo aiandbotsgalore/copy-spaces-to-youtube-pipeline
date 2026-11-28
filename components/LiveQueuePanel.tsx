@@ -79,15 +79,18 @@ const LiveQueuePanel: React.FC<Props> = ({ config }) => {
   const loading = status === 'loading';
 
   useEffect(() => {
-    if (hasCredentials && !loaded && status === 'idle') fetchQueue();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasCredentials]);
+    setLoaded(false);
+    setUrls([]);
+    if (hasCredentials) {
+      fetchQueue();
+    }
+  }, [hasCredentials, config.ownerName, config.repoName, config.githubToken, fetchQueue]);
 
   return (
     <div
       data-component="live-queue-panel"
       data-state={status}
-      className="h-full overflow-y-auto p-6 md:p-12 max-w-3xl mx-auto w-full"
+      className="h-full overflow-y-auto p-6 md:p-12 pb-24 max-w-3xl mx-auto w-full"
     >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>

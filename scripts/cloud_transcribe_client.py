@@ -366,23 +366,69 @@ def call_zerogpu_space(
     return result
 
 
-def fetch_release_audio_url(repo: str, tag: str, token: Optional[str] = None) -> Optional[str]:
-    """Finds the primary audio download URL for a release tag."""
+def fetch_release_details(repo: str, tag: str, token: Optional[str] = None) -> Dict[str, Any]:
+    """Finds primary audio download URL and release metadata for a release tag."""
+    import re
     url = f"https://api.github.com/repos/{repo}/releases/tags/{tag}"
     headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "SpacePipe-ZeroGPUClient"}
     if token:
         headers["Authorization"] = f"token {token}"
     req = urllib.request.Request(url, headers=headers)
+    details: Dict[str, Any] = {}
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
+            details["release_id"] = data.get("id")
+            details["title"] = data.get("name") or tag
+            details["published_at"] = data.get("published_at") or data.get("created_at")
+            body = data.get("body") or ""
+            details["body"] = body
+            m_host = re.search(r"METADATA::HOST::@?([A-Za-z0-9_.\-]+)", body)
+            if m_host:
+                details["host_handle"] = m_host.group(1)
+            m_date = re.search(r"METADATA::EPISODE_DATE::(\d{8})", body)
+            if m_date:
+                d = m_date.group(1)
+                details["episode_date"] = f"{d[:4]}-{d[4:6]}-{d[6:8]}"
             for asset in data.get("assets", []):
                 name = asset.get("name", "").lower()
                 if name.endswith(".mp3") or name.endswith(".m4a") or name.endswith(".wav"):
-                    return asset.get("browser_download_url")
+                    details["audio_url"] = asset.get("browser_download_url")
+                    break
     except Exception as e:
         print(f"[Warning] Could not fetch release info for {tag}: {e}")
-    return None
+    return details
+
+
+def fetch_release_audio_url(repo: str, tag: str, token: Optional[str] = None) -> Optional[str]:
+    """Finds the primary audio download URL for a release tag."""
+    return fetch_release_details(repo, tag, token).get("audio_url")
+
+
+def load_verified_voice_profiles() -> Dict[str, Any]:
+    """Loads verified 192-dim ECAPA-TDNN voice profiles from voice_profiles.json."""
+    for candidate in (
+        Path("voice_profiles.json"),
+        Path(__file__).resolve().parent.parent / "voice_profiles.json",
+        Path("public/voice_profiles.json"),
+    ):
+        if candidate.exists():
+            try:
+                raw = json.loads(candidate.read_text(encoding="utf-8"))
+                profiles = raw.get("profiles", {}) if isinstance(raw, dict) else {}
+                return {
+                    name: p
+                    for name, p in profiles.items()
+                    if isinstance(p, dict)
+                    and p.get("identity_verified") is True
+                    and p.get("suggestions_paused") is not True
+                    and p.get("embedding_model") == "speechbrain/spkrec-ecapa-voxceleb"
+                    and isinstance(p.get("embedding"), list)
+                    and len(p["embedding"]) == 192
+                }
+            except Exception as e:
+                print(f"[Warning] Could not parse {candidate}: {e}")
+    return {}
 
 
 def main():
@@ -399,16 +445,17 @@ def main():
     args = parser.parse_args()
 
     token = args.gh_token or os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
-    audio_url = args.audio_url
-    if not audio_url and args.release_tag:
-        audio_url = fetch_release_audio_url(args.repo, args.release_tag, token)
+    rel_details: Dict[str, Any] = {}
+    if args.release_tag:
+        rel_details = fetch_release_details(args.repo, args.release_tag, token)
+    audio_url = args.audio_url or rel_details.get("audio_url")
 
     if not audio_url:
         print("[Error] No audio URL provided or found on release.")
         sys.exit(1)
 
     tag = args.release_tag or "custom_transcription"
-    title = args.title or tag
+    title = args.title or rel_details.get("title") or tag
 
     print(f"[*] Calling ZeroGPU Space endpoint for {tag} ({audio_url})...")
     res = call_zerogpu_space(
@@ -423,7 +470,49 @@ def main():
 
     segments = res.get("segments", [])
     turns = res.get("turns", [])
+
+    # Resolve generic speaker labels ("Speaker 1", "Speaker 2", ...) against verified voiceprints
+    has_generic_speakers = any(
+        str(s.get("speaker", "")).strip().lower().startswith("speaker")
+        for s in segments
+    )
+    enrolled_profiles = load_verified_voice_profiles()
+    if segments and has_generic_speakers and enrolled_profiles:
+        print(f"[*] Matching diarized clusters against {len(enrolled_profiles)} verified voice profile(s) via /rediarize...")
+        try:
+            redi = call_zerogpu_space(
+                action="rediarize",
+                audio_url=audio_url,
+                existing_segments=segments,
+                enrolled_profiles=enrolled_profiles,
+                endpoint=args.endpoint,
+            )
+            if isinstance(redi, dict) and not redi.get("error") and redi.get("segments"):
+                segments = redi["segments"]
+                turns = redi.get("turns") or turns
+                matched = redi.get("matched_speakers") or {}
+                print(f"[✓] Biometric speaker matching resolved: {matched or 'no confident matches'}")
+            elif isinstance(redi, dict) and redi.get("error"):
+                print(f"[Warning] Biometric speaker resolution skipped: {redi['error']}")
+        except Exception as e:
+            print(f"[Warning] Biometric speaker resolution skipped: {e}")
+
     artifacts = sync_to_local_transcripts(tag, title, segments, turns, audio_url)
+    # Enrich transcripts_summary_index.json with release metadata if available
+    if rel_details:
+        summary_path = Path("public/transcripts/transcripts_summary_index.json")
+        entry = build_summary_entry(
+            tag,
+            title,
+            audio_url,
+            segments,
+            release_id=rel_details.get("release_id") or 0,
+            published_at=rel_details.get("published_at"),
+            episode_date=rel_details.get("episode_date"),
+            host_handle=rel_details.get("host_handle"),
+            body=rel_details.get("body"),
+        )
+        atomic_update_summary_index(str(summary_path), entry)
     print(f"[✓] Transcribed {len(segments)} segments. Synced to {artifacts['json']}")
 
     if not args.no_upload and args.release_tag:

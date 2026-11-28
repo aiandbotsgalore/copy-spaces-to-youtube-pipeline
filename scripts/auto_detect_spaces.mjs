@@ -16,22 +16,40 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import os from 'os';
 import path from 'path';
 
-const DEFAULT_MONITORED_HANDLES = [
-  'AngelaMaggard3',
-  'txrrxstrxxl',
-  'LoganBlack',
-  'TurtleOfTime12',
-  'UFOkimball',
-  'Gabe_Trust',
-  'Kaalos_',
-  'shdw_nxs',
-  'DecipheringTV',
-  'RedPandaKoala',
-  'tupacabra',
-  'GodSawUs',
-  'StopTehMadness',
-  'YOIMSTEVE_'
-].join(',');
+function loadDefaultHandles() {
+  const cfgPath = path.resolve('config/watched_hosts.json');
+  if (existsSync(cfgPath)) {
+    try {
+      const parsed = JSON.parse(readFileSync(cfgPath, 'utf-8'));
+      const list = Array.isArray(parsed) ? parsed : (parsed.handles || []);
+      if (Array.isArray(list) && list.length > 0) {
+        return list.map(h => String(h).trim().replace(/^@/, '')).filter(Boolean).join(',');
+      }
+    } catch (e) {
+      console.warn(`⚠️  Could not read ${cfgPath}: ${e.message}`);
+    }
+  }
+  return [
+    'AngelaMaggard3',
+    'txrrxstrxxl',
+    'LoganBlack',
+    'TurtleOfTime12',
+    'UFOkimball',
+    'Gabe_Trust',
+    'Kaalos_',
+    'shdw_nxs',
+    'DecipheringTV',
+    'RedPandaKoala',
+    'tupacabra',
+    'GodSawUs',
+    'StopTehMadness',
+    'YOIMSTEVE_',
+    'erichecker',
+    'rickdoty'
+  ].join(',');
+}
+
+const DEFAULT_MONITORED_HANDLES = loadDefaultHandles();
 
 const RAW_HANDLES = process.env.X_HANDLES || process.env.X_HANDLE || process.env.INPUT_X_HANDLE || DEFAULT_MONITORED_HANDLES;
 const HANDLES = RAW_HANDLES.split(',').map(h => h.trim().replace(/^@/, '')).filter(Boolean);
@@ -81,11 +99,22 @@ console.log(`   Scanning last ${TWEET_LIMIT} tweets per handle...`);
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fetchTweetsForHandle(handle) {
-  let tweets = [];
+  const byKey = new Map();
   let timelineFailed = false;
+  let searchSucceeded = false;
+
+  const mergeTweets = (list) => {
+    if (!Array.isArray(list)) return;
+    for (const t of list) {
+      if (!t || typeof t !== 'object') continue;
+      const key = t.id || t.permanentUrl || `${t.timeParsed || t.createdAt || ''}:${(t.text || '').slice(0, 60)}`;
+      if (!byKey.has(key)) byKey.set(key, t);
+    }
+  };
+
   try {
     const rawOutput = execSync(
-      `npx -y xactions tweets ${handle} --limit ${TWEET_LIMIT} --json`,
+      `npx -y xactions tweets ${handle} --replies --limit ${TWEET_LIMIT} --json`,
       {
         encoding: 'utf-8',
         timeout: 60000,
@@ -94,26 +123,20 @@ function fetchTweetsForHandle(handle) {
     );
     const jsonStart = rawOutput.indexOf('[');
     if (jsonStart !== -1) {
-      tweets = JSON.parse(rawOutput.slice(jsonStart));
-      console.log(`   @${handle}: fetched ${tweets.length} tweets from user timeline`);
+      const parsed = JSON.parse(rawOutput.slice(jsonStart));
+      mergeTweets(parsed);
+      console.log(`   @${handle}: fetched ${parsed.length} tweets from user timeline`);
     }
   } catch (err) {
     timelineFailed = true;
     console.warn(`⚠️  @${handle}: xactions tweets timeline fetch failed — ${err.message}`);
   }
 
-  // If authenticated and no recent tweets found (or all tweets are ancient/pinned), try search as fallback
-  const twoWeeksAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
-  const hasRecentTweets = Array.isArray(tweets) && tweets.some(t => {
-    const parsed = new Date(t.timeParsed || t.createdAt || 0).getTime();
-    return !isNaN(parsed) && parsed > twoWeeksAgo;
-  });
-
-  if (authToken && (!tweets || tweets.length === 0 || !hasRecentTweets)) {
+  // Always check authenticated search as well so pinned/stale timeline responses never hide recent Space tweets
+  if (authToken) {
     try {
-      console.log(`   @${handle}: attempting authenticated search fallback (timeline had ${tweets.length} tweets, recent=${hasRecentTweets})...`);
       const searchOutput = execSync(
-        `npx -y xactions search "from:${handle} (spaces OR space OR t.co)" --filter latest --limit ${TWEET_LIMIT} --json`,
+        `npx -y xactions search "from:${handle} (x.com/i/spaces OR twitter.com/i/spaces OR spaces OR space)" --filter latest --limit ${TWEET_LIMIT} --json`,
         {
           encoding: 'utf-8',
           timeout: 60000,
@@ -123,57 +146,60 @@ function fetchTweetsForHandle(handle) {
       const sStart = searchOutput.indexOf('[');
       if (sStart !== -1) {
         const searchTweets = JSON.parse(searchOutput.slice(sStart));
-        console.log(`   @${handle}: fetched ${searchTweets.length} tweets via search`);
-        return searchTweets;
+        searchSucceeded = true;
+        mergeTweets(searchTweets);
+        console.log(`   @${handle}: fetched ${searchTweets.length} tweets via latest search`);
       }
     } catch (sErr) {
-      console.warn(`⚠️  @${handle}: xactions search fallback failed — ${sErr.message}`);
+      console.warn(`⚠️  @${handle}: xactions search failed — ${sErr.message}`);
     }
   }
 
-  if (timelineFailed) {
+  if (timelineFailed && !searchSucceeded && byKey.size === 0) {
     console.error(`❌ @${handle}: no usable timeline or authenticated search response; marking scan as failed`);
     return null;
   }
 
-  return tweets;
+  return Array.from(byKey.values());
 }
 
 function extractSpaceIds(tweets, handle) {
   const discoveredSpaces = new Map();
-  const spaceRegex = /spaces\/([a-zA-Z0-9]{13})/g;
+  // Match full 13–16 character X Space IDs without truncating 14-char IDs
+  const spaceRegex = /(?:https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/i\/)?spaces\/([a-zA-Z0-9]{13,16})(?![a-zA-Z0-9])/gi;
+
+  const recordMatch = (id, tweet, text) => {
+    if (!id || discoveredSpaces.has(id)) return;
+    discoveredSpaces.set(id, {
+      spaceId: id,
+      url: `https://x.com/i/spaces/${id}`,
+      tweetUrl: tweet.permanentUrl || '',
+      tweetText: text || tweet.text || '',
+      createdAt: tweet.timeParsed || tweet.createdAt || '',
+      foundVia: handle,
+    });
+  };
 
   for (const tweet of tweets) {
-    const urls = tweet.urls || [];
-    for (const url of urls) {
-      const match = url.match(/spaces\/([a-zA-Z0-9]{13})/);
-      if (match) {
-        const id = match[1];
-        if (!discoveredSpaces.has(id)) {
-          discoveredSpaces.set(id, {
-            spaceId: id,
-            url: `https://x.com/i/spaces/${id}`,
-            tweetUrl: tweet.permanentUrl || '',
-            tweetText: tweet.text || '',
-            createdAt: tweet.timeParsed || '',
-            foundVia: handle,
-          });
-        }
-      }
+    const candidates = [];
+    if (Array.isArray(tweet.urls)) candidates.push(...tweet.urls);
+    const bodyText = tweet.fullText || tweet.text || '';
+    if (bodyText) candidates.push(bodyText);
+    if (tweet.card && typeof tweet.card === 'object') candidates.push(JSON.stringify(tweet.card));
+    if (tweet.quotedTweet && typeof tweet.quotedTweet === 'object') {
+      if (Array.isArray(tweet.quotedTweet.urls)) candidates.push(...tweet.quotedTweet.urls);
+      if (tweet.quotedTweet.fullText || tweet.quotedTweet.text) candidates.push(tweet.quotedTweet.fullText || tweet.quotedTweet.text);
+    }
+    if (tweet.retweetedTweet && typeof tweet.retweetedTweet === 'object') {
+      if (Array.isArray(tweet.retweetedTweet.urls)) candidates.push(...tweet.retweetedTweet.urls);
+      if (tweet.retweetedTweet.fullText || tweet.retweetedTweet.text) candidates.push(tweet.retweetedTweet.fullText || tweet.retweetedTweet.text);
     }
 
-    const text = tweet.fullText || tweet.text || '';
-    for (const match of text.matchAll(spaceRegex)) {
-      const id = match[1];
-      if (!discoveredSpaces.has(id)) {
-        discoveredSpaces.set(id, {
-          spaceId: id,
-          url: `https://x.com/i/spaces/${id}`,
-          tweetUrl: tweet.permanentUrl || '',
-          tweetText: text,
-          createdAt: tweet.timeParsed || '',
-          foundVia: handle,
-        });
+    for (const raw of candidates) {
+      if (typeof raw !== 'string' || !raw) continue;
+      spaceRegex.lastIndex = 0;
+      for (const match of raw.matchAll(spaceRegex)) {
+        recordMatch(match[1], tweet, bodyText);
       }
     }
   }
@@ -182,7 +208,7 @@ function extractSpaceIds(tweets, handle) {
 
 function getExistingReleases() {
   try {
-    return execSync('gh release list --limit 1000', {
+    return execSync('gh release list --limit 2000', {
       encoding: 'utf-8',
       env: { ...process.env, GITHUB_TOKEN }
     });
@@ -296,8 +322,12 @@ async function run() {
     'tupacabra',
     'godsawus',
     'stoptehmadness',
-    'yoimsteve_'
+    'yoimsteve_',
+    ...HANDLES.map(h => h.toLowerCase())
   ]);
+
+  const ytDlpPluginDir = path.resolve('scripts/ytdlp_plugins');
+  const ytDlpPluginArgs = existsSync(ytDlpPluginDir) ? `--plugin-dirs "${ytDlpPluginDir}"` : '';
 
   for (const space of newSpaces) {
     console.log(`\n🔎 Checking availability & broadcast status: ${space.url}`);
@@ -310,7 +340,7 @@ async function run() {
 
     try {
       const output = execSync(
-        `yt-dlp ${ytDlpCookiesArgs} --print "%(live_status)s|||%(uploader_id)s|||%(uploader)s|||%(title)s|||%(description)s" --no-warnings "${space.url}"`,
+        `yt-dlp ${ytDlpPluginArgs} ${ytDlpCookiesArgs} --print "%(live_status)s|||%(uploader_id)s|||%(uploader)s|||%(title)s|||%(description)s" --no-warnings "${space.url}"`,
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 25000,
@@ -325,10 +355,12 @@ async function run() {
       uploader = parts[2] || '';
       title = parts[3] || '';
       description = parts[4] || '';
-    } catch {
+    } catch (probeErr) {
       isAvailable = false;
       unavailableSpaces.push(space);
-      console.log(`   ⚠️ Space ${space.spaceId} replay is unavailable or expired — skipping`);
+      const errText = (probeErr.stderr || probeErr.stdout || probeErr.message || '').toString().trim();
+      const firstLine = errText.split('\n').map(l => l.trim()).filter(Boolean)[0] || 'replay unavailable or expired';
+      console.log(`   ⚠️ Space ${space.spaceId} probe failed (${firstLine}) — skipping`);
     }
 
     if (isAvailable) {

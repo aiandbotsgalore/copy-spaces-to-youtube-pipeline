@@ -57,6 +57,9 @@ import { toSliceableUrl } from '../utils/audioUrl';
 import { SORT_MAX_CLIPS, SORT_MIN_CLIPS, applySortOrder, buildSortItems, orderChangesTimeline } from '../utils/aiSort';
 import { callSortClips } from '../utils/directorClient';
 import type { CanonicalClip as RawCatalogClip, ManifestClip as RawManifestClip } from '../types';
+import { fetchJsonCandidates } from '../utils/safeFetch';
+import { buildClipsCatalogCandidates } from '../hooks/useClipsCatalog';
+import { appDialog } from '../contexts/DialogContext';
 
 interface AuditCueItem {
   cue_id: string;
@@ -204,6 +207,20 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [failedAudioUrls, setFailedAudioUrls] = useState<Record<string, boolean>>({});
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const soloTimeUpdateRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      const audio = previewAudioRef.current;
+      if (audio) {
+        if (soloTimeUpdateRef.current) {
+          audio.removeEventListener('timeupdate', soloTimeUpdateRef.current);
+          soloTimeUpdateRef.current = null;
+        }
+        audio.pause();
+      }
+    };
+  }, []);
 
   // Drag and drop state for timeline reordering
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
@@ -212,6 +229,10 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   // Load clips dynamically from clips_catalog.json, manifest.json, and cue_sheet_audit_results.json
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
+    const owner = (config?.ownerName || '').trim();
+    const repo = (config?.repoName || '').trim();
+
     const fetchAllClips = async () => {
       setLoadingClips(true);
       const combined: MontageClipItem[] = [];
@@ -219,10 +240,16 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
 
       // 1. Fetch cue_sheet_audit_results.json if generated
       try {
-        const auditRes = await fetch('cue_sheet_audit_results.json');
-        if (auditRes.ok) {
-          const auditData: AuditCueItem[] = await auditRes.json();
-          auditData.forEach(item => {
+        const auditHit = await fetchJsonCandidates<AuditCueItem[]>(
+          [
+            'cue_sheet_audit_results.json',
+            '/cue_sheet_audit_results.json',
+            ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/cue_sheet_audit_results.json`] : []),
+          ],
+          { signal: controller.signal, validate: d => Array.isArray(d) }
+        );
+        if (auditHit?.data) {
+          auditHit.data.forEach(item => {
             const quoteText = item.verbatim || '';
             seenQuotes.add(quoteText.trim().toLowerCase());
             combined.push({
@@ -236,7 +263,6 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               audioUrl: item.audio_url || undefined,
               startSec: item.start_seconds || 0,
               endSec: item.end_seconds || (item.start_seconds ? item.start_seconds + (item.duration || 15) : 30),
-              // No real window in the audit file: the 0-30 default is a placeholder, resolved to the whole file once probed.
               windowPlaceholder: item.start_seconds == null && item.end_seconds == null,
               category: item.category,
               severity: item.category.includes('Allegation') ? 9 : 8,
@@ -246,16 +272,23 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             });
           });
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
         console.warn('Notice: cue_sheet_audit_results.json not yet generated or loaded:', err);
       }
 
-      // 2. Fetch local Angela clips manifest
+      // 2. Fetch local/raw Angela clips manifest
       try {
-        const manRes = await fetch('clips/angela/manifest.json');
-        if (manRes.ok) {
-          const manData: RawManifestClip[] = await manRes.json();
-          manData.forEach(m => {
+        const manHit = await fetchJsonCandidates<RawManifestClip[]>(
+          [
+            'clips/angela/manifest.json',
+            '/clips/angela/manifest.json',
+            ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/clips/angela/manifest.json`] : []),
+          ],
+          { signal: controller.signal, validate: d => Array.isArray(d) }
+        );
+        if (manHit?.data) {
+          manHit.data.forEach(m => {
             const quoteKey = (m.quote || m.title).trim().toLowerCase();
             if (!seenQuotes.has(quoteKey)) {
               seenQuotes.add(quoteKey);
@@ -284,16 +317,19 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             }
           });
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
         console.warn('Notice: clips/angela/manifest.json fetch skipped:', err);
       }
 
-      // 3. Fetch clips_catalog.json (Releases catalog)
+      // 3. Fetch clips_catalog.json (Releases catalog) with content-type validation
       try {
-        const catRes = await fetch(`clips/clips_catalog.json?t=${Date.now()}`, { cache: 'no-store' });
-        if (catRes.ok) {
-          const catData: RawCatalogClip[] = await catRes.json();
-          catData.forEach((c, idx) => {
+        const catHit = await fetchJsonCandidates<RawCatalogClip[]>(
+          buildClipsCatalogCandidates(owner, repo),
+          { cache: 'no-store', signal: controller.signal, validate: d => Array.isArray(d) }
+        );
+        if (catHit?.data) {
+          catHit.data.forEach((c, idx) => {
             const quoteKey = (c.transcript_snippet || c.title).trim().toLowerCase();
             if (!seenQuotes.has(quoteKey)) {
               seenQuotes.add(quoteKey);
@@ -317,11 +353,12 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
             }
           });
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
         console.warn('Notice: clips_catalog.json fetch skipped:', err);
       }
 
-      if (isMounted) {
+      if (isMounted && !controller.signal.aborted) {
         setAvailableClips(combined);
         setLoadingClips(false);
       }
@@ -330,8 +367,9 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     fetchAllClips();
     return () => {
       isMounted = false;
+      controller.abort();
     };
-  }, []);
+  }, [config?.ownerName, config?.repoName]);
 
   // Auto-reconcile timeline clips if newly extracted master audio assets became available
   useEffect(() => {
@@ -418,6 +456,16 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
   const isOverflow = cumulativeSec > targetDurationSec;
   const overflowSec = (cumulativeSec - targetDurationSec).toFixed(1);
 
+  const { timelineIdSet, timelineQuoteSet } = useMemo(() => {
+    const ids = new Set<string>();
+    const quotes = new Set<string>();
+    for (const c of timelineClips) {
+      ids.add(c.id);
+      if (c.quote) quotes.add(c.quote);
+    }
+    return { timelineIdSet: ids, timelineQuoteSet: quotes };
+  }, [timelineClips]);
+
   // Playback handler for solo clip auditioning in browser
   const playSoloPreview = async (rawClip: MontageClipItem) => {
     let clip = rawClip;
@@ -432,7 +480,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     }
 
     if (!clip.audioUrl) {
-      alert('Audio stream URL is not available for this excerpt.');
+      appDialog.toast('Audio stream URL is not available for this excerpt.', 'warning');
       return;
     }
 
@@ -441,6 +489,11 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
     }
 
     const audio = previewAudioRef.current;
+    if (soloTimeUpdateRef.current) {
+      audio.removeEventListener('timeupdate', soloTimeUpdateRef.current);
+      soloTimeUpdateRef.current = null;
+    }
+
     const playUrl = toSliceableUrl(clip.audioUrl, clip.startSec, clip.endSec, clip.sourceDurationSec);
     const isSliced = playUrl !== clip.audioUrl && playUrl.includes('/slice?');
     audio.src = playUrl;
@@ -459,9 +512,13 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
       if (clip.endSec > 0 && current >= clip.endSec) {
         audio.pause();
         audio.removeEventListener('timeupdate', handleTimeUpdate);
+        if (soloTimeUpdateRef.current === handleTimeUpdate) {
+          soloTimeUpdateRef.current = null;
+        }
         setIsPreviewPlaying(false);
       }
     };
+    soloTimeUpdateRef.current = handleTimeUpdate;
     audio.addEventListener('timeupdate', handleTimeUpdate);
 
     audio.onerror = () => {
@@ -884,7 +941,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           <div
             onDragOver={handleContainerDragOver}
             onDrop={handleContainerDrop}
-            className="flex-1 overflow-y-auto min-h-0 p-4 space-y-3"
+            className="flex-1 overflow-y-auto min-h-0 p-4 pb-24 space-y-3"
           >
             {timelineClips.length === 0 ? (
               <div
@@ -1094,7 +1151,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
           </div>
 
           {/* Cloud Clips Grid / List (Scrollable) */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+          <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3.5">
             {loadingClips ? (
               <div className="h-64 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-7 h-7 text-indigo-400 animate-spin mb-2" />
@@ -1109,7 +1166,7 @@ export const MontageStudio: React.FC<{ config?: EnhancedConfig }> = ({ config })
               filteredClips.map(clip => {
                 const isHardExcluded = clip.quote && clip.quote.toLowerCase().includes(HARD_EXCLUDE_PHRASE.toLowerCase());
                 const isExcluded = isHardExcluded || isBlacklisted(clip.quoteId || '') || isBlacklisted(clip.id) || isBlacklisted(clip.quote);
-                const isAlreadyInTimeline = timelineClips.some(c => c.id === clip.id || (clip.quote && c.quote === clip.quote));
+                const isAlreadyInTimeline = timelineIdSet.has(clip.id) || Boolean(clip.quote && timelineQuoteSet.has(clip.quote));
                 const isSoloPlaying = previewClipId === clip.id && isPreviewPlaying;
                 const hasFailed = failedAudioUrls[clip.id];
 

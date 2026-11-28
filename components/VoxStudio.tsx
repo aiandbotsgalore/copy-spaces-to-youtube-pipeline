@@ -10,33 +10,26 @@ import {
   AudioWaveform,
   Volume2,
   VolumeX,
-  Share2,
   RefreshCw,
   Layers,
-  ChevronDown,
   Check,
   Copy,
-  Flame,
   Radio,
   Clock,
   Film,
   Zap,
-  Cpu,
-  Globe,
-  Settings2,
-  User,
-  Music,
-  Maximize2,
   RotateCcw,
   Trash2,
   ExternalLink,
-  PlusCircle,
   FileText,
-  Upload
+  AlertTriangle,
+  Info
 } from 'lucide-react';
 import { EnhancedConfig } from '../types';
 import { getSpeakerTheme } from '../utils/transcriptData';
-import { useMontage } from '../contexts/MontageContext';
+import { useMontageClips } from '../contexts/MontageContext';
+import { fetchJsonCandidates } from '../utils/safeFetch';
+import { appDialog } from '../contexts/DialogContext';
 import { createMachine } from '../utils/stateMachine';
 
 export type VoxSynthesisState = 'idle' | 'synthesizing' | 'synthesized' | 'error';
@@ -47,184 +40,62 @@ interface Props {
 
 export interface VoiceClipItem {
   id: string;
+  filename: string;
   title: string;
   text: string;
   speaker: string;
-  presetName: string;
-  presetId: string;
-  presetIcon: string;
   duration: number;
   createdAt: string;
   audioUrl: string;
-  acousticSeed: string;
-  wpm: number;
-  temperature: number;
+  elapsedSec?: number;
+  format?: string;
+  sampleRate?: number;
+  timesteps?: number;
+  cfg?: number;
 }
 
-interface DeliveryPreset {
-  id: string;
+interface SpeakerReferenceStatus {
   name: string;
-  icon: string;
-  description: string;
-  wpm: number;
-  temperature: number;
-  diffusionSteps: number;
-  emotionBias: string;
+  exists: boolean;
+  filename: string | null;
+  format: string | null;
+  duration: number | null;
+  sampleRate: number | null;
+  audioUrl: string | null;
+  hasTranscript: boolean;
+  transcriptSample?: string;
 }
 
-const DELIVERY_PRESETS: DeliveryPreset[] = [
-  {
-    id: 'conversational',
-    name: 'Conversational Host',
-    icon: '🎙️',
-    description: 'Natural cadence, warm vocal resonance, relaxed breathing room.',
-    wpm: 155,
-    temperature: 0.7,
-    diffusionSteps: 30,
-    emotionBias: 'warm'
-  },
-  {
-    id: 'high-energy',
-    name: 'High-Energy Opener',
-    icon: '🔥',
-    description: 'Punchy consonants, elevated pitch, brisk 180 WPM podcast intro pace.',
-    wpm: 180,
-    temperature: 0.85,
-    diffusionSteps: 40,
-    emotionBias: 'excited'
-  },
-  {
-    id: 'investigative',
-    name: 'Investigative Narrator',
-    icon: '🕵️',
-    description: 'Deep baritone, deliberate pacing, dramatic pauses for evidentiary briefs.',
-    wpm: 135,
-    temperature: 0.65,
-    diffusionSteps: 45,
-    emotionBias: 'serious'
-  },
-  {
-    id: 'intimate',
-    name: 'Late-Night Intimate',
-    icon: '🌙',
-    description: 'Soft vocal proximity effect, gentle airiness, low room reverberation.',
-    wpm: 125,
-    temperature: 0.6,
-    diffusionSteps: 50,
-    emotionBias: 'whisper'
-  }
-];
-
-const EMOTION_CHIPS = [
-  { label: '[laughing]', color: 'text-amber-400 bg-amber-400/10 border-amber-400/30' },
-  { label: '[deep breath]', color: 'text-cyan-400 bg-cyan-400/10 border-cyan-400/30' },
-  { label: '[whisper]', color: 'text-violet-400 bg-violet-400/10 border-violet-400/30' },
-  { label: '[urgent]', color: 'text-rose-400 bg-rose-400/10 border-rose-400/30' },
-  { label: '[sarcastic]', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' },
-  { label: '[pause: 1.0s]', color: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/30' },
-  { label: '[emphasis]', color: 'text-orange-400 bg-orange-400/10 border-orange-400/30' }
-];
-
-const SAMPLE_SCRIPTS = [
-  {
-    title: 'Podcast Episode Cold Open',
-    text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record."
-  },
-  {
-    title: 'Dessa Architecture Speech',
-    text: "Ladies and gentlemen,\n\nThink about the last time you talked to a voice assistant. You spoke into your microphone, waited in silence while the machine turned your voice into letters, pushed those letters through a language model, drafted a written reply, and finally fired up a synthesizer to read it back to you. It was rigid. It was transactional. And most of all, it felt like using a walkie-talkie across an ocean.\n\nWhen we talk to each other, we don't pass transcripts back and forth. We breathe. We sigh. We laugh mid-sentence when someone catches us off guard. We drop an involuntary \"mm-hmm\" or \"got it\" while the other person is still speaking. For years, conversational AI threw all of that into the trash the moment it reduced sound into sterile text.\n\nThat is why dessa is turning heads."
-  },
-  {
-    title: 'Analytical Contradiction Recap',
-    text: "Here is what makes this juxtaposition undeniable. [pause: 1.0s] In February, the commitment was clear: accusations must be reserved for real harm, not egos. [sarcastic] Seven months later, that standard was completely discarded into what was termed the 'fuck it bucket'."
-  },
-  {
-    title: 'Late Night Space Sign-Off',
-    text: "Alright friends, that wraps up hour 14 of our broadcast. [whisper] Thank you to all the speakers, listeners, and everyone holding the line. Sleep well, stay safe, and we will catch you on the next stream."
-  }
-];
-
-const DEFAULT_GENERATED_CLIPS: VoiceClipItem[] = [
-  {
-    id: 'vox_dessa_master',
-    title: 'Dessa Architecture Speech (VoxCPM-2 Master Take)',
-    text: "Ladies and gentlemen, Think about the last time you talked to a voice assistant. You spoke into your microphone, waited in silence while the machine turned your voice into letters, pushed those letters through a language model, drafted a written reply, and finally fired up a synthesizer to read it back to you. It was rigid. It was transactional. And most of all, it felt like using a walkie-talkie across an ocean...",
-    speaker: 'Logan',
-    presetName: 'Conversational Host',
-    presetId: 'conversational',
-    presetIcon: '🎙️',
-    duration: 145.5,
-    createdAt: '12:52 PM',
-    audioUrl: '/output/vox/dessa_speech_logan.mp3',
-    acousticSeed: '#791046',
-    wpm: 155,
-    temperature: 0.7
-  },
-  {
-    id: 'vox_cold_open',
-    title: 'Podcast Episode Cold Open (Take 1)',
-    text: "Welcome back everyone. [deep breath] Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, [urgent] buckle up because we have receipts on the record.",
-    speaker: 'Logan',
-    presetName: 'Conversational Host',
-    presetId: 'conversational',
-    presetIcon: '🎙️',
-    duration: 8.0,
-    createdAt: '14:24 PM',
-    audioUrl: '/output/vox/take_1792963479397.mp3',
-    acousticSeed: '#849204',
-    wpm: 155,
-    temperature: 0.7
-  },
-  {
-    id: 'vox_take_zerogpu',
-    title: 'ZeroGPU Dedicated Endpoint Verification Take',
-    text: 'The dedicated ZeroGPU VoxCPM2 space is now fully wired into Vox Studio.',
-    speaker: 'Logan',
-    presetName: 'High-Energy Opener',
-    presetId: 'high-energy',
-    presetIcon: '🔥',
-    duration: 4.6,
-    createdAt: '12:18 PM',
-    audioUrl: '/output/vox/take_1792955879383.mp3',
-    acousticSeed: '#592014',
-    wpm: 180,
-    temperature: 0.85
-  },
-  {
-    id: 'vox_logan_001',
-    title: 'Prologue: Rules of Evidence (Kaggle VoxCPM2 Master)',
-    text: 'Okay. This is The Paper Trail.',
-    speaker: 'Logan',
-    presetName: 'Investigative Narrator',
-    presetId: 'investigative',
-    presetIcon: '🕵️',
-    duration: 2.4,
-    createdAt: '11:14 AM',
-    audioUrl: '/output/vox/LOGAN_001.mp3',
-    acousticSeed: '#942188',
-    wpm: 140,
-    temperature: 0.65
-  }
-];
+interface SpaceHealth {
+  status: 'running' | 'building' | 'sleeping' | 'offline' | 'not_deployed';
+  displayStatus: string;
+  spaceId: string;
+  hardware: string | null;
+  stage: string;
+  url: string;
+}
 
 export const VoxStudio: React.FC<Props> = ({ config }) => {
-  const montage = useMontage();
+  const montage = useMontageClips();
 
-  // Voice Profile Selection
+  // Voice Profile & Speaker Reference State
   const [selectedSpeaker, setSelectedSpeaker] = useState('Logan');
-  const [activePreset, setActivePreset] = useState<DeliveryPreset>(DELIVERY_PRESETS[0]);
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
+  const [speakerRefs, setSpeakerRefs] = useState<SpeakerReferenceStatus[]>([]);
 
   // Studio Script Editor State
-  const [scriptText, setScriptText] = useState(SAMPLE_SCRIPTS[0].text);
+  const [scriptText, setScriptText] = useState(
+    "Welcome back everyone. Tonight on X-Spaces, we are pulling the thread on the 2026 archive. If you haven't seen the documentary evidence released this afternoon, buckle up because we have receipts on the record."
+  );
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Fine-Tuning Parameter Controls
-  const [wpm, setWpm] = useState(155);
-  const [temperature, setTemperature] = useState(0.7);
-  const [diffusionSteps, setDiffusionSteps] = useState(30);
-  const [selectedLanguage, setSelectedLanguage] = useState('en-US');
-  const [crossLingualAccent, setCrossLingualAccent] = useState(85);
+  // Real Fine-Tuning Parameter Controls (Native VoxCPM parameters)
+  const [diffusionSteps, setDiffusionSteps] = useState(15); // inference_timesteps (10-30)
+  const [cfgValue, setCfgValue] = useState(2.0); // cfg_value (1.0-5.0)
+
+  // Cloud Space Live Health State
+  const [spaceHealth, setSpaceHealth] = useState<SpaceHealth | null>(null);
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
 
   // Audio Playback & Generation State
   const [synthesisState, setSynthesisState] = useState<VoxSynthesisState>('idle');
@@ -249,84 +120,141 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       {}
     )
   );
+
+  // Real Persisted Audio Takes Library
+  const [generatedClips, setGeneratedClips] = useState<VoiceClipItem[]>([]);
+  const [activeClip, setActiveClip] = useState<VoiceClipItem | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(145.5);
-  const [volume, setVolume] = useState(1.0);
-  const [isMuted, setIsMuted] = useState(false);
   const [playingClipId, setPlayingClipId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(0.9);
+  const [isMuted, setIsMuted] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState<number>(1.0);
   const [pendingAutoplayClip, setPendingAutoplayClip] = useState<VoiceClipItem | null>(null);
 
-  // Toast Notification state
+  // Toast System
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  // Generated Clips Collection (Session & LocalStorage)
-  const [generatedClips, setGeneratedClips] = useState<VoiceClipItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('voxcpm_generated_clips_v3');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return DEFAULT_GENERATED_CLIPS;
-  });
-
-  const [activeClip, setActiveClip] = useState<VoiceClipItem>(() => generatedClips[0] || DEFAULT_GENERATED_CLIPS[0]);
-
+  const toastTimeoutRef = useRef<any>(null);
   const [copiedStatus, setCopiedStatus] = useState(false);
 
-  // Dedicated HTML5 Audio Player Reference
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const stsInputRef = useRef<HTMLInputElement | null>(null);
-  const [stsFile, setStsFile] = useState<File | null>(null);
 
-  // Save generated clips to localStorage
-  useEffect(() => {
+  const showToast = (msg: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(msg);
+    toastTimeoutRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
+
+  // Fetch real Space health status
+  const fetchSpaceHealth = async () => {
+    setIsCheckingHealth(true);
     try {
-      localStorage.setItem('voxcpm_generated_clips_v3', JSON.stringify(generatedClips));
-    } catch {}
-  }, [generatedClips]);
-
-  // Mount: initialize audio element source
-  useEffect(() => {
-    if (audioRef.current && activeClip?.audioUrl) {
-      const resolvedUrl = new URL(activeClip.audioUrl, window.location.origin).href;
-      if (audioRef.current.src !== resolvedUrl) {
-        audioRef.current.src = activeClip.audioUrl;
-        audioRef.current.load();
+      const res = await fetch('/api/vox/health');
+      if (res.ok) {
+        const data = await res.json();
+        setSpaceHealth(data);
       }
+    } catch {
+      setSpaceHealth(null);
+    } finally {
+      setIsCheckingHealth(false);
     }
-  }, []);
+  };
 
-  // Load available voice profiles
-  useEffect(() => {
-    fetch('/voice_profiles.json')
-      .then(res => (res.ok ? res.json() : null))
-      .then(data => {
-        if (data && data.profiles) {
-          const list = Object.entries(data.profiles).map(([name, prof]: [string, any]) => ({
-            name,
-            sampleCount: prof.sample_count || 1,
-            lastUpdated: prof.last_updated,
-            embeddingDim: prof.embedding?.length || 192
+  // Fetch real persisted takes from disk
+  const fetchPersistedTakes = async () => {
+    try {
+      const res = await fetch('/api/vox/takes');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.takes)) {
+          const formatted: VoiceClipItem[] = data.takes.map((t: any) => ({
+            id: t.id,
+            filename: t.filename,
+            title: t.prompt ? t.prompt.slice(0, 42) + '...' : t.filename,
+            text: t.prompt || '',
+            speaker: t.speaker || 'Logan',
+            duration: Number(t.duration) || 0,
+            createdAt: t.createdAtFormatted || new Date(t.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+            audioUrl: t.audioUrl,
+            elapsedSec: t.elapsedSec,
+            format: t.format,
+            sampleRate: t.sampleRate,
+            timesteps: t.timesteps,
+            cfg: t.cfg,
           }));
-          setVoiceProfiles(list);
+          setGeneratedClips(formatted);
+          if (formatted.length > 0 && !activeClip) {
+            setActiveClip(formatted[0]);
+            setDuration(formatted[0].duration);
+          }
         }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch takes:', err);
+    }
+  };
+
+  // Fetch enrolled speakers and their reference audio on disk
+  const fetchSpeakerReferences = async () => {
+    try {
+      const res = await fetch('/api/vox/speakers');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.speakers)) {
+          setSpeakerRefs(data.speakers);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch speaker references:', err);
+    }
+  };
+
+  // Load voice profiles from JSON
+  useEffect(() => {
+    const controller = new AbortController();
+    const owner = (config.ownerName || '').trim();
+    const repo = (config.repoName || '').trim();
+    fetchJsonCandidates<any>(
+      [
+        '/voice_profiles.json',
+        './voice_profiles.json',
+        ...(owner && repo ? [`https://raw.githubusercontent.com/${owner}/${repo}/master/public/voice_profiles.json`] : []),
+      ],
+      { signal: controller.signal, validate: d => Boolean(d && d.profiles) }
+    )
+      .then(hit => {
+        if (!hit || controller.signal.aborted) return;
+        const list = Object.entries(hit.data.profiles).map(([name, prof]: [string, any]) => ({
+          name,
+          sampleCount: prof.sample_count || 1,
+          lastUpdated: prof.last_updated,
+          embeddingDim: prof.embedding?.length || 192,
+        }));
+        setVoiceProfiles(list);
       })
       .catch(() => {});
-  }, []);
 
-  // Sync Audio playback rate when WPM changes
+    fetchSpaceHealth();
+    fetchPersistedTakes();
+    fetchSpeakerReferences();
+
+    const healthInterval = setInterval(fetchSpaceHealth, 20000);
+    return () => {
+      controller.abort();
+      clearInterval(healthInterval);
+    };
+  }, [config.ownerName, config.repoName]);
+
+  // Sync Audio playback rate when changed
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.playbackRate = Math.max(0.7, Math.min(1.8, wpm / 150));
+      audioRef.current.playbackRate = playbackRate;
     }
-  }, [wpm]);
+  }, [playbackRate]);
 
   // Sync Volume & Mute
   useEffect(() => {
@@ -336,51 +264,24 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     }
   }, [volume, isMuted]);
 
-  // Real VU meter: levels come from a Web Audio AnalyserNode on the playing audio element.
+  // Real VU meter
   const vu = useAudioLevelMeter(audioRef, isPlaying, activeClip?.audioUrl);
   const vuLeft = vu.left;
   const vuRight = vu.right;
 
-  // Update preset parameters
-  const handleSelectPreset = (preset: DeliveryPreset) => {
-    setActivePreset(preset);
-    setWpm(preset.wpm);
-    setTemperature(preset.temperature);
-    setDiffusionSteps(preset.diffusionSteps);
-  };
+  // Selected speaker's reference on disk
+  const activeSpeakerRef = useMemo(() => {
+    return speakerRefs.find(r => r.name.toLowerCase() === selectedSpeaker.toLowerCase()) || null;
+  }, [speakerRefs, selectedSpeaker]);
 
-  // Reset all fine-tuning controls
+  // Reset parameters
   const handleResetControls = () => {
-    setWpm(activePreset.wpm);
-    setTemperature(activePreset.temperature);
-    setDiffusionSteps(activePreset.diffusionSteps);
-    setSelectedLanguage('en-US');
-    setCrossLingualAccent(85);
-    showToast('Fine-tuning controls reset to defaults.');
+    setDiffusionSteps(15);
+    setCfgValue(2.0);
+    showToast('Inference parameters reset to defaults (15 steps, CFG 2.0).');
   };
 
-  // Insert Emotion Chip at cursor position
-  const handleInsertChip = (chipText: string) => {
-    if (!textareaRef.current) {
-      setScriptText(prev => `${prev} ${chipText} `);
-      return;
-    }
-    const start = textareaRef.current.selectionStart || scriptText.length;
-    const end = textareaRef.current.selectionEnd || scriptText.length;
-    const before = scriptText.substring(0, start);
-    const after = scriptText.substring(end);
-    const nextText = `${before} ${chipText} ${after}`.replace(/\s{2,}/g, ' ');
-    setScriptText(nextText);
-    setTimeout(() => {
-      if (textareaRef.current) {
-        const nextPos = start + chipText.length + 2;
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(nextPos, nextPos);
-      }
-    }, 50);
-  };
-
-  // Dedicated Playback Controller
+  // Playback Controller
   const playAudioClip = async (clip: VoiceClipItem, resetTime = true) => {
     const audio = audioRef.current;
     if (!audio || !clip.audioUrl) return;
@@ -405,14 +306,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     } catch (err: any) {
       console.warn('Audio play notice:', err);
       if (err.name === 'NotAllowedError') {
-        // Autoplay blocked by browser policy without active user activation
         setPendingAutoplayClip(clip);
       }
       setIsPlaying(false);
     }
   };
 
-  // Audio Playback Handlers
   const handleTogglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -454,12 +353,16 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
   // Synthesis Action Engine
   const handleSynthesize = async () => {
     if (!scriptText.trim()) return;
+    if (activeSpeakerRef && !activeSpeakerRef.exists) {
+      showToast(`⚠️ Cannot synthesize: Reference audio for ${selectedSpeaker} is missing.`);
+      return;
+    }
+
     machineRef.current.send('START');
     setIsSynthesizing(true);
     setPendingAutoplayClip(null);
-    showToast(`⚡ Synthesizing vocal take for ${selectedSpeaker}...`);
+    showToast(`⚡ Synthesizing vocal take for ${selectedSpeaker} via ZeroGPU...`);
 
-    // Synchronously prime the audio element during user click
     if (audioRef.current) {
       audioRef.current.load();
     }
@@ -471,15 +374,11 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         body: JSON.stringify({
           speaker: selectedSpeaker,
           text: scriptText,
-          preset: activePreset.id,
           settings: {
-            wpm,
-            temperature,
             diffusionSteps,
-            language: selectedLanguage,
-            accentStrength: crossLingualAccent
-          }
-        })
+            temperature: cfgValue,
+          },
+        }),
       });
 
       if (!res.ok) {
@@ -498,42 +397,39 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       const titleSnippet = scriptText.replace(/\[[^\]]+\]/g, '').trim().slice(0, 42) + '...';
 
       const newClip: VoiceClipItem = {
-        id: `vox_${Date.now()}`,
+        id: data.filename ? data.filename.replace(/\.[^.]+$/, '') : `take_${Date.now()}`,
+        filename: data.filename || (audioUrl.split('/').pop() || ''),
         title: titleSnippet,
         text: scriptText,
         speaker: selectedSpeaker,
-        presetName: activePreset.name,
-        presetId: activePreset.id,
-        presetIcon: activePreset.icon,
         duration: realDur,
-        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
         audioUrl: audioUrl,
-        acousticSeed: `#${Math.floor(100000 + Math.random() * 900000)}`,
-        wpm,
-        temperature
+        elapsedSec: data.elapsedSec,
+        format: data.format,
+        sampleRate: data.sampleRate,
+        timesteps: data.timesteps,
+        cfg: data.cfg,
       };
 
-      // Instantly prepend to library on this same page
-      setGeneratedClips(prev => [newClip, ...prev]);
+      setGeneratedClips(prev => [newClip, ...prev.filter(c => c.id !== newClip.id)]);
       setActiveClip(newClip);
       setDuration(realDur);
       setCurrentTime(0);
 
-      // Attempt immediate playback
       await playAudioClip(newClip, true);
-
       machineRef.current.send('FINISH');
-      showToast(`🎉 Generated new voice take for ${selectedSpeaker} (${realDur.toFixed(1)}s)!`);
+      showToast(`🎉 Generated take for ${selectedSpeaker} (${realDur.toFixed(1)}s, ${data.elapsedSec}s compute)!`);
     } catch (err: any) {
-      console.warn('Synthesis notice:', err);
+      console.warn('Synthesis error:', err);
       machineRef.current.send('FAIL');
-      showToast(`⚠️ Synthesis failed, no take was created: ${err?.message || err}`);
+      showToast(`⚠️ Synthesis failed: ${err?.message || err}`);
     } finally {
       setIsSynthesizing(false);
     }
   };
 
-  // Export a clip to real WAV / MP3 file
+  // Export Active Clip to WAV / MP3
   const handleExportWav = (clip?: VoiceClipItem) => {
     const target = clip || activeClip;
     if (!target || !target.audioUrl) {
@@ -543,7 +439,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
 
     const a = document.createElement('a');
     a.href = target.audioUrl;
-    const ext = target.audioUrl.endsWith('.wav') ? 'wav' : 'mp3';
+    const ext = target.format || (target.audioUrl.endsWith('.wav') ? 'wav' : 'mp3');
     a.download = `vox_${target.speaker.toLowerCase()}_${Date.now()}.${ext}`;
     document.body.appendChild(a);
     a.click();
@@ -551,66 +447,78 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
     showToast(`💾 Exported broadcast audio take (${target.duration.toFixed(1)}s)!`);
   };
 
-  // Send a clip directly into Montage Studio
+  // Send Clip to Montage Studio
   const handleSendToMontage = (clip?: VoiceClipItem) => {
     const target = clip || activeClip;
     if (!target) return;
 
     montage.addClip({
       id: target.id,
-      title: `[VOX] ${target.title}`,
+      title: `[Vox] ${target.speaker} - ${target.title}`,
       quote: target.text,
       speaker: target.speaker,
-      sourceTitle: 'VoxCPM-2 Synthesized Voice',
+      sourceTitle: 'VoxCPM-2 Synthesizer',
       audioUrl: target.audioUrl,
       startSec: 0,
       endSec: target.duration,
       sourceDurationSec: target.duration,
       category: 'VoxCPM-2 Synthesized Voice',
-      severity: 8
+      severity: 8,
     });
 
     montage.openDrawer();
     showToast(`🎬 "${target.title}" routed into Montage Studio timeline!`);
   };
 
-  // Load a clip back into prompt editor
+  // Delete Single Take from Disk
+  const handleDeleteTake = async (id: string) => {
+    try {
+      const res = await fetch(`/api/vox/takes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      if (res.ok) {
+        setGeneratedClips(prev => {
+          const remaining = prev.filter(c => c.id !== id);
+          if (activeClip?.id === id) {
+            if (audioRef.current) audioRef.current.pause();
+            setIsPlaying(false);
+            setActiveClip(remaining[0] || null);
+            setDuration(remaining[0]?.duration || 0);
+            setCurrentTime(0);
+          }
+          return remaining;
+        });
+        showToast('🗑️ Take deleted from disk.');
+      }
+    } catch {
+      showToast('⚠️ Failed to delete take from server.');
+    }
+  };
+
+  // Clear All Takes from Disk
+  const handleClearAllTakes = async () => {
+    if (!(await appDialog.confirm({ title: 'Clear All Takes', message: 'Permanently delete all synthesized voice takes in public/output/vox/?', confirmLabel: 'Delete All', destructive: true }))) return;
+    try {
+      const res = await fetch('/api/vox/takes?all=true', { method: 'DELETE' });
+      if (res.ok) {
+        if (audioRef.current) audioRef.current.pause();
+        setIsPlaying(false);
+        setGeneratedClips([]);
+        setActiveClip(null);
+        setDuration(0);
+        setCurrentTime(0);
+        showToast('🗑️ Cleared all generated voice takes.');
+      }
+    } catch {
+      showToast('⚠️ Failed to clear takes from server.');
+    }
+  };
+
+  // Load Take Back into Editor
   const handleLoadIntoEditor = (clip: VoiceClipItem) => {
     setScriptText(clip.text);
     setSelectedSpeaker(clip.speaker);
-    const matchPreset = DELIVERY_PRESETS.find(p => p.id === clip.presetId) || DELIVERY_PRESETS[0];
-    setActivePreset(matchPreset);
-    setWpm(clip.wpm);
-    setTemperature(clip.temperature);
-    showToast(`📝 Loaded "${clip.title}" into Prompt Deck!`);
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  };
-
-  // Delete clip from session
-  const handleDeleteClip = (clipId: string) => {
-    setGeneratedClips(prev => {
-      const remaining = prev.filter(c => c.id !== clipId);
-      if (activeClip?.id === clipId && remaining.length > 0) {
-        setActiveClip(remaining[0]);
-        if (audioRef.current) {
-          audioRef.current.src = remaining[0].audioUrl;
-          audioRef.current.load();
-        }
-      }
-      return remaining;
-    });
-    showToast(`🗑️ Deleted voice take from library.`);
-  };
-
-  // Handle STS file upload
-  const handleStsFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setStsFile(file);
-      showToast(`🎙️ Loaded "${file.name}" into Speech-to-Speech Dropzone!`);
-    }
+    if (clip.timesteps) setDiffusionSteps(clip.timesteps);
+    if (clip.cfg) setCfgValue(clip.cfg);
+    showToast(`📝 Loaded "${clip.title}" into script editor.`);
   };
 
   const activeTheme = useMemo(() => getSpeakerTheme(selectedSpeaker), [selectedSpeaker]);
@@ -655,29 +563,67 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
         </div>
       )}
 
-      {/* ── TOP HEADER / ACCELERATION BADGE ── */}
+      {/* ── TOP HEADER / REAL SPACE STATUS BADGE ── */}
       <header className="px-6 py-4 border-b border-slate-800 bg-slate-900/60 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/40 text-violet-400 shadow-lg shadow-violet-500/10">
             <Mic2 size={22} />
           </div>
           <div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                 VOXCPM-2 VOICE STUDIO
               </h1>
-              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 font-mono border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                ZeroGPU Cloud Acceleration Active
-              </span>
+
+              {/* Real Space Health Pill */}
+              {spaceHealth ? (
+                <a
+                  href={spaceHealth.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono border flex items-center gap-1.5 transition-colors cursor-pointer ${
+                    spaceHealth.status === 'running'
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
+                      : spaceHealth.status === 'building'
+                      ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25'
+                      : spaceHealth.status === 'sleeping'
+                      ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25'
+                      : 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25'
+                  }`}
+                  title={`Target Space: ${spaceHealth.spaceId} (Stage: ${spaceHealth.stage}) - Click to open in Hugging Face`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      spaceHealth.status === 'running'
+                        ? 'bg-emerald-400 animate-pulse'
+                        : spaceHealth.status === 'building'
+                        ? 'bg-amber-400 animate-spin'
+                        : 'bg-slate-400'
+                    }`}
+                  />
+                  <span>
+                    ZeroGPU: {spaceHealth.displayStatus} ({spaceHealth.spaceId})
+                  </span>
+                  <ExternalLink size={10} className="opacity-70" />
+                </a>
+              ) : (
+                <button
+                  onClick={fetchSpaceHealth}
+                  disabled={isCheckingHealth}
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono border border-slate-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <RefreshCw size={10} className={isCheckingHealth ? 'animate-spin' : ''} />
+                  <span>Check Space Status</span>
+                </button>
+              )}
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Zero-Shot Vocal Cloning, Emotional SSML Tagging & Cross-Lingual Speech Synthesis
+              Zero-Shot Vocal Cloning & Cloud Audio Narration powered by OpenBMB VoxCPM-2
             </p>
           </div>
         </div>
 
-        {/* Global Studio Action Shortcuts */}
+        {/* Global Studio Actions */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -686,16 +632,16 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               setTimeout(() => setCopiedStatus(false), 2000);
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border border-slate-700 transition-all cursor-pointer"
-            title="Copy current SSML script to clipboard"
+            title="Copy current prompt text to clipboard"
           >
             {copiedStatus ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-            <span>{copiedStatus ? 'Copied' : 'Copy Script'}</span>
+            <span>{copiedStatus ? 'Copied' : 'Copy Text'}</span>
           </button>
 
           <button
             onClick={handleSynthesize}
-            disabled={isSynthesizing}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
+            disabled={isSynthesizing || !scriptText.trim() || (activeSpeakerRef !== null && !activeSpeakerRef.exists)}
+            className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-500 hover:from-violet-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSynthesizing ? <RefreshCw size={14} className="animate-spin" /> : <Zap size={14} className="fill-current" />}
             <span>{isSynthesizing ? 'Synthesizing in Cloud...' : 'Generate Voice (Ctrl+Enter)'}</span>
@@ -704,9 +650,9 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
       </header>
 
       {/* ── 3-COLUMN WORKSPACE ── */}
-      <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
-        {/* ── LEFT DOCK: VOICE PROFILE & CONDITIONING ── */}
-        <aside className="w-full lg:w-72 border-r border-slate-800 bg-slate-900/40 p-5 overflow-y-auto space-y-6">
+      <div className="flex-1 min-h-0 flex flex-col xl:flex-row overflow-y-auto xl:overflow-hidden">
+        {/* ── LEFT DOCK: VOICE PROFILE & REFERENCE AUDIO STATUS ── */}
+        <aside className="w-full xl:w-72 shrink-0 border-b xl:border-b-0 xl:border-r border-slate-800 bg-slate-900/40 p-5 pb-24 xl:overflow-y-auto space-y-6">
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
               <AudioWaveform size={14} className="text-violet-400" /> Active Voice Model
@@ -722,48 +668,58 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                   <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
                     {selectedSpeaker}
                     <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                      MASTER
+                      ENROLLED
                     </span>
                   </h4>
                   <p className="text-[11px] text-slate-400">Zero-Shot Neural Clone</p>
                 </div>
               </div>
 
-              {/* Acoustic Metrics */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80 text-[10px] font-mono">
-                <div className="p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                  <span className="text-slate-500 block">Timbre Stability</span>
-                  <span className="text-emerald-400 font-bold text-xs">98.6%</span>
-                </div>
-                <div
-                  onClick={() => {
-                    const sampleClip: VoiceClipItem = {
-                      id: 'vox_master_ref',
-                      title: 'Logan Master Reference Sample',
-                      text: 'Ten years before Hiroshima, the American presidency still belonged to a different world. This is Franklin Roosevelt at Boulder Dam in 1935.',
-                      speaker: 'Logan',
-                      presetName: 'Master Reference',
-                      presetId: 'conversational',
-                      presetIcon: '🎙️',
-                      duration: 9.3,
-                      createdAt: 'Studio Master',
-                      audioUrl: '/speaker_samples/Logan/master_reference.mp3',
-                      acousticSeed: '#942188',
-                      wpm: 145,
-                      temperature: 0.65
-                    };
-                    playAudioClip(sampleClip, true);
-                    showToast('🎙️ Auditioning Logan Master Reference Sample (9.3s)');
-                  }}
-                  className="p-2 rounded-lg bg-slate-900/60 border border-slate-800 hover:border-indigo-500/50 cursor-pointer transition-colors group"
-                  title="Click to audition Logan clean master reference audio sample"
-                >
-                  <span className="text-slate-500 block group-hover:text-indigo-300">Sample Source ▶</span>
-                  <span className="text-indigo-300 font-bold text-xs flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    9.3s Master Ref
-                  </span>
-                </div>
+              {/* Real Reference Audio Details */}
+              <div className="pt-2 border-t border-slate-800/80 text-[10px] space-y-2">
+                {activeSpeakerRef?.exists ? (
+                  <div className="p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 space-y-1.5">
+                    <div className="flex items-center justify-between text-slate-300 font-semibold">
+                      <span>Reference Audio</span>
+                      <span className="font-mono text-emerald-400">
+                        {activeSpeakerRef.duration ? `${activeSpeakerRef.duration.toFixed(1)}s` : 'Verified'}
+                      </span>
+                    </div>
+                    <div className="text-slate-400 font-mono text-[9px] truncate" title={activeSpeakerRef.filename || ''}>
+                      {activeSpeakerRef.filename} ({activeSpeakerRef.format?.toUpperCase() || 'AUDIO'})
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-slate-500 text-[9px]">
+                        {activeSpeakerRef.hasTranscript ? '✓ Transcript Synced' : 'Timbre Only'}
+                      </span>
+                      {activeSpeakerRef.audioUrl && (
+                        <button
+                          onClick={() => {
+                            if (audioRef.current && activeSpeakerRef.audioUrl) {
+                              audioRef.current.src = activeSpeakerRef.audioUrl;
+                              audioRef.current.play();
+                              setIsPlaying(true);
+                              showToast(`▶ Auditioning ${selectedSpeaker} reference sample`);
+                            }
+                          }}
+                          className="px-2 py-0.5 rounded bg-violet-600/30 hover:bg-violet-600/50 text-violet-300 text-[9px] font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Play size={9} /> Audition
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-rose-300 space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-rose-200">
+                      <AlertTriangle size={13} className="shrink-0 text-rose-400" />
+                      <span>Missing Reference Audio</span>
+                    </div>
+                    <p className="text-[9px] text-rose-300/80 leading-tight">
+                      No sample found in <code>public/speaker_samples/{selectedSpeaker}/</code>. Generation is disabled for this speaker.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Speaker Selector */}
@@ -775,12 +731,12 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                     onChange={e => setSelectedSpeaker(e.target.value)}
                     className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500"
                   >
-                    <option value="Logan">Logan (Master Host)</option>
+                    <option value="Logan">Logan (Host)</option>
                     {voiceProfiles
                       .filter(p => p.name !== 'Logan')
                       .map(p => (
                         <option key={p.name} value={p.name}>
-                          {p.name} ({p.sampleCount} clips)
+                          {p.name} ({p.sampleCount} {p.sampleCount === 1 ? 'clip' : 'clips'})
                         </option>
                       ))}
                   </select>
@@ -788,98 +744,29 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               )}
             </div>
           </div>
-
-          {/* Delivery Presets */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Sliders size={14} className="text-indigo-400" /> Delivery Presets
-            </h3>
-            <div className="space-y-2">
-              {DELIVERY_PRESETS.map(preset => {
-                const isSelected = activePreset.id === preset.id;
-                return (
-                  <button
-                    key={preset.id}
-                    onClick={() => handleSelectPreset(preset)}
-                    className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-violet-500/50 shadow-md shadow-violet-500/10'
-                        : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{preset.icon}</span>
-                        <span className={`text-xs font-bold ${isSelected ? 'text-violet-300' : 'text-slate-200'}`}>
-                          {preset.name}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-500">{preset.wpm} WPM</span>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-snug">{preset.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Preload Scripts */}
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-              <Layers size={14} className="text-amber-400" /> Template Scripts
-            </h3>
-            <div className="space-y-1.5">
-              {SAMPLE_SCRIPTS.map((s, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setScriptText(s.text);
-                    showToast(`Loaded "${s.title}" into Prompt Deck!`);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-lg bg-slate-950/60 border border-slate-800 hover:border-indigo-500/40 text-[11px] text-slate-300 hover:text-white transition-all cursor-pointer truncate"
-                  title={s.text}
-                >
-                  {s.title}
-                </button>
-              ))}
-            </div>
-          </div>
         </aside>
 
-        {/* ── CENTER DECK: SCRIPT, PLAYER & GENERATED CLIPS LIBRARY ── */}
-        <main className="flex-1 min-h-0 flex flex-col p-6 overflow-y-auto space-y-5">
-          {/* Script Editor Card */}
-          <div className="min-h-[260px] rounded-2xl bg-slate-900/50 border border-slate-800 p-5 flex flex-col shadow-xl">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+        {/* ── CENTER WORKSPACE: SCRIPT PROMPT & REAL TAKES ── */}
+        <main className="flex-1 min-w-0 min-h-0 flex flex-col p-6 pb-24 xl:overflow-y-auto space-y-6">
+          {/* SCRIPT EDITOR CARD */}
+          <div className="shrink-0 rounded-2xl bg-slate-900/60 border border-slate-800 p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Phonetic & Emotion SSML Prompt Deck
-                </span>
-                <span className="text-[11px] font-mono text-slate-500">
-                  ({scriptText.trim().split(/\s+/).filter(Boolean).length} words · ~
-                  {Math.round((scriptText.trim().split(/\s+/).filter(Boolean).length / wpm) * 60)}s est)
-                </span>
+                <FileText size={16} className="text-violet-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                  Narration Prompt Script
+                </h3>
               </div>
-
-              {/* Clickable Emotion Tag Chips */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase text-slate-500 mr-1">Insert Chip:</span>
-                {EMOTION_CHIPS.map(chip => (
-                  <button
-                    key={chip.label}
-                    onClick={() => handleInsertChip(chip.label)}
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border transition-all cursor-pointer hover:scale-105 active:scale-95 ${chip.color}`}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
+              <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
+                <span>{scriptText.split(/\s+/).filter(Boolean).length} words</span>
+                <span>{scriptText.length} chars</span>
               </div>
             </div>
 
-            {/* Script Textarea */}
-            <div className="relative flex-1">
+            <div className="relative">
               <textarea
                 ref={textareaRef}
+                rows={6}
                 value={scriptText}
                 onChange={e => setScriptText(e.target.value)}
                 onKeyDown={e => {
@@ -888,14 +775,14 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                     handleSynthesize();
                   }
                 }}
-                placeholder="Type or paste narration script here. Inject emotion chips like [laughing], [whisper], or [pause: 1.0s] to direct performance..."
-                className="w-full h-full min-h-[130px] bg-slate-950/90 border border-slate-800/80 rounded-xl p-4 text-sm font-sans text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/80 resize-none leading-relaxed tracking-wide"
+                placeholder="Type or paste narration script here. Any bracketed tags will be stripped so directions are never read aloud..."
+                className="w-full min-h-[160px] bg-slate-950/90 border border-slate-800/80 rounded-xl p-4 text-sm font-sans text-slate-100 placeholder-slate-600 focus:outline-none focus:border-indigo-500/80 resize-y leading-relaxed tracking-wide"
               />
             </div>
           </div>
 
-          {/* Waveform Player & Active Synthesis Deck */}
-          <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl space-y-4">
+          {/* ACTIVE AUDIO PLAYER */}
+          <div className="shrink-0 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-2xl space-y-4">
             {pendingAutoplayClip && (
               <div className="p-3 bg-gradient-to-r from-violet-600/90 to-indigo-600/90 border border-violet-400/50 rounded-xl flex items-center justify-between shadow-xl animate-in fade-in slide-in-from-top-1">
                 <div className="flex items-center gap-2.5 text-xs text-white font-semibold truncate">
@@ -913,133 +800,153 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleTogglePlay}
-                  className="w-11 h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-transform active:scale-95 cursor-pointer"
-                  title={isPlaying ? 'Pause' : 'Play Active Voice Take'}
-                >
-                  {isPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="fill-current ml-0.5" />}
-                </button>
-                <div>
-                  <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                    {activeClip ? activeClip.title : 'Neural Waveform Playback'}
-                    <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                      24-bit 48kHz PCM
-                    </span>
-                  </h4>
-                  <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                    {formatSeconds(currentTime)} / {formatSeconds(duration)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Dual VU meter (real levels from Web Audio) */}
-              <div className="flex items-center gap-4">
-                <div
-                  className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800"
-                  title={vu.available ? 'Live RMS level of the playing take (-60 to 0 dBFS)' : 'Level unavailable for this source (cross-origin audio cannot be analysed)'}
-                >
-                  <span className="text-[9px] font-mono text-slate-500 font-bold">L</span>
-                  <div className="w-16 h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 transition-all duration-75"
-                      style={{ width: `${vuLeft * 100}%` }}
-                    />
-                  </div>
-                  <span className="text-[9px] font-mono text-slate-500 font-bold ml-1">R</span>
-                  <div className="w-16 h-2 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 transition-all duration-75"
-                      style={{ width: `${vuRight * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Volume slider */}
-                <div className="hidden sm:flex items-center gap-2">
+            {/* Track Info & Levels Header (Clean Stacked Layout) */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <button
-                    onClick={() => setIsMuted(prev => !prev)}
-                    className="text-slate-400 hover:text-white cursor-pointer"
+                    onClick={handleTogglePlay}
+                    className="w-11 h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 transition-transform active:scale-95 cursor-pointer shrink-0"
+                    title={isPlaying ? 'Pause' : 'Play Active Voice Take'}
                   >
-                    {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                    {isPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="fill-current ml-0.5" />}
                   </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={isMuted ? 0 : volume}
-                    onChange={e => {
-                      const v = parseFloat(e.target.value);
-                      setVolume(v);
-                      setIsMuted(false);
-                    }}
-                    className="w-16 accent-indigo-500 cursor-pointer"
-                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="text-xs font-bold text-white truncate max-w-sm sm:max-w-md">
+                        {activeClip ? activeClip.title : 'Neural Audio Player'}
+                      </h4>
+                      {activeClip && (
+                        <span className="text-[10px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 shrink-0">
+                          {activeClip.format?.toUpperCase() || 'MP3'} {activeClip.sampleRate ? `${activeClip.sampleRate / 1000}kHz` : ''}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] font-mono text-slate-400 mt-0.5">
+                      {formatSeconds(currentTime)} / {formatSeconds(duration)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Meter and Speed Controls */}
+                <div className="flex items-center gap-3 self-end sm:self-center">
+                  {/* Playback speed buttons */}
+                  <div className="flex items-center bg-slate-950 rounded-xl border border-slate-800 p-0.5 text-[10px] font-mono">
+                    {[0.75, 1.0, 1.25].map(rate => (
+                      <button
+                        key={rate}
+                        onClick={() => setPlaybackRate(rate)}
+                        className={`px-2 py-1 rounded-lg transition-colors cursor-pointer ${
+                          playbackRate === rate ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {rate}×
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Dual VU meter */}
+                  <div
+                    className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800"
+                    title={vu.available ? 'Live RMS level (-60 to 0 dBFS)' : 'Level meter'}
+                  >
+                    <span className="text-[9px] font-mono text-slate-500 font-bold">L</span>
+                    <div className="w-12 h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 transition-all duration-75"
+                        style={{ width: `${vuLeft * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-mono text-slate-500 font-bold ml-1">R</span>
+                    <div className="w-12 h-2 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 transition-all duration-75"
+                        style={{ width: `${vuRight * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Volume slider */}
+                  <div className="hidden md:flex items-center gap-2">
+                    <button
+                      onClick={() => setIsMuted(prev => !prev)}
+                      className="text-slate-400 hover:text-white cursor-pointer"
+                    >
+                      {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={isMuted ? 0 : volume}
+                      onChange={e => {
+                        const v = parseFloat(e.target.value);
+                        setVolume(v);
+                        setIsMuted(false);
+                      }}
+                      className="w-14 accent-indigo-500 cursor-pointer"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Interactive Audio Waveform Track Scrubber */}
-            <div
-              onClick={handleWaveformSeek}
-              className="relative h-14 bg-slate-950 rounded-xl border border-slate-800/80 p-2 flex items-center gap-1 cursor-pointer overflow-hidden group"
-              title="Click anywhere to seek playback"
-            >
-              {/* Progress Overlay */}
+              {/* Scrubber */}
               <div
-                className="absolute left-0 top-0 bottom-0 bg-violet-500/15 border-r border-violet-400 pointer-events-none transition-all duration-75 z-10"
-                style={{ width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1)) * 100))}%` }}
-              />
-
-              {/* Seek bar segments */}
-              {Array.from({ length: 64 }).map((_, i) => {
-                const progressRatio = i / 64;
-                const isPlayed = progressRatio <= currentTime / (duration || 1);
-                // Uniform seek bar: no per-take waveform data is computed, so none is drawn.
-                const barHeight = 40;
-                return (
-                  <div
-                    key={i}
-                    className={`flex-1 rounded-full transition-all duration-75 ${
-                      isPlayed
-                        ? 'bg-gradient-to-t from-violet-500 to-indigo-400'
-                        : 'bg-slate-800 group-hover:bg-slate-700'
-                    }`}
-                    style={{ height: `${barHeight}%` }}
-                  />
-                );
-              })}
-            </div>
-
-            {/* Quick Export / Route Buttons */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleExportWav()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer"
-                >
-                  <Download size={13} /> Export Active Audio
-                </button>
-                <button
-                  onClick={() => handleSendToMontage()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 transition-colors cursor-pointer"
-                >
-                  <Film size={13} /> Send to Montage Studio
-                </button>
+                onClick={handleWaveformSeek}
+                className="relative h-12 bg-slate-950 rounded-xl border border-slate-800/80 p-2 flex items-center gap-1 cursor-pointer overflow-hidden group"
+                title="Click anywhere to seek"
+              >
+                <div
+                  className="absolute left-0 top-0 bottom-0 bg-violet-500/15 border-r border-violet-400 pointer-events-none transition-all duration-75 z-10"
+                  style={{ width: `${Math.min(100, Math.max(0, (currentTime / (duration || 1)) * 100))}%` }}
+                />
+                {Array.from({ length: 64 }).map((_, i) => {
+                  const progressRatio = i / 64;
+                  const isPlayed = progressRatio <= currentTime / (duration || 1);
+                  return (
+                    <div
+                      key={i}
+                      className={`flex-1 rounded-full transition-all duration-75 ${
+                        isPlayed
+                          ? 'bg-gradient-to-t from-violet-500 to-indigo-400'
+                          : 'bg-slate-800 group-hover:bg-slate-700'
+                      }`}
+                      style={{ height: '40%' }}
+                    />
+                  );
+                })}
               </div>
 
-              <span className="text-[11px] font-mono text-slate-500">
-                Acoustic Seed: {activeClip?.acousticSeed || '#791046'} · Latency: 280ms
-              </span>
+              {/* Action Buttons & Real Server Stats */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleExportWav()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer"
+                  >
+                    <Download size={13} /> Export Active Audio
+                  </button>
+                  <button
+                    onClick={() => handleSendToMontage()}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 transition-colors cursor-pointer"
+                  >
+                    <Film size={13} /> Send to Montage Studio
+                  </button>
+                </div>
+
+                {activeClip?.elapsedSec !== undefined && (
+                  <span className="text-[11px] font-mono text-slate-400">
+                    Compute: {activeClip.elapsedSec}s · {activeClip.timesteps || 15} steps · CFG {activeClip.cfg || 2.0}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* ── GENERATED VOICE CLIPS LIBRARY (ON THIS SAME PAGE) ── */}
-          <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
+          {/* ── REAL GENERATED VOICE CLIPS LIBRARY ── */}
+          <div className="shrink-0 rounded-2xl bg-slate-900/80 border border-slate-800 p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2.5">
                 <div className="p-1.5 rounded-lg bg-violet-500/20 text-violet-400 border border-violet-500/30">
                   <Radio size={16} />
@@ -1048,27 +955,21 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                   <h3 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
                     Generated Voice Clips Library
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-mono border border-violet-500/30">
-                      {generatedClips.length} {generatedClips.length === 1 ? 'Take' : 'Takes'} Generated
+                      {generatedClips.length} {generatedClips.length === 1 ? 'Take' : 'Takes'} Persisted
                     </span>
                   </h3>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Clips generated from the prompt deck appear here instantly. Audition inline, export 48kHz audio, or send straight into Montage Studio.
+                    Audio takes saved to <code>public/output/vox/</code>. Audition, download, or delete per take.
                   </p>
                 </div>
               </div>
 
               {generatedClips.length > 0 && (
                 <button
-                  onClick={() => {
-                    if (confirm('Reset generated takes library to default master takes?')) {
-                      setGeneratedClips(DEFAULT_GENERATED_CLIPS);
-                      setActiveClip(DEFAULT_GENERATED_CLIPS[0]);
-                      showToast('Reset library to master takes.');
-                    }
-                  }}
-                  className="text-[11px] text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  onClick={handleClearAllTakes}
+                  className="text-[11px] text-slate-500 hover:text-rose-400 transition-colors cursor-pointer flex items-center gap-1"
                 >
-                  Reset Library
+                  <Trash2 size={12} /> Clear All Takes
                 </button>
               )}
             </div>
@@ -1076,7 +977,8 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
             {/* Clips List */}
             {generatedClips.length === 0 ? (
               <div className="p-8 text-center rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-500 text-xs">
-                No voice clips generated yet. Hit <span className="text-violet-400 font-semibold">Generate Voice (Ctrl+Enter)</span> above to render your first audio take!
+                No generated voice takes yet. Type a narration prompt above and click{' '}
+                <span className="text-violet-400 font-semibold">Generate Voice (Ctrl+Enter)</span> to render your first audio take!
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -1094,7 +996,6 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        {/* Play & Info */}
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <button
                             onClick={() => handlePlayClip(clip)}
@@ -1114,16 +1015,17 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                               <span className="text-[10px] font-mono font-bold text-violet-300 bg-violet-500/20 px-2 py-0.5 rounded border border-violet-500/30">
                                 {clip.speaker}
                               </span>
-                              <span className="text-[10px] font-mono text-cyan-300 bg-cyan-500/15 px-2 py-0.5 rounded border border-cyan-500/30 flex items-center gap-1">
-                                <span>{clip.presetIcon}</span>
-                                <span>{clip.presetName}</span>
-                              </span>
                               <span className="text-[10px] font-mono text-emerald-400 font-bold">
                                 {clip.duration.toFixed(1)}s
                               </span>
-                              <span className="text-[10px] font-mono text-slate-500">
+                              <span className="text-[10px] font-mono text-slate-400">
                                 {clip.createdAt}
                               </span>
+                              {clip.elapsedSec !== undefined && (
+                                <span className="text-[10px] font-mono text-slate-500">
+                                  ({clip.elapsedSec}s)
+                                </span>
+                              )}
                             </div>
 
                             <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-serif italic">
@@ -1132,7 +1034,7 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                           </div>
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Actions */}
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={() => handleLoadIntoEditor(clip)}
@@ -1156,8 +1058,8 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
                             <Film size={12} /> To Montage
                           </button>
                           <button
-                            onClick={() => handleDeleteClip(clip.id)}
-                            title="Delete Take"
+                            onClick={() => handleDeleteTake(clip.id)}
+                            title="Delete Take from Disk"
                             className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
                           >
                             <Trash2 size={14} />
@@ -1172,164 +1074,70 @@ export const VoxStudio: React.FC<Props> = ({ config }) => {
           </div>
         </main>
 
-        {/* ── RIGHT DRAWER: SYNTHESIS PARAMETER CONTROLS ── */}
-        <aside className="w-full lg:w-80 border-l border-slate-800 bg-slate-900/40 p-5 overflow-y-auto space-y-6">
+        {/* ── RIGHT DOCK: REAL MODEL PARAMETERS ── */}
+        <aside className="w-full xl:w-80 shrink-0 border-t xl:border-t-0 xl:border-l border-slate-800 bg-slate-900/40 p-5 pb-24 xl:overflow-y-auto space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Settings2 size={14} className="text-indigo-400" /> Fine-Tuning Controls
+              <Sliders size={14} className="text-indigo-400" /> VoxCPM-2 Parameters
             </h3>
             <button
               onClick={handleResetControls}
               className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1 cursor-pointer"
-              title="Reset parameters to current preset defaults"
+              title="Reset parameters to defaults"
             >
               <RotateCcw size={11} /> Reset
             </button>
           </div>
-          <p className="text-[10px] text-amber-300/80 leading-tight -mt-3">
-            The Hugging Face Space synthesis path uses only the text and speaker. Diffusion steps, temperature,
-            language and accent below are sent to a custom VOXCPM_API_URL server if one is configured, and are otherwise not applied.
-          </p>
 
           {/* Diffusion Steps Slider */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+          <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300 font-semibold">Diffusion Steps</span>
+              <span className="text-slate-300 font-semibold">Diffusion Timesteps</span>
               <span className="font-mono text-indigo-400 font-bold">{diffusionSteps}</span>
             </div>
             <input
               type="range"
-              min="15"
-              max="60"
-              step="5"
+              min="10"
+              max="30"
+              step="1"
               value={diffusionSteps}
               onChange={e => setDiffusionSteps(parseInt(e.target.value, 10))}
               className="w-full accent-indigo-500 cursor-pointer"
             />
             <p className="text-[10px] text-slate-500 leading-tight">
-              Higher steps deliver crisper acoustic fidelity and breath naturalness.
+              Inference timesteps (10–30). Higher values enhance acoustic definition and clarity; lower values synthesize faster.
             </p>
           </div>
 
-          {/* Acoustic Temperature Slider */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+          {/* Acoustic Guidance (CFG) Slider */}
+          <div className="space-y-1.5 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300 font-semibold">Acoustic Temperature</span>
-              <span className="font-mono text-indigo-400 font-bold">{temperature.toFixed(2)}</span>
+              <span className="text-slate-300 font-semibold">Acoustic Guidance (CFG)</span>
+              <span className="font-mono text-indigo-400 font-bold">{cfgValue.toFixed(1)}</span>
             </div>
             <input
               type="range"
-              min="0.3"
-              max="1.1"
-              step="0.05"
-              value={temperature}
-              onChange={e => setTemperature(parseFloat(e.target.value))}
+              min="1.0"
+              max="5.0"
+              step="0.1"
+              value={cfgValue}
+              onChange={e => setCfgValue(parseFloat(e.target.value))}
               className="w-full accent-indigo-500 cursor-pointer"
             />
             <p className="text-[10px] text-slate-500 leading-tight">
-              Controls expressive variability. 0.7 is the sweet spot for natural speech.
+              Classifier-Free Guidance scale (1.0–5.0). Controls adherence to the speaker reference timbre.
             </p>
           </div>
 
-          {/* Playback speed (HTMLMediaElement.playbackRate) */}
-          <div className="space-y-1.5 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300 font-semibold">Playback speed</span>
-              <span className="font-mono text-indigo-400 font-bold">{Math.max(0.7, Math.min(1.8, wpm / 150)).toFixed(2)}x ({wpm} WPM est.)</span>
+          {/* Space Architecture Note */}
+          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1.5 text-[11px] text-slate-400">
+            <div className="flex items-center gap-1.5 font-bold text-slate-300">
+              <Info size={13} className="text-indigo-400" />
+              <span>ZeroGPU Pipeline</span>
             </div>
-            <input
-              type="range"
-              min="110"
-              max="210"
-              step="5"
-              value={wpm}
-              onChange={e => setWpm(parseInt(e.target.value, 10))}
-              className="w-full accent-indigo-500 cursor-pointer"
-            />
-            <p className="text-[10px] text-slate-500 leading-tight">
-              Changes the playback rate of the take in this player (rate = WPM / 150). It does not change how the voice is synthesized.
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Execution runs on dynamic NVIDIA RTX PRO 6000 hardware in your dedicated Hugging Face ZeroGPU Space with automatic token failover.
             </p>
-          </div>
-
-          {/* Cross-Lingual Accent Translation */}
-          <div className="space-y-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300 font-semibold flex items-center gap-1.5">
-                <Globe size={13} className="text-cyan-400" /> Target Language
-              </span>
-              <span className="font-mono text-cyan-400 text-[10px] font-bold">{selectedLanguage}</span>
-            </div>
-            <select
-              value={selectedLanguage}
-              onChange={e => setSelectedLanguage(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
-            >
-              <option value="en-US">English (United States)</option>
-              <option value="en-GB">English (British Broadcast)</option>
-              <option value="es-ES">Spanish (Castilian)</option>
-              <option value="fr-FR">French</option>
-              <option value="de-DE">German</option>
-              <option value="ja-JP">Japanese</option>
-            </select>
-            <div className="pt-2">
-              <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                <span>Timbre Retention</span>
-                <span className="font-mono text-cyan-400">{crossLingualAccent}%</span>
-              </div>
-              <input
-                type="range"
-                min="50"
-                max="100"
-                step="5"
-                value={crossLingualAccent}
-                onChange={e => setCrossLingualAccent(parseInt(e.target.value, 10))}
-                className="w-full accent-cyan-500 cursor-pointer"
-              />
-            </div>
-          </div>
-
-          {/* Speech-to-Speech (STS) Re-voicing Dropzone */}
-          <div className="space-y-2 p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-            <span className="text-xs font-semibold text-slate-300 block">Speech-to-Speech (STS) Mode</span>
-            <p className="text-[10px] text-slate-500 leading-tight">
-              Upload a rough phone recording or voice memo to re-voice it with your master studio microphone profile.
-            </p>
-            <input
-              type="file"
-              ref={stsInputRef}
-              accept="audio/*"
-              className="hidden"
-              onChange={handleStsFileChange}
-            />
-            {stsFile ? (
-              <div className="p-2.5 rounded-lg bg-violet-950/40 border border-violet-500/40 space-y-2">
-                <div className="flex items-center justify-between text-xs text-violet-300 font-semibold truncate">
-                  <span className="truncate flex items-center gap-1.5">
-                    <AudioWaveform size={14} className="text-violet-400 shrink-0" />
-                    {stsFile.name}
-                  </span>
-                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                    {(stsFile.size / 1024).toFixed(0)} KB
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    showToast(`🎙️ Re-voicing "${stsFile.name}" with Logan Master profile...`);
-                    handleSynthesize();
-                  }}
-                  className="w-full py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md shadow-violet-600/30"
-                >
-                  Apply Logan Voice Profile
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => stsInputRef.current?.click()}
-                className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-lg text-xs text-slate-300 font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-              >
-                <Upload size={13} /> Select Audio File
-              </button>
-            )}
           </div>
         </aside>
       </div>

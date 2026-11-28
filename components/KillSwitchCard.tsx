@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, ShieldCheck, PauseCircle, PowerOff, AlertTriangle, RefreshCw } from 'lucide-react';
+import { safeFetchJson, safeReadErrorPayload } from '../utils/safeFetch';
 
 export type KillSwitchLevel = 'resume' | 'pause' | 'permanent';
 
@@ -12,11 +13,8 @@ export const KillSwitchCard: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/ascension/kill-switch');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.level) setLevel(data.level);
-      }
+      const data = await safeFetchJson<{ level?: KillSwitchLevel }>('/api/ascension/kill-switch');
+      if (data?.level) setLevel(data.level);
     } catch {
       // Offline fallback
     }
@@ -44,8 +42,18 @@ export const KillSwitchCard: React.FC = () => {
           reason: reason.trim() || `Manual toggle to ${targetLevel} by operator`,
         }),
       });
+      if (!res.ok) {
+        const errInfo = await safeReadErrorPayload(res);
+        setStatusMessage(errInfo.isHtml ? 'Ascension API unavailable in static mode.' : errInfo.message);
+        return;
+      }
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      if (ct.includes('text/html')) {
+        setStatusMessage('Ascension API unavailable in static mode.');
+        return;
+      }
       const data = await res.json();
-      if (res.ok && data.level) {
+      if (data.level) {
         setLevel(data.level);
         setStatusMessage(`Kill switch updated to: ${data.level.toUpperCase()}`);
         window.dispatchEvent(new CustomEvent('spacepipe:kill-switch', { detail: { level: data.level } }));

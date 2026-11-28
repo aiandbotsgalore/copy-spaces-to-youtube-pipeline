@@ -7,6 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AudioLines, Download, Film, Loader2, Mic, Pause, Play, Square } from 'lucide-react';
 import { useMontage } from '../contexts/MontageContext';
 import { usePlayer } from '../contexts/PlayerContext';
+import { appDialog } from '../contexts/DialogContext';
 import { getCachedAudioUrl } from '../utils/audioCache';
 import { toFetchableUrl } from '../utils/audioUrl';
 import { countTakes } from '../utils/scriptAudio';
@@ -126,12 +127,12 @@ export function AudioPanel({ project, head, dirty, roles, runActive, preview, on
     return c;
   };
 
-  const sendToMontage = () => {
+  const sendToMontage = async () => {
     const c = compile();
     if (!c || !c.ok) return;
-    if (montage.clips.length && !window.confirm(`Replace the ${montage.clips.length} clips on the Montage timeline with this script (${c.items.length} items)? Undo in Montage brings them back.`)) return;
+    if (montage.clips.length && !(await appDialog.confirm({ title: 'Replace Montage Timeline', message: `Replace the ${montage.clips.length} clips on the Montage timeline with this script (${c.items.length} items)? Undo in Montage brings them back.`, confirmLabel: 'Replace Timeline' }))) return;
     montage.replaceClips(c.items.map(i => i.item));
-    setNotice(`Sent ${c.items.length} items to Montage Studio${c.markers.length ? `; ${c.markers.length} music markers are listed below for you to place outside the app` : ''}.`);
+    setNotice(`Sent ${c.items.length} items to Montage Studio${c.markers.length ? `; ${c.markers.length} music markers listed below for you to place outside the app` : ''}.`);
     onOpenMontage?.();
   };
 
